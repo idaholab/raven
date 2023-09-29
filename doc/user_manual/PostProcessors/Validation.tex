@@ -9,14 +9,15 @@ Several post-processors are available for model validation:
 \begin{itemize}
   \item  \textbf{Probabilistic}, using probabilistic method for validation, can be used for both static and time-dependent problems.
   \item  \textbf{PPDSS}, using dynamic system scaling method for validation, can only be used for time-dependent problems.
-  \item  \textbf{Representativity}, using represntativity (bias) factor for validation, currently, can be used for static data.
-  % \item  \textbf{PCM}
+  \item  \textbf{Representativity}, using representativity (bias) factor for validation, currently, can be used for static data.
+  \item  \textbf{PCM}, using Physics-guided Coverage Mapping method for validation, can be used for static and time-dependent problems.
 \end{itemize}
 %
 
 The choices of the available metrics and acceptable data objects are specified in table \ref{tab:ValidationAlgorithms}.
 
 \begin{table}[]
+\centering
 \caption{Validation Algorithms and respective available metrics and DataObjects}
 \label{tab:ValidationAlgorithms}
 \begin{tabular}{|c|c|c|}
@@ -25,12 +26,13 @@ The choices of the available metrics and acceptable data objects are specified i
 Probabilistic                 & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}CDFAreaDifference\\ \\ PDFCommonArea\end{tabular} \\ \hline
 Representativity              & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet \\DataSet\end{tabular} & \begin{tabular}[c]{@{}c@{}}\end{tabular} \\ \hline
 PPDSS                         & HistorySet                                                     & DSS                                                           \\ \hline
+PCM                           & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}\end{tabular} \\ \hline
 \end{tabular}
 \end{table}
 
 These post-processors can accept multiple \textbf{DataObjects} as inputs. When multiple DataObjects are provided,
 The user can use $DataObjectName|InputOrOutput|VariableName$ nomenclature to specify the variable
-in \xmlNode{Features} and \xmlNode{Targets} for comparison.
+in \xmlNode{prototypeOutputs} and \xmlNode{targetOutputs} for comparison.
 
 \paragraph{Probabilistic}
 The \textbf{Probabilistic} specify that the validation needs to be performed
@@ -42,10 +44,10 @@ or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea})
 %
 
 \begin{itemize}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
-  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
-    targets. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}. In this case, the
-    number of targets should be equal to the number of features.
+  \item \xmlNode{prototypeOutputs}, \xmlDesc{comma separated string, required field}, specifies the names of the prototype outputs.
+  \item \xmlNode{targetOutputs}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+    targetOutputs. \nb Each target output is paired with a feature listed in xml node \xmlNode{prototypeOutputs}. In this case, the
+    number of target outputs should be equal to the number of prototype outputs.
   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field if HistorySet is used}, specifies the pivotParameter for a <HistorySet>.
     The pivot parameter is the shared index of the output variables in the data object.
   \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
@@ -70,8 +72,8 @@ or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea})
   <Models>
     ...
     <PostProcessor name="pp1" subType="Probabilistic">
-      <Features>outputDataMC1|ans</Features>
-      <Targets>outputDataMC2|ans2</Targets>
+      <prototypeOutputs>outputDataMC1|ans</prototypeOutputs>
+      <targetOutputs>outputDataMC2|ans2</targetOutputs>
       <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
       <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
     </PostProcessor>
@@ -117,10 +119,10 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
       \end{itemize}
     \item \xmlNode{scaleBeta}, \xmlDesc{float or comma separated list of floats, required field}, specifies the parameter of interest scaling ratio between the feature and target.
     To provide more than one scaling factor, separate by adding a comma in between each number. Providing more than one scaling factor presumes there are more than one parameter to be post-processed.
-    If so, \xmlNode{Features}, \xmlNode{Targets}, and \xmlNode{scaleOmega} must have the same number scaling factors.
+    If so, \xmlNode{prototypeOutputs}, \xmlNode{targetOutputs}, and \xmlNode{scaleOmega} must have the same number scaling factors.
     \item \xmlNode{scaleOmega}, \xmlDesc{float or comma separated list of floats, required field}, specifies the agents of change scaling ratio between the feature and target.
     To provide more than one scaling factor, separate by adding a comma in between each number. Providing more than one scaling factor presumes there are more than one parameter to be post-processed.
-    If so, \xmlNode{Features}, \xmlNode{Targets}, and \xmlNode{scaleBeta} must have the same number scaling factors.
+    If so, \xmlNode{prototypeOutputs}, \xmlNode{targetOutputs}, and \xmlNode{scaleBeta} must have the same number scaling factors.
 \end{itemize}
 
 \textbf{Example:}
@@ -134,8 +136,8 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
   <Models>
     ...
     <PostProcessor name="pp2" subType="PPDSS">
-      <Features>outMC1|x1,outMC1|y1</Features>
-      <Targets>outMC2|x2,outMC2|y2</Targets>
+      <prototypeOutputs>outMC1|x1,outMC1|y1</prototypeOutputs>
+      <targetOutputs>outMC2|x2,outMC2|y2</targetOutputs>
       <Metric class="Metrics" type="Metric">dss</Metric>
       <pivotParameterFeature>time1</pivotParameterFeature>
       <pivotParameterTarget>time2</pivotParameterTarget>
@@ -148,7 +150,6 @@ using the PPDSS metrics: the dynamic system scaling metric, e.g., \textbf{DSS} (
   ...
 <Simulation>
 \end{lstlisting}
-
 
 \paragraph{Representativity}
 The \textbf{Representativity} post-processor is one of three \textbf{Validation} post-processors, in fact there is a
@@ -167,12 +168,12 @@ Neutronics community \cite{Gandini, palmiotti1, palmiotti2}, then lately, was tr
 %
 
 \begin{itemize}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of  the features, which can be the measuables/observables of the mock model. Reader should be warned that this nomenclature is different than the Machine learning nomenclature.
+  \item \xmlNode{prototypeOutputs}, \xmlDesc{comma separated string, required field}, specifies the names of  the prototypeOutputs, which can be the measuables/observables of the mock model. Reader should be warned that this nomenclature is different than the Machine learning nomenclature.
 
-  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
-     targets. These are the Figures of merit (FOMs) in the target model against which the mock model is being validated.
+  \item \xmlNode{targetOutputs}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+     targetOutputs. These are the Figures of merit (FOMs) in the target model against which the mock model is being validated.
 
-    \item \xmlNode{featureParameters}, \xmlDesc{comma separated string, required field}, specifies the names of  the parameters/inputs to the mock model.
+    \item \xmlNode{prototypeParameters}, \xmlDesc{comma separated string, required field}, specifies the names of  the parameters/inputs to the mock model.
 
     \item \xmlNode{targetParameters}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
     target parameters/inputs.
@@ -261,90 +262,173 @@ The \xmlNode{Output} node of the \xmlNode{PointSet} the \xmlNode{Representativit
 
 \end{itemize}
 
+\textbf{Example: Representativity}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+  <Simulation>
+  ...
+    <Steps>
+      <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">linModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+      <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
+    </PostProcess>
+    </Steps>
+  ...
+    <Models>
+  ...
+    <PostProcessor name="pp1" subType="Representativity">
+      <prototypeOutputs>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</prototypeOutputs>
+      <targetOutputs>outputDataMC2|F1, outputDataMC2|F2, outputDataMC2|F3</targetOutputs>
+      <prototypeParameters>outputDataMC1|p1,outputDataMC1|p2</prototypeParameters>
+      <targetParameters>outputDataMC2|p1,outputDataMC2|p2</targetParameters>
+      <pivotParameter>outputDataMC1|time</pivotParameter>
+    </PostProcessor>
+  ...
+  <Models>
+  ...
+  <PointSet name="pp1_metric">
+    <Input>InputPlaceHolder</Input>
+    <Output>
+      BiasFactor_MockF1_TarFOM1,
+      BiasFactor_MockF1_TarFOM2,
+      BiasFactor_MockF1_TarFOM3,
+      BiasFactor_MockF2_TarFOM1,
+      BiasFactor_MockF2_TarFOM2,
+      BiasFactor_MockF2_TarFOM3,
+      BiasFactor_MockF3_TarFOM1,
+      BiasFactor_MockF3_TarFOM2,
+      BiasFactor_MockF3_TarFOM3,
+      ExactBiasFactor_MockF1_TarFOM1,
+      ExactBiasFactor_MockF1_TarFOM2,
+      ExactBiasFactor_MockF1_TarFOM3,
+      ExactBiasFactor_MockF2_TarFOM1,
+      ExactBiasFactor_MockF2_TarFOM2,
+      ExactBiasFactor_MockF2_TarFOM3,
+      ExactBiasFactor_MockF3_TarFOM1,
+      ExactBiasFactor_MockF3_TarFOM2,
+      ExactBiasFactor_MockF3_TarFOM3,
+      CorrectedParameters_p1,
+      CorrectedParameters_p2,
+      CorrectedTargets_FOM1,
+      CorrectedTargets_FOM2,
+      CorrectedTargets_FOM3,
+      VarianceInCorrectedParameters_p1,
+      VarianceInCorrectedParameters_p2,
+      CovarianceInCorrectedParameters_p1_p2,
+      CovarianceInCorrectedParameters_p2_p1,
+      CorrectedVar_TarFOM1,
+      CorrectedVar_TarFOM2,
+      CorrectedVar_TarFOM3,
+      ExactCorrectedVar_TarFOM1,
+      ExactCorrectedVar_TarFOM2,
+      ExactCorrectedVar_TarFOM3,
+      CorrectedCov_TarFOM1_TarFOM2,
+      CorrectedCov_TarFOM2_TarFOM1,
+      CorrectedCov_TarFOM1_TarFOM3,
+      CorrectedCov_TarFOM3_TarFOM1,
+      CorrectedCov_TarFOM2_TarFOM3,
+      CorrectedCov_TarFOM3_TarFOM2,
+      ExactCorrectedCov_TarFOM1_TarFOM2,
+      ExactCorrectedCov_TarFOM2_TarFOM1,
+      ExactCorrectedCov_TarFOM1_TarFOM3,
+      ExactCorrectedCov_TarFOM3_TarFOM1,
+      ExactCorrectedCov_TarFOM2_TarFOM3,
+      ExactCorrectedCov_TarFOM3_TarFOM2
+    </Output>
+  </PointSet>
+  ...
+  <Simulation>
+  \end{lstlisting}
 
-\textbf{Example:}
+\paragraph{PCM}
+\textbf{PCM} evaluates the uncertainty reduction fraction and obtain posterior distribution of Target
+when using Feature(s) to validate each Target via Physics-guided Coverage Mapping (PCM) method. There are
+three versions of PCM so far: `Static', `Snapshot', and `Tdep'. Static PCM is for static problem, and Snapshot PCM
+and Tdep PCM are for time-dependent problem.
+
+\begin{itemize}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, defaulted as `time', and required by Snapshot and Tdep PCM.
+  \item \xmlNode{prototypeOutputs}, \xmlDesc{comma separated string, required field}, specifies the names of the prototypeOutputs.
+  \item \xmlNode{targetOutputs}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+     targetOutputs. \nb Each target will be validated using all prototypeOutputs listed in xml node \xmlNode{prototypeOutputs}. The
+    number of targetOutputs is not necessarily equal to the number of prototypeOutputs.
+  \item \xmlNode{Measurements}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+     measurements of the features. \nb Each measurement correspond to a feature listed in xml node \xmlNode{prototypeOutputs}. The
+    number of measurements should be equal to the number of prototypeOutputs and in the same order as the prototypeOutputs listed in \xmlNode{prototypeOutputs}.
+  \item \xmlNode{pcmType}, \xmlDesc{string, required field}, contains the string given by users to choose the version
+    of PCM to be applied. \nb It has three options: `Static', `Snapshot', and `Tdep', corresponding to the three PCM versions.
+  \item \xmlNode{ReconstructionError}, \xmlDesc{float, optional field}, contains the value given by users to determind the
+    reconstruction error corresponding to rank of time series data. Default value is 0.001 if not given.
+\end{itemize}
+
+The output of Static PCM is comma separated list of strings in the format of ``pri\textunderscore post\textunderscore stdReduct\textunderscore [targetName]'',
+where [targetName] is the $VariableName$ specified in DataObject of \xmlNode{targetOutputs}.
+The output of Snapshot PCM includes two comma separated lists ``time'' and  ``snapshot\textunderscore pri\textunderscore post\textunderscore stdReduct'',
+which corresponding to the timesteps and uncertainty reduction fraction of the time-series Target data specified in DataObject of \xmlNode{targetOutputs}.
+The output of Tdep PCM includes three comma separated lists ``time'', ``Tdep\textunderscore post\textunderscore mean'', and ``Error'',
+which corresponding to the timesteps, posterior mean, and error between posterior and prior Target data specified in DataObject of \xmlNode{targetOutputs}.
+
+\textbf{Example: Static PCM}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+  <Simulation>
+    ...
+    <Models>
+      ...
+      <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
+        <prototypeOutputs>outputDataMC1|F1,outputDataMC1|F2</prototypeOutputs>
+        <targetOutputs>outputDataMC2|F2,outputDataMC2|F3,outputDataMC2|F4</targetOutputs>
+        <Measurements>msrData|F1,msrData|F2</Measurements>
+      </PostProcessor>
+      ...
+    <Models>
+    ...
+  <Simulation>
+\end{lstlisting}
+
+\textbf{Example: Snapshot PCM}
 \begin{lstlisting}[style=XML,morekeywords={subType}]
 <Simulation>
-...
-  <Steps>
-    <MultiRun name="mcRun" re-seeding="20021986">
-	  <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
-	  <Model class="Models" type="ExternalModel">linModel</Model>
-	  <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-	  <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
-	  <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
-	</MultiRun>
-	<PostProcess name="PP1">
-	  <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
-	  <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
-	  <Model class="Models" type="PostProcessor">pp1</Model>
-	  <Output class="DataObjects" type="PointSet">pp1_metric</Output>
-	  <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
-	</PostProcess>
-  </Steps>
-...
+  ...
   <Models>
-...
-	<PostProcessor name="pp1" subType="Representativity">
-	  <Features>outputDataMC1|F1, outputDataMC1|F2, outputDataMC1|F3</Features>
-	  <Targets>outputDataMC2|F1, outputDataMC2|F2, outputDataMC2|F3</Targets>
-	  <featureParameters>outputDataMC1|p1,outputDataMC1|p2</featureParameters>
-	  <targetParameters>outputDataMC2|p1,outputDataMC2|p2</targetParameters>
-	  <pivotParameter>outputDataMC1|time</pivotParameter>
-	</PostProcessor>
-...
-<Models>
-...
-<PointSet name="pp1_metric">
-  <Input>InputPlaceHolder</Input>
-  <Output>
-    BiasFactor_MockF1_TarFOM1,
-    BiasFactor_MockF1_TarFOM2,
-    BiasFactor_MockF1_TarFOM3,
-    BiasFactor_MockF2_TarFOM1,
-    BiasFactor_MockF2_TarFOM2,
-    BiasFactor_MockF2_TarFOM3,
-    BiasFactor_MockF3_TarFOM1,
-    BiasFactor_MockF3_TarFOM2,
-    BiasFactor_MockF3_TarFOM3,
-    ExactBiasFactor_MockF1_TarFOM1,
-    ExactBiasFactor_MockF1_TarFOM2,
-    ExactBiasFactor_MockF1_TarFOM3,
-    ExactBiasFactor_MockF2_TarFOM1,
-    ExactBiasFactor_MockF2_TarFOM2,
-    ExactBiasFactor_MockF2_TarFOM3,
-    ExactBiasFactor_MockF3_TarFOM1,
-    ExactBiasFactor_MockF3_TarFOM2,
-    ExactBiasFactor_MockF3_TarFOM3,
-    CorrectedParameters_p1,
-    CorrectedParameters_p2,
-    CorrectedTargets_FOM1,
-    CorrectedTargets_FOM2,
-    CorrectedTargets_FOM3,
-    VarianceInCorrectedParameters_p1,
-    VarianceInCorrectedParameters_p2,
-    CovarianceInCorrectedParameters_p1_p2,
-    CovarianceInCorrectedParameters_p2_p1,
-    CorrectedVar_TarFOM1,
-    CorrectedVar_TarFOM2,
-    CorrectedVar_TarFOM3,
-    ExactCorrectedVar_TarFOM1,
-    ExactCorrectedVar_TarFOM2,
-    ExactCorrectedVar_TarFOM3,
-    CorrectedCov_TarFOM1_TarFOM2,
-    CorrectedCov_TarFOM2_TarFOM1,
-    CorrectedCov_TarFOM1_TarFOM3,
-    CorrectedCov_TarFOM3_TarFOM1,
-    CorrectedCov_TarFOM2_TarFOM3,
-    CorrectedCov_TarFOM3_TarFOM2,
-    ExactCorrectedCov_TarFOM1_TarFOM2,
-    ExactCorrectedCov_TarFOM2_TarFOM1,
-    ExactCorrectedCov_TarFOM1_TarFOM3,
-    ExactCorrectedCov_TarFOM3_TarFOM1,
-    ExactCorrectedCov_TarFOM2_TarFOM3,
-    ExactCorrectedCov_TarFOM3_TarFOM2
-  </Output>
-</PointSet>
-...
+    ...
+    <PostProcessor name="pcm_snapshot" subType="PhysicsGuidedCoverageMapping">
+      <pivotParameter>time</pivotParameter>
+      <prototypeOutputs>exp|TempC</prototypeOutputs>
+      <targetOutputs>app|TempD</targetOutputs>
+      <Measurements>msr|TempMsrC</Measurements>
+      <pcmType>Snapshot</pcmType>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
+\textbf{Example: Tdep PCM}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pcm_Tdep" subType="PhysicsGuidedCoverageMapping">
+      <pivotParameter>time</pivotParameter>
+      <prototypeOutputs>exp|TempC</prototypeOutputs>
+      <targetOutputs>app|TempD</targetOutputs>
+      <Measurements>msr|TempMsrC</Measurements>
+      <pcmType>Tdep</pcmType>
+      <ReconstructionError>0.001</ReconstructionError>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
 <Simulation>
 \end{lstlisting}

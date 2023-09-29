@@ -42,6 +42,7 @@ from .Validations import Representativity
 from .Validations import PPDSS
 from .Validations import PhysicsGuidedCoverageMapping
 from .TSACharacterizer import TSACharacterizer
+from .SparseSensing import SparseSensing
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay

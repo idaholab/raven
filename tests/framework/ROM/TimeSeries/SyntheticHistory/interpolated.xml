@@ -40,13 +40,13 @@
   </Steps>
 
   <Files>
-    <Input name="infile">../TrainingData/Clustered_A.csv</Input>
+    <Input name="infile">../TrainingData/Interpolated_A.csv</Input>
   </Files>
 
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>2</limit>
+        <limit>1</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
@@ -55,9 +55,10 @@
 
   <Models>
     <ROM name="synth" subType="SyntheticHistory">
-      <Target>signal0, signal1, pivot</Target>
+      <Target>signal0, signal1, seconds</Target>
       <Features>scaling</Features>
-      <pivotParameter>pivot</pivotParameter>
+      <pivotParameter>seconds</pivotParameter>
+      <gaussianize target="signal0, signal1"/>
       <arma target="signal0, signal1" seed='42'>
         <SignalLag>1</SignalLag>
         <NoiseLag>0</NoiseLag>
@@ -65,7 +66,7 @@
       <Segment grouping="interpolate">
         <macroParameter>macro</macroParameter>
         <Classifier class="Models" type="PostProcessor">classifier</Classifier>
-        <subspace divisions="10">pivot</subspace>
+        <subspace divisions="10">seconds</subspace>
         <evalMode>full</evalMode>
       </Segment>
     </ROM>
@@ -99,15 +100,15 @@
     </PointSet>
     <HistorySet name="indata">
       <Input>scaling, macro</Input>
-      <Output>signal0, signal1, pivot</Output>
+      <Output>signal0, signal1, seconds</Output>
       <options>
-        <pivotParameter>pivot</pivotParameter>
+        <pivotParameter>seconds</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="samples">
       <Input>scaling</Input>
-      <Output>signal0, signal1, pivot</Output>
-      <Index var="pivot">signal0, signal1</Index>
+      <Output>signal0, signal1, seconds</Output>
+      <Index var="seconds">signal0, signal1</Index>
       <Index var="macro">signal0, signal1</Index>
     </DataSet>
     <DataSet name="romMeta"/>

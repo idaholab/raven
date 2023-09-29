@@ -256,9 +256,9 @@ class LimitSurfaceIntegral(PostProcessorInterface):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float64])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat._runLegacy({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      pb = self.stat._runLegacy({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target], dims=self.sampleTag)}})[self.computationPrefix +"_"+self.target]
       if self.errorModel:
-        boundError = abs(pb-self.stat._runLegacy({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target])
+        boundError = abs(pb-self.stat._runLegacy({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target], dims=self.sampleTag)}})[self.computationPrefix +"_"+self.target])
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb, boundError

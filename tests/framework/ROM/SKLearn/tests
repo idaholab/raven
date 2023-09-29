@@ -156,6 +156,34 @@
       rel_err = 5.0e-06
     [../]
   [../]
+  [./GPCustom]
+    type = 'RavenFramework'
+    input = 'gpCustomKernel.xml'
+    image = 'data/plotGPCustom_scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.01
+    [./csv]
+      type = OrderedCSV
+      output = 'data/outGPCustom.csv'
+      # rel_err was updated from 1.0e-6 to 5.0e-4 due to the small changes in the outputs
+      # from all linux related test machines and fact that kernel is noisy by design.
+      rel_err = 5.0e-04
+    [../]
+  [../]
+  [./GPAnisotropic]
+    type = 'RavenFramework'
+    input = 'gpAnisotropicKernel.xml'
+    image = 'data/plotGPAnisotropic_scatter-scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.01
+    [./csv]
+      type = OrderedCSV
+      output = 'data/outGPAnisotropic.csv'
+      # rel_err was updated from 1.0e-6 to 5.0e-6 due to the small changes in the outputs
+      # from all linux related test machines.
+      rel_err = 5.0e-06
+    [../]
+  [../]
   [./linearARD]
     type = 'RavenFramework'
     input = 'linearARD.xml'

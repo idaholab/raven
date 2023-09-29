@@ -2,6 +2,7 @@
   [./ExponentialSA]
     type = 'RavenFramework'
     input = 'ExponentialSA/test_simulatedAnnealing.xml'
+    max_time = 600
     [./data]
       type = OrderedCSV
       output = 'ExponentialSA/opt_export_0.csv'
@@ -52,6 +53,7 @@
   [./CauchySA]
     type = 'RavenFramework'
     input = 'CauchySA/test_simulatedAnnealing.xml'
+    max_time = 600
     [./data]
       type = OrderedCSV
       output = 'CauchySA/opt_export_0.csv'
@@ -86,6 +88,7 @@
   [./VeryFastSA]
     type = 'RavenFramework'
     input = 'VeryFastSA/test_simulatedAnnealing.xml'
+    max_time = 600
     [./data]
       type = OrderedCSV
       output = 'VeryFastSA/opt_export_0.csv'

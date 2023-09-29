@@ -26,7 +26,7 @@
       <Input class="Files" type="raven">inner_input</Input>
       <Model class="Models" type="Code">raven</Model>
       <!-- <Sampler class="Samplers" type="Grid">grid</Sampler> -->
-      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <Optimizer class="Optimizers" type="GradientDescent">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">outer_samples</Output>
     </MultiRun>

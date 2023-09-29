@@ -1543,8 +1543,8 @@ class ARMA(SupervisedLearning):
       Collect the fundamental parameters for this ROM
       Used for writing XML, interpolating, clustering, etc
       @ In, requestedFeatures, dict(list), featureSet and features to collect (may be None)
-      @ In, featureTemplate, str, templated string for naming features (probably leave as None)
-      @ Out, features, dict,
+      @ In, featureTemplate, str, optional, templated string for naming features (probably leave as None)
+      @ Out, features, dict, features to cluster on with shape {target_metric: np.array(floats)}
     """
     assert self.amITrained
     if featureTemplate is None:
@@ -2051,7 +2051,7 @@ class ARMA(SupervisedLearning):
   def parametrizeGlobalRomFeatures(self, featureDict):
     """
       Parametrizes the GLOBAL features of the ROM (assumes this is the templateROM and segmentation is active)
-      @ In, featureDict, dictionary of features to parametrize
+      @ In, featureDict, dict, dictionary of features to parametrize
       @ Out, params, dict, dictionary of collected parametrized features
     """
     t = 'GLOBAL_{target}|{metric}|{ID}'

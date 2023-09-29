@@ -20,14 +20,23 @@ import os
 import numpy as np
 import pandas as pd
 
-from Tester import Differ
+raven = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', '..'))
+if raven not in sys.path:
+  sys.path.append(raven)
 
-new = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', '..'))
-if new not in sys.path:
-  sys.path.append(new)
+try:
+  from Tester import Differ
+except ModuleNotFoundError:
+  rook = os.path.realpath(os.path.join(raven, 'rook'))
+  sys.path.append(rook)
+  from Tester import Differ
 
 # get access to math tools from RAVEN
 from ravenframework.utils import mathUtils
+
+pd.set_option('display.max_rows', 200)
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.precision', 10)
 
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
@@ -92,7 +101,7 @@ class UnorderedCSVDiffer:
       print('Looking in:\n', csv)
     match = csv.copy()
     # TODO can I do this as a single search, using binomial on floats +- relErr?
-    for idx, val in row.iteritems():
+    for idx, val in row.items():
       if debug:
         print('  checking index', idx, 'value', val)
       # Due to relative matches in floats, we may not be sorted with respect to this index.

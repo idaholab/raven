@@ -16,11 +16,6 @@
   It can not be considered part of the active code but of the regression test system
 """
 
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import xml.etree.ElementTree as ET
 import sys, os
 import pickle as pk
@@ -61,17 +56,27 @@ def checkAnswer(comment,value,expected,tol=1e-10, relative=False):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
-    @ In, value, float, the value to compare
-    @ In, expected, float, the expected value
-    @ In, tol, float, optional, the tolerance
+    @ In, value, float (or string), the value to compare
+    @ In, expected, float (or string), the expected value
+    @ In, tol, float, optional, the tolerance (valid for floats/ints only)
     @ In, relative, bool, optional, the tolerance needs be checked relative?
     @ Out, None
   """
-  if relative:
-    denominator = expected if expected != 0. else 1.0
-  diff = abs(value - expected) if not relative else abs(value - expected)/denominator
+  isFloat = True
+  try:
+    val, expect = float(value), float(expected)
+  except ValueError:
+    val, expect = value, expected
+    isFloat = False
+  if relative and isFloat:
+    denominator = expect if expect != 0. else 1.0
+  if isFloat:
+    diff = abs(val - expect) if not relative else abs(val - expect)/denominator
+  else:
+    diff = 0.0 if val == expect else tol + 1.0
+
   if diff > tol:
-    print("checking answer",comment,value,"!=",expected)
+    print("checking answer",comment,val,"!=",expect)
     results["fail"] += 1
   else:
     results["pass"] += 1
@@ -1081,7 +1086,7 @@ checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineD
 #checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 10., tol=0.01, relative=True)
 #checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 20., tol=0.01, relative=True)
 
-#Test Categorical
+#Test Categorical (float)
 
 CategoricalElement = ET.Element("Categorical",{"name":"test"})
 filenode1=createElement("state", text="0.1")
@@ -1123,6 +1128,49 @@ checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),10)
 checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),50)
 checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),60)
 checkAnswer("Categorical  ppf(1.0)" , Categorical.ppf(1.0),60)
+
+#Test Categorical (string)
+
+CategoricalElement = ET.Element("Categorical",{"name":"test"})
+filenode1=createElement("state", text="0.1")
+filenode1.set("outcome","A")
+CategoricalElement.append(filenode1)
+
+filenode2=createElement("state", text="0.2")
+filenode2.set("outcome","B")
+CategoricalElement.append(filenode2)
+
+filenode3=createElement("state", text="0.15")
+filenode3.set("outcome","C")
+CategoricalElement.append(filenode3)
+
+filenode4=createElement("state", text="0.4")
+filenode4.set("outcome","D")
+CategoricalElement.append(filenode4)
+
+filenode5=createElement("state", text="0.15")
+filenode5.set("outcome","E")
+CategoricalElement.append(filenode5)
+
+
+Categorical = getDistribution(CategoricalElement)
+
+## Should these be checked?
+initParams = Categorical.getInitParams()
+
+checkAnswer("Categorical  pdf(A)" , Categorical.pdf("A"),0.1)
+checkAnswer("Categorical  pdf(C)" , Categorical.pdf("C"),0.15)
+checkAnswer("Categorical  pdf(E)" , Categorical.pdf("E"),0.15)
+
+checkAnswer("Categorical  cdf(A)" , Categorical.cdf("A"),0.1)
+checkAnswer("Categorical  cdf(C)" , Categorical.cdf("C"),0.45)
+checkAnswer("Categorical  cdf(E)" , Categorical.cdf("E"),1.0)
+
+checkAnswer("Categorical  ppf(0.0)" , Categorical.ppf(0.0),"A")
+checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),"A")
+checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),"D")
+checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),"E")
+checkAnswer("Categorical  ppf(1.0)" , Categorical.ppf(1.0),"E")
 
 # Test Custom1D
 Custom1DElement = ET.Element("Custom1D",{"name":"test"})

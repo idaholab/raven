@@ -4,6 +4,11 @@
   input = 'test_ordered_csv.py'
  [../]
 
+ [./unordered_csv]
+  type = 'RavenPython'
+  input = 'test_unordered_csv.py'
+ [../]
+
  [./check_windows]
    type = 'RavenPython'
    input = 'only_windows.py'

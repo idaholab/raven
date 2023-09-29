@@ -186,10 +186,12 @@ class ValidationBase(PostProcessorReadyInterface):
     """
     pw = None
     if "|" in var and names is not None:
-      do, _, feat =  var.split("|")
+      info = var.split("|")
+      do = info[0]
+      feat = info[-1]
       dat = datasets[do][feat]
     else:
-      for doIndex, ds in enumerate(datasets):
+      for _, ds in enumerate(datasets):
         if var in ds:
           dat = ds[var]
           break

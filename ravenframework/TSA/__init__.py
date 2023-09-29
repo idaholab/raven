@@ -22,7 +22,14 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 from .Fourier import Fourier
 from .ARMA import ARMA
+from .MarkovAR import MarkovAR
 from .RWD import RWD
+from .STL import STL
+
+from .Transformers import MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
+                          LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
+                          QuantileTransformer, OutTruncation, ZeroFilter, PreserveCDF, Gaussianize, \
+                          Differencing
 
 from .Factory import factory
 

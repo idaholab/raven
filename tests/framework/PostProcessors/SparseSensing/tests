@@ -1,0 +1,10 @@
+[Tests]
+  [./testSPSLOptiTwist]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwist.xml'
+    csv = 'reconstructionOptiTwist/outPP.csv'
+    image = 'reconstructionOptiTwist/mySensorPlot_scatter-scatter.png reconstructionOptiTwist/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.01
+  [../]
+[]

@@ -66,20 +66,19 @@ def compare_list_entry(a_list, b_list, **kwargs):
   match = True        #True if entries match
   diff = []           #tuple of (element, diff code, correct (a) value, test (b) value)
   options = kwargs
-  for i in range(len(a_list)):
+  for i, a_entry in enumerate(a_list):
     if i > len(b_list) - 1:
       match = False
-      diff.append((b_list[-1], XMLDiff.missingChildNode, a_list[i].tag, None))
+      diff.append((b_list[-1], XMLDiff.missingChildNode, a_entry.tag, None))
       #could have matched the tag and attributes
-      total_matchable += 1 + len(a_list[i].attrib.keys())
+      total_matchable += 1 + len(a_entry.attrib.keys())
       #if text isn't empty, could have matched text, too
-      if a_list[i].text is not None and len(a_list[i].text.strip()) > 0:
+      if a_entry.text is not None and len(a_entry.text.strip()) > 0:
         total_matchable += 1
       continue
-    a_item = a_list[i]
     b_item = b_list[i]
     #match tag
-    same, _ = cswf(a_item.tag, b_item.tag,
+    same, _ = cswf(a_entry.tag, b_item.tag,
                    rel_err=options["rel_err"],
                    zero_threshold=options["zero_threshold"],
                    remove_whitespace=options["remove_whitespace"],
@@ -87,12 +86,13 @@ def compare_list_entry(a_list, b_list, **kwargs):
     total_matchable += 1
     if not same:
       match = False
-      diff.append((b_item, XMLDiff.notMatchTag, a_item.tag, b_item.tag))
+      diff.append((b_item, XMLDiff.notMatchTag, a_entry.tag, b_item.tag))
     else:
       num_match += 1
     #match text
-    #if (a_item.text is None or len(a_item.text)>0) and (b_item.text is None or len(b_item.text)>0):
-    same, _ = cswf(a_item.text,
+    #if (a_entry.text is None or len(a_entry.text)>0) and \
+    #   (b_item.text is None or len(b_item.text)>0):
+    same, _ = cswf(a_entry.text,
                    b_item.text,
                    rel_err=options["rel_err"],
                    zero_threshold=options["zero_threshold"],
@@ -100,20 +100,20 @@ def compare_list_entry(a_list, b_list, **kwargs):
                    remove_unicode_identifier=options["remove_unicode_identifier"])
     if not same:
       match = False
-      diff.append((b_item, XMLDiff.notMatchText, str(a_item.text), str(b_item.text)))
+      diff.append((b_item, XMLDiff.notMatchText, str(a_entry.text), str(b_item.text)))
       total_matchable += 1
     else:
-      if not(a_item.text is None or a_item.text.strip() != ''):
+      if not(a_entry.text is None or a_entry.text.strip() != ''):
         num_match += 1
         total_matchable += 1
     #match attributes
-    for attrib in a_item.attrib.keys():
+    for attrib in a_entry.attrib.keys():
       total_matchable += 1
       if attrib not in b_item.attrib.keys():
         match = False
         diff.append((b_item, XMLDiff.missingAttribute, attrib, None))
         continue
-      same, _ = cswf(a_item.attrib[attrib],
+      same, _ = cswf(a_entry.attrib[attrib],
                      b_item.attrib[attrib],
                      rel_err=options["rel_err"],
                      zero_threshold=options["zero_threshold"],
@@ -121,12 +121,12 @@ def compare_list_entry(a_list, b_list, **kwargs):
                      remove_unicode_identifier=options["remove_unicode_identifier"])
       if not same:
         match = False
-        diff.append((b_item, XMLDiff.notMatchAttribute, (a_item, attrib), (b_item, attrib)))
+        diff.append((b_item, XMLDiff.notMatchAttribute, (a_entry, attrib), (b_item, attrib)))
       else:
         num_match += 1
-    #note attributes in b_item not in a_item
+    #note attributes in b_item not in a_entry
     for attrib in b_item.attrib.keys():
-      if attrib not in a_item.attrib.keys():
+      if attrib not in a_entry.attrib.keys():
         match = False
         diff.append((b_item, XMLDiff.extraAttribute, attrib, None))
         total_matchable += 1
@@ -207,10 +207,10 @@ def compare_unordered_element(a_element, b_element, **kwargs):
   for unmatched, close in matchvals.items():
     #print the path without a match
     path = '/'.join(list(m.tag for m in unmatched))
-    note += 'No match for gold node {}\n'.format(path)
-    note += '               tag: {}\n'.format(unmatched[-1].tag)
-    note += '              attr: {}\n'.format(unmatched[-1].attrib)
-    note += '              text: {}\n'.format(unmatched[-1].text)
+    note += f'No match for gold node {path}\n'
+    note += f'               tag: {unmatched[-1].tag}\n'
+    note += f'              attr: {unmatched[-1].attrib}\n'
+    note += f'              text: {unmatched[-1].text}\n'
     #print the tree of the nearest match
     note += '  Nearest unused match: '
     close = sorted(list(close.items()), key=lambda x: x[1], reverse=True)
@@ -232,24 +232,23 @@ def compare_unordered_element(a_element, b_element, **kwargs):
         if miss is None:
           miss = str(miss)
         if code == XMLDiff.missingChildNode:
-          note += '    <'+b_diff.tag+'> is missing child node: <'+right+'> vs <'+miss+'>\n'
+          note += f'    <{b_diff.tag}> is missing child node: <{right}> vs <{miss}>\n'
         elif code == XMLDiff.missingAttribute:
-          note += '    <'+b_diff.tag+'> is missing attribute: "'+right+'"\n'
+          note += f'    <{b_diff.tag}> is missing attribute: "{right}"\n'
         elif code == XMLDiff.extraChildNode:
-          note += '    <'+b_diff.tag+'> has extra child node: <'+right+'>\n'
+          note += f'    <{b_diff.tag}> has extra child node: <{right}>\n'
         elif code == XMLDiff.extraAttribute:
-          note += '    <'+b_diff.tag+'> has extra attribute: "'+right+\
-            '" = "'+b_diff.attrib[right]+'"\n'
+          note += f'    <{b_diff.tag}> has extra attribute: "{right}" = "{b_diff.attrib[right]}"\n'
         elif code == XMLDiff.notMatchTag:
-          note += '    <'+b_diff.tag+'> tag does not match: <'+right+'> vs <'+miss+'>\n'
+          note += f'    <{b_diff.tag}> tag does not match: <{right}> vs <{miss}>\n'
         elif code == XMLDiff.notMatchAttribute:
-          note += '    <'+b_diff.tag+'> attribute does not match: "'+right[1]+\
-            '" = "'+right[0].attrib[right[1]]+'" vs "'+miss[0].attrib[miss[1]]+'"\n'
+          note += f'    <{b_diff.tag}> has extra attribute: "{right[1]}" = ' +\
+                  f'"{right[0].attrib[right[1]]}" vs "{miss[0].attrib[miss[1]]}"\n'
         elif code == XMLDiff.notMatchText:
-          note += '    <'+b_diff.tag+'> text does not match: "'+right+'" vs "'+miss+'"\n'
+          note += f'    <{b_diff.tag}> text does not match: "{right}" vs "{miss}"\n'
         else:
-          note += '     UNRECOGNIZED OPTION: "'+b_diff.tag+'" "'+str(code)+\
-            '": "'+str(right)+'" vs "'+str(miss)+'"\n'
+          note += f'     UNRECOGNIZED OPTION: "{b_diff.tag}" "{str(code)}"'+\
+            f'": "{str(right)}" vs "{str(miss)}"\n'
 
   return (False, [note])
 
@@ -319,12 +318,12 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
       #find all matching XML paths
       #WARNING: this will mangle the XML, so other testing should happen above this!
       found = []
-      for i in range(len(a_element)):
+      for i, a_entry in enumerate(a_element):
         sub_options = dict(options)
         sub_options["path"] = path
-        (same_child, _) = compare_ordered_element(a_element[i], b_element[i], *args, **sub_options)
+        (same_child, _) = compare_ordered_element(a_entry, b_element[i], *args, **sub_options)
         if same_child:
-          found.append((a_element[i], b_element[i]))
+          found.append((a_entry, b_element[i]))
         same = same and same_child
       #prune matches from trees
       for children in found:
@@ -335,16 +334,54 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
         if len(a_element) > 0:
           a_string = ET.tostring(a_element)
           if len(a_string) > 80:
-            message.append('Branches in gold not matching test...\n{}'.format(path))
+            message.append(f'Branches in gold not matching test...\n{path}')
           else:
-            message.append('Branches in gold not matching test...\n{} {}'.format(path, a_string))
+            message.append(f'Branches in gold not matching test...\n{path} {a_string}')
         if len(b_element) > 0:
           b_string = ET.tostring(b_element)
           if len(b_string) > 80:
-            message.append('Branches in test not matching gold...\n{}'.format(path))
+            message.append(f'Branches in test not matching gold...\n{path}')
           else:
-            message.append('Branches in test not matching gold...\n{} {}'.format(path, b_string))
+            message.append(f'Branches in test not matching gold...\n{path} {b_string}')
   return (same, message)
+
+
+def ignore_subnodes_from_tree(a_tree, b_tree, ignored_nodes):
+  """
+    Compares two element trees and returns (same,message) where same is true
+      if they are the same, and message is a list of the differences
+    @ In, a_tree, ET.Element.Tree, the first element tree
+    @ In, b_tree, ET.Element.Tree, the second element tree
+    @ In, ignored_nodes, str, address of ignored subnodes of XPath format, e.g.,
+                              `.//parentNode/childNode[@name:<>]/grandchildNode`
+    @ Out, ignore_subnodes_from_tree, (ET.Element.Tree, ET.Element.Tree, bool), (a_tree,
+          b_tree, success) where a_tree and b_tree are the two input element trees which
+          are modified if successful (otherwise returned as is) and success is a boolean noting if
+          removal of ignored nodes was successful
+  """
+  # internal check of ignored nodes xpath nomenclature already conducted by this point
+  success = True
+  # looping through requested nodes to ignore
+  for node in ignored_nodes:
+    found_and_removed_nodes = []
+    # looping through element trees first to find the node, then remove it if found
+    for tree in [a_tree, b_tree]:
+      found = False
+      parent_path = '/'.join(node.split('/')[:-1]) # `.//parentNode/childNode[@name:<>]`
+      child_path = node.split('/')[-1]             # `/grandchildNode`
+      parent_node = tree.find(parent_path)
+      if parent_node is not None:
+        child_node = parent_node.find(child_path)
+        if child_node is not None: #simple boolean check doesn't work?
+          parent_node.remove(child_node)
+          found = True
+      found_and_removed_nodes.append(found) # tally of "was node found and removed?" per tree
+    # ensuring node was found+removed in at least 1 tree
+    if sum(found_and_removed_nodes) == 0:
+      print((f"Given XPath {node} not found in either tree."))
+      success = False # if there is one failure, entire method returns failure
+  return a_tree, b_tree, success
+
 
 class XMLDiff:
   """
@@ -395,16 +432,24 @@ class XMLDiff:
       else:
         files_read = True
         try:
-          test_root = ET.parse(test_filename).getroot()
+          test_tree = ET.parse(test_filename)
         except Exception as exp:
           files_read = False
           self.__messages += 'Exception reading file '+test_filename+': '+str(exp.args)
         try:
-          gold_root = ET.parse(gold_filename).getroot()
+          gold_tree = ET.parse(gold_filename)
         except Exception as exp:
           files_read = False
           self.__messages += 'Exception reading file '+gold_filename+': '+str(exp.args)
         if files_read:
+          # need access to element tree here rather than root
+          if self.__options['ignored_nodes']:
+            test_tree, gold_tree, same = ignore_subnodes_from_tree(test_tree, gold_tree,
+                                          self.__options['ignored_nodes'])
+            if not same:
+              messages = ["Removing subnodes failed."]
+          test_root = test_tree.getroot()
+          gold_root = gold_tree.getroot()
           if self.__options['alt_root'] is not None:
             alt_test_root_list = test_root.findall(self.__options['alt_root'])
             alt_gold_root_list = gold_root.findall(self.__options['alt_root'])
@@ -418,7 +463,7 @@ class XMLDiff:
               gold_root = alt_gold_root_list[0]
           if not self.__same:
             pass #already failed
-          elif 'unordered' in self.__options.keys() and self.__options['unordered']:
+          elif 'unordered' in self.__options and self.__options['unordered']:
             same, messages = compare_unordered_element(gold_root, test_root, **self.__options)
           else:
             same, messages = compare_ordered_element(test_root, gold_root, **self.__options)
@@ -458,6 +503,9 @@ class XML(Differ):
                      'Relative Error for csv files or floats in xml ones')
     params.add_param('alt_root', '', 'If included, do a findall on the value on the root,'+
                      ' and then use that as the root instead.  Note, findall must return one value')
+    params.add_param('ignored_nodes', '', 'If included, ignore specific xml node address from diff'+
+                     ' which is denoted as `parent|child@name:name|grandchild@name:name`'+
+                     ' which is XPath format.')
     return params
 
   def __init__(self, name, params, test_dir):
@@ -482,6 +530,50 @@ class XML(Differ):
       self.__xmlopts['alt_root'] = self.specs['alt_root']
     else:
       self.__xmlopts['alt_root'] = None
+    if len(self.specs['ignored_nodes']) > 0:
+      if isinstance(self.specs['ignored_nodes'], list):
+        self.__xmlopts['ignored_nodes'] = [str(i) for i in self.specs['ignored_nodes']]
+      else:
+        self.__xmlopts['ignored_nodes'] = [self.specs['ignored_nodes']]
+    else:
+      self.__xmlopts['ignored_nodes'] = None
+
+  def check_xpath(self):
+    """
+      Converts xpath given if not correct. This assumes that the xpath coming in looks like
+      "Parent|Child@name:value|Grandchild" and converts to
+      "./Parent/Child[@name:'value']/Grandchild".
+      @ In, None
+      @ Out, None
+    """
+    for i,ignored in enumerate(self.__xmlopts['ignored_nodes']):
+      # assuming xpath looks like "Parent|Child@name:value|Grandchild"
+      # should be converted to ".//Parent/Child[@name:'value']/Grandchild"
+      # NOTE: assuming that there is a child node... otherwise use `alt_root`?
+      if self.__xmlopts['ignored_nodes'][i].startswith('\"'):
+        self.__xmlopts['ignored_nodes'][i] = self.__xmlopts['ignored_nodes'][i][1:]
+      if self.__xmlopts['ignored_nodes'][i].endswith('\"'):
+        self.__xmlopts['ignored_nodes'][i] = self.__xmlopts['ignored_nodes'][i][:-1]
+      if '|' in self.__xmlopts['ignored_nodes'][i]:
+        nodes = ignored.split('|')
+        tpath = ''
+        for node in nodes:
+          tag = ''
+          value = ''
+          add_params = '@' in node
+          if add_params:
+            node, tag = node.split('@')
+            tag, value = tag.split(':')
+          tpath += f'/{node}'
+          if add_params:
+            tpath += f'[@{tag}=\'{value}\']'
+        self.__xmlopts['ignored_nodes'][i] = tpath
+      # NOTE: might be changed in future? makes starting position relative to current node
+      if not self.__xmlopts['ignored_nodes'][i].startswith('.'):
+        self.__xmlopts['ignored_nodes'][i] = '.' + self.__xmlopts['ignored_nodes'][i]
+      # sometimes the [@name:'value'] comes in as [@name:\'value\']
+      if "\\" in self.__xmlopts['ignored_nodes'][i]:
+        self.__xmlopts['ignored_nodes'][i] = self.__xmlopts['ignored_nodes'][i].replace("\\", "")
 
   def check_output(self):
     """
@@ -494,5 +586,7 @@ class XML(Differ):
     """
     xml_files = self._get_test_files()
     gold_files = self._get_gold_files()
+    if self.__xmlopts['ignored_nodes'] is not None:
+      self.check_xpath()
     xml_diff = XMLDiff(xml_files, gold_files, **self.__xmlopts)
     return xml_diff.diff()

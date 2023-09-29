@@ -175,7 +175,6 @@ class BasicStatistics(PostProcessorReadyInterface):
     """
     inpVars, outVars, dataSet = inputIn['Data'][0]
     pbWeights = None
-
     try:
       inputDataset = dataSet[self.parameters['targets']]
     except KeyError:
@@ -212,6 +211,18 @@ class BasicStatistics(PostProcessorReadyInterface):
       self.raiseAWarning('BasicStatistics postprocessor did not detect ProbabilityWeights! Assuming unit weights instead...')
 
     return inputDataset, pbWeights
+
+
+  def resetProbabilityWeight(self, pbWeights):
+    """
+      Reset probability weight using given pbWeights
+      @ In, pbWeights, xr.Dataset, dataset contains probability weights and
+        variable probability weight
+      @ Out, None
+    """
+    if 'ProbabilityWeight' in pbWeights:
+      self.realizationWeight = xr.Dataset()
+      self.realizationWeight['ProbabilityWeight'] =  pbWeights['ProbabilityWeight']
 
   def initialize(self, runInfo, inputs, initDict):
     """

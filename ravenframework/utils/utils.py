@@ -48,7 +48,7 @@ try:
   #Enum of the parallel libraries we support
   #Note that shared is use no parallel lib, and distributed is choose one
   # and use it.
-  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','pp','shared','distributed'])
+  ParallelLibEnum = enum.Enum('ParallelLibEnum', ['dask','ray','shared','distributed'])
 except ImportError:
   ParallelLibEnum = "ParallelLibEnum is not available without enum"
 
@@ -696,15 +696,6 @@ def add_path(absolutepath):
   if len(newPath) >= 32000: #Some OS's have a limit of 2**15 for environ
     print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
   os.environ['PYTHONPATH'] = newPath
-
-def add_path_recursively(absoluteInitialPath):
-  """
-    Method to recursively add all the path and subpaths contained in absoluteInitialPath in the pythonpath
-    @ In, absoluteInitialPath, string, the absolute path to add
-    @ Out, None
-  """
-  for dirr,_,_ in os.walk(absoluteInitialPath):
-    add_path(dirr)
 
 def findCrowModule(name):
   """
