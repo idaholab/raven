@@ -105,3 +105,11 @@ GenericDataSet/sample/1/input.txt
 GenericDataSet/sample/2/ALL
 GenericDataSet/sample/2/input.txt
 GenericDataSet/sample/input.txt
+AbceInterfaceTest/runAbceFake/1/inputs/
+AbceInterfaceTest/runAbceFake/1/out~settings
+AbceInterfaceTest/runAbceFake/1/settings.yml
+AbceInterfaceTest/runAbceFake/2/inputs/
+AbceInterfaceTest/runAbceFake/2/out~settings
+AbceInterfaceTest/runAbceFake/2/settings.yml
+AbceInterfaceTest/runAbceFake/inputs/
+AbceInterfaceTest/runAbceFake/settings.yml
