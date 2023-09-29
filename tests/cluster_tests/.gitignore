@@ -7,6 +7,7 @@ FirstPRun/
 FirstMFRun/
 FirstMLRun/
 FirstMForcedRun/
+FirstMQL/
 DatabaseStorage/
 *.log
 InternalParallel/InternalParallelExtModel/test*Set_dump.xml

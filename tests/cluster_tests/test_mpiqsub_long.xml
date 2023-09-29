@@ -23,10 +23,6 @@
     <expectedTime>0:10:00</expectedTime>
     <clusterParameters>-W block=true</clusterParameters>
     <JobName>test_mpilong</JobName>
-    <mode>
-      mpi
-      <runQSUB/>
-    </mode>
   </RunInfo>
 
   <Files>
