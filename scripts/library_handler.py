@@ -449,6 +449,14 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
     # if this library's OS's don't match the requested OS, then we move on
     if opSys not in [x.lower().strip() for x in libOS.split(',')]:
       return # nothing to do
+  libMachine = libNode.attrib.get('machine', None)
+  if libMachine is not None:
+    machineType = platform.machine()
+    machineSubst = {'AMD64':'x86_64'} #substitutions for different names
+    if machineType in machineSubst:
+      machineType = machineSubst[machineType] #convert to standard name.
+    if machineType not in [x.lower().strip() for x in libMachine.split(',')]:
+      return # nothing to do since not machine type specified
   # check optional
   ## note that None means "not optional" in this case
   ## further note anything besides "True" is taken to mean "not optional"

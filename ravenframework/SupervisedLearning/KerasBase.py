@@ -1910,7 +1910,9 @@ class KerasBase(SupervisedLearning):
       # continues learning even when many updates have been done.
       self.availOptimizer['adadelta'] = tf.keras.optimizers.Adadelta
       # Adam optimzer
-      self.availOptimizer['adam'] = tf.keras.optimizers.Adam
+      self.availOptimizer['adam_new'] = tf.keras.optimizers.Adam
+      # Adam legacy optimizer
+      self.availOptimizer['adam'] = tf.keras.optimizers.legacy.Adam
       # Adamax optimizer from Adam paper's section 7
       self.availOptimizer['adamax'] = tf.keras.optimizers.Adamax
       # Nesterov Adam optimizer
