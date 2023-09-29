@@ -139,8 +139,11 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       TODO finish docs
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation)
-    return rlz
+    if len(self._tsaGlobalAlgorithms)>0:
+      rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation)
+      for key,val in rlz.items():
+        evaluation[key] = val
+    return evaluation
 
   def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
     """
