@@ -222,10 +222,12 @@ class TSAUser:
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
-  def evaluateTSASequential(self, evalGlobal=False, evaluation=None):
+  def evaluateTSASequential(self, evalGlobal=False, evaluation=None, slicer=None):
     """
       Evaluate TSA algorithms using a sequential linear superposition approach
       @ In, evalGlobal, bool, are these algos trained on global signal?
+      @ In, evaluation, dict, realization dictionary of values for each target
+      @ In, slicer, list of slice, indexer for data range of this segment FROM GLOBAL SIGNAL
       @ Out, evaluation, dict, realization dictionary of values for each target
     """
     pivots = self.pivotParameterValues
@@ -234,11 +236,17 @@ class TSAUser:
     # that ignores the pivotParameter on which to index the results variables
     noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
+    needToRecombine = False
 
     # check if training globally, if so we only apply global algos to given realizations
     if evalGlobal:
       algorithms = self._tsaGlobalAlgorithms[::-1]
-      result += np.array([evaluation[target].tolist() for target in noPivotTargets]).T
+      if slicer:
+        needToRecombine = True
+        for i,s in enumerate(slicer):
+          result[s] += np.array([evaluation[target][i].tolist() for target in noPivotTargets]).T
+      else:
+        result += np.array([evaluation[target].tolist() for target in noPivotTargets]).T
     else:
       algorithms = self._tsaAlgorithms[::-1]
 
@@ -255,8 +263,13 @@ class TSAUser:
       else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
         continue
     # RAVEN realization construction
-    rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
-    rlz[self.pivotParameterID] = self.pivotParameterValues
+    if needToRecombine:
+      # tmp_array = np.zeros((len(slicer), len(noPivotTargets)))
+      rlz = dict((target, np.vstack([[result[s, t]] for s in slicer])) for t, target in enumerate(noPivotTargets))
+      rlz[self.pivotParameterID] = evaluation[self.pivotParameterID]
+    else:
+      rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
+      rlz[self.pivotParameterID] = self.pivotParameterValues
 
     return rlz
 

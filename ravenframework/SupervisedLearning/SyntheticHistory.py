@@ -140,7 +140,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
     if len(self._tsaGlobalAlgorithms)>0:
-      rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation)
+      rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation, slicer=slicer)
       for key,val in rlz.items():
         evaluation[key] = val
     return evaluation
