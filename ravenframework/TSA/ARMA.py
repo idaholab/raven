@@ -202,9 +202,11 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                                 'ma': res.polynomial_ma[1:],     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
-                                'model': model}
+                                'lags': [P,d,Q],
+                                'model': {'obs_cov': model['obs_cov'],
+                                          'state_cov': model['state_cov']}, }
       if not settings['reduce_memory']:
-        params[target]['arma']['results'] = res
+        params[target]['arma']['residual'] = res.resid
     return params
 
   def getResidual(self, initial, params, pivot, settings):
@@ -225,7 +227,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
 
     residual = initial.copy()
     for t, (target, data) in enumerate(params.items()):
-      residual[:, t] = data['arma']['results'].resid
+      residual[:, t] = data['arma']['residual']
 
     return residual
 
@@ -292,19 +294,21 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, data) in enumerate(params.items()):
       armaData = data['arma']
+      P,d,Q = armaData['lags']
       modelParams = np.hstack([[armaData.get('const', 0)],
                                armaData['ar'],
                                armaData['ma'],
                                [armaData.get('var', 1)]])
       msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'], armaData['initials'], synthetic.shape[0])
       # measurement shocks
-      # statsmodels if we don't provide them.
+      import statsmodels.api
+      model = statsmodels.tsa.arima.model.ARIMA(synthetic[:,t], order=(P, d, Q), trend='c')
       # produce sample
-      new = armaData['model'].simulate(modelParams,
-                                       synthetic.shape[0],
-                                       measurement_shocks=msrShocks,
-                                       state_shocks=stateShocks,
-                                       initial_state=initialState)
+      new = model.simulate(modelParams,
+                           synthetic.shape[0],
+                           measurement_shocks=msrShocks,
+                           state_shocks=stateShocks,
+                           initial_state=initialState)
       if settings.get('gaussianize', True):
         # back-transform through CDF
         new = mathUtils.degaussianize(new, params[target]['cdf'])
@@ -387,7 +391,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   def _generateNoise(self, model, initDict, size):
     """
       Generates purturbations for ARMA sampling.
-      @ In, model, statsmodels.tsa.arima.model.ARIMA, trained ARIMA model
+      @ In, model, dict, contains trained ARIMA model covariance
       @ In, initDict, dict, mean and covariance of initial sampling distribution
       @ In, size, int, length of time-like variable
       @ Out, msrShocks, np.array, measurement shocks
