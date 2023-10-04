@@ -79,6 +79,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     SupervisedLearning._handleInput(self, paramInput)
     self.readTSAInput(paramInput)
+    if len(self._tsaAlgorithms)==0:
+      self.raiseAWarning("No Segmenting algorithms were requested.")
 
   def _train(self, featureVals, targetVals):
     """
@@ -135,26 +137,16 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
       Allows any global settings to be applied to the signal collected by the ROMCollection instance.
       Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
       @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
-      TODO finish docs
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ In, slicer, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
     if len(self._tsaGlobalAlgorithms)>0:
       rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation, slicer=slicer)
       for key,val in rlz.items():
         evaluation[key] = val
-    return evaluation
-
-  def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
-    """
-      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
-      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
-      @ In, settings, dict, as from getGlobalRomSegmentSettings
-      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
-      @ In, globalPicker, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
-      @ In, localPicker, slice, optional, indexer for part of signal that should be adjusted IN LOCAL SIGNAL
-      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
-    """
     return evaluation
 
   def writePointwiseData(self, writeTo):
