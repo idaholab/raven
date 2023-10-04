@@ -3,13 +3,13 @@
   <TestInfo>
     <name>cluster_tests/test_mpiqsub</name>
     <author>cogljj</author>
-    <created>2015-02-26</created>
+    <created>2023-09-12</created>
     <classesTested>MPISimulationMode</classesTested>
     <description>
-      This tests running with mpi and a qsub.
+      This tests running with mpi and a qsub and the MPIParam feature
     </description>
     <revisions>
-      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="cogljj" date="2023-09-12">Tests the timing of running mpi code.</revision>
     </revisions>
     <requirements>R-IS-7</requirements>
   </TestInfo>
