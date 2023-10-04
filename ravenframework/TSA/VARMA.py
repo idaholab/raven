@@ -160,14 +160,17 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
     #     algebra and its applications, 413(2-3), 594-618.
 
     params = {}
-    params['VARMA'] = {'model': model,
+    params['VARMA'] = {'modelOrder': (P, Q),
                        'targets': targets,
+                       'paramNames': model.param_names,
                        'const': results.params[model._params_trend],
                        'ar': results.params[model._params_ar],
                        'ma': results.params[model._params_ma],
                        'cov': self._covToTransformedFlat(model.ssm['state_cov']),
                        'initDist': initDist,
                        'noiseDist': stateDist,
+                       'transition': model.ssm['transition'],
+                       'selection': model.ssm['selection'],
                        'resid': results.resid}
     return params
 
@@ -208,9 +211,12 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
       @ In, settings, dict, settings for this ROM
       @ Out, synthetic, np.array(float), synthetic ARMA signal
     """
-    model = params['VARMA']['model']
+    # lazy statsmodels import
+    import statsmodels.api
+
     numSamples = len(pivot)
-    numVars = model.k_endog
+    numVars = len(params['VARMA']['targets'])
+    model = statsmodels.api.tsa.VARMAX(endog=np.zeros((numSamples, numVars)), order=params['VARMA']['modelOrder'])
 
     # sample measure, state shocks
     measureShocks = np.zeros([numSamples, numVars])
@@ -274,7 +280,7 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
       @ Out, rlz, dict, realization-style response
     """
     rlz = {}
-    paramNames = params['VARMA']['model'].param_names
+    paramNames = params['VARMA']['paramNames']
     modelParams = np.r_[params['VARMA']['const'],
                         params['VARMA']['ar'],
                         params['VARMA']['ma'],
@@ -322,7 +328,7 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
     # nameTemplate = "{target}|{metric}|{id}"
     features = {}
     data = params['VARMA']
-    model = data['model']
+    arOrder, maOrder = data['modelOrder']
     numVars = len(data['targets'])
 
     # combinations of targets
@@ -340,11 +346,11 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
         for targets, value in zip(covCombinations, paramValues):
           features[nameTemplate.format(target=targets[0], metric='VARMA', id=f'cov_{targets[1]}')] = value
       elif req == 'ar':  # ordered by target1, then lag, then target2
-        for p in range(model.k_ar):
+        for p in range(arOrder):
           for targets, value in zip(armaCombinations, paramValues[p*numVars*numVars:(p+1)*numVars*numVars]):
             features[nameTemplate.format(target=targets[0], metric='VARMA', id=f'ar_{p+1}_{targets[1]}')] = value
       elif req == 'ma':  # ordered by target1, then lag, then target2
-        for q in range(model.k_ma):
+        for q in range(maOrder):
           for targets, value in zip(armaCombinations, paramValues[q*numVars*numVars:(q+1)*numVars*numVars]):
             features[nameTemplate.format(target=targets[0], metric='VARMA', id=f'ma_{q+1}_{targets[1]}')] = value
     return features
@@ -358,8 +364,7 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
       @ Out, params, dict, updated parameter settings
     """
     targets = params['VARMA']['targets']
-    arOrder = params['VARMA']['model'].k_ar
-    maOrder = params['VARMA']['model'].k_ma
+    arOrder, maOrder = params['VARMA']['modelOrder']
     numVars = len(targets)
 
     for target, identifier, value in fromCluster:
@@ -495,13 +500,12 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
     """
     # The state vector has dimension max(P, Q + 1)
     numVars = len(params['targets'])
-    P = int(len(params['ar']) / numVars ** 2)
-    Q = int(len(params['ma']) / numVars ** 2)
+    P, Q = params['modelOrder']
     dim = numVars * (P + Q)
 
     # The lower rows handle transferring lagged state values, and that doesn't change with parameters.
     # Copying the old transition matrix will save us some work and copy over those rows.
-    transition = copy.deepcopy(params['model'].ssm['transition'])
+    transition = copy.deepcopy(params['transition'])
     # Upper left block is the AR matrix. Replace with new values.
     if P > 0:
       transition[:numVars, :P*numVars] = np.hstack(params['ar'].reshape((P, numVars, numVars)))
@@ -517,7 +521,7 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
 
     # The selection matrix shouldn't need to change just because the model parameters have changed, so we
     # can copy the matrix from the existing model.
-    selection = params['model'].ssm['selection']
+    selection = params['selection']
 
     return transition, stateIntercept, stateCov, selection
 
