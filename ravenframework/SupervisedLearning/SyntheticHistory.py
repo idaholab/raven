@@ -20,6 +20,7 @@
 """
 import numpy as np
 import collections
+import copy
 
 from ..utils import InputData, xmlUtils
 from ..TSA import TSAUser
@@ -78,6 +79,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     SupervisedLearning._handleInput(self, paramInput)
     self.readTSAInput(paramInput)
+    if len(self._tsaAlgorithms)==0:
+      self.raiseAWarning("No Segmenting algorithms were requested.")
 
   def _train(self, featureVals, targetVals):
     """
@@ -96,6 +99,55 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     rlz = self.evaluateTSASequential()
     return rlz
+
+
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
+      @ In, trainingDict, dict, data for training, full and unsegmented
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    self.raiseADebug('Training Global...')
+    # extracting info from training Dict, convert all signals to single array
+    trainingDict = copy.deepcopy(trainingDict)
+    names, values  = list(trainingDict.keys()), list(trainingDict.values())
+    ## This is for handling the special case needed by skl *MultiTask* that
+    ## requires multiple targets.
+    targetValues = []
+    targetNames = []
+    for target in self.target:
+      if target in names:
+        targetValues.append(values[names.index(target)])
+        targetNames.append(target)
+      else:
+        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+    # stack targets
+    targetValues = np.stack(targetValues, axis=-1)
+    self.trainTSASequential(targetValues, trainGlobal=True)
+    settings = self.getGlobalTSARomSettings()
+    # update targets in trainingDict
+    for i,target in enumerate(targetNames):
+      trainingDict[target] = targetValues[:,:,i]
+    return settings, trainingDict
+
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights, slicer):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ In, slicer, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    if len(self._tsaGlobalAlgorithms)>0:
+      rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation, slicer=slicer)
+      for key,val in rlz.items():
+        evaluation[key] = val
+    return evaluation
 
   def writePointwiseData(self, writeTo):
     """
