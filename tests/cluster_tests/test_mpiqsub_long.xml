@@ -1,0 +1,103 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>cluster_tests/test_mpiqsub</name>
+    <author>cogljj</author>
+    <created>2023-09-12</created>
+    <classesTested>MPISimulationMode</classesTested>
+    <description>
+      This tests running with mpi and a qsub and the MPIParam feature
+    </description>
+    <revisions>
+      <revision author="cogljj" date="2023-09-12">Tests the timing of running mpi code.</revision>
+    </revisions>
+    <requirements>R-IS-7</requirements>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>FirstMQL</WorkingDir>
+    <Sequence>FirstMQRun</Sequence>
+    <batchSize>8</batchSize>
+    <NumThreads>1</NumThreads>
+    <NumMPI>1</NumMPI>
+    <expectedTime>0:10:00</expectedTime>
+    <clusterParameters>-W block=true</clusterParameters>
+    <JobName>test_mpilong</JobName>
+  </RunInfo>
+
+  <Files>
+    <Input name="simple_gp_test.i" type="">simple_gp_test.i</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RELAP7">
+      <executable>%FRAMEWORK_DIR%/../tests/cluster_tests/compute_test.py </executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Normal name="Gauss1">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="auxBackUpTimeDist">
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Normal name="Gauss2">
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Normal>
+    <Triangular name="CladFailureDist">
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
+      <!--
+        <lowerBound>0</lowerBound>
+         This is not yet supported
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+      -->
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="RAVENmc6">
+      <samplerInit>
+        <limit>16</limit>
+      </samplerInit>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMQRun">
+      <Input class="Files" type="">simple_gp_test.i</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
+      <Output class="DataObjects" type="PointSet">stories</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="stories">
+      <Input>iterations</Input>
+      <Output>delta</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name='samples'>
+      <type>csv</type>
+      <source>stories</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
