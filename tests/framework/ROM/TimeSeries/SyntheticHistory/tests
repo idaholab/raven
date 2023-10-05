@@ -189,4 +189,37 @@
       zero_threshold = 1e-3
     [../]
   [../]
+
+  [./VARMA]
+    type = 'RavenFramework'
+    input = 'varma.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'VARMA/samples_0.csv VARMA/samples_1.csv'
+      rel_err = 2e-1
+    [../]
+    [./xml]
+      type = XML
+      output = 'VARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./VARMAInterpolated]
+    type = 'RavenFramework'
+    input = 'varma_interpolated.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'VARMAInterpolated/samples.csv'
+      rel_err = 2.1e-1
+      zero_threshold = 1e-2
+    [../]
+    [./xml]
+      type = XML
+      output = 'VARMAInterpolated/romMeta.xml'
+      rel_err = 2e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
 []

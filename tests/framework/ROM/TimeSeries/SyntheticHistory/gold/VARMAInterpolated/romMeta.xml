@@ -1,0 +1,88 @@
+<DataObjectMetadata name="romMeta">
+  <synth type="Static">
+    <ROM>
+      <type>Interp. Cluster ROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,seconds</Targets>
+    </ROM>
+    <InterpolatedMultiyearROM type="Static">
+      <MacroParameterID>macro</MacroParameterID>
+      <MacroSteps>3</MacroSteps>
+      <MacroFirstStep>1</MacroFirstStep>
+      <MacroLastStep>3</MacroLastStep>
+    </InterpolatedMultiyearROM>
+    <MacroStepROM macro="1" type="Static">
+      <GlobalROM segment="all" type="Static" />
+      <ClusterROM type="Static" cluster="0">
+        <VARMA>
+          <constant>
+            <signal0>1.844658000013965</signal0>
+            <signal1>-2.218519736660209</signal1>
+          </constant>
+          <covariance>
+            <var_signal0>1.0050224347569632</var_signal0>
+            <cov_signal0_signal1>0.6432040008207575</cov_signal0_signal1>
+            <var_signal1>0.983384898471489</var_signal1>
+          </covariance>
+          <AR>
+            <Lag1_signal0_signal0>0.7637971666378175</Lag1_signal0_signal0>
+            <Lag1_signal1_signal0>0.178618232899247</Lag1_signal1_signal0>
+            <Lag1_signal0_signal1>-0.2184892669573321</Lag1_signal0_signal1>
+            <Lag1_signal1_signal1>0.7716752182788661</Lag1_signal1_signal1>
+          </AR>
+        </VARMA>
+        <segments_represented>0</segments_represented>
+        <indices>0, 199</indices>
+      </ClusterROM>
+    </MacroStepROM>
+    <MacroStepROM macro="3" type="Static">
+      <GlobalROM segment="all" type="Static" />
+      <ClusterROM type="Static" cluster="0">
+        <VARMA>
+          <constant>
+            <signal0>-2.016065691185001</signal0>
+            <signal1>1.44275913592743</signal1>
+          </constant>
+          <covariance>
+            <var_signal0>0.2270870554141479</var_signal0>
+            <cov_signal0_signal1>0.168717521033826</cov_signal0_signal1>
+            <var_signal1>3.2731676486634265</var_signal1>
+          </covariance>
+          <AR>
+            <Lag1_signal0_signal0>-0.7994196897487845</Lag1_signal0_signal0>
+            <Lag1_signal1_signal0>0.19849312450272474</Lag1_signal1_signal0>
+            <Lag1_signal0_signal1>0.16346097999499723</Lag1_signal0_signal1>
+            <Lag1_signal1_signal1>0.5282192672361572</Lag1_signal1_signal1>
+          </AR>
+        </VARMA>
+        <segments_represented>0</segments_represented>
+        <indices>0, 199</indices>
+      </ClusterROM>
+    </MacroStepROM>
+    <MacroStepROM macro="2" type="Static">
+      <GlobalROM segment="all" type="Static" />
+      <ClusterROM type="Static" cluster="0">
+        <VARMA>
+          <constant>
+            <signal0>-0.08570384558551791</signal0>
+            <signal1>-0.38788030036638954</signal1>
+          </constant>
+          <covariance>
+            <var_signal0>0.564432815423267</var_signal0>
+            <cov_signal0_signal1>0.20623297005954752</cov_signal0_signal1>
+            <var_signal1>0.5500080816360237</var_signal1>
+          </covariance>
+          <AR>
+            <Lag1_signal0_signal0>-0.017811261555483515</Lag1_signal0_signal0>
+            <Lag1_signal1_signal0>0.18855567870098588</Lag1_signal1_signal0>
+            <Lag1_signal0_signal1>-0.02751414348116743</Lag1_signal0_signal1>
+            <Lag1_signal1_signal1>0.6499472427575117</Lag1_signal1_signal1>
+          </AR>
+        </VARMA>
+        <segments_represented>0</segments_represented>
+        <indices>0, 199</indices>
+      </ClusterROM>
+    </MacroStepROM>
+  </synth>
+  
+</DataObjectMetadata>
