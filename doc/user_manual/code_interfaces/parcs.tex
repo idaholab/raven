@@ -1,0 +1,257 @@
+%%%%%%%%%%%%%%%%%%%%%%%
+%%% PARCS INTERFACE %%%
+%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{PARCS Interface}
+A recent interface between RAVEN and the diffusion code PARCS was implemented.
+The primary purpose of this section is to describe the interface associated
+with its application using RAVEN/Generic Algorithm in solving the Core optimization problem.
+A brief explanation on the components of the PARCS interface and how to use it with RAVEN
+are reported in the following subsections.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Interface components}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The interface was built based on Python 3. It included three main components:
+\begin{itemize}
+
+	\item \texttt{PARCSinterface.py}: Connects and interacts with RAVEN main module
+	\item \texttt{PARCSData.py}: Collects and extracts data from depletion file and pin power distribution file generated after each PARCS simulation. The list of data can be extracted are:
+	\begin{itemize}
+  \item Time dependent multiplication factor $k_{eff}$;
+	\item Time dependent $F_Q$;
+	\item Time dependent $F_\Delta H$;
+	\item Time dependent critical boron concentration;
+	\item Cycle length determined by the critical boron concentration being 10 ppm;
+	\item Time dependent relative pin power distribution.
+  \end{itemize}
+  \item \texttt{SpecificParser.py}: Generates PARCS input from sample loading pattern provided by RAVEN-GA module.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To successfully execute the code, users need to ensure that the code PARCS is included in the
+\xmlNode{Models} section in a way shown below:
+
+\begin{lstlisting}[style=XML]
+  <Models>
+   <Code name="MyParcs" subType="PARCS">
+     <executable>...</executable>
+     <sequence>parcs</sequence>
+   </Code>
+  </Models>
+  \end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In order to execute the PARCS-RAVEN interface, user needs to provide three input files.
+Although the requested input file name can be arbitrary, they need to serve similar functions as shown below:
+\begin{itemize}
+	\item \xmlNode{coremap.xml}: Contains initial assigned FA type for 1/8 loading pattern following an index scheme shown below since this module was specifically designed to solve the core loading pattern in 17$\times$17 PWR core.
+	\item \xmlNode{Dummy.inp}: Serves as a placeholder for perturbed PARCS input deck.
+	\item \xmlNode{inputgen.xml}: Contains specification on PARCS simulation and modeling for core including FA definition; cross section information.
+\end{itemize}
+The requested input will be identified in RAVEN input, then they will be loaded into RAVEN memory.
+With the GA optimizer, a set of sampling for possible FA location mapping
+will be used to update \xmlNode{coremap.xml} file. From this point, the PARCS interface will be called to
+read the remaining requested inputs with the updated \xmlNode{coremap.xml} to generate input
+for PARCS simulation. After the simulation is completed, the fitness function of GA
+optimizer will be evaluated and used to generate the population of the next generation.
+This iterative process will continue until the maximum number of generations as specified
+in the RAVEN input is reached.
+
+Furthermore, constraints for the optimization problem can be also specified by using \xmlNode{Functions}
+, see Section~\ref{sec:functions} for more details
+
+\begin{center}
+  \begin{tabular}{ |p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}|p{0.5cm}| }
+    \hline
+    1& & & & & & & &  \\
+    \hline
+    2&3& & & & & & &  \\
+    \hline
+    4&5&6& & & & & &  \\
+    \hline
+    7&8&9&10& & & & &  \\
+    \hline
+    11&12&13&14&15& & & &  \\
+    \hline
+    16&17&18&19&20&21& & &  \\
+    \hline
+    22&23&24&25&26&27&28& & \\
+    \hline
+    29&30&31&32&33&34&35&36&  \\
+    \hline
+    37&38&39&40&41&42&43&44&45 \\
+    \hline
+  \end{tabular}
+\end{center}
+
+Example:
+  \begin{lstlisting}[style=XML]
+  <Files>
+    <Input name="parcs_input" type="parcsdata">parcs-input-gen.xml</Input>
+    <Input name="parcsperturb_input" type="perturb">coremap.xml</Input>
+    <Input name="input" type="input">input.inp</Input>
+  </Files>
+  \end{lstlisting}
+
+Example for \xmlNode{parcs-input-gen.xml}:
+  \begin{lstlisting}[style=XML]
+  <PARCS-input-gen>
+   <THFlag> F </THFlag>
+   <power> 100 </power>
+   <coretype> PWR </coretype>
+   <initialBoron> 1000 </initialBoron>
+   <XSdir> Xsdir </XSdir>
+   <Depdir> PARCSDEP </Depdir>
+   <DepHistory> 1 1 1 1 18*30 </DepHistory>
+   <NFA> 9 </NFA>
+   <NAxial> 14 </NAxial>
+   <FA_Pitch> 21.50 </FA_Pitch>
+   <FA_Power> 16.3 </FA_Power>
+   <Geometry> QUARTER </Geometry>
+   <grid_x> 1*10.75 8*21.50 </grid_x>
+   <grid_y> 1*10.75 8*21.50 </grid_y>
+   <grid_z> 30.48  12*30.48  30.48 </grid_z>
+   <neutmesh_x> 1*1 8*1 </neutmesh_x>
+   <neutmesh_y> 1*1 8*1 </neutmesh_y>
+   <BC> 0 2 0 2 2 2 </BC>
+   <FA-list>
+    <FA name='FA1'  FAid ='0'  type ='20' structure = '1*6 12*1 1*7 FUEL'/>
+    <FA name='FA2'  FAid ='1'  type ='30' structure = '1*6 12*2 1*7 FUEL'/>
+    <FA name='FA3'  FAid ='2'  type ='40' structure = '1*6 12*3 1*7 FUEL'/>
+    <FA name='FA4'  FAid ='3'  type ='50' structure = '1*6 12*4 1*7 FUEL'/>
+    <FA name='FA5'  FAid ='4'  type ='60' structure = '1*6 12*5 1*7 FUEL'/>
+    <FA name='REF'  FAid ='5'  type ='10' structure = '1*6 12*8 1*7 REFL'/>
+    <FA name='NONE' FAid ='-1' type ='00' structure = ''/>
+   </FA-list>
+   <XS-list>
+    <XS id='1' name='xs_g200_gd_0_bp_0'/>
+    <XS id='2' name='xs_g250_gd_0_bp_0'/>
+    <XS id='3' name='xs_g250_gd_16_bp_0'/>
+    <XS id='4' name='xs_g320_gd_0_bp_0'/>
+    <XS id='5' name='xs_g320_gd_16_bp_0'/>
+    <XS id='6' name='xs_gbot'/>
+    <XS id='7' name='xs_gtop'/>
+    <XS id='8' name='xs_grad'/>
+   </XS-list>
+  </PARCS-input-gen>
+
+\end{lstlisting}
+
+The PARCS-RAVEN interface will perturb the \xmlNode{coremap.xml} file with the defined sampled variables in RAVEN
+input file, and then utilize the user provided \xmlNode{inputgen.xml} and updated \xmlNode{coremap.xml} file to generate
+PARCS input file, the following is an example for the generated PARCS input file:
+Example for \xmlNode{parcs-input.inp}:
+\begin{lstlisting}[basicstyle=\tiny]
+  !******************************************************************************
+  CASEID input.inp              OECD NEA MSLB
+  !******************************************************************************
+  CNTL
+        TH_FDBK   F
+        CORE_POWER 100
+        CORE_TYPE  PWR
+        PPM        1000
+        DEPLETION  T  1.0E-3 T
+        TREE_XS    T  16 T  T  F  F  T  F  T  F  T  F  F  T  T  F
+        BANK_POS   100 100 100 100 100 100  0 46.2 0
+        XE_SM      1 1
+        SEARCH     ppm
+        XS_EXTRAP  1.0 0.3 0.8 0.2
+        PIN_POWER  T
+        PRINT_OPT T F T T F T F F F T  F  F  F  F  F
+  PARAM
+        LSOLVER  1 1 20
+        NODAL_KERN     NEMMG    ! FMFD    ! FDM
+        CMFD     2
+        DECUSP   2
+        INIT_GUESS 0
+        conv_ss   1.e-6 5.e-5 1.e-3 0.001 !epseig,epsl2,epslinf,epstf
+        eps_erf   0.010
+        eps_anm   0.000001
+        nlupd_ss  5 5 1
+  GEOM
+        geo_dim 9 9 14 1 1
+        Rad_Conf                        !!
+          60  40  60  60  60  20  20  50  10
+          40  30  30  50  30  30  50  40  10
+          60  30  20  50  60  50  20  10  10
+          60  50  50  60  30  50  50  10  00
+          60  30  60  30  50  30  10  10  00
+          20  30  50  50  30  10  10  00  00
+          20  50  20  50  10  10  00  00  00
+          50  40  10  10  10  00  00  00  00
+          10  10  10  00  00  00  00  00  00
+
+        grid_x      1*10.75 8*21.50
+        neutmesh_x  1*1 8*1
+        grid_y      1*10.75 8*21.50
+        neutmesh_y  1*1 8*1
+        grid_z      30.48  12*30.48  30.48
+        Boun_cond   0 2 0 2 2 2
+        assy_type   20   1*6   12*1    1*7 FUEL
+        assy_type   30   1*6   12*2    1*7 FUEL
+        assy_type   40   1*6   12*3    1*7 FUEL
+        assy_type   50   1*6   12*4    1*7 FUEL
+        assy_type   60   1*6   12*5    1*7 FUEL
+        assy_type   10   1*6   12*8    1*7 REFL
+
+
+       pincal_loc
+
+          60  40  60  60  60  20  20  50   0
+          40  30  30  50  30  30  50  40   0
+          60  30  20  50  60  50  20   0   0
+          60  50  50  60  30  50  50   0
+          60  30  60  30  50  30   0   0
+          20  30  50  50  30   0   0
+          20  50  20  50   0   0
+          50  40   0   0   0
+           0   0   0
+
+
+  TH
+        unif_th         0.7  600.0  300.0
+  FDBK
+        fa_powpit       16.3   21.50
+
+  DEPL
+        TIME_STP  1 1 1 1 18*30
+        INP_HST   '../../PARCSDEP/boc_exp_fc.dep' -2 1
+        PMAXS_F   1 '../../Xsdir/xs_g200_gd_0_bp_0'                 1
+        PMAXS_F   2 '../../Xsdir/xs_g250_gd_0_bp_0'                 2
+        PMAXS_F   3 '../../Xsdir/xs_g250_gd_16_bp_0'                 3
+        PMAXS_F   4 '../../Xsdir/xs_g320_gd_0_bp_0'                 4
+        PMAXS_F   5 '../../Xsdir/xs_g320_gd_16_bp_0'                 5
+        PMAXS_F   6 '../../Xsdir/xs_gbot'                 6
+        PMAXS_F   7 '../../Xsdir/xs_gtop'                 7
+        PMAXS_F   8 '../../Xsdir/xs_grad'
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Sampler/Optimizer}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+As mentioned in previous sections, the variables that users desire to optimize are defined in
+the \xmlNode{Samplers} or  \xmlNode{Optimizers} block. In this interface, the GA optimizer is applied.
+In the loading pattern optimization problem, the variables are the location of Fuel Assembly in the core layout
+with the index scheme shown in this section.
+
+For example, the original locations are specified in the \xmlNode{coremap.xml} (that needs to be perturbed).
+The name of the variables in the \xmlNode{Samplers} should be the same as the one in original \xmlNode{coremap.xml}
+file, namely \textbf{loc} and the associated index \textbf{index}.
+
+Example:
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  ...
+  <variable name="loc1">
+    <distribution>FA_dist</distribution>
+  ...
+  </variable>
+</Samplers>
+...
+\end{lstlisting}
+

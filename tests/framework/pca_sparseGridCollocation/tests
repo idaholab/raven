@@ -35,6 +35,8 @@
   input = 'test_poly_correlation.xml'
   csv = 'polyCorrelation/csv_database.csv'
   UnorderedXml = 'polyCorrelation/stats_td1.xml'
+  zero_threshold = 1e-12
+  rel_err = 1e-8
  [../]
 
  [./polyCorrelationMC]

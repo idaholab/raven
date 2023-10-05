@@ -1,0 +1,9 @@
+<Simulation>
+  <RunInfo>
+    <mode>
+      mpi
+      <runQSUB/>
+      <MPIParam>--bind-to none</MPIParam>
+    </mode>
+  </RunInfo>
+</Simulation>

@@ -150,9 +150,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
                              f'"{name}" contain NaN values: {value}.')
 
       params[target]['MarkovAR'] = parsedParams
-      # The model fit object is stored only to get the residuals. Is there a better way to hold on
-      # to those values?
-      params[target]['MarkovAR']['model'] = res
+      params[target]['MarkovAR']['residuals'] = res.resid
     return params
 
   def _parseParams(self, params, order, kRegimes):
@@ -297,7 +295,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       # The model fit results contain the fit residuals, so we can just use those.
       # The length of the residuals array is shorter than the length of the original signal by the
       # AR order (not really sure why), so we need to pad the end of the residual array with zeros.
-      modelResid = data['MarkovAR']['model'].resid
+      modelResid = data['MarkovAR']['residuals']
       residual[:, tg] = np.r_[modelResid, np.zeros(len(residual) - len(modelResid))]
     return residual
 
