@@ -83,12 +83,18 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                          \xmlNode{gaussianize} node preceding the \xmlNode{arma} node instead of this
                          option.
                          """, default=False)
-    specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerType,
+    specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerListType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
-                       regression; typically represented as $P$ in literature."""))
-    specs.addSub(InputData.parameterInputFactory('Q', contentType=InputTypes.IntegerType,
+                       regression; typically represented as $P$ or Signal Lag in literature.
+                       Accepted as list or single value: if list, should be the same length as
+                       number of target signals. Otherwise, the singular value is used for all
+                       all signals."""))
+    specs.addSub(InputData.parameterInputFactory('Q', contentType=InputTypes.IntegerListType,
                  descr=r"""the number of terms in the Moving Average term to retain in the
-                       regression; typically represented as $Q$ in literature."""))
+                       regression; typically represented as $Q$ or Noise Lag in literature.
+                       Accepted as list or single value: if list, should be the same length as
+                       number of target signals. Otherwise, the singular value is used for all
+                       all signals."""))
     return specs
 
   #
@@ -112,8 +118,32 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
-    settings['P'] = spec.findFirst('P').value
-    settings['Q'] = spec.findFirst('Q').value
+    settings['auto_select'] = spec.parameterValues.get('auto_select', settings['auto_select'])
+
+    targets = settings['target']
+    if settings['auto_select']:
+      # if auto-selecting, replace P and Q with Nones to check for and replace later
+      settings['P'] = dict((target, None) for target in targets )
+      settings['Q'] = dict((target, None) for target in targets )
+    else:
+      # getting P and Q values (number of Signal Lag and Noise Lag coefficients); checking validity
+      lagDict = {}
+      for lagType in ('P', 'Q'): #NOTE: not including 'd' here, as this is a Transformer
+        # user-defined Ps and Qs
+        lagVals = list(spec.findAll(lagType)[0].value)
+        # checking if number of P/Q values is acceptable
+        # >> if user provided only 1 value, we repeat it for all targets
+        # >> otherwise, the user has to provide a value for each target
+        if len(lagVals) == 1:
+          lagDict[lagType] = dict((target, lagVals[0]) for target in targets )
+        elif len(lagVals) == len(targets):
+          lagDict[lagType] = dict((target, lagVals[i]) for i,target in enumerate(targets) )
+        else:
+          raise IOError(f'Number of {lagType} values {len(lagVals)} should be 1 or' +\
+                        f'equal to number of targets {len(targets)}')
+      settings['P'] = lagDict['P']
+      settings['Q'] = lagDict['Q']
+
     settings['reduce_memory'] = spec.parameterValues.get('reduce_memory', settings['reduce_memory'])
     settings['gaussianize'] = spec.parameterValues.get('gaussianize', settings['gaussianize'])
 
@@ -132,6 +162,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       settings['engine'] = randomUtils.newRNG()
     if 'reduce_memory' not in settings:
       settings['reduce_memory'] = False
+    if 'auto_select' not in settings:
+      settings['auto_select'] = False
     return settings
 
   def fit(self, signal, pivot, targets, settings):
@@ -160,7 +192,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       history = signal[:, tg]
       mask = ~np.isnan(history)
       if settings.get('gaussianize', True):
-        # Transform data to obatain normal distrbuted series. See
+        # Transform data to obtain normal distributed series. See
         # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
         # Applied Energy, 87(2010) 843-855
         # -> then train independent ARMAs
@@ -170,8 +202,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       else:
         normed = history
       # TODO correlation (VARMA) as well as singular -> maybe should be independent TSA algo?
-      P = settings['P']
-      Q = settings['Q']
+      P = settings['P'][target]
+      Q = settings['Q'][target]
       d = settings.get('d', 0)
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
