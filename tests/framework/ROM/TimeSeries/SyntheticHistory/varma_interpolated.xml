@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.VARMAInterpolated</name>
+    <author>j-bryan</author>
+    <created>2031-08-24</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.VARMA</classesTested>
+    <description>
+      Tests clustering and interpolation for SyntheticHistory ROMs using TSA.VARMA
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>VARMAInterpolated</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">infile</Input>
+      <Output class="DataObjects" type="HistorySet">indata</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">indata</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">synth</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="infile">../TrainingData/VARMAInterp.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal0, signal1, seconds</Target>
+      <Features>scaling</Features>
+      <pivotParameter>seconds</pivotParameter>
+      <varma target="signal0, signal1" seed='42'>
+        <P>1</P>
+        <Q>0</Q>
+      </varma>
+      <Segment grouping="interpolate">
+        <macroParameter>macro</macroParameter>
+        <Classifier class="Models" type="PostProcessor">classifier</Classifier>
+        <subspace divisions="1">seconds</subspace>
+        <evalMode>full</evalMode>
+      </Segment>
+    </ROM>
+    <PostProcessor name="classifier" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
+        <Features>signal0, signal1</Features>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>1</n_clusters>
+        <tol>1E-12</tol>
+        <init>k-means++</init>
+        <random_state>3</random_state>
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="indata">
+      <Input>scaling, macro</Input>
+      <Output>signal0, signal1, seconds</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="samples">
+      <Input>scaling</Input>
+      <Output>signal0, signal1, seconds</Output>
+      <Index var="seconds">signal0, signal1</Index>
+      <Index var="macro">signal0, signal1</Index>
+    </DataSet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>

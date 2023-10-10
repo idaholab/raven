@@ -18,7 +18,6 @@ import copy
 import collections
 import numpy as np
 import scipy as sp
-import pandas as pd
 
 from .. import Decorators
 
@@ -73,11 +72,6 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                          observed switching between modes. Note that the ARMA must be
                          retrained to change this property; it cannot be applied to serialized ARMAs.
                          """, default=False)
-    specs.addParam('auto_select', param_type=InputTypes.BoolType, required=False,
-                   descr=r"""uses the StatsForecast AutoARIMA algorithm to select P and Q parameters
-                         for each target signal. Resultant values are used to train the ARMA model(s).
-                         Bayesian information criterion (BIC) is used as the internal optimization
-                         metric.""", default=False)
     specs.addParam('gaussianize', param_type=InputTypes.BoolType, required=False,
                    descr=r"""activates a transformation of the signal to a normal distribution before
                          training. This is done by fitting a CDF to the data and then transforming the
@@ -89,20 +83,12 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                          \xmlNode{gaussianize} node preceding the \xmlNode{arma} node instead of this
                          option.
                          """, default=False)
-    specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerListType,
+    specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
-                       regression; typically represented as $P$ or Signal Lag in literature.
-                       Accepted as list or single value: if list, should be the same length as
-                       number of target signals. Otherwise, the singular value is used for all
-                       all signals. If `auto_select` is set to True, these values are used to
-                       bound the search for optimal $P$ values."""))
-    specs.addSub(InputData.parameterInputFactory('Q', contentType=InputTypes.IntegerListType,
+                       regression; typically represented as $P$ in literature."""))
+    specs.addSub(InputData.parameterInputFactory('Q', contentType=InputTypes.IntegerType,
                  descr=r"""the number of terms in the Moving Average term to retain in the
-                       regression; typically represented as $Q$ or Noise Lag in literature.
-                       Accepted as list or single value: if list, should be the same length as
-                       number of target signals. Otherwise, the singular value is used for all
-                       all signals. If `auto_select` is set to True, these values are used to
-                       bound the search for optimal $P$ values."""))
+                       regression; typically represented as $Q$ in literature."""))
     return specs
 
   #
@@ -117,9 +103,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     """
     # general infrastructure
     super().__init__(*args, **kwargs)
-    self._minBins = 20  # this feels arbitrary; used for empirical distr. of data
-    self._maxPQ   = 0   # maximum number of AR or MA coefficients based on P/Q values
-    self._maxCombinedPQ = 5
+    self._minBins = 20 # this feels arbitrary; used for empirical distr. of data
 
   def handleInput(self, spec):
     """
@@ -128,41 +112,9 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
+    settings['P'] = spec.findFirst('P').value
+    settings['Q'] = spec.findFirst('Q').value
     settings['reduce_memory'] = spec.parameterValues.get('reduce_memory', settings['reduce_memory'])
-    settings['auto_select'] = spec.parameterValues.get('auto_select', settings['auto_select'])
-    targets = settings['target']
-
-    # getting P and Q values (number of Signal Lag and Noise Lag coefficients) and checking validity
-    lagDict  = {}
-    lagTypes = ('P', 'Q')
-    for lagType in lagTypes: #NOTE: not including 'd' here, as this is a Transformer (add a check later?)
-      # grabbing Ps and Qs provided by user
-      lagVals = list(spec.findAll(lagType)[0].value)
-      # checking if number of P/Q values is acceptable
-      # --- if user provided only 1 value, we repeat it for all targets
-      # --- otherwise, the user has to provide a value for each target
-      if len(lagVals) == 1:
-        lagDict[lagType] = dict((target, lagVals[0]) for target in targets )
-      elif len(lagVals) == len(targets):
-        lagDict[lagType] = dict((target, lagVals[i]) for i,target in enumerate(targets) )
-      #TODO: if auto-selecting, allow 2 entries? as a lower,upper bound for search? or maybe too complicated...
-      else:
-        raise ValueError(f'Number of {lagType} values {len(lagVals)} should be 1 or equal to number of targets {len(targets)}')
-
-    # storing max P or Q for clustering later
-    self._maxPQ = np.max(np.r_[self._maxPQ,
-                              [lagDict[lagType][target] for target in targets \
-                                for lagType in lagTypes]])
-
-    # if auto-selecting, replace P and Q with Nones to check for and replace later
-    if settings['auto_select']:
-      settings['P'] = dict((target, None) for target in targets )
-      settings['Q'] = dict((target, None) for target in targets )
-      settings['P']['bounds'] = self._maxPQ
-      settings['Q']['bounds'] = self._maxPQ
-    else:
-      settings['P'] = lagDict['P']
-      settings['Q'] = lagDict['Q']
     settings['gaussianize'] = spec.parameterValues.get('gaussianize', settings['gaussianize'])
 
     return settings
@@ -180,8 +132,6 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       settings['engine'] = randomUtils.newRNG()
     if 'reduce_memory' not in settings:
       settings['reduce_memory'] = False
-    if 'auto_select' not in settings:
-      settings['auto_select'] = False
     return settings
 
   def fit(self, signal, pivot, targets, settings):
@@ -210,7 +160,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       history = signal[:, tg]
       mask = ~np.isnan(history)
       if settings.get('gaussianize', True):
-        # Transform data to obtain normal distributed series. See
+        # Transform data to obatain normal distrbuted series. See
         # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
         # Applied Energy, 87(2010) 843-855
         # -> then train independent ARMAs
@@ -220,12 +170,9 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       else:
         normed = history
       # TODO correlation (VARMA) as well as singular -> maybe should be independent TSA algo?
-      P = settings['P'][target]
-      Q = settings['Q'][target]
+      P = settings['P']
+      Q = settings['Q']
       d = settings.get('d', 0)
-      # auto-select P and Q values if desired
-      if P is None or Q is None:
-        P, Q = self.autoSelectParams(settings, target, pivot[mask], history[mask])
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
       res = model.fit(low_memory=settings['reduce_memory'])
@@ -241,70 +188,27 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       #   -> factr: "factor" for exiting solve, roughly as f_new - f_old / scaling <= factr * eps
       #              default is 1e10 (loose solve), medium is 1e7, extremely tight is 1e1
       #   e.g. method_kwargs={'disp': 1, 'pgtol': 1e-9, 'factr': 10.0})
-      ## get initial state distribution stats
-      # taken from old statsmodels.tsa.statespace.kalman_filter.KalmanFilter.simulate
+
+      # get initial state distribution stats
       smoother = model.ssm
-      initMean = np.linalg.solve(np.eye(smoother.k_states) - smoother['transition',:,:,0], smoother['state_intercept',:,0])
-      r = smoother['selection',:,:,0]
-      q = smoother['state_cov',:,:,0]
-      selCov = r.dot(q).dot(r.T)
-      initCov = sp.linalg.solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
+      transition = smoother['transition',:,:,0]
+      stateIntercept = smoother['state_intercept',:,0]
+      selection = smoother['selection',:,:,0]
+      stateCov = smoother['state_cov',:,:,0]
+      initMean, initCov = self._solveStateDistribution(transition, stateIntercept, stateCov, selection)
       initDist = {'mean': initMean, 'cov': initCov}
-      ar = -res.polynomial_ar[1:]
-      ma = res.polynomial_ma[1:]
+
       params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
-                                'ar': ar, #np.pad(ar, (0, self._maxPQ - len(ar) ), "constant", constant_values=0.0 ),     # ar
-                                'ma': ma, #np.pad(ma, (0, self._maxPQ - len(ma) ), "constant", constant_values=0.0 ),     # ma
+                                'ar': -res.polynomial_ar[1:],     # AR
+                                'ma': res.polynomial_ma[1:],     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'lags': [P,d,Q],
-                                'model': model}
+                                'model': {'obs_cov': model['obs_cov'],
+                                          'state_cov': model['state_cov']}, }
       if not settings['reduce_memory']:
-        params[target]['arma']['results'] = res
+        params[target]['arma']['residual'] = res.resid
     return params
-
-  def autoSelectParams(self, settings, target, pivot, history):
-    """
-      Auto-selects ARMA hyperparameters P and Q for signal and noise lag. Uses the StatsForecast
-      AutoARIMA methodology for selection, including BIC as the optimization criteria,
-      @ In, settings, dict, additional settings specific to algorithm
-      @ In, target, str, name of target signal
-      @ In, pivot, np.array, time-like array values
-      @ In, history, np.array, signal values
-      @ Out, POpt, int, optimal signal lag parameter
-      @ Out, QOpt, int, optimal noise lag parameter
-    """
-    try:
-      from statsforecast.models import AutoARIMA
-      from statsforecast.arima import arima_string
-      import re
-    except ModuleNotFoundError as exc:
-      print("This RAVEN TSA Module requires the statsforecast library to be installed in the current python environment")
-      raise ModuleNotFoundError from exc
-
-    maxP = settings['P']['bounds']
-    maxQ = settings['Q']['bounds']
-
-    SFparams = {
-        "seasonal": False, # set to True if you want a SARIMA model
-        "stationary": False,
-        "start_p": 0,
-        "start_q": 0,
-        "max_p": maxP,
-        "max_q": maxQ,
-        "max_order": self._maxCombinedPQ,
-        "ic": 'bic',
-      }
-
-    SFAA = AutoARIMA(**SFparams)
-    fittedARIMA = SFAA.fit(y=history)
-
-    arma_str = re.findall(r'\(([^\\)]+)\)', arima_string(fittedARIMA.model_))[0]
-    POpt,_,QOpt = [int(a) for a in arma_str.split(',')]
-    print(POpt)
-    print(QOpt)
-
-    return POpt, QOpt
 
   def getResidual(self, initial, params, pivot, settings):
     """
@@ -324,7 +228,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
 
     residual = initial.copy()
     for t, (target, data) in enumerate(params.items()):
-      residual[:, t] = data['arma']['results'].resid
+      residual[:, t] = data['arma']['residual']
 
     return residual
 
@@ -381,7 +285,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
   def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
-      @ In, params, dict, characterization such as obtained from self.characterize()
+      @ In, params, dict, characterization such as otained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
       @ In, settings, dict, settings for this ROM
       @ Out, synthetic, np.array(float), synthetic ARMA signal
@@ -391,22 +295,18 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, data) in enumerate(params.items()):
       armaData = data['arma']
-      modelParams = np.hstack([[armaData.get('const', 0)],
-                               armaData['ar'][armaData['ar']!=0],
-                               armaData['ma'][armaData['ma']!=0],
-                               [armaData.get('var', 1)]])
-      msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'],
-                                                                 armaData['initials'],
-                                                                 synthetic.shape[0],
-                                                                 None) #settings['engine'])
+      P,d,Q = armaData['lags']
+      modelParams = np.r_[armaData.get('const', 0), armaData['ar'], armaData['ma'], armaData.get('var', 1)]
+      msrShocks, stateShocks, initialState = self._generateNoise(armaData, synthetic.shape[0])
       # measurement shocks
-      # statsmodels if we don't provide them.
+      import statsmodels.api
+      model = statsmodels.tsa.arima.model.ARIMA(synthetic[:,t], order=(P, d, Q), trend='c')
       # produce sample
-      new = armaData['model'].simulate(modelParams,
-                                       synthetic.shape[0],
-                                       measurement_shocks=msrShocks,
-                                       state_shocks=stateShocks,
-                                       initial_state=initialState)
+      new = model.simulate(modelParams,
+                           synthetic.shape[0],
+                           measurement_shocks=msrShocks,
+                           state_shocks=stateShocks,
+                           initial_state=initialState)
       if settings.get('gaussianize', True):
         # back-transform through CDF
         new = mathUtils.degaussianize(new, params[target]['cdf'])
@@ -429,23 +329,6 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       for q, ma in enumerate(info['arma']['ma']):
         base.append(xmlUtils.newNode(f'MA_{q}', text=f'{float(ma):1.9e}'))
       base.append(xmlUtils.newNode('variance', text=f'{float(info["arma"]["var"]):1.9e}'))
-      if 'lags' in info["arma"].keys():
-        base.append(xmlUtils.newNode('order', text=','.join([str(int(l)) for l in info["arma"]["lags"]])))
-
-  def getNonClusterFeatures(self, params):
-    """
-      Allows the engine to put whatever it wants into an XML to print to file.
-      @ In, params, dict, parameters from training this ROM
-      @ Out, None
-    """
-    nonFeatures = {}
-    for target, info in params.items():
-      nonFeatures[target] = {}
-      if 'lags' in info["arma"].keys():
-        nonFeatures[target]['p'] = np.array([info["arma"]["lags"][0]])
-        nonFeatures[target]['d'] = np.array([info["arma"]["lags"][1]])
-        nonFeatures[target]['q'] = np.array([info["arma"]["lags"][2]])
-    return nonFeatures
 
   # clustering
   def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
@@ -500,30 +383,128 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       elif identifier.startswith('ma_'):
         index = int(identifier.split('_')[1])
         params[target]['arma']['ma'][index] = value
+      # The state vector distribution needs to be rebuilt now that we've changed the parameters
+      transition, stateIntercept, stateCov, selection = self._buildStateSpaceMatrices(params[target]['arma'])
+      initMean, initCov = self._solveStateDistribution(transition, stateIntercept, stateCov, selection)
+      params[target]['arma']['initials'] = {'mean': initMean, 'cov': initCov}
     return params
 
-  # utils
-  def _generateNoise(self, model, initDict, size, engine=None):
+  def _solveStateDistribution(self, transition, stateIntercept, stateCov, selection):
     """
-      Generates perturbations for ARMA sampling.
-      @ In, model, statsmodels.tsa.arima.model.ARIMA, trained ARIMA model
-      @ In, initDict, dict, mean and covariance of initial sampling distribution
+      Determines the steady state mean vector and covariance matrix of a state space model
+        x_{t+1} = T x_t + R w_t + c
+      where x is the state vector, T is the transition matrix, R is the selection matrix,
+      w is the noise vector (w ~ N(0, Q) for state covariance matrix Q), and c is the state
+      intercept vector.
+
+      @ In, transition, np.array, transition matrix (T)
+      @ In, stateIntercept, np.array, state intercept vector (c)
+      @ In, stateCov, np.array, state covariance matrix (Q)
+      @ In, selection, np.array, selection matrix (R)
+      @ Out, mean, np.array, steady state mean vector
+      @ Out, cov, np.array, steady state covariance matrix
+    """
+    # The mean vector (m) solves the linear system (I - T) m = c
+    mean = np.linalg.solve(np.eye(transition.shape[0]) - transition, stateIntercept)
+    # The covariance matrix (C) solves the discrete Lyapunov equation C = T C T' + R Q R'
+    cov = sp.linalg.solve_discrete_lyapunov(transition, selection @ stateCov @ selection.T)
+    return mean, cov
+
+  def _buildStateSpaceMatrices(self, params):
+    """
+      Builds the state space matrices for the ARMA model. Specifically, the transition, state intercept,
+      state covariance, and selection matrices are built.
+
+      @ In, params, dict, dictionary of trained model parameters
+      @ Out, transition, np.array, transition matrix
+      @ Out, stateIntercept, np.array, state intercept vector
+      @ Out, stateCov, np.array, state covariance matrix
+      @ Out, selection, np.array, selection matrix
+    """
+    # The state vector has dimension max(P, Q + 1)
+    P = len(params['ar'])
+    Q = len(params['ma'])
+    dim = max(P, Q + 1)
+    transition = np.eye(dim, k=1)
+    transition[:P, 0] = params['ar']
+    stateIntercept = np.zeros(dim)  # NOTE The state intercept vector handles the trend component of
+                                    # SARIMA models. We don't implement that for now so we set it to 0,
+                                    # but this may change in the future.
+    stateCov = np.atleast_2d(params['var'])
+    selection = np.r_[1., params['ma'], np.zeros(max(dim - (Q + 1), 0))].reshape(-1, 1)  # column vector
+    return transition, stateIntercept, stateCov, selection
+
+  def _solveStateDistribution(self, transition, stateIntercept, stateCov, selection):
+    """
+      Determines the steady state mean vector and covariance matrix of a state space model
+        x_{t+1} = T x_t + R w_t + c
+      where x is the state vector, T is the transition matrix, R is the selection matrix,
+      w is the noise vector (w ~ N(0, Q) for state covariance matrix Q), and c is the state
+      intercept vector.
+
+      @ In, transition, np.array, transition matrix (T)
+      @ In, stateIntercept, np.array, state intercept vector (c)
+      @ In, stateCov, np.array, state covariance matrix (Q)
+      @ In, selection, np.array, selection matrix (R)
+      @ Out, mean, np.array, steady state mean vector
+      @ Out, cov, np.array, steady state covariance matrix
+    """
+    # The mean vector (m) solves the linear system (I - T) m = c
+    mean = np.linalg.solve(np.eye(transition.shape[0]) - transition, stateIntercept)
+    # The covariance matrix (C) solves the discrete Lyapunov equation C = T C T' + R Q R'
+    cov = sp.linalg.solve_discrete_lyapunov(transition, selection @ stateCov @ selection.T)
+    return mean, cov
+
+  def _buildStateSpaceMatrices(self, params):
+    """
+      Builds the state space matrices for the ARMA model. Specifically, the transition, state intercept,
+      state covariance, and selection matrices are built.
+
+      @ In, params, dict, dictionary of trained model parameters
+      @ Out, transition, np.array, transition matrix
+      @ Out, stateIntercept, np.array, state intercept vector
+      @ Out, stateCov, np.array, state covariance matrix
+      @ Out, selection, np.array, selection matrix
+    """
+    # The state vector has dimension max(P, Q + 1)
+    P = len(params['ar'])
+    Q = len(params['ma'])
+    dim = max(P, Q + 1)
+    transition = np.eye(dim, k=1)
+    transition[:P, 0] = params['ar']
+    stateIntercept = np.zeros(dim)  # NOTE The state intercept vector handles the trend component of
+                                    # SARIMA models. We don't implement that for now so we set it to 0,
+                                    # but this may change in the future.
+    stateCov = np.atleast_2d(params['var'])
+    selection = np.r_[1., params['ma'], np.zeros(max(dim - (Q + 1), 0))].reshape(-1, 1)  # column vector
+    return transition, stateIntercept, stateCov, selection
+
+  # utils
+  def _generateNoise(self, params, size):
+    """
+      Generates purturbations for ARMA sampling.
+      @ In, params, dict, dictionary of trained model parameters
       @ In, size, int, length of time-like variable
-      @ In, engine, instance, optional, random number generator
       @ Out, msrShocks, np.array, measurement shocks
       @ Out, stateShocks, np.array, state shocks
       @ Out, initialState, np.array, initial random state
     """
     # measurement shocks -> these are usually near 0 but not exactly
     # note in statsmodels.tsa.statespace.kalman_filter, mean of measure shocks is 0s
-    msrCov = model['obs_cov']
-    msrShocks = randomUtils.randomMultivariateNormal(msrCov, size=size, engine=engine)
+    # NOTE (j-bryan, 8/30/2023): The observation covariance matrix (obs_cov) will always be zero for
+    #   statsmodels.tsa.arima.model.ARIMA objects. That ARIMA class is a subclass of the statsmodels
+    #   SARIMAX class and always uses the default value of False for the measurement_error keyword
+    #   argument for the SARIMAX class, forcing the observation covariance matrix to be zero. The
+    #   sampling for the measurement shocks is left in for now in case a time where it is needed
+    #   is identified and to keep the RNG samples consistent with the existing tests.
+    # msrCov = model['obs_cov']
+    msrCov = np.zeros((1, 1))
+    msrShocks = randomUtils.randomMultivariateNormal(msrCov, size=size)
     # state shocks -> these are the significant noise terms
     # note in statsmodels.tsa.statespace.kalman_filter, mean of state shocks is 0s
-    stateCov = model['state_cov']
-    stateShocks = randomUtils.randomMultivariateNormal(stateCov, size=size, engine=engine)
+    stateShocks = randomUtils.randomMultivariateNormal(np.atleast_2d(params['var']), size=size)
     # initial state
-    initMean = initDict['mean']
-    initCov = initDict['cov']
-    initialState = randomUtils.randomMultivariateNormal(initCov, size=1, mean=initMean, engine=engine)
+    initMean = params['initials']['mean']
+    initCov = params['initials']['cov']
+    initialState = randomUtils.randomMultivariateNormal(initCov, size=1, mean=initMean)
     return msrShocks, stateShocks, initialState

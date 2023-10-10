@@ -2,6 +2,8 @@
   <rom type="Static">
     <ROM>
       <type>GAUSSgpcROM</type>
+      <Features>y1,y2</Features>
+      <Targets>ans,ans2</Targets>
     </ROM>
     <ans>
       <mean>1.434</mean>

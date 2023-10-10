@@ -1,0 +1,120 @@
+simulation:
+  scenario_name: "ABCE_ERCOT_PWRC2N"
+  solver: "HiGHs"
+  num_steps: 1
+  annual_dispatch_engine: none
+  C2N_assumption: baseline
+
+scenario:
+  peak_demand: 80003.0
+  policies:
+    CTAX:
+      enabled: True
+      qty: 0  # $/t CO2
+    PTC:
+      enabled: True
+      eligibility:
+        unit_type:
+          - conventional_nuclear
+          - wind
+          - solar
+      qty: 15.0   # $/MWh
+  allowed_xtr_types:
+    - wind
+    - solar
+    - ngcc
+    - ngct
+    - PWR_C2N0_single
+    - PWR_C2N1_single
+    - HTGR_C2N0_single
+    - HTGR_C2N2_single
+    - SFR_C2N0_single
+    - SFR_C2N3_single
+
+
+#######################################################
+#  Advanced settings
+#######################################################
+
+# Various constants: should never be updated!
+constants:
+  first_asset_id: 2001
+  vis_lvl: 45   # sets the logging level for bare visual elements
+  large_epsilon: 1.0
+  time_before_start: -1
+  distant_time: 9999
+  big_number: 999999
+  hours_per_year: 8760
+  MW2kW: 1000   # converts MW to kW
+
+# File paths and filenames
+file_paths:
+  ABCE_sysimage_file: "abceSysimage.so"
+  db_file: "abce_db.db"
+  demand_data_file: "demand_data.csv"
+  agent_specifications_file: "single_agent_testing.yml"
+  #agent_specifications_file: "agent_specifications.yml"
+  output_file: "outputs.xlsx"
+  unit_specs_data_file: "unit_specs.yml"
+  logo: "abce.txt"
+
+# Modeled grid system settings which are unlikely to change frequently
+system:
+  price_cap: 9001
+  tax_rate: 0.21
+  planning_reserve_margin: 0.1375
+  peak_initial_reserves: 0.0
+  max_total_ENS: 100000  # MWh, allowed gen. undersupply in first projected dispatch year (Energy Not Served)
+
+# Settings for demand projections
+demand:
+  total_forecast_horizon: 10   # Number of periods in the complete forecast horizon
+  demand_visibility_horizon: 2
+  demand_projection_mode: exp_termrate     # flat, exp_fitted, or exp_termrate
+  demand_projection_window: 5 # Total number of periods used to project demand
+  historical_demand_growth_rate: 0.01
+  terminal_demand_growth_rate: 0.01  # Exponential growth rate of demand
+
+# Settings for the agents' internal dispatch simulator and handling of
+#   dispatch data
+dispatch:
+  num_dispatch_years: 10  # Num. of years to explicitly simulate dispatch
+  num_repdays: 35
+  hist_wt: 0.4  # Weighting of historical versus projected data
+  hist_decay: 0.5   # Decay factor for each historical data year
+
+# Settings for agent behavior optimization
+agent_opt:
+  num_future_periods_considered: 4    # Number of periods for which to consider future projects
+  max_type_rets_per_pd: 3
+  max_type_newbuilds_per_pd: 5
+  shortage_protection_period: 8
+  cap_decrease_threshold: 1.05
+  cap_decrease_margin: -0.05
+  cap_maintain_threshold: 1.0
+  cap_maintain_margin: 0.0
+  cap_increase_margin: 0.02
+  profit_lamda: 1.0          # Note: only the ratio between the lamdas matters
+  credit_rating_lamda: 0.1
+  fin_metric_horizon: 6
+  int_bound: 5.0
+  icr_floor: 4.2
+  fcf_debt_floor: 0.2
+  re_debt_floor: 0.15
+  use_expanded_fin_constraints: True
+
+financing:
+  default_debt_term: 30
+  default_equity_horizon: 30
+  depreciation_horizon: 20
+  starting_instrument_id: 1000
+
+# Filenames and settings for ALEAF
+ALEAF:
+  ALEAF_master_settings_file: "ALEAF_Master.xlsx"
+  ALEAF_model_type: "LC_GEP"
+  ALEAF_region: "ERCOT"
+  ALEAF_model_settings_file: "ALEAF_Master_LC_GEP.xlsx"
+  ALEAF_portfolio_file: "ALEAF_ERCOT.xlsx"
+  ALEAF_data_file: "ALEAF_settings.yml"
+

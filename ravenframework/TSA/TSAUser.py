@@ -99,8 +99,6 @@ class TSAUser:
     elif self.pivotParameterID not in self.target:
       # NOTE this assumes that every TSAUser is also an InputUser!
       raise IOError('TSA: The pivotParameter must be included in the target space.')
-    if len(self._tsaAlgorithms)==0:
-      print("No Segmenting algorithms were requested.")
 
   def canCharacterize(self):
     """
@@ -228,7 +226,7 @@ class TSAUser:
       @ In, evalGlobal, bool, are these algos trained on global signal?
       @ In, evaluation, dict, realization dictionary of values for each target
       @ In, slicer, list of slice, indexer for data range of this segment FROM GLOBAL SIGNAL
-      @ Out, evaluation, dict, realization dictionary of values for each target
+      @ Out, rlz, dict, realization dictionary of values for each target
     """
     pivots = self.pivotParameterValues
     # the algorithms' targets need to be consistently indexed, but there's no
@@ -264,7 +262,6 @@ class TSAUser:
         continue
     # RAVEN realization construction
     if needToRecombine:
-      # tmp_array = np.zeros((len(slicer), len(noPivotTargets)))
       rlz = dict((target, np.vstack([[result[s, t]] for s in slicer])) for t, target in enumerate(noPivotTargets))
       rlz[self.pivotParameterID] = evaluation[self.pivotParameterID]
     else:
