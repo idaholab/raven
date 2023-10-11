@@ -41,6 +41,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                'const']
   _acceptsMissingValues = True
   _isStochastic = True
+  _needsPriorAlgoFeatures = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -83,6 +84,8 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                          \xmlNode{gaussianize} node preceding the \xmlNode{arma} node instead of this
                          option.
                          """, default=False)
+    specs.addParam('auto_select', param_type=InputTypes.BoolType, required=False,
+                   descr=r""" """, default=False)
     specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerListType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                        regression; typically represented as $P$ or Signal Lag in literature.
@@ -96,6 +99,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                        number of target signals. Otherwise, the singular value is used for all
                        all signals."""))
     return specs
+
+  @classmethod
+  def setNeedsPriorAlgoFeatures(cls, val):
+    cls._needsPriorAlgoFeatures = val
 
   #
   # API Methods
@@ -125,6 +132,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       # if auto-selecting, replace P and Q with Nones to check for and replace later
       settings['P'] = dict((target, None) for target in targets )
       settings['Q'] = dict((target, None) for target in targets )
+      self.setNeedsPriorAlgoFeatures(True)
     else:
       # getting P and Q values (number of Signal Lag and Noise Lag coefficients); checking validity
       lagDict = {}
@@ -166,7 +174,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       settings['auto_select'] = False
     return settings
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
@@ -201,10 +209,13 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
         normed[mask] = mathUtils.gaussianize(history[mask], params[target]['cdf'])
       else:
         normed = history
-      # TODO correlation (VARMA) as well as singular -> maybe should be independent TSA algo?
-      P = settings['P'][target]
-      Q = settings['Q'][target]
-      d = settings.get('d', 0)
+      # auto-select P and Q values if desired
+      if settings['auto_select']:
+        P,d,Q = self.autoSelectParams(target, trainedParams)
+      else:
+        P = settings['P'][target]
+        Q = settings['Q'][target]
+        d = settings.get('d', 0)
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
       res = model.fit(low_memory=settings['reduce_memory'])
@@ -241,6 +252,29 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       if not settings['reduce_memory']:
         params[target]['arma']['residual'] = res.resid
     return params
+
+  def autoSelectParams(self, target, trainedParams):
+    """
+      Auto-selects ARMA hyperparameters P and Q for signal and noise lag. Uses the StatsForecast
+      AutoARIMA methodology for selection, including BIC as the optimization criteria,
+      @ In, settings, dict, additional settings specific to algorithm
+      @ In, target, str, name of target signal
+      @ In, pivot, np.array, time-like array values
+      @ In, history, np.array, signal values
+      @ Out, POpt, int, optimal signal lag parameter
+      @ Out, QOpt, int, optimal noise lag parameter
+    """
+    # find last applied AutoARMA algorithm
+    prevAutoARMA = [algo for algo in trainedParams if algo.name == 'AutoARMA']
+    if len(prevAutoARMA) == 0:
+      raise IOError("'auto-select' was requested for ARMA but no previous AutoARMA algorithm was applied.")
+
+    params = trainedParams[prevAutoARMA[-1]]
+
+    P = params[target]['P_opt']
+    d = params[target]['D_opt']
+    Q = params[target]['Q_opt']
+    return P,d,Q
 
   def getResidual(self, initial, params, pivot, settings):
     """
@@ -361,6 +395,23 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       for q, ma in enumerate(info['arma']['ma']):
         base.append(xmlUtils.newNode(f'MA_{q}', text=f'{float(ma):1.9e}'))
       base.append(xmlUtils.newNode('variance', text=f'{float(info["arma"]["var"]):1.9e}'))
+      if 'lags' in info["arma"].keys():
+        base.append(xmlUtils.newNode('order', text=','.join([str(int(l)) for l in info["arma"]["lags"]])))
+
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    nonFeatures = {}
+    for target, info in params.items():
+      nonFeatures[target] = {}
+      if 'lags' in info["arma"].keys():
+        nonFeatures[target]['p'] = np.array([info["arma"]["lags"][0]])
+        nonFeatures[target]['d'] = np.array([info["arma"]["lags"][1]])
+        nonFeatures[target]['q'] = np.array([info["arma"]["lags"][2]])
+    return nonFeatures
 
   # clustering
   def getClusteringValues(self, nameTemplate: str, requests: list, params: dict) -> dict:
