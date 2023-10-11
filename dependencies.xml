@@ -83,6 +83,7 @@ Note all install methods after "main" take
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools/>
+    <wheel/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
