@@ -35,7 +35,7 @@ class SKLTransformer(TimeSeriesTransformer):
   def templateTransformer(self):
     """ Template transformer that must be implemented in child classes """
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Fits the algorithm/model using the provided time series ("signal") using methods specific to
       the algorithm.
@@ -108,7 +108,7 @@ class SKLTransformer(TimeSeriesTransformer):
 
 class SKLCharacterizer(SKLTransformer, TimeSeriesCharacterizer):
   """ Wrapper for scikit-learn transformers that also provide a characterization of the data """
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Fits the algorithm/model using the provided time series ("signal") using methods specific to
       the algorithm.

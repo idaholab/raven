@@ -66,7 +66,7 @@ class PolynomialRegression(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeS
     settings['degree'] = spec.findFirst('degree').value
     return settings
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]

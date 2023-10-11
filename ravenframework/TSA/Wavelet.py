@@ -94,7 +94,7 @@ class Wavelet(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
     settings['family'] = spec.findFirst('family').value
     return settings
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       This function utilizes the Discrete Wavelet Transform to
       characterize a time-dependent series of data.

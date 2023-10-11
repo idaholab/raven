@@ -30,6 +30,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   # class attribute
   ## defines if missing values are accepted by the characterization algorithm
   _acceptsMissingValues = False
+  _needsPriorAlgoFeatures = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -82,6 +83,16 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     return issubclass(cls, TimeSeriesTransformer)
 
+  @classmethod
+  def needsPriorAlgoFeatures(cls):
+    """
+      Method that returns if a Generator algorithm is stochastic or deterministic.
+
+      @ In, None
+      @ Out, _needsPriorAlgoFeatures, bool, True if this algorithm requires prior trained params
+    """
+    return cls._needsPriorAlgoFeatures
+
   ### INHERITED METHODS ###
   def __init__(self, *args, **kwargs):
     """
@@ -93,7 +104,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     self.name = self.__class__.__name__ # the name the class shall be known by during its RAVEN life
 
   @abc.abstractmethod
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Fits the algorithm/model using the provided time series ("signal") using methods specific to
       the algorithm.

@@ -18,6 +18,7 @@ Created on August 3, 2021
 Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
+import copy
 from inspect import isabstract
 
 from ..utils import xmlUtils, InputData, InputTypes
@@ -209,7 +210,8 @@ class TSAUser:
       if np.isnan(signal).any() and not algo.canAcceptMissingValues():
         raise ValueError(f'Missing values (NaN) found in input to {algo.name}, '
                          f'but {algo.name} cannot accept missing values!')
-      params = algo.fit(signal, pivots, targets, settings)
+      trainedParams = copy.deepcopy(self._tsaTrainedParams) if algo.needsPriorAlgoFeatures() else None
+      params = algo.fit(signal, pivots, targets, settings, trainedParams)
       # store characteristics
       self._tsaTrainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo

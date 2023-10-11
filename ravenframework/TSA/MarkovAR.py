@@ -100,7 +100,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       settings['engine'] = randomUtils.newRNG()
     return settings
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]

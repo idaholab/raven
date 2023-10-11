@@ -43,7 +43,7 @@ class FilterBase(TimeSeriesTransformer):
       @ Out, mask, numpy.ndarray, numpy array of boolean values that masks values of X
     """
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Fits the algorithm/model using the provided time series ("signal") using methods specific to
       the algorithm.
