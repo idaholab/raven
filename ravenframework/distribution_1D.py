@@ -18,31 +18,43 @@ Created on Oct 10, 2023
 import scipy
 
 
-def truncate(func):
-  return func
-
-
 class Distribution:
   def __init__(self, dist, params):
     self.dist = dist
     self.params = params
-
-    # scipy.stats distributions treat continuous and discrete distributions differently.
-    # rv_continuous has a `pdf` method, while rv_discrete has a `pmf` method.
-    if isinstance(dist, scipy.stats.rv_continuous):
-      self._pdf = dist.pdf
-    elif isinstance(dist, scipy.stats.rv_discrete):
-      self._pdf = dist.pmf
-    else:
-      raise TypeError("DistributionBackend must be initialized with a scipy.stats distribution.")
+    self._isTruncated = 'xMin' in params or 'xMax' in params
+    self._xMin = params.get('xMin', None)
+    self._xMax = params.get('xMax', None)
 
   def pdf(self, x):
-    return self._pdf(x, **self.params)
+    # If the distribution is not truncated, just return the pdf evaluation from dist
+    if not self._isTruncated:
+      return self.dist.pdf(x, **self.params)
+
+    # Otherwise, return the truncated and rescaled pdf value
+    if x < self._xMin or x > self._xMax:
+      return 0
+    scale = 1 / (self.untrCdf(self._xMax) - self.cdf(self.params['xMin']))
+    returnPdf = scale * self.untrPdf(x, **self.params)
+    return returnPdf
 
   def cdf(self, x):
-    return self.dist.cdf(x, **self.params)
+    # If the distribution is not truncated, just return the pdf evaluation from dist
+    if not self._isTruncated:
+      return self.dist.cdf(x, **self.params)
+
+    # Otherwise, return the truncated and rescaled cdf value
+    if x < self._xMin:
+      return 0
+    elif x > self._xMax:
+      return 1
+
+    scale = 1 / (self.untrCdf(self._xMax) - self.untrCdf(self._xMin))
+    returnCdf = scale * (self.untrCdf(x, **self.params) - self.untrCdf(self._xMin, **self.params))
+    return returnCdf
 
   def inverseCdf(self, x):
+    temp = self.untrCdf(x_min) + x*(untrCdf(x_max)-untrCdf(x_min))
     return self.dist.ppf(x, **self.params)
 
   def cdfComplement(self, x):
@@ -94,8 +106,7 @@ class Distribution:
     # The mode can be found by finding the maximum of the pdf.
     # However, this requires performing an optimization, which is not ideal.
     # For now, just raise an error.
-    # raise NotImplementedError("Mode is not implemented for scipy distributions.")
-    return self.dist.mean(**self.params)  # true for symmetric distributions
+    raise NotImplementedError("Mode is not implemented for scipy distributions.")
 
   def untrHazard(self, x):
     return self.dist.pdf(x, **self.params) / self.dist.sf(x, **self.params)
@@ -104,10 +115,15 @@ class Distribution:
 class TruncatedDistribution(Distribution):
   def __init__(self, dist, params):
     if 'xMin' not in params or 'xMax' not in params:
-      raise ValueError("TruncatedDistribution must be initialized with values for both xMin and xMax.")
+      self._isTruncated = False
+
     super().__init__(dist, params)
 
   def pdf(self, x):
+    if x < self.params['xMin'] or x > self.params['xMax']:
+      return 0
+
+    # Rescale truncated pdf to be a valid pdf
     scale = 1 / (self.cdf(self.params['xMax']) - self.cdf(self.params['xMin']))
     return scale * self._pdf(x, **self.params)
 
@@ -116,15 +132,21 @@ class TruncatedDistribution(Distribution):
       return 0
     elif x > self.params['xMax']:
       return 1
-    else:
-      scale = 1 / (self.cdf(self.params['xMax']) - self.cdf(self.params['xMin']))
-      return scale * self.dist.cdf(x, **self.params)
+
+    # Rescale truncated cdf to match truncated pdf
+    scale = 1 / (self.cdf(self.params['xMax']) - self.cdf(self.params['xMin']))
+    return scale * (self.dist.cdf(x, **self.params) - self.dist.csv(self.params['xMin'], **self.params))
 
 
 class BasicUniformDistribution(Distribution):
-  def __init__(self, xMin, xMax):
-    params = {'loc': xMin,
-              'scale': xMax - xMin}
+  def __init__(self, lowerBound, upperBound):
+    """
+    @ In, lowerBound, float, lower bound of the uniform distribution
+    @ In, upperBound, float, upper bound of the uniform distribution
+    @ Out, None
+    """
+    params = {'loc': lowerBound,
+              'scale': upperBound - lowerBound}
     super().__init__(scipy.stats.uniform, params)
 
 
@@ -132,12 +154,11 @@ class BasicNormalDistribution(Distribution):
   def __init__(self, mean, sd, xMin=None, xMax=None):
     params = {'loc': mean,
               'scale': sd}
-    if xMin is None and xMax is None:
-      super().__init__(scipy.stats.norm, params)
-    else:
-      params['a'] = (xMin - mean) / sd
-      params['b'] = (xMax - mean) / sd
-      super().__init__(scipy.stats.truncnorm, params)
+    if xMin is not None:
+      params['xMin'] = xMin
+    if xMax is not None:
+      params['xMax'] = xMax
+    super().__init__(scipy.stats.norm, params)
 
 
 class BasicLogNormalDistribution(Distribution):
@@ -216,17 +237,3 @@ class BasicGammaDistribution(Distribution):
 #   - laplace
 #   - gamma
 #   - beta
-
-
-"""
-
-Required methods, taken from BoostDistribution (in Distributions.py) methods
-  - cdf
-  - inverseCdf
-  -
-
-
-Create new class ScipyDistribution in Distributions.py that implements the same interface
-as BoostDistribution.
-
-"""

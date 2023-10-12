@@ -525,11 +525,14 @@ class ScipyDistribution(Distribution):
     self.dimensionality  = 1
     self.distType        = 'Continuous'
 
+  # ************************************
+  # Functions of truncated distributions
+  # ************************************
   def cdf(self,x):
     """
       Function to get the cdf at a provided coordinate
       @ In, x, float, value to get the cdf at
-      @ Out, retunrCdf, float, requested cdf
+      @ Out, returnCdf, float, requested cdf
     """
     returnCdf = self._distribution.cdf(x)
     return returnCdf
@@ -538,7 +541,7 @@ class ScipyDistribution(Distribution):
     """
       Function to get the inverse cdf at a provided coordinate
       @ In, x, float, value to get the inverse cdf at
-      @ Out, retunrPpf, float, requested inverse cdf
+      @ Out, returnPpf, float, requested inverse cdf
     """
     returnPpf = self._distribution.ppf(x)
     return returnPpf
@@ -561,13 +564,16 @@ class ScipyDistribution(Distribution):
     logPdf = self._distribution.logpdf(x)
     return logPdf
 
+  # **************************************
+  # Functions of untruncated distributions
+  # **************************************
   def untruncatedCdfComplement(self, x):
     """
       Function to get the untruncated  cdf complement at a provided coordinate
       @ In, x, float, value to get the untruncated  cdf complement  at
       @ Out, float, requested untruncated  cdf complement
     """
-    return 1 - self._untrDistribution.cdf(x)
+    return 1 - self._distribution.cdf(x)
 
   def untruncatedHazard(self, x):
     """
@@ -575,7 +581,7 @@ class ScipyDistribution(Distribution):
       @ In, x, float, value to get the untruncated  Hazard   at
       @ Out, float, requested untruncated  Hazard
     """
-    return self._untrDistribution.
+    return self._untrDistribution.pdf(x) / self._untrDistribution.cdf(x)  # TODO this ain't right
 
   def untruncatedMean(self):
     """
@@ -621,6 +627,7 @@ class ScipyDistribution(Distribution):
     else:
       # TODO to speed up, do this on the C side instead of in python
       rvsValue = np.array([self.rvs() for _ in range(size)])
+    rvsValue = self._distribution.rvs(size=size)
     return rvsValue
 
   def selectedRvs(self, discardedElems):
