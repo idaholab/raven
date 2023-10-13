@@ -33,8 +33,9 @@ from .BaseClasses import BaseEntity, InputDataUser
 from .utils import utils
 from .utils.randomUtils import random
 from .utils import randomUtils
-from .distribution_1D import BasicNormalDistribution
-distribution1D = utils.findCrowModule('distribution1D')
+# from .distribution_1D import BasicNormalDistribution
+# distribution1D = utils.findCrowModule('distribution1D')
+from . import distribution_1D as distribution1D
 from .utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -510,138 +511,6 @@ class BoostDistribution(Distribution):
       rvsValue = self.selectedPpf(random(),discardedElems)
     return rvsValue
 
-class ScipyDistribution(Distribution):
-  """
-    Base distribution class based on scipy.stats.rv_continuous
-  """
-
-  def __init__(self):
-    """
-      Constructor
-      @ In, None
-      @ Out, None
-    """
-    super().__init__()
-    self.dimensionality  = 1
-    self.distType        = 'Continuous'
-
-  # ************************************
-  # Functions of truncated distributions
-  # ************************************
-  def cdf(self,x):
-    """
-      Function to get the cdf at a provided coordinate
-      @ In, x, float, value to get the cdf at
-      @ Out, returnCdf, float, requested cdf
-    """
-    returnCdf = self._distribution.cdf(x)
-    return returnCdf
-
-  def ppf(self,x):
-    """
-      Function to get the inverse cdf at a provided coordinate
-      @ In, x, float, value to get the inverse cdf at
-      @ Out, returnPpf, float, requested inverse cdf
-    """
-    returnPpf = self._distribution.ppf(x)
-    return returnPpf
-
-  def pdf(self,x):
-    """
-      Function to get the pdf at a provided coordinate
-      @ In, x, float, value to get the pdf at
-      @ Out, returnPdf, float, requested pdf
-    """
-    returnPdf = self._distribution.pdf(x)
-    return returnPdf
-
-  def logPdf(self,x):
-    """
-      Function to get the log pdf at a provided coordinate
-      @ In, x, float, value to get the pdf at
-      @ Out, logPdf, float, requested log pdf
-    """
-    logPdf = self._distribution.logpdf(x)
-    return logPdf
-
-  # **************************************
-  # Functions of untruncated distributions
-  # **************************************
-  def untruncatedCdfComplement(self, x):
-    """
-      Function to get the untruncated  cdf complement at a provided coordinate
-      @ In, x, float, value to get the untruncated  cdf complement  at
-      @ Out, float, requested untruncated  cdf complement
-    """
-    return 1 - self._distribution.cdf(x)
-
-  def untruncatedHazard(self, x):
-    """
-      Function to get the untruncated  Hazard  at a provided coordinate
-      @ In, x, float, value to get the untruncated  Hazard   at
-      @ Out, float, requested untruncated  Hazard
-    """
-    return self._untrDistribution.pdf(x) / self._untrDistribution.cdf(x)  # TODO this ain't right
-
-  def untruncatedMean(self):
-    """
-      Function to get the untruncated  Mean
-      @ In, None
-      @ Out, float, requested Mean
-    """
-    return self._distribution.untrMean()
-
-  def untruncatedStdDev(self):
-    """
-      Function to get the untruncated Standard Deviation
-      @ In, None
-      @ Out, float, requested Standard Deviation
-    """
-    return self._distribution.untrStdDev()
-
-  def untruncatedMedian(self):
-    """
-      Function to get the untruncated  Median
-      @ In, None
-      @ Out, float, requested Median
-    """
-    return self._distribution.untrMedian()
-
-  def untruncatedMode(self):
-    """
-      Function to get the untruncated  Mode
-      @ In, None
-      @ Out, untrMode, float, requested Mode
-    """
-    untrMode = self._distribution.untrMode()
-    return untrMode
-
-  def rvs(self, size=None):
-    """
-      Function to get random numbers
-      @ In, size, int, optional, number of entries to return (one if None)
-      @ Out, rvsValue, float or list, requested random number or numbers
-    """
-    if size is None:
-      rvsValue = self.ppf(random())
-    else:
-      # TODO to speed up, do this on the C side instead of in python
-      rvsValue = np.array([self.rvs() for _ in range(size)])
-    rvsValue = self._distribution.rvs(size=size)
-    return rvsValue
-
-  def selectedRvs(self, discardedElems):
-    """
-      Function to get random numbers for discrete distribution which exclude discardedElems
-      @ In, discardedElems, list, list of values to be discarded
-      @ Out, rvsValue, float, requested random number
-    """
-    if not self.memory:
-      self.raiseAnError(IOError,' The distribution '+ str(self.name) + ' does not support the method selectedRVS.')
-    else:
-      rvsValue = self.selectedPpf(random(),discardedElems)
-    return rvsValue
-
 class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
@@ -855,7 +724,7 @@ class Normal(BoostDistribution):
     self.convertToQuadDict ['Hermite'] = self.convertNormalToHermite
     self.measureNormDict   ['Hermite'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = BasicNormalDistribution(self.mean, self.sigma)
+      self._distribution = distribution1D.BasicNormalDistribution(self.mean, self.sigma)
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
       self.preferredQuadrature  = 'Hermite'
@@ -873,7 +742,7 @@ class Normal(BoostDistribution):
         self.upperBound = b
       else:
         b = self.upperBound
-      self._distribution = BasicNormalDistribution(self.mean, self.sigma, a, b)
+      self._distribution = distribution1D.BasicNormalDistribution(self.mean, self.sigma, a, b)
 
   def stdProbabilityNorm(self,std=False):
     """Returns the factor to scale error norm by so that norm(probability)=1.
