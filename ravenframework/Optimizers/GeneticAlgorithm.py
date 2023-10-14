@@ -75,24 +75,25 @@ class GeneticAlgorithm(RavenSampled):
     self.popAge = None                                           # population age
     self.fitness = None                                          # population fitness
     self.rank = None                                             # population rank (for Multi-objective optimization only)
-    self.constraintsV = None                                     # calculated contraints value  
+    self.constraintsV = None                                     # calculated contraints value
     self.crowdingDistance = None                                 # population crowding distance (for Multi-objective optimization only)
     self.ahdp = np.NaN                                           # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN                                           # Hausdorff Distance between populations
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
-    self.bestFitness = None                                      # fitness value of the best solution found 
-    self.bestObjective = None                                    # objective value of the best solution found 
+    self.bestFitness = None                                      # fitness value of the best solution found
+    self.bestObjective = None                                    # objective value of the best solution found
     self.multiBestPoint = None                                   # the best solutions (chromosomes) found among population in a specific batchId
-    self.multiBestFitness = None                                 # fitness values of the best solutions found 
-    self.multiBestObjective = None                               # objective values of the best solutions found 
-    self.multiBestConstraint = None                              # constraint values of the best solutions found 
-    self.multiBestRank = None                                    # rank values of the best solutions found 
-    self.multiBestCD = None                                      # crowding distance (CD) values of the best solutions found 
-    self.objectiveVal = None                                     # objective values of solutions  
+    self.multiBestFitness = None                                 # fitness values of the best solutions found
+    self.multiBestObjective = None                               # objective values of the best solutions found
+    self.multiBestConstraint = None                              # constraint values of the best solutions found
+    self.multiBestRank = None                                    # rank values of the best solutions found
+    self.multiBestCD = None                                      # crowding distance (CD) values of the best solutions found
+    self.objectiveVal = None                                     # objective values of solutions
     self._populationSize = None                                  # number of population size
     self._parentSelectionType = None                             # type of the parent selection process chosen
     self._parentSelectionInstance = None                         # instance of the parent selection process chosen
     self._nParents = None                                        # number of parents
+    self._kSelection = None                                      # number of chromosomes selected for tournament selection
     self._nChildren = None                                       # number of children
     self._crossoverType = None                                   # type of the crossover process chosen
     self._crossoverPoints = None                                 # point where crossover process will happen
@@ -170,7 +171,7 @@ class GeneticAlgorithm(RavenSampled):
                                                   #                   \begin{itemize}
                                                   #                     \item hard.
                                                   #                     \item soft.
-                                                  #                   \end{itemize}          
+                                                  #                   \end{itemize}
                                                 \end{itemize}""")
     # Population Size
     populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
@@ -178,7 +179,7 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""The number of chromosomes in each population.""")
     GAparams.addSub(populationSize)
-    
+
     #NOTE An indicator saying whather GA will handle constraint hardly or softly will be upgraded later @JunyungKim
     # # Constraint Handling
     # constraintHandling = InputData.parameterInputFactory('constraintHandling', strictMode=True,
@@ -186,7 +187,7 @@ class GeneticAlgorithm(RavenSampled):
     #     printPriority=108,
     #     descr=r"""a node indicating whether GA will handle constraints hardly or softly.""")
     # GAparams.addSub(constraintHandling)
-        
+
     # Parent Selection
     parentSelection = InputData.parameterInputFactory('parentSelection', strictMode=True,
         contentType=InputTypes.StringType,
@@ -208,6 +209,12 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
+    # 0.  k-selectionNumber of Parents
+    kSelection = InputData.parameterInputFactory('kSelection', strictMode=True,
+        contentType=InputTypes.IntegerType,
+        printPriority=108,
+        descr=r"""Number of chromosome selected for tournament selection""")
+    reproduction.addSub(kSelection)
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
@@ -272,9 +279,9 @@ class GeneticAlgorithm(RavenSampled):
                                  b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
 
                                  c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$
-                                 
+
                                  d.    hardConstraint: $fitness = the number of constraints violated.$
-                                 
+
                                  """)
     fitness.addParam("type", InputTypes.StringType, True,
                      descr=r"""[invLin, logistic, feasibleFirst, hardConstraint]""")
@@ -346,29 +353,38 @@ class GeneticAlgorithm(RavenSampled):
     # GAparams                                                                         #
     ####################################################################################
     gaParamsNode = paramInput.findFirst('GAparams')
-    
+
     ####################################################################################
     # populationSize                                                                   #
     ####################################################################################
     populationSizeNode = gaParamsNode.findFirst('populationSize')
     self._populationSize = populationSizeNode.value
-    
+
     ####################################################################################
     # parent selection node                                                            #
     ####################################################################################
     parentSelectionNode = gaParamsNode.findFirst('parentSelection')
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
-    if len(self._objectiveVar) >=2 and self._parentSelectionType != 'tournamentSelection':
-      self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
-    
+
+    # if len(self._objectiveVar) >=2 and self._parentSelectionType != 'tournamentSelection':
+    #   self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
+
     ####################################################################################
     # reproduction node                                                                #
     ####################################################################################
     reproductionNode = gaParamsNode.findFirst('reproduction')
     self._nParents = int(np.ceil(1/2 + np.sqrt(1+4*self._populationSize)/2))
     self._nChildren = int(2*comb(self._nParents,2))
-    
+
+    ####################################################################################
+    # k-Selection node                                                                #
+    ####################################################################################
+    if reproductionNode.findFirst('kSelection') is None:
+      self._kSelection = 3 # Default value is set to 3.
+    else:
+      self._kSelection = reproductionNode.findFirst('kSelection').value
+
     ####################################################################################
     # crossover node                                                                   #
     ####################################################################################
@@ -382,7 +398,7 @@ class GeneticAlgorithm(RavenSampled):
       self._crossoverPoints = crossoverNode.findFirst('points').value
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
-    
+
     ####################################################################################
     # mutation node                                                                    #
     ####################################################################################
@@ -396,7 +412,7 @@ class GeneticAlgorithm(RavenSampled):
       self._mutationLocs = mutationNode.findFirst('locs').value
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
-    
+
     ####################################################################################
     # survivor selection node                                                          #
     ####################################################################################
@@ -407,13 +423,13 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support ageBased, fitnessBased, and rankNcrowdingBased as a survivorSelector, whereas provided survivorSelector is {self._survivorSelectionType}')
     if len(self._objectiveVar) == 1 and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than two. ')
-    
+
     ####################################################################################
     # fitness node                                                                     #
     ####################################################################################
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
-    
+
     ####################################################################################
     # constraint node                                                                  #
     ####################################################################################
@@ -423,11 +439,11 @@ class GeneticAlgorithm(RavenSampled):
     self._expConstr = self.assemblerObjects['Constraint'][0] if 'Constraint' in self.assemblerObjects else None
     self._impConstr = self.assemblerObjects['ImplicitConstraint'][0] if 'ImplicitConstraint' in self.assemblerObjects else None
     if self._expConstr != None and self._impConstr != None:
-      self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External']) + len([ele for ele in self._impConstr if ele != 'Functions' if ele !='External']) 
+      self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External']) + len([ele for ele in self._impConstr if ele != 'Functions' if ele !='External'])
     elif self._expConstr == None and self._impConstr != None:
-      self._numOfConst = len([ele for ele in self._impConstr if ele != 'Functions' if ele !='External']) 
+      self._numOfConst = len([ele for ele in self._impConstr if ele != 'Functions' if ele !='External'])
     elif self._expConstr != None and self._impConstr == None:
-      self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External']) 
+      self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External'])
     else:
       self._numOfConst = 0
     if (self._expConstr != None) and (self._impConstr != None) and (self._penaltyCoeff != None):
@@ -437,16 +453,16 @@ class GeneticAlgorithm(RavenSampled):
       pass
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     #NOTE the code lines below are for 'feasibleFirst' temperarily. It will be generalized for invLinear as well.
-    if self._fitnessType == 'feasibleFirst':  
+    if self._fitnessType == 'feasibleFirst':
       if self._numOfConst != 0 and fitnessNode.findFirst('b') is not None:
-        self._penaltyCoeff = fitnessNode.findFirst('b').value 
+        self._penaltyCoeff = fitnessNode.findFirst('b').value
       elif self._numOfConst == 0 and fitnessNode.findFirst('b') is not None:
-        self.raiseAnError(IOError, f'The number of constraints used are 0 but there are penalty coefficieints')  
+        self.raiseAnError(IOError, f'The number of constraints used are 0 but there are penalty coefficieints')
       elif self._numOfConst != 0 and fitnessNode.findFirst('b') is None:
-        self._penaltyCoeff = list(np.repeat(1, self._numOfConst * len(self._objectiveVar))) #NOTE if penaltyCoeff is not provided, then assume they are all 1. 
+        self._penaltyCoeff = list(np.repeat(1, self._numOfConst * len(self._objectiveVar))) #NOTE if penaltyCoeff is not provided, then assume they are all 1.
       else:
-        self._penaltyCoeff = list(np.repeat(0, len(self._objectiveVar))) 
-    else: 
+        self._penaltyCoeff = list(np.repeat(0, len(self._objectiveVar)))
+    else:
       self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
@@ -558,7 +574,7 @@ class GeneticAlgorithm(RavenSampled):
       self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
       self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
       return traj, g, objectiveVal, offSprings, offSpringFitness
-    
+
   def multiConstraint(self, info, rlz):
     traj = info['traj']
     for t in self._activeTraj[1:]:
@@ -657,8 +673,8 @@ class GeneticAlgorithm(RavenSampled):
         self.rank     = xr.DataArray(offSpringRank,
                                      dims=['rank'],
                                      coords={'rank': np.arange(np.shape(offSpringRank)[0])})
-        offSpringCD           = frontUtils.crowdingDistance(rank=offSpringRank, 
-                                                            popSize=len(offSpringRank), 
+        offSpringCD           = frontUtils.crowdingDistance(rank=offSpringRank,
+                                                            popSize=len(offSpringRank),
                                                             objectives=np.array(offspringFitVals))
 
         self.crowdingDistance = xr.DataArray(offSpringCD,
@@ -681,7 +697,7 @@ class GeneticAlgorithm(RavenSampled):
   #########################################################################################################
 
   #########################################################################################################
-  # Developer note: 
+  # Developer note:
   # Each algorithm step is indicated by a number followed by the generation number
   # e.g., '0 @ n-1' refers to step 0 for generation n-1 (i.e., previous generation)
   # for more details refer to GRP-Raven-development/Disceret_opt channel on MS Teams.
@@ -731,13 +747,14 @@ class GeneticAlgorithm(RavenSampled):
       #           newMultiBestObjective[i,1], str(self.batchId))
       #   # plt.savefig('PF'+str(i)+'_'+str(self.batchId)+'.png')
       # plt.savefig('PF_'+str(self.batchId)+'.png')
-      #######################################################################################################  
+      #######################################################################################################
 
       # 1 @ n: Parent selection from population
       # Pair parents together by indexes
       parents = self._parentSelectionInstance(self.population,
                                               variables=list(self.toBeSampled),
                                               fitness = self.fitness,
+                                              kSelection = self._kSelection,
                                               nParents=self._nParents,
                                               rank = self.rank,
                                               crowdDistance = self.crowdingDistance,
@@ -966,7 +983,7 @@ class GeneticAlgorithm(RavenSampled):
     if self._fitnessType == 'hardConstraint':
       optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1],-x[2]))])
     else:
-      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])  
+      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
     if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
@@ -1016,7 +1033,7 @@ class GeneticAlgorithm(RavenSampled):
     self.multiBestFitness = fitSet
     self.multiBestObjective = optObjVal
     self.multiBestConstraint = optConstNew
-    self.multiBestRank = optRank  
+    self.multiBestRank = optRank
     self.multiBestCD = optCD
 
     return optPointsDic
@@ -1323,7 +1340,7 @@ class GeneticAlgorithm(RavenSampled):
 
     return g
   ###############################
-  # END constraint handling     # 
+  # END constraint handling     #
   ###############################
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
