@@ -367,8 +367,8 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
 
-    # if len(self._objectiveVar) >=2 and self._parentSelectionType != 'tournamentSelection':
-    #   self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
+    if len(self._objectiveVar) >=2 and self._parentSelectionType != 'tournamentSelection':
+      self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
 
     ####################################################################################
     # reproduction node                                                                #

@@ -75,7 +75,7 @@ def rouletteWheel(population,**kwargs):
       selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
     sumProb = selectionProb[counter]
 
-    while sumProb < roulettePointer :
+    while sumProb <= roulettePointer :
       counter += 1
       sumProb += selectionProb[counter]
     selectedParent[i,:] = pop.values[counter,:]
@@ -98,23 +98,45 @@ def tournamentSelection(population,**kwargs):
   """
 
   nParents = kwargs['nParents']
+  nObjVal  = len(kwargs['objVal'])
   kSelect = kwargs['kSelection']
   pop = population
+  popSize = population.values.shape[0]
 
   selectedParent = xr.DataArray(np.zeros((nParents,np.shape(pop)[1])),
                                 dims=['chromosome','Gene'],
                                 coords={'chromosome':np.arange(nParents),
                                         'Gene': kwargs['variables']})
-  fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
 
-  for i in range(nParents):
-    matrixOperationRaw = np.zeros((kSelect,2))
-    selectChromoIndexes = list(np.arange(kSelect))
-    selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None)
-    matrixOperationRaw[:,0] = selectedChromo
-    matrixOperationRaw[:,1] = np.transpose(fitness[selectedChromo])
-    tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:,1]),0])
-    selectedParent[i,:] = pop.values[tournamentWinnerIndex,:]
+  if nObjVal == 1: # single-objective Case
+    fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
+    for i in range(nParents):
+      matrixOperationRaw = np.zeros((kSelect,2))
+      selectChromoIndexes = list(np.arange(kSelect))
+      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None)
+      matrixOperationRaw[:,0] = selectedChromo
+      matrixOperationRaw[:,1] = np.transpose(fitness[selectedChromo])
+      tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:,1]),0])
+      selectedParent[i,:] = pop.values[tournamentWinnerIndex,:]
+
+  else: # multi-objective Case
+    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to.
+    rank = kwargs['rank']
+    crowdDistance = kwargs['crowdDistance']
+    for i in range(nParents):
+      matrixOperationRaw = np.zeros((kSelect,3))
+      selectChromoIndexes = list(np.arange(kSelect))
+      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None)
+      matrixOperationRaw[:,0] = selectedChromo
+      matrixOperationRaw[:,1] = np.transpose(rank.data[selectedChromo])
+      matrixOperationRaw[:,2] = np.transpose(crowdDistance.data[selectedChromo])
+      minRankIndex = list(np.where(matrixOperationRaw[:,1] == matrixOperationRaw[:,1].min())[0])
+      if len(minRankIndex) != 1: # More than one chrosome having same rank.
+        minRankNmaxCDIndex = list(np.where(matrixOperationRaw[minRankIndex,2] == matrixOperationRaw[minRankIndex,2].max())[0])
+      else:
+        minRankNmaxCDIndex = minRankIndex
+      tournamentWinnerIndex = minRankNmaxCDIndex[0]
+      selectedParent[i,:] = pop.values[tournamentWinnerIndex,:]
 
   return selectedParent
 

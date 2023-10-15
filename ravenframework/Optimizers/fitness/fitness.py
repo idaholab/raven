@@ -124,7 +124,7 @@ def feasibleFirst(rlz,**kwargs):
 
     For maximization problems the objective value is multiplied by -1 and hence the previous trends are inverted.
     A great quality of this fitness is that if the objective value is equal for multiple solutions it selects the furthest from constraint violation.
-    
+
     Reference: Deb, Kalyanmoy. "An efficient constraint handling method for genetic algorithms." Computer methods in applied mechanics and engineering 186.2-4 (2000): 311-338.
 
     .. math::
@@ -152,7 +152,6 @@ def feasibleFirst(rlz,**kwargs):
     g = kwargs['constraintFunction']
     penalty = kwargs['b']
     pen = [penalty[i:i+len(g['Constraint'].data)] for i in range(0, len(penalty), len(g['Constraint'].data))]
-  
   objPen = dict(map(lambda i,j : (i,j), objVar, pen))
 
   for i in range(len(objVar)):
@@ -170,7 +169,7 @@ def feasibleFirst(rlz,**kwargs):
         fitness.append(-1*fit)
       else:
         fitness.append(fit)
-        
+
     fitness = xr.DataArray(np.array(fitness),
                           dims=['chromosome'],
                           coords={'chromosome': np.arange(len(data))})
@@ -178,58 +177,6 @@ def feasibleFirst(rlz,**kwargs):
       fitnessSet = fitness.to_dataset(name = objVar[i])
     else:
       fitnessSet[objVar[i]] = fitness
-  # if len(objVar) == 1:
-  #   for i in range(len(objVar)):
-  #     data = np.atleast_1d(rlz[objVar][objVar[i]].data)
-  #     worstObj = max(data)
-  #     fitness = []
-  #     for ind in range(data.size):
-  #       if kwargs['constraintNum'] == 0 or np.all(g.data[ind, :]>=0):
-  #         fit=(a*data[ind])
-  #       else:
-  #         fit = a*worstObj
-  #         for constInd,_ in enumerate(g['Constraint'].data):
-  #           fit = a*fit + objPen[objVar[i]][constInd]*(max(0,-1*g.data[ind, constInd])) #NOTE: objPen[objVar[i]][constInd] is "objective & Constraint specific penalty."
-  #       if len(kwargs['type']) == 1:
-  #         fitness.append(-1*fit)
-  #       else:
-  #         if kwargs['type'][i] == 'min':
-  #           fitness.append(fit)
-  #         else: 
-  #           fitness.append(-1*fit)
-  #     fitness = xr.DataArray(np.array(fitness),
-  #                           dims=['chromosome'],
-  #                           coords={'chromosome': np.arange(len(data))})
-  #     if i == 0:
-  #       fitnessSet = fitness.to_dataset(name = objVar[i])
-  #     else:
-  #       fitnessSet[objVar[i]] = fitness
-  # else:
-  #   for i in range(len(objVar)):
-  #     data = np.atleast_1d(rlz[objVar][objVar[i]].data)
-  #     worstObj = max(data)
-  #     fitness = []
-  #     for ind in range(data.size):
-  #       if kwargs['constraintNum'] == 0 or np.all(g.data[ind, :]>=0):
-  #         fit=(a*data[ind])
-  #       else:
-  #         fit = a*worstObj
-  #         for constInd,_ in enumerate(g['Constraint'].data):
-  #           fit = a*fit + objPen[objVar[i]][constInd]*(max(0,g.data[ind, constInd])) #NOTE: objPen[objVar[i]][constInd] is "objective & Constraint specific penalty."
-  #       if len(kwargs['type']) == 1:
-  #         fitness.append(1*fit)
-  #       else:
-  #         if kwargs['type'][i] == 'min':
-  #           fitness.append(fit)
-  #         else: 
-  #           fitness.append(1*fit)
-  #     fitness = xr.DataArray(np.array(fitness),
-  #                           dims=['chromosome'],
-  #                           coords={'chromosome': np.arange(len(data))})
-  #     if i == 0:
-  #       fitnessSet = fitness.to_dataset(name = objVar[i])
-  #     else:
-  #       fitnessSet[objVar[i]] = fitness
 
   return fitnessSet
 
