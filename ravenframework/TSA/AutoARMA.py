@@ -93,6 +93,8 @@ class AutoARMA(TimeSeriesCharacterizer):
     settings = super().handleInput(spec)
     settings['P_upper'] = spec.findFirst('P_upper').value
     settings['Q_upper'] = spec.findFirst('Q_upper').value
+    if not settings['global']:
+      raise IOError("AutoARMA is currently only a global TSA algorithm.")
 
     return settings
 
@@ -131,15 +133,16 @@ class AutoARMA(TimeSeriesCharacterizer):
       print("This RAVEN TSA Module requires the statsforecast library to be installed in the current python environment")
       raise ModuleNotFoundError from exc
 
+    maxOrder = np.max(np.r_[settings['P_upper'], settings['Q_upper'], self._maxCombinedPQ])
     statsforecastParams = {
         "seasonal": False, # set to True if you want a SARIMA model
-        "stationary": False,
+        "stationary": True, # NOTE: basically ignored 'd' because it should be applied as a TSA Transformer
         "start_p": 0,
         "start_q": 0,
         "max_p": settings['P_upper'],
         "max_q": settings['Q_upper'],
-        "max_order": self._maxCombinedPQ,
-        "ic": 'bic',
+        "max_order": maxOrder,
+        "ic": 'aicc',
       }
 
     params = {}
@@ -157,7 +160,7 @@ class AutoARMA(TimeSeriesCharacterizer):
       params[target]['P_opt'] = p_opt
       params[target]['D_opt'] = d_opt
       params[target]['Q_opt'] = q_opt
-      del SFAA
+      del SFAA, fittedARIMA
 
     return params
 
@@ -168,6 +171,11 @@ class AutoARMA(TimeSeriesCharacterizer):
       @ Out, rlz, dict, realization-style response
     """
     rlz = {}
+    for target, info in params.items():
+      base = f'{self.name}__{target}'
+      rlz[f'{base}__P_opt'] = info['P_opt']
+      rlz[f'{base}__D_opt'] = info['D_opt']
+      rlz[f'{base}__Q_opt'] = info['Q_opt']
     return rlz
 
   def writeXML(self, writeTo, params):
@@ -177,4 +185,10 @@ class AutoARMA(TimeSeriesCharacterizer):
       @ In, params, dict, trained parameters as from self.characterize
       @ Out, None
     """
-    pass
+    for target, info in params.items():
+      base = xmlUtils.newNode(target)
+      writeTo.append(base)
+      base.append(xmlUtils.newNode('P_opt', text=f'{int(info["P_opt"]):d}'))
+      base.append(xmlUtils.newNode('D_opt', text=f'{int(info["D_opt"]):d}'))
+      base.append(xmlUtils.newNode('Q_opt', text=f'{int(info["Q_opt"]):d}'))
+

@@ -242,7 +242,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       initDist = {'mean': initMean, 'cov': initCov}
 
       params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
-                                'ar': -res.polynomial_ar[1:],     # AR
+                                'ar': -res.polynomial_ar[1:],    # AR
                                 'ma': res.polynomial_ma[1:],     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
@@ -471,51 +471,6 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       initMean, initCov = self._solveStateDistribution(transition, stateIntercept, stateCov, selection)
       params[target]['arma']['initials'] = {'mean': initMean, 'cov': initCov}
     return params
-
-  def _solveStateDistribution(self, transition, stateIntercept, stateCov, selection):
-    """
-      Determines the steady state mean vector and covariance matrix of a state space model
-        x_{t+1} = T x_t + R w_t + c
-      where x is the state vector, T is the transition matrix, R is the selection matrix,
-      w is the noise vector (w ~ N(0, Q) for state covariance matrix Q), and c is the state
-      intercept vector.
-
-      @ In, transition, np.array, transition matrix (T)
-      @ In, stateIntercept, np.array, state intercept vector (c)
-      @ In, stateCov, np.array, state covariance matrix (Q)
-      @ In, selection, np.array, selection matrix (R)
-      @ Out, mean, np.array, steady state mean vector
-      @ Out, cov, np.array, steady state covariance matrix
-    """
-    # The mean vector (m) solves the linear system (I - T) m = c
-    mean = np.linalg.solve(np.eye(transition.shape[0]) - transition, stateIntercept)
-    # The covariance matrix (C) solves the discrete Lyapunov equation C = T C T' + R Q R'
-    cov = sp.linalg.solve_discrete_lyapunov(transition, selection @ stateCov @ selection.T)
-    return mean, cov
-
-  def _buildStateSpaceMatrices(self, params):
-    """
-      Builds the state space matrices for the ARMA model. Specifically, the transition, state intercept,
-      state covariance, and selection matrices are built.
-
-      @ In, params, dict, dictionary of trained model parameters
-      @ Out, transition, np.array, transition matrix
-      @ Out, stateIntercept, np.array, state intercept vector
-      @ Out, stateCov, np.array, state covariance matrix
-      @ Out, selection, np.array, selection matrix
-    """
-    # The state vector has dimension max(P, Q + 1)
-    P = len(params['ar'])
-    Q = len(params['ma'])
-    dim = max(P, Q + 1)
-    transition = np.eye(dim, k=1)
-    transition[:P, 0] = params['ar']
-    stateIntercept = np.zeros(dim)  # NOTE The state intercept vector handles the trend component of
-                                    # SARIMA models. We don't implement that for now so we set it to 0,
-                                    # but this may change in the future.
-    stateCov = np.atleast_2d(params['var'])
-    selection = np.r_[1., params['ma'], np.zeros(max(dim - (Q + 1), 0))].reshape(-1, 1)  # column vector
-    return transition, stateIntercept, stateCov, selection
 
   def _solveStateDistribution(self, transition, stateIntercept, stateCov, selection):
     """
