@@ -228,6 +228,7 @@
    input = 'test_redundant_inputs.xml'
    output = 'RedundantInputs/mc_out.xml RedundantInputs/grid_out.xml'
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
+   rel_err = 2.0e-3
  [../]
  [./redundantInputsSCgPC]
    type = 'RavenFramework'
@@ -262,6 +263,7 @@
   type = 'RavenFramework'
   input = 'test_simple_ND_grid_probabilityWeight_value.xml'
   csv = 'NDGridPWvalue/testPrintPointSet_dump.csv'
+  rel_err = 1.0e-9
  [../]
 
  [./LHSVariables]

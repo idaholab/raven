@@ -1,0 +1,150 @@
+\subsection{ABCE Interface}
+\label{subsec:AbceInterface}
+
+\subsubsection{General Information}
+The ABCE Interface is used to run agent-based 
+capacity expansion (CE) modeling for electricity market systems. 
+\url{https://github.com/abce-dev/abce}
+
+This allows inputs to be perturbed and data to be read out.
+
+\subsubsection{Sampler}
+
+For perturbing inputs, the sampled variable needs to be placed inside
+of \$RAVEN-( )\$ like \verb'$RAVEN-(var)$'. 
+
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <Grid name="grid">
+      <variable name="var">
+        <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+\end{lstlisting}
+
+
+\subsubsection{Files}
+
+The \xmlNode{Files} XML node has to contain all the files required to run
+the ABCE model. 
+For RAVEN coupled with ABCE, the \xmlNode{Files} XML node has to contain
+the following files:
+
+\begin{itemize}
+  \item \textbf{settings.yml}: contains all run-specific settings for each simulation. Data specified here supersedes data specified anywhere else.
+  \item \textbf{inputs/}:
+  \begin{itemize}
+    \item \textbf{agent\_specifications.yml}: definitions for the agents: financial parameters, starting portfolios by unit type, and mandatory retirement dates for owned units
+    \item \textbf{C2N\_project\_definitions.yml}: contains project activity cost and schedule information for coal-to-nuclear projects
+    \item \textbf{demand\_data.csv}: normalized peak demand levels per simulated year (used to scale the \texttt{peak\_demand} parameter)
+    \item \textbf{unit\_specs.yml}: construction and operations cost and parameter data for all possible unit types in the model
+    \item \textbf{inputs/ts\_data/}:
+    \begin{itemize}
+      \item \textbf{timeseries\_<quantity>\_hourly.csv}: hourly timeseries data for each of the following quantities in the system:
+      \begin{itemize}
+        \item \textbf{load}: normalized to \texttt{peak\_demand}
+        \item \textbf{wind} and \textbf{solar}: wind and solar availability, normalized to the start-of-year installed capacity of each technology, respectively
+        \item \textbf{reg}, \textbf{spin}, and \textbf{nspin}: ancillary service procurement requirements, in absolute terms (not scaled)
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+
+
+The inputs in the \xmlNode{Files} section are shown below:
+
+\begin{lstlisting}[style=XML]
+    <Files>
+        <Input name="settings.yml" type="">settings.yml</Input>
+        <Input name="demand_data_file" type="" subDirectory="inputs">demand_data.csv</Input>
+        <Input name="agent_specifications_file" type="" subDirectory="inputs">single_agent_testing.yml</Input>
+        <Input name="unit_specs_data_file" type="" subDirectory="inputs">unit_specs.yml</Input>
+        <Input name="C2N_project_definitions.yml" type="" subDirectory="inputs">C2N_project_definitions.yml</Input>
+        <Input name="timeseries_nspin_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_nspin_hourly.csv</Input>
+        <Input name="timeseries_spin_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_spin_hourly.csv</Input>
+        <Input name="timeseries_reg_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_reg_hourly.csv</Input>
+        <Input name="timeseries_load_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_load_hourly.csv</Input>
+        <Input name="timeseries_wind_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_wind_hourly.csv</Input>
+        <Input name="timeseries_pv_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_pv_hourly.csv</Input>
+    </Files>
+\end{lstlisting}
+
+\subsubsection{Models}
+
+The \xmlNode{Code} model can be used with
+\xmlAttr{subType="Abce"} to run the ABCE Code Interface. The \xmlNode{executable} needs to be ABCE's executable \textbf{run.py}.
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="abce" subType="Abce">
+      <executable>abce/run.py</executable>
+      <clargs arg="python" type="prepend" />
+      <clargs arg="--settings_file" extension=".yml" type="input" delimiter="=" />
+      <clargs arg="--inputs_path=inputs --verbosity=3" type="text" />
+    </Code>
+  </Models>
+\end{lstlisting}
+
+\subsubsection{Output Files Conversion}
+
+The code interface reads in the \verb'outputs\ABCE_run\outputs.xlsx'. 
+It will output the assets sheets as the csv file. The \texttt{asset\_id} 
+variable that can be used as the \xmlNode{pivotParameter} and is a
+string with the year. 
+
+Exactly which variables will appear will vary depending on the
+ABCE input files, but typical ones include \texttt{asset\_id},
+\texttt{unit\_type}, \texttt{start\_pd}, \texttt{completion\_pd},
+\texttt{cancellation\_pd}, \texttt{retirement\_pd},
+\texttt{total\_capex}, \texttt{cap\_pmt}, and
+\texttt{C2N\_reserved}.
+
+
+\begin{lstlisting}[style=XML]
+    <HistorySet name="grid">
+      <Input>var</Input>
+      <Output> agent_id, unit_type, start_pd, completion_pd, cancellation_pd, 
+      retirement_pd,total_capex, cap_pmt, C2N_reserved </Output>
+      <options>
+        <pivotParameter>asset_id</pivotParameter>
+      </options>
+    </HistorySet>
+\end{lstlisting}
+
+
+\subsubsection{Installation of Libraries}
+
+Installing ABCE so that RAVEN can run it requires that RAVEN and
+ABCE have a superset of the libraries that they use so that both
+can run.  One way to set this up is to install RAVEN, and then 
+inside of the RAVEN conda environment install ABCE dependencies.
+This is shown in the following listing:
+
+\begin{lstlisting}
+  #first clone raven, into a directory
+  git clone git@github.com:idaholab/raven.git
+  git clone git@github.com:abce-dev/abce.git
+  #Switch to raven directory
+  cd raven
+  #install raven libraries
+  ./scripts/establish_conda_env.sh --install
+  #switch to using raven libraries
+  source ./scripts/establish_conda_env.sh --load
+  #Switch to ABCE and install
+  cd ../abce/
+  bash ./install.sh
+  conda install -c conda-forge mesa openpyxl pytest PyYAML julia=1.8
+  cd ../abce/env/
+  julia
+  # in julia hit the ']' key to enter package mode
+  activate .
+  status
+  instantiate
+  # exit julia with the backspace key
+  exit()
+\end{lstlisting}
+
+

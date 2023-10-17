@@ -2111,6 +2111,37 @@ Example:
           regression; typically represented as $Q$ in literature.
       \end{itemize}
 
+    \item \xmlNode{varma}:
+      characterizes the vector-valued signal using Auto-Regressive and Moving         Average
+      coefficients to stochastically fit the training signal.         The VARMA representation has
+      the following form:         \begin{equation*}           A\_t = \sum\_{i=1}^P \phi\_i A\_{t-i} +
+      \epsilon\_t + \sum\_{j=1}^Q \theta\_j \epsilon\_{t-j},         \end{equation*}         where $t$
+      indicates a discrete time step, $\phi$ are the signal lag (or auto-regressive)
+      coefficients, $P$ is the number of signal lag terms to consider, $\epsilon$ is a random noise
+      term, $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
+      noise lag terms to consider. For signal $A\_t$ which is a $k \times 1$ vector, each $\phi\_i$
+      and $\theta\_j$ are $k \times k$ matrices, and $\epsilon\_t$ is characterized by the         $k
+      \times k$ covariance matrix $\Sigma$. The VARMA algorithms are developed in RAVEN using the
+      \texttt{statsmodels} Python library.
+      The \xmlNode{varma} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+            sets a seed for the underlying random number generator, if present.
+      \end{itemize}
+
+      The \xmlNode{varma} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{P}: \xmlDesc{integer}, 
+          the number of terms in the AutoRegressive term to retain in the
+          regression; typically represented as $P$ in literature.
+
+        \item \xmlNode{Q}: \xmlDesc{integer}, 
+          the number of terms in the Moving Average term to retain in the
+          regression; typically represented as $Q$ in literature.
+      \end{itemize}
+
     \item \xmlNode{MarkovAR}:
       characterizes the signal using autoregressive (AR) coefficients conditioned         on the
       state of a hidden Markov model (HMM) to stochastically fit the training signal.         The

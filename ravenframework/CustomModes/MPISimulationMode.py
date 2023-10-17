@@ -46,6 +46,7 @@ class MPISimulationMode(Simulation.SimulationMode):
     self.__coresNeeded = None #If not none, use this instead of calculating it
     self.__memNeeded = None #If not none, use this for mem=
     self.__place = "free" #use this for place=
+    self.__mpiparams = [] #Paramaters to give to mpi
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
@@ -105,9 +106,13 @@ class MPISimulationMode(Simulation.SimulationMode):
     # to be forced to the same thread.
     os.environ["MV2_ENABLE_AFFINITY"] = "0"
 
+    if len(self.__mpiparams) > 0:
+      mpiParams = " ".join(self.__mpiparams)+" "
+    else:
+      mpiParams = ""
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
+    newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+mpiParams+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
     if runInfoDict['NumThreads'] > 1:
       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       #add number of threads to the post command.
@@ -203,5 +208,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         self.__place = child.text.strip()
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
+      elif child.tag.lower() == "mpiparam":
+        self.__mpiparams.append(child.text.strip())
       else:
         self.raiseADebug("We should do something with child "+str(child))
