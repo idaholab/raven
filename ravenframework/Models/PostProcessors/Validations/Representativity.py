@@ -29,7 +29,6 @@ from scipy.linalg import sqrtm
 #Internal Modules------------------------------------------------------------------------------------
 from ravenframework.utils import InputData, InputTypes
 from .. import ValidationBase
-from .. import factory as ppFactory # delay import to allow definition
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Representativity(ValidationBase):
@@ -68,6 +67,7 @@ class Representativity(ValidationBase):
       @ Out, None
     """
     super().__init__()
+    from .. import factory as ppFactory # delay import to allow definition
     self.printTag = 'POSTPROCESSOR Representativity'
     self.dynamicType = ['static'] #  for now only static is available
     self.name = 'Representativity'
