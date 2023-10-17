@@ -67,7 +67,6 @@ class Representativity(ValidationBase):
       @ Out, None
     """
     super().__init__()
-    from .. import factory as ppFactory # delay import to allow definition
     self.printTag = 'POSTPROCESSOR Representativity'
     self.dynamicType = ['static'] #  for now only static is available
     self.name = 'Representativity'
@@ -82,6 +81,7 @@ class Representativity(ValidationBase):
       @ In, None
       @ Out, stat, object, Basic Statistic PostProcessor Object
     """
+    from .. import factory as ppFactory # delay import to allow definition
     stat = ppFactory.returnInstance('BasicStatistics')
     stat.what = ['NormalizedSensitivities'] # expected value calculation
     return stat
