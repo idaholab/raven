@@ -325,9 +325,9 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       base = f'{self.name}__{target}'
       names.append(f'{base}__constant')
       names.append(f'{base}__variance')
-      for p in range(settings['P']):
+      for p in range(settings['P'][target]):
         names.append(f'{base}__AR__{p}')
-      for q in range(settings['Q']):
+      for q in range(settings['Q'][target]):
         names.append(f'{base}__MA__{q}')
     return names
 
