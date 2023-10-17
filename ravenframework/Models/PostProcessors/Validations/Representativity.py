@@ -29,6 +29,7 @@ from scipy.linalg import sqrtm
 #Internal Modules------------------------------------------------------------------------------------
 from ravenframework.utils import InputData, InputTypes
 from .. import ValidationBase
+from .. import factory as ppFactory # delay import to allow definition
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Representativity(ValidationBase):
@@ -81,7 +82,6 @@ class Representativity(ValidationBase):
       @ In, None
       @ Out, stat, object, Basic Statistic PostProcessor Object
     """
-    from .. import factory as ppFactory # delay import to allow definition
     stat = ppFactory.returnInstance('BasicStatistics')
     stat.what = ['NormalizedSensitivities'] # expected value calculation
     return stat
