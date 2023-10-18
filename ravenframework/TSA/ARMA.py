@@ -216,6 +216,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
         P = settings['P'][target]
         Q = settings['Q'][target]
         d = settings.get('d', 0)
+        d = d[target] if isinstance(d,dict) else d
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q), trend='c')
       res = model.fit(low_memory=settings['reduce_memory'])

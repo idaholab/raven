@@ -211,7 +211,7 @@ class TSAUser:
         raise ValueError(f'Missing values (NaN) found in input to {algo.name}, '
                          f'but {algo.name} cannot accept missing values!')
       trainedParams = copy.deepcopy(self._tsaTrainedParams) if algo.needsPriorAlgoFeatures() else None
-      params = algo.fit(signal, pivots, targets, settings, trainedParams)
+      params = algo.fit(signal, pivots, targets, settings, trainedParams=trainedParams)
       # store characteristics
       self._tsaTrainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
