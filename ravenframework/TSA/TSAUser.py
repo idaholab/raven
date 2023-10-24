@@ -64,6 +64,7 @@ class TSAUser:
     self._tsaAlgoSettings = {}       # initialization settings for each algorithm
     self._tsaTrainedParams = {}      # holds results of training each algorithm
     self._tsaAlgorithms = []         # list and order for TSA algorithms to use
+    self._tsaGlobalAlgorithms = []   # list and order for global TSA algorithms to use
     self.pivotParameterID = None     # string name for time-like pivot parameter # TODO base class?
     self.pivotParameterValues = None # values for the time-like pivot parameter  # TODO base class?
     self._paramNames = None          # cached list of parameter names
@@ -83,7 +84,10 @@ class TSAUser:
       if sub.name in factory.knownTypes():
         algo = factory.returnInstance(sub.name)
         self._tsaAlgoSettings[algo] = algo.handleInput(sub)
-        self._tsaAlgorithms.append(algo)
+        if self._tsaAlgoSettings[algo]['global']:
+          self._tsaGlobalAlgorithms.append(algo)
+        else:
+          self._tsaAlgorithms.append(algo)
         foundTSAType = True
     if foundTSAType is False:
       options = ', '.join(factory.knownTypes())
@@ -176,11 +180,12 @@ class TSAUser:
       self._paramRealization = rlz
     return self._paramRealization
 
-  def trainTSASequential(self, targetVals):
+  def trainTSASequential(self, targetVals, trainGlobal=False):
     """
       Train TSA algorithms using a sequential removal-and-residual approach.
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], array of time series data
         NOTE: this should be a single history/realization, not an array of realizations
+      @ In, trainGlobal, bool, are we training on global signal?
       @ Out, None
     """
     pivotName = self.pivotParameterID
@@ -190,8 +195,12 @@ class TSAUser:
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
 
-    residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
-    for a, algo in enumerate(self._tsaAlgorithms):
+    # if NOT training globally, deep-ish copy, so we don't mod originals
+    residual = targetVals if trainGlobal else targetVals[:, :, :]
+    # check if training globally, if so we only train global algos
+    algorithms = self._tsaGlobalAlgorithms if trainGlobal else self._tsaAlgorithms
+
+    for a, algo in enumerate(algorithms):
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
@@ -211,10 +220,12 @@ class TSAUser:
         residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
-  def evaluateTSASequential(self):
+  def evaluateTSASequential(self, evalGlobal=False, evaluation=None, slicer=None):
     """
       Evaluate TSA algorithms using a sequential linear superposition approach
-      @ In, None
+      @ In, evalGlobal, bool, are these algos trained on global signal?
+      @ In, evaluation, dict, realization dictionary of values for each target
+      @ In, slicer, list of slice, indexer for data range of this segment FROM GLOBAL SIGNAL
       @ Out, rlz, dict, realization dictionary of values for each target
     """
     pivots = self.pivotParameterValues
@@ -223,8 +234,21 @@ class TSAUser:
     # that ignores the pivotParameter on which to index the results variables
     noPivotTargets = [x for x in self.target if x != self.pivotParameterID]
     result = np.zeros((self.pivotParameterValues.size, len(noPivotTargets)))
+    needToRecombine = False
 
-    for algo in self._tsaAlgorithms[::-1]:
+    # check if training globally, if so we only apply global algos to given realizations
+    if evalGlobal:
+      algorithms = self._tsaGlobalAlgorithms[::-1]
+      if slicer:
+        needToRecombine = True
+        for i,s in enumerate(slicer):
+          result[s] += np.array([evaluation[target][i].tolist() for target in noPivotTargets]).T
+      else:
+        result += np.array([evaluation[target].tolist() for target in noPivotTargets]).T
+    else:
+      algorithms = self._tsaAlgorithms[::-1]
+
+    for algo in algorithms:
       settings = self._tsaAlgoSettings[algo]
       targets = settings['target']
       indices = tuple(noPivotTargets.index(t) for t in targets)
@@ -237,10 +261,25 @@ class TSAUser:
       else:  # Must be exclusively a TimeSeriesCharacterizer, so there is nothing to evaluate
         continue
     # RAVEN realization construction
-    rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
-    rlz[self.pivotParameterID] = self.pivotParameterValues
+    if needToRecombine:
+      rlz = dict((target, np.vstack([[result[s, t]] for s in slicer])) for t, target in enumerate(noPivotTargets))
+      rlz[self.pivotParameterID] = evaluation[self.pivotParameterID]
+    else:
+      rlz = dict((target, result[:, t]) for t, target in enumerate(noPivotTargets))
+      rlz[self.pivotParameterID] = self.pivotParameterValues
 
     return rlz
+
+  def getGlobalTSARomSettings(self):
+    """
+      Train TSA algorithms using a sequential removal-and-residual approach.
+      @ In, None
+      @ Out, settings
+    """
+    globalSettings = {}
+    for algo in self._tsaGlobalAlgorithms:
+      globalSettings[algo] = self._tsaTrainedParams[algo]
+    return globalSettings
 
   def writeTSAtoXML(self, xml):
     """

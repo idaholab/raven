@@ -22,6 +22,7 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 from .Fourier import Fourier
 from .ARMA import ARMA
+from .VARMA import VARMA
 from .MarkovAR import MarkovAR
 from .RWD import RWD
 from .STL import STL

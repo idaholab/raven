@@ -26,6 +26,18 @@
    type = RavenFramework
    max_time = 3600
  [../]
+ [./test_mpiqsub_long]
+   input='test_mpiqsub_long.xml cluster_runinfo_legacy.xml mpi_mode_include.xml'
+   run_types = 'qsub'
+   output = 'FirstMQL/FirstMQRun/1/out~simple_gp_test.csv FirstMQL/FirstMQRun/6/out~simple_gp_test.csv'
+   csv = 'FirstMQL/samples.csv'
+   output_wait_time = 60
+   #Note that the output includes the time the test is running
+   # which is why the relative error is very high
+   rel_err = 0.2
+   type = RavenFramework
+   max_time = 3600
+ [../]
  [./test_mpiqsub_parameters]
    input='test_mpiqsub_flex.xml cluster_runinfo_legacy.xml'
    run_types = 'qsub'

@@ -188,23 +188,26 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       #   -> factr: "factor" for exiting solve, roughly as f_new - f_old / scaling <= factr * eps
       #              default is 1e10 (loose solve), medium is 1e7, extremely tight is 1e1
       #   e.g. method_kwargs={'disp': 1, 'pgtol': 1e-9, 'factr': 10.0})
-      ## get initial state distribution stats
-      # taken from old statsmodels.tsa.statespace.kalman_filter.KalmanFilter.simulate
+
+      # get initial state distribution stats
       smoother = model.ssm
-      initMean = np.linalg.solve(np.eye(smoother.k_states) - smoother['transition',:,:,0], smoother['state_intercept',:,0])
-      r = smoother['selection',:,:,0]
-      q = smoother['state_cov',:,:,0]
-      selCov = r.dot(q).dot(r.T)
-      initCov = sp.linalg.solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
+      transition = smoother['transition',:,:,0]
+      stateIntercept = smoother['state_intercept',:,0]
+      selection = smoother['selection',:,:,0]
+      stateCov = smoother['state_cov',:,:,0]
+      initMean, initCov = self._solveStateDistribution(transition, stateIntercept, stateCov, selection)
       initDist = {'mean': initMean, 'cov': initCov}
+
       params[target]['arma'] = {'const': res.params[res.param_names.index('const')], # exog/intercept/constant
                                 'ar': -res.polynomial_ar[1:],     # AR
                                 'ma': res.polynomial_ma[1:],     # MA
                                 'var': res.params[res.param_names.index('sigma2')],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
-                                'model': model}
+                                'lags': [P,d,Q],
+                                'model': {'obs_cov': model['obs_cov'],
+                                          'state_cov': model['state_cov']}, }
       if not settings['reduce_memory']:
-        params[target]['arma']['results'] = res
+        params[target]['arma']['residual'] = res.resid
     return params
 
   def getResidual(self, initial, params, pivot, settings):
@@ -225,7 +228,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
 
     residual = initial.copy()
     for t, (target, data) in enumerate(params.items()):
-      residual[:, t] = data['arma']['results'].resid
+      residual[:, t] = data['arma']['residual']
 
     return residual
 
@@ -292,19 +295,18 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, data) in enumerate(params.items()):
       armaData = data['arma']
-      modelParams = np.hstack([[armaData.get('const', 0)],
-                               armaData['ar'],
-                               armaData['ma'],
-                               [armaData.get('var', 1)]])
-      msrShocks, stateShocks, initialState = self._generateNoise(armaData['model'], armaData['initials'], synthetic.shape[0])
+      P,d,Q = armaData['lags']
+      modelParams = np.r_[armaData.get('const', 0), armaData['ar'], armaData['ma'], armaData.get('var', 1)]
+      msrShocks, stateShocks, initialState = self._generateNoise(armaData, synthetic.shape[0])
       # measurement shocks
-      # statsmodels if we don't provide them.
+      import statsmodels.api
+      model = statsmodels.tsa.arima.model.ARIMA(synthetic[:,t], order=(P, d, Q), trend='c')
       # produce sample
-      new = armaData['model'].simulate(modelParams,
-                                       synthetic.shape[0],
-                                       measurement_shocks=msrShocks,
-                                       state_shocks=stateShocks,
-                                       initial_state=initialState)
+      new = model.simulate(modelParams,
+                           synthetic.shape[0],
+                           measurement_shocks=msrShocks,
+                           state_shocks=stateShocks,
+                           initial_state=initialState)
       if settings.get('gaussianize', True):
         # back-transform through CDF
         new = mathUtils.degaussianize(new, params[target]['cdf'])
@@ -381,14 +383,107 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       elif identifier.startswith('ma_'):
         index = int(identifier.split('_')[1])
         params[target]['arma']['ma'][index] = value
+      # The state vector distribution needs to be rebuilt now that we've changed the parameters
+      transition, stateIntercept, stateCov, selection = self._buildStateSpaceMatrices(params[target]['arma'])
+      initMean, initCov = self._solveStateDistribution(transition, stateIntercept, stateCov, selection)
+      params[target]['arma']['initials'] = {'mean': initMean, 'cov': initCov}
     return params
 
+  def _solveStateDistribution(self, transition, stateIntercept, stateCov, selection):
+    """
+      Determines the steady state mean vector and covariance matrix of a state space model
+        x_{t+1} = T x_t + R w_t + c
+      where x is the state vector, T is the transition matrix, R is the selection matrix,
+      w is the noise vector (w ~ N(0, Q) for state covariance matrix Q), and c is the state
+      intercept vector.
+
+      @ In, transition, np.array, transition matrix (T)
+      @ In, stateIntercept, np.array, state intercept vector (c)
+      @ In, stateCov, np.array, state covariance matrix (Q)
+      @ In, selection, np.array, selection matrix (R)
+      @ Out, mean, np.array, steady state mean vector
+      @ Out, cov, np.array, steady state covariance matrix
+    """
+    # The mean vector (m) solves the linear system (I - T) m = c
+    mean = np.linalg.solve(np.eye(transition.shape[0]) - transition, stateIntercept)
+    # The covariance matrix (C) solves the discrete Lyapunov equation C = T C T' + R Q R'
+    cov = sp.linalg.solve_discrete_lyapunov(transition, selection @ stateCov @ selection.T)
+    return mean, cov
+
+  def _buildStateSpaceMatrices(self, params):
+    """
+      Builds the state space matrices for the ARMA model. Specifically, the transition, state intercept,
+      state covariance, and selection matrices are built.
+
+      @ In, params, dict, dictionary of trained model parameters
+      @ Out, transition, np.array, transition matrix
+      @ Out, stateIntercept, np.array, state intercept vector
+      @ Out, stateCov, np.array, state covariance matrix
+      @ Out, selection, np.array, selection matrix
+    """
+    # The state vector has dimension max(P, Q + 1)
+    P = len(params['ar'])
+    Q = len(params['ma'])
+    dim = max(P, Q + 1)
+    transition = np.eye(dim, k=1)
+    transition[:P, 0] = params['ar']
+    stateIntercept = np.zeros(dim)  # NOTE The state intercept vector handles the trend component of
+                                    # SARIMA models. We don't implement that for now so we set it to 0,
+                                    # but this may change in the future.
+    stateCov = np.atleast_2d(params['var'])
+    selection = np.r_[1., params['ma'], np.zeros(max(dim - (Q + 1), 0))].reshape(-1, 1)  # column vector
+    return transition, stateIntercept, stateCov, selection
+
+  def _solveStateDistribution(self, transition, stateIntercept, stateCov, selection):
+    """
+      Determines the steady state mean vector and covariance matrix of a state space model
+        x_{t+1} = T x_t + R w_t + c
+      where x is the state vector, T is the transition matrix, R is the selection matrix,
+      w is the noise vector (w ~ N(0, Q) for state covariance matrix Q), and c is the state
+      intercept vector.
+
+      @ In, transition, np.array, transition matrix (T)
+      @ In, stateIntercept, np.array, state intercept vector (c)
+      @ In, stateCov, np.array, state covariance matrix (Q)
+      @ In, selection, np.array, selection matrix (R)
+      @ Out, mean, np.array, steady state mean vector
+      @ Out, cov, np.array, steady state covariance matrix
+    """
+    # The mean vector (m) solves the linear system (I - T) m = c
+    mean = np.linalg.solve(np.eye(transition.shape[0]) - transition, stateIntercept)
+    # The covariance matrix (C) solves the discrete Lyapunov equation C = T C T' + R Q R'
+    cov = sp.linalg.solve_discrete_lyapunov(transition, selection @ stateCov @ selection.T)
+    return mean, cov
+
+  def _buildStateSpaceMatrices(self, params):
+    """
+      Builds the state space matrices for the ARMA model. Specifically, the transition, state intercept,
+      state covariance, and selection matrices are built.
+
+      @ In, params, dict, dictionary of trained model parameters
+      @ Out, transition, np.array, transition matrix
+      @ Out, stateIntercept, np.array, state intercept vector
+      @ Out, stateCov, np.array, state covariance matrix
+      @ Out, selection, np.array, selection matrix
+    """
+    # The state vector has dimension max(P, Q + 1)
+    P = len(params['ar'])
+    Q = len(params['ma'])
+    dim = max(P, Q + 1)
+    transition = np.eye(dim, k=1)
+    transition[:P, 0] = params['ar']
+    stateIntercept = np.zeros(dim)  # NOTE The state intercept vector handles the trend component of
+                                    # SARIMA models. We don't implement that for now so we set it to 0,
+                                    # but this may change in the future.
+    stateCov = np.atleast_2d(params['var'])
+    selection = np.r_[1., params['ma'], np.zeros(max(dim - (Q + 1), 0))].reshape(-1, 1)  # column vector
+    return transition, stateIntercept, stateCov, selection
+
   # utils
-  def _generateNoise(self, model, initDict, size):
+  def _generateNoise(self, params, size):
     """
       Generates purturbations for ARMA sampling.
-      @ In, model, statsmodels.tsa.arima.model.ARIMA, trained ARIMA model
-      @ In, initDict, dict, mean and covariance of initial sampling distribution
+      @ In, params, dict, dictionary of trained model parameters
       @ In, size, int, length of time-like variable
       @ Out, msrShocks, np.array, measurement shocks
       @ Out, stateShocks, np.array, state shocks
@@ -396,14 +491,20 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     """
     # measurement shocks -> these are usually near 0 but not exactly
     # note in statsmodels.tsa.statespace.kalman_filter, mean of measure shocks is 0s
-    msrCov = model['obs_cov']
+    # NOTE (j-bryan, 8/30/2023): The observation covariance matrix (obs_cov) will always be zero for
+    #   statsmodels.tsa.arima.model.ARIMA objects. That ARIMA class is a subclass of the statsmodels
+    #   SARIMAX class and always uses the default value of False for the measurement_error keyword
+    #   argument for the SARIMAX class, forcing the observation covariance matrix to be zero. The
+    #   sampling for the measurement shocks is left in for now in case a time where it is needed
+    #   is identified and to keep the RNG samples consistent with the existing tests.
+    # msrCov = model['obs_cov']
+    msrCov = np.zeros((1, 1))
     msrShocks = randomUtils.randomMultivariateNormal(msrCov, size=size)
     # state shocks -> these are the significant noise terms
     # note in statsmodels.tsa.statespace.kalman_filter, mean of state shocks is 0s
-    stateCov = model['state_cov']
-    stateShocks = randomUtils.randomMultivariateNormal(stateCov, size=size)
+    stateShocks = randomUtils.randomMultivariateNormal(np.atleast_2d(params['var']), size=size)
     # initial state
-    initMean = initDict['mean']
-    initCov = initDict['cov']
+    initMean = params['initials']['mean']
+    initCov = params['initials']['cov']
     initialState = randomUtils.randomMultivariateNormal(initCov, size=1, mean=initMean)
     return msrShocks, stateShocks, initialState
