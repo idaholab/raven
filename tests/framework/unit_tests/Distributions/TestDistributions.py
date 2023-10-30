@@ -112,6 +112,20 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
   tot = sum(dist.pdf(x)*dx for x in xs)
   checkAnswer(name+' unity integration',tot,1,tol)
 
+def checkIntegralDiscrete(name, dist, low, high, tol=1e-3):
+  """
+    Check the consistency of the pmf sum (cdf) for discrete distributions
+    @ In, name, string, the name printed out if it fails
+    @ In, dist, instance, the distribution to inquire
+    @ In, low, float, the lower bound of the dist
+    @ In, high, float, the uppper bound of the dist
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
+  xs = np.arange(low, high + 1)
+  tot = sum(dist.pdf(x) for x in xs)
+  checkAnswer(name+' unity integration', tot, 1, tol)
+
 def getDistribution(xmlElement):
   """
     Parses the xmlElement and returns the distribution
@@ -559,7 +573,7 @@ ppoisson=pk.load(open('testDistrDump.pk','rb'))
 checkCrowDist("poisson",poisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 checkCrowDist("ppoisson",ppoisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 
-checkIntegral("poisson",poisson,0.0,1000.0, numpts=1000)
+checkIntegralDiscrete("poisson",poisson,0.0,1000.0)
 
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
 checkAnswer("poisson cdf(5.0)",poisson.cdf(5.0),0.7851303870304052)
@@ -598,7 +612,7 @@ pbinomial=pk.load(open('testDistrDump.pk','rb'))
 checkCrowDist("binomial",binomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 checkCrowDist("pbinomial",pbinomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 
-checkIntegral("binomial",binomial,0.0,10.0,numpts=100,tol=3e-2) #TODO why is this so hard to integrate?
+checkIntegralDiscrete("binomial",binomial,0.0,100.0,tol=3e-2)
 
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
 checkAnswer("binomial cdf(2)",binomial.cdf(2),0.525592803955)
@@ -634,7 +648,7 @@ pbernoulli=pk.load(open('testDistrDump.pk','rb'))
 checkCrowDist("bernoulli",bernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 checkCrowDist("pbernoulli",pbernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 
-#checkIntegral("bernoulli",bernoulli,0.0,1.0,numpts=2) #why does this integrate to 0.5?
+checkIntegralDiscrete("bernoulli",bernoulli,0.0,1.0)
 
 checkAnswer("bernoulli cdf(0)",bernoulli.cdf(0),0.6)
 checkAnswer("bernoulli cdf(1)",bernoulli.cdf(1),1.0)
@@ -1271,6 +1285,8 @@ sys.exit(results["fail"])
       <revision author="cogljj" date="2016-04-12">Converting Distributions to use the new input system. All distributions have been converted.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-05-10">Added Log Uniform distribution unit test</revision>
+      <revision author="j-bryan" date="2023-10-27">Removed use of Crow distributions</revision>
+      <revision author="j-bryan" date="2023-10-27">Added integral for discrete distributions</revision>
     </revisions>
     <requirements>R-RE-1</requirements>
   </TestInfo>
