@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from distutils.core import setup, Extension
-from distutils.command.build import build
+import setuptools
+from setuptools import setup, Extension
+from setuptools.command.build import build
 import os
 import sys
-import setuptools
+
 
 # Replicating the methods used in the RAVEN Makefile to find CROW_DIR,
 # If the Makefile changes to be more robust, so should this
