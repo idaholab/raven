@@ -28,16 +28,16 @@ ls -l dist
 #python -m pip install -f file://${RAVEN_DIR}/dist raven_framework || exit -1
 
 echo
-echo Checking Python 3.8
-
-conda activate python38_pip
-python -m pip uninstall -y raven_framework || echo not installed
-python -m pip install dist/raven_framework*cp38*.whl || exit -1
-
-
-echo
 echo Checking Python 3.9
 
 conda activate python39_pip
 python -m pip uninstall -y raven_framework || echo not installed
 python -m pip install dist/raven_framework*cp39*.whl || exit -1
+
+
+echo
+echo Checking Python 3.10
+
+conda activate python310_pip
+python -m pip uninstall -y raven_framework || echo not installed
+python -m pip install dist/raven_framework*cp310*.whl || exit -1
