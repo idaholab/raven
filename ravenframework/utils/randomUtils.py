@@ -31,7 +31,6 @@ from . import mathUtils
 from ..CustomDrivers.DriverUtils import setupCpp
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
-# Numpy stochastic environment can not pass the test as this point
 # stochasticEnv = 'crow'
 stochasticEnv = 'numpy'
 
@@ -253,16 +252,31 @@ def randomSeed(value, seedBoth=False, engine=None):
     @ In, seedBoth, bool, optional, if True then seed both random environments
     @ Out, None
   """
-  if isinstance(engine, CrowRNG) or seedBoth:
-    engine = engine if isinstance(engine, CrowRNG) else getEngine('crow')
+  # we need a flag to tell us  if the global numpy stochastic environment is needed to be changed
+  replaceGlobalEnv=False
+  ## choose an engine if it is none
+  if engine is None:
+    if stochasticEnv == 'crow':
+      distStochEnv.seedRandom(value)
+      engine = crowStochEnv
+    elif stochasticEnv == 'numpy':
+      replaceGlobalEnv = True
+      global npStochEnv
+      # global npStochEvn is needed in numpy environment here
+      # to prevent referenced before assignment in local loop
+      engine = npStochEnv
+
+  if isinstance(engine, NumpyRNG):
     engine.seed(value)
-  if isinstance(engine, NumpyRNG) or seedBoth:
-    engine = engine if isinstance(engine, NumpyRNG) else getEngine('numpy')
+  elif isinstance(engine, CrowRNG):
     engine.seed(value)
-  if engine is None and not seedBoth:
-    # Reseed the current environment
-    engine = getEngine(None)
-    engine.seed(value)
+    if seedBoth:
+      np.random.seed(value+1) # +1 just to prevent identical seed sets
+  if stochasticEnv == 'numpy' and replaceGlobalEnv:
+    npStochEnv = engine
+  if replaceGlobalEnv:
+    print('randomUtils: Global random number seed has been changed to',value)
+
 
 def forwardSeed(count, engine):
   """
@@ -490,13 +504,6 @@ def getEngine(eng):
       eng = npStochEnv
     elif stochasticEnv == 'crow':
       eng = crowStochEnv
-  elif isinstance(eng, str):
-    if eng == 'numpy':
-      eng = npStochEnv
-    elif eng == 'crow':
-      eng = crowStochEnv
-    else:
-      raise TypeError('Stochastic enviroment of name "{}" not recognized!'.format(eng))
   if not isinstance(eng, NumpyRNG) and not isinstance(eng, CrowRNG):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng

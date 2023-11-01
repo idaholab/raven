@@ -124,9 +124,6 @@ for env in ['crow', 'numpy']:
   randomUtils.randomSeed(42,engine=None)
   randomUtils.randomSeed(42,engine=eng)
   # check that seed is set
-  defaultEng = randomUtils.getEngine(None)
-  print('Default RNG seed:',defaultEng.getRNGSeed())
-  print('Local RNG seed:',eng.getRNGSeed())
   checkAnswer('First float from first seed for engine not provided',randomUtils.random(engine=None),0.374540118847)
   checkAnswer('First float from first seed for local engine provided',randomUtils.random(engine=eng),0.374540118847)
 
