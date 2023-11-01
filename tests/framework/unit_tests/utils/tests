@@ -11,6 +11,10 @@
   type = 'RavenPython'
   input = 'testRandomUtils.py'
  [../]
+ [./stochasticEnvs]
+  type = 'RavenPython'
+  input = 'compareStochasticEnvs.py'
+ [../]
  [./xmlUtils]
   type = 'RavenPython'
   input = 'testXmlUtils.py'
