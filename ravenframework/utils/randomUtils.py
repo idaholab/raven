@@ -163,66 +163,14 @@ class CrowRNG:
     self._seed = abs(int(val))
     return self._seed
 
-class NumpyRNG:
-  """ Wraps numpy.random.Generator to provide an interface similar to CrowRNG """
-  def __init__(self, engine=None):
-    """
-      Constructor
-      @ In, engine, Generator, optional, will wrap the given engine if provided, otherwise a new engine is created
-      @ Out, None
-    """
-    self._seed = 5489  # default seed of boost::random::mt19937
-    bitGenerator = np.random.MT19937()
-    bitGenerator._legacy_seeding(self._seed)
-    self._engine = np.random.Generator(bitGenerator)
-
-  def seed(self, value):
-    """
-      Reseeds the RNG
-      @ In, value, int, RNG seed
-      @ Out, None
-    """
-    self._seed = abs(int(value))
-    # According to the numpy docs, best practice is to create a new Generator rather than reseed an existing one
-    bitGenerator = np.random.MT19937()
-    bitGenerator._legacy_seeding(self._seed)
-    self._engine = np.random.Generator(bitGenerator)
-
-  def getRNGSeed(self):
-    """
-      Gets the RNG seed
-      @ In, None
-      @ Out, int, RNG seed value
-    """
-    return self._seed
-
-  def random(self):
-    """
-      Uses a scaling of Generator.integers because Generator.random() does not return values in the same order
-      as CrowRNG.random()
-      @ In, None
-      @ Out, float, random number from RNG engine
-    """
-    # Generator.random(dtype=np.float32) produces approximately the same outputs as CrowRNG.random(), but the
-    # CrowRNG outputs are 64-bit floats calculated as below.
-    return self._engine.integers(0, np.iinfo(np.uint32).max, endpoint=True) / np.iinfo(np.uint32).max
-
-  def forwardSeed(self):
-    """
-      Throws away a random number to advance the RNG state
-      @ In, None
-      @ Out, None
-    """
-    self._engine.integers(0, 2 ** 32 - 1, endpoint=True)
-
 if stochasticEnv == 'numpy':
-  npStochEnv = NumpyRNG()
+  npStochEnv = np.random.default_rng()  # preferred constructor for creating a numpy.random.Generator() instance
 else:
   setupCpp()
   crowStochEnv = CrowRNG()
   # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
-boxMullerGen = BoxMullerGenerator()
+  boxMullerGen = BoxMullerGenerator()
 
 def setStochasticEnv(env):
   """
@@ -234,12 +182,12 @@ def setStochasticEnv(env):
   global stochasticEnv, npStochEnv, crowStochEnv, distStochEnv, boxMullerGen
   stochasticEnv = env
   if env == 'numpy':
-    npStochEnv = NumpyRNG()
+    npStochEnv = np.random.default_rng()
   else:
     setupCpp()
     crowStochEnv = CrowRNG()
     distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
-  boxMullerGen = BoxMullerGenerator()
+    boxMullerGen = BoxMullerGenerator()
 
 #
 # Utilities
@@ -253,16 +201,30 @@ def randomSeed(value, seedBoth=False, engine=None):
     @ In, seedBoth, bool, optional, if True then seed both random environments
     @ Out, None
   """
-  if isinstance(engine, CrowRNG) or seedBoth:
-    engine = engine if isinstance(engine, CrowRNG) else getEngine('crow')
+  # we need a flag to tell us  if the global numpy stochastic environment is needed to be changed
+  replaceGlobalEnv=False
+  ## choose an engine if it is none
+  if engine is None:
+    if stochasticEnv == 'crow':
+      distStochEnv.seedRandom(value)
+      engine = crowStochEnv
+    elif stochasticEnv == 'numpy':
+      replaceGlobalEnv = True
+      global npStochEnv
+      # global npStochEvn is needed in numpy environment here
+      # to prevent referenced before assignment in local loop
+      engine = npStochEnv
+
+  if isinstance(engine, np.random.Generator):
+    engine = np.random.default_rng(value)
+  elif isinstance(engine, CrowRNG):
     engine.seed(value)
-  if isinstance(engine, NumpyRNG) or seedBoth:
-    engine = engine if isinstance(engine, NumpyRNG) else getEngine('numpy')
-    engine.seed(value)
-  if engine is None and not seedBoth:
-    # Reseed the current environment
-    engine = getEngine(None)
-    engine.seed(value)
+    if seedBoth:
+      np.random.seed(value+1) # +1 just to prevent identical seed sets
+  if stochasticEnv == 'numpy' and replaceGlobalEnv:
+    npStochEnv = engine
+  if replaceGlobalEnv:
+    print('randomUtils: Global random number seed has been changed to',value)
 
 def forwardSeed(count, engine):
   """
@@ -271,7 +233,14 @@ def forwardSeed(count, engine):
     @ In, engine, NumpyRNG or CrowRNG, RNG engine to modify
     @ Out, None
   """
-  engine.forwardSeed(count)
+  if isinstance(engine, CrowRNG):
+    engine.forwardSeed(count)
+  elif isinstance(engine, np.random.Generator):
+    # throw away some random numbers to advance the state
+    for _ in range(count):
+      engine.random()
+  else:
+    raise TypeError(f'Unrecognized RNG type "{type(engine)}"')
 
 def random(dim=1, samples=1, keepMatrix=False, engine=None):
   """
@@ -282,13 +251,16 @@ def random(dim=1, samples=1, keepMatrix=False, engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  engine = getEngine(engine)
   dim = int(dim)
   samples = int(samples)
-  vals = np.zeros([samples, dim])
-  for i in range(len(vals)):
-    for j in range(len(vals[0])):
-      vals[i][j] = engine.random()
+  engine = getEngine(engine)
+  if isinstance(engine, np.random.Generator):
+    vals = engine.random(size=(samples, dim))
+  else:
+    vals = np.zeros([samples, dim])
+    for i in range(len(vals)):
+      for j in range(len(vals[0])):
+        vals[i][j] = engine.random()
   # regardless of stoch env
   if keepMatrix:
     return vals
@@ -307,31 +279,38 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
   engine = getEngine(engine)
   if isinstance(size, int):
     size = (size, )
-  vals = np.zeros(np.prod(size))
-  for i in range(len(vals)):
-    vals[i] = boxMullerGen.generate(engine=engine)
-  vals.shape = size
+  if isinstance(engine, np.random.Generator):
+    vals = engine.normal(size=size)
+  else:
+    vals = np.zeros(np.prod(size))
+    for i in range(len(vals)):
+      vals[i] = boxMullerGen.generate(engine=engine)
+    vals.shape = size
   if keepMatrix:
     return vals
   else:
     return _reduceRedundantListing(vals,size)
 
-def randomMultivariateNormal(cov, size=1, mean=None):
+def randomMultivariateNormal(cov, size=1, mean=None, engine=None):
   """
     Provides a random sample from a multivariate distribution.
     @ In, cov, np.array, covariance matrix (must be square, positive definite)
     @ In, size, int, optional, number of samples to return
     @ In, mean, np.array, means for distributions (must be length of 1 side of covar matrix == len(cov[0]))
+    @ In, engine, instance, optional, random number generator
     @ Out, vals, np.array, array of samples with size [n_samples, len(cov[0])]
   """
-  dims = cov.shape[0]
-  if mean is None:
-    mean = np.zeros(dims)
-  eps = 10 * sys.float_info.epsilon
-  covEps = cov + eps * np.identity(dims)
-  decomp = np.linalg.cholesky(covEps)
-  randSamples = randomNormal(size=(dims, size)).reshape((dims, size))
-  vals = mean + np.dot(decomp, randSamples)
+  if isinstance(engine, np.random.Generator):
+    vals = engine.multivariate_normal(mean, cov, size)
+  else:  # old implementation that didn't allow for passing in an RNG engine
+    dims = cov.shape[0]
+    if mean is None:
+      mean = np.zeros(dims)
+    eps = 10 * sys.float_info.epsilon
+    covEps = cov + eps * np.identity(dims)
+    decomp = np.linalg.cholesky(covEps)
+    randSamples = randomNormal(size=(dims, size)).reshape((dims, size))
+    vals = mean + np.dot(decomp, randSamples)
   return vals
 
 def randomIntegers(low, high, caller=None, engine=None):
@@ -344,17 +323,20 @@ def randomIntegers(low, high, caller=None, engine=None):
     @ Out, rawInt, int, random int
   """
   engine = getEngine(engine)
-  intRange = high - low + 1.0
-  rawNum = low + random(engine=engine)*intRange
-  rawInt = math.floor(rawNum)
-  if rawInt < low or rawInt > high:
-    if caller:
-      caller.raiseAMessage("Random int out of range")
-    rawInt = max(low, min(rawInt, high))
+  if isinstance(engine, np.random.Generator):
+    rawInt = engine.integers(low, high, endpoint=True)
+  else:
+    intRange = high - low + 1.0
+    rawNum = low + random(engine=engine)*intRange
+    rawInt = math.floor(rawNum)
+    if rawInt < low or rawInt > high:
+      if caller:
+        caller.raiseAMessage("Random int out of range")
+      rawInt = max(low, min(rawInt, high))
   return rawInt
 
 
-def randomChoice(array, size = 1, replace = True, engine = None):
+def randomChoice(array, size=1, replace=True, engine=None):
   """
     Generates a random sample or a sequence of random samples from a given array-like (list or such) or N-D array
     This equivalent to np.random.choice but extending the functionality to N-D arrays
@@ -367,21 +349,26 @@ def randomChoice(array, size = 1, replace = True, engine = None):
   assert(hasattr(array,"shape") or isinstance(array,list))
 
   if not replace:
-    if hasattr(array,"shape"):  # TODO: not a problem actually. Should be able to use numpy.random.RandomState.choice(a, replace=False)
-      raise RuntimeError("Option with replace False not available for ndarrays")
     if len(array) < size:
       raise RuntimeError("array size < of number of requested samples (size)")
 
-  sel = []
-  coords = array
-  for _ in range(size):
-    if hasattr(array,"shape"):
-      coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in coords.shape])
-      sel.append(coords[coord])
-    else:
-      sel.append(coords[randomIntegers(0, len(coords)-1, engine=engine)])
-    if not replace:
-      coords.remove(sel[-1])
+  engine = getEngine(engine)
+  if isinstance(engine, np.random.Generator):
+    # TODO Could add probability weights here. I that would be useful in at least ravenframework/TSA/MarkovAR.py.
+    # Array is flattened because otherwise engine.choice() will be applied over an axis of the array instead of its elements.
+    sel = engine.choice(np.array(array).flatten(), size=size, replace=replace)
+  else:
+    sel = []
+    coords = array
+    for _ in range(size):
+      if hasattr(array,"shape"):
+        # Chooses a random element from the ND array
+        coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in coords.shape])
+        sel.append(coords[coord])
+      else:
+        sel.append(coords[randomIntegers(0, len(coords)-1, engine=engine)])
+      if not replace:
+        coords.remove(sel[-1])
   selected = sel[0] if size == 1 else sel
   return selected
 
@@ -394,10 +381,13 @@ def randomPermutation(l,caller,engine=None):
     @ Out, newList, list, randomly permuted list
   """
   engine = getEngine(engine)
-  newList = []
-  oldList = l[:]
-  while len(oldList) > 0:
-    newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller,engine=engine)))
+  if isinstance(engine, np.random.Generator):
+    newList = engine.permutation(l)
+  else:
+    newList = []
+    oldList = l[:]
+    while len(oldList) > 0:
+      newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller,engine=engine)))
   return newList
 
 def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
@@ -456,7 +446,7 @@ def newRNG(env=None):
   if env == 'crow':
     engine = CrowRNG()
   elif env == 'numpy':
-    engine = NumpyRNG()
+    engine = np.random.default_rng()
   return engine
 
 ### internal utilities ###
@@ -497,7 +487,7 @@ def getEngine(eng):
       eng = crowStochEnv
     else:
       raise TypeError('Stochastic enviroment of name "{}" not recognized!'.format(eng))
-  if not isinstance(eng, NumpyRNG) and not isinstance(eng, CrowRNG):
+  if not isinstance(eng, np.random.Generator) and not isinstance(eng, CrowRNG):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
 
