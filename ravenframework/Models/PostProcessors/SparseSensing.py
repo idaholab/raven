@@ -72,6 +72,10 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The type of optimizer used""",default='QR')
     goal.addSub(optimizer)
+    classifier = InputData.parameterInputFactory("classifier", contentType=InputTypes.makeEnumType("classifier","classifier type",['LDA']),
+                                                           printPriority=108,
+                                                           descr=r"""The type of classifier used""",default='LDA')
+    goal.addSub(classifier)
     seed = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
@@ -97,7 +101,8 @@ class SparseSensing(PostProcessorReadyInterface):
     self.basis = None                                        # The types of basis used in the projection. i.e., SVD, Identity, or Random Projection
     self.sensingFeatures = None                              # The variable representing the features of the data i.e., X, Y, SensorID, etc.
     self.sensingTarget = None                                # The Response of interest to be reconstructed (or classify)
-    self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
+    self.optimizer = None                                    # The Optimizer type used in the Sparse sensing selection (default: QR)
+    self.classifier = None                                   # The classifier type used in the Sparse sensing selection (default: LinearDiscriminantAnalysis)
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
 
   def initialize(self, runInfo, inputs, initDict=None):
@@ -126,7 +131,14 @@ class SparseSensing(PostProcessorReadyInterface):
       self.basis = child.findFirst('basis').value
       self.sensingFeatures = child.findFirst('features').value
       self.sensingTarget = child.findFirst('target').value
-      self.optimizer = child.findFirst('optimizer').value
+      if child.findFirst('optimizer') is not None:
+        self.optimizer = child.findFirst('optimizer').value
+      else:
+        self.optimizer = None
+      if child.findFirst('classifier') is not None:
+        self.classifier = child.findFirst('classifier').value
+      else:
+        self.classifier = None
       if child.findFirst('seed') is not None:
         self.seed = child.findFirst('seed').value
       else:
@@ -160,18 +172,32 @@ class SparseSensing(PostProcessorReadyInterface):
     else:
       self.raiseAnError(IOError, 'basis are not recognized')
 
-    if self.optimizer.lower() == 'qr':
-      optimizer = ps.optimizers.QR()
+    if self.sparseSensingGoal == 'reconstruction':
+      if self.optimizer.lower() == 'qr':
+        optimizer = ps.optimizers.QR()
+      ## TODO: Add GQR for constrained optimization  
+      else:
+        self.raiseAnError(IOError, 'optimizer {} not implemented!!!'.format(self.optimizer))
+    elif  self.sparseSensingGoal == 'classification':
+      if self.classifier == None or self.classifier.lower() == 'lda':
+        classifier = ps.classification._sspoc.LinearDiscriminantAnalysis()
+      else:
+        self.raiseAnError(IOError, 'classifier is not recognized!. Currently, only LDA classifier is implemented')  
     else:
-      self.raiseAnError(IOError, 'optimizer {} not implemented!!!'.format(self.optimizer))
-
-    model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
-
+      self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals')  
+    
+    # reconstruction, binary classification, multiclass classification or anomaly detection        
+    if self.sparseSensingGoal == 'reconstruction':
+      model = ps.SSPOR(basis=basis, n_sensors=self.nSensors, optimizer=optimizer)
+    else:
+      model = ps.SSPOC(basis=basis, n_sensors=self.nSensors, classifier=classifier)
     features = {}
     for var in self.sensingFeatures:
       features[var] = np.atleast_1d(inputDS[var].data)
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingTarget].data
+    # if self.sparseSensingGoal == 'classification':
+    #   labels = self.
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
     assert np.shape(data) == (nSamples,nfeatures)
     if self.seed is not None:
