@@ -45,13 +45,17 @@ class ContinuousDistribution:
     """
       Probability density function
 
-      @ In, x, float, value to evaluate at
-      @ Out, returnPdf, float, probability density function value
+      @ In, x, float or np.ndarray, value to evaluate at
+      @ Out, returnPdf, float or np.ndarray, probability density function value
     """
     x = np.asarray(x)
     mask = np.logical_and(x >= self._xMin, x <= self._xMax)
     returnPdf = np.zeros_like(x)
     returnPdf[mask] = self.dist.pdf(x[mask]) / (self._cdfXMax - self._cdfXMin)
+    # If the input x was a scalar, returnPdf will be 0-dim numpy array. If that's the case,
+    # we want to return a scalar instead, so we extract the value from the array.
+    if returnPdf.ndim == 0:
+      returnPdf = returnPdf.item()
     return returnPdf
 
   def cdf(self, x):
@@ -61,12 +65,17 @@ class ContinuousDistribution:
       @ In, x, float, value to evaluate at
       @ Out, returnCdf, float, cumulative distribution function value
     """
+
     x = np.asarray(x)
     mask = np.logical_and(x > self._xMin, x < self._xMax)
     returnCdf = np.zeros_like(x)
     returnCdf[x <= self._xMin] = 0
     returnCdf[x >= self._xMax] = 1
     returnCdf[mask] = (self.dist.cdf(x[mask]) - self._cdfXMin) / (self._cdfXMax - self._cdfXMin)
+    # If the input x was a scalar, returnCdf will be 0-dim numpy array. If that's the case,
+    # we want to return a scalar instead, so we extract the value from the array.
+    if returnCdf.ndim == 0:
+      returnCdf = returnCdf.item()
     return returnCdf
 
   def inverseCdf(self, x):
@@ -82,7 +91,10 @@ class ContinuousDistribution:
     returnInvCdf[mask] = self.dist.ppf(x[mask] * (self._cdfXMax - self._cdfXMin) + self._cdfXMin)
     returnInvCdf[x <= 0] = self._xMin
     returnInvCdf[x >= 1] = self._xMax
-
+    # If the input x was a scalar, returnInvCdf will be 0-dim numpy array. If that's the case,
+    # we want to return a scalar instead, so we extract the value from the array.
+    if returnInvCdf.ndim == 0:
+      returnInvCdf = returnInvCdf.item()
     return returnInvCdf
 
   def untrCdfComplement(self, x):
