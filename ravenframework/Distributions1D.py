@@ -164,6 +164,7 @@ class ContinuousDistribution:
 
 
 class BasicUniformDistribution(ContinuousDistribution):
+  """ Uniform distribution wrapper """
   def __init__(self, lowerBound, upperBound, xMin=None, xMax=None):
     """
       Class constructor
@@ -178,6 +179,7 @@ class BasicUniformDistribution(ContinuousDistribution):
 
 
 class BasicNormalDistribution(ContinuousDistribution):
+  """ Normal distribution wrapper """
   def __init__(self, mean, sd, xMin=None, xMax=None):
     """
       Class constructor
@@ -202,6 +204,7 @@ class BasicNormalDistribution(ContinuousDistribution):
 
 
 class LogNormal:
+  """ Log-normal distribution"""
   def __init__(self, mu, sigma, low):
     """
       Class constructor
@@ -300,6 +303,7 @@ class LogNormal:
 
 
 class BasicLogNormalDistribution(ContinuousDistribution):
+  """ Log-normal distribution wrapper """
   def __init__(self, mu, sigma, low, xMin=None, xMax=None):
     """
       Class constructor
@@ -324,6 +328,7 @@ class BasicLogNormalDistribution(ContinuousDistribution):
 
 
 class BasicLogisticDistribution(ContinuousDistribution):
+  """ Logistic distribution wrapper """
   def __init__(self, location, scale, xMin=None, xMax=None):
     """
       Class constructor
@@ -341,6 +346,7 @@ class BasicLogisticDistribution(ContinuousDistribution):
 
 
 class BasicLaplaceDistribution(ContinuousDistribution):
+  """ Laplace distribution wrapper """
   def __init__(self, location, scale, xMin=None, xMax=None):
     """
       Class constructor
@@ -358,6 +364,7 @@ class BasicLaplaceDistribution(ContinuousDistribution):
 
 
 class BasicTriangularDistribution(ContinuousDistribution):
+  """ Triangular distribution wrapper """
   def __init__(self, xPeak, lowerBound, upperBound, xMin=None, xMax=None):
     """
       Class constructor
@@ -390,6 +397,7 @@ class BasicTriangularDistribution(ContinuousDistribution):
 
 
 class BasicExponentialDistribution(ContinuousDistribution):
+  """ Exponential distribution wrapper """
   def __init__(self, lmbda, loc, xMin=None, xMax=None):
     """
       Class constructor
@@ -414,6 +422,7 @@ class BasicExponentialDistribution(ContinuousDistribution):
 
 
 class BasicWeibullDistribution(ContinuousDistribution):
+  """ Weibull distribution wrapper """
   def __init__(self, k, lmbda, low, xMin=None, xMax=None):
     """
       Class constructor
@@ -440,6 +449,7 @@ class BasicWeibullDistribution(ContinuousDistribution):
 
 
 class BasicGammaDistribution(ContinuousDistribution):
+  """ Gamma distribution wrapper """
   def __init__(self, k, theta, low, xMin=None, xMax=None):
     """
       Class constructor
@@ -466,6 +476,7 @@ class BasicGammaDistribution(ContinuousDistribution):
 
 
 class BasicBetaDistribution(ContinuousDistribution):
+  """ Beta distribution wrapper """
   def __init__(self, alpha, beta, scale, low, xMin=None, xMax=None):
     """
       Class constructor
@@ -505,12 +516,14 @@ class BasicBetaDistribution(ContinuousDistribution):
 # Discrete Distributions
 #************************
 """
-Some of the discrete distributions must be implemented manually to match the behavior of the boost distributions used in crow.
+NOTE: Some of the discrete distributions must be implemented manually to match the behavior of the boost distributions used in crow.
 The scipy classes for discrete distributions are true discrete distributions in that the probability at values not in
 the support of the distribution is zero, while some of the discrete distributions in boost are really implemented as continuous
-random variables. The distributions that I've seen that are effected are:
-  - Geometric
-  - Binomial
+random variables. While this is true for the discrete distributions in general, only the way the Geometric distribution is used seems
+to be effected.
+
+Another behavior which does not match between scipy and boost distributions is the inverse CDF (ppf) function of the Binomial distribution.
+The method used in boost to estimate this numerically has been implemented here as well so that the results match.
 """
 
 
@@ -624,6 +637,7 @@ class DiscreteDistribution:
 
 
 class BasicPoissonDistribution(DiscreteDistribution):
+  """ Poisson distribution wrapper """
   def __init__(self, mu):
     """
       Class constructor
@@ -643,7 +657,8 @@ class BasicPoissonDistribution(DiscreteDistribution):
     return self.dist.args[0]  # mu parameter
 
 
-class BasicBinomialDistribution(DiscreteDistribution):  # TODO ppf function broken
+class BasicBinomialDistribution(DiscreteDistribution):
+  """ Binomial distribution wrapper """
   def __init__(self, n, p):
     """
       Class constructor
@@ -678,14 +693,15 @@ class BasicBinomialDistribution(DiscreteDistribution):  # TODO ppf function brok
         CDF defined with the complement of the incomplete beta function
 
         @ In, a, float, point at which to evaluate the CDF
-        @ In, y, float, quantile value
-        @ Out,
+        @ In, y, float, desired quantile value
+        @ Out, diff, float, difference between the desired quantile value and the CDF evaluated at a
       """
       if a == self.dist.args[0]:
         q = 1
       else:
         q = 1 - scipy.special.betainc(a + 1, self.dist.args[0] - a, self.dist.args[1])
-      return q - y
+      diff = q - y
+      return diff
 
     # The root finding problem being solved to get the inverse CDF is not vectorized, so we need to loop over the
     # elements of x if x is an array.
@@ -702,6 +718,7 @@ class BasicBinomialDistribution(DiscreteDistribution):  # TODO ppf function brok
 
 
 class BasicBernoulliDistribution(DiscreteDistribution):
+  """ Bernoulli distribution wrapper """
   def __init__(self, p):
     """
       Class constructor
@@ -724,45 +741,107 @@ class BasicBernoulliDistribution(DiscreteDistribution):
 class Geometric:
   """
     Implementation of a geometric distribution with support over the positive real numbers (continuous).
-
-    TODO: A continuous geometric distribution is really just a special case of the exponential distribution.
-    Maybe we could wrap that instead of implementing this class?
   """
   def __init__(self, p):
+    """
+      Class constructor
+
+      @ In, p, float, probability of success
+      @ Out, None
+    """
     self.p = p
 
   def support(self):
+    """
+      Gives the support of the distribution
+
+      @ In, None
+      @ Out, support, tuple, lower and upper bounds of the support
+    """
     return 0, np.inf
 
   def pmf(self, x):
+    """
+      Probability mass function
+
+      @ In, x, float, point at which to evaluate the pmf
+      @ Out, pmf, float, probability mass function at x
+    """
     return np.power(1 - self.p, x - 1) * self.p
 
   def cdf(self, x):
+    """
+      Cumulative distribution function
+
+      @ In, x, float, point at which to evaluate the cdf
+      @ Out, cdf, float, cumulative distribution function at x
+    """
     return -np.expm1(np.log1p(-self.p) * (x + 1))
 
   def sf(self, x):
+    """
+      Survival function
+
+      @ In, x, float, point at which to evaluate the survival function
+      @ Out, sf, float, survival function at x
+    """
     return np.exp(self.logsf(x))
 
   def logsf(self, x):
+    """
+      Log of the survival function
+
+      @ In, x, float, point at which to evaluate the log of the survival function
+      @ Out, logsf, float, log of the survival function at x
+    """
     return x * np.log1p(-self.p)
 
   def ppf(self, x):
-    _ppf = (np.log1p(-x) / np.log1p(-self.p) - 1) * (x >= self.p)
-    return _ppf
+    """
+      Percent point function (inverse of cdf)
+
+      @ In, x, float, point at which to evaluate the ppf
+      @ Out, ppf, float, percent point function at x
+    """
+    return (np.log1p(-x) / np.log1p(-self.p) - 1) * (x >= self.p)
 
   def mean(self):
+    """
+      Mean of the distribution
+
+      @ In, None
+      @ Out, mean, float, mean of the distribution
+    """
     return (1 - self.p ) / self.p
 
   def std(self):
+    """
+      Standard deviation of the distribution
+
+      @ In, None
+      @ Out, std, float, standard deviation of the distribution
+    """
     return np.sqrt(1 - self.p) / self.p
 
   def median(self):
+    """
+      Median of the distribution
+
+      @ In, None
+      @ Out, median, float, median of the distribution
+    """
     return self.ppf(0.5)
 
 
 class BasicGeometricDistribution(DiscreteDistribution):
-  """  """
+  """ Geometric distribution wrapper """
   def __init__(self, p):
+    """
+      Class constructor
+
+      @ In, p, float, probability of success
+      @ Out, None
+    """
     super().__init__(Geometric(p))
 
   def untrMode(self):
