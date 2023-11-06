@@ -323,14 +323,15 @@ class Representativity(ValidationBase):
         @ In, targets, names of target variables: figures of merit (FOMs)
         @ out, datasets, xarray datasets, datasets after adding moments
     """
-    for var in [x.split("|")[-1] for x in features + targets]: #datasets.data_vars
-      datasets[var].attrs['meanValue'] = np.mean(datasets[var].values)
+    moments = datasets.copy()
+    for var in [x.split("|")[-1] for x in features + targets]:
+      moments[var].attrs['meanValue'] = np.mean(datasets[var].values)
       for var2 in [x.split("|")[-1] for x in features + targets]:
         if var == var2:
-          datasets[var2].attrs['var'] = np.var(datasets[var].values)
+          moments[var2].attrs['var'] = np.var(datasets[var].values)
         else:
-          datasets[var2].attrs['cov_'+str(var)] = np.cov(datasets[var2].values,datasets[var].values)
-    return datasets
+          moments[var2].attrs['cov_'+str(var)] = np.cov(datasets[var2].values,datasets[var].values)
+    return moments
 
   def _computeErrors(self,datasets,features,targets):
     """
@@ -340,9 +341,10 @@ class Representativity(ValidationBase):
       @ In, targets, names of target variables: figures of merit (FOMs)
       @ out, datasets, xarray datasets, datasets after computing errors in each variable
     """
+    errors = datasets.copy()
     for var in [x.split("|")[-1] for x in features + targets]:
-      datasets['err_'+str(var)] = (datasets[var].values - datasets[var].attrs['meanValue'])/datasets[var].attrs['meanValue']
-    return datasets
+      errors['err_'+str(var)] = (datasets[var].values - datasets[var].attrs['meanValue'])/datasets[var].attrs['meanValue']
+    return errors
   def _computeUncertaintyMatrixInErrors(self, data, parameters):
     """
       A utility function to variance and covariance of variables in the error space
