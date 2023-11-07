@@ -253,8 +253,7 @@ class LimitSurfaceIntegral(PostProcessorInterface):
         if self.variableDist[varName] == None:
           randomMatrix[:, index] = randomMatrix[:, index] * (self.lowerUpperDict[varName]['upperBound'] - self.lowerUpperDict[varName]['lowerBound']) + self.lowerUpperDict[varName]['lowerBound']
         else:
-          f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float64])
-          randomMatrix[:, index] = f(randomMatrix[:, index])
+          randomMatrix[:, index] = self.variableDist[varName].ppf(randomMatrix[:, index])  # previously used np.vectorize in the calculation, but this is faster with scipy distributions
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
       if self.errorModel:
