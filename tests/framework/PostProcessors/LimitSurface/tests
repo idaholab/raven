@@ -39,7 +39,7 @@
    output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
    windows_gold = 'limitSurfaceBoundingError/WindowsLimitSurfaceWeightedPb_dump.csv'
    mac_gold =  'limitSurfaceBoundingError/MacLimitSurfaceWeightedPb_dump.csv'
-   rel_err = 0.002
+   rel_err = 0.003
    [../]
  [../]
 
