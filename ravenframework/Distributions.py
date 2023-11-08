@@ -36,9 +36,6 @@ from .utils.randomUtils import random
 from .utils import randomUtils
 CrowDistribution1D = utils.findCrowModule('distribution1D')
 from . import Distributions1D
-# from . import NDSpline
-# from . import NDInverseWeight
-# from . import DistributionsND
 from .utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
