@@ -50,7 +50,7 @@ Note all install methods after "main" take
     <tensorflow source="pip">2.13</tensorflow>
     <grpcio source="pip" />
     <!-- conda is really slow on windows if the version is not specified.-->
-    <python skip_check='True' os='windows'>3.8</python>
+    <python skip_check='True' os='windows'>3.10</python>
     <python skip_check='True' os='mac,linux'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
