@@ -354,15 +354,15 @@ for env in ['crow', 'numpy']:
   firstRNG = randomUtils.newRNG()
   secondRNG = randomUtils.newRNG()
   # seed with different seeds
-  firstRNG.seed(200286)
-  secondRNG.seed(20021986)
+  randomUtils.randomSeed(200286, engine=firstRNG)
+  randomUtils.randomSeed(20021986, engine=secondRNG)
   checkTrue('Check if two instances of RNG (different seed) are different',
-            firstRNG.random() != secondRNG.random(),True)
+            randomUtils.random(engine=firstRNG) != randomUtils.random(engine=secondRNG),True)
   # seed with same seeds
-  firstRNG.seed(200286)
-  secondRNG.seed(200286)
+  randomUtils.randomSeed(200286, engine=firstRNG)
+  randomUtils.randomSeed(200286, engine=secondRNG)
   checkTrue('Check if two instances of RNG (same seed) are identical',
-            firstRNG.random() == secondRNG.random(),True)
+            randomUtils.random(engine=firstRNG) == randomUtils.random(engine=secondRNG),True)
   ## visual check; skipped generally but left for debugging
   if False:
     import matplotlib.pyplot as plt
@@ -376,7 +376,7 @@ for env in ['crow', 'numpy']:
   # RNG factory
   ## unseeded (default seeding)
   engine = randomUtils.newRNG()
-  sampled = [engine.random() for _ in range(5)]
+  sampled = [randomUtils.random(engine=engine) for _ in range(5)]
   correct = [0.814723692093,
             0.135477004139,
             0.905791934325,
@@ -391,13 +391,13 @@ for env in ['crow', 'numpy']:
             0.950714311784,
             0.183434787715,
             0.731993938501]
-  sampled = [engine.random() for _ in range(5)]
+  sampled = [randomUtils.random(engine=engine) for _ in range(5)]
   checkArray('Independent RNG, reseeded',sampled,correct)
 
   ## seeded (42) -> should be same as "reseeded"
   engine = randomUtils.newRNG()
   engine.seed(42)
-  sampled = [engine.random() for _ in range(5)]
+  sampled = [randomUtils.random(engine=engine) for _ in range(5)]
   checkArray('Independent RNG, seeded',sampled,correct)
 
 print(results)
