@@ -52,18 +52,21 @@ class BoxMullerGenerator:
       Yields a normally-distributed pseudorandom value
       @ In, size, int, number of values to generate
       @ In, engine, instance, optional, random number generator
-      @ Out, generate, float, random value
+      @ Out, values, float, random value
     """
+    values = np.zeros(size)
     with self.__queueLock:
-      if len(self.queue[engine]) < size:
+      queueLength = len(self.queue[engine])
+      if queueLength < size:
         #calculate new values
         # We want to add only as many new values as we need to the queue, but Box Muller does them in pairs.
         # Asking for ceil((size - len(queue)) / 2) evaluations of Box Muller will give us enough values to
         # satisfy the request.
-        genSize = np.ceil((size - len(self.queue[engine])) / 2).astype(int)
-        self.queue[engine].extend(self.createSamples(size=genSize, engine=engine))
-    val = np.array([self.queue[engine].pop() for _ in range(size)])
-    return val
+        genSize = np.ceil((size - queueLength) / 2).astype(int)
+        # Using extendleft instead of extend so that the values are added behind the existing values in the deque.
+        self.queue[engine].extendleft(self.createSamples(size=genSize, engine=engine))
+    values = np.array([self.queue[engine].pop() for _ in range(size)])
+    return values
 
   def createSamples(self, size, engine=None):
     """
@@ -72,14 +75,14 @@ class BoxMullerGenerator:
       @ In, engine, instance, optional, random number generator.
       @ Out, z, tuple or np.ndarray, two independent random values
     """
-    # This is a bit of an ugly way to handle this, but the original code (contained in the if block
-    # below) is the faster way to handle the size=1 case. However, the vectorized code (else block)
-    # is up to 100x faster if generating many samples at once.
+    # This is a little ugly, but the original code (if block) is the faster way to handle the size=1
+    # case (~25% faster). However, the vectorized code (else block) is up to 100x faster if generating
+    # many samples at once. Implementing like this allows us to get the best of both worlds.
     if size == 1:
       u1,u2 = random(2,engine=engine)
       z1 = np.sqrt(-2.*np.log(u1))*np.cos(2.*np.pi*u2)
       z2 = np.sqrt(-2.*np.log(u1))*np.sin(2.*np.pi*u2)
-      z = (z1, z2)
+      z = (z2, z1)  # see note below for why z1 and z2 are reversed
     else:
       u = random(2, size, engine=engine)
       r = np.sqrt(-2. * np.log(u[:, 0]))
@@ -87,8 +90,10 @@ class BoxMullerGenerator:
       z1 = r * np.cos(theta)
       z2 = r * np.sin(theta)
       # the original code was returning z1,z2, so the z1 and z2 produced here need to be combined
-      # into a single 1-d array where the values of z1 and z2 are interleaved.
-      z = np.vstack((z1, z2)).T.flatten()
+      # into a single 1-d array where the values of z1 and z2 are interleaved. Also, because of the
+      # first in-last out nature of the deque (not actually a queue, this is a stack...), we need
+      # to reverse the order of the values so that they come out in the expected order.
+      z = np.vstack((z2, z1)).T.flatten()
     return z
 
   def testSampling(self, n=1e5,engine=None):
