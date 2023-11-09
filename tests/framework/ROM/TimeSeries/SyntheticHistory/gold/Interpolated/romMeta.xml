@@ -23,6 +23,7 @@
             <MA_1>3.878969804e-01</MA_1>
             <MA_2>3.198774407e-01</MA_2>
             <variance>9.566733107e-01</variance>
+            <order>2,0,3</order>
           </signal0>
         </ARMA>
         <segments_represented>0</segments_represented>
@@ -41,6 +42,7 @@
             <MA_1>1.773139327e-01</MA_1>
             <MA_2>-1.022136980e-01</MA_2>
             <variance>8.389602626e-01</variance>
+            <order>2,0,3</order>
           </signal0>
         </ARMA>
         <segments_represented>0</segments_represented>
@@ -59,6 +61,7 @@
             <MA_1>2.826054566e-01</MA_1>
             <MA_2>1.088318713e-01</MA_2>
             <variance>8.978167866e-01</variance>
+            <order>2,0,3</order>
           </signal0>
         </ARMA>
         <segments_represented>0</segments_represented>

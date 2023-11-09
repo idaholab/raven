@@ -277,8 +277,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       settings = byAlgo.get(algo.name, None)
       if settings:
         # there might be multiple instances of same algo w/ different targets, need to filter by targets
-        filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
-        params = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
+        # filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
+        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
         self._tsaTrainedParams[algo] = params
 
   def findAlgoByName(self, name):
@@ -367,8 +367,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       settings = byAlgo.get(algo.name, None)
       if settings:
         # there might be multiple instances of same algo w/ different targets, need to filter by targets
-        filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
-        params = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
+        # filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
+        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
         self._tsaTrainedParams[algo] = params
     return self._tsaTrainedParams
 
