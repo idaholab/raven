@@ -227,7 +227,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
                         '\n  '.join(errMsg))
     return request
 
-  def _getClusterableFeatures(self):
+  def _getClusterableFeatures(self, trainGlobal=False):
     """
       Provides a list of clusterable features.
       For this ROM, these are as "TSA_algorith|feature" such as "fourier|amplitude"
@@ -236,7 +236,8 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     features = {}
     # check: is it possible tsaAlgorithms isn't populated by now?
-    for algo in self._tsaAlgorithms:
+    algorithms = self._tsaGlobalAlgorithms if trainGlobal else self._tsaAlgorithms
+    for algo in algorithms:
       if algo.canCharacterize():
         features[algo.name] = algo._features
       else:
@@ -337,8 +338,17 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, featureDict, dict, dictionary of features to parametrize
       @ Out, params, dict, dictionary of collected parametrized features
     """
-    # NOTE: only used during interpolation for global features! returning empty dict...
+    # NOTE: this should match the clustered features template.
+    featureTemplate = '{target}|{metric}|{id}' # TODO this kind of has to be the format currently
     params = {}
+    requests = self._getClusterableFeatures(trainGlobal=True)
+
+    for algo in self._tsaGlobalAlgorithms:
+      if algo.name not in requests or not algo.canCharacterize():
+        continue
+      algoReq = requests[algo.name] if requests is not None else None
+      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self._tsaTrainedParams[algo])
+      params.update(algoFeatures)
     return params
 
   def setGlobalRomFeatures(self, params, pivotValues):
@@ -349,9 +359,18 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, pivotValues, np.array, values of time parameter
       @ Out, results, dict, global ROM feature set
     """
-    # NOTE: only used during interpolation for global features! returning empty dict...
-    results = {}
-    return results
+    byAlgo = collections.defaultdict(list)
+    for feature, values in params.items():
+      target, algoName, ident = feature.split('|', maxsplit=2)
+      byAlgo[algoName].append((target, ident, values))
+    for algo in self._tsaAlgorithms:
+      settings = byAlgo.get(algo.name, None)
+      if settings:
+        # there might be multiple instances of same algo w/ different targets, need to filter by targets
+        filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
+        params = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
+        self._tsaTrainedParams[algo] = params
+    return self._tsaTrainedParams
 
   def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
     """
