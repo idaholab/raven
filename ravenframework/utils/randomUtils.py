@@ -31,8 +31,8 @@ from . import mathUtils
 from ..CustomDrivers.DriverUtils import setupCpp
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
-# stochasticEnv = 'crow'
-stochasticEnv = 'numpy'
+stochasticEnv = 'crow'
+# stochasticEnv = 'numpy'
 
 class BoxMullerGenerator:
   """
@@ -261,14 +261,14 @@ class NumpyRNG:
     """
     self._engine.integers(0, 2 ** 32 - 1, endpoint=True)
 
+setupCpp()
+# this is needed for now since we need to split the stoch environments
+distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
+boxMullerGen = BoxMullerGenerator()
 if stochasticEnv == 'numpy':
   npStochEnv = NumpyRNG()
 else:
-  setupCpp()
   crowStochEnv = CrowRNG()
-  # this is needed for now since we need to split the stoch environments
-  distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
-boxMullerGen = BoxMullerGenerator()
 
 def setStochasticEnv(env):
   """
@@ -284,7 +284,7 @@ def setStochasticEnv(env):
   else:
     setupCpp()
     crowStochEnv = CrowRNG()
-    distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
+  distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
 #
@@ -299,36 +299,12 @@ def randomSeed(value, seedBoth=False, engine=None):
     @ In, seedBoth, bool, optional, if True then seed both random environments
     @ Out, None
   """
-  # # we need a flag to tell us  if the global numpy stochastic environment is needed to be changed
-  # replaceGlobalEnv=False
-  # ## choose an engine if it is none
-  # if engine is None:
-  #   if stochasticEnv == 'crow':
-  #     distStochEnv.seedRandom(value)
-  #     engine = crowStochEnv
-  #   elif stochasticEnv == 'numpy':
-  #     replaceGlobalEnv = True
-  #     global npStochEnv
-  #     # global npStochEvn is needed in numpy environment here
-  #     # to prevent referenced before assignment in local loop
-  #     engine = npStochEnv
-
-  # if isinstance(engine, NumpyRNG):
-  #   engine.seed(value)
-  # elif isinstance(engine, CrowRNG):
-  #   engine.seed(value)
-  #   if seedBoth:
-  #     np.random.seed(value+1) # +1 just to prevent identical seed sets
-  # if stochasticEnv == 'numpy' and replaceGlobalEnv:
-  #   npStochEnv = engine
-  # if replaceGlobalEnv:
-  #   print('randomUtils: Global random number seed has been changed to',value)
-  if engine is None:
-    engine = getEngine()  # gets engine for default stochastic environment
+  engine = getEngine(engine)
   engine.seed(value)
+  if isinstance(engine, CrowRNG):
+    distStochEnv.seedRandom(value)
   if seedBoth:
     np.random.seed(value+1)
-
 
 def forwardSeed(count, engine):
   """
