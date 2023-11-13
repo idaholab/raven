@@ -60,7 +60,7 @@ Note all install methods after "main" take
     <psutil/>
     <pip/>
     <importlib_metadata/>
-    <statsforecast source="pip"></statsforecast>
+    <statsforecast/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
@@ -73,7 +73,7 @@ Note all install methods after "main" take
     <smt machine='x86_64'/> <!-- not available on macos arm64 -->
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
-    <pywavelets optional='True'>1.1</pywavelets>
+    <pywavelets optional='True'>1.2</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
