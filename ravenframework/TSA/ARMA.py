@@ -102,6 +102,11 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
 
   @classmethod
   def setNeedsPriorAlgoFeatures(cls, val):
+    """
+      Method to overwrite the _needsPriorAlgoFeatures attribute
+      @ In, val, bool, True or False value for _needsPriorAlgoFeatures
+      @ Out, None
+    """
     cls._needsPriorAlgoFeatures = val
 
   #
@@ -181,6 +186,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, settings for this ROM
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characteristic parameters
     """
     # lazy import statsmodels
@@ -258,12 +264,11 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
     """
       Auto-selects ARMA hyperparameters P and Q for signal and noise lag. Uses the StatsForecast
       AutoARIMA methodology for selection, including BIC as the optimization criteria,
-      @ In, settings, dict, additional settings specific to algorithm
       @ In, target, str, name of target signal
-      @ In, pivot, np.array, time-like array values
-      @ In, history, np.array, signal values
-      @ Out, POpt, int, optimal signal lag parameter
-      @ Out, QOpt, int, optimal noise lag parameter
+      @ In, trainedParams, dict, running dict of trained algorithm params
+      @ Out, P, int, optimal signal lag parameter
+      @ Out, d, int, optimal differencing parameter
+      @ Out, Q, int, optimal noise lag parameter
     """
     # find last applied AutoARMA algorithm
     prevAutoARMA = [algo for algo in trainedParams if algo.name == 'AutoARMA']

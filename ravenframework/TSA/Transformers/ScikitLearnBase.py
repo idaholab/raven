@@ -43,6 +43,7 @@ class SKLTransformer(TimeSeriesTransformer):
       @ In, pivot, np.array, time-like parameter
       @ In, targets, list(str), names of targets
       @ In, settings, dict, additional settings specific to algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characterization of signal; structure as:
                            params[target variable][characteristic] = value
     """
@@ -116,6 +117,7 @@ class SKLCharacterizer(SKLTransformer, TimeSeriesCharacterizer):
       @ In, pivot, np.array, time-like parameter
       @ In, targets, list(str), names of targets
       @ In, settings, dict, additional settings specific to algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characterization of signal; structure as:
                            params[target variable][characteristic] = value
     """
