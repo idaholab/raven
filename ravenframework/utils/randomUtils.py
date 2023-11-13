@@ -27,12 +27,12 @@ import numpy as np
 import copy
 
 from .utils import findCrowModule
-from . import mathUtils
 from ..CustomDrivers.DriverUtils import setupCpp
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
-stochasticEnv = 'crow'
-# stochasticEnv = 'numpy'
+# As of 2023-11-13, the crow and numpy random environments produce identical outputs for the same seed.
+# The numpy is environment is now the default, and crow will be removed in the future.
+# stochasticEnv = 'crow'
+stochasticEnv = 'numpy'
 
 class BoxMullerGenerator:
   """
@@ -214,10 +214,10 @@ class NumpyRNG:
     self._seed = 5489  # default seed of boost::random::mt19937
     bitGenerator = np.random.MT19937()
     # MT19937(seed) doesn't produce the same initial seed and state as the _legacy_seeding method
-    # because passing the seed in the constructor creates a SeedSequence object, which effectively
-    # hashes the seed value. _legacy_seeding uses the seed value directly. If somebody in the future
-    # knows of a way to get the same initial state from the seed without using a private method, please
-    # change this! -- j-bryan, 2023-11-09
+    # because passing the seed in the MT19937 constructor or the Generator.seed() method creates a
+    # SeedSequence object, which effectively hashes the seed value, while _legacy_seeding uses the
+    # seed value directly. FIXME: If somebody in the future knows of a way to get the same initial
+    # state from the seed without using a private method, please change this! -- j-bryan, 2023-11-09
     bitGenerator._legacy_seeding(self._seed)
     self._engine = np.random.Generator(bitGenerator)
 
@@ -228,7 +228,8 @@ class NumpyRNG:
       @ Out, None
     """
     self._seed = abs(int(value))
-    # According to the numpy docs, best practice is to create a new Generator rather than reseed an existing one
+    # According to the numpy docs, best practice is to create a new Generator rather than reseed an
+    # existing one.
     bitGenerator = np.random.MT19937()
     bitGenerator._legacy_seeding(self._seed)
     self._engine = np.random.Generator(bitGenerator)
