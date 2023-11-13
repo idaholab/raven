@@ -260,6 +260,8 @@ class RFE(FeatureSelectionBase):
       @ Out, supportOfSupport_, np.array, boolean mask of the selected features
       @ Out, whichSpace, str, which space?
     """
+    #from ...Optimizers.Factory import factory as optimizerFactory
+    #ga = optimizerFactory.returnClass("GeneticAlgorithm")()
     useParallel = False
     jhandler = self.estimator._assembledObjects.get('jobHandler')
     if jhandler is not None:
@@ -319,8 +321,6 @@ class RFE(FeatureSelectionBase):
     outputSpaceToKeep = []
     if nGroups > 1:
       # re initialize support containers
-      groupFeaturesForRanking = copy.deepcopy(featuresForRanking)
-      groupRanking_ = copy.deepcopy(ranking_)
       groupSupportOfSupport_ = copy.deepcopy(supportOfSupport_)
 
     supportDataRFE = {'featuresForRanking':featuresForRanking,'mask':mask,'nFeatures':nFeatures,

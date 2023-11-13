@@ -126,6 +126,9 @@ class DMDC(DMD):
                                                  descr=r"""True if the initial values need to be subtracted from the
                                                  actuators (u), state (x) and outputs (y) if any. False if the subtraction
                                                  is not needed.""", default=False))
+    importanceEnumType = InputTypes.makeEnumType("importanceType","importanceTypeType",["Cmatrix","gini"])
+    specs.addSub(InputData.parameterInputFactory("importanceType", contentType=importanceEnumType,
+                                                 descr=r"""Type of importance formulation. Cmatrix or gini!""", default="gini"))
     specs.addSub(InputData.parameterInputFactory("singleValuesTruncationTol", contentType=InputTypes.FloatType,
                                                  descr=r"""Truncation threshold to apply to singular values vector""", default=1e-9))
     return specs
@@ -151,6 +154,7 @@ class DMDC(DMD):
     self.stateVals = None       # state values (e.g. X)
     self.outputVals = None      # output values (e.g. Y)
     self.parameterValues = None # parameter values
+    self._importanceFormulation = 'gini'
     self._importances = None # importances
 
   def _handleInput(self, paramInput):
@@ -161,7 +165,7 @@ class DMDC(DMD):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['actuators','stateVariables', 'initStateVariables',
-                                                               'subtractNormUXY','singleValuesTruncationTol'])
+                                                               'subtractNormUXY','singleValuesTruncationTol', 'importanceType'])
     # notFound must be empty
     assert(not notFound)
     # Truncation threshold to apply to single values
@@ -177,12 +181,13 @@ class DMDC(DMD):
     check = [el.endswith('_init') for el in self.initStateID]
     if not np.all(check):
       missingVars = ', '.join(np.asarray(self.initStateID)[np.logical_not(check)].tolist())
-      self.raiseAnError(IndexError, "initStateVariables must be named {stateVariable}_init. Missing state variables are: {missingVars}")
+      self.raiseAnError(IndexError, f"initStateVariables must be named {stateVariable}_init. Missing state variables are: {missingVars}")
     varsToCheck = [el.strip()[:-5] for el in self.initStateID]
     self.initStateID = [self.initStateID[cnt] for cnt, el in enumerate(varsToCheck) if el in self.stateID]
     # END FIXME 1718
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     self.dmdParams['centerUXY'] = settings.get('subtractNormUXY')
+    self._importanceFormulation =  settings.get('importanceType')
     # some checks
     # check if state ids in target
     if not (set(self.stateID) <= set(self.target)):
@@ -256,34 +261,51 @@ class DMDC(DMD):
     """
     if self._importances is None:
       from sklearn import preprocessing
-      from sklearn.ensemble import RandomForestRegressor
-      # the importances are evaluated in the transformed space
-      importanceMatrix = np.zeros(self.__Ctilde.shape)
-      for smp in range(self.__Ctilde.shape[0]):
-        importanceMatrix[smp,:,:] = self.__Ctilde[smp,:,:]
-        scaler = preprocessing.MinMaxScaler()
-        scaler.fit(importanceMatrix[smp,:,:].T)
-        importanceMatrix[smp,:,:] = scaler.transform(importanceMatrix[smp,:,:].T).T
-
       self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
+      if  self._importanceFormulation == 'gini':
+        
+        from sklearn.ensemble import RandomForestRegressor
+        rf = RandomForestRegressor(n_estimators=int((self.stateVals.shape[0]*self.stateVals.shape[1])/2))
+        rfParameters = RandomForestRegressor(n_estimators=self.parameterValues.size)
+        concatenatedFeatures = np.zeros((self.stateVals.shape[0]*self.stateVals.shape[1], self.stateVals.shape[2]))
+        concatenatedOutputs =  np.zeros((self.outputVals.shape[0]*self.outputVals.shape[1], self.outputVals.shape[2]))
+        for smp in range(self.stateVals.shape[1]):
+          concatenatedFeatures[smp*self.stateVals.shape[0]:(smp+1)*self.stateVals.shape[0], :] =  self.stateVals[:, smp, :]
+          concatenatedOutputs[smp*self.outputVals.shape[0]:(smp+1)*self.outputVals.shape[0], :] =  self.outputVals[:, smp, :]
+        rf.fit(concatenatedFeatures, concatenatedOutputs)
+        rfParameters.fit(self.parameterValues, np.average(self.outputVals, axis=0))
+        
+        for stateCnt, stateId in enumerate(self.stateID):
+          self._importances[stateId] = rf.feature_importances_[stateCnt]
+        for featCnt, feat in enumerate(self.parametersIDs):
+          self._importances[feat] = rfParameters.feature_importances_[featCnt]
+          
+      else:
+        # the importances are evaluated in the transformed space
+        importanceMatrix = np.zeros(self.__Ctilde.shape)
+        for smp in range(self.__Ctilde.shape[0]):
+          importanceMatrix[smp,:,:] = self.__Ctilde[smp,:,:]
+          scaler = preprocessing.MinMaxScaler()
+          scaler.fit(importanceMatrix[smp,:,:].T)
+          importanceMatrix[smp,:,:] = scaler.transform(importanceMatrix[smp,:,:].T).T
 
-      # the importances for the state variables are inferred from the C matrix/operator since
-      # directely linked to the output variables
-      minVal, minIdx = np.finfo(float).max, -1
-      for stateCnt, stateID in enumerate(self.stateID):
-        # for all outputs
-        self._importances[stateID] = np.asarray([abs(float(np.average(importanceMatrix[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
-        if minVal > np.min(self._importances[stateID]):
-          minVal = np.min(self._importances[stateID])
-          minIdx = stateCnt
-      # as first approximation we assume that the feature importance
-      # are assessable via a perturbation of the only feature space
-      # on the C matrix
-      for featCnt, feat in enumerate(self.parametersIDs):
-        permutations = set(self.parameterValues[:,featCnt])
-        indices = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
-        self._importances[feat] = np.asarray([abs(float(np.average(importanceMatrix[indices,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
-      self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
+        # the importances for the state variables are inferred from the C matrix/operator since
+        # directely linked to the output variables
+        minVal, minIdx = np.finfo(float).max, -1
+        for stateCnt, stateID in enumerate(self.stateID):
+          # for all outputs
+          self._importances[stateID] = np.asarray([abs(float(np.average(importanceMatrix[:,outcnt,stateCnt]))) for outcnt in range(len(self.outputID))])
+          if minVal > np.min(self._importances[stateID]):
+            minVal = np.min(self._importances[stateID])
+            minIdx = stateCnt
+        # as first approximation we assume that the feature importance
+        # are assessable via a perturbation of the only feature space
+        # on the C matrix
+        for featCnt, feat in enumerate(self.parametersIDs):
+          permutations = set(self.parameterValues[:,featCnt])
+          indices = [np.where(self.parameterValues[:,featCnt] == elm )[-1][-1]  for elm in permutations]
+          self._importances[feat] = np.asarray([abs(float(np.average(importanceMatrix[indices,outcnt,minIdx]))) for outcnt in range(len(self.outputID))])
+        self._importances = dict(sorted(self._importances.items(), key=lambda item: np.average(item[1]), reverse=True))
 
     if group is not None:
       groupMask = np.zeros(len(self.outputID),dtype=bool)
