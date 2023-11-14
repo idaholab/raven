@@ -30,7 +30,8 @@ from .utils import findCrowModule
 from ..CustomDrivers.DriverUtils import setupCpp
 
 # As of 2023-11-13, the crow and numpy random environments produce identical outputs for the same seed.
-# The numpy is environment is now the default, and crow will be removed in the future.
+# Numpy version 1.22.4 is used. The numpy is environment is now the default, and crow will be removed
+# in the future.
 # stochasticEnv = 'crow'
 stochasticEnv = 'numpy'
 
@@ -70,7 +71,11 @@ class BoxMullerGenerator:
 
   def createSamples(self, size, engine=None):
     """
-      Sample calculator.  Because Box Muller does batches of 2, add them to a queue.
+      Sample calculator.  Because Box Muller does batches of 2, 2*size numbers are generated. If size
+      is 1, a non-vectorized version is used. Otherwise, a vectorized implementation calculates all
+      of the random numbers at once. The vectorized implementation is much faster for large values
+      of size but adds overhead for small values. When size is greater than 1, the returned values
+      are interleaved to match the order of repeated calls to this function with size=1.
       @ In, size, int, number of samples to create
       @ In, engine, instance, optional, random number generator.
       @ Out, z, tuple or np.ndarray, two independent random values
@@ -89,10 +94,10 @@ class BoxMullerGenerator:
       theta = 2. * np.pi * u[:, 1]
       z1 = r * np.cos(theta)
       z2 = r * np.sin(theta)
-      # the original code was returning z1,z2, so the z1 and z2 produced here need to be combined
+      # The original code was returning z1,z2, so the z1 and z2 produced here need to be combined
       # into a single 1-d array where the values of z1 and z2 are interleaved. Also, because of the
-      # first in-last out nature of the deque (not actually a queue, this is a stack...), we need
-      # to reverse the order of the values so that they come out in the expected order.
+      # first in-last out nature of the deque, we need to reverse the order of the values so that
+      # they come out in the expected order.
       z = np.vstack((z2, z1)).T.flatten()
     return z
 
@@ -202,7 +207,7 @@ class CrowRNG:
 # do it! Switching the util functions in this file to directly use the methods of np.random.Generator
 # really streamline things and probably provide a reasonable speed boost. But for now, we'll go with
 # the wrapper option so we don't have to regold all those tests.
-#   j-bryan, 2021-03-11
+#   j-bryan, 2023-11-13
 class NumpyRNG:
   """ Wraps numpy.random.Generator to provide an interface similar to CrowRNG """
   def __init__(self):
@@ -211,15 +216,9 @@ class NumpyRNG:
       @ In, None
       @ Out, None
     """
-    self._seed = 5489  # default seed of boost::random::mt19937
-    bitGenerator = np.random.MT19937()
-    # MT19937(seed) doesn't produce the same initial seed and state as the _legacy_seeding method
-    # because passing the seed in the MT19937 constructor or the Generator.seed() method creates a
-    # SeedSequence object, which effectively hashes the seed value, while _legacy_seeding uses the
-    # seed value directly. FIXME: If somebody in the future knows of a way to get the same initial
-    # state from the seed without using a private method, please change this! -- j-bryan, 2023-11-09
-    bitGenerator._legacy_seeding(self._seed)
-    self._engine = np.random.Generator(bitGenerator)
+    self._engine = None
+    self._seed = None
+    self.seed(5489)  # default seed of boost::random::mt19937
 
   def seed(self, value):
     """
@@ -231,6 +230,11 @@ class NumpyRNG:
     # According to the numpy docs, best practice is to create a new Generator rather than reseed an
     # existing one.
     bitGenerator = np.random.MT19937()
+    # MT19937(seed) doesn't produce the same initial seed and state as the _legacy_seeding method
+    # because passing the seed in the MT19937 constructor or the Generator.seed() method creates a
+    # SeedSequence object, which effectively hashes the seed value, while _legacy_seeding uses the
+    # seed value directly. FIXME: If somebody in the future knows of a way to get the same initial
+    # state from the seed without using a private method, please change this! -- j-bryan, 2023-11-09
     bitGenerator._legacy_seeding(self._seed)
     self._engine = np.random.Generator(bitGenerator)
 
@@ -249,22 +253,21 @@ class NumpyRNG:
       @ In, size, tuple, size of array to return
       @ Out, vals, np.ndarray, random numbers from RNG engine
     """
-    # Generator.random(dtype=np.float32) produces approximately the same outputs as CrowRNG.random(), but the
-    # CrowRNG outputs are 64-bit floats calculated as below.
-    # return self._engine.integers(0, np.iinfo(np.uint32).max, endpoint=True) / np.iinfo(np.uint32).max
+    # Generator.random(dtype=np.float32) produces approximately the same outputs as CrowRNG.random(),
+    # but the CrowRNG outputs are 64-bit floats calculated as below.
+    # NOTE: The 64-bit random number generated here only contains about 32 bits of randomness, since
+    # only one state of a 32-bit MT19937 bit generator is used.
     return self._engine.integers(0, 4294967295, endpoint=True, size=size) / 4294967295  # that's 2**32 - 1
 
-  def forwardSeed(self):
+  def forwardSeed(self, count):
     """
       Throws away a random number to advance the RNG state
-      @ In, None
+      @ In, count, int, number of random states to progress
       @ Out, None
     """
-    self._engine.integers(0, 2 ** 32 - 1, endpoint=True)
+    self._engine.integers(0, 2 ** 32 - 1, endpoint=True, size=count)
 
 setupCpp()
-# this is needed for now since we need to split the stoch environments
-distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
 boxMullerGen = BoxMullerGenerator()
 if stochasticEnv == 'numpy':
   npStochEnv = NumpyRNG()
@@ -278,14 +281,13 @@ def setStochasticEnv(env):
     @ In, env, str, the environment to use; may be 'numpy' or 'crow'
     @ Out, None
   """
-  global stochasticEnv, npStochEnv, crowStochEnv, distStochEnv, boxMullerGen
+  global stochasticEnv, npStochEnv, crowStochEnv, boxMullerGen
   stochasticEnv = env
   if env == 'numpy':
     npStochEnv = NumpyRNG()
   else:
     setupCpp()
     crowStochEnv = CrowRNG()
-  distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
 #
@@ -302,18 +304,15 @@ def randomSeed(value, seedBoth=False, engine=None):
   """
   engine = getEngine(engine)
   engine.seed(value)
-  if isinstance(engine, CrowRNG):
-    distStochEnv.seedRandom(value)
-  if seedBoth:
-    np.random.seed(value+1)
 
-def forwardSeed(count, engine):
+def forwardSeed(count, engine=None):
   """
     Function to advance the state of a random number generator engine
     @ In, count, int, number of steps to advance the RNG
-    @ In, engine, NumpyRNG or CrowRNG, RNG engine to modify
+    @ In, engine, NumpyRNG or CrowRNG, optional, RNG engine to modify
     @ Out, None
   """
+  engine = getEngine(engine)
   engine.forwardSeed(count)
 
 def random(dim=1, samples=1, keepMatrix=False, engine=None):

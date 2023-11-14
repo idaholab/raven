@@ -23,6 +23,7 @@ import os
 import operator
 import csv
 from scipy.interpolate import UnivariateSpline
+import scipy.stats
 from numpy import linalg as LA
 import copy
 import math as math
@@ -3801,7 +3802,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, coordinateInTransformedSpace, np.array, coordinates
     """
     if self.method == 'pca':
-      coordinateInTransformedSpace = self._distribution.coordinateInTransformedSpace(self.rank)
+      coordinateInTransformedSpace = CrowDistribution1D.vectord_cxx(scipy.stats.norm.ppf(random(self.rank)))
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return coordinateInTransformedSpace
@@ -3965,9 +3966,9 @@ class MultivariateNormal(NDimensionalDistributions):
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
       if self.transformation:
-        rvsValue = self._distribution.coordinateInTransformedSpace(self.rank)
+        rvsValue = CrowDistribution1D.vectord_cxx(scipy.stats.norm.ppf(random(self.rank)))
       else:
-        coordinate = self._distribution.coordinateInTransformedSpace(self.rank)
+        coordinate = CrowDistribution1D.vectord_cxx(scipy.stats.norm.ppf(random(self.rank)))
         rvsValue = self._distribution.coordinateInverseTransformed(coordinate)
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
