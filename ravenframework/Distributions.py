@@ -3965,10 +3965,11 @@ class MultivariateNormal(NDimensionalDistributions):
     # if no transformation, then return the coordinate for the original input parameters
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
+      rands = np.atleast_1d(scipy.stats.norm.ppf(random(self.rank)))
       if self.transformation:
-        rvsValue = CrowDistribution1D.vectord_cxx(scipy.stats.norm.ppf(random(self.rank)))
+        rvsValue = CrowDistribution1D.vectord_cxx(rands)
       else:
-        coordinate = CrowDistribution1D.vectord_cxx(scipy.stats.norm.ppf(random(self.rank)))
+        coordinate = CrowDistribution1D.vectord_cxx(rands)
         rvsValue = self._distribution.coordinateInverseTransformed(coordinate)
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')

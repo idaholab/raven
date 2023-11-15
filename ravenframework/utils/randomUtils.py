@@ -51,9 +51,9 @@ class BoxMullerGenerator:
   def generate(self, size, engine=None):
     """
       Yields a normally-distributed pseudorandom value
-      @ In, size, int, number of values to generate
+      @ In, size, tuple, number of values to generate
       @ In, engine, instance, optional, random number generator
-      @ Out, values, float, random value
+      @ Out, values, np.ndarray, random value
     """
     values = np.zeros(size)
     with self.__queueLock:
@@ -294,12 +294,11 @@ def setStochasticEnv(env):
 # Utilities
 #
 #
-def randomSeed(value, seedBoth=False, engine=None):
+def randomSeed(value, engine=None):
   """
     Function to get a random seed
     @ In, value, float, the seed
     @ In, engine, instance, optional, random number generator
-    @ In, seedBoth, bool, optional, if True then seed both random environments
     @ Out, None
   """
   engine = getEngine(engine)
