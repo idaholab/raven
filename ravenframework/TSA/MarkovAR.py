@@ -114,7 +114,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     # set seed for training
     seed = settings.get('seed')
     if seed is not None:
-      randomUtils.randomSeed(seed, engine=settings['engine'], seedBoth=True)
+      randomUtils.randomSeed(seed, engine=settings['engine'])
 
     params = {}
     for tg, target in enumerate(targets):
@@ -234,7 +234,7 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     engine = settings['engine']
     rngSeed = settings.get('seed', None)
     if rngSeed is not None:
-      engine.seed(rngSeed)
+      randomUtils.randomSeed(rngSeed, engine=engine)
 
     # Burn-in when generating with a MSAR model accomplished two things. (1) It gives the Markov model
     # time to reach a high-probability state, and (2) it helps separate the AR signal from its initial

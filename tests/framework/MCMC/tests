@@ -64,6 +64,7 @@
   [./csv]
    type = OrderedCSV
    output = 'TenDimPropMVN/posterior_basicStat_dump.csv'
+   mac_gold = 'TenDimPropMVN/posterior_basicStat_dump_mac.csv'
    rel_err = 3.0e-1
   [../]
  [../]
