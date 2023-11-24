@@ -423,8 +423,8 @@ class RELAPparser():
       intDT[dt.split(":")[0]] =  dt.split(":")[1]
     for dt in  self.datatypes.get('floats',[]):
       floatDT[dt.split(":")[0]] =  dt.split(":")[1]
-      
-  
+
+
     if 'decks' not in modifyDict:
       raise IOError(self.printTag+"ERROR: no card inputs found!!")
     else:
@@ -484,7 +484,7 @@ class RELAPparser():
             dtype = "integer"
           elif card in floatDT and int(floatDT[card]) == int(var['position']):
             dtype = "float"
- 
+
           if cardLines[card]['numberOfAvailableWords'] >= var['position']:
             totalNumberOfWords = 0
             for i in range(cardLines[card]['numberOfLevels']):

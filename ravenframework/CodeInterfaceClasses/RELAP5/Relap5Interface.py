@@ -96,7 +96,7 @@ class Relap5(CodeInterfaceBase):
         if floats is not None:
           c = "," if "," in floats.text else None
           self.datatypes['floats'] = [e.strip() for e in (floats.text.split() if c is None else floats.text.split(c))]
-          
+
       elif child.tag == 'operator':
         operator = {}
         if 'variables' not in child.attrib:
