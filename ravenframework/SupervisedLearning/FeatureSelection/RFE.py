@@ -32,6 +32,7 @@ from scipy.spatial.distance import squareform
 #Internal Modules--------------------------------------------------------------------------------
 from ...utils.mathUtils import compareFloats
 from ...utils import InputData, InputTypes
+from ...utils.utils import ParallelLibEnum
 from ...Decorators.Parallelization import Parallel
 from .FeatureSelectionBase import FeatureSelectionBase
 from . import utils as featSelectUtils
@@ -263,9 +264,13 @@ class RFE(FeatureSelectionBase):
     #from ...Optimizers.Factory import factory as optimizerFactory
     #ga = optimizerFactory.returnClass("GeneticAlgorithm")()
     useParallel = False
+    sharedMemory = True
     jhandler = self.estimator._assembledObjects.get('jobHandler')
     if jhandler is not None:
       useParallel = jhandler.runInfoDict['batchSize'] > 1
+      if jhandler._parallelLib != ParallelLibEnum.shared:
+        sharedMemory = False
+        
 
     #FIXME: support and ranking for targets is only needed now because
     #       some features (e.g. DMDC state variables) are stored among the targets
@@ -350,7 +355,7 @@ class RFE(FeatureSelectionBase):
           prefix = f'subgroup_{g}'
           if g > 0:
             supportDataRFE['firstStep'] = setStep
-          jhandler.addJob((estimatorRef, XRef, yRef, g, outputSpace, supportDataRFE,),
+          jhandler.addJob((estimatorRef if not sharedMemory else copy.deepcopy(estimatorRef), XRef, yRef, g, outputSpace, supportDataRFE,),
                           self._rfe, prefix, uniqueHandler='RFE_subgroup')
           g += 1
 
@@ -477,12 +482,14 @@ class RFE(FeatureSelectionBase):
             # train and get score
             if jhandler.availability() > 0:
               prefix = f'{k}_{it+1}'
+              #print(f"Sending job {prefix}" )
               jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),
                               self._scoring, prefix, uniqueHandler='RFE_scoring')
               it += 1
             finishedJobs = jhandler.getFinished(uniqueHandler='RFE_scoring')
             if not finishedJobs:
               while jhandler.availability() == 0:
+                #print(f"availability is {jhandler.availability()}. Still waiting!" )
                 time.sleep(jhandler.sleepTime)
             for finished in finishedJobs:
               score, survivors, combo = finished.getEvaluation()

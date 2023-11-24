@@ -261,24 +261,58 @@ class DMDC(DMD):
     """
     if self._importances is None:
       from sklearn import preprocessing
+      self.raiseADebug("Computing importances!")
       self._importances = dict.fromkeys(self.parametersIDs+self.stateID,1.)
       if  self._importanceFormulation == 'gini':
-        
         from sklearn.ensemble import RandomForestRegressor
-        rf = RandomForestRegressor(n_estimators=int((self.stateVals.shape[0]*self.stateVals.shape[1])/2))
-        rfParameters = RandomForestRegressor(n_estimators=self.parameterValues.size)
-        concatenatedFeatures = np.zeros((self.stateVals.shape[0]*self.stateVals.shape[1], self.stateVals.shape[2]))
-        concatenatedOutputs =  np.zeros((self.outputVals.shape[0]*self.outputVals.shape[1], self.outputVals.shape[2]))
-        for smp in range(self.stateVals.shape[1]):
-          concatenatedFeatures[smp*self.stateVals.shape[0]:(smp+1)*self.stateVals.shape[0], :] =  self.stateVals[:, smp, :]
-          concatenatedOutputs[smp*self.outputVals.shape[0]:(smp+1)*self.outputVals.shape[0], :] =  self.outputVals[:, smp, :]
-        rf.fit(concatenatedFeatures, concatenatedOutputs)
-        rfParameters.fit(self.parameterValues, np.average(self.outputVals, axis=0))
         
+        totalFeatureSpace = np.zeros(((self.__Ctilde.shape[0]*3, self.__Ctilde.shape[2])))
+        minSV = np.min(self.stateVals, axis=0)
+        maxSV = np.max(self.stateVals, axis=0)
+        avgSV = np.average(self.stateVals, axis=0)
+        totalFeatureSpace[0:self.__Ctilde.shape[0], :] =  minSV
+        totalFeatureSpace[self.__Ctilde.shape[0]:2*self.__Ctilde.shape[0], :] =  maxSV
+        totalFeatureSpace[2*self.__Ctilde.shape[0]:3*self.__Ctilde.shape[0], :] =  avgSV
+        totalProjection = np.zeros((self.__Ctilde.shape[0]*3, self.__Ctilde.shape[1]))
+        for smp in range(self.__Ctilde.shape[0]):
+          totalProjection[smp, :] =  np.dot(self.__Ctilde[smp, :, :], minSV[smp, :])
+          totalProjection[smp+self.__Ctilde.shape[0], :] =  np.dot(self.__Ctilde[smp, :, :], maxSV[smp, :])
+          totalProjection[smp+2*self.__Ctilde.shape[0], :] =  np.dot(self.__Ctilde[smp, :, :], avgSV[smp, :])
+          
+        self.raiseADebug("Fitting rf!")
+        rf = RandomForestRegressor(n_estimators=1000 , oob_score=True)
+        rf.fit(totalFeatureSpace, totalProjection)
+         
+        #rf = RandomForestRegressor(n_estimators=int((self.stateVals.shape[0]*self.stateVals.shape[1])/2), oob_score=True)
+        #rf = RandomForestRegressor(n_estimators=10, n_jobs=-1, oob_score=True)
+        #rfParameters = RandomForestRegressor(n_estimators=self.parameterValues.size, oob_score=True)
+        rfParameters = RandomForestRegressor(n_estimators=1000, n_jobs=-1, oob_score=True)
+        #concatenatedFeatures = np.zeros((self.stateVals.shape[0]*self.stateVals.shape[1], self.stateVals.shape[2]))
+        concatenatedFeatures = np.average(self.stateVals, axis=0) 
+        #concatenatedOutputs =  np.zeros((self.outputVals.shape[0]*self.outputVals.shape[1], self.outputVals.shape[2]))
+        concatenatedOutputs =   np.average(self.outputVals, axis=0)
+
+        print(concatenatedFeatures.shape)
+        print(concatenatedOutputs.shape)
+        #self.raiseADebug("Concatenating!")
+        #for smp in range(self.stateVals.shape[1]):
+        #  concatenatedFeatures[smp*self.stateVals.shape[0]:(smp+1)*self.stateVals.shape[0], :] =  self.stateVals[:, smp, :]
+        #  concatenatedOutputs[smp*self.outputVals.shape[0]:(smp+1)*self.outputVals.shape[0], :] =  self.outputVals[:, smp, :]
+        #self.raiseADebug("Done Concatenating!")
+        #self.raiseADebug("Fitting rf!")
+        #rf.fit(concatenatedFeatures, concatenatedOutputs)
+        print(f"Overall rf score is {rf.oob_score_}")
+        self.raiseADebug("Done Fitting rf!")
+        self.raiseADebug("Fitting rfParameters!")
+        rfParameters.fit(self.parameterValues, np.average(self.outputVals, axis=0))
+        print(f"Overall rfParameters score is {rfParameters.oob_score_}")
+        self.raiseADebug("Done Fitting rfParameters!")
+        rfFeatureImportance = rf.feature_importances_
+        rfParamterFeatureImportance = rfParameters.feature_importances_
         for stateCnt, stateId in enumerate(self.stateID):
-          self._importances[stateId] = rf.feature_importances_[stateCnt]
+          self._importances[stateId] = rfFeatureImportance[stateCnt]
         for featCnt, feat in enumerate(self.parametersIDs):
-          self._importances[feat] = rfParameters.feature_importances_[featCnt]
+          self._importances[feat] = rfParamterFeatureImportance[featCnt]
           
       else:
         # the importances are evaluated in the transformed space
@@ -318,6 +352,7 @@ class DMDC(DMD):
       for key in self._importances:
         newImportances[key] =  self._importances[key][groupMask]
       return newImportances
+    self.raiseADebug("Importances computed!")
     return self._importances
 
   def __evaluate(self, featureVals):
@@ -327,7 +362,6 @@ class DMDC(DMD):
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       # using nearest neighbour method to identify the index
       indices = self.neigh.predict(feats).astype(int)
-    nreqs = len(indices)
     # Extract the Actuator signal U #
     uVector = []
     for varID in self.actuatorsID:
