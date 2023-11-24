@@ -13,8 +13,7 @@
 # limitations under the License.
 """
 Created on July 11, 2013
-@author: nieljw
-@modified: alfoa
+@author: nieljw, alfoa
 """
 import os
 import fileinput
@@ -42,10 +41,11 @@ class RELAPparser():
   """
     Import the RELAP5 input as list of lines, provide methods to add/change entries and print it back
   """
-  def __init__(self,inputFile,addMinorEdits=False):
+  def __init__(self,inputFile,datatypes=None,addMinorEdits=False):
     """
       Constructor
       @ In, inputFile, string, input file name
+      @ In, datatypes, {}, dict {floats:[],integers:[]}
       @ In, addMinorEdits, bool, flag to add Minor Edits in case there are trips and the variables in the trip is not among the minor edits (generally for DET)
       @ Out, None
     """
@@ -54,6 +54,7 @@ class RELAPparser():
       raise IOError(self.printTag+'ERROR: not found RELAP input file')
     lines                 = open(inputFile,'r').readlines()
     self.inputfile        = inputFile
+    self.datatypes = datatypes
     self.inputTrips       = {}    #  {deckNumber:{'variableTrips':{},'logicalTrips':{}}}
     self.inputMinorEdits  = {}
     self.inputControlVars = {}
@@ -416,6 +417,14 @@ class RELAPparser():
     decks              = {}
     toAdd              = {} # for DET
     lines              = []
+    intDT = {}
+    floatDT = {}
+    for dt in  self.datatypes.get('integers',[]):
+      intDT[dt.split(":")[0]] =  dt.split(":")[1]
+    for dt in  self.datatypes.get('floats',[]):
+      floatDT[dt.split(":")[0]] =  dt.split(":")[1]
+      
+  
     if 'decks' not in modifyDict:
       raise IOError(self.printTag+"ERROR: no card inputs found!!")
     else:
@@ -431,10 +440,18 @@ class RELAPparser():
         temp.append('*'+' deckNum: '+str(deckNum)+'\n')
       for j in sorted(modiDictionaryList):
         for var in modiDictionaryList[j]:
+          ff = '{:7e}'
+          cast = float
+          if j in intDT and int(intDT[j]) == int(var['position']):
+            ff = '{:d}'
+            cast = int
+          elif j in floatDT and int(floatDT[j]) == int(var['position']) :
+            ff = '{:7e}'
+            cast = float
           try:
-            temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+'{:.7e}'.format(var['value'])+'\n')
+            temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+ff.format(cast(var['value']))+'\n')
           except ValueError:
-            temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+var['value']+'\n')
+            temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
 
       temp+=self.deckLines[deckNum]
@@ -462,12 +479,18 @@ class RELAPparser():
       # modify the cards
       for card in cardLines.keys():
         for var in modiDictionaryList[card]:
+          dtype = "float"
+          if card in intDT and int(intDT[card]) == int(var['position']):
+            dtype = "integer"
+          elif card in floatDT and int(floatDT[card]) == int(var['position']):
+            dtype = "float"
+ 
           if cardLines[card]['numberOfAvailableWords'] >= var['position']:
             totalNumberOfWords = 0
             for i in range(cardLines[card]['numberOfLevels']):
               numberOfWords = self.countNumberOfWords(temp[cardLines[card]['lineNumber']+i])
               if totalNumberOfWords+numberOfWords>=var['position']:
-                temp[cardLines[card]['lineNumber']+i] = self.replaceword(temp[cardLines[card]['lineNumber']+i],var['position']-totalNumberOfWords,var['value'])
+                temp[cardLines[card]['lineNumber']+i] = self.replaceword(temp[cardLines[card]['lineNumber']+i],var['position']-totalNumberOfWords,var['value'],dtype)
                 break
               totalNumberOfWords+=numberOfWords
           else:
@@ -510,19 +533,25 @@ class RELAPparser():
     number = len(_splitRecordAndRemoveComments(line))+additionFactor
     return number
 
-  def replaceword(self,line,position,value):
+  def replaceword(self,line,position,value,dtype="float"):
     """
       Method to replace a word value with the a new value
       @ In, line, string, line to be modified
       @ In, position, int, word position that needs to be changed
       @ In, value, float, new value
+      @ In, dtype, optional, str, the datatype
       @ Out, newline, string, modified line
     """
+    ff, cast = '{:7e}', float
+    if dtype == 'integer':
+      ff, cast = '{:d}', int
+    elif dtype == 'float':
+      ff, cast = '{:7e}', float
     temp=line.split()
     try:
-      temp[int(position)]='{:.7e}'.format(value)
+      temp[int(position)]=ff.format(cast(value))
     except ValueError:
-      temp[int(position)]=value
+      temp[int(position)]=str(value)
     newline=temp.pop(0)
     for i in temp:
       newline=newline+'  '+i

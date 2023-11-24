@@ -79,12 +79,24 @@ class Relap5(CodeInterfaceBase):
     self.inputAliases = {}
     self.outputDeck = -1 # default is the last deck!
     self.operators  = []
+    self.datatypes = {}
     for child in xmlNode:
       if child.tag == 'outputDeckNumber':
         try:
           self.outputDeck = int(child.text)
         except ValueError:
           raise ValueError("can not convert outputDeckNumber to integer!!!! Got "+ child.text)
+      elif child.tag == 'datatypes':
+        # DATA TYPES
+        floats = child.find("floats")
+        integers = child.find("integers")
+        if integers is not None:
+          c = "," if "," in integers.text else None
+          self.datatypes['integers'] = [e.strip() for e in (integers.text.split() if c is None else integers.text.split(c))]
+        if floats is not None:
+          c = "," if "," in floats.text else None
+          self.datatypes['floats'] = [e.strip() for e in (floats.text.split() if c is None else floats.text.split(c))]
+          
       elif child.tag == 'operator':
         operator = {}
         if 'variables' not in child.attrib:
@@ -317,13 +329,15 @@ class Relap5(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
+    if "_indexMap" in Kwargs['SampledVars']:
+      Kwargs['SampledVars'].pop("_indexMap")
     self.det = 'dynamiceventtree' in str(samplerType).lower()
     if self.det:
       self.tripControlVariables[Kwargs['prefix']] = None
     # find input file index
     index = self._findInputFileIndex(currentInputFiles)
     # instanciate the parser
-    parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), self.det)
+    parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), datatypes=self.datatypes,addMinorEdits=self.det)
     if self.det:
       self.inputAliases = Kwargs.get('alias').get('input')
       self.detVars   = Kwargs.get('DETVariables')
