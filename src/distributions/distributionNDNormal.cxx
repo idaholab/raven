@@ -586,31 +586,6 @@ int  BasicMultivariateNormal::getSingularValuesDimension(std::vector<int> index)
   return index.size();
 }
 
-std::vector<double> BasicMultivariateNormal::coordinateInTransformedSpace(int rank) {
-  /**
-   * This function will return the coordinate in the transformed space
-   * This function will generate the coordinate for r (r=rank) random variables, each of them
-   * are drew from single normal distribution. We need a random number between 0 and 1 to drew
-   * the random variable. In addition, thi function will be used in the input dimensionality reduction
-   * application. We will transform the correlated variables into uncorrelated variables, and using this
-   * function to draw the samples for the uncorrelated variables, and later transform the samples to correlated
-   * variables.
-   * @ In, rank, int, the effective dimension of the transformed space
-   * @ Out, coordinate, std::vector<double>, the coordinate in the transformed space
-   */
-  //std::cout << "BasicMultivariateNormal::coordinateInTransformedSpace" << std::endl;
-  std::vector<double> coordinate;
-  BasicNormalDistribution * normalDistribution = new BasicNormalDistribution(0,1);
-  DistributionContainer *distributionInstance = & DistributionContainer::instance();
-  double randValue = 0.0;
-  for(int i = 0; i < rank; ++i) {
-    randValue = distributionInstance->random();
-    double coordinateValue = normalDistribution->inverseCdf(randValue);
-    coordinate.push_back(coordinateValue);
-  }
-  delete normalDistribution;
-  return coordinate;
-}
 
 std::vector<double> BasicMultivariateNormal::coordinateInverseTransformed(std::vector<double> & coordinate) {
   /**

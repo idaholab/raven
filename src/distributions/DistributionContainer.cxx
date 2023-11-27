@@ -35,13 +35,11 @@ class DistributionContainer;
 
 DistributionContainer::DistributionContainer()
 {
-  _random = new RandomClass();
   _at_least_a_dist_triggered = false;
   _last_dist_triggered = "";
 }
 DistributionContainer::~DistributionContainer()
 {
-  delete _random;
 }
 
 
@@ -111,22 +109,6 @@ DistributionContainer::getType(const std::string dist_alias){
     }
 }
 
-void
-DistributionContainer::seedRandom(unsigned int seed){
-  //std::cout << "seedRandom " << seed << std::endl;
-  //srand( seed );
-  //_random.seed(seed);
-  //MooseRandom::seed(seed);
-  _random->seed(seed);
-
-}
-double
-DistributionContainer::random(){
-  //return (static_cast<double>(rand())/static_cast<double>(RAND_MAX));
-  //return _random.rand();
-  //return MooseRandom::rand();
-  return _random->random();
-}
 
 bool
 DistributionContainer::checkCdf(const std::string dist_alias, double value){
