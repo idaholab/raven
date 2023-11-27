@@ -75,19 +75,6 @@ public:
   double cdf(const char * dist_alias, std::vector<double> x);
   double cdf(const std::string dist_alias, std::vector<double> x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
 
-
-  /**
-   * Function to get a random number distributed according to the distribution with a random number calculated.
-   * @param dist_alias alias of the distribution to use.
-   */
-  double getDistributionRandom(const char * dist_alias);
-
-  /**
-   * Function to get a random number distributed according to the distribution with a random number calculated.
-   * @param dist_alias alias of the distribution to use.
-   */
-  double getDistributionRandom(const std::string dist_alias);
-
   /**
    * Function to get a random number distributed accordingly to the distribution
    * given a random number [0,1]

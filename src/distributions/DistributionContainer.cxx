@@ -327,25 +327,6 @@ DistributionContainer::inverseCdf(const std::string dist_alias, double rng) {
 
 }
 
-double
-DistributionContainer::getDistributionRandom(const char * dist_alias)
-{
-  return getDistributionRandom(std::string(dist_alias));
-}
-
-double
-DistributionContainer::getDistributionRandom(const std::string dist_alias){
-
-    if(_dist_by_name.find(dist_alias) != _dist_by_name.end()){
-      MooseSharedPointer<BasicDistribution> dist = _dist_by_name.find(dist_alias)->second;
-        //return dist->inverseCdf(rng);
-      return dist->getRandom(random());
-     }
-     throwError("getDistributionRandom: Distribution " + dist_alias + " was not found in distribution container.");
-     return -1.0;
-
-}
-
 std::vector<double>
 DistributionContainer::inverseCdf(const char * dist_alias, double f, double g){
    return inverseCdf(std::string(dist_alias),f,g);
