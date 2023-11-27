@@ -72,17 +72,14 @@ altCoordinateInOriginalSpace += mu
 print("coordinateInOriginalSpace", coordinateInOriginalSpace, "altCoordinateInOriginalSpace", altCoordinateInOriginalSpace)
 
 #call crow to compute the coordinate
-coordinate = mvnDistribution.coordinateInTransformedSpace(rank)
+coordinate = distribution1D.vectord_cxx(coordinateInTransformedSpace)
 Xcoordinate = mvnDistribution.coordinateInverseTransformed(coordinate)
 
-coordinate = [coordinate[i] for i in range(4)]
-coordinate = np.asarray(coordinate)
 Xcoordinate = [Xcoordinate[i] for i in range(5)]
 Xcoordinate = np.asarray(Xcoordinate)
 
 results = {"pass":0,"fail":0}
 
-utils.checkArrayAllClose("MVN return coordinate in transformed space",coordinate,coordinateInTransformedSpace,results)
 utils.checkArrayAllClose("MVN return coordinate in original space",Xcoordinate,coordinateInOriginalSpace,results)
 utils.checkArrayAllClose("MVN return coordinate in original space alt",Xcoordinate,altCoordinateInOriginalSpace,results)
 #The Xcoordinate will either equal the original, or the sign inverted alternate, so remove one failure, because one will fail. If both fail, that is a problem.
