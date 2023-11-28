@@ -18,6 +18,8 @@
 *.ravenStatus
 *.so
 *~
+*.out
+*.inp
 build_out*
 build/
 install/
