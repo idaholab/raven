@@ -63,7 +63,7 @@ class STL(TimeSeriesTransformer, TimeSeriesGenerator):
       ))
       return specs
 
-    def handleInput(self, spec):
+    def handleInput(self, spec, enforce_global=False):
       """
         Reads user inputs into this object.
         @ In, spec, InputData.InputParams, input specifications

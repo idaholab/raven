@@ -41,7 +41,7 @@ class Differencing(TimeSeriesTransformer):
                                                  descr=r"""differencing order."""))
     return specs
 
-  def handleInput(self, spec):
+  def handleInput(self, spec, enforce_global=False):
     """
       Reads user inputs into this object.
       @ In, inp, InputData.InputParams, input specifications

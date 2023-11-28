@@ -73,7 +73,10 @@ class TSAUser:
     self._tsaTargets = None          # cached list of targets
     self.target = None
 
-  def readTSAInput(self, spec):
+  def _preCheck(self):
+    return
+
+  def readTSAInput(self, spec, hasClusters=None):
     """
       Read in TSA algorithms
       @ In, spec, InputData.parameterInput, input specs filled with user entries
@@ -84,7 +87,7 @@ class TSAUser:
     for sub in spec.subparts:
       if sub.name in factory.knownTypes():
         algo = factory.returnInstance(sub.name)
-        self._tsaAlgoSettings[algo] = algo.handleInput(sub)
+        self._tsaAlgoSettings[algo] = algo.handleInput(sub,hasClusters)
         if self._tsaAlgoSettings[algo]['global']:
           self._tsaGlobalAlgorithms.append(algo)
         else:

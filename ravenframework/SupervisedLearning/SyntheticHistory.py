@@ -78,7 +78,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, None
     """
     SupervisedLearning._handleInput(self, paramInput)
-    self.readTSAInput(paramInput)
+    self.readTSAInput(paramInput, self._willHaveClusters)
     if len(self._tsaAlgorithms)==0:
       self.raiseAWarning("No Segmenting algorithms were requested.")
 

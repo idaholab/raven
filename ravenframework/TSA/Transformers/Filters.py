@@ -25,7 +25,7 @@ from ...utils import xmlUtils
 
 class FilterBase(TimeSeriesTransformer):
   """ Base class for transformers which filter or mask data """
-  def handleInput(self, spec):
+  def handleInput(self, spec, enforce_global=False):
     """
       Reads user inputs into this object.
       @ In, spec, InputData.InputParams, input specifications

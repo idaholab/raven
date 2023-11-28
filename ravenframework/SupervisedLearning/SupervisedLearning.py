@@ -204,6 +204,7 @@ class SupervisedLearning(BaseInterface):
     # After the computation, the importances are set as attribute of the self.model
     # variable and called 'feature_importances_' and accessable as self.model.feature_importances_
     self.computeImportances = False
+    self._willHaveClusters = False
 
   def __getstate__(self):
     """
@@ -718,6 +719,21 @@ class SupervisedLearning(BaseInterface):
     """
     # only true if overridden.
     return False
+
+  def setWillHaveClusters(self, willHaveClusters: bool):
+    """
+      Sets protected class member which tells ROM whether there will be clustering
+      @ In, willHaveClusters. bool, will there be
+      @ Out, None
+    """
+    assert isinstance(willHaveClusters, bool)
+    if not self.isClusterable():
+      # if ROM can't cluster in the first place... default to False
+      if willHaveClusters:
+        self.raiseAWarning("Clustering not allowed in this ROM, defaulting `willHaveClusters` to False")
+      self._willHaveClusters = False
+    else:
+      self._willHaveClusters = willHaveClusters
 
   def checkRequestedClusterFeatures(self, request):
     """
