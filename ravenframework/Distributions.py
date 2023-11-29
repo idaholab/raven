@@ -36,6 +36,7 @@ from .utils.randomUtils import random
 from .utils import randomUtils
 CrowDistribution1D = utils.findCrowModule('distribution1D')
 from . import Distributions1D
+from . import DistributionsND
 from .utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -485,11 +486,7 @@ class BoostDistribution(Distribution):
       @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    if size is None:
-      rvsValue = self.ppf(random())
-    else:
-      # TODO to speed up, do this on the C side instead of in python
-      rvsValue = np.array([self.rvs() for _ in range(size)])
+    rvsValue = self.ppf(random(dims=size))
     return rvsValue
 
   def selectedRvs(self, discardedElems):
@@ -3669,12 +3666,15 @@ class MultivariateNormal(NDimensionalDistributions):
     covariance = CrowDistribution1D.vectord_cxx(len(self.covariance))
     for i in range(len(self.covariance)):
       covariance[i] = self.covariance[i]
+    # covariance = self.covariance.reshape((len(self.mu), len(self.mu)))
     if self.method == 'spline':
       if self.covarianceType != 'abs':
         self.raiseAnError(IOError,'covariance with type ' + self.covariance + ' is not implemented for ' + self.method + ' method')
       self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu)
+      # self._distribution = DistributionsND.BasicMultivariateNormal(covariance, self.mu)
     elif self.method == 'pca':
       self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+      # self._distribution = DistributionsND.BasicMultivariateNormal(covariance, self.mu, str(self.covarianceType), self.rank)
     if self.transformation:
       self.lowerBound = [-sys.float_info.max]*self.rank
       self.upperBound = [sys.float_info.max]*self.rank
