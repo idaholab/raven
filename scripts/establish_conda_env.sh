@@ -107,7 +107,7 @@ function install_libraries()
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`echo conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD`
+        local PRECOMMAND=`echo conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD $SET_PYTHON`
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: ${PRECOMMAND}; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -178,7 +178,7 @@ function create_libraries()
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD`
+        local PRECOMMAND=`echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD $SET_PYTHON`
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: $PRECOMMAND; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -276,6 +276,9 @@ function display_usage()
     echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
+	echo ''
+	echo '    --set-python'
+	echo '      Set python version in mamba setup (only used if use mamba flag is true)'
 	echo ''
 }
 
@@ -390,6 +393,10 @@ do
       ;;
     --no-clean)
       ECE_CLEAN=1
+      ;;
+    --set-python)
+      shift
+      SET_PYTHON=$1
       ;;
   esac
   shift
