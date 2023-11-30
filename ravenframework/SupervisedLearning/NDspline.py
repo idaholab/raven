@@ -27,7 +27,7 @@ from itertools import product
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..utils import utils
-interpolationND = utils.findCrowModule("interpolationND")
+# interpolationND = utils.findCrowModule("interpolationND")
 from .NDinterpolatorRom import NDinterpolatorRom
 #Internal Modules End--------------------------------------------------------------------------------
 

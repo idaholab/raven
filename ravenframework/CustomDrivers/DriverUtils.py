@@ -36,7 +36,7 @@ def doSetup(checkLibraries=True):
   setupWarnings()
   setupFramework()
   setupH5py()
-  setupCpp()
+  # setupCpp()
   if checkLibraries:
     checkVersions()
 

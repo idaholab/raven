@@ -26,7 +26,7 @@ from collections import deque, defaultdict
 import numpy as np
 import copy
 
-from .utils import findCrowModule
+#from .utils import findCrowModule
 from ..CustomDrivers.DriverUtils import setupCpp
 
 # As of 2023-11-13, the crow and numpy random environments produce identical outputs for the same seed.
@@ -267,12 +267,13 @@ class NumpyRNG:
     """
     self._engine.integers(0, 2 ** 32 - 1, endpoint=True, size=count)
 
-setupCpp()
+# setupCpp()
 boxMullerGen = BoxMullerGenerator()
-if stochasticEnv == 'numpy':
-  npStochEnv = NumpyRNG()
-else:
-  crowStochEnv = CrowRNG()
+npStochEnv = NumpyRNG()
+# if stochasticEnv == 'numpy':
+#   npStochEnv = NumpyRNG()
+# else:
+#   crowStochEnv = CrowRNG()
 
 def setStochasticEnv(env):
   """
