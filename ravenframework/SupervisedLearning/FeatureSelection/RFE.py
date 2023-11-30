@@ -212,6 +212,76 @@ class RFE(FeatureSelectionBase):
     if self.applyCrossCorrelation and not len(self.subGroups):
       self.raiseAWarning("'applyCrossCorrelation' requested but not subGroup node(s) is(are) specified. Ignored!")
       self.applyCrossCorrelation = False
+    if self.maxNumberFeatures is not None:
+      from ... import Optimizers
+      self.opt = Optimizers.factory.returnInstance("GeneticAlgorithm")
+      from ...Distributions import factory as distFactory
+      distFactory.returnInstance("Bernoulli")
+      if Optimizers.factory.returnInputParameter:
+        paramInput = Optimizers.returnInputParameter()
+        paramInput.parseNode(inputBlock)
+        # block is specific input block: MonteCarlo, Uniform, PointSet, etc.
+        for block in paramInput.subparts:
+          blockName = block.getName()
+          entity = Optimizers.factory.returnInstance(blockName)
+          entity.applyRunInfo(self.runInfoDict)
+          entity.handleInput(block, globalAttributes={})
+          name = entity.name
+          self.entities[className][name] = entity        
+      else:
+      #paramInput = self.opt.__class__.returnInputParameter()
+      #paramInput.parseNode(inputBlock)
+      
+      #self.opt.handleInput()
+      
+      
+      gaString = f"""
+      <GeneticAlgorithm name="ga">
+      <samplerInit>
+        <limit>{self.maxNumberFeatures * 10}</limit>
+        <initialSeed>{self.maxNumberFeatures}</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>{self.maxNumberFeatures * 10}</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
+        <reproduction>
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.9</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst"/>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <AHDp>0.05</AHDp>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>uniform_dist_Repl_1</distribution>
+      </variable>
+
+      <variable name="x2">
+        <distribution>uniform_dist_Repl_1</distribution>
+      </variable>
+
+      <variable name="x3">
+        <distribution>uniform_dist_Repl_1</distribution>
+      </variable>
+
+      <objective>score</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Constraint class='Functions' type='External'>constraint1</Constraint>
+    <Constraint class='Functions' type='External'>constraint2</Constraint>
+    </GeneticAlgorithm>
+      """
 
   def __applyClusteringPrefiltering(self, X, y, mask, support_):
     """

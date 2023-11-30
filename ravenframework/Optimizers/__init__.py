@@ -25,7 +25,7 @@ from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 from .SimulatedAnnealing import SimulatedAnnealing
 try:
-    from .BayesianOptimizer import BayesianOptimizer
+  from .BayesianOptimizer import BayesianOptimizer
 except ModuleNotFoundError as error:
   print("ERROR: Unable to import BayesianOptimizer", error)
 
