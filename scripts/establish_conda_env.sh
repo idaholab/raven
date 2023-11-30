@@ -277,6 +277,9 @@ function display_usage()
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
+	echo '    --set-python'
+	echo '      Set python version in mamba setup (only used if use mamba flag is true)'
+	echo ''
 }
 
 function activate_env()
