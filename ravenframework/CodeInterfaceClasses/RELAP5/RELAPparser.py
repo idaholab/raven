@@ -417,12 +417,12 @@ class RELAPparser():
     decks              = {}
     toAdd              = {} # for DET
     lines              = []
-    intDT = {}
-    floatDT = {}
+    intDT = defaultdict(list)
+    floatDT = defaultdict(list)
     for dt in  self.datatypes.get('integers',[]):
-      intDT[dt.split(":")[0]] =  dt.split(":")[1]
+      intDT[dt.split(":")[0]].append(int(dt.split(":")[1]))
     for dt in  self.datatypes.get('floats',[]):
-      floatDT[dt.split(":")[0]] =  dt.split(":")[1]
+      floatDT[dt.split(":")[0]].append(int(dt.split(":")[1]))
 
 
     if 'decks' not in modifyDict:
@@ -442,10 +442,10 @@ class RELAPparser():
         for var in modiDictionaryList[j]:
           ff = '{:7e}'
           cast = float
-          if j in intDT and int(intDT[j]) == int(var['position']):
+          if j in intDT and int(var['position']) in intDT[j]:
             ff = '{:d}'
             cast = int
-          elif j in floatDT and int(floatDT[j]) == int(var['position']) :
+          elif j in floatDT and int(var['position']) in floatDT[j]:
             ff = '{:7e}'
             cast = float
           try:
@@ -480,9 +480,9 @@ class RELAPparser():
       for card in cardLines.keys():
         for var in modiDictionaryList[card]:
           dtype = "float"
-          if card in intDT and int(intDT[card]) == int(var['position']):
+          if card in intDT and int(var['position']) in intDT[card]:
             dtype = "integer"
-          elif card in floatDT and int(floatDT[card]) == int(var['position']):
+          elif card in floatDT and int(var['position']) in floatDT[card]:
             dtype = "float"
 
           if cardLines[card]['numberOfAvailableWords'] >= var['position']:
