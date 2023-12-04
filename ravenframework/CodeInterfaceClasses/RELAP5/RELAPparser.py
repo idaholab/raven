@@ -418,11 +418,9 @@ class RELAPparser():
     toAdd              = {} # for DET
     lines              = []
     intDT = defaultdict(list)
-    floatDT = defaultdict(list)
-    for dt in  self.datatypes.get('integers',[]):
-      intDT[dt.split(":")[0]].append(int(dt.split(":")[1]))
-    for dt in  self.datatypes.get('floats',[]):
-      floatDT[dt.split(":")[0]].append(int(dt.split(":")[1]))
+    if self.datatypes is not None:
+      for dt in  self.datatypes.get('integers',[]):
+        intDT[dt.split(":")[0]].append(int(dt.split(":")[1]))
 
 
     if 'decks' not in modifyDict:
@@ -445,9 +443,6 @@ class RELAPparser():
           if j in intDT and int(var['position']) in intDT[j]:
             ff = '{:d}'
             cast = int
-          elif j in floatDT and int(var['position']) in floatDT[j]:
-            ff = '{:7e}'
-            cast = float
           try:
             temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+ff.format(cast(var['value']))+'\n')
           except ValueError:
@@ -482,8 +477,6 @@ class RELAPparser():
           dtype = "float"
           if card in intDT and int(var['position']) in intDT[card]:
             dtype = "integer"
-          elif card in floatDT and int(var['position']) in floatDT[card]:
-            dtype = "float"
 
           if cardLines[card]['numberOfAvailableWords'] >= var['position']:
             totalNumberOfWords = 0

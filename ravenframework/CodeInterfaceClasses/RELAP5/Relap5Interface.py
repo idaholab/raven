@@ -88,14 +88,10 @@ class Relap5(CodeInterfaceBase):
           raise ValueError("can not convert outputDeckNumber to integer!!!! Got "+ child.text)
       elif child.tag == 'datatypes':
         # DATA TYPES
-        floats = child.find("floats")
         integers = child.find("integers")
         if integers is not None:
           c = "," if "," in integers.text else None
           self.datatypes['integers'] = [e.strip() for e in (integers.text.split() if c is None else integers.text.split(c))]
-        if floats is not None:
-          c = "," if "," in floats.text else None
-          self.datatypes['floats'] = [e.strip() for e in (floats.text.split() if c is None else floats.text.split(c))]
 
       elif child.tag == 'operator':
         operator = {}
