@@ -31,7 +31,6 @@ except ImportError as e:
 
 from sys import path
 
-#from AMSC.AMSC_Object import QAMSC_Object
 from .BaseTopologicalView import BaseTopologicalView
 from .TopologyMapView import TopologyMapView
 from .SensitivityView import SensitivityView
@@ -202,6 +201,10 @@ class TopologyWindow(qtw.QMainWindow):
       ## Disable non-message handler output for now.
       # sys.stderr.write('Building AMSC...\r')
       # sys.stderr.flush()
+    try:
+      from AMSC.AMSC_Object import QAMSC_Object
+    except ImportError as e:
+      raise e("Unable to find the AMSC module. Perhaps RAVEN hasn't been built?")
     if self.amsc is None:
       self.amsc = QAMSC_Object(X=X, Y=Y, w=w, names=names, graph=graph,
                               gradient=gradient, knn=knn, beta=beta,

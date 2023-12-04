@@ -27,7 +27,6 @@ from scipy import spatial
 from math import ceil
 
 from .. import Distributions
-#from AMSC.AMSC_Object import AMSC_Object
 from ..utils import randomUtils
 from ..utils import InputData, InputTypes
 from .AdaptiveSampler import AdaptiveSampler
@@ -622,6 +621,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
+    try:
+      from AMSC.AMSC_Object import AMSC_Object
+    except ImportError as e:
+      raise e("Could not find AMSC module. Perhaps RAVEN hasn't been built yet?")
     #  Alternatively, though I don't think we do this yet:
     #  compute the direction normal to the surface, compute the derivative
     #  normal to the surface of the probability, check the points where the

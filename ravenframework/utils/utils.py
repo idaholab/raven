@@ -655,6 +655,8 @@ def find_crow(framework_dir):
     @ In, framework_dir, string, the absolute path of the framework
     @ Out, None
   """
+  # TODO what if raven hasn't been built yet? We should throw a warning but keep going. If the user tries to use crow,
+  # then it will fail. If we can, let's make the resulting error message more informative.
   try:
     import crow_modules.distribution1D
     return
@@ -703,6 +705,7 @@ def findCrowModule(name):
     @ In, name, str, the name of the module
     @ Out, module, instance, the instance of module of "name"
   """
+  # TODO what if raven hasn't been built yet?
   availableCrowModules = ['distribution1D','interpolationND','randomENG']
   # assert
   assert(name in availableCrowModules)
