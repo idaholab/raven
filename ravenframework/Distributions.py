@@ -1986,9 +1986,10 @@ class UniformDiscrete(Distribution):
 
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
-    paramsDict['outcome'] = self.xArray
-    paramsDict['state'] = self.pdfArray
     paramsDict['strategy'] = self.strategy
+    paramsDict['lowerBound'] = self.lowerBound
+    paramsDict['upperBound'] = self.upperBound
+    paramsDict['nPoints'] = self.nPoints
 
     self.tempUniformDiscrete = UniformDiscrete()
     self.tempUniformDiscrete.initializeFromDict(paramsDict)

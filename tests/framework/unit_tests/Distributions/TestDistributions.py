@@ -1256,6 +1256,11 @@ checkAnswer("UniformDiscrete2 rvs4",UniformDiscrete2.rvs(),0.25)
 checkAnswer("UniformDiscrete2 rvs5",UniformDiscrete2.rvs(),0.875)
 checkAnswer("UniformDiscrete2 rvs6",UniformDiscrete2.rvs(),0.25)
 
+UniformDiscreteDict = {'strategy': "withReplacement",'lowerBound': 0, 'upperBound': 1, 'nPoints': 9}
+UniformDiscrete3 = Distributions.factory.returnInstance("UniformDiscrete")
+UniformDiscrete3.initializeFromDict(UniformDiscreteDict)
+checkAnswer("UniformDiscrete3 pdf(0.125)",UniformDiscrete3.pdf(0.125),0.11111111111111111111111)
+
 print(results)
 
 sys.exit(results["fail"])
