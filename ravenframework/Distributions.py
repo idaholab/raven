@@ -1920,11 +1920,15 @@ class UniformDiscrete(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
-    self.strategy = inputDict['strategy']
-    self.categoricalDist = Categorical()
+    self.strategy   = inputDict['strategy']
+    self.lowerBound = inputDict['lowerBound']
+    self.upperBound = inputDict['upperBound']
+    self.nPoints    = inputDict['nPoints']
+    self.initializeDistribution()
+    '''self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(inputDict)
     initialPerm = randomUtils.randomPermutation(inputDict['outcome'].tolist(),self)
-    self.pot = np.asarray(initialPerm)
+    self.pot = np.asarray(initialPerm)'''
 
   def pdf(self,x):
     """
