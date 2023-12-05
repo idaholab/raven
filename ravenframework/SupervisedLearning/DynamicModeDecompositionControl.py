@@ -128,7 +128,7 @@ class DMDC(DMD):
                                                  is not needed.""", default=False))
     importanceEnumType = InputTypes.makeEnumType("importanceType","importanceTypeType",["Cmatrix","gini"])
     specs.addSub(InputData.parameterInputFactory("importanceType", contentType=importanceEnumType,
-                                                 descr=r"""Type of importance formulation. Cmatrix or gini!""", default="gini"))
+                                                 descr=r"""Type of importance formulation. Cmatrix or gini!""", default="Cmatrix"))
     specs.addSub(InputData.parameterInputFactory("singleValuesTruncationTol", contentType=InputTypes.FloatType,
                                                  descr=r"""Truncation threshold to apply to singular values vector""", default=1e-9))
     return specs

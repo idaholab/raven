@@ -213,7 +213,6 @@ class RFE(FeatureSelectionBase):
       self.raiseAWarning("'applyCrossCorrelation' requested but not subGroup node(s) is(are) specified. Ignored!")
       self.applyCrossCorrelation = False
     if self.maxNumberFeatures is not None:
-
       from ...Distributions import factory as distFactory
       self.discrete = distFactory.returnInstance("UniformDiscrete")
       self.discrete.name = "forFeatureSelection"
@@ -223,8 +222,6 @@ class RFE(FeatureSelectionBase):
       self.discrete.strategy = "withReplacement"
       self.discrete.initializeDistribution()
   
-      
-      
       
       self.gaString = f"""
         <GeneticAlgorithm name="ga">
@@ -479,9 +476,10 @@ class RFE(FeatureSelectionBase):
     if self.maxNumberFeatures is not None:
       f = np.asarray(self.parametersToInclude)
       self.raiseAMessage("Starting Features are {}".format( " ".join(f[support_]) ))
-      
+      startingVars = []
       gaStringToReplace = ""
       for fff in  f[support_]:
+        startingVars.append(fff)
         gaStringToReplace += f'        <variable name="{fff}"> <distribution>forFeatureSelection</distribution> <initial>1</initial> </variable>\n'
       
       initGa = self.gaString.replace("*RFE-variablesToReplace*",gaStringToReplace )
@@ -492,6 +490,32 @@ class RFE(FeatureSelectionBase):
       # place the instance in the proper dictionary (self.entities[Type]) under class name as key
       self.opt.readXML(block, {}, globalAttributes={})
       self.opt._generateDistributions({'forFeatureSelection': self.discrete,}, [])
+      # create dataobjects
+      # target evaluation
+      from ... import DataObjects
+      self._solutionExport = DataObjects.factory.returnInstance("PointSet")
+      self._targetEvaluation = DataObjects.factory.returnInstance("PointSet")
+      te = f"""
+      <PointSet name="PointSetExternalModel">
+        <Input>','.join(startingVars)</Input>
+        <Output>score</Output>
+     </PointSet>
+      """
+      self._targetEvaluation._readMoreXML(ET.fromstring(te))
+      
+      se = f"""
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>','.join(startingVars),score,age,batchId,fitness,iteration,accepted,HDSM,conv_HDSM</Output>
+      </PointSet>
+      
+      """
+      self._solutionExport._readMoreXML(ET.fromstring(se))
+      self.opt.assemblerDict['TargetEvaluation'] = [[None, None, self._targetEvaluation]]
+      
+      # solution export
+      self.opt.initialize( solutionExport=self._solutionExport)
+      
       
       
       #featuresForRanking = np.arange(nParams)[support_]
