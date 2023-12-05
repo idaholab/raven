@@ -1982,7 +1982,7 @@ class UniformDiscrete(Distribution):
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(paramsDict)
     rvsValue = self.categoricalDist.rvs()
-    
+
     return rvsValue
 
   def reset(self):
