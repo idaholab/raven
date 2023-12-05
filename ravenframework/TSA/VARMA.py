@@ -124,7 +124,7 @@ class VARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer)
     Q = settings['Q']
     seed = settings['seed']
     if seed is not None:
-      randomUtils.randomSeed(seed, engine=settings['engine'], seedBoth=True)
+      randomUtils.randomSeed(seed, engine=settings['engine'])
 
     model = statsmodels.api.tsa.VARMAX(endog=signal, order=(P, Q))
     results = model.fit(disp=False, maxiter=1000)

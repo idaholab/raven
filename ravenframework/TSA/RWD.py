@@ -110,7 +110,7 @@ class RWD(TimeSeriesCharacterizer):
     #   featureIndex, list of int,  The index that contains differentiable params
     seed = settings['seed']
     if seed is not None:
-      randomUtils.randomSeed(seed, engine=settings['engine'], seedBoth=True)
+      randomUtils.randomSeed(seed, engine=settings['engine'])
 
     params = {}
 
