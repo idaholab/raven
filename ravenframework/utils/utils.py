@@ -713,14 +713,17 @@ def findCrowModule(name):
   availableCrowModules = ['distribution1D','interpolationND','randomENG']
   # assert
   assert(name in availableCrowModules)
-  # find the module
-  try:
-    module = import_module("crow_modules.{}".format(name))
-  except (ImportError, ModuleNotFoundError) as ie:
-    if not str(ie).startswith("No module named"):
-      print('sys.path:', sys.path)
-      raise ie
-    module = import_module("{}".format(name))
+  # Find the module. There are a couple places to look.
+  tryNames = [f'crow_modules.{name}', name]
+  for tryName in tryNames:
+    try:
+      module = import_module(tryName)
+      break  # import was successful
+    except (ImportError, ModuleNotFoundError) as ie:
+      pass
+  else:  # module was not found
+    print(f'WARNING: Crow module {name} was not found! Perhaps RAVEN has not been built?')
+    module = None
   return module
 
 def getPythonCommand():
