@@ -5,19 +5,23 @@
   UnorderedCsv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
   max_time = 300
   rel_err = 0.0001
+  required_libraries = 'AMSC'
  [../]
  [./adaptive_sampler_ext_model]
   type = 'RavenFramework'
   input = 'test_adaptive_sampler.xml'
   csv = 'Adapt/limitSurfaceDump.csv'
+  required_libraries = 'AMSC'
  [../]
  [./adaptive_sampler_no_crossing]
   type = 'RavenFramework'
   input = 'test_limit_surface_no_crossing_transition.xml'
+  required_libraries = 'AMSC'
  [../]
  [./limit_surface_1_dimensional]
   type = 'RavenFramework'
   input = 'test_adaptive_sampler_1_d_limit_surface.xml'
   csv = 'Adapt1D/limitSurfaceDump.csv Adapt1D/sampledPointsDump.csv'
+  required_libraries = 'AMSC'
  [../]
 []
