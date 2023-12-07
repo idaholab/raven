@@ -679,10 +679,14 @@ def find_crow(framework_dir):
         # we add it in pythonpath too
         os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + pmoduleDir
         return
+    # If we get here, we didn't find crow or it hasn't been built yet. Most of RAVEN can run without
+    # crow now, so let's just throw a warning and keep going.
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
-        raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs)+'. Has RAVEN been built?')
+        print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('WARNING')+ ' -> Crow was found in '+crowDir
+              +' but does not seem to be compiled. Some features will not be available.')
+    print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('WARNING')+ ' -> Crow has not been found. It\'s '
+          'location is supposed to be one of '+str(crowDirs)+'. Has RAVEN been built?')
 
 def add_path(absolutepath):
   """
