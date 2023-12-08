@@ -111,11 +111,10 @@ class RFE(FeatureSelectionBase):
         space aimed to remove features that are correlated before the actual RFE search is performed. This approach can stabilize and
         accelerate the process in case of large feature spaces (e.g > 500 features).""",
         default=False))
-    subgroup = InputData.parameterInputFactory('subGroup', contentType=InputTypes.InterpretedListType,
+    spec.addSub(InputData.parameterInputFactory('subGroup', contentType=InputTypes.InterpretedListType,
         descr=r"""Subgroup of output variables on which to perform the search. Multiple nodes of this type"""
         """ can be inputted. The RFE search will be then performed in each ``subgroup'' separately and then the"""
-        """ the union of the different feature sets are used for the final ROM.""")
-    spec.addSub(subgroup)
+        """ the union of the different feature sets are used for the final ROM."""))
     spec.addSub(InputData.parameterInputFactory('applyCrossCorrelation',contentType=InputTypes.BoolType,
         descr=r"""In case of subgroupping, should a cross correleation analysis should be performed cross sub-groups?
         If it is activated, a cross correleation analysis is used to additionally filter the features selected for each
