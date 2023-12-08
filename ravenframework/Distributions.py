@@ -3245,10 +3245,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, list, list of variable coordinate
       @ Out, cdfValue, float, cdf value
     """
-    coordinate = CrowDistribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    cdfValue = self._distribution.cdf(coordinate)
+    cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     return cdfValue
 
   def ppf(self,x):
@@ -3266,10 +3263,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, np.array , coordinates to get the pdf at
       @ Out, pdfValue, np.array, requested pdf
     """
-    coordinate = CrowDistribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    pdfValue = self._distribution.pdf(coordinate)
+    pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -3279,11 +3273,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = CrowDistribution1D.vectord_cxx(len(x))
-    dxs        = CrowDistribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
+    coordinate = numpyToCxxVector(x)
+    dxs = numpyToCxxVector(dx)
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
@@ -3426,10 +3417,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, list, list of variable coordinate
       @ Out, cdfValue, float, cdf value
     """
-    coordinate = CrowDistribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    cdfValue = self._distribution.cdf(coordinate)
+    cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     return cdfValue
 
   def ppf(self,x):
@@ -3447,10 +3435,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, np.array , coordinates to get the pdf at
       @ Out, pdfValue, np.array, requested pdf
     """
-    coordinate = CrowDistribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    pdfValue = self._distribution.pdf(coordinate)
+    pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -3460,11 +3445,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = CrowDistribution1D.vectord_cxx(len(x))
-    dxs        = CrowDistribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
+    coordinate = numpyToCxxVector(x)
+    dxs = numpyToCxxVector(dx)
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
@@ -3661,21 +3643,14 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, None
     """
     self.raiseAMessage('initialize distribution')
-    mu = CrowDistribution1D.vectord_cxx(len(self.mu))
-    for i in range(len(self.mu)):
-      mu[i] = self.mu[i]
-    covariance = CrowDistribution1D.vectord_cxx(len(self.covariance))
-    for i in range(len(self.covariance)):
-      covariance[i] = self.covariance[i]
-    # covariance = self.covariance.reshape((len(self.mu), len(self.mu)))
     if self.method == 'spline':
       if self.covarianceType != 'abs':
         self.raiseAnError(IOError,'covariance with type ' + self.covariance + ' is not implemented for ' + self.method + ' method')
+      mu = numpyToCxxVector(self.mu)
+      covariance = numpyToCxxVector(self.covariance)
       self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu)
-      # self._distribution = DistributionsND.BasicMultivariateNormal(covariance, self.mu)
     elif self.method == 'pca':
-      # self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
-      self._distribution = DistributionsND.MultivariateNormalPCA(self.covariance, self.mu, str(self.covarianceType), self.rank)
+      self._distribution = DistributionsND.MultivariateNormalPCA(self.covariance, self.mu, self.covarianceType, self.rank)
     if self.transformation:
       self.lowerBound = [-sys.float_info.max]*self.rank
       self.upperBound = [sys.float_info.max]*self.rank
@@ -3690,10 +3665,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, cdfValue, float, cdf value
     """
     if self.method == 'spline':
-      coordinate = CrowDistribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      cdfValue = self._distribution.cdf(coordinate)
+      cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     else:
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
     return cdfValue
@@ -3759,7 +3731,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, ppfValue, np.array, ppf values
     """
     if self.method == 'spline':
-      ppfValue = self._distribution.inverseCdf(x,random())
+      ppfValue = self._distribution.inverseCdf(numpyToCxxVector(x), random())
     else:
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
     return ppfValue
@@ -3773,7 +3745,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.transformation:
       pdfValue = self.pdfInTransformedSpace(x)
     else:
-      pdfValue = self._distribution.pdf(x)
+      pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def logPdf(self,x):
@@ -3811,11 +3783,8 @@ class MultivariateNormal(NDimensionalDistributions):
         self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
       integralReturn = self._distribution.cellProbabilityWeight(x, dx)
     elif self.method == 'spline':
-      coordinate = CrowDistribution1D.vectord_cxx(len(x))
-      dxs = CrowDistribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-        dxs[i] = dx[i]
+      coordinate = numpyToCxxVector(x)
+      dxs = numpyToCxxVector(dx)
       integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     else:
       self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
@@ -3914,6 +3883,23 @@ class MultivariateNormal(NDimensionalDistributions):
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
     return rvsValue
+
+def numpyToCxxVector(x):
+  """
+    Utility function for converting a numpy array into a C++ vector swig object.
+
+    @ In, x, np.ndarray, the 1d numpy array to convert
+    @ Out, xCxx, C++ vector, the converted vector
+  """
+  x = np.atleast_1d(x)
+  if x.ndim > 1:
+    raise ValueError('x must be 1d, not {}d'.format(x.ndim))
+
+  xCxx = CrowDistribution1D.vectord_cxx(len(x))
+  for i in range(len(x)):
+    xCxx[i] = x[i]
+
+  return xCxx
 
 DistributionsCollection.addSub(MultivariateNormal.getInputSpecification())
 
