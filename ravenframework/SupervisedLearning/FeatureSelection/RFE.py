@@ -614,7 +614,7 @@ class RFE(FeatureSelectionBase):
       self.opt.assemblerDict['TargetEvaluation'] = [[None, None, self._targetEvaluation]]
       
       # solution export
-      self.opt.initialize( solutionExport=self._solutionExport)
+      #self.opt.initialize( solutionExport=self._solutionExport)
       
       
       
