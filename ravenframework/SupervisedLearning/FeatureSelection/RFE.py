@@ -115,6 +115,8 @@ class RFE(FeatureSelectionBase):
         descr=r"""Subgroup of output variables on which to perform the search. Multiple nodes of this type"""
         """ can be inputted. The RFE search will be then performed in each ``subgroup'' separately and then the"""
         """ the union of the different feature sets are used for the final ROM.""")
+    subgroup = InputData.parameterInputFactory('skipSearchAndTestFeatures', contentType=InputTypes.InterpretedListType,
+        descr=r"""skipSearchAndTestFeatures""")
     spec.addSub(InputData.parameterInputFactory('applyCrossCorrelation',contentType=InputTypes.BoolType,
         descr=r"""In case of subgroupping, should a cross correleation analysis should be performed cross sub-groups?
         If it is activated, a cross correleation analysis is used to additionally filter the features selected for each
@@ -158,6 +160,7 @@ class RFE(FeatureSelectionBase):
     self.globalSupport_ = None
     # feature reanking based on self.paramtersToInclude
     self.ranking_ = None
+    self.skipSearchAndTestFeatures = None
 
   def __getstate__(self):
     """
@@ -187,7 +190,7 @@ class RFE(FeatureSelectionBase):
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['whichSpace','step','nFeaturesToSelect','onlyOutputScore',
                                                             'maxNumberFeatures','applyClusteringFiltering',
-                                                            'applyCrossCorrelation'])
+                                                            'applyCrossCorrelation', ])
     assert(not notFound)
     self.step = nodes['step']
     self.nFeaturesToSelect = nodes['nFeaturesToSelect']
@@ -200,6 +203,8 @@ class RFE(FeatureSelectionBase):
     for child in paramInput.subparts:
       if child.getName() == 'subGroup':
         self.subGroups.append(child.value)
+      if child.getName() == 'skipSearchAndTestFeatures':
+        self.skipSearchAndTestFeatures = child.value
     # checks
     if self.nFeaturesToSelect is not None and self.maxNumberFeatures is not None:
       raise self.raiseAnError(ValueError, '"nFeaturesToSelect" and "maxNumberFeatures" have been both set. They are mutually exclusive!' )
@@ -294,6 +299,41 @@ class RFE(FeatureSelectionBase):
     support_[np.asarray(selectedFeatures)] = True
     return support_, len(selectedFeatures)
 
+  def __skipSearchAndTestFeatures(self, X, y, mask, support_):
+    """
+      skipSearchAndTestFeatures
+      @ In, X, numpy.array, feature data (nsamples,nfeatures) or (nsamples, nTimeSteps, nfeatures)
+      @ In, y, numpy.array, target data (nsamples,nTargets) or (nsamples, nTimeSteps, nTargets)
+      @ In, mask, np.array, indeces of features to search within (parameters to include None if search is whitin targets)
+      @ In, support_, np.array, boolean array of selected features
+      @ Out, support_, np.array, boolean array of selected features
+      @ Out, len(selectedFeatures), int, reduced number of features
+    """
+    if self.whichSpace == 'feature':
+      space = X[:, mask] if len(X.shape) < 3 else np.average(X[:, :,mask],axis=0)
+    else:
+      space = y[:, mask] if len(y.shape) < 3 else  np.average(y[:, :,mask],axis=0)
+
+    # compute spearman
+    # we fill nan with 1.0 (so the distance for such variables == 0 (will be discarded)
+    corr = np.nan_to_num(spearmanr(space,axis=0).correlation,nan=1.0)
+    corr = (corr + corr.T) / 2.
+    np.fill_diagonal(corr, 1)
+    # We convert the correlation matrix to a distance matrix before performing
+    # hierarchical clustering using Ward's linkage.
+    distanceMatrix = 1. - np.abs(corr)
+    distLinkage = hierarchy.ward(squareform(distanceMatrix))
+    t = float('{:.3e}'.format(1.e-6*np.max(distLinkage)))
+    self.raiseAMessage(f"Applying distance tollerance of <{t}>")
+    clusterIds = hierarchy.fcluster(distLinkage, t, criterion="distance")
+    clusterIdToFeatureIds = defaultdict(list)
+    for idx, clusterId in enumerate(clusterIds):
+      clusterIdToFeatureIds[clusterId].append(idx)
+    selectedFeatures = [v[0] for v in clusterIdToFeatureIds.values()]
+    support_[:] = False
+    support_[np.asarray(selectedFeatures)] = True
+    return support_, len(selectedFeatures)
+
   def _train(self, X, y, featuresIds, targetsIds, maskF = None, maskT = None):
     """
       Train the RFE model and perform search of best features
@@ -349,6 +389,68 @@ class RFE(FeatureSelectionBase):
 
     # get estimator parameter
     originalParams = self.estimator.paramInput
+    
+    #### DEBUG
+    
+    if self.skipSearchAndTestFeatures is not None:
+      def updateBestScoreToRemove(it, k, score, combo, survivors):
+        """
+          Update score and combo containers
+          @ In, it, int, iteration number
+          @ In, k, int, number of features
+          @ In, score, float, the score for this combination
+          @ In, combo, list(int), list of integers (combinations)
+          @ In, survivors, list(str), the list of parameters belonging to this iteration (it)
+          @ Out, None
+        """
+        if k in bestForNumberOfFeatures.keys():
+          if bestForNumberOfFeatures[k][0] > score:
+            bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
+        else:
+          bestForNumberOfFeatures[k] = [score,f[np.asarray(combo)]]
+        scoreCollection.append(score)
+        featureList.append(combo)
+        self.raiseAMessage("Iter. #: {}. Score: {:.6e}. Variables (# {}):  {}".format(it,score,len(survivors)," ".join(survivors)))
+      support_[:] = False
+      test = [False] * len(self.skipSearchAndTestFeatures)
+      for i, p in enumerate(self.parametersToInclude):
+        if p in self.skipSearchAndTestFeatures:
+          support_[i] = True
+          test[self.skipSearchAndTestFeatures.index(p)] = True
+      if np.sum(support_) != len(self.skipSearchAndTestFeatures):
+        self.raiseAnError(IOError, f"not found parameters {str(np.asarray(self.skipSearchAndTestFeatures)[~np.asarray(test)])}")
+      
+      initialNumbOfFeatures = int(np.sum(support_))
+      featuresForRanking = np.arange(nParams)[support_]
+      originalSupport = copy.copy(support_)
+      scoreCollection = []
+      featureList = []
+      bestForNumberOfFeatures = {}
+      supportData = {'featuresForRanking':featuresForRanking,'mask':mask,'nFeatures':nFeatures,
+                       'nTargets':nTargets,'nParams':nParams,'targetsIds':targetsIds,
+                       'originalParams':originalParams,'supportOfSupport_':supportOfSupport_,
+                       'originalSupport':originalSupport, 'parametersToInclude':self.parametersToInclude,
+                       'whichSpace':self.whichSpace,'onlyOutputScore':self.onlyOutputScore}
+      
+      #self._scoring.original_function(X, y, featuresForRanking, supportData)
+      score, survivors, _ = self._scoring.original_function(copy.deepcopy(self.estimator), X, y, featuresForRanking,supportData)      
+      updateBestScoreToRemove(0, len(self.skipSearchAndTestFeatures), score, featuresForRanking, survivors)
+      # Set final attributes
+      supportIndex = 0
+      for idx in range(len(supportOfSupport_)):
+        if mask[idx]:
+          supportOfSupport_[idx] = support_[supportIndex]
+          supportIndex = supportIndex + 1
+      if self.whichSpace == 'feature':
+        features = np.arange(nFeatures)[supportOfSupport_]
+      else:
+        targets = np.arange(nTargets)[supportOfSupport_]
+  
+      self.nFeatures_ = support_.sum()
+      self.support_ = support_
+      self.globalSupport_ = supportOfSupport_
+  
+      return features if self.whichSpace == 'feature' else targets, supportOfSupport_
 
     # clustering appraoch here
     if self.applyClusteringFiltering:
