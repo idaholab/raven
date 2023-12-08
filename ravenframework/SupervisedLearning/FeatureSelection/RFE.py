@@ -393,6 +393,7 @@ class RFE(FeatureSelectionBase):
     #### DEBUG
     
     if self.skipSearchAndTestFeatures is not None:
+      f = np.asarray(self.parametersToInclude)
       def updateBestScoreToRemove(it, k, score, combo, survivors):
         """
           Update score and combo containers
