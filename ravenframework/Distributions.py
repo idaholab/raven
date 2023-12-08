@@ -486,7 +486,8 @@ class BoostDistribution(Distribution):
       @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    rvsValue = self.ppf(random(dims=size))
+    size = 1 or size
+    rvsValue = self.ppf(random(size))
     return rvsValue
 
   def selectedRvs(self, discardedElems):
