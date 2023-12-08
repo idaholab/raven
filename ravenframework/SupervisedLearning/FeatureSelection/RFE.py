@@ -115,8 +115,7 @@ class RFE(FeatureSelectionBase):
         descr=r"""Subgroup of output variables on which to perform the search. Multiple nodes of this type"""
         """ can be inputted. The RFE search will be then performed in each ``subgroup'' separately and then the"""
         """ the union of the different feature sets are used for the final ROM.""")
-    subgroup = InputData.parameterInputFactory('skipSearchAndTestFeatures', contentType=InputTypes.InterpretedListType,
-        descr=r"""skipSearchAndTestFeatures""")
+    spec.addSub(subgroup)
     spec.addSub(InputData.parameterInputFactory('applyCrossCorrelation',contentType=InputTypes.BoolType,
         descr=r"""In case of subgroupping, should a cross correleation analysis should be performed cross sub-groups?
         If it is activated, a cross correleation analysis is used to additionally filter the features selected for each
@@ -127,9 +126,8 @@ class RFE(FeatureSelectionBase):
         of features to remove at each iteration. If within (0.0, 1.0), then step
         corresponds to the percentage (rounded down) of features to remove at
         each iteration.""", default=1))
-
-    spec.addSub(subgroup)
-
+    spec.addSub(InputData.parameterInputFactory('skipSearchAndTestFeatures', contentType=InputTypes.InterpretedListType,
+        descr=r"""skipSearchAndTestFeatures"""))
     return spec
 
   def __init__(self):
