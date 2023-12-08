@@ -3673,8 +3673,8 @@ class MultivariateNormal(NDimensionalDistributions):
       self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu)
       # self._distribution = DistributionsND.BasicMultivariateNormal(covariance, self.mu)
     elif self.method == 'pca':
-      self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
-      # self._distribution = DistributionsND.BasicMultivariateNormal(covariance, self.mu, str(self.covarianceType), self.rank)
+      # self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+      self._distribution = DistributionsND.MultivariateNormalPCA(self.covariance, self.mu, str(self.covarianceType), self.rank)
     if self.transformation:
       self.lowerBound = [-sys.float_info.max]*self.rank
       self.upperBound = [sys.float_info.max]*self.rank
@@ -3705,19 +3705,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, L, np.array, the transformation matrix
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = CrowDistribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-          matrixDim = self._distribution.getTransformationMatrixDimensions(coordinateIndex)
-          transformation = self._distribution.getTransformationMatrix(coordinateIndex)
-      else:
-        matrixDim = self._distribution.getTransformationMatrixDimensions()
-        transformation = self._distribution.getTransformationMatrix()
-      row = matrixDim[0]
-      column = matrixDim[1]
-      # convert 1D vector to 2D array
-      L = np.atleast_1d(transformation).reshape(row,column)
+      L = self._distribution.getTransformationMatrix(index)
     else:
       self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
     return L
@@ -3730,19 +3718,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, L, np.array, the inverse transformation matrix
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = CrowDistribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-          matrixDim = self._distribution.getInverseTransformationMatrixDimensions(coordinateIndex)
-          inverseTransformation = self._distribution.getInverseTransformationMatrix(coordinateIndex)
-      else:
-        matrixDim = self._distribution.getInverseTransformationMatrixDimensions()
-        inverseTransformation = self._distribution.getInverseTransformationMatrix()
-      row = matrixDim[0]
-      column = matrixDim[1]
-      # convert 1D vector to 2D array
-      L = np.atleast_1d(inverseTransformation).reshape(row,column)
+      L = self._distribution.getInverseTransformationMatrix(index)
     else:
       self.raiseAnError(NotImplementedError,' inverse transformationMatrix is not yet implemented for ' + self.method + ' method')
     return L
@@ -3755,14 +3731,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, singularValues, np.array, the singular values vector
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = CrowDistribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-        singularValues = self._distribution.getSingularValues(coordinateIndex)
-      else:
-        singularValues = self._distribution.getSingularValues()
-      singularValues = np.atleast_1d(singularValues).tolist()
+      singularValues = self._distribution.getSingularValues(index)
     else:
       self.raiseAnError(NotImplementedError,' returnSingularValues is not available for ' + self.method + ' method')
     return singularValues
@@ -3776,41 +3745,11 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.method == 'pca':
       if len(x) > self.rank:
-        self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
-      coordinate = CrowDistribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      if index is not None:
-        coordinateIndex = CrowDistribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate,coordinateIndex)
-      else:
-        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
-      values = np.atleast_1d(originalCoordinate).tolist()
+        self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is larger than the rank defined in <Distributions>')
+      values = self._distribution.coordinateInverseTransformed(x)
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return values
-
-  def coordinateInTransformedSpace(self):
-    """
-      Return the coordinate in the transformed space
-
-      This function will generate the coordinate for r (r=rank) random
-      variables, each of them are drew from single normal distribution.
-      This needs a random number between 0 and 1 to get the the random variable.
-      This will transform the correlated variables into uncorrelated variables,
-      and using this function to draw the samples for the uncorrelated
-      variables, and later transform the samples to correlated variables.
-      This uses self.rank as the effective dimension of the transformed space
-      @ In, None
-      @ Out, coordinateInTransformedSpace, np.array, coordinates
-    """
-    if self.method == 'pca':
-      coordinateInTransformedSpace = CrowDistribution1D.vectord_cxx(scipy.stats.norm.ppf(random(self.rank)))
-    else:
-      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
-    return coordinateInTransformedSpace
 
   def ppf(self,x):
     """
@@ -3833,10 +3772,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.transformation:
       pdfValue = self.pdfInTransformedSpace(x)
     else:
-      coordinate = CrowDistribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      pdfValue = self._distribution.pdf(coordinate)
+      pdfValue = self._distribution.pdf(x)
     return pdfValue
 
   def logPdf(self,x):
@@ -3855,10 +3791,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, pdfInTransformedSpace, np.array, pdf values in the transformed space
     """
     if self.method == 'pca':
-      coordinate = CrowDistribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      pdfInTransformedSpace = self._distribution.pdfInTransformedSpace(coordinate)
+      pdfInTransformedSpace = self._distribution.pdfInTransformedSpace(x)
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return pdfInTransformedSpace
@@ -3870,18 +3803,18 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = CrowDistribution1D.vectord_cxx(len(x))
-    dxs        = CrowDistribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
     if self.method == 'pca':
       if self.transformation:
         self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
       else:
         self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
-      integralReturn = self._distribution.cellProbabilityWeight(coordinate,dxs)
+      integralReturn = self._distribution.cellProbabilityWeight(x, dx)
     elif self.method == 'spline':
+      coordinate = CrowDistribution1D.vectord_cxx(len(x))
+      dxs = CrowDistribution1D.vectord_cxx(len(x))
+      for i in range(len(x)):
+        coordinate[i] = x[i]
+        dxs[i] = dx[i]
       integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     else:
       self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
@@ -3910,7 +3843,7 @@ class MultivariateNormal(NDimensionalDistributions):
       if self.method == 'pca':
         inverseMarginal = self._distribution.inverseMarginalForPCA(min(1.-sys.float_info.epsilon,
                                                                    max(sys.float_info.epsilon,
-                                                                   x)))
+                                                                   x)))  # TODO can probably remove min/max and just use x
       elif self.method == 'spline':
         inverseMarginal=  self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
                                                              max(sys.float_info.epsilon,x)),
@@ -3970,12 +3903,13 @@ class MultivariateNormal(NDimensionalDistributions):
     # if no transformation, then return the coordinate for the original input parameters
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
-      rands = np.atleast_1d(scipy.stats.norm.ppf(random(self.rank)))
+      rands = random(self._distribution.returnDimensionality())
+      # use marginal CDF (unit normal) to
+      rands = self._distribution.inverseMarginalForPCA(rands)
       if self.transformation:
-        rvsValue = CrowDistribution1D.vectord_cxx(rands)
+        rvsValue = rands
       else:
-        coordinate = CrowDistribution1D.vectord_cxx(rands)
-        rvsValue = self._distribution.coordinateInverseTransformed(coordinate)
+        rvsValue = self._distribution.coordinateInverseTransformed(rands)
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
     return rvsValue

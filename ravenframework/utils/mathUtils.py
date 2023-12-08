@@ -619,6 +619,20 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, co
 
   return U, s, V
 
+def correctSVDSigns(u, v):
+  """
+    Returns u and v with positive signs for the largest entry in each column.
+    @ In, u, numpy.ndarray, the left-singular vectors matrix
+    @ In, v, numpy.ndarray, the right-singular vectors matrix
+    @ Out, (u, v), tuple of numpy.ndarray, the corrected left-singular vectors matrix and the
+                   corrected right-singular vectors matrix
+  """
+  max_abs_cols = np.argmax(np.abs(u), axis=0)
+  signs = np.sign(u[max_abs_cols, range(u.shape[1])])
+  u *= signs
+  v *= signs
+  return u, v
+
 def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exactModes=True):
   """
     Compute the eigenvalues and eigenvectors of the high-dim operator
