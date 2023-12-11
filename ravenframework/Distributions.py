@@ -486,7 +486,7 @@ class BoostDistribution(Distribution):
       @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    size = 1 or size
+    size = size or 1
     rvsValue = self.ppf(random(size))
     return rvsValue
 
