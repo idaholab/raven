@@ -3744,6 +3744,8 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.transformation:
       pdfValue = self.pdfInTransformedSpace(x)
+    elif self.method == 'pca':
+      pdfValue = self._distribution.pdf(x)
     else:
       pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
@@ -3873,7 +3875,7 @@ class MultivariateNormal(NDimensionalDistributions):
     # if no transformation, then return the coordinate for the original input parameters
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
-      rands = random(self._distribution.returnDimensionality())
+      rands = random(self.rank)
       # use marginal CDF (unit normal) to
       rands = self._distribution.inverseMarginalForPCA(rands)
       if self.transformation:
