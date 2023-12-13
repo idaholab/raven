@@ -205,6 +205,11 @@
       rel_err = 1e-2
       zero_threshold = 1e-3
     [../]
+    [./csv]
+      type = OrderedCSV
+      output = 'MarkovAR/samples_0.csv MarkovAR/samples_1.csv'
+      rel_err = 1e-2
+    [../]
   [../]
 
   [./VARMA]
