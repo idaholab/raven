@@ -226,15 +226,11 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
       @ Out, states, np.array(int), Markov states of the synthetic signal
     """
     order = settings['order']
+    engine = settings['engine']
     transition = params['transitionMatrix']
     consts = params['const']
     ar = params['ar']
     noiseScale = np.sqrt(params['sigma2'])
-
-    engine = settings['engine']
-    rngSeed = settings.get('seed', None)
-    if rngSeed is not None:
-      randomUtils.randomSeed(rngSeed, engine=engine)
 
     # Burn-in when generating with a MSAR model accomplished two things. (1) It gives the Markov model
     # time to reach a high-probability state, and (2) it helps separate the AR signal from its initial
@@ -253,12 +249,12 @@ class MarkovAR(TimeSeriesGenerator, TimeSeriesTransformer):
     # for the transition probabilities of each state (cumulative sum of transition probabilities) and
     # using numpy's searchsorted function to map a uniform random number from U(0, 1) to a state number.
     transCDFs = np.cumsum(transition, axis=1)
-    rands = engine.uniform(size=size+burn-1)
+    rands = randomUtils.random(size+burn-1, engine=engine)
     for t in range(1, size + burn):
       states[t] = np.searchsorted(transCDFs[states[t - 1]], rands[t - 1])
 
     # Start building up the synthetic signal, starting with the noise
-    synth = engine.normal(loc=0., scale=noiseScale[states], size=size+burn)
+    synth = randomUtils.randomNormal(len(states)) * noiseScale[states]
 
     # Build up the AR terms one time step at a time
     for t in range(order, size + burn):
