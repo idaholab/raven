@@ -92,25 +92,38 @@ class MultivariateNormalPCA(NDDistribution):
 
     self.lowerBounds, self.upperBounds = self._calculateDefaultBounds(self._mu, self._covariance)
 
-    # Use singular value decomposition to compute the transformation matrix
+    # The singular value decomposition (SVD) is defined as A = U S V^T, where A is the covariance
+    # matrix, U and V are orthogonal matrices, and S is a diagonal matrix of singular values.
+    # A transformation matrix for performing PCA can be calculated from the SVD as
+    # T = U S^(1/2) and the inverse transformation matrix as T_inv = S^(-1/2) V.T
+
+    # We begin by calculating the SVD of the covariance matrix, truncating to the desired rank
     U, s, V = mathUtils.computeTruncatedSingularValueDecomposition(covSymmetric, self._rank)
+    # # By forcing the largest absolute value of each vector to be positive, we can ensure a consistent
+    # # sign convention for the transformation and inverse transformation matrices.
     U, V = mathUtils.correctSVDSigns(U, V)
 
-    # Compute S^(1/2) and S^(-1/2) matrices, allowing for zero singular values
+    # Compute S^(1/2) and S^(-1/2) matrices, allowing for zero singular values. Note however that any
+    # zero values have likely been truncated away in the SVD calculation above.
     SqrtS = np.diag(s ** 0.5)
     sZero = s == 0
     sRecipSqrt = 1 / np.sqrt(s)
     sRecipSqrt[sZero] = 0
     SqrtSRecip = np.diag(sRecipSqrt)
 
+    # Save the transformation and inverse transformation matrices
     self._colorize = U @ SqrtS  # forward transform
     self._whiten = SqrtSRecip @ U.T  # inverse transform
     self._singularValues = s
 
-    # scipy distribution objects for calculating pdf and cdf
-    # FIXME this doesn't seem to handle singular matrices correctly
-    self._unitMVNorm = scipy.stats.multivariate_normal(np.zeros(self._rank), np.eye(self._rank))
-    self._marginal = scipy.stats.norm(0, 1)  # unit normal distribution is the marginal
+    # Using a frozen multivariate normal distribution object for computing the pdf is about 4x faster than using
+    # the pdf function from scipy.stats.multivariate_normal directly and passing in the covariance matrix and mean
+    try:
+      self._distribution = scipy.stats.multivariate_normal(mean=self._mu, cov=self._covariance, allow_singular=True)
+      self._needsTransform = False
+    except ValueError:
+      self._distribution = scipy.stats.multivariate_normal(mean=np.zeros(self._rank), cov=np.eye(self._rank))
+      self._needsTransform = True
 
   def _calculateDefaultBounds(self, mu, cov):
     """
@@ -135,9 +148,10 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, x, np.ndarray, the coordinates where the pdf needs to be evaluated
       @ Out, pdf, float, the pdf value
     """
-    print('pdf')
-    xTrans = self.coordinateTransformed(x)
-    pdf = self.pdfInTransformedSpace(xTrans)
+    if self._needsTransform:
+      pdf = self._distribution.pdf(self.coordinateTransformed(x))
+    else:
+      pdf = self._distribution.pdf(x)
     return pdf
 
   def pdfInTransformedSpace(self, x):
@@ -147,8 +161,7 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, x, np.ndarray, the coordinates where the pdf needs to be evaluated
       @ Out, pdf, float, the pdf value
     """
-    print('pdfInTransformedSpace')
-    pdf = self._unitMVNorm.pdf(x)
+    pdf = scipy.stats.norm.pdf(x).prod()
     return pdf
 
   def cdf(self, x):
@@ -158,9 +171,10 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, x, np.ndarray, the coordinates where the cdf needs to be evaluated
       @ Out, cdf, float, the cdf value
     """
-    print('cdf')
-    xTrans = self.coordinateTransformed(x)
-    cdf = self._unitMVNorm.cdf(xTrans)
+    if self._needsTransform:
+      cdf = self._distribution.cdf(self.coordinateTransformed(x))
+    else:
+      cdf = self._distribution.cdf(x)
     return cdf
 
   def getTransformationMatrix(self, coordinateIndex=None):
@@ -200,11 +214,11 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, coordinate, np.ndarray, the coordinates in the original space
       @ Out, coordTrans, np.ndarray, the coordinates in the white PCA space
     """
-    print('coordinateTransformed')
+    transMatrix = self.getInverseTransformationMatrix()
     if self._covarianceType == 'abs':
-      coordTrans = (coordinate - self._mu) @ self._whiten.T
+      coordTrans = (coordinate - self._mu) @ transMatrix.T
     else:
-      coordTrans = (coordinate / self._mu - 1) @ self._whiten.T
+      coordTrans = (coordinate / self._mu - 1) @ transMatrix.T
     return coordTrans
 
   def coordinateInverseTransformed(self, coordinate, coordinateIndex=None):
@@ -215,15 +229,11 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, coordinateIndex, list, optional, the coordinate index
       @ Out, coordInvTrans, np.ndarray, the coordinates in the colored original space
     """
-    print('coordinateInverseTransformed')
+    transMatrix = self.getTransformationMatrix(coordinateIndex)
     if self._covarianceType == 'abs':
-      coordInvTrans = coordinate @ self._colorize.T + self._mu
+      coordInvTrans = coordinate @ transMatrix.T + self._mu.T
     else:
-      coordInvTrans = (coordinate @ self._colorize.T + 1) * self._mu
-
-    if coordinateIndex is not None:
-      coordInvTrans = coordInvTrans[coordinateIndex]
-
+      coordInvTrans = (coordinate @ transMatrix.T + 1) * self._mu
     return coordInvTrans
 
   def cellProbabilityWeight(self, center, dxs):
@@ -234,11 +244,10 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, dxs, np.ndarray, the widths of the cell in each dimension
       @ Out, probability, float, the probability weight of the cell
     """
-    print('cellProbabilityWeight')
     dxMatrix = 0.5 * np.diag(dxs)
     coordinates = np.tile(center, (len(center), 1))
-    upperCdf = self._marginal.cdf(coordinates + dxMatrix)
-    lowerCdf = self._marginal.cdf(coordinates - dxMatrix)
+    upperCdf = scipy.stats.norm.cdf(coordinates + dxMatrix)
+    lowerCdf = scipy.stats.norm.cdf(coordinates - dxMatrix)
     probability = np.prod(np.diagonal(upperCdf - lowerCdf))
     return probability
 
@@ -249,8 +258,7 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, x, float, the coordinate
       @ Out, cdf, float, the marginal cdf value
     """
-    print('marginalCdfForPCA')
-    cdf = self._marginal.cdf(x)
+    cdf = scipy.stats.norm.cdf(x)
     return cdf
 
   def inverseMarginalForPCA(self, x):
@@ -260,6 +268,5 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, x, float, the coordinate (between 0 and 1)
       @ Out, inverseCdf, float, the inverse marginal cdf value
     """
-    print('inverseMarginalForPCA')
-    inverseCdf = self._marginal.ppf(x)
+    inverseCdf = scipy.stats.norm.ppf(x)
     return inverseCdf

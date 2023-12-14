@@ -599,7 +599,7 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank, full=False, co
     @ Out, (U, s, V), tuple of numpy.ndarray, (left-singular vectors matrix, singular values, right-singular vectors matrix)
   """
   try:
-    U, s, V = np.linalg.svd(X, full_matrices=full)
+    U, s, V = np.linalg.svd(X)
   except np.linalg.LinAlgError as ae:
     raise np.linalg.LinAlgError(str(ae))
   V = V.conj().T if conj else V.T

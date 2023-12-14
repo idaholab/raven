@@ -3719,7 +3719,7 @@ class MultivariateNormal(NDimensionalDistributions):
     if self.method == 'pca':
       if len(x) > self.rank:
         self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is larger than the rank defined in <Distributions>')
-      values = self._distribution.coordinateInverseTransformed(x)
+      values = self._distribution.coordinateInverseTransformed(x, index)
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return values
