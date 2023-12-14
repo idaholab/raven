@@ -86,7 +86,6 @@ public:
   int  getSingularValuesDimension();
   int  getSingularValuesDimension(std::vector<int> index);
 
-  std::vector<double> coordinateInTransformedSpace(int rank);
   std::vector<double> coordinateInverseTransformed(std::vector<double> &coordinate);
   std::vector<double> coordinateInverseTransformed(std::vector<double> &coordinate,std::vector<int> index);
 

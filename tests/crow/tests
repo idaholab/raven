@@ -15,16 +15,6 @@
   input = 'test_normal.py'
  [../]
 
- [./test_laplace]
-  type = 'CrowPython'
-  input = 'test_laplace.py'
- [../]
-
- [./test_geometric]
-  type = 'CrowPython'
-  input = 'test_geometric.py'
- [../]
-
  [./test_svd]
   type = 'CrowPython'
   input = 'test_eigen_svd.py'

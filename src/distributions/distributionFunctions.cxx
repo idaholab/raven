@@ -40,7 +40,6 @@
 #include <ctime> // for rand() and srand()
 #include <cstdio>
 
-#include "distribution_1D.h"
 #include "distributionFunctions.h"
 
 #include <boost/numeric/ublas/matrix.hpp>
