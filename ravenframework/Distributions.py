@@ -36,9 +36,6 @@ from .utils.randomUtils import random
 from .utils import randomUtils
 CrowDistribution1D = utils.findCrowModule('distribution1D')
 from . import Distributions1D
-# from . import NDSpline
-# from . import NDInverseWeight
-# from . import DistributionsND
 from .utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -3798,6 +3795,14 @@ class MultivariateNormal(NDimensionalDistributions):
   def coordinateInTransformedSpace(self):
     """
       Return the coordinate in the transformed space
+
+      This function will generate the coordinate for r (r=rank) random
+      variables, each of them are drew from single normal distribution.
+      This needs a random number between 0 and 1 to get the the random variable.
+      This will transform the correlated variables into uncorrelated variables,
+      and using this function to draw the samples for the uncorrelated
+      variables, and later transform the samples to correlated variables.
+      This uses self.rank as the effective dimension of the transformed space
       @ In, None
       @ Out, coordinateInTransformedSpace, np.array, coordinates
     """
