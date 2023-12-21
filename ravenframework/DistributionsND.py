@@ -112,6 +112,33 @@ class MultivariateNormalPCA(NDDistribution):
     # # sign convention for the transformation and inverse transformation matrices.
     U, V = mathUtils.correctSVDSigns(U, V)
 
+    # Build a Crow distribution object to check the SVD signs
+    #######
+    # TODO remove this!
+    mu_cxx = CrowDistribution1D.vectord_cxx(self._mu)
+    cov_cxx = CrowDistribution1D.vectord_cxx(self._covariance.ravel())
+    crow_dist = CrowDistribution1D.BasicMultivariateNormal(cov_cxx, mu_cxx, self._covarianceType, self._rank)
+    crowU = np.array(crow_dist.getLeftSingularVectors()).reshape((self._rank, self.dimensionality))
+    # get sign of largest absolute value in each column to determine vector sign
+    max_abs_cols = np.argmax(np.abs(U), axis=0)
+    signsU = np.sign(U[max_abs_cols, range(U.shape[1])])
+    max_abs_cols = np.argmax(np.abs(crowU), axis=0)
+    signsUCrow = np.sign(crowU[max_abs_cols, range(crowU.shape[1])])
+    signChange = signsU * signsUCrow  # 1 if signs are the same, -1 if different
+    # If the signs are different, we need to flip the sign of the transformation and inverse transformation matrices
+    U = signChange * U
+    V = signChange * V
+    if not np.allclose(U.ravel(), crowU.ravel()):
+      print('Mine:')
+      print(U)
+      print('Crow:')
+      print(crowU)
+      print('Dimensionality:', self.dimensionality)
+      print('Rank:', self._rank)
+      print('Sign Change:', signChange)
+      raise RuntimeError("The whitening matrix calculated by the Crow distribution is not the same as the one calculated by the RAVEN distribution!")
+    #######
+
     # Compute S^(1/2) and S^(-1/2) matrices, allowing for zero singular values. Note however that any
     # zero values have likely been truncated away in the SVD calculation above.
     SqrtS = np.diag(s ** 0.5)
@@ -124,16 +151,6 @@ class MultivariateNormalPCA(NDDistribution):
     self._colorize = U @ SqrtS  # forward transform
     self._whiten = SqrtSRecip @ U.T  # inverse transform
     self._singularValues = s
-
-    # Build a Crow distribution object to check the SVD signs
-    # TODO remove this!
-    mu_cxx = CrowDistribution1D.vectord_cxx(self._mu)
-    cov_cxx = CrowDistribution1D.vectord_cxx(self._covariance.ravel())
-    crow_dist = CrowDistribution1D.BasicMultivariateNormal(cov_cxx, mu_cxx, self._covarianceType, self._rank)
-    crowColorize = np.array(crow_dist.getTransformationMatrix()).reshape((self.dimensionality, self._rank))
-    crowWhiten = np.array(crow_dist.getInverseTransformationMatrix()).reshape((self._rank, self.dimensionality))
-    self._colorize = crowColorize
-    self._whiten = crowWhiten
 
     # Using a frozen multivariate normal distribution object for computing the pdf is about 4x faster than using
     # the pdf function from scipy.stats.multivariate_normal directly and passing in the covariance matrix and mean
