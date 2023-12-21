@@ -19,8 +19,17 @@ Created on Nov 22, 2023
 import numpy as np
 import scipy.stats
 import scipy.linalg
-
 from .utils import mathUtils
+
+import os,sys
+ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
+frameworkDir = os.path.join(ravenDir, 'framework')
+sys.path.append(ravenDir)
+from ravenframework.utils import utils
+utils.find_crow(frameworkDir)
+from ravenframework.CustomDrivers.DriverUtils import setupCpp
+setupCpp()
+CrowDistribution1D = utils.findCrowModule('distribution1D')
 
 
 class NDDistribution:
@@ -116,6 +125,16 @@ class MultivariateNormalPCA(NDDistribution):
     self._whiten = SqrtSRecip @ U.T  # inverse transform
     self._singularValues = s
 
+    # Build a Crow distribution object to check the SVD signs
+    # TODO remove this!
+    mu_cxx = CrowDistribution1D.vectord_cxx(self._mu)
+    cov_cxx = CrowDistribution1D.vectord_cxx(self._covariance.ravel())
+    crow_dist = CrowDistribution1D.BasicMultivariateNormal(cov_cxx, mu_cxx, self._covarianceType, self._rank)
+    crowColorize = np.array(crow_dist.getTransformationMatrix()).reshape((self.dimensionality, self._rank))
+    crowWhiten = np.array(crow_dist.getInverseTransformationMatrix()).reshape((self._rank, self.dimensionality))
+    self._colorize = crowColorize
+    self._whiten = crowWhiten
+
     # Using a frozen multivariate normal distribution object for computing the pdf is about 4x faster than using
     # the pdf function from scipy.stats.multivariate_normal directly and passing in the covariance matrix and mean
     try:
@@ -194,7 +213,7 @@ class MultivariateNormalPCA(NDDistribution):
       @ In, coordinateIndex, list, optional, the coordinate index
       @ Out, invTransMatrix, np.ndarray, the inverse transformation matrix
     """
-    invTransMatrix = self._whiten[coordinateIndex, :] if coordinateIndex else self._whiten
+    invTransMatrix = self._whiten[:, coordinateIndex] if coordinateIndex else self._whiten
     return invTransMatrix
 
   def getSingularValues(self, coordinateIndex=None):
