@@ -118,7 +118,7 @@ class MultivariateNormalPCA(NDDistribution):
     mu_cxx = CrowDistribution1D.vectord_cxx(self._mu)
     cov_cxx = CrowDistribution1D.vectord_cxx(self._covariance.ravel())
     crow_dist = CrowDistribution1D.BasicMultivariateNormal(cov_cxx, mu_cxx, self._covarianceType, self._rank)
-    crowU = np.array(crow_dist.getLeftSingularVectors()).reshape((self._rank, self.dimensionality))
+    crowU = np.array(crow_dist.getLeftSingularVectors()).reshape((self.dimensionality, self._rank))
     # get sign of largest absolute value in each column to determine vector sign
     max_abs_cols = np.argmax(np.abs(U), axis=0)
     signsU = np.sign(U[max_abs_cols, range(U.shape[1])])
