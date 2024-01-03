@@ -107,7 +107,11 @@ function install_libraries()
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`echo conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD $SET_PYTHON`
+        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset mamba`" $SET_PYTHON"
+        if [  "$MAMBA_SKIP" == "true" ]
+        then
+            PRECOMMAND=${PRECOMMAND/mamba/}
+        fi
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: ${PRECOMMAND}; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -178,7 +182,11 @@ function create_libraries()
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD $SET_PYTHON`
+        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
+        if [  "$MAMBA_SKIP" == "true" ]
+        then
+            PRECOMMAND=${PRECOMMAND/mamba/}
+        fi
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: $PRECOMMAND; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -334,12 +342,14 @@ fi
 PROXY_COMM="" # proxy is none
 USE_MAMBA=TRUE # Use Mamba for installation
 
+#Note this complexity is because on one computer in 2023, mamba failed to
+# install correctly when mamba was in the base conda install.
 if command -v mamba;
 then
     #This is used to skip installing mamba
-    MAMBA_ECE_ADD=""
+    MAMBA_SKIP="true"
 else
-    MAMBA_ECE_ADD="mamba"
+    MAMBA_SKIP="false"
 fi
 
 # parse command-line arguments
