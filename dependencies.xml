@@ -78,12 +78,14 @@ Note all install methods after "main" take
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
     <pyomo optional='True'>6.4</pyomo>
-    <fmt source="mamba">10.1</fmt>
     <glpk skip_check='True' optional='True'/>
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools/>
+    <!-- source="mamba" are the ones installed when mamba is installed -->
+    <fmt source="mamba" os='windows'>10.1</fmt>
+    <mamba source="mamba"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>

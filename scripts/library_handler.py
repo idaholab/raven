@@ -638,7 +638,7 @@ if __name__ == '__main__':
         src = '-c conda-forge'
         addOptional = args.addOptional
         limit = ['mamba']
-        installer = 'mamba'
+        installer = 'conda'
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='conda',
                              addOptional=addOptional,
