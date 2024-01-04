@@ -30,9 +30,9 @@ class NDDistribution:
       @ In, None
       @ Out, None
     """
-    self.dimensionality : int = None
-    self.lowerBounds : list = None
-    self.upperBounds : list = None
+    self.dimensionality : int | None = None
+    self.lowerBounds : list | None = None
+    self.upperBounds : list | None = None
 
   def returnDimensionality(self):
     """
