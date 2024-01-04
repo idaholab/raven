@@ -18,18 +18,7 @@ Created on Nov 22, 2023
 
 import numpy as np
 import scipy.stats
-import scipy.linalg
 from .utils import mathUtils
-
-import os,sys
-ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
-frameworkDir = os.path.join(ravenDir, 'framework')
-sys.path.append(ravenDir)
-from ravenframework.utils import utils
-utils.find_crow(frameworkDir)
-from ravenframework.CustomDrivers.DriverUtils import setupCpp
-setupCpp()
-CrowDistribution1D = utils.findCrowModule('distribution1D')
 
 
 class NDDistribution:
@@ -111,33 +100,6 @@ class MultivariateNormalPCA(NDDistribution):
     # # By forcing the largest absolute value of each vector to be positive, we can ensure a consistent
     # # sign convention for the transformation and inverse transformation matrices.
     U, V = mathUtils.correctSVDSigns(U, V)
-
-    # Build a Crow distribution object to check the SVD signs
-    #######
-    # TODO remove this!
-    mu_cxx = CrowDistribution1D.vectord_cxx(self._mu)
-    cov_cxx = CrowDistribution1D.vectord_cxx(self._covariance.ravel())
-    crow_dist = CrowDistribution1D.BasicMultivariateNormal(cov_cxx, mu_cxx, self._covarianceType, self._rank)
-    crowU = np.array(crow_dist.getLeftSingularVectors()).reshape((self.dimensionality, self._rank))
-    # get sign of largest absolute value in each column to determine vector sign
-    max_abs_cols = np.argmax(np.abs(U), axis=0)
-    signsU = np.sign(U[max_abs_cols, range(U.shape[1])])
-    max_abs_cols = np.argmax(np.abs(crowU), axis=0)
-    signsUCrow = np.sign(crowU[max_abs_cols, range(crowU.shape[1])])
-    signChange = signsU * signsUCrow  # 1 if signs are the same, -1 if different
-    # If the signs are different, we need to flip the sign of the transformation and inverse transformation matrices
-    U = signChange * U
-    V = signChange * V
-    if not np.allclose(U.ravel(), crowU.ravel()):
-      print('Mine:')
-      print(U)
-      print('Crow:')
-      print(crowU)
-      print('Dimensionality:', self.dimensionality)
-      print('Rank:', self._rank)
-      print('Sign Change:', signChange)
-      raise RuntimeError("The whitening matrix calculated by the Crow distribution is not the same as the one calculated by the RAVEN distribution!")
-    #######
 
     # Compute S^(1/2) and S^(-1/2) matrices, allowing for zero singular values. Note however that any
     # zero values have likely been truncated away in the SVD calculation above.
