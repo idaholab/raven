@@ -531,7 +531,7 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   # debug output conda version
   if [[ $ECE_VERBOSE == 0 ]]; then echo `conda -V`; fi
   # find RAVEN libraries environment
-  if conda env list | grep ${RAVEN_LIBS_NAME};
+  if conda env list | grep "^${RAVEN_LIBS_NAME} ";
   then
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found library environment ...; fi
     LIBS_EXIST=0
