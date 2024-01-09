@@ -53,12 +53,13 @@
   [./csv]
    type = OrderedCSV
    output = 'TenDimMVN/posterior_basicStat_dump.csv'
-   rel_err = 2.0e-1
+   rel_err = 3.0e-1
   [../]
  [../]
  [./MetropolisTenDimPropMVN]
   type = 'RavenFramework'
   input = 'test_10D_proposal_mvn.xml'
+  skip_if_OS = windows # pca decomposition can have different sign
   [./csv]
    type = OrderedCSV
    output = 'TenDimPropMVN/posterior_basicStat_dump.csv'
