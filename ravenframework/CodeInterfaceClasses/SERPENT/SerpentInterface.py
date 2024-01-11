@@ -21,6 +21,10 @@ import sys
 
 #Internal Modules--------------------begin
 from ..Generic.GenericCodeInterface import GenericCode
+#stOp = None
+#try:
+#  import serpentTools as stOp
+#except ImportError:
 from . import serpentOutputParser as op
 #Internal Modules--------------------end
 
@@ -146,9 +150,18 @@ class SERPENT(GenericCode):
     # parse files into dictionary
     keffDict = op.searchKeff(resfile)
     # the second argument is the percent cutoff
-    inBumatDict = op.bumatRead(inbumatfile, self.traceCutOff)
-    outBumatDict = op.bumatRead(outbumatfile, self.traceCutOff)
-
+    try:
+      inBumatDict = op.bumatRead(inbumatfile, self.traceCutOff)
+    except:
+      inBumatDict = {}
+    try:
+      outBumatDict = op.bumatRead(outbumatfile, self.traceCutOff)
+    except:
+      outBumatDict = {}
+    if len(inBumatDict) > 0:
+      isos = self.isotopes
+    else:
+      isos = []
     outputPath = os.path.join(workDir, output+'.csv')
     op.makeCsv(outputPath, inBumatDict, outBumatDict,
-                keffDict, self.isotopes, inputFile)
+               keffDict, self.isotopes, inputFile)

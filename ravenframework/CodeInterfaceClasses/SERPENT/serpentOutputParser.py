@@ -151,7 +151,10 @@ def makeCsv(csvFilename, inBumatDict, outBumatDict, keffDict, isoList, inputFile
 
   # parse through, get keff value
   bocKeff = keffDict['keff'][0]
-  eocKeff = keffDict['keff'][1]
+  try:
+    eocKeff = keffDict['keff'][1]
+  except:
+    eocKeff = bocKeff
   deptime = findDeptime(inputFile)
 
   with open(csvFilename, 'w') as csvFile:
