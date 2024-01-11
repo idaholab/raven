@@ -36,7 +36,7 @@
 #include <iostream>
 #include <string>
 #include <iostream>
-#include <cmath> // to use erfc error functionW
+#include <cmath> // to use erfc error function
 #include <ctime> // for rand() and srand()
 #include <cstdio>
 
