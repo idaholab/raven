@@ -45,7 +45,9 @@ class ScipyMetric(MetricInterface):
   availMetrics['boolean']['dice']               = spatialDistance.dice
   availMetrics['boolean']['hamming']            = spatialDistance.hamming
   availMetrics['boolean']['jaccard']            = spatialDistance.jaccard
-  availMetrics['boolean']['kulsinski']           = spatialDistance.kulczynski1
+  #Note in scipy 1.12 this needs to be changed to
+  #availMetrics['boolean']['kulsinski']           = spatialDistance.kulczynski1
+  availMetrics['boolean']['kulsinski']           = spatialDistance.kulsinski
   availMetrics['boolean']['russellrao']         = spatialDistance.russellrao
   availMetrics['boolean']['sokalmichener']      = spatialDistance.sokalmichener
   availMetrics['boolean']['sokalsneath']        = spatialDistance.sokalsneath
