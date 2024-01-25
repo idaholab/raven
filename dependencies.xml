@@ -94,6 +94,7 @@ Note all install methods after "main" take
     <python>remove</python>
     <nomkl>remove</nomkl>
     <numexpr>remove</numexpr>
+    <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
