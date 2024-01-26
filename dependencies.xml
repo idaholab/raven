@@ -83,6 +83,10 @@ Note all install methods after "main" take
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools/>
+    <!-- This is because liblapack 3.9.0 build 21 is broken (and can probably be removed if there ever is a build 22).  This can also be removed when scipy is updated to version 1.12 -->
+    <liblapack skip_check='True' os='linux'>3.9.0=20_linux64_openblas</liblapack>
+    <liblapack skip_check='True' os='windows'>3.9.0=20_win64_mkl</liblapack>
+    <liblapack skip_check='True' os='mac'>3.9.0=20_osx64_openblas</liblapack>
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source="mamba" skip_check='True'/>
   </main>
@@ -93,6 +97,7 @@ Note all install methods after "main" take
     <python>remove</python>
     <nomkl>remove</nomkl>
     <numexpr>remove</numexpr>
+    <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
