@@ -114,7 +114,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x1,x2,x3,obj1,obj2,age,batchId,rank,CD,fitness,accepted </Output><!--Modify if necessary CD,iteration,accepted,conv_AHDp-->
+      <Output>x1,x2,x3,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output><!--Modify if necessary CD,iteration,accepted,conv_AHDp-->
     </PointSet>
   </DataObjects>
 

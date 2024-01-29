@@ -456,14 +456,18 @@ class GeneticAlgorithm(RavenSampled):
     if self._fitnessType == 'feasibleFirst':
       if self._numOfConst != 0 and fitnessNode.findFirst('b') is not None:
         self._penaltyCoeff = fitnessNode.findFirst('b').value
+        self._objCoeff = fitnessNode.findFirst('a').value 
       elif self._numOfConst == 0 and fitnessNode.findFirst('b') is not None:
         self.raiseAnError(IOError, f'The number of constraints used are 0 but there are penalty coefficieints')
       elif self._numOfConst != 0 and fitnessNode.findFirst('b') is None:
-        self._penaltyCoeff = list(np.repeat(1, self._numOfConst * len(self._objectiveVar))) #NOTE if penaltyCoeff is not provided, then assume they are all 1.
+        self._penaltyCoeff = [1] * self._numOfConst * len(self._objectiveVar) #list(np.repeat(1, self._numOfConst * len(self._objectiveVar))) #NOTE if penaltyCoeff is not provided, then assume they are all 1.
+        self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else [1] * len(self._objectiveVar) #list(np.repeat(
       else:
-        self._penaltyCoeff = list(np.repeat(0, len(self._objectiveVar)))
+        self._penaltyCoeff = [0] * len(self._objectiveVar) #list(np.repeat(0, len(self._objectiveVar)))
+        self._objCoeff = [1] * len(self._objectiveVar)
     else:
       self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
+      self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
@@ -716,7 +720,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
     # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
-
+    
     objInd = 1 if len(self._objectiveVar) == 1 else 2
     constraintFuncs: dict = {1: GeneticAlgorithm.singleConstraint, 2: GeneticAlgorithm.multiConstraint}
     const = constraintFuncs.get(objInd, GeneticAlgorithm.singleConstraint)
