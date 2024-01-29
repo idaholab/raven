@@ -60,7 +60,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>20</limit>
+        <limit>5</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min, max, min</type>
