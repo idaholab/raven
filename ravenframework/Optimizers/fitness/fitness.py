@@ -62,8 +62,7 @@ def invLinear(rlz,**kwargs):
   a = [1.0] if kwargs['a'] == None else kwargs['a']
   b = [10.0] if kwargs['b'] == None else kwargs['b']
   penalty = 0.0 if kwargs['constraintFunction'].all() == None  else kwargs['constraintFunction'].data
-  objVar = [kwargs['objVar']] if isinstance(kwargs['objVar'], str) == True   else kwargs['objVar']
-
+  objVar = [kwargs['objVar']] if isinstance(kwargs['objVar'], str) == True else kwargs['objVar']
   for j in range(len(objVar)):
     data = np.atleast_1d(rlz[objVar][objVar[j]].data)
     fitness = -a[0] * (rlz[objVar][objVar[j]].data).reshape(-1,1) - b[0] * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
@@ -125,11 +124,11 @@ def feasibleFirst(rlz,**kwargs):
     fitness = []
     for ind in range(data.size):
       if kwargs['constraintNum'] == 0 or np.all(g.data[ind, :]>=0):
-        fit=(a*data[ind])
+        fit=(a[i]*data[ind])
       else:
-        fit = a*worstObj
+        fit = a[i]*worstObj
         for constInd,_ in enumerate(g['Constraint'].data):
-          fit = a*fit + objPen[objVar[i]][constInd]*(max(0,-1*g.data[ind, constInd])) #NOTE: objPen[objVar[i]][constInd] is "objective & Constraint specific penalty."
+          fit = a[i]*fit + objPen[objVar[i]][constInd]*(max(0,-1*g.data[ind, constInd])) #NOTE: objPen[objVar[i]][constInd] is "objective & Constraint specific penalty."
       if len(kwargs['type']) == 1:
         fitness.append(-1*fit)
       else:
