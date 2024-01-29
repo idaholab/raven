@@ -3614,6 +3614,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, pdict, dict, the namespace state
       @ Out, None
     """
+    super()._localSetState(pdict)
     self.method = pdict.pop('method')
     self.dimension = pdict.pop('dimension')
     self.rank = pdict.pop('rank')
