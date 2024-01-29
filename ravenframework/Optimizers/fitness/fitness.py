@@ -59,10 +59,10 @@ def invLinear(rlz,**kwargs):
           the farthest from violating the constraint it is, The highest negative value it have the largest the violation is.
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
   """
-  a = [1.0]                    if kwargs['a'] == None                         else kwargs['a']
-  b = [10.0]                   if kwargs['b'] == None                         else kwargs['b']
-  penalty = 0.0                if kwargs['constraintFunction'].all() == None  else kwargs['constraintFunction'].data
-  objVar = [kwargs['objVar']]  if isinstance(kwargs['objVar'], str) == True   else kwargs['objVar']
+  a = [1.0] if kwargs['a'] == None else kwargs['a']
+  b = [10.0] if kwargs['b'] == None else kwargs['b']
+  penalty = 0.0 if kwargs['constraintFunction'].all() == None  else kwargs['constraintFunction'].data
+  objVar = [kwargs['objVar']] if isinstance(kwargs['objVar'], str) == True   else kwargs['objVar']
 
   for j in range(len(objVar)):
     data = np.atleast_1d(rlz[objVar][objVar[j]].data)
@@ -75,40 +75,6 @@ def invLinear(rlz,**kwargs):
     else:
         fitnessSet[objVar[j]] = fitness
   return fitnessSet
-
-#NOTE hardConstraint method will be used later once constraintHandling is realized. Until then, it will be commented. @JunyungKim
-# def hardConstraint(rlz,**kwargs):
-#   r"""
-#     Fitness method counting the number of constraints violated
-
-#     @ In, rlz, xr.Dataset, containing the evaluation of a certain
-#               set of individuals (can be the initial population for the very first iteration,
-#               or a population of offsprings)
-#     @ In, kwargs, dict, dictionary of parameters for this rank_crowding method:
-#           objVar, string, the names of the objective variables
-#     @ Out, offSpringRank, xr.DataArray, the rank of the given objective corresponding to a specific chromosome.
-#            offSpringCD,   xr.DataArray, the crowding distance of the given objective corresponding to a specific chromosome.
-#   """
-#   if isinstance(kwargs['objVar'], str) == True:
-#     objVar = [kwargs['objVar']]
-#   else:
-#     objVar = kwargs['objVar']
-#   g = kwargs['constraintFunction']
-
-#   for j in range(len(objVar)):
-#     fitness     = np.zeros((len(g.data), 1))
-#     for i in range(len(fitness)):
-#       fitness[i] = countConstViolation(g.data[i])
-#     fitness = [-item for sublist in fitness.tolist() for item in sublist]
-#     fitness = xr.DataArray(fitness,
-#                            dims=['NumOfConstraintViolated'],
-#                            coords={'NumOfConstraintViolated':np.arange(np.shape(fitness)[0])})
-#     if j == 0:
-#       fitnessSet = fitness.to_dataset(name = objVar[j])
-#     else:
-#       fitnessSet[objVar[j]] = fitness
-
-#   return fitnessSet
 
 
 def feasibleFirst(rlz,**kwargs):
@@ -143,9 +109,8 @@ def feasibleFirst(rlz,**kwargs):
           'constraintFunction', xr.Dataarray, containing all constraint functions (explicit and implicit) evaluations for the whole population
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
   """
-  optType = kwargs['type']
   objVar = [kwargs['objVar']] if isinstance(kwargs['objVar'], str) == True else kwargs['objVar']
-  a = 1.0                     if kwargs['a'] == None                       else kwargs['a']
+  a = 1.0 if kwargs['a'] == None else kwargs['a']
   if kwargs['constraintNum'] == 0:
     pen = kwargs['b']
   else:
