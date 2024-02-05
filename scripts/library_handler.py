@@ -597,7 +597,7 @@ if __name__ == '__main__':
     for lib, request in libs.items():
       version = request['version']
       msg += '  \\item {}{}\n'.format(
-             lib.replace('_', '\\_'), ('' if version is None else '-'+version))
+             lib.replace('_', '\\_'), ('' if version is None else '-'+version.replace('_', '\\_')))
     msg += '\\end{itemize}'
     print(msg)
   else:
