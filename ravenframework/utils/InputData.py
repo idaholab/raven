@@ -379,7 +379,7 @@ class ParameterInput(object):
     """
       Converts back to XML representation of the parameters (attributes) of this spec.
       @ In, recDepth, int, recursion depth for subNodes
-      @ Out, xml, XML node
+      @ Out, xml, xml.etree.ElementTree.Element, XML node representation of this input spec
     """
     xml = xmlUtils.newNode(self.name)
     if self.parameterValues:
