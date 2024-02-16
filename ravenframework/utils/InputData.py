@@ -24,6 +24,7 @@ from enum import Enum
 import xml.etree.ElementTree as ET
 from . import InputTypes
 import textwrap
+from ravenframework.utils import xmlUtils
 
 class Quantity(Enum):
   """
@@ -374,6 +375,24 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
+  def convertToXML(self, recDepth=0):
+    """
+      Converts back to XML representation of the parameters (attributes) of this spec.
+      @ In, recDepth, int, recursion depth for subNodes
+      @ Out, xml, XML node
+    """
+    xml = xmlUtils.newNode(self.name)
+    if self.parameterValues:
+      xml.attrib = self.parameterValues
+    if self.value != '':
+      xml.text = str(self.value)
+    if self.subparts:
+      for sub in self.subparts:
+        if isinstance(sub,ParameterInput):
+          sub_node = sub.convertToXML(recDepth+1)
+          xml.append(sub_node)
+    return xml
+
   def parseNode(self, node, errorList=None, parentList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
@@ -701,7 +720,6 @@ class ParameterInput(object):
                                                                                      d=desc)
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
-
 
 
 
