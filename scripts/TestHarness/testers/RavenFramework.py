@@ -261,3 +261,56 @@ class RavenFramework(Tester):
       @ Out, None
     """
     self.set_success()
+
+
+class RavenFrameworkBinary(RavenFramework):
+  """
+  RavenFrameworkBinary is the class to use for testing standard raven inputs using a binary of RAVEN.
+  The main difference between this class and RavenFramework is that the command to run raven_framework
+  points to a binary of RAVEN instead of the local (devel) version of RAVEN.
+  """
+  binary_location = None
+
+  def get_command(self):
+    """
+      Gets the raven command to run this test.
+      @ In, None
+      @ Out, get_command, string, command to run.
+    """
+    if self.binary_location is None:
+      raise ValueError('Binary location not set!')
+
+    ravenflag = ''
+    if self.specs['test_interface_only']:
+      ravenflag += ' interfaceCheck '
+
+    if self.specs['interactive']:
+      ravenflag += ' interactiveCheck '
+
+    # Use raven_framework script in the bin directory of the current python environment. This should be in the
+    #     PATH, so we can just call it directly.
+    return self.binary_location + " " + ravenflag + self.specs["input"]
+
+
+class RavenFrameworkPip(RavenFramework):
+  """
+  RavenFrameworkPip is the class to use for testing standard raven inputs using a pip installation of RAVEN.
+  The main difference between this class and RavenFramework is that the command to run raven_framework
+  points to a pip installation of RAVEN instead of the local (devel) version of RAVEN.
+  """
+  def get_command(self):
+    """
+      Gets the raven command to run this test.
+      @ In, None
+      @ Out, get_command, string, command to run.
+    """
+    ravenflag = ''
+    if self.specs['test_interface_only']:
+      ravenflag += ' interfaceCheck '
+
+    if self.specs['interactive']:
+      ravenflag += ' interactiveCheck '
+
+    # Use raven_framework script in the bin directory of the current python environment. This should be in the
+    #     PATH, so we can just call it directly.
+    return "raven_framework " + ravenflag + self.specs["input"]

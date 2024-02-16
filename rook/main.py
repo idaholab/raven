@@ -101,6 +101,12 @@ parser.add_argument('--command-prefix', dest='command_prefix',
 parser.add_argument('--python-command', dest='python_command',
                     help='command to run python')
 
+alt_framework_args = parser.add_mutually_exclusive_group(required=False)
+alt_framework_args.add_argument('--use-pip', dest='use_pip', action='store_true',
+                    help='use the pip-installed version of ravenframework')
+alt_framework_args.add_argument('--use-binary', nargs=1, dest='use_binary',
+                    help='use a specified binary version of ravenframework')
+
 parser.add_argument('--config-file', dest='config_file',
                     help='Configuration file location')
 
@@ -316,6 +322,10 @@ def process_result(index, _input_data, output_data):
                 test=process_test_name))
 
 if __name__ == "__main__":
+  if args.use_binary and not os.path.exists(args.use_binary[0]):
+    print("The specified binary does not exist:", args.use_binary[0])
+    sys.exit(-1)
+
   if args.unkillable:
     def term_handler(signum, _):
       """
@@ -396,6 +406,14 @@ if __name__ == "__main__":
       print("Differ:", differ_name)
       print(differ.get_valid_params())
       print()
+
+  if args.use_pip:
+    testers['RavenFramework'] = testers['RavenFrameworkPip']
+  if args.use_binary:
+    # Specify an absolute path so we don't have to worry about where we are now vs where when
+    # we try to run the binary.
+    testers['RavenFrameworkBinary'].binary_location = os.path.abspath(args.use_binary[0])
+    testers['RavenFramework'] = testers['RavenFrameworkBinary']
 
   tester_params = {}
   for tester_key, tester_value in testers.items():
