@@ -195,15 +195,20 @@ class SparseSensing(PostProcessorReadyInterface):
     for var in self.sensingFeatures:
       features[var] = np.atleast_1d(inputDS[var].data)
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
+    ##TODO ##FIXME
     data = inputDS[self.sensingTarget].data
-    # if self.sparseSensingGoal == 'classification':
-    #   labels = self.
+    if self.sparseSensingGoal == 'classification':
+      ## TODO: maybe add another variable called state variable to distinguish between target or label,
+      # (target is temperature and label is whatever label like 'P_T', or '<T*' '>T*')
+      # Other option is to keep label as the target and add another variable call it state variable, in the classification state will be different than target
+      # Also for LDA we have to error out if number of classes is not less than number of samples
+      label = np.atleast_1d(['<300 K','<300 K','>300 K','>300 K'])
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
     assert np.shape(data) == (nSamples,nfeatures)
     if self.seed is not None:
       model.fit(data, seed=self.seed)
     else:
-      model.fit(data)
+      model.fit(data,y=label)
     selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 

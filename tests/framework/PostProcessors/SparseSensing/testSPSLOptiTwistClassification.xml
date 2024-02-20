@@ -47,7 +47,7 @@
   <Models>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="classification">
-        <features>X (m),Y (m),Temperature (K)</features>
+        <features>X (m),Y (m),Temperature (K), label</features>
         <target>label</target>
         <basis>SVD</basis>
         <nModes>4</nModes>
@@ -59,19 +59,19 @@
 
   <DataObjects>
     <PointSet name="myDO">
-      <Output>X (m),Temperature (K),Y (m)</Output>
+      <Output>X (m),Temperature (K),Y (m), label</Output>
     </PointSet>
     <HistorySet name="TwistDO">
       <Input> Power (W), BCTemperature (K)</Input>
-      <Output>X (m),Temperature (K),Y (m)</Output>
+      <Output>X (m),Temperature (K),Y (m), label</Output>
       <options>
         <pivotParameter>index</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
-      <Output>Temperature (K), X (m), Y (m)</Output>
-      <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
+      <Output>Temperature (K), X (m), Y (m), label</Output>
+      <Index var="sensor">X (m),Y (m),Temperature (K), label</Index>
     </DataSet>
   </DataObjects>
 
