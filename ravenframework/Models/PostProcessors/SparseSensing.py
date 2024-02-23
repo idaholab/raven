@@ -52,14 +52,14 @@ class SparseSensing(PostProcessorReadyInterface):
                                                 printPriority=108,
                                                 descr=r"""Features/inputs of the data model""")
     goal.addSub(features)
-    state = InputData.parameterInputFactory("state", contentType=InputTypes.StringType,
+    measuredState = InputData.parameterInputFactory("measuredState", contentType=InputTypes.StringType,
                                                 printPriority=108,
-                                                descr=r"""State Variable of the data model""")
-    goal.addSub(state)
-    target = InputData.parameterInputFactory("target", contentType=InputTypes.StringType,
+                                                descr=r"""State Variable to be measured/sensed""")
+    goal.addSub(measuredState)
+    labels = InputData.parameterInputFactory("labels", contentType=InputTypes.StringType,
                                                 printPriority=108,
-                                                descr=r"""target of data model""")
-    goal.addSub(target)
+                                                descr=r"""labels/target for the classification case""")
+    goal.addSub(labels)
     basis = InputData.parameterInputFactory("basis", contentType=InputTypes.makeEnumType("basis","basis Type",['Identity','SVD','RandomProjetion']),
                                                            printPriority=108,
                                                            descr=r"""The type of basis onto which the data are projected""", default='SVD')
@@ -105,7 +105,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.basis = None                                        # The types of basis used in the projection. i.e., SVD, Identity, or Random Projection
     self.sensingFeatures = None                              # The variable representing the features of the data i.e., X, Y, SensorID, etc.
     self.sensingStateVariable = None                         # The variable representing the state
-    self.sensingTarget = None                                # The Response of interest to be reconstructed (or classify)
+    self.sensingLabels = None                                # The Response of interest to be reconstructed (or classify)
     self.optimizer = None                                    # The Optimizer type used in the Sparse sensing selection (default: QR)
     self.classifier = None                                   # The classifier type used in the Sparse sensing selection (default: LinearDiscriminantAnalysis)
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
@@ -135,8 +135,9 @@ class SparseSensing(PostProcessorReadyInterface):
       self.nModes = child.findFirst('nModes').value
       self.basis = child.findFirst('basis').value
       self.sensingFeatures = child.findFirst('features').value
-      self.sensingStateVariable = child.findFirst('state').value
-      self.sensingTarget = child.findFirst('target').value
+      self.sensingStateVariable = child.findFirst('measuredState').value
+      if self.sparseSensingGoal == 'classification':
+        self.sensingLabels = child.findFirst('labels').value
       if child.findFirst('optimizer') is not None:
         self.optimizer = child.findFirst('optimizer').value
       else:
@@ -151,7 +152,10 @@ class SparseSensing(PostProcessorReadyInterface):
         self.seed = None
       if child.parameterValues['subType'] not in self.goalsDict.keys():
         self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
-    _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','target'])
+    if self.sparseSensingGoal == 'classification':
+      _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','measuredState','labels'])
+    else:
+      _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','measuredState'])   
     # notFound must be empty
     assert not notFound, "Unexpected nodes in _handleInput"
 
@@ -202,17 +206,13 @@ class SparseSensing(PostProcessorReadyInterface):
       features[var] = np.atleast_1d(inputDS[var].data)
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     ##TODO ##FIXME
-    
+    data = inputDS[self.sensingStateVariable].data
     if self.sparseSensingGoal == 'classification':
       ## TODO: maybe add another variable called state variable to distinguish between target or label,
       # (target is temperature and label is whatever label like 'P_T', or '<T*' '>T*')
       # Other option is to keep label as the target and add another variable call it state variable, in the classification state will be different than target
       # Also for LDA we have to error out if number of classes is not less than number of samples
-      # label = np.atleast_1d(['<300 K','<300 K','>300 K','>300 K'])
-      data = inputDS[self.sensingStateVariable].data
-      labels = inputDS[self.sensingTarget].data[:,0]
-    else:
-      data = inputDS[self.sensingTarget].data
+      labels = inputDS[self.sensingLabels].data[:,0]
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
     assert np.shape(data) == (nSamples,nfeatures)
     if self.seed is not None and self.sparseSensingGoal == 'reconstruction':

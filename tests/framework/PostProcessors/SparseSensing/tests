@@ -7,4 +7,12 @@
     required_libraries = 'imageio'
     rel_err = 0.01
   [../]
+  [./testSPSLOptiTwistClassification]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwistClassification.xml'
+    csv = 'classificationOptiTwist/outPP.csv'
+    image = 'classificationOptiTwist/mySensorPlot_scatter-scatter.png classificationOptiTwist/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.01
+  [../]
 []
