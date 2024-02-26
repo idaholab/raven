@@ -379,8 +379,8 @@ do
       USE_MAMBA=TRUE
       ;;
     --no-mamba)
-      echo ... not using mamba
-      USE_MAMBA=FALSE
+      echo ... OVERRIDE using mamba
+      USE_MAMBA=TRUE
       ;;
     --optional)
       echo ... Including optional libraries ...
