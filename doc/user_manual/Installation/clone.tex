@@ -25,7 +25,23 @@ the commands
 \begin{lstlisting}[language=bash]
 git clone https://github.com/idaholab/raven.git
 cd raven
+\end{lstlisting}
+
+\subsubsection{Getting Plugins}
+
+Individual plugins can be gotten with a command like (from the
+\texttt{raven} directory):
+
+\begin{lstlisting}[language=bash]
+git submodule update --init plugins/TEAL/
+python scripts/install_plugins.py -s plugins/TEAL
+\end{lstlisting}
+
+All the plugins can be gotten, but this may throw errors if there are non-open source ones currently:
+
+\begin{lstlisting}[language=bash]
 git submodule update --init
+python scripts/install_plugins.py -a
 \end{lstlisting}
 This will obtain RAVEN as well as other submodules that RAVEN uses.  In the future, whenever we declare a path
 starting with \texttt{raven/}, we refer to the cloned directory.
@@ -50,7 +66,7 @@ cd scripts
 cd scripts
 bash.exe establish_conda_env.sh --install
 \end{lstlisting}
-  
+
 \end{itemize}
 Assure that there are no errors in this process, then continue to compiling RAVEN.
 
@@ -75,6 +91,14 @@ bash.exe establish_conda_env.sh --install
 \end{itemize}
 
 replacing \texttt{/path/to} with the install path for \texttt{conda}.
+
+\nb Various options exist for \texttt{establish\_conda\_env.sh}, which
+can be found by using the \texttt{--help} option.  These options
+include \texttt{--mamba} which uses the mamba instead of conda for
+resolving dependencies, \texttt{--load} which can be used with
+\verb'source ./scripts/establish_conda_env.sh --load' to switch to the
+raven environment in a shell, \texttt{--installation-manager PIP} which
+uses pip instead of conda.
 
 \subsubsection{Compiling RAVEN}
 Once Python libraries are established and the source code present, navigate to \texttt{raven} and run

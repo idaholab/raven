@@ -106,9 +106,25 @@ function install_libraries()
   then
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
-    ${COMMAND}
+    if [[ $USE_MAMBA == TRUE ]]; then
+        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset mamba`" $SET_PYTHON"
+        if [  "$MAMBA_SKIP" == "true" ]
+        then
+            PRECOMMAND=${PRECOMMAND/mamba/}
+        fi
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: ${PRECOMMAND}; fi
+        ${PRECOMMAND}
+        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
+        activate_env
+        local MCOMMAND=${COMMAND/#conda /mamba } #Replace conda at start with mamba
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
+        ${MCOMMAND}
+    else
+        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
+
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+        ${COMMAND}
+    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
@@ -165,9 +181,24 @@ function create_libraries()
     if [[ $ECE_VERBOSE == 0 && $WORKING_PYTHON_COMMAND != $PYTHON_COMMAND ]]; then
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
-    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
-    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
-    ${COMMAND}
+    if [[ $USE_MAMBA == TRUE ]]; then
+        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
+        if [  "$MAMBA_SKIP" == "true" ]
+        then
+            PRECOMMAND=${PRECOMMAND/mamba/}
+        fi
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: $PRECOMMAND; fi
+        ${PRECOMMAND}
+        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
+        activate_env
+        local MCOMMAND=${COMMAND/#conda /mamba }
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
+        ${MCOMMAND}
+    else
+        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
+        if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+        ${COMMAND}
+    fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
@@ -222,6 +253,12 @@ function display_usage()
 	echo '    --installation-manager'
 	echo '      Package installation manager. (CONDA, PIP). If not provided, default to CONDA'
 	echo ''
+        echo '    --mamba'
+        echo '      Use mamba instead of conda for package installation'
+        echo ''
+        echo '    --no-mamba'
+        echo '      Do not use mamba for package installation.'
+        echo ''
 	echo '    --proxy <proxy>'
 	echo '      Specify a proxy to be used in the form [user:passwd@]proxy.server:port.'
 	echo ''
@@ -248,6 +285,9 @@ function display_usage()
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
+	echo '    --set-python'
+	echo '      Set python version in mamba setup (only used if use mamba flag is true)'
+	echo ''
 }
 
 function activate_env()
@@ -257,7 +297,13 @@ function activate_env()
   then
     conda activate ${RAVEN_LIBS_NAME}
   else
-    source ${PIP_ENV_LOCATION}/bin/activate
+    if [[ "$OSOPTION" = "--os windows" ]];
+    then
+      source ${PIP_ENV_LOCATION}/Scripts/activate
+      #note there are also activate.bat and Activate.ps1
+    else
+      source ${PIP_ENV_LOCATION}/bin/activate
+    fi
   fi
 }
 
@@ -294,6 +340,17 @@ else
     INSTALL_MANAGER="$INSTALLATION_MANAGER"
 fi
 PROXY_COMM="" # proxy is none
+USE_MAMBA=TRUE # Use Mamba for installation
+
+#Note this complexity is because on one computer in 2023, mamba failed to
+# install correctly when mamba was in the base conda install.
+if command -v mamba;
+then
+    #This is used to skip installing mamba
+    MAMBA_SKIP="true"
+else
+    MAMBA_SKIP="false"
+fi
 
 # parse command-line arguments
 while test $# -gt 0
@@ -317,6 +374,14 @@ do
     --install)
       ECE_MODE=2
       ;;
+    --mamba)
+      echo ... using mamba
+      USE_MAMBA=TRUE
+      ;;
+    --no-mamba)
+      echo ... not using mamba
+      USE_MAMBA=FALSE
+      ;;
     --optional)
       echo ... Including optional libraries ...
       INSTALL_OPTIONAL="--optional $INSTALL_OPTIONAL"
@@ -338,6 +403,10 @@ do
       ;;
     --no-clean)
       ECE_CLEAN=1
+      ;;
+    --set-python)
+      shift
+      SET_PYTHON=$1
       ;;
   esac
   shift
@@ -462,7 +531,7 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   # debug output conda version
   if [[ $ECE_VERBOSE == 0 ]]; then echo `conda -V`; fi
   # find RAVEN libraries environment
-  if conda env list | grep ${RAVEN_LIBS_NAME};
+  if conda env list | grep "^${RAVEN_LIBS_NAME} ";
   then
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found library environment ...; fi
     LIBS_EXIST=0

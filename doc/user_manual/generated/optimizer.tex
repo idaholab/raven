@@ -959,6 +959,7 @@ Simulated Annealing Example:
              \item \texttt{batchId}: Id of the batch to whom the chromosome belongs
              \item \texttt{AHDp}: p-Average Hausdorff Distance between populations
              \item \texttt{AHD}: Hausdorff Distance between populations
+             \item \texttt{HDSM}: Hausdorff Distance Similarity Measure between populations
              \item \texttt{ConstraintEvaluation\_\{CONSTRAINT\}}: Constraint function evaluation (negative if violating and positive otherwise)
            
          \end{itemize}
@@ -1088,7 +1089,7 @@ Simulated Annealing Example:
       \begin{itemize}                                                                        \item
       onePointCrossover.
       \item twoPointsCrossover.
-      \item uniformCrossover.
+      \item uniformCrossover
       \end{itemize}                                                                    \item
       mutators:                                                                      \begin{itemize}
       \item swapMutator.
@@ -1149,7 +1150,8 @@ Simulated Annealing Example:
             \item \xmlNode{mutation}: \xmlDesc{string}, 
               a subnode containing the implemented mutation mechanisms.                   This
               includes: a.    bitFlipMutation,                                  b.    swapMutation,
-              c.    scrambleMutation, or                                  d.    inversionMutation.
+              c.    scrambleMutation,                                  d.    inversionMutation, or
+              e.    randomMutator.
               The \xmlNode{mutation} node recognizes the following parameters:
                 \begin{itemize}
                   \item \xmlAttr{type}: \xmlDesc{string, required}, 
@@ -1173,11 +1175,15 @@ Simulated Annealing Example:
 
         \item \xmlNode{fitness}: \xmlDesc{string}, 
           a subnode containing the implemented fitness functions.                   This includes:
-          a.    invLinear: $fitness = -a \times obj - b \times \sum\_{j=1}^{nConstraint}
-          max(0,-penalty\_j) $.                                   b.    logistic: $fitness =
-          \frac{1}{1+e^{a\times(obj-b)}}$.                                   c.    feasibleFirst:
-          $fitness = \left\{\begin{matrix} -obj & g\_j(x)\geq 0 \; \forall j \\ -obj\_{worst}-
-          \Sigma\_{j=1}^{J}<g\_j(x)> & otherwise \\ \end{matrix}\right.$
+          \begin{itemize}                                 \item    invLinear:
+          \[fitness = -a \times obj - b \times \sum\\_{j=1}^{nConstraint} max(0,-penalty\\_j) \].
+          \item    logistic:                                  \[fitness =
+          \frac{1}{1+e^{a\times(obj-b)}}\].
+          \item           feasibleFirst:                                  \[fitness =           -obj
+          \ \ \  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{for}   \
+          \ g\\_j(x)\geq 0 \;  \forall j\]                                  and           \[fitness
+          = -obj\\_{worst} - \Sigma\\_{j=1}^{J}<g\\_j(x)>   \ \ \ \ \ \ \ \   otherwise \]
+          \end{itemize}.
           The \xmlNode{fitness} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{type}: \xmlDesc{string, required}, 
@@ -1213,6 +1219,14 @@ Simulated Annealing Example:
 
         \item \xmlNode{AHD}: \xmlDesc{float}, 
           provides the desired value for the Hausdorff Distance between populations
+
+        \item \xmlNode{HDSM}: \xmlDesc{float}, 
+          provides the desired value for the Hausdorff Distance Similarity Measure between
+          populations.                                     This convergence criterion is based on a
+          normalized                                     similarity metric that can be summurized as
+          the normalized Hausdorff distance                                     (with respect the
+          domain of to population/iterations). The metric is normalized between 0 and 1,
+          which implies that values closer to 1.0 represents a tighter convergence criterion.
 
         \item \xmlNode{persistence}: \xmlDesc{integer}, 
           provides the number of consecutive times convergence should be reached before a trajectory

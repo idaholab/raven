@@ -23,16 +23,20 @@ import os
 import operator
 import csv
 from scipy.interpolate import UnivariateSpline
+import scipy.stats
 from numpy import linalg as LA
 import copy
 import math as math
+import bisect
 
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
 from .utils import utils
 from .utils.randomUtils import random
 from .utils import randomUtils
-distribution1D = utils.findCrowModule('distribution1D')
+CrowDistribution1D = utils.findCrowModule('distribution1D')
+from . import Distributions1D
+from . import DistributionsND
 from .utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -397,10 +401,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the cdf at
       @ Out, retunrCdf, float, requested cdf
     """
-    if hasattr(x,'__len__'):
-      returnCdf = np.array([self.cdf(i) for i in x])
-    else:
-      returnCdf = self._distribution.cdf(x)
+    returnCdf = self._distribution.cdf(x)
     return returnCdf
 
   def ppf(self,x):
@@ -409,11 +410,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the inverse cdf at
       @ Out, retunrPpf, float, requested inverse cdf
     """
-    # TODO speed this up by doing it in Crow, not in python
-    if hasattr(x,'__len__'):
-      returnPpf = np.array([self.ppf(i) for i in x])
-    else:
-      returnPpf = self._distribution.inverseCdf(x)
+    returnPpf = self._distribution.inverseCdf(x)
     return returnPpf
 
   def pdf(self,x):
@@ -483,18 +480,14 @@ class BoostDistribution(Distribution):
     untrMode = self._distribution.untrMode()
     return untrMode
 
-
   def rvs(self, size=None):
     """
       Function to get random numbers
       @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    if size is None:
-      rvsValue = self.ppf(random())
-    else:
-      # TODO to speed up, do this on the C side instead of in python
-      rvsValue = np.array([self.rvs() for _ in range(size)])
+    size = size or 1
+    rvsValue = self.ppf(random(size))
     return rvsValue
 
   def selectedRvs(self, discardedElems):
@@ -604,7 +597,7 @@ class Uniform(BoostDistribution):
     self.convertToDistrDict['ClenshawCurtis'] = self.convertLegendreToUniform
     self.convertToQuadDict ['ClenshawCurtis'] = self.convertUniformToLegendre
     self.measureNormDict   ['ClenshawCurtis'] = self.stdProbabilityNorm
-    self._distribution = distribution1D.BasicUniformDistribution(self.lowerBound,self.lowerBound+self.range)
+    self._distribution = Distributions1D.BasicUniformDistribution(self.lowerBound,self.lowerBound+self.range)
 
   def convertUniformToLegendre(self,y):
     """Converts from distribution domain to standard Legendre [-1,1].
@@ -722,8 +715,7 @@ class Normal(BoostDistribution):
     self.convertToQuadDict ['Hermite'] = self.convertNormalToHermite
     self.measureNormDict   ['Hermite'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicNormalDistribution(self.mean,
-                                                                  self.sigma)
+      self._distribution = Distributions1D.BasicNormalDistribution(self.mean, self.sigma)
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
       self.preferredQuadrature  = 'Hermite'
@@ -741,9 +733,7 @@ class Normal(BoostDistribution):
         self.upperBound = b
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicNormalDistribution(self.mean,
-                                                                  self.sigma,
-                                                                  a,b)
+      self._distribution = Distributions1D.BasicNormalDistribution(self.mean, self.sigma, a, b)
 
   def stdProbabilityNorm(self,std=False):
     """Returns the factor to scale error norm by so that norm(probability)=1.
@@ -887,7 +877,7 @@ class Gamma(BoostDistribution):
     self.measureNormDict   ['Laguerre'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed):
       # and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
+      self._distribution = Distributions1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
       #self.lowerBoundUsed = 0.0
       self.upperBound     = sys.float_info.max
       self.preferredQuadrature  = 'Laguerre'
@@ -905,7 +895,7 @@ class Gamma(BoostDistribution):
         self.upperBound = b
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
+      self._distribution = Distributions1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
   def convertGammaToLaguerre(self,y):
     """Converts from distribution domain to standard Laguerre [0,inf].
@@ -1060,7 +1050,7 @@ class Beta(BoostDistribution):
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
     #this "if" section can only be called if distribution not generated using readMoreXML
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low)
+      self._distribution = Distributions1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low)
     else:
       if self.lowerBoundUsed == False:
         a = 0.0
@@ -1070,7 +1060,7 @@ class Beta(BoostDistribution):
         b = sys.float_info.max
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,a,b,self.low)
+      self._distribution = Distributions1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low,a,b)
     self.preferredPolynomials = 'Jacobi'
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('ClenshawCurtis')
@@ -1219,7 +1209,7 @@ class Triangular(BoostDistribution):
       @ Out, None
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.min == self.lowerBound and self.max == self.upperBound):
-      self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
+      self._distribution = Distributions1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
       self.raiseAnError(IOError,'Truncated triangular not yet implemented')
 
@@ -1311,7 +1301,7 @@ class Poisson(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicPoissonDistribution(self.mu)
+      self._distribution = Distributions1D.BasicPoissonDistribution(self.mu)
       self.lowerBound = 0.0
       self.upperBound = sys.float_info.max
     else:
@@ -1415,7 +1405,7 @@ class Binomial(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
+      self._distribution = Distributions1D.BasicBinomialDistribution(self.n,self.p)
     else:
       self.raiseAnError(IOError,'Truncated Binomial not yet implemented')
 
@@ -1508,7 +1498,7 @@ class Bernoulli(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
+      self._distribution = Distributions1D.BasicBernoulliDistribution(self.p)
     else:
       self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
 
@@ -1600,7 +1590,7 @@ class Geometric(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicGeometricDistribution(self.p)
+      self._distribution = Distributions1D.BasicGeometricDistribution(self.p)
     else:  self.raiseAnError(IOError,'Truncated Geometric not yet implemented')
 
 DistributionsCollection.addSub(Geometric.getInputSpecification())
@@ -1622,7 +1612,7 @@ class Categorical(Distribution):
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
 
     StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
-    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
+    StatePartInput.addParam("outcome", InputTypes.FloatOrStringType, True)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
 
     ## Because we do not inherit from the base class, we need to manually
@@ -1643,6 +1633,7 @@ class Categorical(Distribution):
     self.type           = 'Categorical'
     self.dimensionality = 1
     self.distType       = 'Discrete'
+    self.isFloat        = False
 
   def _handleInput(self, paramInput):
     """
@@ -1656,13 +1647,20 @@ class Categorical(Distribution):
         outcome = child.parameterValues["outcome"]
         value = child.value
         self.mapping[outcome] = value
-        if float(outcome) in self.values:
+        try:
+          float(outcome)
+          self.isFloat = True
+        except:
+          self.isFloat = False
+        if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome))
+          self.values.add(float(outcome) if self.isFloat else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     self.initializeDistribution()
+    self.upperBoundUsed = True
+    self.lowerBoundUsed = True
 
   def getInitParams(self):
     """
@@ -1740,7 +1738,12 @@ class Categorical(Distribution):
     if x in self.values:
       pdfValue = self.mapping[x]
     else:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
+      if self.isFloat:
+        vals = sorted(list(self.values))
+        idx = bisect.bisect(vals, x)
+        pdfValue = self.mapping[list(vals)[idx]]
+      else:
+        self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
 
   def cdf(self,x):
@@ -1756,9 +1759,16 @@ class Categorical(Distribution):
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
-        if x == float(element[0]):
+        if x == ( float(element[0]) if self.isFloat else element[0] ):
           return cumulative
     else:
+      if self.isFloat:
+        cumulative=0.0
+        for element in sortedMapping:
+          cumulative += element[1]
+          if x >= element[0]:
+            return cumulative
+      # if we reach this point we must error out
       self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
@@ -1771,13 +1781,13 @@ class Categorical(Distribution):
       self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == 1.0:
-      return float(sortedMapping[-1][0])
+      return float(sortedMapping[-1][0]) if self.isFloat else sortedMapping[-1][0]
     else:
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
         if cumulative >= x:
-          return float(element[0])
+          return float(element[0]) if self.isFloat else element[0]
 
   def rvs(self):
     """
@@ -2219,7 +2229,7 @@ class Logistic(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale)
+      self._distribution = Distributions1D.BasicLogisticDistribution(self.location,self.scale)
     else:
       if self.lowerBoundUsed == False:
         a = -sys.float_info.max
@@ -2229,7 +2239,7 @@ class Logistic(BoostDistribution):
         b = sys.float_info.max
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)
+      self._distribution = Distributions1D.BasicLogisticDistribution(self.location,self.scale,a,b)
 
 DistributionsCollection.addSub(Logistic.getInputSpecification())
 
@@ -2332,7 +2342,7 @@ class Laplace(BoostDistribution):
       self.lowerBound = -sys.float_info.max
     if self.upperBoundUsed == False:
       self.upperBound = sys.float_info.max
-    self._distribution = distribution1D.BasicLaplaceDistribution(self.location,self.scale,self.lowerBound,self.upperBound)
+    self._distribution = Distributions1D.BasicLaplaceDistribution(self.location,self.scale,self.lowerBound,self.upperBound)
 
 DistributionsCollection.addSub(Laplace.getInputSpecification())
 
@@ -2436,7 +2446,7 @@ class Exponential(BoostDistribution):
       @ Out, None
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,self.low)
+      self._distribution = Distributions1D.BasicExponentialDistribution(self.lambdaVar,self.low)
       self.lowerBound = self.low
       self.upperBound = sys.float_info.max
     else:
@@ -2444,7 +2454,7 @@ class Exponential(BoostDistribution):
         self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,self.lowerBound,self.upperBound,self.low)
+      self._distribution = Distributions1D.BasicExponentialDistribution(self.lambdaVar,self.low,self.lowerBound,self.upperBound)
 
   def convertDistrPointsToStd(self,y):
     """
@@ -2579,7 +2589,7 @@ class LogNormal(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low)
+      self._distribution = Distributions1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low)
       self.lowerBound = 0.0
       self.upperBound =  sys.float_info.max
     else:
@@ -2587,7 +2597,7 @@ class LogNormal(BoostDistribution):
         self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.lowerBound,self.upperBound, self.low)
+      self._distribution = Distributions1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,self.lowerBound,self.upperBound)
 
 DistributionsCollection.addSub(LogNormal.getInputSpecification())
 
@@ -2696,7 +2706,7 @@ class Weibull(BoostDistribution):
       @ Out, None
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.low)
+      self._distribution = Distributions1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.low)
       self.lowerBound = self.low
       self.upperBound = sys.float_info.max
     else:
@@ -2704,7 +2714,7 @@ class Weibull(BoostDistribution):
         self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.lowerBound,self.upperBound,self.low)
+      self._distribution = Distributions1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.lowerBound,self.upperBound,self.low)
 
 DistributionsCollection.addSub(Weibull.getInputSpecification())
 
@@ -3222,9 +3232,9 @@ class NDInverseWeight(NDimensionalDistributions):
       @ Out, None
     """
     if self.functionType == 'CDF':
-      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,True)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,True)
     else:
-      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,False)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,False)
     self.dimensionality = self._distribution.returnDimensionality()
     self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimensionality)]
     self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimensionality)]
@@ -3235,10 +3245,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, list, list of variable coordinate
       @ Out, cdfValue, float, cdf value
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    cdfValue = self._distribution.cdf(coordinate)
+    cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     return cdfValue
 
   def ppf(self,x):
@@ -3256,10 +3263,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, np.array , coordinates to get the pdf at
       @ Out, pdfValue, np.array, requested pdf
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    pdfValue = self._distribution.pdf(coordinate)
+    pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -3269,11 +3273,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    dxs        = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
+    coordinate = numpyToCxxVector(x)
+    dxs = numpyToCxxVector(dx)
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
@@ -3403,9 +3404,9 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     self.raiseAMessage('initialize Distribution')
     if self.functionType == 'CDF':
-      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
     else:
-      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),False)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),False)
     self.dimensionality = self._distribution.returnDimensionality()
     self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimensionality)]
     self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimensionality)]
@@ -3416,10 +3417,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, list, list of variable coordinate
       @ Out, cdfValue, float, cdf value
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    cdfValue = self._distribution.cdf(coordinate)
+    cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     return cdfValue
 
   def ppf(self,x):
@@ -3437,10 +3435,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, np.array , coordinates to get the pdf at
       @ Out, pdfValue, np.array, requested pdf
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    pdfValue = self._distribution.pdf(coordinate)
+    pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -3450,11 +3445,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    dxs        = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
+    coordinate = numpyToCxxVector(x)
+    dxs = numpyToCxxVector(dx)
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
@@ -3622,6 +3614,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, pdict, dict, the namespace state
       @ Out, None
     """
+    super()._localSetState(pdict)
     self.method = pdict.pop('method')
     self.dimension = pdict.pop('dimension')
     self.rank = pdict.pop('rank')
@@ -3651,18 +3644,14 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, None
     """
     self.raiseAMessage('initialize distribution')
-    mu = distribution1D.vectord_cxx(len(self.mu))
-    for i in range(len(self.mu)):
-      mu[i] = self.mu[i]
-    covariance = distribution1D.vectord_cxx(len(self.covariance))
-    for i in range(len(self.covariance)):
-      covariance[i] = self.covariance[i]
     if self.method == 'spline':
       if self.covarianceType != 'abs':
         self.raiseAnError(IOError,'covariance with type ' + self.covariance + ' is not implemented for ' + self.method + ' method')
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+      mu = numpyToCxxVector(self.mu)
+      covariance = numpyToCxxVector(self.covariance)
+      self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+      self._distribution = DistributionsND.MultivariateNormalPCA(self.covariance, self.mu, self.covarianceType, self.rank)
     if self.transformation:
       self.lowerBound = [-sys.float_info.max]*self.rank
       self.upperBound = [sys.float_info.max]*self.rank
@@ -3677,10 +3666,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, cdfValue, float, cdf value
     """
     if self.method == 'spline':
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      cdfValue = self._distribution.cdf(coordinate)
+      cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     else:
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
     return cdfValue
@@ -3693,19 +3679,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, L, np.array, the transformation matrix
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-          matrixDim = self._distribution.getTransformationMatrixDimensions(coordinateIndex)
-          transformation = self._distribution.getTransformationMatrix(coordinateIndex)
-      else:
-        matrixDim = self._distribution.getTransformationMatrixDimensions()
-        transformation = self._distribution.getTransformationMatrix()
-      row = matrixDim[0]
-      column = matrixDim[1]
-      # convert 1D vector to 2D array
-      L = np.atleast_1d(transformation).reshape(row,column)
+      L = self._distribution.getTransformationMatrix(index)
     else:
       self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
     return L
@@ -3718,19 +3692,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, L, np.array, the inverse transformation matrix
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-          matrixDim = self._distribution.getInverseTransformationMatrixDimensions(coordinateIndex)
-          inverseTransformation = self._distribution.getInverseTransformationMatrix(coordinateIndex)
-      else:
-        matrixDim = self._distribution.getInverseTransformationMatrixDimensions()
-        inverseTransformation = self._distribution.getInverseTransformationMatrix()
-      row = matrixDim[0]
-      column = matrixDim[1]
-      # convert 1D vector to 2D array
-      L = np.atleast_1d(inverseTransformation).reshape(row,column)
+      L = self._distribution.getInverseTransformationMatrix(index)
     else:
       self.raiseAnError(NotImplementedError,' inverse transformationMatrix is not yet implemented for ' + self.method + ' method')
     return L
@@ -3743,14 +3705,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, singularValues, np.array, the singular values vector
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-        singularValues = self._distribution.getSingularValues(coordinateIndex)
-      else:
-        singularValues = self._distribution.getSingularValues()
-      singularValues = np.atleast_1d(singularValues).tolist()
+      singularValues = self._distribution.getSingularValues(index)
     else:
       self.raiseAnError(NotImplementedError,' returnSingularValues is not available for ' + self.method + ' method')
     return singularValues
@@ -3764,33 +3719,11 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.method == 'pca':
       if len(x) > self.rank:
-        self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate,coordinateIndex)
-      else:
-        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
-      values = np.atleast_1d(originalCoordinate).tolist()
+        self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is larger than the rank defined in <Distributions>')
+      values = self._distribution.coordinateInverseTransformed(x, index)
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return values
-
-  def coordinateInTransformedSpace(self):
-    """
-      Return the coordinate in the transformed space
-      @ In, None
-      @ Out, coordinateInTransformedSpace, np.array, coordinates
-    """
-    if self.method == 'pca':
-      coordinateInTransformedSpace = self._distribution.coordinateInTransformedSpace(self.rank)
-    else:
-      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
-    return coordinateInTransformedSpace
 
   def ppf(self,x):
     """
@@ -3799,7 +3732,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, ppfValue, np.array, ppf values
     """
     if self.method == 'spline':
-      ppfValue = self._distribution.inverseCdf(x,random())
+      ppfValue = self._distribution.inverseCdf(numpyToCxxVector(x), random())
     else:
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
     return ppfValue
@@ -3812,11 +3745,10 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.transformation:
       pdfValue = self.pdfInTransformedSpace(x)
+    elif self.method == 'pca':
+      pdfValue = self._distribution.pdf(x)
     else:
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      pdfValue = self._distribution.pdf(coordinate)
+      pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def logPdf(self,x):
@@ -3835,10 +3767,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, pdfInTransformedSpace, np.array, pdf values in the transformed space
     """
     if self.method == 'pca':
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      pdfInTransformedSpace = self._distribution.pdfInTransformedSpace(coordinate)
+      pdfInTransformedSpace = self._distribution.pdfInTransformedSpace(x)
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return pdfInTransformedSpace
@@ -3850,18 +3779,15 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    dxs        = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
     if self.method == 'pca':
       if self.transformation:
         self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
       else:
         self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
-      integralReturn = self._distribution.cellProbabilityWeight(coordinate,dxs)
+      integralReturn = self._distribution.cellProbabilityWeight(x, dx)
     elif self.method == 'spline':
+      coordinate = numpyToCxxVector(x)
+      dxs = numpyToCxxVector(dx)
       integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     else:
       self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
@@ -3890,7 +3816,7 @@ class MultivariateNormal(NDimensionalDistributions):
       if self.method == 'pca':
         inverseMarginal = self._distribution.inverseMarginalForPCA(min(1.-sys.float_info.epsilon,
                                                                    max(sys.float_info.epsilon,
-                                                                   x)))
+                                                                   x)))  # TODO can probably remove min/max and just use x
       elif self.method == 'spline':
         inverseMarginal=  self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
                                                              max(sys.float_info.epsilon,x)),
@@ -3950,14 +3876,33 @@ class MultivariateNormal(NDimensionalDistributions):
     # if no transformation, then return the coordinate for the original input parameters
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
+      rands = random(self.rank)
+      # use marginal CDF (unit normal) to
+      rands = self._distribution.inverseMarginalForPCA(rands)
       if self.transformation:
-        rvsValue = self._distribution.coordinateInTransformedSpace(self.rank)
+        rvsValue = rands
       else:
-        coordinate = self._distribution.coordinateInTransformedSpace(self.rank)
-        rvsValue = self._distribution.coordinateInverseTransformed(coordinate)
+        rvsValue = self._distribution.coordinateInverseTransformed(rands)
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
     return rvsValue
+
+def numpyToCxxVector(x):
+  """
+    Utility function for converting a numpy array into a C++ vector swig object.
+
+    @ In, x, np.ndarray, the 1d numpy array to convert
+    @ Out, xCxx, C++ vector, the converted vector
+  """
+  x = np.atleast_1d(x)
+  if x.ndim > 1:
+    raise ValueError('x must be 1d, not {}d'.format(x.ndim))
+
+  xCxx = CrowDistribution1D.vectord_cxx(len(x))
+  for i in range(len(x)):
+    xCxx[i] = x[i]
+
+  return xCxx
 
 DistributionsCollection.addSub(MultivariateNormal.getInputSpecification())
 

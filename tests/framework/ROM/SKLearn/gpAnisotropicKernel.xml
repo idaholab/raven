@@ -1,0 +1,111 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/ROM/SKLearn.GP</name>
+    <author>grifaa</author>
+    <created>2023-08-09</created>
+    <classesTested>SupervisedLearning.SciKitLearn</classesTested>
+    <description>
+       An example exercising supervised sklearn methods, specifically
+       the GaussianProcess|GaussianProcess model is tested here. This test
+       specifically demonstrates the anisotropic option for the GaussianProcess regression.
+       Note, all of the tests in SKLearn operate on a 2D input domain with
+       the goal of fitting a paraboloid function. The input dimensions are
+       of largely different scales and one dimension is off-centered from
+       the origin to ensure that normalization is being handled correctly.
+       Classifiers will use this same function to determine if a point is
+       above 0.25, and multitask methods will additionally fit an additive
+       model (x+y).
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample,
+      plot
+    </Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+    <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <Model class="Models" type="ExternalModel">foo</Model>
+    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample" sleepTime="1e-5">
+    <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <Model class="Models" type="ROM">gpROM</Model>
+    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+    <Output class="DataObjects" type="PointSet">outData</Output>
+    <Output class="OutStreams" type="Print">outData</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Output class="Models" type="ROM">gpROM</Output>
+    </RomTrainer>
+    <IOStep name="plot">
+    <Input class="DataObjects" type="PointSet">trainingData</Input>
+    <Input class="DataObjects" type="PointSet">outData</Input>
+    <Output class="OutStreams" type="Plot">plotGPAnisotropic</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./testFunction" name="foo" subType="">
+      <variables>X,Y,Z</variables>
+    </ExternalModel>
+    <ROM name="gpROM" subType="GaussianProcessRegressor">
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <alpha>1e-10</alpha>
+      <n_restarts_optimizer>0</n_restarts_optimizer>
+      <normalize_y>True</normalize_y>
+      <kernel>Matern</kernel>
+      <anisotropic>True</anisotropic>
+    </ROM>
+  </Models>
+
+  <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
+  <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
+  <OutStreams>
+    <!-- A csv file containing the output of the example -->
+    <Print name="outData">
+      <type>csv</type>
+      <source>outData</source>
+      <filename>outGPAnisotropic</filename>
+      <what>input,output,metadata</what>
+    </Print>
+
+    <Plot name="plotGPAnisotropic">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>trainingData|Input|X</x>
+          <y>trainingData|Input|Y</y>
+          <z>trainingData|Output|Z</z>
+          <c>blue</c>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <marker>+</marker>
+          <x>outData|Input|X</x>
+          <y>outData|Input|Y</y>
+          <z>outData|Output|Z</z>
+          <c>red</c>
+        </plot>
+        <xlabel>X</xlabel>
+        <ylabel>Y</ylabel>
+        <zlabel>Z</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
+</Simulation>

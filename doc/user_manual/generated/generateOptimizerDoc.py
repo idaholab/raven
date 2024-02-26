@@ -213,8 +213,50 @@ Genetic Algorithm Example:
 \end{lstlisting}
 
 """
+
+minimalBayesianOptimizer = r"""
+\hspace{24pt}
+Bayesian Optimizer Example:
+\begin{lstlisting}[style=XML]
+  <Optimizers>
+    <BayesianOptimizer name="opter">
+
+      <objective>ans</objective>
+
+      <variable name="x">
+        <distribution>egg_dist</distribution>
+      </variable>
+
+      <variable name="y">
+        <distribution>egg_dist</distribution>
+      </variable>
+
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+
+      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
+
+      <ROM  class="Models" type="ROM">gpROM</ROM>
+
+      <Acquisition>
+        <ExpectedImprovement>
+          <optimizationMethod>differentialEvolution</optimizationMethod>
+          <seedingCount>30</seedingCount>
+        </ExpectedImprovement>
+      </Acquisition>
+
+    </BayesianOptimizer>
+  </Optimizers>
+\end{lstlisting}
+
+"""
 # examples Factory
-exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm}
+exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm,'BayesianOptimizer':minimalBayesianOptimizer}
 
 #------------#
 # OPTIMIZERS #

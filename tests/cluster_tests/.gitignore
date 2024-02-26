@@ -7,6 +7,7 @@ FirstPRun/
 FirstMFRun/
 FirstMLRun/
 FirstMForcedRun/
+FirstMQL/
 DatabaseStorage/
 *.log
 InternalParallel/InternalParallelExtModel/test*Set_dump.xml
@@ -17,3 +18,15 @@ InternalParallel/InternalParallelScikit/PrintDataData*.xml
 InternalParallel/metaModel*LinearParallel/*Dump.xml
 run_mpi_test.sh.e*
 run_mpi_test.sh.o*
+FirstMQ1/FirstMQ1ProcRun/
+InternalParallel/hybridModelCode/hybridModelCode/
+InternalParallel/hybridModelCode/samples.xml
+InternalParallel/hybridModelExternal/metaModelOutputTestDump.xml
+RavenRunsRaven/CodeDask/outer_out.xml
+RavenRunsRaven/CodeDask/sample/
+RavenRunsRaven/CodeDask/server_debug*
+RavenRunsRaven/CodeRay/ray_head.ip
+RavenRunsRaven/CodeRay/sample/
+RavenRunsRaven/CodeRay/server_debug*
+RavenRunsRaven/Rom/testPointSet_dump.xml
+RavenRunsRaven/Rom/testPrintHistorySet_dump.xml

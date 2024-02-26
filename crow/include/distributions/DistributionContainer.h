@@ -19,7 +19,6 @@
 #include <vector>
 #include <map>
 #include "distribution.h"
-#include "randomClass.h"
 
 class BasicDistribution;
 class BasicDistributionND;
@@ -38,8 +37,6 @@ public:
    */
   void addDistributionInContainer(const std::string & type, const std::string & name, MooseSharedPointer<BasicDistribution> dist);
   void addDistributionInContainerND(const std::string & type, const std::string & name, MooseSharedPointer<BasicDistributionND> dist);
-
-  void seedRandom(unsigned int seed);
 
   bool isEmpty()
   {
@@ -78,19 +75,6 @@ public:
   double cdf(const char * dist_alias, std::vector<double> x);
   double cdf(const std::string dist_alias, std::vector<double> x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
 
-
-  /**
-   * Function to get a random number distributed according to the distribution with a random number calculated.
-   * @param dist_alias alias of the distribution to use.
-   */
-  double getDistributionRandom(const char * dist_alias);
-
-  /**
-   * Function to get a random number distributed according to the distribution with a random number calculated.
-   * @param dist_alias alias of the distribution to use.
-   */
-  double getDistributionRandom(const std::string dist_alias);
-
   /**
    * Function to get a random number distributed accordingly to the distribution
    * given a random number [0,1]
@@ -107,8 +91,6 @@ public:
 
   std::vector<double> inverseCdf(const char * dist_alias, double f, double g);
   std::vector<double> inverseCdf(const std::string dist_alias, double f, double g);
-
-  double random(); // return a random number
 
   bool checkCdf(const std::string dist_alias, double value);
   bool checkCdf(const char * dist_alias, double value);
@@ -139,8 +121,6 @@ protected:
   std::map<std::string, bool> _dist_by_trigger_status;
   std::string _last_dist_triggered;
   bool _at_least_a_dist_triggered;
-
-  RandomClass * _random;
 
   /**
    * Constructor(empty)

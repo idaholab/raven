@@ -241,10 +241,9 @@ signals[:, 0] = signal
 transform = createWavelet(targets, family='db2')
 settings = {'family': 'db2'}
 settings = transform.setDefaults(settings)
-params = transform.characterize(signals, pivot, targets, settings)
+params = transform.fit(signals, pivot, targets, settings)
 check = params['A']['results']
 
-checkTrue("wavelet can generate", transform.canGenerate())
 checkTrue("wavelet can characterize", transform.canCharacterize())
 
 for real_a, pred_a in zip(true_a, check['coeff_a']):

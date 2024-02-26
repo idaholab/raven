@@ -42,7 +42,6 @@ public:
   BasicMultivariateNormal(std::string data_filename, std::vector<double> mu);
   BasicMultivariateNormal(std::vector<std::vector<double> > cov_matrix, std::vector<double> mu);
   BasicMultivariateNormal(std::vector<double> vec_cov_matrix, std::vector<double> mu);
-  BasicMultivariateNormal(std::vector<double> vec_cov_matrix, std::vector<double> mu, const char * type, int rank);
 
   //void basicMultivariateNormalInit(std::string data_filename, std::vector<double> mu);
   void basicMultivariateNormalInit(unsigned int & rows, unsigned int &columns, std::vector<std::vector<double> > cov_matrix, std::vector<double> mu);
@@ -64,39 +63,6 @@ public:
   double * cholesky(double *A, int n);
   std::vector<std::vector<double> > choleskyDecomposition(std::vector<std::vector<double> > matrix);
   void showMatrix(double *A, int n);
-  // used to obtain the information from the svd decomposition
-  std::vector<double> getSingularValues();
-  std::vector<double> getSingularValues(std::vector<int> index);
-  std::vector<double> getLeftSingularVectors();
-  std::vector<double> getLeftSingularVectors(std::vector<int> index);
-  std::vector<double> getRightSingularVectors();
-  std::vector<double> getRightSingularVectors(std::vector<int> index);
-  std::vector<int> getLeftSingularVectorsDimensions();
-  std::vector<int> getLeftSingularVectorsDimensions(std::vector<int> index);
-  std::vector<int> getRightSingularVectorsDimensions();
-  std::vector<int> getRightSingularVectorsDimensions(std::vector<int> index);
-  std::vector<double> getTransformationMatrix();
-  std::vector<double> getTransformationMatrix(std::vector<int> index);
-  std::vector<int> getTransformationMatrixDimensions();
-  std::vector<int> getTransformationMatrixDimensions(std::vector<int> index);
-  std::vector<double> getInverseTransformationMatrix();
-  std::vector<double> getInverseTransformationMatrix(std::vector<int> index);
-  std::vector<int> getInverseTransformationMatrixDimensions();
-  std::vector<int> getInverseTransformationMatrixDimensions(std::vector<int> index);
-  int  getSingularValuesDimension();
-  int  getSingularValuesDimension(std::vector<int> index);
-
-  std::vector<double> coordinateInTransformedSpace(int rank);
-  std::vector<double> coordinateInverseTransformed(std::vector<double> &coordinate);
-  std::vector<double> coordinateInverseTransformed(std::vector<double> &coordinate,std::vector<int> index);
-
-  double cellProbabilityWeight(std::vector<double> center, std::vector<double> dx);
-  double inverseMarginalForPCA(double f);
-  double marginalCdfForPCA(double x);
-
-  void computeSVD();
-  void computeSVD(int rank);
-  double pdfInTransformedSpace(std::vector<double> x);
 
   double returnLowerBound(int dimension){
     return _lower_bounds.at(dimension);
@@ -112,13 +78,6 @@ private:
   std::vector<std::vector<double> > _inverse_cov_matrix;
   std::vector<std::vector<double> > _cholesky_C;
   // parameters for singular value decomposition
-  std::vector<std::vector<double> > _left_singular_vectors;
-  std::vector<double> _singular_values;
-  std::vector<std::vector<double> > _right_singular_vectors;
-  unsigned int _rank; // used for dimensionality reduction
-  // store U*sqrt(S), where U, S, V = svd(A)
-  std::vector<std::vector<double> > _svd_transformed_matrix;
-  std::string _covariance_type;
   double _determinant_cov_matrix;
 
   std::vector<double> _upper_bounds;

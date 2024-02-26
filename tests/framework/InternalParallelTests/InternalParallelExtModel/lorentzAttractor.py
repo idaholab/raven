@@ -15,9 +15,6 @@
 ''' from wikipedia: dx/dt = sigma*(y-x)  ; dy/dt = x*(rho-z)-y  dz/dt = x*y-beta*z  ; '''
 
 import numpy as np
-#import pylab as pyl
-#import random
-#import mpl_toolkits.mplot3d.axes3d as p3
 
 def initialize(self,runInfoDict,inputFiles):
   self.sigma = 10.0

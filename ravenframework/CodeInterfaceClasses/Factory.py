@@ -19,6 +19,7 @@ from ..EntityFactoryBase import EntityFactory
 
 from ..CodeInterfaceBaseClass import CodeInterfaceBase
 from .Generic.GenericCodeInterface import GenericCode
+from .Abce.AbceCodeInterface import Abce
 from .AccelerateCFD.AccelerateCFD import AcceleratedCFD
 from .CobraTF.CTFinterface import CTF
 from .Dymola.DymolaInterface import Dymola
@@ -42,6 +43,7 @@ from .RELAP5inssJp.Relap5inssJpInterface import Relap5inssJp
 from .RELAP7.RELAP7Interface import RELAP7
 from .Rattlesnake.RattlesnakeInterface import Rattlesnake
 from .SCALE.ScaleInterface import Scale
+from .PARCS.PARCSInterface import PARCS
 from .SERPENT.SerpentInterface import SERPENT
 from .SIMULATE3.SimulateInterface import Simulate
 from .Saphire.SaphireInterface import Saphire

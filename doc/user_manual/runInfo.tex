@@ -167,10 +167,22 @@ specifies \texttt{NumThreads} $> 1$  and \texttt{NumMPI} $> 1$, then
 %
 \default{1}
 
+%%%%%% parallelMethod
+
+\item \xmlNode{parallelMethod}, \xmlDesc{string, optional field}, is a string that specifies which parallelMethod should be used for internal objects (e.g., ROMs, External Models, PostProcessors, etc.).  The number of threads or processes is \xmlNode{batchSize}.
+  If this flag is set to:
+  \begin{itemize}
+  \item  \textbf{\texttt{shared}}, default value, which uses shared memory threading for running tasks.
+  \item \textbf{\texttt{distributed}}, automatically chooses a distributed library from the following libraries.
+  \item \textbf{\texttt{dask}}, use Dask for distributed running tasks.
+  \item \textbf{\texttt{ray}}, use Ray for distributed running tasks.
+  \end{itemize}
+  \default{shared}
+
 %%%%%% internalParallel
 \item \xmlNode{internalParallel}, \xmlDesc{boolean, optional field}, is a boolean
 flag that controls the type of parallel implementation needs to be used for Internal
-Objects (e.g., ROMs, External Models, PostProcessors, etc.).
+Objects (e.g., ROMs, External Models, PostProcessors, etc.).  It is recommended that parallelMethod be used instead of this flag.
 If this flag is set to:
 \begin{itemize}
  \item  \textbf{\texttt{False}}, the internal parallelism is employed using multi-threading
@@ -291,6 +303,10 @@ additional path that will be added to the PYTHONPATH (e.g. path of python script
 %
 \default{None}
 
+%%%%%% schedulerFile
+\item \xmlNode{schedulerFile}, \xmlDesc{string, option field}, specifies the path to an existing Dask json scheduler file that can be use to run dask tasks.  This allows RAVEN to use an already started dask scheduler.  The scheduler file is created by running \texttt{dask scheduler --scheduler-file schedulerFile} which is also how RAVEN starts dask if this node is not provided.
+  \default{None}
+
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%% RUN INFO QUEUE MODES %%%%%%%%
@@ -309,8 +325,11 @@ RAVEN currently supports one pre-defined ``mode'':
     \item \textbf{mpi}: this ``mode'' uses \xmlNode{MPIExec}  command (default: \texttt{mpiexec})
       to distribute the running program; more information regarding this protocol can be found
       in~\cite{MPI}.
+
       Mode ``MPI''  can either generate a \texttt{qsub} command or can execute
       on selected nodes.
+      Parameters to be given to the mpi command can be specified with the \xmlNode{MPIParam} node.  These will be given after the \xmlNode{MPIExec}  command so that needed mpi parameters can be specified (such as \texttt{--nooversubscribe}).
+
       In order to make the ``mpi'' mode generate a \texttt{qsub} command, an
       additional keyword (xml sub-node) needs to be specified:
          \begin{itemize}
