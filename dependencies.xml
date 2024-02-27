@@ -72,7 +72,7 @@ Note all install methods after "main" take
     <smt machine='x86_64'/> <!-- not available on macos arm64 -->
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
-    <pywavelets optional='True'>1.1</pywavelets>
+    <pywavelets optional='True'>1.2</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
@@ -83,6 +83,12 @@ Note all install methods after "main" take
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools/>
+    <!-- This is because liblapack 3.9.0 build 21 is broken (and can probably be removed if there ever is a build 22).  This can also be removed when scipy is updated to version 1.12 -->
+    <liblapack skip_check='True' os='linux' machine='x86_64'>3.9.0=20_linux64_openblas</liblapack>
+    <liblapack skip_check='True' os='windows' machine='x86_64'>3.9.0=20_win64_mkl</liblapack>
+    <liblapack skip_check='True' os='mac' machine='x86_64'>3.9.0=20_osx64_openblas</liblapack>
+    <!-- source="mamba" are the ones installed when mamba is installed -->
+    <mamba source="mamba" skip_check='True'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
@@ -91,6 +97,7 @@ Note all install methods after "main" take
     <python>remove</python>
     <nomkl>remove</nomkl>
     <numexpr>remove</numexpr>
+    <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>

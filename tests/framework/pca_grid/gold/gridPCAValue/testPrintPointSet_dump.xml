@@ -1,9 +1,10 @@
 <DataObjectMetadata name="testPrintPointSet">
   <DataSet type="Static">
     <general>
+      <datasetName>testPrintPointSet</datasetName>
       <inputs>x0,y0,z0,x1,y1,z1</inputs>
-      <pointwise_meta>ProbabilityWeight,PointProbability</pointwise_meta>
       <outputs>x,y,z</outputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>

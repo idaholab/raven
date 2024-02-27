@@ -22,6 +22,7 @@
   input = 'test_attenu_correlation.xml'
   csv = 'attenuCorrelation/csv_database.csv'
   UnorderedXml = 'attenuCorrelation/stats_td1.xml'
+  rel_err = 1e-8
  [../]
 
  [./attenuCorrelationMC]

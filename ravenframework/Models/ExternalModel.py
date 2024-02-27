@@ -187,7 +187,7 @@ class ExternalModel(Dummy):
       # check if there are variables and, in case, load them
       for child in paramInput.subparts:
         if child.getName() == 'variables':
-          self.raiseAWarning(DeprecationWarning ,'"variables" node inputted but has been deprecated!  Please list variables in the "inputs" and "outputs" nodes instead.  This Warning will result in an error in RAVEN 3.0!')
+          self.raiseAWarning(DeprecationWarning ,'"variables" node inputted but has been deprecated!  Please list variables in the "inputs" and "outputs" nodes instead.')
           self.modelVariableType = dict.fromkeys(child.value)
         elif child.getName() == 'inputs':
           self._setVariableList('input', child.value)
