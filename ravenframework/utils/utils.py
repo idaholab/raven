@@ -547,6 +547,33 @@ def importFromPath(filename, printImporting = True):
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
 
+def importOrInstall(package):
+  """
+    Method to import or install (if not found) a library named "package"
+    @ In, package, str, the package name to import
+    @ Out, pckImport, module, the imported module
+
+    NOTE: This method should be used only by developers
+          since it silently install packages
+          if not found
+  """
+  pckImport = None
+  try:
+    pckImport = __import__(package)
+  except ImportError:
+    print(f"(            ) {UreturnPrintTag('UTILS')}: {UreturnPrintPostTag('Message')}"
+          f" -> Python package {package} not found. Trying to install it via pip!")
+    import subprocess
+    s = subprocess.getstatusoutput(f"python -m pip install {package}")
+    if int(s[0]) == 0:
+      print(f"(            ) {UreturnPrintTag('UTILS')}: {UreturnPrintPostTag('Message')}"
+            " -> Installation succeded!")
+      pckImport = __import__(package)
+    else:
+      print(f"(            ) {UreturnPrintTag('UTILS')}: {UreturnPrintPostTag('Message')} ->"
+            " Installation failed with error: {s[1]}")
+  return pckImport
+
 def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
   """
     !!WARNING!! This method expects "sortedList" to already be a sorted list of float values!
