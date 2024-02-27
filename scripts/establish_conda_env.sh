@@ -332,7 +332,7 @@ else
     INSTALL_MANAGER="$INSTALLATION_MANAGER"
 fi
 PROXY_COMM="" # proxy is none
-USE_MAMBA=TRUE # Use Mamba for installation
+USE_MAMBA=FALSE # Use Mamba for installation
 
 
 # parse command-line arguments
@@ -358,12 +358,12 @@ do
       ECE_MODE=2
       ;;
     --mamba)
-      echo ... using mamba
-      USE_MAMBA=TRUE
+      echo ... OVERRIDE using mamba
+      USE_MAMBA=FALSE
       ;;
     --no-mamba)
       echo ... OVERRIDE using mamba
-      USE_MAMBA=TRUE
+      USE_MAMBA=FALSE
       ;;
     --optional)
       echo ... Including optional libraries ...
