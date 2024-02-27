@@ -81,8 +81,8 @@ class SERPENT(GenericCode):
         # we pop this because it is the default
         serpentFileTypes.pop(serpentFileTypes.index('ResultsReader'))
       for ft in serpentFileTypes:
-        if ft not in op.serpentOutputAvailableTypes :
-          raise IOError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are {", ".join(self._outputFileTypes)}!!')
+        if ft not in op.serpentOutputAvailableTypes:
+          raise IOError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are {", ".join(op.serpentOutputAvailableTypes)}!!')
       self._fileTypesToRead += serpentFileTypes
 
   def initialize(self, runInfo, oriInputFiles):
