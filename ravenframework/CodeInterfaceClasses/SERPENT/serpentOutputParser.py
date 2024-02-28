@@ -120,7 +120,7 @@ class SerpentOutputParser(object):
       if ft == 'DetectorReader':
         results.update(self._detectorReader(nSteps))
       elif ft == 'DepletionReader':
-        results.update(self._depletionReader(nSteps))
+        results.update(self._depletionReader())
       elif ft == 'DepmtxReader':
         results.update(self._depmtxReader(nSteps))
       #elif ft == 'HistoryReader':
@@ -140,16 +140,16 @@ class SerpentOutputParser(object):
     resultsResults = {}
     res = self._st.read(f"{self._fileRootName}{outputExtensions['ResultsReader']}")
     buSteps = res.get('burnStep')
-    nSteps = 0 if buSteps is None else len(buSteps)
+    nSteps = 1 if buSteps is None else len(buSteps)
 
     for k, v in res.resdata.items():
       for eix in range(v.shape[-1]):
-        kk = f'{k}_{eix}' if len(v.shape) > 1 else f'{k}'
+        kk = f'{k}_{eix}' if v.shape[-1] > 1 else f'{k}'
         resultsResults[kk] = v[:, eix]  if nSteps and len(v.shape) > 1 else np.asarray(v[eix])
       if 'keff' in k.lower():
         rho_sigma, rhoLog_sigma = None,  None
         rho, rhoLog = (v[0] - 1) / v[0],  np.log(v[0])
-        if len(v.shape) > 1:
+        if v.shape[0] > 1:
           # we have sigma
           rho_sigma, rhoLog_sigma = (v[1] / v[0]) * rho,  (v[1] / v[0]) * rhoLog
         resultsResults[f'{k.replace("Keff", "Reactivity")}_{0}'
@@ -186,10 +186,13 @@ class SerpentOutputParser(object):
           detectorResults[varName] =  float(detectorContent.tallies)
           detectorResults[f"{varName}_err"] =  float(detectorContent.errors)
         else:
-          # grid-base detector
+          # grid-based detector
           grids = {}
           for d, dim in enumerate(indeces):
             gridName = dim.replace("mesh", "").upper()
+            print(gridName)
+            print(detectorContent.grids.keys())
+            print(indeces)
             grids[d] = detectorContent.grids[gridName][:, -1]
           iterator = np.nditer(detectorContent.tallies, flags=['multi_index'])
           while not iterator.finished:
@@ -204,6 +207,7 @@ class SerpentOutputParser(object):
               detectorResults[f"{varName}_err"] = np.zeros(buSteps)
             detectorResults[varName][bu] = val
             detectorResults[f"{varName}_err"][bu] = val_err
+            iterator.iternext()
     return detectorResults
 
   def _depletionReader(self):
