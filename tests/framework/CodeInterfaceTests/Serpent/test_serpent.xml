@@ -25,15 +25,6 @@
   <Models>
     <Code name="SERPENT" subType="SERPENT">
       <executable>sss2</executable>
-      <!--
-       here the isotope list can be either a CSV or TXT file name (relative to the workingDir) or a
-       comma separated list directly inputted in here
-       For example,
-       <isotope_list>1001,290750,34078,38089,411090,451121,481191,501281,531390,571450,611570,671661,882280</isotope_list>
-       or
-       <isotope_list>iso_list.csv</isotope_list>
-       -->
-      <isotope_list>iso_list.csv</isotope_list>
     </Code>
   </Models>
 
@@ -79,7 +70,7 @@
   <DataObjects>
     <PointSet name="outPointSet">
       <Input>deptime</Input>
-      <Output>bocKeff, eocKeff</Output>
+      <Output>impKeff_0, fwdAnaBetaZero_1, totFissrate_5</Output>
     </PointSet>
   </DataObjects>
 
