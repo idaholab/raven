@@ -43,11 +43,8 @@ class SERPENT(GenericCode):
     utils.importOrInstall("serpentTools")
     # intialize code interface
     GenericCode.__init__(self)
-    self.printTag         = 'SERPENT'# Print Tag
-    self.isotope_list_f   = None     # isotope list file (if any)
-    self.isotopes         = []       # isotopes to collect
-    self.traceCutOff      = 1.e-7    # cutoff threshold for ignoring isotopes
-    self._fileTypesToRead = ['ResultsReader']
+    self.printTag         = 'SERPENT'         # Print Tag
+    self._fileTypesToRead = ['ResultsReader'] # container of file types to read
 
   def _findInputFile(self, inputFiles):
     """
@@ -82,7 +79,8 @@ class SERPENT(GenericCode):
         serpentFileTypes.pop(serpentFileTypes.index('ResultsReader'))
       for ft in serpentFileTypes:
         if ft not in op.serpentOutputAvailableTypes:
-          raise IOError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are {", ".join(op.serpentOutputAvailableTypes)}!!')
+          raise IOError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are "'
+                        f'{", ".join(op.serpentOutputAvailableTypes)}!!')
       self._fileTypesToRead += serpentFileTypes
 
   def initialize(self, runInfo, oriInputFiles):
