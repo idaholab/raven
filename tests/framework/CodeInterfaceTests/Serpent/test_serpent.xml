@@ -53,10 +53,14 @@
       <Model   class="Models"      type="Code"      >SERPENT</Model>
       <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
       <Output  class="DataObjects" type="PointSet"  >outPointSet</Output>
+      <Output  class="DataObjects" type="HistorySet"  >outHistorySet</Output>
+      
     </MultiRun>
     <IOStep name="outputResults">
       <Input  class="DataObjects" type="PointSet"   >outPointSet</Input>
       <Output  class="OutStreams"  type="Print"     >RAVENout</Output>
+      <Input  class="DataObjects" type="HistorySet"   >outHistorySet</Input>
+      <Output  class="OutStreams"  type="Print"     >RAVENoutHS</Output>
     </IOStep>
   </Steps>
 
@@ -65,13 +69,24 @@
       <type>csv</type>
       <source>outPointSet</source>
     </Print>
+    <Print name="RAVENoutHS">
+      <type>csv</type>
+      <source>outHistorySet</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="outPointSet">
       <Input>deptime</Input>
-      <Output>impKeff_0, fwdAnaBetaZero_1, totFissrate_5</Output>
+      <Output>impKeff_0, fwdAnaBetaZero_1, adjIfpAnaLambda_8</Output>
     </PointSet>
+    <HistorySet name="outHistorySet">
+      <Input>deptime</Input>
+      <Output>impKeff_0, sm149Capt_3, xe135Capt_1</Output>
+      <options>
+          <pivotParameter>burnDays</pivotParameter>
+      </options>
+    </HistorySet>
   </DataObjects>
 
 </Simulation>
