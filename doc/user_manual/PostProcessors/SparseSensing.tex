@@ -1,0 +1,58 @@
+\subsubsection{SparseSensing}
+\label{SparseSensing}
+The \textbf{SparseSensing} post-processor incorporates ``PySensors'', a Scikit-learn style Python package for the sparse placement of sensors for reconstruction tasks and classification tasks which will be added here soon.
+
+Sparse sensor placement concerns the problem of selecting a small subset of sensor or measurement locations in a way that allows one to perform some task nearly as well as if one had access to measurements at every location.
+
+This post-processor provides objects designed for the tasks of reconstruction and classification. See
+
+\begin{itemize}
+    \item Manohar, Krithika, et al. ``Data-driven sparse sensor placement for reconstruction: Demonstrating the benefits of exploiting known patterns.'' IEEE Control Systems Magazine 38.3 (2018): 63-86 for more information about the PySensors approach to reconstruction problems and,
+    \item Brunton, Bingni W., et al. ``Sparse sensor placement optimization for classification.'' SIAM Journal on Applied Mathematics 76.5 (2016): 2099-2122 for classification and,
+    \item de Silva, Brian M., et al. ``PySensors: A Python package for sparse sensor placement.'' arXiv preprint arXiv:2102.13476 (2021) contains a full literature review along with examples and additional tips for using PySensors effectively.
+\end{itemize}
+
+\ppType{SparseSensing }{SparseSensing}
+\begin{itemize}
+\item \xmlNode{Goal}, \xmlDesc{string, required field}, the goal of the sparse sensor optimization.
+User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field} representing the goal of the sparse sensing optimization; i.e., which goal function is used in the optimization? Examples for such goal functions are:
+\begin{itemize}
+    \item \textbf{Reconstruction} deals with predicting the values of a quantity of interest at different locations other than those where sensors are located. For example, one might predict the temperature at a point in the middle of a fuel rod based on readings taken at various other positions.
+
+    \item \textbf{Classification} is the problem of predicting which category an example belongs to, given a set of training data (e.g. determining whether digital photos are of dogs or cats).
+\end{itemize}
+\nb{Currently, only reconstruction is implemented.}
+In order to use the \xmlNode{Goal}, the user needs to provide the following subnodes:
+\begin{itemize}
+	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., possible sensor locations/IDs
+	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed.
+  \nb{Currently the algorithms can handle a single target}.
+	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{Random}. \default{SVD}
+	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
+	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
+	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR}, for the unconstrained case.
+        \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
+\end{itemize}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+<Simulation>
+   ...
+   <Models>
+      ...
+      <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <features>X (m),Y (m),Temperature (K)</features>
+        <target>Temperature (K)</target>
+        <basis>SVD</basis> <!--default: SVD-->
+        <nModes>4</nModes> <!--default: opt, allows the algorithm to pick nModes-->
+        <nSensors>4</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
+        <optimizer>QR</optimizer><!--default: QR-->
+      </Goal>
+    </PostProcessor>
+    ...
+  </Models>
+   ...
+</Simulation>
+\end{lstlisting}

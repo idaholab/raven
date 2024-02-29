@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/InternalParallelTests.ExternalModel</name>
+    <author>alfoa</author>
+    <created>2015-10-07</created>
+    <classesTested>JobHandler.ParallelPython, Models.ExternalModel</classesTested>
+    <description>
+       This test is aimed to check the functionality of the RAVEN parallelization scheme for Internal Objects.
+       In this case the functionality of the parallelization is tested for the Model External Model with ray
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-10-19">New syntax form samplerInit: from sampler_init -> samplerInit</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="cogljj" date="2023-04-04">Creating a ray specific version of the test.</revision>
+    </revisions>
+    <requirements>R-IS-8</requirements>
+  </TestInfo>
+  <!-- RUNINFO -->
+  <RunInfo>
+    <WorkingDir>InternalParallelExtModelRay</WorkingDir>
+    <Sequence>ParalleMonteCarlo</Sequence>
+    <batchSize>4</batchSize>
+    <parallelMethod>ray</parallelMethod>
+  </RunInfo>
+
+  <!-- STEPS -->
+  <Steps>
+    <MultiRun name="ParalleMonteCarlo" re-seeding="25061978">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
+      <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
+      <Output class="DataObjects" type="PointSet">testPointSet</Output>
+      <Output class="OutStreams" type="Print">testPointSet_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <!-- MODELS -->
+  <Models>
+    <ExternalModel ModuleToLoad="../InternalParallelExtModel/lorentzAttractor" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+  </Models>
+
+  <!-- DISTRIBUTIONS -->
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <!-- SAMPLERS -->
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <!-- OUTSTREAMS -->
+  <OutStreams>
+    <Print name="testPrintHistorySet_dump">
+      <type>csv</type>
+      <source>testPrintHistorySet</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="testPointSet_dump">
+      <type>csv</type>
+      <source>testPointSet</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <!-- DATA OBJECTS -->
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="testPointSet">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </PointSet>
+    <HistorySet name="testPrintHistorySet">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

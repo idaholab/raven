@@ -1,0 +1,38 @@
+<DataObjectMetadata name="romMeta">
+  <synth type="Static">
+    <ROM>
+      <type>SyntheticHistoryROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,pivot</Targets>
+    </ROM>
+    <STL>
+      <signal0 />
+      <signal1 />
+    </STL>
+    <Gaussianize>
+      <signal0 />
+      <signal1 />
+    </Gaussianize>
+    <ARMA>
+      <signal0>
+        <constant>6.670730262e-04</constant>
+        <AR_0>1.882699526e+00</AR_0>
+        <AR_1>-9.798770716e-01</AR_1>
+        <MA_0>-1.200831024e+00</MA_0>
+        <MA_1>1.458241630e-01</MA_1>
+        <MA_2>2.571487190e-01</MA_2>
+        <variance>1.548102632e-01</variance>
+      </signal0>
+      <signal1>
+        <constant>4.662838791e-03</constant>
+        <AR_0>1.837474821e+00</AR_0>
+        <AR_1>-9.001123859e-01</AR_1>
+        <MA_0>-1.158935528e+00</MA_0>
+        <MA_1>3.824566825e-01</MA_1>
+        <MA_2>-2.176215817e-01</MA_2>
+        <variance>1.888250309e-01</variance>
+      </signal1>
+    </ARMA>
+  </synth>
+  
+</DataObjectMetadata>

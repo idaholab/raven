@@ -1897,6 +1897,7 @@ class KerasBase(SupervisedLearning):
 
     if len(self.availOptimizer) == 0:
       # stochastic gradient descent optimizer, includes support for momentum,learning rate decay, and Nesterov momentum
+      import tensorflow.keras as keras #Needed if lazily loading tensorflow 2.6
       self.availOptimizer['sgd'] = tf.keras.optimizers.SGD
       # RMSprop optimizer, usually a good choice for recurrent neural network
       self.availOptimizer['rmsprop'] = tf.keras.optimizers.RMSprop
@@ -1909,7 +1910,9 @@ class KerasBase(SupervisedLearning):
       # continues learning even when many updates have been done.
       self.availOptimizer['adadelta'] = tf.keras.optimizers.Adadelta
       # Adam optimzer
-      self.availOptimizer['adam'] = tf.keras.optimizers.Adam
+      self.availOptimizer['adam_new'] = tf.keras.optimizers.Adam
+      # Adam legacy optimizer
+      self.availOptimizer['adam'] = tf.keras.optimizers.legacy.Adam
       # Adamax optimizer from Adam paper's section 7
       self.availOptimizer['adamax'] = tf.keras.optimizers.Adamax
       # Nesterov Adam optimizer
@@ -2206,7 +2209,7 @@ class KerasBase(SupervisedLearning):
         self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
     featureValues = np.stack(featureValues, axis=-1)
 
-    self.__trainLocal__(featureValues,targetValues)
+    self._train(featureValues,targetValues)
     self.amITrained = True
 
 
@@ -2263,7 +2266,7 @@ class KerasBase(SupervisedLearning):
     layerInstant = self.__class__.availLayer[layerType]
     self._ROM.add(self._getLastLayer(layerInstant, layerDict))
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def _train(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.

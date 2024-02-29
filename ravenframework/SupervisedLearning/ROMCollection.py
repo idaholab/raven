@@ -166,7 +166,7 @@ class Collection(SupervisedLearning):
     """
     pass
 
-  def __trainLocal__(self, featureVals, targetVals):
+  def _train(self, featureVals, targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.
@@ -1720,7 +1720,7 @@ class Interpolated(SupervisedLearning):
       if df is None:
         df = newDf
       else:
-        df = df.append(newDf)
+        df = df._append(newDf)
 
     df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
@@ -1750,7 +1750,7 @@ class Interpolated(SupervisedLearning):
       @ Out, newModel, SupervisedEngine instance, interpolated model
     """
     newModel = copy.deepcopy(exampleModel)
-    segmentRoms = [] # FIXME speedup, make it a numpy array from the start
+    segmentRoms = np.array([])
     for segment in range(N):
       params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
       # DEBUGG, leave for future development
@@ -1761,9 +1761,8 @@ class Interpolated(SupervisedLearning):
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
       newRom.setFundamentalFeatures(inputs)
-      segmentRoms.append(newRom)
+      segmentRoms = np.r_[segmentRoms, newRom]
 
-    segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
     # DEBUGG, leave for future development
@@ -1899,7 +1898,7 @@ class Interpolated(SupervisedLearning):
     """
     pass
 
-  def __trainLocal__(self, featureVals, targetVals):
+  def _train(self, featureVals, targetVals):
     """
       Perform training on samples in featureVals with responses y.
       For an one-class model, +1 or -1 is returned.

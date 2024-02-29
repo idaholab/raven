@@ -19,8 +19,13 @@
   [./test3]
     type   = 'RavenFramework'
     input  = 'test3_cobratf_code_interface.xml'
-    text   = 'CobraTFinterfaceTest3/testDummyStep_MC/1/sample.inp CobraTFinterfaceTest3/testDummyStep_MC/1/vuq_param.txt CobraTFinterfaceTest3/testDummyStep_MC/2/sample.inp CobraTFinterfaceTest3/testDummyStep_MC/2/vuq_param.txt'
+    text   = 'CobraTFinterfaceTest3/testDummyStep_MC/1/sample.inp CobraTFinterfaceTest3/testDummyStep_MC/2/sample.inp'
     csv    = 'CobraTFinterfaceTest3/cobra_out.csv'
+    [./text]
+      type = NumericText
+      output = ' CobraTFinterfaceTest3/testDummyStep_MC/1/vuq_param.txt CobraTFinterfaceTest3/testDummyStep_MC/2/vuq_param.txt'
+      rel_err = 1e-8
+    [../]
     test_interface_only = True
   [../]
 

@@ -2,25 +2,31 @@
   <synth type="Static">
     <ROM>
       <type>SyntheticHistoryROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,seconds</Targets>
     </ROM>
+    <Gaussianize>
+      <signal0 />
+      <signal1 />
+    </Gaussianize>
     <ARMA>
       <signal0>
-        <constant>-8.587009150e-04</constant>
-        <AR_0>-2.250564015e-01</AR_0>
-        <AR_1>5.970294755e-01</AR_1>
-        <MA_0>8.634880096e-01</MA_0>
-        <MA_1>1.868007405e-01</MA_1>
-        <MA_2>2.081813345e-01</MA_2>
-        <variance>5.125390292e-01</variance>
+        <constant>-2.342847668e-02</constant>
+        <AR_0>5.181329679e-01</AR_0>
+        <AR_1>-6.530269669e-02</AR_1>
+        <MA_0>-2.950415467e-02</MA_0>
+        <MA_1>3.140371412e-01</MA_1>
+        <MA_2>1.246305413e-01</MA_2>
+        <variance>8.738162828e-01</variance>
       </signal0>
       <signal1>
-        <constant>2.174316663e-04</constant>
-        <AR_0>1.892071060e-01</AR_0>
-        <AR_1>5.607341788e-01</AR_1>
-        <MA_0>3.326118808e-01</MA_0>
-        <MA_1>-5.850544952e-02</MA_1>
-        <MA_2>2.025052806e-02</MA_2>
-        <variance>4.612197407e-01</variance>
+        <constant>2.448632326e-02</constant>
+        <AR_0>8.721221585e-01</AR_0>
+        <AR_1>-7.094838121e-02</AR_1>
+        <MA_0>-4.123799927e-01</MA_0>
+        <MA_1>1.474309685e-01</MA_1>
+        <MA_2>-1.712627050e-01</MA_2>
+        <variance>9.269180521e-01</variance>
       </signal1>
     </ARMA>
   </synth>

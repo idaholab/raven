@@ -859,7 +859,7 @@ Example:
 \label{Categorical}
 The \distname{Categorical} distribution is a discrete distribution that describes the result of a random variable that can have $K$ possible outcomes. 
 The probability of each outcome is separately specified.
-The possible outcomes must be only numerical values (either integer or float numbers). No string can be assigned to any outcome.
+The possible outcomes can be  numerical values (either integer or float numbers) or strings.
 %
 There is not necessarily an underlying ordering of these outcomes, but labels are assigned in describing the distribution (in the range $1$ to $K$).
 %
@@ -892,12 +892,19 @@ Example:
 \begin{lstlisting}[style=XML]
 <Distributions>
   ...
-    <Categorical name='testCategorical'>
+    <Categorical name='testCategoricalFloat'>
         <state outcome="10">0.1</state>
         <state outcome="20">0.2</state>
         <state outcome="50">0.15</state>
         <state outcome="60">0.4</state>
         <state outcome="90">0.15</state>
+    </Categorical>
+    <Categorical name='testCategoricalString'>
+        <state outcome="A">0.1</state>
+        <state outcome="B">0.2</state>
+        <state outcome="C">0.15</state>
+        <state outcome="D">0.4</state>
+        <state outcome="E">0.15</state>
     </Categorical>
   ...
 </Distributions>

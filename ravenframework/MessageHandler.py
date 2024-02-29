@@ -234,7 +234,7 @@ class MessageHandler(object):
         sys.tracebacklimit = 0
       raise etype(message)
 
-  def message(self, caller, message, tag, verbosity, color=None, writeTo=sys.stdout, forcePrint=False):
+  def message(self, caller, message, tag, verbosity, color=None, forcePrint=False):
     """
       Print a message
       @ In, caller, object, the entity desiring to print a message
@@ -250,8 +250,7 @@ class MessageHandler(object):
     if tag.lower().strip() == 'warning':
       self.addWarning(message)
     if okay:
-      print(msg, file=writeTo)
-    sys.stdout.flush()
+      print(msg, flush=True)
 
   def addWarning(self, msg):
     """

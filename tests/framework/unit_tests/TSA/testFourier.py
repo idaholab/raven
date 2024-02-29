@@ -243,9 +243,8 @@ signals[:, 2] = signalC
 
 fourier = createFourier(targets, periods)
 settings = {'periods': periods}
-params = fourier.characterize(signals, pivot, targets, settings)
+params = fourier.fit(signals, pivot, targets, settings)
 
-checkTrue("fourier can generate", fourier.canGenerate())
 checkTrue("fourier can characterize", fourier.canCharacterize())
 
 # intercepts
@@ -288,14 +287,14 @@ resid = fourier.getResidual(residSig, params, pivot, settings)
 checkFloat('Residual check', (resid-const).sum(), 0)
 
 # recreate signals
-res = fourier.generate(params, pivot, None)
+res = fourier.getComposite(np.zeros(signals.shape), params, pivot, None)
 for tg, target in enumerate(targets):
   checkArray(f'Signal {target} replication', res[:, tg], signals[:, tg], float)
 
 
 
 ##### now redo with non-simultaneous fitting
-params = fourier.characterize(signals, pivot, targets, settings, simultFit=False)
+params = fourier.fit(signals, pivot, targets, settings, simultFit=False)
 # intercepts
 checkFloat('Signal A intercept', params['A']['intercept'], 0)
 checkFloat('Signal B intercept', params['B']['intercept'], 0)
@@ -329,7 +328,7 @@ checkFloat('Signal C period 1 phase',     params['C']['coeffs'][periods[1]]['pha
 checkFloat('Signal C period 2 phase',     params['C']['coeffs'][periods[2]]['phase'] , phasesC[2])
 
 # recreate signals
-res = fourier.generate(params, pivot, settings)
+res = fourier.getComposite(np.zeros(signals.shape), params, pivot, None)
 for tg, target in enumerate(targets):
   checkArray(f'Signal {target} replication', res[:, tg], signals[:, tg], float)
 

@@ -24,7 +24,6 @@ import shutil
 import time
 import threading
 import platform
-from distutils import spawn
 
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -295,7 +294,7 @@ class _TimeoutThread(threading.Thread):
         #Time over
         #If we are on windows, process.kill() is insufficient, so using
         # taskkill instead.
-        if os.name == "nt" and spawn.find_executable("taskkill"):
+        if os.name == "nt" and shutil.which("taskkill"):
           subprocess.call(['taskkill', '/f', '/t', '/pid', str(self.__process.pid)])
         else:
           self.__process.kill()
@@ -391,6 +390,7 @@ class Tester:
                      ' Example 3.8 (note, format is major.minor)')
     params.add_param('needed_executable', '',
                      'Only run test if needed executable is on path.')
+    params.add_param('skip_if_OS', '', 'Skip test if the operating system defined')
     return params
 
   def __init__(self, _name, params):
@@ -537,6 +537,18 @@ class Tester:
       self.results.group = self.group_skip
       self.results.message = self.specs['skip']
       return self.results
+    ## OS
+    if len(self.specs['skip_if_OS']) > 0:
+      skip_os = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
+      # get simple-name platform (options are Linux, Windows, Darwin, or SunOS that I've seen)
+      current_os = platform.system().lower()
+      # replace Darwin with more expected "mac"
+      if current_os == 'darwin':
+        current_os = 'mac'
+      if current_os in skip_os:
+        self.set_skip('skipped (OS is "{}")'.format(current_os))
+        return self.results
+
     if self.specs['min_python_version'].strip().lower() != 'none':
       major, minor = self.specs['min_python_version'].strip().split(".")
       #check to see if current version of python too old.
@@ -583,7 +595,11 @@ class Tester:
         output = process.communicate(timeout=timeout)[0]
       except subprocess.TimeoutExpired:
         process.kill()
-        output = process.communicate()[0]
+        try:
+          #wait 20 seconds, then give up trying to get output
+          output = process.communicate(timeout=20)[0]
+        except subprocess.TimeoutExpired as error:
+          output = "Getting output timed out: " + repr(error)
         timed_out = True
     else:
       timeout_killer = _TimeoutThread(process, timeout)

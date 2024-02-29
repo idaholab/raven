@@ -12,4 +12,32 @@
     input = 'testWavelet.py'
     required_libraries = 'pywavelets'
   [../]
+  [./Filters]
+    type = 'RavenPython'
+    input = 'testFilters.py'
+  [../]
+  [./FunctionTransformers]
+    type = 'RavenPython'
+    input = 'testFunctionTransformers.py'
+  [../]
+  [./OutTruncation]
+    type = 'RavenPython'
+    input = 'testOutTruncation.py'
+  [../]
+  [./Normalization]
+    type = 'RavenPython'
+    input = 'testNormalization.py'
+  [../]
+  [./Distributions]
+    type = 'RavenPython'
+    input = 'testDistributionTransformations.py'
+  [../]
+  [./Differencing]
+    type = 'RavenPython'
+    input = 'testDifferencing.py'
+  [../]
+  [./STL]
+    type = 'RavenPython'
+    input = 'testSTL.py'
+  [../]
 []

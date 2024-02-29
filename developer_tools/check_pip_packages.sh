@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script tests that the 3.7 and 3.8 wheels built in directory dist
+# This script tests that the 3.9 and 3.8 wheels built in directory dist
 # are installable. It will not work if there is more than one
 # version of the wheel for a python version (including for other os's)
 # It is designed to be run after (or similar):
@@ -28,16 +28,16 @@ ls -l dist
 #python -m pip install -f file://${RAVEN_DIR}/dist raven_framework || exit -1
 
 echo
-echo Checking Python 3.7
+echo Checking Python 3.9
 
-conda activate python37_pip
+conda activate python39_pip
 python -m pip uninstall -y raven_framework || echo not installed
-python -m pip install dist/raven_framework*cp37*.whl || exit -1
+python -m pip install dist/raven_framework*cp39*.whl || exit -1
 
 
 echo
-echo Checking Python 3.8
+echo Checking Python 3.10
 
-conda activate python38_pip
+conda activate python310_pip
 python -m pip uninstall -y raven_framework || echo not installed
-python -m pip install dist/raven_framework*cp38*.whl || exit -1
+python -m pip install dist/raven_framework*cp310*.whl || exit -1

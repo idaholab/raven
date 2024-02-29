@@ -29,6 +29,7 @@
     UnorderedXml = 'SobolIshigami/dump.xml' #analytic, "Global Sobol Sensitivity: Ishigami"
     # csv is consistency test
     UnorderedCsv = 'SobolIshigami/dump.csv'
+    zero_threshold = 1e-20
   [../]
   [./sobolGFunction]
     type = 'RavenFramework'

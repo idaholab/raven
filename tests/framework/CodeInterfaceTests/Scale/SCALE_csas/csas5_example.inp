@@ -1,0 +1,11 @@
+=csas5
+' This test case cannot run in SCALE. It is only used to test the interface.
+read geom
+  unit 1
+    cylinder  2 1 xxxx xxxx -xxxx
+    cylinder  3 1 $RAVEN-dens$ xxxx -xxxx
+    cuboid  0 1 xxxx -xxxx xxxx -xxxx xxxx -xxxx
+end geom
+'
+end data
+end

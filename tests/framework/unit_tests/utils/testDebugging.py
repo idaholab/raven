@@ -80,11 +80,11 @@ checkAnswer('getSize deque', Debugging.getSize(deque(range(10))), 908)
 checkAnswer('getSize set', Debugging.getSize(set(range(10))), 1012)
 checkAnswer('getSize np array int10', Debugging.getSize(np.arange(10, dtype=int)), 176, tol=40)
 checkAnswer('getSize np array int100', Debugging.getSize(np.arange(100, dtype=int)), 896, tol=400)
-checkAnswer('getSize np array float', Debugging.getSize(np.arange(10, dtype=float)), 176)
-checkAnswer('getSize np array bool', Debugging.getSize(np.ones(10, dtype=bool)), 106)
-checkAnswer('getSize np array object', Debugging.getSize(np.arange(10, dtype=object)), 452)
+checkAnswer('getSize np array float', Debugging.getSize(np.arange(10, dtype=float)), 176, tol=20)
+checkAnswer('getSize np array bool', Debugging.getSize(np.ones(10, dtype=bool)), 106, tol=20)
+checkAnswer('getSize np array object', Debugging.getSize(np.arange(10, dtype=object)), 452, tol=20)
 checkAnswer('getSize np array flat', Debugging.getSize(np.arange(24)), 288, tol=100)
-checkAnswer('getSize np array shaped', Debugging.getSize(np.arange(24).reshape(2,3,4)), 128)
+checkAnswer('getSize np array shaped', Debugging.getSize(np.arange(24).reshape(2,3,4)), 128, tol=20)
 # dict-like
 a = dict((i, np.arange(i)) for i in range(10))
 checkAnswer('getSize dict nparray', Debugging.getSize(a), 1964, tol=200)
@@ -105,7 +105,7 @@ b = np.array([None, None, None], dtype=object)
 b[0] = a[:3]
 b[1] = a[:7]
 b[2] = a[:]
-checkAnswer('getSize nparray 3 nested object', Debugging.getSize(b), 1728, tol=200)
+checkAnswer('getSize nparray 3 nested object', Debugging.getSize(b), 1728, tol=300)
 
 # unchecked: classes, modules, probably a lot of other things
 

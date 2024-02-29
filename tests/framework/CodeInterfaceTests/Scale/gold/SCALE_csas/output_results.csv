@@ -1,0 +1,3 @@
+dens,keff,meanFreePath,AverageLethargyFission,nubar,PointProbability,ProbabilityWeight,prefix,ProbabilityWeight-dens
+10.11,0.952,1.23628,0.280003,2.44645,10.0,0.45,1,0.45
+10.18,0.991,1.23761,0.280003,2.44645,10.0,0.55,2,0.55

@@ -261,7 +261,7 @@ class FloatOrStringType(InputType):
       val = float(value)
       return val
     except ValueError:
-      return val
+      return value
 
   @classmethod
   def generateLatexType(cls):

@@ -13,6 +13,7 @@ Note all install methods after "main" take
  add with no pinned version: <library/>
  remove a library:           <library>remove</library>
  action for limited OS:      <library os='windows'>...
+ action for certain machine  <library machine='arm64'>...
  add library from forge:     <library source='forge'>...
  optional:                   <library optional='True'>...
  skip run/install check:     <library skip_check='True'>...
@@ -36,25 +37,20 @@ Note all install methods after "main" take
 <dependencies>
   <main>
     <h5py/>
-    <numpy>1.21</numpy>
-    <scipy>1.7</scipy>
+    <numpy>1.22</numpy>
+    <scipy>1.9</scipy>
     <scikit-learn>1.0</scikit-learn>
-    <pandas>1.3</pandas>
-    <!--
-         Note that xarray 0.20 throws this exception:
-         xarray/backends/plugins.py", line 105, in list_engines
-         entrypoints = entry_points().get("xarray.backends", ())
-         AttributeError: 'EntryPoints' object has no attribute 'get'
-         so should be skipped.
-    -->
-    <xarray>0.19</xarray>
-    <netcdf4>1.5</netcdf4>
-    <matplotlib>3.3</matplotlib>
+    <pandas/>
+    <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
+    <xarray>2023</xarray>
+    <netcdf4 source="pip">1.6</netcdf4>
+    <matplotlib>3.5</matplotlib>
     <statsmodels>0.13</statsmodels>
     <cloudpickle>2.2</cloudpickle>
-    <tensorflow>2.9</tensorflow>
+    <tensorflow source="pip">2.13</tensorflow>
+    <grpcio source="pip" />
     <!-- conda is really slow on windows if the version is not specified.-->
-    <python skip_check='True' os='windows'>3.7</python>
+    <python skip_check='True' os='windows'>3.10</python>
     <python skip_check='True' os='mac,linux'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -64,18 +60,20 @@ Note all install methods after "main" take
     <psutil/>
     <pip/>
     <importlib_metadata/>
-    <pyside2/>
+    <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray source="pip" pip_extra="[default]" os='mac,linux'>2.1</ray>
-    <ray source="pip" pip_extra="[default]" os='windows'>1.13</ray>
+    <dask source="pip" pip_extra="[complete]"/>
+    <ray source="pip" pip_extra="[default]">2.6</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
-    <imageio>2.22</imageio>
+    <imageio source="pip">2.22</imageio>
+    <smt machine='x86_64'/> <!-- not available on macos arm64 -->
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
-    <pywavelets optional='True'>1.1</pywavelets>
+    <pywavelets optional='True'>1.2</pywavelets>
+    <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
@@ -84,8 +82,13 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
-    <protobuf source="pip">3</protobuf> <!-- needed because protobuf 4 incompatible with current ray -->
     <setuptools/>
+    <!-- This is because liblapack 3.9.0 build 21 is broken (and can probably be removed if there ever is a build 22).  This can also be removed when scipy is updated to version 1.12 -->
+    <liblapack skip_check='True' os='linux' machine='x86_64'>3.9.0=20_linux64_openblas</liblapack>
+    <liblapack skip_check='True' os='windows' machine='x86_64'>3.9.0=20_win64_mkl</liblapack>
+    <liblapack skip_check='True' os='mac' machine='x86_64'>3.9.0=20_osx64_openblas</liblapack>
+    <!-- source="mamba" are the ones installed when mamba is installed -->
+    <mamba source="mamba" skip_check='True'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
@@ -94,6 +97,7 @@ Note all install methods after "main" take
     <python>remove</python>
     <nomkl>remove</nomkl>
     <numexpr>remove</numexpr>
+    <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
