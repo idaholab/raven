@@ -178,7 +178,7 @@ function create_libraries()
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
+        local PRECOMMAND=`$WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: $PRECOMMAND; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
