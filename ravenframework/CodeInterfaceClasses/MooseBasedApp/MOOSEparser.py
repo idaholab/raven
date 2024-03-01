@@ -78,7 +78,7 @@ class MOOSEparser():
           if foundCsvBlock and foundCsvBlock[-1].text.lower() == 'csv':
             # since 'csv' block already exist, pop 'csv' and only update 'file_base
             mod.pop('csv')
-            modified = self._modifySingleEntry(modified, ['Outputs', 'csv', 'type'], mod)
+            modified = self._modifySingleEntry(modified, ['Outputs', 'csv', 'file_base'], mod)
         else:
           modified = self._modifySingleEntry(modified, name, {'csv':'true'})
           modified = self._modifySingleEntry(modified, ['Outputs', 'file_base'], {'file_base':mod['file_base']})
