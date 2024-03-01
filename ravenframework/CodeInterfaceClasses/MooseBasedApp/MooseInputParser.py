@@ -135,11 +135,15 @@ def getpotToInputTree(getpot):
     #------------------
     # if the "value" if the "attribute" is closed, record the entry
     if closeEntry:
-      if attribute in (c.tag for c in currentNode.children): #currentNode.attrib:
-        raise IOError('Multiple entries defined with same name "{a}"!'.format(a=attribute))
+      if currentNode is not None:
+        if attribute in (c.tag for c in currentNode.children): #currentNode.attrib:
+          raise IOError('Multiple entries defined with same name "{a}"!'.format(a=attribute))
+        else:
+          new = TreeStructure.InputNode(tag=attribute, text=value)
+          currentNode.append(new)
+        # handle lines outside "[] ... [./]"
       else:
-        new = TreeStructure.InputNode(tag=attribute, text=value)
-        currentNode.append(new)
+        roots.append(new)
 
   if multilineValue:
     raise IOError('There was a parsing error reading MOOSE input! Multiline attribute "{n}" opened by {i} but never closed!'
