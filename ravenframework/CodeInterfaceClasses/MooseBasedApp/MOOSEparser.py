@@ -73,7 +73,7 @@ class MOOSEparser():
       # before we added to the input file
       if name[-1] == 'csv':
         foundCsv = MooseInputParser.findInGetpot(modified, name)
-        if not foundCsv:
+        if not foundCsv or not foundCsv[-1].text:
           foundCsvBlock = MooseInputParser.findInGetpot(modified, ['Outputs', 'csv', 'type'])
           if foundCsvBlock and foundCsvBlock[-1].text.lower() == 'csv':
             # since 'csv' block already exist, pop 'csv' and only update 'file_base
