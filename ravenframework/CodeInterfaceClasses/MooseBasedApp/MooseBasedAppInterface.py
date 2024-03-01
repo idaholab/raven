@@ -98,8 +98,7 @@ class MooseBasedApp(CodeInterfaceBase):
     # apply the requested modifications
     modifDict = self._expandVarNames(**Kwargs)
     ### set up output to place in a csv
-    modifDict.append({'csv':'true', 'name':['Outputs', 'csv']})
-    modifDict.append({'file_base': outName, 'name':['Outputs', 'file_base']})
+    modifDict.append({'csv':'true','file_base': outName, 'name':['Outputs', 'csv']})
     ### do modifications
     modified = parser.modifyOrAdd(modifDict)
     # write new input

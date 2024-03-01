@@ -65,9 +65,26 @@ class MOOSEparser():
       @ Out, modified, list(TreeStructure.InputTrees), the tree(s) that got modified
     """
     modified = copy.deepcopy(self.roots)
+    foundCsv = None
+    foundCsvBlock = None
     for mod in modiDictionaryList:
       name = mod.pop('name')
-      modified = self._modifySingleEntry(modified, name, mod)
+      # csv outputs can be either located at Outputs|csv or Outputs|csv|type, check first
+      # before we added to the input file
+      if name[-1] == 'csv':
+        foundCsv = MooseInputParser.findInGetpot(modified, name)
+        if not foundCsv:
+          foundCsvBlock = MooseInputParser.findInGetpot(modified, ['Outputs', 'csv', 'type'])
+          if foundCsvBlock and foundCsvBlock[-1].text.lower() == 'csv':
+            # since 'csv' block already exist, pop 'csv' and only update 'file_base
+            mod.pop('csv')
+            modified = self._modifySingleEntry(modified, ['Outputs', 'csv', 'type'], mod)
+        else:
+          modified = self._modifySingleEntry(modified, name, {'csv':'true'})
+          modified = self._modifySingleEntry(modified, ['Outputs', 'file_base'], {'file_base':mod['file_base']})
+      else:
+        modified = self._modifySingleEntry(modified, name, mod)
+
     return modified
 
   def printInput(self, outFile, trees):
