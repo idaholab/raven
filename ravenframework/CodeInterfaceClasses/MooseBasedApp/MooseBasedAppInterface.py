@@ -161,13 +161,16 @@ class MooseBasedApp(CodeInterfaceBase):
         request = var
       if '|' not in request:
         # what modifications don't have the path in them?
-        continue
-      pathedName = request.split('|')
-      modifDict['name'] = pathedName
-      if elemLoc is not None:
-        modifDict[pathedName[-1]] = (int(elemLoc), Kwargs['SampledVars'][var])
+        # global alias parameters
+        modifDict[var] = Kwargs['SampledVars'][var]
+        modifDict['name'] = [var]
       else:
-        modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
+        pathedName = request.split('|')
+        modifDict['name'] = pathedName
+        if elemLoc is not None:
+          modifDict[pathedName[-1]] = (int(elemLoc), Kwargs['SampledVars'][var])
+        else:
+          modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
       requests.append(modifDict)
     return requests
 
