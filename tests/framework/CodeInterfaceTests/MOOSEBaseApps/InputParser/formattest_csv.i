@@ -1,9 +1,14 @@
+global_param_1 = 0.1
+global_param_2 = 0.2
+
 [ParserChallenges]
   scalar = 3.14 # scalarComment
   scalar2 =
 
        6.28
 
+  scalar3 = ${global_param_1}
+  scalar4 = ${global_param_2}
 
   # scalarComment
   string = OneString # stringComment

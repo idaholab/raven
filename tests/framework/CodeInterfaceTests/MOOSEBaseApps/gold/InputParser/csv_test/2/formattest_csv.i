@@ -1,6 +1,10 @@
+global_param_1 = 0.1
+global_param_2 = 0.2
 [ParserChallenges]
   scalar = 0.593085968772
   scalar2 = 6.28
+  scalar3 = ${global_param_1}
+  scalar4 = ${global_param_2}
   string = OneString
   onelineVector = "A B C D E"
   onelineComment = "F G H I J"
@@ -21,6 +25,8 @@
   [../]
 []
 [Outputs]
-  csv = true
-  file_base = out~formattest
+  [./csv]
+    type = CSV
+    file_base = out~formattest_csv
+  [../]
 []
