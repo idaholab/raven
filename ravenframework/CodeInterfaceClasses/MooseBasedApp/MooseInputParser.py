@@ -259,6 +259,45 @@ def findInGetpot(trees, targetPath):
         break
   return found
 
+def findCsvInGetpot(trees):
+  """
+    Find the CSV output blocks in the input file
+    @ In, trees, list(TreeStructure.InputTrees), the tree(s) represent the input file
+    @ Out, list, list(TreeStructure.InputTrees), list of CSV blocks in the input file
+  """
+  csv = []
+  foundCsv = False
+  foundCsvBlock = False
+  for tree in trees:
+    root = tree.getroot()
+    if root.tag == 'Outputs':
+      for sub in root:
+        if sub.text.lower() == 'csv':
+          foundCsv = True
+        elif not sub.text and len(sub)>0:
+          for c in sub:
+            if c.tag == 'type' and c.text == 'CSV':
+              csv.append(sub)
+          if sub.tag == 'csv':
+            foundCsvBlock = True
+    else:
+      continue
+  if (foundCsv and foundCsvBlock) or (foundCsv and len(csv)>0):
+    raise IOError('"csv" output has been found in both "Outputs" block and its sub-block, \
+                  please consider to keep one, otherwise, the current interface can not handle it!')
+  if len(csv) == 1 and not foundCsvBlock:
+    raise IOError('Output block with type of "CSV" have been found in the input file. However, \
+                  RAVEN can not determine if this is the one to be used to collect simulation output. \
+                  Please consider to name the block name to "csv" instead.')
+  if len(csv) > 1 and not foundCsvBlock:
+    raise IOError('Multiple output blocks with type of "CSV" have been found in the input file, \
+                  RAVEN can not identify which one to be used to collect simulation output. \
+                  Please consider to name one of the blocks to "csv" instead.')
+  if not foundCsv and not foundCsvBlock:
+    return False
+  else:
+    return True
+
 def findInTree(searchNode, targetPath, heritage=None):
   """
     Searches trees for element matching path given by target
