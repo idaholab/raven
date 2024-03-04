@@ -76,7 +76,6 @@ class GeneticAlgorithm(RavenSampled):
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
     self.needDenormalized()                                      # the default in all optimizers is to normalize the data which is not the case here
     self.batchId = 0
-<<<<<<< HEAD
     self.population = None                                       # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None                                           # population age
     self.fitness = None                                          # population fitness
@@ -85,6 +84,7 @@ class GeneticAlgorithm(RavenSampled):
     self.crowdingDistance = None                                 # population crowding distance (for Multi-objective optimization only)
     self.ahdp = np.NaN                                           # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN                                           # Hausdorff Distance between populations
+    self.hdsm = np.NaN                                           # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
     self.bestFitness = None                                      # fitness value of the best solution found
     self.bestObjective = None                                    # objective value of the best solution found
@@ -118,38 +118,38 @@ class GeneticAlgorithm(RavenSampled):
     self._fitnessInstance = None                                 # instance of fitness
     self._repairInstance = None                                  # instance of repair
     self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
-=======
-    self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
-    self.popAge = None     # population age
-    self.fitness = None    # population fitness
-    self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
-    self.ahd  = np.NaN     # Hausdorff Distance between populations
-    self.hdsm = np.NaN     # Hausdorff Distance Similarity metric between populations
-    self.bestPoint = None
-    self.bestFitness = None
-    self.bestObjective = None
-    self.objectiveVal = None
-    self._populationSize = None
-    self._parentSelectionType = None
-    self._parentSelectionInstance = None
-    self._nParents = None
-    self._nChildren = None
-    self._crossoverType = None
-    self._crossoverPoints = None
-    self._crossoverProb = None
-    self._crossoverInstance = None
-    self._mutationType = None
-    self._mutationLocs = None
-    self._mutationProb = None
-    self._mutationInstance = None
-    self._survivorSelectionType = None
-    self._survivorSelectionInstance = None
-    self._fitnessType = None
-    self._objCoeff = None
-    self._penaltyCoeff = None
-    self._fitnessInstance = None
-    self._repairInstance = None
->>>>>>> origin/devel
+# =======
+#     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
+#     self.popAge = None     # population age
+#     self.fitness = None    # population fitness
+#     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
+#     self.ahd  = np.NaN     # Hausdorff Distance between populations
+#     self.hdsm = np.NaN     # Hausdorff Distance Similarity metric between populations
+#     self.bestPoint = None
+#     self.bestFitness = None
+#     self.bestObjective = None
+#     self.objectiveVal = None
+#     self._populationSize = None
+#     self._parentSelectionType = None
+#     self._parentSelectionInstance = None
+#     self._nParents = None
+#     self._nChildren = None
+#     self._crossoverType = None
+#     self._crossoverPoints = None
+#     self._crossoverProb = None
+#     self._crossoverInstance = None
+#     self._mutationType = None
+#     self._mutationLocs = None
+#     self._mutationProb = None
+#     self._mutationInstance = None
+#     self._survivorSelectionType = None
+#     self._survivorSelectionInstance = None
+#     self._fitnessType = None
+#     self._objCoeff = None
+#     self._penaltyCoeff = None
+#     self._fitnessInstance = None
+#     self._repairInstance = None
+# >>>>>>> origin/devel
 
   ##########################
   # Initialization Methods #
@@ -943,7 +943,6 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-<<<<<<< HEAD
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
@@ -952,10 +951,6 @@ class GeneticAlgorithm(RavenSampled):
         for ind, consName in enumerate(g['Constraint'].values):
           rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
-=======
-      self._solutionExportUtilityUpdate(traj, rlz, fitness, g, acceptable)
-
->>>>>>> origin/devel
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
@@ -1478,12 +1473,11 @@ class GeneticAlgorithm(RavenSampled):
             #  'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
              'AHD': self.ahd,
-<<<<<<< HEAD
              'rank': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else rlz['rank'],
-             'CD': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else  rlz['CD']}
-=======
-             'HDSM': self.hdsm}
->>>>>>> origin/devel
+             'CD': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else  rlz['CD'],
+             'HDSM': self.hdsm
+             }
+
 
     for var, val in self.constants.items():
       toAdd[var] = val

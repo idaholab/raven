@@ -374,8 +374,6 @@
      rel_err = 0.001
     [../]
   [../]
-
-<<<<<<< HEAD
   [./NSGA-II_MinwoRepMultiObjective]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
@@ -392,14 +390,6 @@
     [./csv]
      type = OrderedCSV
      output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
-=======
-  [./GAwithEnsembleModelHDSMconvergence]
-    type = 'RavenFramework'
-    input = 'continuous/unconstrained/test_ensemble_withGA_HDSM.xml'
-    [./csv]
-     type = OrderedCSV
-     output = 'continuous/unconstrained/ensemble_withGA_HDSM/opt_export.csv'
->>>>>>> origin/devel
      rel_err = 0.001
     [../]
   [../]
