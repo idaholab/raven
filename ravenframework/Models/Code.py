@@ -142,6 +142,19 @@ class Code(Model):
     for child in paramInput.subparts:
       if child.getName() =='executable':
         self.executable = child.value if child.value is not None else ''
+        # Special case: the executable was specified as %RAVENFRAMEWORK%, which means the executable should be
+        # whatever was used to run RAVEN in the first place. This can happen in a couple of ways:
+        #    1. (most common) The user is running RAVEN from the command line with python
+        #    2. (less common) The user is using a prebuilt RAVEN executable
+        # These cases as distinguishable by the value of sys.executable
+        if self.executable == '%RAVENFRAMEWORK%':
+          if sys.executable.endswith('python') and sys.argv[0].endswith('.py'):
+            self.executable = sys.argv[0]  # sys.argv[0] is the name of the script that was run
+          elif sys.executable.endswith('raven_framework'):
+            self.executable = sys.executable
+          else:
+            self.raiseAnError(IOError, 'The executable was specified as %RAVENFRAMEWORK%, but the framework was '
+                                       'not found in sys.executable or sys.argv[0]')
       if child.getName() =='walltime':
         self.maxWallTime = child.value
       if child.getName() =='preexec':
@@ -229,6 +242,12 @@ class Code(Model):
           self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
+    elif self.executable == '%RAVENFRAMEWORK%':
+      # Special case: the executable was specified as %RAVENFRAMEWORK%, which means the executable should be
+      # whatever was used to run RAVEN in the first place. Figuring out what that should be is handled in the
+      # ravenframework.CodeInterfaceClasses.RAVEN.RAVENInterface.RAVEN class. For now, we just print a message.
+      self.raiseADebug('The node "<executable>" was found to be "%RAVENFRAMEWORK%" in the body of the code model ' + str(self.name) +
+                       ' so the code will be run using the same executable that is running RAVEN...')
     else:
       if utils.stringIsFalse(os.environ.get('RAVENinterfaceCheck','False')):
         if '~' in self.executable:
