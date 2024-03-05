@@ -47,7 +47,7 @@ echo 'Loading libraries ...'
 if [[ " ${ARGS[@]} " =~ " --use-pip " ]];
 then
     echo "Using the current python environment"
-    PYTHON_COMMAND="$CONDA_PREFIX/bin/python"
+    PYTHON_COMMAND=$(which python)
     echo "Python command: $PYTHON_COMMAND"
 elif  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
 then
