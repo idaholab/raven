@@ -43,8 +43,6 @@ class SimulateData:
     self.data["PinPowerPeaking"] = self.pinPeaking()
     self.data["exposure"] = self.burnupEOC()
     self.data["assembly_power"] = self.assemblyPeakingFactors()
-    self.data["fuel_type"] = self.fa_type()
-#    self.data["pin_peaking"] = self.pinPeaking()
     # this is a dummy variable for demonstration with MOF
     # check if something has been found
     if all(v is None for v in self.data.values()):
@@ -213,7 +211,7 @@ class SimulateData:
     if not list_:
       return ValueError("No values returned. Check Simulate File executed correctly")
     else:
-      outputDict = {'info_ids':['MaxEFPD'], 'values': [list_[-1]]}
+      outputDict = {'info_ids':['MaxEFPD'], 'values': [list_[-1]] }
 
     return outputDict
 
@@ -488,45 +486,6 @@ class SimulateData:
 
     return outputDict
 
-  def fa_type(self):
-    '''
-    Extracts the fuel type and calculates the fuel cost based on the amount and enrichment of each fuel type.
-    '''
-    #fuel_type = []
-    FAlist = []
-    for line in self.lines:
-      if "'FUE.TYP'" in line:
-        p1 = line.index(",")
-        p2 = line.index("/")
-        search_space = line[p1:p2]
-        search_space = search_space.replace(",","")
-        tmp= search_space.split()
-        for ii in tmp:
-          FAlist.append(float(ii))
-    FAtype = list(set(FAlist))
-    FAlist_A = FAlist[0]
-    FAlist_B = FAlist[1:9] + FAlist[9:73:9]
-    FAlist_C = FAlist[10:18] + FAlist[19:27] + FAlist[28:36] + FAlist[37:45] + FAlist[46:54] + FAlist[55:63] + FAlist[64:72] + FAlist[73:81]
-    FAcount_A = [float(fa == FAlist_A) for fa in FAtype]
-    FAcount_B = [float(FAlist_B.count(fa)*2) for fa in FAtype]
-    FAcount_C = [float(FAlist_C.count(fa)*4) for fa in FAtype]
-    FAcount = [FAcount_A[j] + FAcount_B[j] + FAcount_C[j] for j in range(len(FAtype))]
-    print(FAcount)
-    #stop
-    #Considering that: FA type 0 is empty, type 1 reflector, type 2 2% enrichment, types 3 and 4 2.5% enrichment, and types 5 and 6 3.2% enrichment. The cost of burnable is not being considered
-    if len(FAcount) == 7:
-      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*2.69520839 + (FAcount[3] + FAcount[4])*3.24678409 + (FAcount[5] + FAcount[6])*4.03739539
-    else:
-      fuel_cost = (FAcount[0] + FAcount[1])*0 + FAcount[2]*2.69520839 + (FAcount[3] + FAcount[4])*3.24678409 + (FAcount[5])*4.03739539
-    print(fuel_cost)
-    #fuel_type.append(float(search_space))
-    #stop
-    if not fuel_cost:
-      return ValueError("No values returned. Check Simulate File executed correctly")
-    else:
-      outputDict = {'info_ids':['fuel_cost'], 'values': [fuel_cost]}
-      return outputDict
-
   def writeCSV(self, fileout):
     """
       Print Data into CSV format
@@ -546,3 +505,4 @@ class SimulateData:
           index=index+1
     numpy.savetxt(fileObject, outputMatrix.T, delimiter=',', header=','.join(headers), comments='')
     fileObject.close()
+
