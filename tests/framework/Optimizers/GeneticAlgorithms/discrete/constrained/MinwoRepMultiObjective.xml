@@ -41,9 +41,9 @@
     <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="expConstr3">
       <variables>x1,x2,x3,x4,x5,x6</variables>
     </External>
-    <!-- <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr2">
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr2">
       <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
-    </External> -->
+    </External>
     <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr3">
       <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
     </External>
@@ -106,7 +106,7 @@
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
-      <!-- <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint> -->
+      <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
     </GeneticAlgorithm>
   </Optimizers>
