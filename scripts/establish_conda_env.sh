@@ -108,10 +108,6 @@ function install_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     if [[ $USE_MAMBA == TRUE ]]; then
         local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset mamba`" $SET_PYTHON"
-        if [  "$MAMBA_SKIP" == "true" ]
-        then
-            PRECOMMAND=${PRECOMMAND/mamba/}
-        fi
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: ${PRECOMMAND}; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -182,11 +178,7 @@ function create_libraries()
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
-        if [  "$MAMBA_SKIP" == "true" ]
-        then
-            PRECOMMAND=${PRECOMMAND/mamba/}
-        fi
+        local PRECOMMAND=`$WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: $PRECOMMAND; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -342,15 +334,6 @@ fi
 PROXY_COMM="" # proxy is none
 USE_MAMBA=TRUE # Use Mamba for installation
 
-#Note this complexity is because on one computer in 2023, mamba failed to
-# install correctly when mamba was in the base conda install.
-if command -v mamba;
-then
-    #This is used to skip installing mamba
-    MAMBA_SKIP="true"
-else
-    MAMBA_SKIP="false"
-fi
 
 # parse command-line arguments
 while test $# -gt 0
