@@ -129,7 +129,8 @@ def fitnessBased(newRlz,**kwargs):
   newFitness = xr.DataArray(newFitness,
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
-  newFitness = newFitness.to_dataset(name = list(kwargs['fitness'].keys())[0])
+  # newFitness = newFitness.to_dataset(name = list(kwargs['fitness'].keys())[0])
+  newFitness = newFitness.to_dataset(name = list(kwargs['variables'])[0])
 
   #return newPopulationArray,newFitness,newAge
   return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']
@@ -162,7 +163,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
   popFitArray = []
   offFit = kwargs['offFit']
   offFitArray = []
-  for i in list(popFit.keys()): #NOTE popFit.keys() and offFit.keys() must be same. 
+  for i in list(popFit.keys()): #NOTE popFit.keys() and offFit.keys() must be same.
     popFitArray.append(popFit[i].data.tolist())
     offFitArray.append(offFit[i].data.tolist())
 
@@ -189,7 +190,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
   newAge = list(map(lambda x:x+1, popAge))
   newPopulationMerged = np.concatenate([population,offSprings])
   newAge.extend([0]*len(offSprings))
-  
+
   sortedRank,sortedCD,sortedAge,sortedPopulation,sortedFit,sortedObjectives,sortedConstV = \
     zip(*[(x,y,z,i,j,k,a) for x,y,z,i,j,k,a in \
       sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMerged_pair, newObjectivesMerged_pair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1]))])

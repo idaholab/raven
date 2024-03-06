@@ -118,38 +118,6 @@ class GeneticAlgorithm(RavenSampled):
     self._fitnessInstance = None                                 # instance of fitness
     self._repairInstance = None                                  # instance of repair
     self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
-# =======
-#     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
-#     self.popAge = None     # population age
-#     self.fitness = None    # population fitness
-#     self.ahdp = np.NaN     # p-Average Hausdorff Distance between populations
-#     self.ahd  = np.NaN     # Hausdorff Distance between populations
-#     self.hdsm = np.NaN     # Hausdorff Distance Similarity metric between populations
-#     self.bestPoint = None
-#     self.bestFitness = None
-#     self.bestObjective = None
-#     self.objectiveVal = None
-#     self._populationSize = None
-#     self._parentSelectionType = None
-#     self._parentSelectionInstance = None
-#     self._nParents = None
-#     self._nChildren = None
-#     self._crossoverType = None
-#     self._crossoverPoints = None
-#     self._crossoverProb = None
-#     self._crossoverInstance = None
-#     self._mutationType = None
-#     self._mutationLocs = None
-#     self._mutationProb = None
-#     self._mutationInstance = None
-#     self._survivorSelectionType = None
-#     self._survivorSelectionInstance = None
-#     self._fitnessType = None
-#     self._objCoeff = None
-#     self._penaltyCoeff = None
-#     self._fitnessInstance = None
-#     self._repairInstance = None
-# >>>>>>> origin/devel
 
   ##########################
   # Initialization Methods #
@@ -497,7 +465,7 @@ class GeneticAlgorithm(RavenSampled):
     if self._fitnessType == 'feasibleFirst':
       if self._numOfConst != 0 and fitnessNode.findFirst('b') is not None:
         self._penaltyCoeff = fitnessNode.findFirst('b').value
-        self._objCoeff = fitnessNode.findFirst('a').value 
+        self._objCoeff = fitnessNode.findFirst('a').value
       elif self._numOfConst == 0 and fitnessNode.findFirst('b') is not None:
         self.raiseAnError(IOError, f'The number of constraints used are 0 but there are penalty coefficieints')
       elif self._numOfConst != 0 and fitnessNode.findFirst('b') is None:
@@ -761,8 +729,8 @@ class GeneticAlgorithm(RavenSampled):
 
     # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
     # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
-    
-    objInd = 1 if len(self._objectiveVar) == 1 else 2
+
+    objInd = int(len(self._objectiveVar)>1) + 1 #if len(self._objectiveVar) == 1 else 2
     constraintFuncs: dict = {1: GeneticAlgorithm.singleConstraint, 2: GeneticAlgorithm.multiConstraint}
     const = constraintFuncs.get(objInd, GeneticAlgorithm.singleConstraint)
     traj, g, objectiveVal, offSprings, offSpringFitness = const(self, info, rlz)

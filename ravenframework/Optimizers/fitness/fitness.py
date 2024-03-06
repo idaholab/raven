@@ -65,10 +65,10 @@ def invLinear(rlz,**kwargs):
   objVar = [kwargs['objVar']] if isinstance(kwargs['objVar'], str) == True else kwargs['objVar']
   for j in range(len(objVar)):
     data = np.atleast_1d(rlz[objVar][objVar[j]].data)
-    fitness = -a[0] * (rlz[objVar][objVar[j]].data).reshape(-1,1) - b[0] * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
+    fitness = -a[j] * (rlz[objVar][objVar[j]].data).reshape(-1,1) - b[j] * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1)
     fitness = xr.DataArray(np.squeeze(fitness),
-                          dims=['chromosome'],
-                          coords={'chromosome': np.arange(len(data))})
+                           dims=['chromosome'],
+                           coords={'chromosome': np.arange(len(data))})
     if j == 0:
         fitnessSet = fitness.to_dataset(name = objVar[j])
     else:
@@ -109,7 +109,7 @@ def feasibleFirst(rlz,**kwargs):
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
   """
   objVar = [kwargs['objVar']] if isinstance(kwargs['objVar'], str) == True else kwargs['objVar']
-  a = 1.0 if kwargs['a'] == None else kwargs['a']
+  a = [1.0]*len(objVar) if kwargs['a'] == None else kwargs['a']
   if kwargs['constraintNum'] == 0:
     pen = kwargs['b']
   else:

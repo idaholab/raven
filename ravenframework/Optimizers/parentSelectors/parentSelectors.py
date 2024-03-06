@@ -48,6 +48,7 @@ def rouletteWheel(population,**kwargs):
   # Arguments
   pop = population
   fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
+  # fitness = kwargs['fitness'].data
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -112,8 +113,8 @@ def tournamentSelection(population,**kwargs):
     fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
     for i in range(nParents):
       matrixOperationRaw = np.zeros((kSelect,2))
-      selectChromoIndexes = list(np.arange(kSelect))
-      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None)
+      selectChromoIndexes = list(np.arange(len(pop)))  #NOTE: JYK - selectChromoIndexes should cover all chromosomes in population.
+      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None) #NOTE: JYK - randomly select several indices with size of kSelect.
       matrixOperationRaw[:,0] = selectedChromo
       matrixOperationRaw[:,1] = np.transpose(fitness[selectedChromo])
       tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:,1]),0])
@@ -156,7 +157,7 @@ def rankSelection(population,**kwargs):
   index = np.arange(0,pop.shape[0])
   rank = np.arange(0,pop.shape[0])
 
-  data = np.vstack((fitness,index))
+  data = np.vstack((np.array(fitness.variables['test_RankSelection']),index))
   dataOrderedByDecreasingFitness = data[:,(-data[0]).argsort()]
   dataOrderedByDecreasingFitness[0,:] = rank
   dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
@@ -166,6 +167,7 @@ def rankSelection(population,**kwargs):
                       dims=['chromosome'],
                       coords={'chromosome': np.arange(np.shape(orderedRank)[0])})
 
+  rank = rank.to_dataset(name = 'test_RankSelection')
   selectedParent = rouletteWheel(population, fitness=rank , nParents=kwargs['nParents'],variables=kwargs['variables'])
 
   return selectedParent
