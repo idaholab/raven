@@ -471,7 +471,6 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
     return # nothing to do
   # check if repository (git) is specified
   libRepo = libNode.attrib.get('repo', None)
-  printStuff = False
   if libRepo is not None:
     # check if the source is pip
     if libSource != 'pip':
