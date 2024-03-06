@@ -474,8 +474,7 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
   if libRepo is not None:
     # check if the source is pip
     if libSource != 'pip':
-       raise KeyError(f'The "repo" ({libRepo}) attribute can be '
-                      f'used in conjunction with source="pip" only! Got {libSource}!')
+       raise KeyError(f'The "repo" ({libRepo}) attribute can be used in conjunction with source="pip" only! Got {libSource}!')
   # otherwise, we have a valid request to handle
   text = libNode.text
   if text is not None:
