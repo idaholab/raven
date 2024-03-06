@@ -1,0 +1,5 @@
+[Tabelle1]
+Diff_values(row, column, new value, old value, new formula, old formula):(1, 1, None, 1234.0, '', '1234')
+Read time: 3.7437427043914795
+Loop Checking Time:0.3932614326477051
+Save time: 0.25067567825317383
