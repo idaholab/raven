@@ -612,7 +612,7 @@ if __name__ == '__main__':
       if repo is not None:
         msg += '(Repository: \\url{' + f'{repo}' + '})'
       msg += '\n'
-    
+
     msg += '\\end{itemize}'
     print(msg)
   else:
