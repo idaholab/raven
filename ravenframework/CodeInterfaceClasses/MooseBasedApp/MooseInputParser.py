@@ -263,7 +263,7 @@ def findCsvInGetpot(trees):
   """
     Find the CSV output blocks in the input file
     @ In, trees, list(TreeStructure.InputTrees), the tree(s) represent the input file
-    @ Out, list, list(TreeStructure.InputTrees), list of CSV blocks in the input file
+    @ Out, findCsvInGetpot, bool, True if there is a csv output option
   """
   csv = []
   foundCsv = False

@@ -7,7 +7,7 @@
    test_interface_only = True
  [../]
 
- [./InputParser_csv]
+ [./InputParserCSV]
    type = 'RavenFramework'
    input = input_parser_csv.xml
    text = 'InputParser/csv_test/1/formattest_csv.i InputParser/csv_test/2/formattest_csv.i'

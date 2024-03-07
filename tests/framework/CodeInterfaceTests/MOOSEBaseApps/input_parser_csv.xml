@@ -1,13 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests/MOOSEBaseApps.InputParser</name>
-    <author>talbpaul</author>
-    <created>2020-04-06</created>
+    <name>framework/CodeInterfaceTests/MOOSEBaseApps.InputParserCSV</name>
+    <author>wangc</author>
+    <created>2024-03-07</created>
     <classesTested>Models.Code.MooseBasedApp</classesTested>
     <description>
-       Various challenging moose-based input parsing tests. As far as I know would not actually
-       run in MOOSE.
+       Test CSV output options in Moose Based Apps, and test top-level/global variables options
     </description>
   </TestInfo>
 
