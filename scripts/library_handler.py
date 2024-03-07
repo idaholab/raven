@@ -608,7 +608,7 @@ if __name__ == '__main__':
       msg += '  \\item {}{}'.format(
              lib.replace('_', '\\_'), ('' if version is None else '-'+version.replace('_', '\\_')))
       if repo is not None:
-        msg += '(Repository: \\url{' + f'{repo}' + '})'
+        msg += '(Repository: \\url{' + str(repo) + '})'
       msg += '\n'
 
     msg += '\\end{itemize}'
