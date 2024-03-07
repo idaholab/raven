@@ -691,7 +691,7 @@ install_requires =
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
     libTexts = itemSeperator.join(['{lib}{extra}{ver}'
-                         .format(lib=(lib if 'repository' not in request else f'git+{request["repository"]}'),
+                         .format(lib=(lib if 'repository' not in request else 'git+'+str(request["repository"])),
                                  extra=((request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '') if 'repository' not in request else ''),
                                  ver=(('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else '') if 'repository' not in request else ''))
                          for lib, request in libs.items()])
