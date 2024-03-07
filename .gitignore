@@ -18,6 +18,9 @@
 *.ravenStatus
 *.so
 *~
+*.inp
+*.fls
+*.fdb_latexmk
 build_out*
 build/
 install/
@@ -54,6 +57,15 @@ dist/
 #coverage
 tests/framework/.coverage
 tests/framework/htmlcov/
+
+# test
+tests/framework/CodeInterfaceTests/PARCS/PARCS-RAVEN-GA/sampleGA-PARCS/
+tests/framework/CodeInterfaceTests/Scale/SCALE_csas/sampleScale/
+tests/framework/CodeInterfaceTests/Simulate/Simulate_RAVEN-GA/sampleGA-Simulate/
+tests/framework/ROM/TimeSeries/ARMA/InterpolatedMaxCycles/
+tests/framework/ROM/TimeSeries/SyntheticHistory/LogARMA/
+tests/framework/ROM/TimeSeries/SyntheticHistory/VARMA/
+tests/framework/ROM/TimeSeries/SyntheticHistory/ZeroFilterDiscontinuous/
 
 # hpc
 node_*[0-9]

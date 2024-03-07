@@ -205,6 +205,11 @@
       rel_err = 1e-2
       zero_threshold = 1e-3
     [../]
+    [./csv]
+      type = OrderedCSV
+      output = 'MarkovAR/samples_0.csv MarkovAR/samples_1.csv'
+      rel_err = 1e-2
+    [../]
   [../]
 
   [./VARMA]
@@ -220,6 +225,26 @@
       output = 'VARMA/romMeta.xml'
       rel_err = 1e-2
       zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./VARMASample]
+    prereq = VARMA
+    type = 'RavenFramework'
+    input = 'varma_sample.xml'
+    [./csv0]
+      type = OrderedCSV
+      output = 'VARMA/pk_samples_0.csv'
+      gold_files = '../VARMA/samples_0.csv'
+      rel_err = 8.8e-1 # thank you, Windows and Linux diffs
+      zero_threshold = 1e-12
+    [../]
+    [./csv1]
+      type = OrderedCSV
+      output = 'VARMA/pk_samples_1.csv'
+      gold_files = '../VARMA/samples_1.csv'
+      rel_err = 8.8e-1 # thank you, Windows and Linux diffs
+      zero_threshold = 1e-12
     [../]
   [../]
 

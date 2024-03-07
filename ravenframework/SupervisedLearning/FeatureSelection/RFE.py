@@ -720,9 +720,10 @@ class RFE(FeatureSelectionBase):
                                             estimator, support_, originalParams, parametersToInclude)
     # evaluate
     score = 0.0
-    avgArray = np.atleast_1d(np.average(y, axis=(0,) if len(y.shape) < 3 else (0, 1)))
-    stdArray = np.atleast_1d(np.std(y, axis=(0,) if len(y.shape) < 3 else (0, 1), ddof=1))
     for samp in range(X.shape[0]):
+      # calculate the average and standard deviation for each realization
+      avgArray = np.atleast_1d(np.average(y, axis=0) if len(y.shape) < 3 else np.average(y[samp,:,:], axis=0))
+      stdArray = np.atleast_1d(np.std(y, axis=0, ddof=1) if len(y.shape) < 3 else np.std(y[samp,:,:], axis=0, ddof=1))
       evaluated = estimator._evaluateLocal(X[samp:samp+1, features] if len(X.shape) < 3 else np.atleast_2d(X[samp:samp+1, :,features]))
       for target in evaluated:
         if target in targetsIds:
