@@ -135,11 +135,15 @@ def getpotToInputTree(getpot):
     #------------------
     # if the "value" if the "attribute" is closed, record the entry
     if closeEntry:
-      if attribute in (c.tag for c in currentNode.children): #currentNode.attrib:
-        raise IOError('Multiple entries defined with same name "{a}"!'.format(a=attribute))
+      new = TreeStructure.InputNode(tag=attribute, text=value)
+      if currentNode is not None:
+        if attribute in (c.tag for c in currentNode.children): #currentNode.attrib:
+          raise IOError('Multiple entries defined with same name "{a}"!'.format(a=attribute))
+        else:
+          currentNode.append(new)
+        # handle lines outside "[] ... [./]"
       else:
-        new = TreeStructure.InputNode(tag=attribute, text=value)
-        currentNode.append(new)
+        roots.append(new)
 
   if multilineValue:
     raise IOError('There was a parsing error reading MOOSE input! Multiline attribute "{n}" opened by {i} but never closed!'
@@ -254,6 +258,45 @@ def findInGetpot(trees, targetPath):
       if found is not None:
         break
   return found
+
+def findCsvInGetpot(trees):
+  """
+    Find the CSV output blocks in the input file
+    @ In, trees, list(TreeStructure.InputTrees), the tree(s) represent the input file
+    @ Out, findCsvInGetpot, bool, True if there is a csv output option
+  """
+  csv = []
+  foundCsv = False
+  foundCsvBlock = False
+  for tree in trees:
+    root = tree.getroot()
+    if root.tag == 'Outputs':
+      for sub in root:
+        if sub.text.lower() == 'csv':
+          foundCsv = True
+        elif not sub.text and len(sub)>0:
+          for c in sub:
+            if c.tag == 'type' and c.text == 'CSV':
+              csv.append(sub)
+          if sub.tag == 'csv':
+            foundCsvBlock = True
+    else:
+      continue
+  if (foundCsv and foundCsvBlock) or (foundCsv and len(csv)>0):
+    raise IOError('"csv" output has been found in both "Outputs" block and its sub-block, \
+                  please consider to keep one, otherwise, the current interface can not handle it!')
+  if len(csv) == 1 and not foundCsvBlock:
+    raise IOError('Output block with type of "CSV" have been found in the input file. However, \
+                  RAVEN can not determine if this is the one to be used to collect simulation output. \
+                  Please consider to name the block name to "csv" instead.')
+  if len(csv) > 1 and not foundCsvBlock:
+    raise IOError('Multiple output blocks with type of "CSV" have been found in the input file, \
+                  RAVEN can not identify which one to be used to collect simulation output. \
+                  Please consider to name one of the blocks to "csv" instead.')
+  if not foundCsv and not foundCsvBlock:
+    return False
+  else:
+    return True
 
 def findInTree(searchNode, targetPath, heritage=None):
   """
