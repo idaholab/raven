@@ -88,13 +88,12 @@ class Relap5(CodeInterfaceBase):
           raise ValueError("can not convert outputDeckNumber to integer!!!! Got "+ child.text)
       elif child.tag == 'datatypes':
         # DATA TYPES
-        for subsub in child:
-          if subsub.tag == "integers":
-            if subsub is not None:
-                c = "," if "," in subsub.text else None
-                self.datatypes['integers'] = [e.strip() for e in (subsub.text.split() if c is None else subsub.text.split(c))]
+        for datatype in child:
+          if datatype.tag == "integers":
+            c = "," if "," in datatype.text else None
+            self.datatypes['integers'] = [e.strip() for e in (datatype.text.split() if c is None else datatype.text.split(c))]
           else:
-            raise ValueError(f"datatype {subsub.tag} not supported!")
+            raise ValueError(f"ERROR in 'RELAP5 Code Interface': datatype {datatype.tag} not supported!")
 
       elif child.tag == 'operator':
         operator = {}
