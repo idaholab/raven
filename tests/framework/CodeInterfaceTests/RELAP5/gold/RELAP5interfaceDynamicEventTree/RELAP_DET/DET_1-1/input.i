@@ -1,8 +1,8 @@
 *RAVEN INPUT VALUES
 * card: 100 word: 1 value: restart
-* card: 103 word: 1 value: -1
-* card: 414 word: 6 value: 1.6000000e+01
-* card: 454 word: 6 value: 1.3520000e+01
+* card: 103 word: 1 value: -1.000000e+00
+* card: 414 word: 6 value: 1.600000e+01
+* card: 454 word: 6 value: 1.352000e+01
 *RAVEN INPUT VALUES
 =Typical pwr model
 *            type         state
@@ -10,13 +10,13 @@
 *             run
 101           run
 *       restrtnum
-103  -1
+103  -1.000000e+00
 *     tend minstep maxstep copt pfreq majed rsrtf
 201   25.0  1.0e-7    0.05    7     2  1000  1000
 *        variable     parameter
 301      cntrlvar           802
-414  time  0  ge  null  0  1.6000000e+01  l
-454  time  0  ge  null  0  1.3520000e+01  l
+414  time  0  ge  null  0  1.600000e+01  l
+454  time  0  ge  null  0  1.352000e+01  l
 ** START -- CONTROL VARIABLES ADDED BY RAVEN *
 599 cntrlvar 998 gt null 0 0.0 l
 0000600 599 301
