@@ -43,7 +43,6 @@
       <alias variable="pressureAliasOutput"     type="output">p_280010000</alias>
       <datatypes>
           <integers>201:4</integers>
-          <floats>501:6</floats>
       </datatypes>
       
     </Code>

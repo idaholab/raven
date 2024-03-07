@@ -45,7 +45,7 @@ class RELAPparser():
     """
       Constructor
       @ In, inputFile, string, input file name
-      @ In, datatypes, {}, dict {floats:[],integers:[]}
+      @ In, datatypes, {}, dict {integers:[]}
       @ In, addMinorEdits, bool, flag to add Minor Edits in case there are trips and the variables in the trip is not among the minor edits (generally for DET)
       @ Out, None
     """
@@ -538,8 +538,6 @@ class RELAPparser():
     ff, cast = '{:7e}', float
     if dtype == 'integer':
       ff, cast = '{:d}', int
-    elif dtype == 'float':
-      ff, cast = '{:7e}', float
     temp=line.split()
     try:
       temp[int(position)]=ff.format(cast(value))
