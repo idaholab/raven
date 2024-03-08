@@ -263,16 +263,18 @@ class BayesianOptimizer(RavenSampled):
     if self._model.amITrained:
       trainingData = self._model.trainingSet
       trainingData = self.normalizeData(trainingData)
-      # retrieving the best solutions
-      minDex = np.argmin(trainingData[self._objectiveVar])
-      xStar = {varName:trainingData[varName][minDex] for varName in self.toBeSampled.keys()}
-      for varName in trainingData.keys():
-        trainingData[varName] = np.delete(trainingData[varName], minDex)
       for varName in self.toBeSampled.keys():
         self._trainingInputs[0][varName] = list(trainingData[varName])
       self._trainingTargets.append(list(trainingData[self._objectiveVar]))
       self.raiseAMessage(f"{self._model.name} ROM has been already trained with {len(trainingData[self._objectiveVar])} samples!",
                          "This pre-trained ROM will be used by Optimizer to evaluate the next best point!")
+      # retrieving the best solution is based on the acqusition function's utility
+      # Constraints are considered in the following method.
+      xStar, minDex = self._acquFunction._recommendSolutionForPretrainedRom(self)
+      # remove the best solution from training data
+      for varName in self.toBeSampled.keys():
+        self._trainingInputs[0][varName].pop(minDex)
+      self._trainingTargets[0].pop(minDex)
       # re-evaluate the best point with the given model
       self._iteration[0] = 0
       self._submitRun(xStar, 0, 0)
