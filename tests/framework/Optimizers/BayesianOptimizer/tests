@@ -83,25 +83,9 @@
     [../]
   [../]
 
-    [./BayesianPretrainedRom_not_linux]
+  [./BayesianPretrainedRom]
     type = 'RavenFramework'
     input = 'PreTrainedRom/BayesianPretrainedRom.xml'
-    skip_if_OS = 'linux,windows'
-    required_libraries = 'smt'
-    [./data]
-      type = OrderedCSV
-      output = 'PreTrainedRom/opt_export_0.csv'
-      # windows_gold = 'PreTrainedRom/windows_opt_export_0.csv'
-      mac_gold = 'PreTrainedRom/mac_opt_export_0.csv'
-      rel_err = 1e-5
-      zero_threshold = 1e-5
-    [../]
-  [../]
-
-  [./BayesianPretrainedRom_linux]
-    type = 'RavenFramework'
-    input = 'PreTrainedRom/BayesianPretrainedRom.xml'
-    skip_if_OS = 'mac,windows'
     required_libraries = 'smt'
     [./data]
       type = OrderedCSV
