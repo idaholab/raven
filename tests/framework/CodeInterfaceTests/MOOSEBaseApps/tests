@@ -7,6 +7,13 @@
    test_interface_only = True
  [../]
 
+ [./InputParserCSV]
+   type = 'RavenFramework'
+   input = input_parser_csv.xml
+   text = 'InputParser/csv_test/1/formattest_csv.i InputParser/csv_test/2/formattest_csv.i'
+   test_interface_only = True
+ [../]
+
  [./MooseEx18withGenericFile]
    type = 'RavenFramework'
    input = test_MC_MooseEx18_with_generic_file.xml
