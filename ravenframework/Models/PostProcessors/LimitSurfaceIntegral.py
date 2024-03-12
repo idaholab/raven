@@ -255,9 +255,9 @@ class LimitSurfaceIntegral(PostProcessorInterface):
         else:
           randomMatrix[:, index] = self.variableDist[varName].ppf(randomMatrix[:, index])  # previously used np.vectorize in the calculation, but this is faster with scipy distributions
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      pb = self.stat._runLegacy({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target], dims=self.sampleTag)}})[self.computationPrefix +"_"+self.target]
       if self.errorModel:
-        boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target])
+        boundError = abs(pb-self.stat._runLegacy({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target], dims=self.sampleTag)}})[self.computationPrefix +"_"+self.target])
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb, boundError
