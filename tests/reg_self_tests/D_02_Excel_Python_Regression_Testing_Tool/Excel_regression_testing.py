@@ -1,4 +1,4 @@
-# The Interface between Python and Excel 
+# The Interface between Python and Excel
 ## Warning: Please close the tool before running this code
 import os
 import json

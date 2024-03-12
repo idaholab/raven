@@ -30,12 +30,12 @@ def compare_json(file1, file2):
             for cell in updated_ws.used_range:
                 OV= initial_ws.range((cell.row,cell.column)).value
                 OF= initial_ws.range((cell.row,cell.column)).formula
-                if cell.formula!= OF or cell.value!= OV:       
+                if cell.formula!= OF or cell.value!= OV:
                     # Print the differences in a format you prefer
                     f.write("Diff_values(row, column, new value, old value, new formula, old formula):")
                     f.write(str((cell.row, cell.column,cell.value, OV, cell.formula,OF)))
                     f.write("\n")
-                    
+
             start_check=time.time()
     end=time.time()
     os.remove ("new_"+file1)
