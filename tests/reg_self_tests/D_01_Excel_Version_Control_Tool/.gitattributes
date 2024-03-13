@@ -1,9 +1,0 @@
-*.xla diff=exceldiff
-*.xlam diff=exceldiff
-*.xls diff=exceldiff
-*.xlsb diff=exceldiff
-*.xlsm diff=exceldiff
-*.xlsx diff=exceldiff
-*.xlt diff=exceldiff
-*.xltm diff=exceldiff
-*.xltx diff=exceldiff
