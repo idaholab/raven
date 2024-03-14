@@ -51,7 +51,10 @@ def swapMutator(offSprings, distDict, **kwargs):
   for i in range(np.shape(offSprings)[0]):
     children[i] = offSprings[i]
     ## TODO What happens if loc1 or 2 is out of range?! should we raise an error?
-    if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
+    new_mutationProb=(i/len(children)) #ILM/DHC method
+    new_mutationProb2=1-(i/len(children)) #DHM/ILC method
+    if randomUtils.random(dim=1,samples=1)<=new_mutationProb2:
+      #kwargs['mutationProb']
       # convert loc1 and loc2 in terms on cdf values
       cdf1 = distDict[offSprings.coords['Gene'].values[loc1]].cdf(float(offSprings[i,loc1].values))
       cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
@@ -136,9 +139,13 @@ def randomMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by randomMutator')
+  k=0
   for child in offSprings:
     # the mutation is performed for each child independently
-    if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
+    new_mutationProb=(k/len(offSprings))
+    k=k+1
+    if randomUtils.random(dim=1,samples=1)<new_mutationProb:
+      # kwargs['mutationProb']
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
       loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
@@ -217,3 +224,15 @@ def returnInstance(cls, name):
   if name not in __mutators:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __mutators[name]
+
+# def adaptivemutator(**kwargs):
+#   """
+#     Method designed to adaptive mutation rate:
+#     @ In, kwargs['mutationProb']
+#     @ Out, kwargs['new_mutationProb']
+#   """
+#   for i in range():
+#     new_mutationProb=1-(i/len(children))
+#     kwargs['mutationProb']=new_mutationProb
+#     print(new_mutationProb)
+#   return new_mutationProb

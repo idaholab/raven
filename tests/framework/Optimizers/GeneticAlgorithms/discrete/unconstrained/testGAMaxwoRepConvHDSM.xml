@@ -68,7 +68,7 @@
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
-          <mutation type="swapMutator">
+          <mutation type="randomMutator">
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>

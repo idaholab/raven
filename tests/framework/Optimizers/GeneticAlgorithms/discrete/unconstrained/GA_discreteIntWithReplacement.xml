@@ -64,6 +64,7 @@
 
       <GAparams>
         <populationSize>17</populationSize>
+        <!-- 17 -->
         <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.9</crossoverProb>

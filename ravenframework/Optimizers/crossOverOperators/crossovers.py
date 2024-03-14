@@ -44,8 +44,6 @@ def onePointCrossover(parents,**kwargs):
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                   'Gene':kwargs['variables']})
-
-
   # defaults
   if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
     crossoverProb = randomUtils.random(dim=1, samples=1)
@@ -54,11 +52,11 @@ def onePointCrossover(parents,**kwargs):
 
   # create children
   parentsPairs = list(combinations(parents,2))
-
   for ind,parent in enumerate(parentsPairs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
-
-    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+    new_crossoverProb=1-((2*ind)/len(children)) #ILM/DHC method
+    new_crossoverProb2=((2*ind)/len(children)) #DHM/ILC method
+    if randomUtils.random(dim=1,samples=1) <= new_crossoverProb2:
       if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
         point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
       elif (any(i>=nGenes-1 for i in kwargs['points'])):
