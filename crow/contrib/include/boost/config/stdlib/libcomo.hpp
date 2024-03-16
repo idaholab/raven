@@ -39,6 +39,7 @@
 #  define BOOST_NO_CXX11_HDR_CHRONO
 #  define BOOST_NO_CXX11_HDR_CODECVT
 #  define BOOST_NO_CXX11_HDR_CONDITION_VARIABLE
+#  define BOOST_NO_CXX11_HDR_EXCEPTION
 #  define BOOST_NO_CXX11_HDR_FORWARD_LIST
 #  define BOOST_NO_CXX11_HDR_FUTURE
 #  define BOOST_NO_CXX11_HDR_INITIALIZER_LIST
@@ -55,9 +56,31 @@
 #  define BOOST_NO_CXX11_HDR_UNORDERED_SET
 #  define BOOST_NO_CXX11_NUMERIC_LIMITS
 #  define BOOST_NO_CXX11_ALLOCATOR
+#  define BOOST_NO_CXX11_POINTER_TRAITS
 #  define BOOST_NO_CXX11_ATOMIC_SMART_PTR
 #  define BOOST_NO_CXX11_SMART_PTR
 #  define BOOST_NO_CXX11_HDR_FUNCTIONAL
+#  define BOOST_NO_CXX11_HDR_ATOMIC
+#  define BOOST_NO_CXX11_STD_ALIGN
+#  define BOOST_NO_CXX11_ADDRESSOF
+
+#if defined(__has_include)
+#if !__has_include(<shared_mutex>)
+#  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
+#elif __cplusplus < 201402
+#  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
+#endif
+#else
+#  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
+#endif
+
+// C++14 features
+#  define BOOST_NO_CXX14_STD_EXCHANGE
+
+// C++17 features
+#  define BOOST_NO_CXX17_STD_APPLY
+#  define BOOST_NO_CXX17_STD_INVOKE
+#  define BOOST_NO_CXX17_ITERATOR_TRAITS
 
 //
 // Intrinsic type_traits support.
@@ -68,5 +91,3 @@
 #define BOOST_HAS_SGI_TYPE_TRAITS
 
 #define BOOST_STDLIB "Comeau standard library " BOOST_STRINGIZE(__LIBCOMO_VERSION__)
-
-
