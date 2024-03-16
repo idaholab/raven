@@ -73,7 +73,7 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
     # general infrastructure
     super().__init__(*args, **kwargs)
 
-  def handleInput(self, spec):
+  def handleInput(self, spec, enforce_global=False):
     """
       Reads user inputs into this object.
       @ In, spec, InputData.InputParams, input specifications
@@ -83,7 +83,7 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
     settings['periods'] = spec.findFirst('periods').value
     return settings
 
-  def fit(self, signal, pivot, targets, settings, simultFit=True):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None, simultFit=True):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]

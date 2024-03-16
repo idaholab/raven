@@ -50,6 +50,7 @@
         <MA_1>1.881403539e-01</MA_1>
         <MA_2>1.434737494e-01</MA_2>
         <variance>4.917653477e-01</variance>
+        <order>2,0,3</order>
       </signal0>
       <signal1>
         <constant>3.270470871e-03</constant>
@@ -59,8 +60,9 @@
         <MA_1>9.744189247e-02</MA_1>
         <MA_2>-1.413858343e-02</MA_2>
         <variance>4.949581023e-01</variance>
+        <order>2,0,3</order>
       </signal1>
     </ARMA>
   </synth>
-  
+
 </DataObjectMetadata>

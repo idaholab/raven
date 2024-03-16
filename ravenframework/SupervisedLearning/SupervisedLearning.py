@@ -204,6 +204,7 @@ class SupervisedLearning(BaseInterface):
     # After the computation, the importances are set as attribute of the self.model
     # variable and called 'feature_importances_' and accessable as self.model.feature_importances_
     self.computeImportances = False
+    self._willHaveClusters = False
 
   def __getstate__(self):
     """
@@ -658,6 +659,17 @@ class SupervisedLearning(BaseInterface):
     # by default, nothing to write!
     self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
+  def getSegmentPointwiseData(self):
+    """
+      Allows the SVE to accumulate data arrays to later add to a DataObject
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement instance, Element to write to
+      @ Out, segmentData, dict
+    """
+    # by default, nothing to write!
+    self.raiseAMessage('Writing ROM, but no pointwise data found. Moving on ...')
+    return {}
+
   def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
@@ -707,6 +719,21 @@ class SupervisedLearning(BaseInterface):
     """
     # only true if overridden.
     return False
+
+  def setWillHaveClusters(self, willHaveClusters: bool):
+    """
+      Sets protected class member which tells ROM whether there will be clustering
+      @ In, willHaveClusters. bool, will there be
+      @ Out, None
+    """
+    assert isinstance(willHaveClusters, bool)
+    if not self.isClusterable():
+      # if ROM can't cluster in the first place... default to False
+      if willHaveClusters:
+        self.raiseAWarning("Clustering not allowed in this ROM, defaulting `willHaveClusters` to False")
+      self._willHaveClusters = False
+    else:
+      self._willHaveClusters = willHaveClusters
 
   def checkRequestedClusterFeatures(self, request):
     """

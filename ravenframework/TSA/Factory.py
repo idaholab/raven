@@ -22,6 +22,7 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 from .Fourier import Fourier
 from .ARMA import ARMA
 from .VARMA import VARMA
+from .AutoARMA import AutoARMA
 from .MarkovAR import MarkovAR
 from .Wavelet import Wavelet
 from .PolynomialRegression import PolynomialRegression
@@ -36,6 +37,7 @@ factory = EntityFactory('TimeSeriesAnalyzer')
 aliases = {'Fourier': 'fourier',
            'ARMA': 'arma',
            'VARMA': 'varma',
+           'AutoARMA': 'autoarma',
            'RWD': 'rwd',
            'Wavelet': 'wavelet',
            'ZeroFilter': 'zerofilter',

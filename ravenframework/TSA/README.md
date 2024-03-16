@@ -40,6 +40,7 @@ The following table shows which base classes each currently implemented TSA algo
 
 | Algorithm              | Transformer | Generator | Characterizer |
 |------------------------|:-----------:|:---------:|:-------------:|
+| `AutoARMA`             |             |           |    &check;    |
 | `ARMA`                 |   &check;   |  &check;  |    &check;    |
 | `VARMA`                |   &check;   |  &check;  |    &check;    |
 | `MarkovAR`             |   &check;   |  &check;  |               |

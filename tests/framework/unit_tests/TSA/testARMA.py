@@ -187,8 +187,8 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 ######################################
 def createARMAXML(targets, P, Q):
   xml = xmlUtils.newNode('ARMA', attrib={'target':','.join(targets)})
-  xml.append(xmlUtils.newNode('SignalLag', text=f'{P}'))
-  xml.append(xmlUtils.newNode('NoiseLag', text=f'{Q}'))
+  xml.append(xmlUtils.newNode('P', text=f'{P}'))
+  xml.append(xmlUtils.newNode('Q', text=f'{Q}'))
   return xml
 
 def createFromXML(xml):

@@ -96,8 +96,8 @@
       </fourier>
       <gaussianize target="TOTALLOAD,WIND,SOLAR"/>
       <arma target="TOTALLOAD,WIND,SOLAR" seed='42'>
-        <SignalLag>1</SignalLag>
-        <NoiseLag>0</NoiseLag>
+        <P>1</P>
+        <Q>0</Q>
       </arma>
     </ROM>
   </Models>

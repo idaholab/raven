@@ -26,6 +26,7 @@
         <MA_1>1.036930326e+00</MA_1>
         <MA_2>-3.110458392e-01</MA_2>
         <variance>1.138354562e+00</variance>
+        <order>2,0,3</order>
       </signal0>
       <signal1>
         <constant>6.300578434e-03</constant>
@@ -35,8 +36,9 @@
         <MA_1>-3.390657493e-01</MA_1>
         <MA_2>-1.293981956e-01</MA_2>
         <variance>1.128554230e+00</variance>
+        <order>2,0,3</order>
       </signal1>
     </ARMA>
   </synth>
-  
+
 </DataObjectMetadata>
