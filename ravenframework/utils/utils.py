@@ -655,6 +655,8 @@ def find_crow(framework_dir):
     @ In, framework_dir, string, the absolute path of the framework
     @ Out, None
   """
+  # TODO what if raven hasn't been built yet? We should throw a warning but keep going. If the user tries to use crow,
+  # then it will fail. If we can, let's make the resulting error message more informative.
   try:
     import crow_modules.distribution1D
     return
@@ -677,10 +679,14 @@ def find_crow(framework_dir):
         # we add it in pythonpath too
         os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + pmoduleDir
         return
+    # If we get here, we didn't find crow or it hasn't been built yet. Most of RAVEN can run without
+    # crow now, so let's just throw a warning and keep going.
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
-        raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs)+'. Has RAVEN been built?')
+        print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('WARNING')+ ' -> Crow was found in '+crowDir
+              +' but does not seem to be compiled. Some features will not be available.')
+    print(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('WARNING')+ ' -> Crow has not been found. It\'s '
+          'location is supposed to be one of '+str(crowDirs)+'. Has RAVEN been built?')
 
 def add_path(absolutepath):
   """
@@ -703,17 +709,21 @@ def findCrowModule(name):
     @ In, name, str, the name of the module
     @ Out, module, instance, the instance of module of "name"
   """
+  # TODO what if raven hasn't been built yet?
   availableCrowModules = ['distribution1D','interpolationND','randomENG']
   # assert
   assert(name in availableCrowModules)
-  # find the module
-  try:
-    module = import_module("crow_modules.{}".format(name))
-  except (ImportError, ModuleNotFoundError) as ie:
-    if not str(ie).startswith("No module named"):
-      print('sys.path:', sys.path)
-      raise ie
-    module = import_module("{}".format(name))
+  # Find the module. There are a couple places to look.
+  tryNames = [f'crow_modules.{name}', name]
+  for tryName in tryNames:
+    try:
+      module = import_module(tryName)
+      break  # import was successful
+    except (ImportError, ModuleNotFoundError) as ie:
+      pass
+  else:  # module was not found
+    print(f'WARNING: Crow module {name} was not found! Perhaps RAVEN has not been built?')
+    module = None
   return module
 
 def getPythonCommand():
