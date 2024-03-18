@@ -14,50 +14,44 @@ import pandas as pd
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="pass the excel file name to python script")
   # Inputs from the user
-  parser.add_argument("xlsb_python", help="xlsb_python")
+  parser.add_argument("xlsbPython", help="xlsbPython")
   args = parser.parse_args()
-  file_name=args.xlsb_python
-  wr=xw.Book(r'./'+ file_name)
-  wr2=xw.Book(r'./Gold_'+ file_name)
+  fileName=args.xlsbPython
+  wr=xw.Book(r'./'+ fileName)
+  wr2=xw.Book(r'./Gold_'+ fileName)
 
 # Read the inputs and outputs from the gold file
-sht_inp2=wr2.sheets['Inputs']
-input_old=pd.DataFrame(sht_inp2.range('Inputs_table').value,columns=['Parameter', 'Unit', 'value'])
+shtInp2=wr2.sheets['Inputs']
+inputOld=pd.DataFrame(shtInp2.range('Inputs_table').value,columns=['Parameter', 'Unit', 'value'])
 #print (np.array(input_old.iloc[:,2]))
-sht_out2=wr2.sheets['Outputs']
-output_old=pd.DataFrame(sht_out2.range('Outputs_table').value,columns=['Parameter', 'Unit', 'value'])
+shtOut2=wr2.sheets['Outputs']
+outputOld=pd.DataFrame(shtOut2.range('Outputs_table').value,columns=['Parameter', 'Unit', 'value'])
 
 # Write the inputs to the existing file
-sht_inp=wr.sheets['Inputs']
+shtInp=wr.sheets['Inputs']
 # store the inputs to be resoted
-input_restore=sht_inp.range('Inputs_table').value
-input_new=pd.DataFrame(sht_inp.range('Inputs_table').value, columns=['Parameter', 'Unit', 'value'])
-sht_inp.range('Inputs_table').value=sht_inp2.range('Inputs_table').value
-sht_out=wr.sheets['Outputs']
-output_new=pd.DataFrame(sht_out.range('Outputs_table').value,columns=['Parameter', 'Unit', 'value'])
+input_restore=shtInp.range('Inputs_table').value
+input_new=pd.DataFrame(shtInp.range('Inputs_table').value, columns=['Parameter', 'Unit', 'value'])
+shtInp.range('Inputs_table').value=shtInp2.range('Inputs_table').value
+shtOut=wr.sheets['Outputs']
+outputNew=pd.DataFrame(shtOut.range('Outputs_table').value,columns=['Parameter', 'Unit', 'value'])
 # Pass for T while Failure for F
 T=0
 F=0
-for i in range (len(output_new.iloc[:,2])):
-    #(check if error is less than 0.1% for each output)
-    if abs(output_new.iloc[i,2]-output_old.iloc[i,2])/output_old.iloc[i,2]<0.001:
-        T=T+1
-        print ('Test passed for calculating'+str(output_new.iloc[i,0]))
-    else:
-        F=F+1
-        print ('Test failed for calculating'+str(output_new.iloc[i,0]))
-
-sht_inp.range('Inputs_table').value=input_restore
-
+for i in range (len(outputNew.iloc[:,2])):
+  #(check if error is less than 0.1% for each output)
+  if abs(outputNew.iloc[i,2]-outputOld.iloc[i,2])/outputOld.iloc[i,2]<0.001:
+    T+=1
+    print ('Test passed for calculating'+str(outputNew.iloc[i,0]))
+  else:
+    F+=1
+    print ('Test failed for calculating'+str(outputNew.iloc[i,0]))
+shtInp.range('Inputs_table').value=input_restore
+wr.save()
+wr.close()
+wr2.close()
+xw.App().quit()
 if F==0:
-  wr.save()
-  wr.close()
-  wr2.close()
-  xw.App().quit()
   sys.exit(0)
 else:
-  wr.save()
-  wr.close()
-  wr2.close()
-  xw.App().quit()
   sys.exit(1)

@@ -5,61 +5,60 @@ import xlwings as xw
 import time
 from pathlib import Path # Core Python Module
 
-def compare_json(file1, file2):
+def compareExcelfiles(file1, file2):
   """
     Compares two excel files sheet-by-sheet and row-by-row.
-    @ In, file1, the initial version of the excel file
-    @ In, file2, the updated version of the excel file
-    @ Out, (Read, Loop, Save) time for running the diff
-    @ Out, a text file would be generated through this process
+    @ In, file1, str, filename of the initial excel file
+    @ In, file2, str, filename of the updated excel file
+    @ Out, None
   """
   ## Compare the excel sheets cell by cell
-  start=time.time()
-  intial_version= Path.cwd()/file1
-  updated_version=Path.cwd()/file2
-  file_dir= os.path.dirname(file1)
-  file_name=os.path.basename(file1)
+  # the time checks can be enable by the developers
+  #start=time.time()
+  intialVersion= Path.cwd()/file1
+  updatedVersion=Path.cwd()/file2
+  fileDir= os.path.dirname(file1)
+  fileName=os.path.basename(file1)
   with xw.App(visible=False) as app:
-    initial_wb_2=app.books.open(intial_version)
-    initial_wb_2.save(file_dir+"/new_"+file_name)
-    initial_wb_2.close()
-    intial_version_2=Path.cwd()/(file_dir+"/new_"+file_name)
-    num_sheet=len(app.books.open(updated_version).sheet_names)
-    f = open(file_dir+"/Diff_Results.txt", mode="wt",encoding="utf-8")
-    read=time.time()
-    for i in range (num_sheet):
-      initial_wb=app.books.open(intial_version_2)
-      initial_ws=initial_wb.sheets(i+1)
-      updated_wb=app.books.open(updated_version)
-      updated_ws=updated_wb.sheets(i+1)
-      f.write("["+str(initial_wb.sheet_names[i])+"]")
+    initialWb2=app.books.open(intialVersion)
+    initialWb2.save(fileDir+"/new_"+fileName)
+    initialWb2.close()
+    intialVersion2=Path.cwd()/(fileDir+"/new_"+fileName)
+    numSheet=len(app.books.open(updatedVersion).sheet_names)
+    f = open(fileDir+"/DiffResults.txt", mode="wt",encoding="utf-8")
+    #read=time.time()
+    for i in range (numSheet):
+      initialWb=app.books.open(intialVersion2)
+      initialWs=initialWb.sheets(i+1)
+      updatedWb=app.books.open(updatedVersion)
+      updatedWs=updatedWb.sheets(i+1)
+      f.write("["+str(initialWb.sheet_names[i])+"]")
       f.write("\n")
       # print (updated_ws.used_range)
-      for cell in updated_ws.used_range:
-        OV= initial_ws.range((cell.row,cell.column)).value
-        OF= initial_ws.range((cell.row,cell.column)).formula
+      for cell in updatedWs.used_range:
+        OV= initialWs.range((cell.row,cell.column)).value
+        OF= initialWs.range((cell.row,cell.column)).formula
         if cell.formula!= OF or cell.value!= OV:
           # Print the differences in a format you prefer
           f.write("Diff_values(row, column, new value, old value, new formula, old formula):")
           f.write(str((cell.row, cell.column,cell.value, OV, cell.formula,OF)))
           f.write("\n")
-        start_check=time.time()
-    end=time.time()
-    os.remove (file_dir+"/new_"+file_name)
-    f.write("Read time: ")
-    f.write(str(read-start))
-    f.write("\n")
-    f.write("Loop Checking Time:")
-    f.write(str(start_check-read))
-    f.write("\n")
-    f.write("Save time: ")
-    f.write(str(end-start_check))
-    f.write("\n")
+        #startCheck=time.time()
+    #end=time.time()
+    # f.write("Read time: ")
+    # f.write(str(read-start))
+    # f.write("\n")
+    # f.write("Loop Checking Time:")
+    # f.write(str(startCheck-read))
+    # f.write("\n")
+    # f.write("Save time: ")
+    # f.write(str(end-startCheck))
+    # f.write("\n")
     f.close()
-    print ("Read",read-start)
-    print ("Loop",start_check-read)
-    print ("Save",end-start_check)
-
+    # print ("Read",read-start)
+    # print ("Loop",startCheck-read)
+    # print ("Save",end-startCheck)
+  os.remove (fileDir+"/new_"+fileName)
 if __name__ == "__main__":
-    #print (sys.argv[1], sys.argv[2])
-    compare_json(sys.argv[1], sys.argv[2])
+  #print (sys.argv[1], sys.argv[2])
+  compareExcelfiles(sys.argv[1], sys.argv[2])
