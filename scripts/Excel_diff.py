@@ -59,6 +59,4 @@ def compareExcelfiles(file1, file2):
     # print ("Loop",startCheck-read)
     # print ("Save",end-startCheck)
   os.remove (fileDir+"/new_"+fileName)
-if __name__ == "__main__":
-  #print (sys.argv[1], sys.argv[2])
-  compareExcelfiles(sys.argv[1], sys.argv[2])
+compareExcelfiles(sys.argv[1], sys.argv[2])
