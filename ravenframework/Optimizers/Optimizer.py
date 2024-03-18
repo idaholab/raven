@@ -81,7 +81,7 @@ class Optimizer(AdaptiveSampler):
     specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringListType, strictMode=True,
         printPriority=90, # more important than <variable>
         descr=r"""Name of the objective variable (or ``objective function'') that should be optimized
-        (minimized or maximized)."""))
+        (minimized or maximized). This is a list of strings including a single element if the problem is a single objective optimization, and multiple elements if its a multiobjective optimization problem."""))
 
     # modify Sampler variable nodes
     variable = specs.getSub('variable')
