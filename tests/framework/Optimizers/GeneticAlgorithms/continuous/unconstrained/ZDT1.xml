@@ -54,7 +54,7 @@
       </samplerInit>
 
       <GAparams>
-        <populationSize>10</populationSize>
+        <populationSize>20</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -91,7 +91,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>10</limit>
+        <limit>20</limit>
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">

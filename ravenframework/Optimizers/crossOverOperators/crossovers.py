@@ -26,7 +26,6 @@ from itertools import combinations
 import xarray as xr
 from ...utils import randomUtils
 
-
 # @profile
 def onePointCrossover(parents,**kwargs):
   """
@@ -44,8 +43,6 @@ def onePointCrossover(parents,**kwargs):
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                   'Gene':kwargs['variables']})
-
-
   # defaults
   if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
     crossoverProb = randomUtils.random(dim=1, samples=1)
@@ -54,11 +51,11 @@ def onePointCrossover(parents,**kwargs):
 
   # create children
   parentsPairs = list(combinations(parents,2))
-
   for ind,parent in enumerate(parentsPairs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
-
-    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+    new_crossoverProb=1-((2*ind)/len(children)) #ILM/DHC method
+    new_crossoverProb2=((2*ind)/len(children)) #DHM/ILC method
+    if randomUtils.random(dim=1,samples=1) <= new_crossoverProb2:
       if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
         point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
       elif (any(i>=nGenes-1 for i in kwargs['points'])):
@@ -130,25 +127,79 @@ def twoPointsCrossover(parents, **kwargs):
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})
   parentPairs = list(combinations(parents,2))
-  index = 0
+  k=0
+  index=0
+  new_crossoverProb1=1
+  new_crossoverProb2=0
+  new_crossoverProb3=0
+  new_crossoverProb4=1
   if nGenes<=2:
     ValueError('In Two point Crossover the number of genes should be >=3!')
   for couples in parentPairs:
-    [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
-    if loc1 > loc2:
-      locL = loc2
-      locU = loc1
-    else:
-      locL=loc1
-      locU=loc2
-    parent1 = couples[0]
-    parent2 = couples[1]
-    children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
+    if randomUtils.random(dim=1,samples=1) <= new_crossoverProb2:
+      [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
+      if loc1 > loc2:
+        locL = loc2
+        locU = loc1
+      else:
+        locL=loc1
+        locU=loc2
+      parent1 = couples[0]
+      parent2 = couples[1]
+      children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
 
-    children[index]   = children1
-    children[index+1] = children2
-    index = index + 2
-
+      children[index]   = children1
+      children[index+1] = children2
+      index = index + 2
+      new_crossoverProb1=1-(index/len(children)) #ILM/DHC method
+      new_crossoverProb2=(index/len(children)) #DHM/ILC method
+      new_crossoverProb3=(1/(10*len(children)))*(0.5*index)**2 #Quadratic function method
+  # for couples in parentPairs:
+  #   k=k+1
+  #   if randomUtils.random(dim=1,samples=1) <= kwargs['crossoverProb']:
+  #     for i in range(0,k):
+  #       new_crossoverProb1=1-(i/len(children)) #ILM/DHC method
+  #       new_crossoverProb2=(i/len(children)) #DHM/ILC method
+  #       new_crossoverProb3=(1/(10*len(children)))*i**2 #Quadratic function method
+  #     if(k/len(children)>=0.5):
+  #       new_crossoverProb4=1
+  #     else:
+  #       new_crossoverProb4=0
+  #       [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
+  #       if loc1 > loc2:
+  #         locL = loc2
+  #         locU = loc1
+  #       else:
+  #         locL=loc1
+  #         locU=loc2
+  #         parent1 = couples[0]
+  #         parent2 = couples[1]
+  #         children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
+  #         children[index]   = children1
+  #         children[index+1] = children2
+  #         index = index + 2
+  #   else:
+  #     for i in range(0,k):
+  #       new_crossoverProb1=1-(i/len(children)) #ILM/DHC method
+  #       new_crossoverProb2=(i/len(children)) #DHM/ILC method
+  #       new_crossoverProb3=(1/(10*len(children)))*i**2 #Quadratic function method
+  #     if(k/len(children)>=0.5):
+  #       new_crossoverProb4=1
+  #     else:
+  #       new_crossoverProb4=0
+  #       [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
+  #         if loc1 > loc2:
+  #           locL = loc2
+  #           locU = loc1
+  #         else:
+  #           locL=loc1
+  #           locU=loc2
+  #         parent1 = couples[0]
+  #         parent2 = couples[1]
+  #         children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
+  #         children[index]   = children1
+  #         children[index+1] = children2
+  #         index = index + 2
   return children
 
 __crossovers = {}
@@ -214,4 +265,30 @@ def uniformCrossoverMethod(parent1,parent2,crossoverProb):
       children1[pos] = parent1[pos]
       children2[pos] = parent2[pos]
 
+  return children1,children2
+
+def twoPointsCrossoverMethod2(parent1,parent2,locL,locU):
+  """
+    Method designed to perform a twopoint crossover on 2 arrays:
+    Partition each array in three sequences (A,B,C):
+    parent1 = A1 B1 C1
+    parent2 = A2 B2 C2
+    Then:
+    children1 = A1 B2 C1
+    children2 = A2 B1 C2
+    @ In, parent1: first array
+    @ In, parent2: second array
+    @ In, LocL: first location
+    @ In, LocU: second location
+    @ Out, children1: first generated array
+    @ Out, children2: second generated array
+  """
+  children1 = parent1.copy(deep=True)
+  children2 = parent2.copy(deep=True)
+
+  seqB1 = parent1.values[locL:locU]
+  seqB2 = parent2.values[locL:locU]
+
+  children1[locL:locU] = seqB1
+  children2[locL:locU] = seqB2
   return children1,children2
