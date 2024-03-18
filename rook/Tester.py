@@ -329,6 +329,7 @@ class Tester:
   __default_run_type_set = set(["normal"])
   __non_default_run_type_set = set()
   __base_current_run_type = None
+  __install_type = "source"  # type of raven installation being used
 
   @classmethod
   def add_default_run_type(cls, run_type):
@@ -391,6 +392,7 @@ class Tester:
     params.add_param('needed_executable', '',
                      'Only run test if needed executable is on path.')
     params.add_param('skip_if_OS', '', 'Skip test if the operating system defined')
+    params.add_param('skip_if_install_type', '', 'Skip test depending on the raven installation type')
     return params
 
   def __init__(self, _name, params):
@@ -440,6 +442,23 @@ class Tester:
     assert run_types.issubset(set.union(cls.__default_run_type_set,
                                         cls.__non_default_run_type_set))
     cls.__base_current_run_type = set(run_types)
+
+  @classmethod
+  def set_install_type(cls, install_type):
+    """
+      Sets the install type of the raven installation
+      @ In, install_type, string, the install type
+      @ Out, None
+    """
+    cls.__install_type = install_type
+
+  def get_install_type(self):
+    """
+      Returns the install type of the raven installation
+      @ In, None
+      @ Out, __install_type, string, the install type
+    """
+    return self.__install_type
 
   def get_differ_remove_files(self):
     """
@@ -548,6 +567,10 @@ class Tester:
       if current_os in skip_os:
         self.set_skip('skipped (OS is "{}")'.format(current_os))
         return self.results
+    ## Install type
+    if not self.check_install_type():
+      self.set_skip('skipped (install type is "{}")'.format(self.__install_type))
+      return self.results
 
     if self.specs['min_python_version'].strip().lower() != 'none':
       major, minor = self.specs['min_python_version'].strip().split(".")
@@ -666,6 +689,18 @@ class Tester:
       @ Out, check_runnable, boolean, True if this can run.
     """
     return True
+
+  def check_install_type(self):
+    """
+      Checks if the install type is allowed
+      @ In, None
+      @ Out, check_install_type, boolean, True if the install type is allowed
+    """
+    if len(self.specs['skip_if_install_type']) == 0:  # no skip_if_install_type specified
+      return True
+    allowed_install_types = set(['source', 'pip', 'binary']) \
+                            - set([install_type.lower() for install_type in self.specs['skip_if_install_type'].split(',')])
+    return self.__install_type.lower() in allowed_install_types
 
   def set_success(self):
     """

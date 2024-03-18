@@ -56,6 +56,7 @@ class RavenFramework(Tester):
   """
   RavenFramework is the class to use for testing standard raven inputs.
   """
+  _binaryLocation = ''
 
   @staticmethod
   def get_valid_params():
@@ -102,11 +103,20 @@ class RavenFramework(Tester):
     params.add_param('ignore_sign', False, 'if true, then only compare the absolute values')
     return params
 
+  @classmethod
+  def set_binary_location(cls, location):
+    """
+      Sets the path to a RAVEN binary or standalone script.
+      @ In, location, string, path to the binary
+      @ Out, None
+    """
+    cls._binaryLocation = location
+
   def get_command(self):
     """
       Gets the raven command to run this test.
       @ In, None
-      @ Out, get_command, string, command to run.
+      @ Out, command, string, command to run.
     """
     ravenflag = ''
     if self.specs['test_interface_only']:
@@ -115,7 +125,17 @@ class RavenFramework(Tester):
     if self.specs['interactive']:
       ravenflag += ' interactiveCheck '
 
-    return self._get_python_command() + " " + self.driver + " " + ravenflag + self.specs["input"]
+    installType = self.get_install_type()
+    if installType == 'source':
+      command = self._get_python_command() + " " + self.driver + " " + ravenflag + self.specs["input"]
+    elif installType == 'pip':
+      command = "raven_framework " + ravenflag + self.specs["input"]
+    elif installType == 'binary':
+      command = self._binaryLocation + " " + ravenflag + self.specs["input"]
+    else:
+      raise ValueError('Unknown install type: {}'.format(self.__install_type))
+
+    return command
 
   def __make_differ(self, specName, differClass, extra=None):
     """
@@ -261,56 +281,3 @@ class RavenFramework(Tester):
       @ Out, None
     """
     self.set_success()
-
-
-class RavenFrameworkBinary(RavenFramework):
-  """
-  RavenFrameworkBinary is the class to use for testing standard raven inputs using a binary of RAVEN.
-  The main difference between this class and RavenFramework is that the command to run raven_framework
-  points to a binary of RAVEN instead of the local (devel) version of RAVEN.
-  """
-  binary_location = None
-
-  def get_command(self):
-    """
-      Gets the raven command to run this test.
-      @ In, None
-      @ Out, get_command, string, command to run.
-    """
-    if self.binary_location is None:
-      raise ValueError('Binary location not set!')
-
-    ravenflag = ''
-    if self.specs['test_interface_only']:
-      ravenflag += ' interfaceCheck '
-
-    if self.specs['interactive']:
-      ravenflag += ' interactiveCheck '
-
-    # Use raven_framework script in the bin directory of the current python environment. This should be in the
-    #     PATH, so we can just call it directly.
-    return self.binary_location + " " + ravenflag + self.specs["input"]
-
-
-class RavenFrameworkPip(RavenFramework):
-  """
-  RavenFrameworkPip is the class to use for testing standard raven inputs using a pip installation of RAVEN.
-  The main difference between this class and RavenFramework is that the command to run raven_framework
-  points to a pip installation of RAVEN instead of the local (devel) version of RAVEN.
-  """
-  def get_command(self):
-    """
-      Gets the raven command to run this test.
-      @ In, None
-      @ Out, get_command, string, command to run.
-    """
-    ravenflag = ''
-    if self.specs['test_interface_only']:
-      ravenflag += ' interfaceCheck '
-
-    if self.specs['interactive']:
-      ravenflag += ' interactiveCheck '
-
-    # Use raven_framework script in the bin directory of the current python environment. This should be in the
-    #     PATH, so we can just call it directly.
-    return "raven_framework " + ravenflag + self.specs["input"]

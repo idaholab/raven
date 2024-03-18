@@ -12,5 +12,12 @@
   [./test_python_raven_running_raven]
     type = 'RavenPython'
     input = 'DemoPythonRavenRunningRaven.py'
+    skip_if_install_type = 'pip,binary'
+  [../]
+
+  [./test_python_raven_running_raven_pip]
+    type = 'RavenPython'
+    input = 'DemoPythonRavenRunningRavenPip.py'
+    skip_if_install_type = 'source,binary'
   [../]
 []

@@ -407,13 +407,20 @@ if __name__ == "__main__":
       print(differ.get_valid_params())
       print()
 
+  # The ravenframework installation may be of type "source", "pip", or "binary". Let the testers
+  # know which type of installation we are using.
   if args.use_pip:
-    testers['RavenFramework'] = testers['RavenFrameworkPip']
-  if args.use_binary:
+    installType = 'pip'
+  elif args.use_binary:
     # Specify an absolute path so we don't have to worry about where we are now vs where when
     # we try to run the binary.
-    testers['RavenFrameworkBinary'].binary_location = os.path.abspath(args.use_binary[0])
-    testers['RavenFramework'] = testers['RavenFrameworkBinary']
+    testers['RavenFramework'].set_binary_location(os.path.abspath(args.use_binary[0]))
+    installType = 'binary'
+  else:
+    installType = 'source'
+
+  for tester in testers.values():
+    tester.set_install_type(installType)
 
   tester_params = {}
   for tester_key, tester_value in testers.items():
