@@ -392,7 +392,8 @@ class Tester:
     params.add_param('needed_executable', '',
                      'Only run test if needed executable is on path.')
     params.add_param('skip_if_OS', '', 'Skip test if the operating system defined')
-    params.add_param('skip_if_install_type', '', 'Skip test depending on the raven installation type')
+    params.add_param('skip_if_install_type', '', 'Skip test depending on the raven '+
+                     'installation type')
     return params
 
   def __init__(self, _name, params):
@@ -698,8 +699,9 @@ class Tester:
     """
     if len(self.specs['skip_if_install_type']) == 0:  # no skip_if_install_type specified
       return True
-    allowed_install_types = set(['source', 'pip', 'binary']) \
-                            - set([install_type.lower() for install_type in self.specs['skip_if_install_type'].split(',')])
+    skip_install_types = self.specs['skip_if_install_type'].split(',')
+    skip_install_types = [install_type.lower() for install_type in skip_install_types]
+    allowed_install_types = set(['source', 'pip', 'binary']) - set(skip_install_types)
     return self.__install_type.lower() in allowed_install_types
 
   def set_success(self):
