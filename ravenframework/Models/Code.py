@@ -148,7 +148,7 @@ class Code(Model):
         #    2. (less common) The user is using a prebuilt RAVEN executable
         # These cases as distinguishable by the value of sys.executable
         if self.executable == '%RAVENFRAMEWORK%':
-          if sys.executable.endswith('python') and sys.argv[0].endswith('.py'):
+          if (sys.executable.endswith('python') or sys.executable.endswith('python.exe')) and sys.argv[0].endswith('.py'):
             self.executable = sys.argv[0]  # sys.argv[0] is the name of the script that was run
           elif sys.executable.endswith('raven_framework'):
             self.executable = sys.executable
