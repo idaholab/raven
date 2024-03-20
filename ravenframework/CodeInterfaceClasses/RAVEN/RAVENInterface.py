@@ -189,7 +189,7 @@ class RAVEN(CodeInterfaceBase):
       else:
         raise(IOError(f'{self.printTag} ERROR: Could not determine the RAVEN executable to use. '
                       f'sys.executable is "{sys.executable}" and sys.argv[0] is "{sys.argv[0]}"'))
-    elif executable.endswith('raven_framework'):
+    elif executable == 'raven_framework':
       self.preCommand = ''
     elif not executable.endswith(".py"):
       executable += ".py"
