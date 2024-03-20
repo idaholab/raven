@@ -432,6 +432,8 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support ageBased, fitnessBased, and rankNcrowdingBased as a survivorSelector, whereas provided survivorSelector is {self._survivorSelectionType}')
     if len(self._objectiveVar) == 1 and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than two. ')
+    if len(self._objectiveVar) > 1 and self._survivorSelectionType != 'rankNcrowdingBased':
+      self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
 
     ####################################################################################
     # fitness node                                                                     #
