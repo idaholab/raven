@@ -238,7 +238,7 @@ class GeneticAlgorithm(RavenSampled):
         descr=r""" point/gene(s) at which crossover will occur.""")
     crossover.addSub(crossoverPoint)
     crossoverProbability = InputData.parameterInputFactory('crossoverProb', strictMode=True,
-        contentType=InputTypes.FloatType,
+        contentType=InputTypes.FloatOrStringType,
         printPriority=108,
         descr=r""" The probability governing the crossover step, i.e., the probability that if exceeded crossover will occur.""")
     crossover.addSub(crossoverProbability)
