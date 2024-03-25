@@ -132,11 +132,11 @@ def twoPointsCrossover(parents, **kwargs):
   new_crossoverProb1=1
   new_crossoverProb2=0
   new_crossoverProb3=0
-  new_crossoverProb4=1
+  new_crossoverProb4=0
   if nGenes<=2:
     ValueError('In Two point Crossover the number of genes should be >=3!')
   for couples in parentPairs:
-    if randomUtils.random(dim=1,samples=1) <= new_crossoverProb2:
+    if randomUtils.random(dim=1,samples=1) <= new_crossoverProb3:
       [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
       if loc1 > loc2:
         locL = loc2
@@ -154,52 +154,15 @@ def twoPointsCrossover(parents, **kwargs):
       new_crossoverProb1=1-(index/len(children)) #ILM/DHC method
       new_crossoverProb2=(index/len(children)) #DHM/ILC method
       new_crossoverProb3=(1/(10*len(children)))*(0.5*index)**2 #Quadratic function method
-  # for couples in parentPairs:
-  #   k=k+1
-  #   if randomUtils.random(dim=1,samples=1) <= kwargs['crossoverProb']:
-  #     for i in range(0,k):
-  #       new_crossoverProb1=1-(i/len(children)) #ILM/DHC method
-  #       new_crossoverProb2=(i/len(children)) #DHM/ILC method
-  #       new_crossoverProb3=(1/(10*len(children)))*i**2 #Quadratic function method
-  #     if(k/len(children)>=0.5):
-  #       new_crossoverProb4=1
-  #     else:
-  #       new_crossoverProb4=0
-  #       [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
-  #       if loc1 > loc2:
-  #         locL = loc2
-  #         locU = loc1
-  #       else:
-  #         locL=loc1
-  #         locU=loc2
-  #         parent1 = couples[0]
-  #         parent2 = couples[1]
-  #         children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
-  #         children[index]   = children1
-  #         children[index+1] = children2
-  #         index = index + 2
-  #   else:
-  #     for i in range(0,k):
-  #       new_crossoverProb1=1-(i/len(children)) #ILM/DHC method
-  #       new_crossoverProb2=(i/len(children)) #DHM/ILC method
-  #       new_crossoverProb3=(1/(10*len(children)))*i**2 #Quadratic function method
-  #     if(k/len(children)>=0.5):
-  #       new_crossoverProb4=1
-  #     else:
-  #       new_crossoverProb4=0
-  #       [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
-  #         if loc1 > loc2:
-  #           locL = loc2
-  #           locU = loc1
-  #         else:
-  #           locL=loc1
-  #           locU=loc2
-  #         parent1 = couples[0]
-  #         parent2 = couples[1]
-  #         children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
-  #         children[index]   = children1
-  #         children[index+1] = children2
-  #         index = index + 2
+      if(index/len(children)>=0.5):
+        new_crossoverProb4=1
+      else:
+        new_crossoverProb4=0
+    else:
+      index = index + 2
+      new_crossoverProb1=1-(index/len(children)) #ILM/DHC method
+      new_crossoverProb2=(index/len(children)) #DHM/ILC method
+      new_crossoverProb3=(1/(5*len(children)))*(0.5*index)**2 #Quadratic function method
   return children
 
 __crossovers = {}
@@ -292,3 +255,7 @@ def twoPointsCrossoverMethod2(parent1,parent2,locL,locU):
   children1[locL:locU] = seqB1
   children2[locL:locU] = seqB2
   return children1,children2
+
+def adaptiveCrossoverProbability(iter, limit):
+  #Correct equation
+  return 1-iter/limit
