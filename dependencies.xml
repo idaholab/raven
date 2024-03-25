@@ -63,7 +63,6 @@ Note all install methods after "main" take
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
-    <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
     <ray source="pip" pip_extra="[default]">2.6</ray>
@@ -97,7 +96,6 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
     <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
@@ -106,6 +104,5 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
   </alternate>
 </dependencies>
