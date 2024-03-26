@@ -1,11 +1,14 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests/RAVEN.ReturnDatabase</name>
-    <author>talbpaul</author>
-    <created>2020-03-04</created>
+    <name>framework/CodeInterfaceTests/RAVEN.Basic</name>
+    <author>dgarrett622</author>
+    <created>2022-04-20</created>
     <classesTested>Models.Code.RAVEN</classesTested>
     <description>
-      Tests returning a NetCDF database instead of a set of dataobject CSVs.
+      Basic test of the raven-runs-raven interface for running in Python workflows (same as integrated
+      RAVEN runs RAVEN basic test). Outer raven runs a grid sampling by changing the upper and lower
+      bounds of the sampledVars distribution on the inner raven. Inner raven runs 100 MC samples,
+      does basic stats, and returns the mean, sigma to the outer raven.
     </description>
     <analytic>
       Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
@@ -14,7 +17,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ReturnDatabase</WorkingDir>
+    <WorkingDir>Basic</WorkingDir>
     <Sequence>sample,print</Sequence>
   </RunInfo>
 
@@ -23,28 +26,29 @@
       <Input class="Files" type="raven">inner_input</Input>
       <Model class="Models" type="Code">raven</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="DataSet">outer_samples</Output>
+      <Output class="DataObjects" type="PointSet">outer_samples</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input class="DataObjects" type="DataSet">outer_samples</Input>
-      <Output class="Databases" type="NetCDF">outer_samples</Output>
+      <Input class="DataObjects" type="PointSet">outer_samples</Input>
+      <Output class="OutStreams" type="Print">outer_out</Output>
     </IOStep>
   </Steps>
 
-  <Databases>
-    <NetCDF name="outer_samples" readMode="overwrite"/>
-  </Databases>
-
   <Files>
-    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+    <Input name="inner_input" type="raven">../../../CodeInterfaceTests/RAVEN/Basic/inner_sample.xml</Input>
   </Files>
 
   <Models>
     <Code name="raven" subType="RAVEN">
-        <executable>%RAVENFRAMEWORK%</executable>
-        <outputDatabase>inner_samples</outputDatabase>
+        <executable>raven_framework</executable>
+        <outputExportOutStreams>inner_out</outputExportOutStreams>
         <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
-        <alias variable="innerUpperBound" type="input">Distributions|Uniform@name:dist|upperBound</alias>
+        <alias variable="innerUpperBound" type="input">
+          Distributions|Uniform@name:dist|upperBound,
+          Samplers|Grid|constant@name:testSecondAlias
+        </alias>
+        <clargs type="prepend" arg="python"/>
+        <clargs type="postpend" arg="inner_sample.xml"/>
     </Code>
   </Models>
 
@@ -63,11 +67,11 @@
     <Grid name="grid">
       <variable name="innerLowerBound">
         <distribution>dist_lower</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
       </variable>
       <variable name="innerUpperBound">
         <distribution>dist_upper</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -80,12 +84,10 @@
   </OutStreams>
 
   <DataObjects>
-    <DataSet name="outer_samples">
+    <PointSet name="outer_samples">
       <Input>innerLowerBound,innerUpperBound</Input>
-      <Output>a, b, c, d, e, f</Output>
-      <Index var="x">e, f</Index>
-      <Index var="y">f</Index>
-    </DataSet>
+      <Output>mean_y1,mean_y2,mean_ans,mean_testSecondAlias</Output>
+    </PointSet>
   </DataObjects>
 
 </Simulation>
