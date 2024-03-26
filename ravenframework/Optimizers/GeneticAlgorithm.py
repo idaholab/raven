@@ -40,6 +40,8 @@ from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .parentSelectors.parentSelectors import countConstViolation
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
+from .crossOverOperators.crossovers import adaptiveLinearCrossoverProbability
+# from .crossOverOperators.crossovers import adaptiveQuadraticCrossoverProbability
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
@@ -261,7 +263,7 @@ class GeneticAlgorithm(RavenSampled):
         descr=r""" locations at which mutation will occur.""")
     mutation.addSub(mutationLocs)
     mutationProbability = InputData.parameterInputFactory('mutationProb', strictMode=True,
-        contentType=InputTypes.FloatType,
+        contentType=InputTypes.FloatOrStringType,
         printPriority=108,
         descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will occur.""")
     mutation.addSub(mutationProbability)
@@ -776,6 +778,12 @@ class GeneticAlgorithm(RavenSampled):
 
       # 2 @ n: Crossover from set of parents
       # Create childrenCoordinates (x1,...,xM)
+      # if crossover probability is a float, keep it as is. But, If it's a string, called appropriate function.
+      if not isinstance(self._crossoverProb,float):
+        if self._crossoverProb.lower() == 'linear':
+          self._crossoverProb = adaptiveLinearCrossoverProbability(self.getIteration(traj),self.limit)
+        elif self._crossoverProb.lower() == 'quadratic':
+          self._crossoverProb = adaptiveQuadraticCrossoverProbability(self.getIteration,self.limit)
       childrenXover = self._crossoverInstance(parents=parents,
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,

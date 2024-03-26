@@ -256,6 +256,7 @@ def twoPointsCrossoverMethod2(parent1,parent2,locL,locU):
   children2[locL:locU] = seqB2
   return children1,children2
 
-def adaptiveCrossoverProbability(iter, limit):
+def adaptiveLinearCrossoverProbability(iter, limit):
   #Correct equation
+
   return 1-iter/limit

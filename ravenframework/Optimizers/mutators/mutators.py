@@ -144,13 +144,13 @@ def randomMutator(offSprings, distDict, **kwargs):
     # the mutation is performed for each child independently
     new_mutationProb1=(k/len(offSprings)) #ILM/DHC method
     new_mutationProb2=1-(k/len(offSprings)) #DHM/ILC method
-    new_mutationProb3=-(1/(10*len(offSprings)))*k**2+1 #Quadratic function method
+    new_mutationProb3=-(1/((len(offSprings)**2)))*k**2+1 #Quadratic function method
     if((k/len(offSprings))>=0.5):
       new_mutationProb4=0
     else:
       new_mutationProb4=1
     k=k+1
-    if randomUtils.random(dim=1,samples=1)<new_mutationProb2:
+    if randomUtils.random(dim=1,samples=1)<new_mutationProb3:
       # kwargs['mutationProb']
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
@@ -231,14 +231,8 @@ def returnInstance(cls, name):
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __mutators[name]
 
-# def adaptivemutator(**kwargs):
-#   """
-#     Method designed to adaptive mutation rate:
-#     @ In, kwargs['mutationProb']
-#     @ Out, kwargs['new_mutationProb']
-#   """
-#   for i in range():
-#     new_mutationProb=1-(i/len(children))
-#     kwargs['mutationProb']=new_mutationProb
-#     print(new_mutationProb)
-#   return new_mutationProb
+def adaptiveLinearMutationProbability(iter, limit):
+  #Correct equation
+
+  return iter/limit
+
