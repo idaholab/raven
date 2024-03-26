@@ -149,6 +149,7 @@ class BayesianOptimizer(RavenSampled):
     self._evaluationCount = 0                                                 # Number of function/model calls
     self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
     self._externalParamOptimizer = 'fmin_l_bfgs_b'                            # Optimizer for external hyperparameter selection
+    self._resetModel = False                                                  # Reset regression model if True
 
   def handleInput(self, paramInput):
     """
@@ -235,6 +236,8 @@ class BayesianOptimizer(RavenSampled):
       self.raiseAnError(RuntimeError, f'GPR ROM <target> should be obective variable: {self._objectiveVar}, '
                         f'Received {self._model.supervisedContainer[0].target}')
 
+    if self._resetModel:
+      self._model.reset()
     self._setModelBounds()
     # NOTE Once again considering specifically sklearn's GPR
     optOption = self._model.supervisedContainer[0].model.get_params()['optimizer']
@@ -254,9 +257,31 @@ class BayesianOptimizer(RavenSampled):
     # NOTE assuming that sampler/user provides at least one initial input
     # FIXME do we want to keep storage of features and targets, when targetEvaluation has this info?
     init = self._initialValues[0]
-    self._trainingTargets.append([])
-    for varName, _ in init.items():
-      self._trainingInputs[0][varName] = []
+
+    # NOTE If the ROM has been already trained, use the existing training data from ROM to update
+    # trainingInputs and trainingTargets
+    if self._model.amITrained:
+      trainingData = self._model.trainingSet
+      trainingData = self.normalizeData(trainingData)
+      for varName in self.toBeSampled.keys():
+        self._trainingInputs[0][varName] = list(trainingData[varName])
+      self._trainingTargets.append(list(trainingData[self._objectiveVar]))
+      self.raiseAMessage(f"{self._model.name} ROM has been already trained with {len(trainingData[self._objectiveVar])} samples!",
+                         "This pre-trained ROM will be used by Optimizer to evaluate the next best point!")
+      # retrieving the best solution is based on the acqusition function's utility
+      # Constraints are considered in the following method.
+      xStar, minDex = self._acquFunction._recommendSolutionForPretrainedRom(self)
+      # remove the best solution from training data
+      for varName in self.toBeSampled.keys():
+        self._trainingInputs[0][varName].pop(minDex)
+      self._trainingTargets[0].pop(minDex)
+      # re-evaluate the best point with the given model
+      self._iteration[0] = 0
+      self._submitRun(xStar, 0, 0)
+    else:
+      self._trainingTargets.append([])
+      for varName, _ in init.items():
+        self._trainingInputs[0][varName] = []
 
     # First step is to sample the model at all initial points from the init sampler
     for _, point in enumerate(self._initialValues):

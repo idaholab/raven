@@ -98,8 +98,7 @@ class MooseBasedApp(CodeInterfaceBase):
     # apply the requested modifications
     modifDict = self._expandVarNames(**Kwargs)
     ### set up output to place in a csv
-    modifDict.append({'csv':'true', 'name':['Outputs', 'csv']})
-    modifDict.append({'file_base': outName, 'name':['Outputs', 'file_base']})
+    modifDict.append({'csv':'true','file_base': outName, 'name':['Outputs', 'csv']})
     ### do modifications
     modified = parser.modifyOrAdd(modifDict)
     # write new input
@@ -162,13 +161,16 @@ class MooseBasedApp(CodeInterfaceBase):
         request = var
       if '|' not in request:
         # what modifications don't have the path in them?
-        continue
-      pathedName = request.split('|')
-      modifDict['name'] = pathedName
-      if elemLoc is not None:
-        modifDict[pathedName[-1]] = (int(elemLoc), Kwargs['SampledVars'][var])
+        # global alias parameters
+        modifDict[var] = Kwargs['SampledVars'][var]
+        modifDict['name'] = [var]
       else:
-        modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
+        pathedName = request.split('|')
+        modifDict['name'] = pathedName
+        if elemLoc is not None:
+          modifDict[pathedName[-1]] = (int(elemLoc), Kwargs['SampledVars'][var])
+        else:
+          modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
       requests.append(modifDict)
     return requests
 
