@@ -104,7 +104,6 @@ class SerpentOutputParser(object):
     self._fileRootName =  fileRootName
     self._data = {}
 
-
   def processOutputs(self):
     """
       Method to process output files (self._fileTypes)
@@ -162,6 +161,12 @@ class SerpentOutputParser(object):
                        else f'{k.replace("Keff", "ReactivityLog")}'] = rhoLog
         if rhoLog_sigma is not None:
           resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{1}'] = rhoLog_sigma
+    if nSteps > 1:
+      # create a new variable that tells us the time where the keff < 1
+      keff = res.resdata['absKeff'][:,0]
+      sorting = np.argsort(keff)
+      endOfLife = np.interp(1.,keff[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
+      resultsResults['EOL'] = np.asarray([endOfLife]*keff.size)
 
     return resultsResults, nSteps
 
