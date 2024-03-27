@@ -1,0 +1,3 @@
+deptime,impKeff_0,fwdAnaBetaZero_1,adjIfpAnaLambda_8,EOL_absKeff,PointProbability,ProbabilityWeight,ProbabilityWeight-deptime,prefix
+1.0,0.959265,0.01162,0.133042,0.0,0.1,0.55,0.55,1
+10.0,0.953898,0.01129,0.133042,8.37923536873,0.1,0.45,0.45,2

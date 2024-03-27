@@ -111,7 +111,10 @@ class SubdomainBasicStatistics(PostProcessorInterface):
       # the following is the cropped dataset that we need to use for the subdomain
       #cellDataset = dataSet.where(maskDataset, drop=True)
       cellDataset = processedDataSet.where(maskDataset, drop=True)
-      cellPbWeights =  pbWeights.where(maskDataset, drop=True)
+      if pbWeights is not None:
+        cellPbWeights =  pbWeights.where(maskDataset, drop=True)
+      else:
+        cellPbWeights = None
       # check if at least sample is available (for scalar quantities) and at least 2 samples for derivative quantities
       setWhat = set(self.stat.what)
       minimumNumberOfSamples = 2 if len(setWhat.intersection(set(self.stat.vectorVals))) > 0 else 1
