@@ -819,7 +819,7 @@ class GeneticAlgorithm(RavenSampled):
                                                locs=self._mutationLocs,
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled))
-        self._mutationProb = "linear"
+        self._mutationProb = "quadratic"
 
       # 4 @ n: repair/replacement
       # Repair should only happen if multiple genes in a single chromosome have the same values (),
