@@ -259,4 +259,4 @@ def twoPointsCrossoverMethod2(parent1,parent2,locL,locU):
 def adaptiveLinearCrossoverProbability(iter, limit):
   #Correct equation
 
-  return 1-iter/limit
+  return iter/limit

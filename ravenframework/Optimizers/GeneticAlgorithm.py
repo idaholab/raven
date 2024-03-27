@@ -43,6 +43,7 @@ from .crossOverOperators.crossovers import returnInstance as crossoversReturnIns
 from .crossOverOperators.crossovers import adaptiveLinearCrossoverProbability
 # from .crossOverOperators.crossovers import adaptiveQuadraticCrossoverProbability
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
+from .mutators.mutators import adaptiveLinearMutationProbability
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
@@ -243,6 +244,8 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.FloatOrStringType,
         printPriority=108,
         descr=r""" The probability governing the crossover step, i.e., the probability that if exceeded crossover will occur.""")
+    crossoverProbability.addParam("type", InputTypes.makeEnumType('crossoverProbability','crossoverProbabilityType',['static','adaptive']), True,
+                       descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
     crossover.addSub(crossoverProbability)
     reproduction.addSub(crossover)
     # 2.  Mutation
@@ -266,6 +269,8 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.FloatOrStringType,
         printPriority=108,
         descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will occur.""")
+    mutationProbability.addParam("type", InputTypes.makeEnumType('mutationProbability','mutationProbabilityType',['static','adaptive']), True,
+                       descr="type of mutation probability operation to be used (e.g., static, adaptive)")
     mutation.addSub(mutationProbability)
     reproduction.addSub(mutation)
     GAparams.addSub(reproduction)
@@ -407,9 +412,10 @@ class GeneticAlgorithm(RavenSampled):
       self._crossoverPoints = None
     else:
       self._crossoverPoints = crossoverNode.findFirst('points').value
+    crossoverProbNode = crossoverNode.findFirst('crossoverProb')
+    self._crossoverProbType = crossoverProbNode.parameterValues['type']
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
-
     ####################################################################################
     # mutation node                                                                    #
     ####################################################################################
@@ -421,6 +427,8 @@ class GeneticAlgorithm(RavenSampled):
       self._mutationLocs = None
     else:
       self._mutationLocs = mutationNode.findFirst('locs').value
+    mutationProbNode = mutationNode.findFirst('mutationProb')
+    self._mutationProbTpye = mutationProbNode.parameterValues['type']
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
 
@@ -779,23 +787,23 @@ class GeneticAlgorithm(RavenSampled):
       # 2 @ n: Crossover from set of parents
       # Create childrenCoordinates (x1,...,xM)
       # if crossover probability is a float, keep it as is. But, If it's a string, called appropriate function.
-      if not isinstance(self._crossoverProb,float):
-        if self._crossoverProb.lower() == 'linear':
-          self._crossoverProb = adaptiveLinearCrossoverProbability(self.getIteration(traj),self.limit)
-        elif self._crossoverProb.lower() == 'quadratic':
-          self._crossoverProb = adaptiveQuadraticCrossoverProbability(self.getIteration,self.limit)
-      childrenXover = self._crossoverInstance(parents=parents,
+      if(self._crossoverProb == "linear"):
+        self._crossoverProb = adaptiveLinearCrossoverProbability(self.getIteration(traj),self.limit)
+        childrenXover = self._crossoverInstance(parents=parents,
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints)
-
+        self._crossoverProb = "linear"
       # 3 @ n: Mutation
       # Perform random directly on childrenCoordinates
-      childrenMutated = self._mutationInstance(offSprings=childrenXover,
+      if(self._mutationProb == "linear"):
+        self._mutationProb = adaptiveLinearMutationProbability(self.getIteration(traj),self.limit)
+        childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                distDict=self.distDict,
                                                locs=self._mutationLocs,
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled))
+        self._mutationProb = "linear"
 
       # 4 @ n: repair/replacement
       # Repair should only happen if multiple genes in a single chromosome have the same values (),

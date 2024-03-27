@@ -234,5 +234,5 @@ def returnInstance(cls, name):
 def adaptiveLinearMutationProbability(iter, limit):
   #Correct equation
 
-  return iter/limit
+  return 1-(iter/limit)
 
