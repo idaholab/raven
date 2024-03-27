@@ -563,7 +563,7 @@ def importOrInstall(package):
   except ImportError:
     print("(            ) "+UreturnPrintTag('UTILS')+": "+UreturnPrintPostTag('Message') + " -> Python package "+package+"not found. Trying to install it via pip!")
     import subprocess
-    s = subprocess.getstatusoutput(f"python -m pip install {package}")
+    s = subprocess.getstatusoutput("python -m pip install " + package)
     if int(s[0]) == 0:
       print("(            ) "+ UreturnPrintTag('UTILS')+": "+ UreturnPrintPostTag('Message') + " -> Installation succeded!")
       pckImport = __import__(package)
