@@ -77,7 +77,7 @@ class SERPENT(GenericCode):
       if eolNode is not None:
         target = eolNode.attrib.get('target')
         if target is None:
-          raise IOError(self.printTag+' ERROR: "target" attribute in <EOL> must be present if <EOL> node is inputted')
+          raise ValueError(self.printTag+' ERROR: "target" attribute in <EOL> must be present if <EOL> node is inputted')
         value = float(eolNode.text)
         self.EOLtarget[target] = value
 
