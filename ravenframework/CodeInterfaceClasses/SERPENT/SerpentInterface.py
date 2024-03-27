@@ -91,7 +91,7 @@ class SERPENT(GenericCode):
         serpentFileTypes.pop(serpentFileTypes.index('ResultsReader'))
       for ft in serpentFileTypes:
         if ft not in op.serpentOutputAvailableTypes:
-          raise IOError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are "'
+          raise ValueError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are "'
                         f'{", ".join(op.serpentOutputAvailableTypes)}!!')
       self._fileTypesToRead += serpentFileTypes
 
