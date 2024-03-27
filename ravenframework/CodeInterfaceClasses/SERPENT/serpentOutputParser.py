@@ -146,8 +146,19 @@ class SerpentOutputParser(object):
     for k, v in res.resdata.items():
       for eix in range(v.shape[-1]):
         kk = f'{k}_{eix}' if v.shape[-1] > 1 else f'{k}'
-        resultsResults[kk] = v[:, eix]  if nSteps and len(v.shape) > 1 else np.asarray(v[eix])
-      if 'keff' in k.lower():
+        if nSteps:
+          if len(v.shape) > 1:
+            if v.shape[0] == nSteps:
+              resultsResults[kk] = v[:, eix]  if nSteps and len(v.shape) > 1 else np.asarray(v[eix])
+            else:
+              # it is a quantity that does not have results for burn up step 0 (e.g. capture of poisons)
+              resultsResults[kk] = np.asarray([0.0]+v[:, eix].tolist())
+          else:
+            resultsResults[kk] = np.asarray([0.0]+np.atleast_1d(v[eix]).tolist())
+        else:
+          resultsResults[kk] = np.asarray(v[eix])
+
+      if 'keff' in k.lower() and k.lower() != 'anakeff':
         rho_sigma, rhoLog_sigma = None,  None
         rho, rhoLog = (v[0] - 1) / v[0],  np.log(v[0])
         if v.shape[0] > 1:
@@ -155,14 +166,14 @@ class SerpentOutputParser(object):
           rho_sigma, rhoLog_sigma = (v[1] / v[0]) * rho,  (v[1] / v[0]) * rhoLog
         resultsResults[f'{k.replace("Keff", "Reactivity")}_{0}'
                        if rho_sigma is not None
-                       else f'{k.replace("Keff", "Reactivity")}'] = rho
+                       else f'{k.replace("Keff", "Reactivity")}'] = rho*1e5
         if rho_sigma is not None:
-          resultsResults[f'{k.replace("Keff", "Reactivity")}_{1}'] = rho_sigma
+          resultsResults[f'{k.replace("Keff", "Reactivity")}_{1}'] = rho_sigma*1e5
         resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{0}'
                        if rhoLog_sigma is not None
-                       else f'{k.replace("Keff", "ReactivityLog")}'] = rhoLog
+                       else f'{k.replace("Keff", "ReactivityLog")}'] = rhoLog*1e5
         if rhoLog_sigma is not None:
-          resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{1}'] = rhoLog_sigma
+          resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{1}'] = rhoLog_sigma*1e5
     if nSteps > 1 and self._EOL is not None:
       # create a new variable that tells us the time where the keff < 1
       for target in self._EOL:
@@ -171,7 +182,7 @@ class SerpentOutputParser(object):
           raise ValueError(f"Target {target} for EOL calcs is not in result data")
         targetValues = res.resdata[target][:,0]
         sorting = np.argsort(targetValues)
-        endOfLife = np.interp(1.,targetValues[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
+        endOfLife = np.interp(value,targetValues[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
         resultsResults[f'EOL_{target}'] = np.asarray([endOfLife]*targetValues.size)
 
     return resultsResults, nSteps
