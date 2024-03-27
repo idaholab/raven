@@ -561,17 +561,14 @@ def importOrInstall(package):
   try:
     pckImport = __import__(package)
   except ImportError:
-    print(f"(            ) {UreturnPrintTag('UTILS')}: {UreturnPrintPostTag('Message')}"
-          f" -> Python package {package} not found. Trying to install it via pip!")
+    print("(            ) "+UreturnPrintTag('UTILS')+": "+UreturnPrintPostTag('Message') + " -> Python package "+package+"not found. Trying to install it via pip!")
     import subprocess
     s = subprocess.getstatusoutput(f"python -m pip install {package}")
     if int(s[0]) == 0:
-      print(f"(            ) {UreturnPrintTag('UTILS')}: {UreturnPrintPostTag('Message')}"
-            " -> Installation succeded!")
+      print("(            ) "+ UreturnPrintTag('UTILS')+": "+ UreturnPrintPostTag('Message') + " -> Installation succeded!")
       pckImport = __import__(package)
     else:
-      print(f"(            ) {UreturnPrintTag('UTILS')}: {UreturnPrintPostTag('Message')} ->"
-            " Installation failed with error: {s[1]}")
+      print("(            ) " + UreturnPrintTag('UTILS')": " + UreturnPrintPostTag('Message') + " -> Installation failed with error: " + s[1] )
   return pckImport
 
 def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
