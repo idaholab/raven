@@ -236,3 +236,10 @@ def adaptiveLinearMutationProbability(iter, limit):
 
   return 1-(iter/limit)
 
+def adaptiveQuadraticmutationProbability(iter, limit):
+  if(iter == 0):
+    mutationProb = 1
+  else:
+    mutationProb = 1-(((iter+1)/(limit))**2)
+  return mutationProb
+

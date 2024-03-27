@@ -260,3 +260,10 @@ def adaptiveLinearCrossoverProbability(iter, limit):
   #Correct equation
 
   return iter/limit
+
+def adaptiveQuadraticCrossoverProbability(iter, limit):
+  if(iter == 0):
+    crossoverProb = 0
+  else:
+    crossoverProb = ((iter+1)/(limit))**2
+  return crossoverProb
