@@ -77,7 +77,7 @@ class SERPENT(GenericCode):
       if eolNode is not None:
         target = eolNode.attrib.get('target')
         if target is None:
-          raise IOError(self.printTag+' ERROR: "target" attribute in <EOL> must be present if <EOL> node is inputted')
+          raise ValueError(self.printTag+' ERROR: "target" attribute in <EOL> must be present if <EOL> node is inputted')
         value = float(eolNode.text)
         self.EOLtarget[target] = value
 
@@ -91,7 +91,7 @@ class SERPENT(GenericCode):
         serpentFileTypes.pop(serpentFileTypes.index('ResultsReader'))
       for ft in serpentFileTypes:
         if ft not in op.serpentOutputAvailableTypes:
-          raise IOError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are "'
+          raise ValueError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are "'
                         f'{", ".join(op.serpentOutputAvailableTypes)}!!')
       self._fileTypesToRead += serpentFileTypes
 

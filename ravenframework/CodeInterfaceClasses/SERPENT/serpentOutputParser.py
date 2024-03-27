@@ -61,23 +61,23 @@ def checkCompatibilityFileTypesAndInputFile(inputFile, fileTypesToRead):
     data += additionalText
     if 'DepmtxReader' in  fileTypesToRead:
       if 'set depmtx' not in data:
-        raise Exception("DepmtxReader file type has been requested but no 'depmtx' flag has been set in the input file!")
+        raise ValueError("DepmtxReader file type has been requested but no 'depmtx' flag has been set in the input file!")
       else:
         optionSet = data.split('set depmtx')[1].strip()
         if not optionSet.startswith('1'):
-          raise Exception("DepmtxReader file type has been requested but 'set depmtx' flag is not set to '1'!")
+          raise ValueError("DepmtxReader file type has been requested but 'set depmtx' flag is not set to '1'!")
     if 'DetectorReader' in fileTypesToRead:
       if 'det ' not in data:
-        raise Exception("DetectorReader file type has been requested but no detectors ('det' card) have been specified in the input file (and/or include files)!")
+        raise ValueError("DetectorReader file type has been requested but no detectors ('det' card) have been specified in the input file (and/or include files)!")
     if 'DepletionReader' in fileTypesToRead:
       if 'dep ' not in data:
-        raise Exception("DepletionReader file type has been requested but the input file is not for a depletion calculation ('dep' card not found)!")
+        raise ValueError("DepletionReader file type has been requested but the input file is not for a depletion calculation ('dep' card not found)!")
     if 'MicroXSReader' in fileTypesToRead:
-      raise Exception("MicroXSReader file type not available yet!")
+      raise NotImplementedError("MicroXSReader file type not available yet!")
       #if 'set mdep' not in data:
       #  raise Exception("MicroXSReader file type has been requested but no 'mdep' flag has been set in the input file!")
     if 'HistoryReader' in fileTypesToRead:
-      raise Exception("HistoryReader file type not available yet!")
+      raise NotImplementedError("HistoryReader file type not available yet!")
       #if 'set his' not in data:
       #  raise Exception("HistoryReader file type has been requested but no 'his' flag has been set in the input file!")
       #else:
@@ -212,14 +212,11 @@ class SerpentOutputParser(object):
           grids = {}
           for d, dim in enumerate(indeces):
             gridName = dim.replace("mesh", "").upper()
-            print(gridName)
-            print(detectorContent.grids.keys())
-            print(indeces)
             grids[d] = detectorContent.grids[gridName][:, -1]
           iterator = np.nditer(detectorContent.tallies, flags=['multi_index'])
           while not iterator.finished:
             val = detectorContent.tallies[iterator.multi_index]
-            val_err = detectorContent.errors[iterator.multi_index]
+            valErr = detectorContent.errors[iterator.multi_index]
             varName = detectorName
             for d, dIdx in enumerate(iterator.multi_index):
               varName += f"_{indeces[d]}_{grids[d][dIdx]}"
@@ -228,7 +225,7 @@ class SerpentOutputParser(object):
               detectorResults[varName] = np.zeros(buSteps)
               detectorResults[f"{varName}_err"] = np.zeros(buSteps)
             detectorResults[varName][bu] = val
-            detectorResults[f"{varName}_err"][bu] = val_err
+            detectorResults[f"{varName}_err"][bu] = valErr
             iterator.iternext()
     return detectorResults
 

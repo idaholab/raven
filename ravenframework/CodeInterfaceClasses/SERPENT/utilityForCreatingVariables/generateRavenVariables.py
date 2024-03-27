@@ -60,12 +60,3 @@ if __name__ == '__main__':
       fo.write(depmtxFileVariablesGroup)
 
     fo.write(" </VariableGroups>")
-
-
-
-
-
-
-
-
-
