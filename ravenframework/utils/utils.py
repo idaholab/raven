@@ -568,7 +568,7 @@ def importOrInstall(package):
       print("(            ) "+ UreturnPrintTag('UTILS')+": "+ UreturnPrintPostTag('Message') + " -> Installation succeded!")
       pckImport = __import__(package)
     else:
-      print("(            ) " + UreturnPrintTag('UTILS')": " + UreturnPrintPostTag('Message') + " -> Installation failed with error: " + s[1] )
+      print("(            ) " + UreturnPrintTag('UTILS')+ ": " + UreturnPrintPostTag('Message') + " -> Installation failed with error: " + s[1] )
   return pckImport
 
 def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
