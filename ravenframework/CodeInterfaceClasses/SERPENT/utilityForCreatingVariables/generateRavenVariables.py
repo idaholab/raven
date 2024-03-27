@@ -12,9 +12,9 @@ if __name__ == '__main__':
   inpPar.add_argument('-fileRoot', nargs=1, required=True, help='File name root from which all the output files are going to be inferred.', )
   inpPar.add_argument('-o', nargs=1, required=False, help='Output file name')
   inp = inpPar.parse_args()
-  
+
   outputXmlName = inp.o[0] if inp.o is not None else "ravenOutputVariables.xml"
-    
+
   # get output files types
   outputFilesTypes = [e.strip() for e in inp.fileTypes[0].split(",")]
   outputFileRoot = inp.fileRoot[0]
@@ -23,7 +23,7 @@ if __name__ == '__main__':
   for ft in outputFilesTypes:
     if ft not in op.serpentOutputAvailableTypes:
       raise IOError(f' ERROR: <Serpent File Type> {ft} not supported! Available types are {", ".join(op.serpentOutputAvailableTypes)}!!')
-    
+
   parser = op.SerpentOutputParser(outputFilesTypes, outputFileRoot)
   # get results
   print("Reading variables from '_res.m' file!")
@@ -43,8 +43,8 @@ if __name__ == '__main__':
     elif ft == 'DepmtxReader':
       print("Reading variables from '_depmtx_*.m' files!")
       depmtxFileVariables = list(parser._depmtxReader(1).keys())
-  
-  
+
+
   with open(outputXmlName,"w") as fo:
     fo.write(" <VariableGroups>\n")
     resultFileVariablesGroup = '   <Group name="resVariables">\n  ' + ",\n  ".join(resultFileVariables) + '\n   </Group>\n'
@@ -58,14 +58,14 @@ if __name__ == '__main__':
     if depmtxFileVariables is not None:
       depmtxFileVariablesGroup = '   <Group name="depmtxVariables">\n  ' + ",\n  ".join(depmtxFileVariables) + '\n   </Group>\n'
       fo.write(depmtxFileVariablesGroup)
-      
+
     fo.write(" </VariableGroups>")
-    
-  
-  
-  
-  
-  
-  
-  
-    
+
+
+
+
+
+
+
+
+

@@ -90,12 +90,13 @@ class SerpentOutputParser(object):
   """
     Class to parse different serpent output files
   """
-  def __init__(self, fileTypes, fileRootName):
+  def __init__(self, fileTypes, fileRootName, EOL = None):
     """
      Constructor
      @ In, fileTypes, list-like, list of file types to process
      @ In, fileRootName, str, file root name (from which the file names
                               for the different file types are inferred)
+     @ In, EOL, dict, dict of EOL targets {targetID1:value1,targetID2:value2, etc.}
      @ Out, None
     """
     # import serpent tools
@@ -103,6 +104,7 @@ class SerpentOutputParser(object):
     self._fileTypes = fileTypes
     self._fileRootName =  fileRootName
     self._data = {}
+    self._EOL = EOL
 
   def processOutputs(self):
     """
@@ -161,12 +163,16 @@ class SerpentOutputParser(object):
                        else f'{k.replace("Keff", "ReactivityLog")}'] = rhoLog
         if rhoLog_sigma is not None:
           resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{1}'] = rhoLog_sigma
-    if nSteps > 1:
+    if nSteps > 1 and self._EOL is not None:
       # create a new variable that tells us the time where the keff < 1
-      keff = res.resdata['absKeff'][:,0]
-      sorting = np.argsort(keff)
-      endOfLife = np.interp(1.,keff[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
-      resultsResults['EOL'] = np.asarray([endOfLife]*keff.size)
+      for target in self._EOL:
+        value = self._EOL[target]
+        if target not in res.resdata:
+          raise ValueError(f"Target {target} for EOL calcs is not in result data")
+        targetValues = res.resdata[target][:,0]
+        sorting = np.argsort(targetValues)
+        endOfLife = np.interp(1.,targetValues[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
+        resultsResults[f'EOL_{target}'] = np.asarray([endOfLife]*targetValues.size)
 
     return resultsResults, nSteps
 

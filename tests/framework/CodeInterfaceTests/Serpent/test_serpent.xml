@@ -25,6 +25,7 @@
   <Models>
     <Code name="SERPENT" subType="SERPENT">
       <executable>sss2</executable>
+      <EOL target='absKeff'>1.0</EOL>
     </Code>
   </Models>
 
