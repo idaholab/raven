@@ -41,6 +41,9 @@ In the RAVEN input file, your \xmlNode{Models} node should look like:
       <additionalFileTypes>
         DepletionReader, DetectorReader, DepmtxReader
       <additionalFileTypes/>
+      <!-- EOL parameters -->
+      <EOL target="absKeff">1.0</EOL>
+      <EOL target="impKeff">1.0</EOL>
     </Code>
 </Models>
 \end{lstlisting}
@@ -57,7 +60,7 @@ where the \texttt{inputFile} is defined in the \xmlNode{Files} node as:
 </Files>
 \end{lstlisting}
 
-The additional XML sub-node that can be optionally added in the \xmlNode{Code} XML node is:
+Additional XML sub-nodes can be optionally added in the \xmlNode{Code} XML node is:
 \begin{itemize}
    \item \xmlNode{additionalFileTypes}, \xmlDesc{comma separated list, optional parameter},  additional output file types 
                                                               that the interface needs to process.  
@@ -72,6 +75,14 @@ The additional XML sub-node that can be optionally added in the \xmlNode{Code} X
                                                                only output file processed (``*\_res.m'') by the interface. 
                                                                For variable processing conventions, see section  
                                                                \ref{subsubsec:serpentInterfaceOutputConversion}.
+   \item \xmlNode{EOL}, \xmlDesc{float, optional parameter},  value of the ``target'' at which the time (in burnup calculations) of end of life should be recorded.
+                                                             The  \xmlNode{EOL} node  must contain the attribute \xmlAttr{target}, which indicates the FOM in the Results file that should be
+                                                             monitored (e.g. ``absKeff''). The user can specify as many  \xmlNode{EOL} as needed.
+                                                              
+                                                              \nb  The output parser will generate an output variable called ``EOL\_\textit{target}'' that represents the time at which the 
+                                                              parameter ``target'' takes the value indicated in this node. For example,  if ``target'' == absKeff and the value of the XML node is 1.0, 
+                                                              the variable ``EOL\_absKeff'' will contain the time (burnDays) at which the ``absKeff'' == 1.0.
+                                                              
 \end{itemize}
 
 \subsubsection{Files}
