@@ -82,4 +82,16 @@
       zero_threshold = 1e-2
     [../]
   [../]
+
+  [./BayesianPretrainedRom]
+    type = 'RavenFramework'
+    input = 'PreTrainedRom/BayesianPretrainedRom.xml'
+    required_libraries = 'smt'
+    [./data]
+      type = OrderedCSV
+      output = 'PreTrainedRom/final_opt.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-2
+    [../]
+  [../]
 []
