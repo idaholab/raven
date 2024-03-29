@@ -47,7 +47,7 @@ class LowerConfidenceBound(AcquisitionFunction):
                         the lower confidence bound acqusition function is utilized.
                         This function is derived by applying optimistic decision making in the infinite-armed bandit problem.
                         The approach assumes the model is conservative and values optimism through the following equation (for minimization):
-                        $LCB(x) = \mu - \beta \sigma$, where $\beta = \Phi^{-1}(\pi)"""
+                        $LCB(x) = \mu - \beta \sigma$, where $\beta = \Phi^{-1}(\pi)$"""
     specs.addSub(InputData.parameterInputFactory('pi', contentType=InputTypes.FloatType,
                                                  descr=r"""Parameter that determines the lower confidence bound. Must be
                                                  between 0 and 1.""", default=0.98))
@@ -56,13 +56,13 @@ class LowerConfidenceBound(AcquisitionFunction):
                                                  Provides the period for the oscillate transient settings.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType",
                                                  ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
-                                                 descr=r"""Determines how the threshold \tau changes as optimization progresses.
+                                                 descr=r"""Determines how the threshold $\tau$ changes as optimization progresses.
                                                  \begin{itemize}
-                                                 \item Constant: \epsilon remains the provided value.
-                                                 \item Exploit: \epsilon exponentially decays to 0 encouraging exploitation.
-                                                 \item Explore: \epsilon exponentially grows from 0 to provided value.
-                                                 \item Oscillate: \epsilon varies between 0 and provided value.
-                                                 \item DecayingOscillate: \epsilon oscillates and decays, driving to exploitation.
+                                                 \item Constant: $\epsilon$ remains the provided value.
+                                                 \item Exploit: $\epsilon$ exponentially decays to 0 encouraging exploitation.
+                                                 \item Explore: $\epsilon$ exponentially grows from 0 to provided value.
+                                                 \item Oscillate: $\epsilon$ varies between 0 and provided value.
+                                                 \item DecayingOscillate: $\epsilon$ oscillates and decays, driving to exploitation.
                                                  \end{itemize}""", default='Constant'))
     return specs
 
