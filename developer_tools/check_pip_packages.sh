@@ -34,6 +34,9 @@ conda activate python39_pip
 python -m pip uninstall -y raven_framework || echo not installed
 python -m pip install dist/raven_framework*cp39*.whl || exit -1
 
+# Run some tests to check that the installed package is working. The user_guide
+# tests are all pretty simple, and there are only a few of them, so we'll use those.
+$RAVEN_DIR/run_tests --re="user_guide" --tester-command RavenFramework $(which raven_framework) RavenErrors $(which raven_framework) --python-command $(which python)
 
 echo
 echo Checking Python 3.10
@@ -42,6 +45,4 @@ conda activate python310_pip
 python -m pip uninstall -y raven_framework || echo not installed
 python -m pip install dist/raven_framework*cp310*.whl || exit -1
 
-# Run some tests to check that the installed package is working. The user_guide
-# tests are all pretty simple, and there are only a few of them, so we'll use those.
-$RAVEN_DIR/run_tests --use-pip --re="user_guide"
+$RAVEN_DIR/run_tests --re="user_guide" --tester-command RavenFramework $(which raven_framework) RavenErrors $(which raven_framework) --python-command $(which python)

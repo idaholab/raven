@@ -44,12 +44,7 @@ for A in "$@"; do
     esac
 done
 echo 'Loading libraries ...'
-if [[ " ${ARGS[@]} " =~ " --use-pip " ]];
-then
-    echo "Using the current python environment"
-    PYTHON_COMMAND=$(which python)
-    echo "Python command: $PYTHON_COMMAND"
-elif  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
+if  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];

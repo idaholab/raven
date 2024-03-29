@@ -61,7 +61,7 @@
 
   <Models>
     <Code name="rrr" subType="RAVEN">
-      <executable>%RAVENFRAMEWORK%</executable>
+      <executable>%RAVENEXECUTABLE%</executable>
       <outputExportOutStreams>inner_out</outputExportOutStreams>
       <alias type="input" variable="a">Samplers|MonteCarlo|constant@name:a</alias>
       <alias type="input" variable="b">Samplers|MonteCarlo|constant@name:b</alias>

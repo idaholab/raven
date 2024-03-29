@@ -95,17 +95,16 @@ parser.add_argument('--add-non-default-run-types',
                     dest='add_non_default_run_types',
                     help='add a run type that is not run by default')
 
+parser.add_argument('--tester-command', nargs='*', dest='tester_commands',
+                    help='Command to run. The first argument is the tester name, the second is the '
+                         'command to run for that tester. Any number of (tester, command) pairs may '
+                         'be specified. The tester name must be the name of a tester class.')
+
 parser.add_argument('--command-prefix', dest='command_prefix',
                     help='prefix for the test commands')
 
 parser.add_argument('--python-command', dest='python_command',
                     help='command to run python')
-
-alt_framework_args = parser.add_mutually_exclusive_group(required=False)
-alt_framework_args.add_argument('--use-pip', dest='use_pip', action='store_true',
-                    help='use the pip-installed version of ravenframework')
-alt_framework_args.add_argument('--use-binary', nargs=1, dest='use_binary',
-                    help='use a specified binary version of ravenframework')
 
 parser.add_argument('--config-file', dest='config_file',
                     help='Configuration file location')
@@ -322,10 +321,6 @@ def process_result(index, _input_data, output_data):
                 test=process_test_name))
 
 if __name__ == "__main__":
-  if args.use_binary and not os.path.exists(args.use_binary[0]):
-    print("The specified binary does not exist:", args.use_binary[0])
-    sys.exit(-1)
-
   if args.unkillable:
     def term_handler(signum, _):
       """
@@ -407,21 +402,6 @@ if __name__ == "__main__":
       print(differ.get_valid_params())
       print()
 
-  # The ravenframework installation may be of type "source", "pip", or "binary". Let the testers
-  # know which type of installation we are using.
-  if args.use_pip:
-    installType = 'pip'
-  elif args.use_binary:
-    # Specify an absolute path so we don't have to worry about where we are now vs where when
-    # we try to run the binary.
-    testers['RavenFramework'].set_binary_location(os.path.abspath(args.use_binary[0]))
-    installType = 'binary'
-  else:
-    installType = 'source'
-
-  for tester in testers.values():
-    tester.set_install_type(installType)
-
   tester_params = {}
   for tester_key, tester_value in testers.items():
     #Note as a side effect, testers can add run types to
@@ -467,6 +447,10 @@ if __name__ == "__main__":
         params = dict(node.attrib)
         params['test_dir'] = test_dir
         tester = testers[node.attrib['type']](test_name, params)
+        if args.tester_commands is not None:
+          for i in range(0, len(args.tester_commands), 2):
+            if args.tester_commands[i] == node.attrib['type']:
+              tester.set_test_command(args.tester_commands[i+1])
         if args.command_prefix is not None:
           tester.set_command_prefix(args.command_prefix)
         if args.python_command is not None:

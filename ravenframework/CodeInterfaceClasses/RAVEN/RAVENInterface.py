@@ -16,7 +16,6 @@ Created on Sept 10, 2017
 
 @author: alfoa
 """
-import sys
 import os
 import numpy as np
 from sys import platform
@@ -73,7 +72,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, None.
     """
     baseName = os.path.basename(xmlNode.find("executable").text)
-    if baseName not in ['raven_framework','raven_framework.py','%RAVENFRAMEWORK%']:
+    if baseName not in ['raven_framework','raven_framework.py', '%RAVENEXECUTABLE%']:
       raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)! Got "'+baseName+'"!')
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
@@ -174,22 +173,7 @@ class RAVEN(CodeInterfaceBase):
     # executable command will be: "python <path>/raven_framework.py"
     # in which case make sure executable ends with .py
     # Note that for raven_framework to work, it needs to be in the path.
-    # (j-bryan, 2024-03-05) A raven_framework script may also be the command used to run RAVEN, such
-    # as when using a prebuilt executable of RAVEN.
-    if executable == '%RAVENFRAMEWORK%':
-      # We want to reuse the same executable as was used to run this RAVEN instance.
-      if sys.executable.endswith('raven_framework'):  # using a RAVEN executable
-        self.preCommand = ''
-        executable = sys.executable
-      elif sys.argv[0].endswith('raven_framework'):  # using a RAVEN script
-        self.preCommand = ''
-        executable = sys.argv[0]
-      elif sys.argv[0].endswith('raven_framework.py'):  # using a python file
-        executable = sys.argv[0]
-      else:
-        raise(IOError(f'{self.printTag} ERROR: Could not determine the RAVEN executable to use. '
-                      f'sys.executable is "{sys.executable}" and sys.argv[0] is "{sys.argv[0]}"'))
-    elif executable.endswith('raven_framework'):
+    if executable == 'raven_framework' or executable == '%RAVENEXECUTABLE%':
       self.preCommand = ''
     elif not executable.endswith(".py"):
       executable += ".py"

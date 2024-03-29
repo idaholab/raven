@@ -118,24 +118,17 @@ class RavenFramework(Tester):
       @ In, None
       @ Out, command, string, command to run.
     """
-    ravenflag = ''
+    flags = []
     if self.specs['test_interface_only']:
-      ravenflag += ' interfaceCheck '
+      flags.append('interfaceCheck')
 
     if self.specs['interactive']:
-      ravenflag += ' interactiveCheck '
+      flags.append('interactiveCheck')
 
-    installType = self.get_install_type()
-    if installType == 'source':
-      command = self._get_python_command() + " " + self.driver + " " + ravenflag + self.specs["input"]
-    elif installType == 'pip':
-      command = "raven_framework " + ravenflag + self.specs["input"]
-    elif installType == 'binary':
-      command = self._binaryLocation + " " + ravenflag + self.specs["input"]
+    if (command := self._get_test_command()) is not None:
+      return ' '.join([command, *flags, self.specs["input"]])
     else:
-      raise ValueError('Unknown install type: {}'.format(self.__install_type))
-
-    return command
+      return ' '.join([self._get_python_command(), self.driver, *flags, self.specs["input"]])
 
   def __make_differ(self, specName, differClass, extra=None):
     """
