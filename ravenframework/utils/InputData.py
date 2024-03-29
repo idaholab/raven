@@ -48,6 +48,16 @@ def checkQuantity(quantity, n):
     match = match and n <= 1
   return match
 
+def _escUnderscore(s):
+  """
+    Escapes underscores in LaTeX
+    @ In, s, string, the string to escape the underscores
+    @ Out, _escUnderscore, string, the string with underscores escaped
+  """
+  # assure underscore is escaped, but not doubly
+  # and never escape an underscore followed by a '{'
+  return re.sub(r'(?<!\\)_(?!{)', r'\_', s)
+
 class CheckClass(object):
   """
     This checks to figure out if a node is a ParameterInput type
@@ -677,8 +687,7 @@ class ParameterInput(object):
       msg += '{i}\\end{{itemize}}\n'.format(i=doDent(recDepth, 1))
     # TODO is this a good idea? -> disables underscores in math mode :(
     if recDepth == 0:
-      # assure underscore is escaped, but not doubly
-      msg = re.sub(r'(?<!\\)_', r'\_', msg)
+      msg = _escUnderscore(msg)
     return msg
 
   @classmethod
@@ -695,12 +704,12 @@ class ParameterInput(object):
     specName = cls.name
     if '_' in specName:
       # assure underscore is escaped, but not doubly
-      specName = re.sub(r'(?<!\\)_', r'\_', specName)
+      specName = _escUnderscore(specName)
     msg += '{i}The \\xmlNode{{{n}}} node recognizes the following parameters:'.format(i=doDent(recDepth), n=specName)
     msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
     for param, info in cls.parameters.items():
       # assure underscore is escaped, but not doubly
-      name = re.sub(r'(?<!\\)_', r'\_', param)
+      name = _escUnderscore(param)
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
       default = '\\default{'+ str(info['default']) +'}' if info['default'] != 'no-default' else ""
