@@ -248,5 +248,5 @@ def returnInstance(cls, name):
     @ Out, __crossovers[name], instance of class
   """
   if name not in __survivorSelectors:
-    cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
+    cls.raiseAnError (IOError, "{} is not an valid option for survivor selector. Please review the spelling of the survivor selector. ".format(name))
   return __survivorSelectors[name]

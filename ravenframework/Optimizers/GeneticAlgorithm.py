@@ -52,7 +52,7 @@ class GeneticAlgorithm(RavenSampled):
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
                         ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable
-                         at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$.
+                         at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$
                         \default{1e-6}, if no criteria specified""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
                         'AHD': r""" provides the desired value for the Hausdorff Distance between populations""",
@@ -131,55 +131,34 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(GeneticAlgorithm, cls).getInputSpecification()
-    specs.description = r"""The \xmlNode{GeneticAlgorithm} optimizer is a metaheuristic approach
-                            to perform a global search in large design spaces. The methodology rose
-                            from the process of natural selection, and like others in the large class
-                            of the evolutionary algorithms, it utilizes genetic operations such as
-                            selection, crossover, and mutations to avoid being stuck in local minima
-                            and hence facilitates finding the global minima. More information can
-                            be found in:
-                            Holland, John H. "Genetic algorithms." Scientific American 267.1 (1992): 66-73."""
+    specs.description = r"""The \xmlNode{GeneticAlgorithm} is a metaheuristic optimization technique inspired by the principles 
+                            of natural selection and genetics. Introduced by John Holland in the 1960s, GA mimics the process of 
+                            biological evolution to solve complex optimization and search problems. They operate by maintaining a population of 
+                            potential solutions represented as as arrays of fixed length variables (genes), and each such array is called a chromosome. 
+                            These solutions undergo iterative refinement through processes such as mutation, crossover, and survivor selection. Mutation involves randomly altering certain genes within
+                            individual solutions, introducing diversity into the population and enabling exploration of new regions in the solution space. 
+                            Crossover, on the other hand, mimics genetic recombination by exchanging genetic material between two parent solutions to create 
+                            offspring with combined traits. Survivor selection determines which solutions will advance to the next generation based on 
+                            their fitness—how well they perform in solving the problem at hand. Solutions with higher fitness scores are more likely to 
+                            survive and reproduce, passing their genetic material to subsequent generations. This iterative process continues 
+                            until a stopping criterion is met, typically when a satisfactory solution is found or after a predetermined number of generations.  
+                            More information can be found in:\\\\                         
+
+                            Holland, John H. "Genetic algorithms." Scientific American 267.1 (1992): 66-73.\\\\
+                            
+                            Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective optimization problems. 
+                            NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set of 
+                            non-dominated (Pareto-optimal) solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives, 
+                            providing decision-makers with a comprehensive view of the problem's solution space. More information about NSGA-II can be found in:\\\\                
+
+                            Deb, Kalyanmoy, et al. "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\\\
+                            
+                            GA in RAVEN supports for both single and multi-objective optimization problem."""
 
     # GA Params
     GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
         printPriority=108,
-        descr=r""" Genetic Algorithm Parameters:\begin{itemize}
-                                                  \item populationSize.
-                                                  \item parentSelectors:
-                                                                    \begin{itemize}
-                                                                      \item rouletteWheel.
-                                                                      \item tournamentSelection.
-                                                                      \item rankSelection.
-                                                                    \end{itemize}
-                                                  \item Reproduction:
-                                                                  \begin{itemize}
-                                                                    \item crossover:
-                                                                      \begin{itemize}
-                                                                        \item onePointCrossover.
-                                                                        \item twoPointsCrossover.
-                                                                        \item uniformCrossover
-                                                                      \end{itemize}
-                                                                    \item mutators:
-                                                                      \begin{itemize}
-                                                                        \item swapMutator.
-                                                                        \item scrambleMutator.
-                                                                        \item inversionMutator.
-                                                                        \item bitFlipMutator.
-                                                                        \item randomMutator.
-                                                                      \end{itemize}
-                                                                    \end{itemize}
-                                                  \item survivorSelectors:
-                                                                      \begin{itemize}
-                                                                        \item ageBased.
-                                                                        \item fitnessBased.
-                                                                      \end{itemize}
-                                                  #NOTE An indicator saying whather GA will handle constraint hardly or softly will be upgraded later @JunyungKim
-                                                  # \item constraintHandling:
-                                                  #                   \begin{itemize}
-                                                  #                     \item hard.
-                                                  #                     \item soft.
-                                                  #                   \end{itemize}
-                                                \end{itemize}""")
+        descr=r""" """)
     # Population Size
     populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
         contentType=InputTypes.IntegerType,
@@ -199,23 +178,27 @@ class GeneticAlgorithm(RavenSampled):
     parentSelection = InputData.parameterInputFactory('parentSelection', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""A node containing the criterion based on which the parents are selected. This can be a
-                  fitness proportional selection such as:
-                  a. \textbf{\textit{rouletteWheel}},
-                  b. \textbf{\textit{tournamentSelection}},
-                  c. \textbf{\textit{rankSelection}}
-                  for all methods nParents is computed such that the population size is kept constant.
-                  $nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize$
-                  solving for nParents we get:
-                  $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$
-                  This will result in a popSize a little larger than the initial one, these excessive children will be later thrawn away and only the first popSize child will be kept""")
+        descr=r"""A node containing the criterion based on which the parents are selected. This can be a fitness proportional selection for all methods. 
+                  The number of parents (i.e., nParents) is computed such that the population size is kept constant. \\\\
+                  $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$. \\\\
+                  The number of children (i.e., nChildren) is computed by \\\\
+                  $nChildren = 2 \times {nParents \choose 2} = nParents \times (nParents-1) = popSize$ \\\\
+                  This will result in a popSize a little larger than the initial one, and the excessive children will be later thrawn away and only the first popSize child will be kept. \\\\
+                  You can choose three options for parentSelection:
+                      \begin{itemize}
+                          \item \textit{rouletteWheel} - It assigns probabilities to chromosomes based on their fitness, 
+                          allowing for selection proportionate to their likelihood of being chosen for reproduction.
+                          \item \textit{tournamentSelection} - Chromosomes are randomly chosen from the population to compete in a tournament, 
+                          and the fittest individual among them is selected for reproduction.
+                          \item \textit{rankSelection} - Chromosomes with higher fitness values are selected. 
+                      \end{itemize}
+                  """)
     GAparams.addSub(parentSelection)
 
     # Reproduction
     reproduction = InputData.parameterInputFactory('reproduction', strictMode=True,
         printPriority=108,
-        descr=r"""a node containing the reproduction methods.
-                  This accepts subnodes that specifies the types of crossover and mutation.""")
+        descr=r"""a node containing the reproduction methods. This accepts subnodes that specifies the types of crossover and mutation. """)
     # 0.  k-selectionNumber of Parents
     kSelection = InputData.parameterInputFactory('kSelection', strictMode=True,
         contentType=InputTypes.IntegerType,
@@ -226,12 +209,14 @@ class GeneticAlgorithm(RavenSampled):
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""a subnode containing the implemented crossover mechanisms.
-                  This includes: a.    onePointCrossover,
-                                 b.    twoPointsCrossover,
-                                 c.    uniformCrossover.""")
+        descr=r"""a subnode containing the implemented crossover mechanisms. You can choose one of the crossover options listed below:
+                  \begin{itemize}
+                    \item \textit{onePointCrossover} - It selects a random crossover point along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
+                    \item \textit{twoPointsCrossover} - It selects two random crossover points along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
+                    \item \textit{uniformCrossover} - It randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
+                  \end{itemize}""")
     crossover.addParam("type", InputTypes.StringType, True,
-                       descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
+                       descr="type of crossover operation to be used. See the list of options above.")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -247,14 +232,16 @@ class GeneticAlgorithm(RavenSampled):
     mutation = InputData.parameterInputFactory('mutation', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""a subnode containing the implemented mutation mechanisms.
-                  This includes: a.    bitFlipMutation,
-                                 b.    swapMutation,
-                                 c.    scrambleMutation,
-                                 d.    inversionMutation, or
-                                 e.    randomMutator.""")
+        descr=r"""a subnode containing the implemented mutation mechanisms. You can choose one of the mutation options listed below:
+                \begin{itemize}
+                  \item \textit{swapMutator} - It randomly selects two genes within an chromosome and swaps their positions.
+                  \item \textit{scrambleMutator} - It randomly selects a subset of genes within an chromosome and shuffles their positions.
+                  \item \textit{inversionMutator} - It selects a contiguous subset of genes within an chromosome and reverses their order.
+                  \item \textit{bitFlipMutator} - It randomly selects genes within an chromosome and flips their values.
+                  \item \textit{randomMutator} - It randomly selects a gene within an chromosome and mutates the gene.
+                \end{itemize} """)
     mutation.addParam("type", InputTypes.StringType, True,
-                      descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
+                      descr="type of mutation operation to be used. See the list of options above.")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -272,27 +259,38 @@ class GeneticAlgorithm(RavenSampled):
     survivorSelection = InputData.parameterInputFactory('survivorSelection', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""a subnode containing the implemented survivor selection mechanisms.
-                  This includes: a.    ageBased, or
-                                 b.    fitnessBased.""")
+        descr=r"""a subnode containing the implemented survivor selection mechanisms. You can choose one of the survivor selection options listed below:
+                  \begin{itemize}
+                    \item \textit{fitnessBased} - Individuals with higher fitness scores are more likely to be selected to survive and 
+                    proceed to the next generation. It suppoort only single-objective optimization problem.
+                    \item \textit{ageBased} - Individuals are selected for survival based on their age or generation, with older individuals being prioritized 
+                    for retention. It suppoort only single-objective optimization problem.
+                    \item \textit{rankNcrowdingBased} - Individuals with low rank and crowding distance are more likely to be selected to survive and 
+                    proceed to the next generation. It suppoort only multi-objective optimization problem.
+                  \end{itemize}""")
     GAparams.addSub(survivorSelection)
 
     # Fitness
     fitness = InputData.parameterInputFactory('fitness', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty\_j) $.
+        descr=r"""a subnode containing the implemented fitness functions.You can choose one of the fitness options listed below:
+                  \begin{itemize}
+                        \item \textit{invLinear} - It assigns fitness values inversely proportional to the individual's objective function values, 
+                        prioritizing solutions with lower objective function values (i.e., minimization) for selection and reproduction. It suppoort only single-objective optimization problem.\\\\
+                        $fitness = -a \times obj_j - b \times \sum_{j=1}^{nConstraint} max(0,-penalty_j) $\\
+                        where j represents an index of objects
+                        \\
 
-                                 b.    logistic: $fitness = \frac{1}{1+e^{a\times(obj-b)}}$.
+                        \item \textit{logistic} - It applies a logistic function to transform raw objective function values into fitness scores.  It suppoort only single-objective optimization problem.\\\\
+                        $fitness = \frac{1}{1+e^{a\times(obj-b)}}$\\ 
+                        \item \textit{feasibleFirst} It prioritizes solutions that meet constraints by assigning higher fitness scores to feasible solutions, 
 
-                                 c.    feasibleFirst: $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right.$
-
-                                 d.    hardConstraint: $fitness = the number of constraints violated.$
-
-                                 """)
+                        encouraging the evolution of individuals that satisfy the problem's constraints.  It suppoort single-and multi-objective optimization problem.\\\\
+                        $fitness = \left\{\begin{matrix} -obj & g_j(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right$\\
+                  \end{itemize} """)                 
     fitness.addParam("type", InputTypes.StringType, True,
-                     descr=r"""[invLin, logistic, feasibleFirst, hardConstraint]""")
+                     descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
         contentType=InputTypes.FloatListType,
         printPriority=108,
@@ -337,8 +335,8 @@ class GeneticAlgorithm(RavenSampled):
     new = {}
     # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
-    new['rank'] = 'rank'
-    new['CD'] = 'crowding distance'
+    new['rank'] = 'It refers to the sorting of solutions into non-dominated fronts based on their Pareto dominance relationships'
+    new['CD'] = 'It measures the density of solutions within each front to guide the selection of diverse individuals for the next generation'
     new['fitness'] = 'fitness of the current chromosome'
     new['age'] = 'age of current chromosome'
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
@@ -436,7 +434,7 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
 
     ####################################################################################
-    # fitness node                                                                     #
+    # fitness / constraint node                                                        #
     ####################################################################################
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
@@ -968,7 +966,7 @@ class GeneticAlgorithm(RavenSampled):
       print("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+        rlzDict1 = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
         rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
         rlzDict['batchId'] = rlz['batchId'].data[i]
         for j in range(len(self._objectiveVar)):

@@ -21,7 +21,7 @@
   5.  randomMutator
 
   Created June,16,2020
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
+  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
 """
 import numpy as np
 import xarray as xr
