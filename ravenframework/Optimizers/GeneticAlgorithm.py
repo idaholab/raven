@@ -660,10 +660,6 @@ class GeneticAlgorithm(RavenSampled):
     """
 
     info['step'] = self.counter
-
-    # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
-    # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
-
     objInd = int(len(self._objectiveVar)>1) + 1 #if len(self._objectiveVar) == 1 else 2
     constraintFuncs: dict = {1: GeneticAlgorithm.singleConstraint, 2: GeneticAlgorithm.multiConstraint}
     const = constraintFuncs.get(objInd, GeneticAlgorithm.singleConstraint)
@@ -675,8 +671,8 @@ class GeneticAlgorithm(RavenSampled):
       survivorSelection = survivorSelectionFuncs.get(objInd, survivorSelectors.singleObjSurvivorSelect)
       survivorSelection(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g)
 
-      #######################################################################################################
-      # ##TODO: remove all the plots and maybe design new plots in outstreams if our current cannot be used
+      # Step 1 @ n-1: Plot results
+      # ## TODO: remove all the plots and maybe design new plots in outstreams if our current cannot be used
       # ## These are currently for debugging purposes @JunyungKim
       # import matplotlib.pyplot as plt
 
@@ -693,9 +689,8 @@ class GeneticAlgorithm(RavenSampled):
       #           newMultiBestObjective[i,1], str(self.batchId))
       #   # plt.savefig('PF'+str(i)+'_'+str(self.batchId)+'.png')
       # plt.savefig('PF_'+str(self.batchId)+'.png')
-      #######################################################################################################
-
-      # Step 1 @ n: Parent selection from population
+      
+      # Step 2 @ n: Parent selection from population
       # Pair parents together by indexes
       parents = self._parentSelectionInstance(self.population,
                                               variables=list(self.toBeSampled),
@@ -707,14 +702,14 @@ class GeneticAlgorithm(RavenSampled):
                                               objVal = self._objectiveVar
                                               )
 
-      # Step 2 @ n: Crossover from set of parents
+      # Step 3 @ n: Crossover from set of parents
       # Create childrenCoordinates (x1,...,xM)
       childrenXover = self._crossoverInstance(parents=parents,
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints)
 
-      # Step 3 @ n: Mutation
+      # Step 4 @ n: Mutation
       # Perform random directly on childrenCoordinates
       childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                distDict=self.distDict,
@@ -722,7 +717,7 @@ class GeneticAlgorithm(RavenSampled):
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled))
 
-      # Step 4 @ n: repair/replacement
+      # Step 5 @ n: repair/replacement
       # Repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
@@ -746,7 +741,7 @@ class GeneticAlgorithm(RavenSampled):
                                 coords={'chromosome': np.arange(np.shape(children)[0]),
                                         'Gene':list(self.toBeSampled)})
 
-      # Step 5 @ n: Submit children batch
+      # Step 6 @ n: Submit children batch
       # Submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(self.batch):
         newRlz = {}
