@@ -640,7 +640,11 @@ class GeneticAlgorithm(RavenSampled):
     return traj, g, objectiveVal, offSprings, offSpringFitness
 
   def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
-      if self.counter > 1:
+      if self.counter == 1:
+        self.population = offSprings
+        self.fitness = offSpringFitness
+        self.objectiveVal = rlz[self._objectiveVar[0]].data
+      else:
         self.population, self.fitness,\
         self.popAge,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
                                                                         variables=list(self.toBeSampled),
@@ -649,31 +653,12 @@ class GeneticAlgorithm(RavenSampled):
                                                                         newRlz=rlz,
                                                                         offSpringsFitness=offSpringFitness,
                                                                         popObjectiveVal=self.objectiveVal)
-      else:
-        self.population = offSprings
-        self.fitness = offSpringFitness
-        self.objectiveVal = rlz[self._objectiveVar[0]].data
 
   def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
-      if self.counter > 1:
-        self.population,self.rank, \
-        self.popAge,self.crowdingDistance, \
-        self.objectiveVal,self.fitness, \
-        self.constraintsV                  = self._survivorSelectionInstance(age=self.popAge,
-                                                                             variables=list(self.toBeSampled),
-                                                                             population=self.population,
-                                                                             offsprings=rlz,
-                                                                             popObjectiveVal=self.objectiveVal,
-                                                                             offObjectiveVal=objectiveVal,
-                                                                             popFit = self.fitness,
-                                                                             offFit = offSpringFitness,
-                                                                             popConstV = self.constraintsV,
-                                                                             offConstV = g)
-      else:
+      if self.counter == 1:
         self.population = offSprings
         self.fitness = offSpringFitness
         self.constraintsV = g
-
         # offspringObjsVals for Rank and CD calculation
         offObjVal = []
         for i in range(len(self._objectiveVar)):
@@ -696,6 +681,20 @@ class GeneticAlgorithm(RavenSampled):
         self.objectiveVal = []
         for i in range(len(self._objectiveVar)):
           self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
+      else:
+        self.population,self.rank, \
+        self.popAge,self.crowdingDistance, \
+        self.objectiveVal,self.fitness, \
+        self.constraintsV                  = self._survivorSelectionInstance(age=self.popAge,
+                                                                             variables=list(self.toBeSampled),
+                                                                             population=self.population,
+                                                                             offsprings=rlz,
+                                                                             popObjectiveVal=self.objectiveVal,
+                                                                             offObjectiveVal=objectiveVal,
+                                                                             popFit = self.fitness,
+                                                                             offFit = offSpringFitness,
+                                                                             popConstV = self.constraintsV,
+                                                                             offConstV = g)
 
       self._collectOptPointMulti(self.population,
                                  self.rank,
@@ -966,7 +965,7 @@ class GeneticAlgorithm(RavenSampled):
       print("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict1 = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+        # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
         rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
         rlzDict['batchId'] = rlz['batchId'].data[i]
         for j in range(len(self._objectiveVar)):
@@ -1070,7 +1069,7 @@ class GeneticAlgorithm(RavenSampled):
     self.multiBestRank = optRank
     self.multiBestCD = optCD
 
-    return optPointsDic
+    return 
 
 
   def _checkAcceptability(self, traj):
