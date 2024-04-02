@@ -59,6 +59,9 @@ def invLinear(rlz,**kwargs):
           the farthest from violating the constraint it is, The highest negative value it have the largest the violation is.
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
   """
+  #NOTE invLinear is not yet support Multi-objective optimization problem solving. Further literature reivew applying invLinear method to multi-objective optimization 
+  #     needs to be involved. Potentially, applying obj_Worst in fitness function (i.e., -a[j] * (rlz[objVar][objVar[j]].data).reshape(-1,1) - b[j] * np.sum(np.maximum(0,-penalty),axis=-1).reshape(-1,1))
+  #     should be considerd. 
   a = [1.0] if kwargs['a'] == None else kwargs['a']
   b = [10.0] if kwargs['b'] == None else kwargs['b']
   penalty = 0.0 if kwargs['constraintFunction'].all() == None  else kwargs['constraintFunction'].data
