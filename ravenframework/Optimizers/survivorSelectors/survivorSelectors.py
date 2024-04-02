@@ -19,7 +19,7 @@
   2.  fitnessBased
 
   Created June,16,2020
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
+  @authors: Mohammad Abdo, Junyung Kim, Diego Mandelli, Andrea Alfonsi
 """
 # External Modules----------------------------------------------------------------------------------
 import numpy as np
@@ -32,6 +32,75 @@ from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
 # Internal Modules End------------------------------------------------------------------------------
 
 # @profile
+
+def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
+    if self.counter == 1:
+      self.population = offSprings
+      self.fitness = offSpringFitness
+      self.objectiveVal = rlz[self._objectiveVar[0]].data
+    else:
+      self.population, self.fitness,\
+      self.popAge,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
+                                                                      variables=list(self.toBeSampled),
+                                                                      population=self.population,
+                                                                      fitness=self.fitness,
+                                                                      newRlz=rlz,
+                                                                      offSpringsFitness=offSpringFitness,
+                                                                      popObjectiveVal=self.objectiveVal)
+
+def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
+    if self.counter == 1:
+      self.population = offSprings
+      self.fitness = offSpringFitness
+      self.constraintsV = g
+      # offspringObjsVals for Rank and CD calculation
+      offObjVal = []
+      for i in range(len(self._objectiveVar)):
+        offObjVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
+
+      # offspringFitVals for Rank and CD calculation
+      fitVal           = datasetToDataArray(self.fitness, self._objectiveVar).data
+      offspringFitVals = fitVal.tolist()
+      offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals))
+      self.rank     = xr.DataArray(offSpringRank,
+                                    dims=['rank'],
+                                    coords={'rank': np.arange(np.shape(offSpringRank)[0])})
+      offSpringCD           = frontUtils.crowdingDistance(rank=offSpringRank,
+                                                          popSize=len(offSpringRank),
+                                                          objectives=np.array(offspringFitVals))
+
+      self.crowdingDistance = xr.DataArray(offSpringCD,
+                                            dims=['CrowdingDistance'],
+                                            coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})
+      self.objectiveVal = []
+      for i in range(len(self._objectiveVar)):
+        self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
+    else:
+      self.population,self.rank, \
+      self.popAge,self.crowdingDistance, \
+      self.objectiveVal,self.fitness, \
+      self.constraintsV                  = self._survivorSelectionInstance(age=self.popAge,
+                                                                            variables=list(self.toBeSampled),
+                                                                            population=self.population,
+                                                                            offsprings=rlz,
+                                                                            popObjectiveVal=self.objectiveVal,
+                                                                            offObjectiveVal=objectiveVal,
+                                                                            popFit = self.fitness,
+                                                                            offFit = offSpringFitness,
+                                                                            popConstV = self.constraintsV,
+                                                                            offConstV = g)
+
+    self._collectOptPointMulti(self.population,
+                                self.rank,
+                                self.crowdingDistance,
+                                self.objectiveVal,
+                                self.fitness,
+                                self.constraintsV)
+    self._resolveNewGenerationMulti(traj, rlz, info)
+
+
+
+
 def ageBased(newRlz,**kwargs):
   """
     ageBased survivorSelection mechanism for new generation selection.

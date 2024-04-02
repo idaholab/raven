@@ -34,14 +34,14 @@ import xarray as xr
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ..utils import mathUtils, InputData, InputTypes, frontUtils
+from ..utils import mathUtils, InputData, InputTypes
 from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
-from .parentSelectors.parentSelectors import countConstViolation
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
+from .survivorSelectors import survivorSelectors 
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
 # Internal Modules End------------------------------------------------------------------------------
@@ -639,71 +639,6 @@ class GeneticAlgorithm(RavenSampled):
                                              type = self._minMax)
     return traj, g, objectiveVal, offSprings, offSpringFitness
 
-  def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
-      if self.counter == 1:
-        self.population = offSprings
-        self.fitness = offSpringFitness
-        self.objectiveVal = rlz[self._objectiveVar[0]].data
-      else:
-        self.population, self.fitness,\
-        self.popAge,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
-                                                                        variables=list(self.toBeSampled),
-                                                                        population=self.population,
-                                                                        fitness=self.fitness,
-                                                                        newRlz=rlz,
-                                                                        offSpringsFitness=offSpringFitness,
-                                                                        popObjectiveVal=self.objectiveVal)
-
-  def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
-      if self.counter == 1:
-        self.population = offSprings
-        self.fitness = offSpringFitness
-        self.constraintsV = g
-        # offspringObjsVals for Rank and CD calculation
-        offObjVal = []
-        for i in range(len(self._objectiveVar)):
-          offObjVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
-
-        # offspringFitVals for Rank and CD calculation
-        fitVal           = datasetToDataArray(self.fitness, self._objectiveVar).data
-        offspringFitVals = fitVal.tolist()
-        offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals))
-        self.rank     = xr.DataArray(offSpringRank,
-                                     dims=['rank'],
-                                     coords={'rank': np.arange(np.shape(offSpringRank)[0])})
-        offSpringCD           = frontUtils.crowdingDistance(rank=offSpringRank,
-                                                            popSize=len(offSpringRank),
-                                                            objectives=np.array(offspringFitVals))
-
-        self.crowdingDistance = xr.DataArray(offSpringCD,
-                                             dims=['CrowdingDistance'],
-                                             coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})
-        self.objectiveVal = []
-        for i in range(len(self._objectiveVar)):
-          self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
-      else:
-        self.population,self.rank, \
-        self.popAge,self.crowdingDistance, \
-        self.objectiveVal,self.fitness, \
-        self.constraintsV                  = self._survivorSelectionInstance(age=self.popAge,
-                                                                             variables=list(self.toBeSampled),
-                                                                             population=self.population,
-                                                                             offsprings=rlz,
-                                                                             popObjectiveVal=self.objectiveVal,
-                                                                             offObjectiveVal=objectiveVal,
-                                                                             popFit = self.fitness,
-                                                                             offFit = offSpringFitness,
-                                                                             popConstV = self.constraintsV,
-                                                                             offConstV = g)
-
-      self._collectOptPointMulti(self.population,
-                                 self.rank,
-                                 self.crowdingDistance,
-                                 self.objectiveVal,
-                                 self.fitness,
-                                 self.constraintsV)
-      self._resolveNewGenerationMulti(traj, rlz, info)
-
   #########################################################################################################
   # Run Methods                                                                                           #
   #########################################################################################################
@@ -734,11 +669,10 @@ class GeneticAlgorithm(RavenSampled):
     const = constraintFuncs.get(objInd, GeneticAlgorithm.singleConstraint)
     traj, g, objectiveVal, offSprings, offSpringFitness = const(self, info, rlz)
 
-
-    # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
     if self._activeTraj:
-      survivorSelectionFuncs: dict = {1: GeneticAlgorithm.singleObjSurvivorSelect, 2: GeneticAlgorithm.multiObjSurvivorSelect}
-      survivorSelection = survivorSelectionFuncs.get(objInd, GeneticAlgorithm.singleObjSurvivorSelect)
+      # Step 0 @ n-1: Survivor selection(rlz): Update population container given obtained children
+      survivorSelectionFuncs: dict = {1: survivorSelectors.singleObjSurvivorSelect, 2: survivorSelectors.multiObjSurvivorSelect}
+      survivorSelection = survivorSelectionFuncs.get(objInd, survivorSelectors.singleObjSurvivorSelect)
       survivorSelection(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g)
 
       #######################################################################################################
@@ -761,7 +695,7 @@ class GeneticAlgorithm(RavenSampled):
       # plt.savefig('PF_'+str(self.batchId)+'.png')
       #######################################################################################################
 
-      # 1 @ n: Parent selection from population
+      # Step 1 @ n: Parent selection from population
       # Pair parents together by indexes
       parents = self._parentSelectionInstance(self.population,
                                               variables=list(self.toBeSampled),
@@ -773,14 +707,14 @@ class GeneticAlgorithm(RavenSampled):
                                               objVal = self._objectiveVar
                                               )
 
-      # 2 @ n: Crossover from set of parents
+      # Step 2 @ n: Crossover from set of parents
       # Create childrenCoordinates (x1,...,xM)
       childrenXover = self._crossoverInstance(parents=parents,
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints)
 
-      # 3 @ n: Mutation
+      # Step 3 @ n: Mutation
       # Perform random directly on childrenCoordinates
       childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                distDict=self.distDict,
@@ -788,7 +722,7 @@ class GeneticAlgorithm(RavenSampled):
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled))
 
-      # 4 @ n: repair/replacement
+      # Step 4 @ n: repair/replacement
       # Repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
@@ -812,7 +746,7 @@ class GeneticAlgorithm(RavenSampled):
                                 coords={'chromosome': np.arange(np.shape(children)[0]),
                                         'Gene':list(self.toBeSampled)})
 
-      # 5 @ n: Submit children batch
+      # Step 5 @ n: Submit children batch
       # Submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(self.batch):
         newRlz = {}
