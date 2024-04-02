@@ -39,15 +39,18 @@ class SERPENT(GenericCode):
       @ In, None
       @ Out, None
     """
-    # check if serpentTools is available, install it otherwise
-    utils.importOrInstall("serpentTools")
+    # check if serpentTools is available, raise error it otherwise
+    try:
+      import serpentTools
+    except ImportError:
+      raise ImportError("serpentTools not found and SERPENT Interface has been invoked. Install serpentTools through pip!")
     # intialize code interface
     GenericCode.__init__(self)
     self.printTag         = 'SERPENT'         # Print Tag
     self._fileTypesToRead = ['ResultsReader'] # container of file types to read
     # in case of burnup calc, the interface can compute the time at which FOMs (e.g. keff) crosses
     # a target. For example (default), we can compute the time (burnDays) at which absKeff crosses 1.0
-    self.EOLtarget = {'absKeff':1.0}
+    self.eolTarget = {'absKeff':1.0}
 
   def _findInputFile(self, inputFiles):
     """
@@ -79,7 +82,7 @@ class SERPENT(GenericCode):
         if target is None:
           raise ValueError(self.printTag+' ERROR: "target" attribute in <EOL> must be present if <EOL> node is inputted')
         value = float(eolNode.text)
-        self.EOLtarget[target] = value
+        self.eolTarget[target] = value
 
     # by default only the "_res.m" file is read.
     # if additional files are required, the user should request them here
@@ -143,7 +146,7 @@ class SERPENT(GenericCode):
       @ Out, None
     """
     inputRoot = output.replace("_res","")
-    outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), self.EOLtarget)
+    outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), self.eolTarget)
     results = outputParser.processOutputs()
     return results
 

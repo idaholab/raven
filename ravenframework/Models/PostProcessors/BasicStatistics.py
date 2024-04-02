@@ -1092,7 +1092,7 @@ class BasicStatistics(PostProcessorInterface):
       factor = np.sqrt(np.asarray(percent)*(1.0 - np.asarray(percent)))/norm.pdf(norm.ppf(percent))
       try:
         sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(calculations['equivalentSamples'][list(needed[metric]['targets'])])
-      except:
+      except KeyError:
         sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(self.sampleSize)
       sigmaAdjusted = sigmaAdjusted.expand_dims(dim={'percent': percent})
       factor = xr.DataArray(data=factor, dims='percent', coords={'percent': percent})

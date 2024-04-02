@@ -208,13 +208,15 @@ ANA_KEFF  (idx, [1:   6]) = [1.0E+00 0.001 9.9E-01 0.001 1.0E-02 0.001];
 IMP_KEFF  (idx, [1:   2]) = [1.0E+00 0.001];
 \end{lstlisting}
 For example, for the above snippet of the result file, the variables generated would be:
-\begin{table}[]
+
+\begin{table}[ht]
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
 \textit{anaKeff\_0} & \textit{anaKeff\_1} & \textit{anaKeff\_2} & \textit{anaKeff\_3} & \textit{anaKeff\_4} & \textit{anaKeff\_5} & \textit{impKeff\_0} & \textit{impKeff\_1} \\ \hline
 1.E+00              & 0.001               & 9.9E-01             & 0.001               & 1.E-02              & 0.001               & 1.E+00              & 0.001               \\ \hline
 \end{tabular}
 \end{table}
+
 For burnup calculations the same syntax is used with the different that multiple rows are generated each of them indexed by the burnup step.
 
 \textit{\textbf{\underline{DepletionReader}}}

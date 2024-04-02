@@ -90,21 +90,25 @@ class SerpentOutputParser(object):
   """
     Class to parse different serpent output files
   """
-  def __init__(self, fileTypes, fileRootName, EOL = None):
+  def __init__(self, fileTypes, fileRootName, eol = None):
     """
      Constructor
      @ In, fileTypes, list-like, list of file types to process
      @ In, fileRootName, str, file root name (from which the file names
                               for the different file types are inferred)
-     @ In, EOL, dict, dict of EOL targets {targetID1:value1,targetID2:value2, etc.}
+     @ In, eol, dict, dict of EOL targets {targetID1:value1,targetID2:value2, etc.}
      @ Out, None
     """
     # import serpent tools
-    self._st = utils.importOrInstall("serpentTools")
+    try:
+      st = __import__("serpentTools")
+    except ImportError:
+      raise ImportError("serpentTools not found and SERPENT Interface has been invoked. Install serpentTools through pip!")
+    self._st = st
     self._fileTypes = fileTypes
     self._fileRootName =  fileRootName
     self._data = {}
-    self._EOL = EOL
+    self._eol = eol
 
   def processOutputs(self):
     """
@@ -159,25 +163,25 @@ class SerpentOutputParser(object):
           resultsResults[kk] = np.asarray(v[eix])
 
       if 'keff' in k.lower() and k.lower() != 'anakeff':
-        rho_sigma, rhoLog_sigma = None,  None
+        rhoSigma, rhoLogSigma = None,  None
         rho, rhoLog = (v[0] - 1) / v[0],  np.log(v[0])
         if v.shape[0] > 1:
           # we have sigma
-          rho_sigma, rhoLog_sigma = (v[1] / v[0]) * rho,  (v[1] / v[0]) * rhoLog
+          rhoSigma, rhoLogSigma = (v[1] / v[0]) * rho,  (v[1] / v[0]) * rhoLog
         resultsResults[f'{k.replace("Keff", "Reactivity")}_{0}'
-                       if rho_sigma is not None
+                       if rhoSigma is not None
                        else f'{k.replace("Keff", "Reactivity")}'] = rho*1e5
-        if rho_sigma is not None:
-          resultsResults[f'{k.replace("Keff", "Reactivity")}_{1}'] = rho_sigma*1e5
+        if rhoSigma is not None:
+          resultsResults[f'{k.replace("Keff", "Reactivity")}_{1}'] = rhoSigma*1e5
         resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{0}'
-                       if rhoLog_sigma is not None
+                       if rhoLogSigma is not None
                        else f'{k.replace("Keff", "ReactivityLog")}'] = rhoLog*1e5
-        if rhoLog_sigma is not None:
-          resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{1}'] = rhoLog_sigma*1e5
-    if nSteps > 1 and self._EOL is not None:
+        if rhoLogSigma is not None:
+          resultsResults[f'{k.replace("Keff", "ReactivityLog")}_{1}'] = rhoLogSigma*1e5
+    if nSteps > 1 and self._eol is not None:
       # create a new variable that tells us the time where the keff < 1
-      for target in self._EOL:
-        value = self._EOL[target]
+      for target in self._eol:
+        value = self._eol[target]
         if target not in res.resdata:
           raise ValueError(f"Target {target} for EOL calcs is not in result data")
         targetValues = res.resdata[target][:,0]

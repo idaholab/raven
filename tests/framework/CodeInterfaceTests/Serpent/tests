@@ -6,6 +6,7 @@
   output = 'SerpentTestBurnup/RAVENoutHS_0.csv SerpentTestBurnup/RAVENoutHS_1.csv SerpentTestBurnup/sampleInput/1/testInput.serpent_res.csv'
   csv = 'SerpentTestBurnup/RAVENout.csv'
   test_interface_only = True 
+  required_libraries='serpentTools'
  [../]
  [./SerpentTestEigen]
   type = 'RavenFramework'
@@ -14,5 +15,6 @@
   output = 'SerpentTestEigen/sampleInput/2/testInput.serpent_res.csv'
   csv = 'SerpentTestEigen/RAVENout.csv'
   test_interface_only = True 
+  required_libraries='serpentTools'
  [../]
 []
