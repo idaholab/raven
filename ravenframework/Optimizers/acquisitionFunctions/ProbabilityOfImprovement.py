@@ -52,20 +52,20 @@ class ProbabilityOfImprovement(AcquisitionFunction):
                         $PoI(x) = \frac{\tau - \mu}{\sigma}$"""
     specs.addSub(InputData.parameterInputFactory('epsilon', contentType=InputTypes.FloatType,
                                                  descr=r"""Defines the threshold for PoI via the equation:
-                                                 $\tau = min \mu(\textbf{X}) - \epsilon$. The larger \epsilon is, the
+                                                 $\tau = min \mu(\textbf{X}) - \epsilon$. The larger $\epsilon$ is, the
                                                  more exploratory the algorithm and vice versa.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory('rho', contentType=InputTypes.FloatType,
                                                  descr=r"""Provides a 'time-constant' for the Exploit and Explore transient settings.
                                                  Provides the period for the oscillate transient setting.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory('transient', contentType=InputTypes.makeEnumType("transient", "transientType",
                                                  ['Constant', 'Exploit', 'Explore', 'Oscillate', 'DecayingOscillate']),
-                                                 descr=r"""Determines how the threshold \tau changes as optimization progresses.
+                                                 descr=r"""Determines how the threshold $\tau$ changes as optimization progresses.
                                                  \begin{itemize}
-                                                 \item Constant: \epsilon remains the provided value.
-                                                 \item Exploit: \epsilon exponentially decays to 0 encouraging exploitation.
-                                                 \item Explore: \epsilon exponentially grows from 0 to provided value.
-                                                 \item Oscillate: \epsilon varies between 0 and provided value.
-                                                 \item DecayingOscillate: \epsilon oscillates and decays, driving to exploitation.
+                                                 \item Constant: $\epsilon$ remains the provided value.
+                                                 \item Exploit: $\epsilon$ exponentially decays to 0 encouraging exploitation.
+                                                 \item Explore: $\epsilon$ exponentially grows from 0 to provided value.
+                                                 \item Oscillate: $\epsilon$ varies between 0 and provided value.
+                                                 \item DecayingOscillate: $\epsilon$ oscillates and decays, driving to exploitation.
                                                  \end{itemize}""", default='Constant'))
     return specs
 
