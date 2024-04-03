@@ -41,8 +41,7 @@ from .parentSelectors.parentSelectors import returnInstance as parentSelectionRe
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
-from .survivorSelectors import survivorSelectors 
-from .survivorSelectors import survivorSelectors 
+from .survivorSelection import survivorSelection as survivorSelectionProcess 
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
 
@@ -618,9 +617,9 @@ class GeneticAlgorithm(RavenSampled):
     g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
 
     g = xr.DataArray(g0,
-                      dims=['chromosome','Constraint'],
-                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
-                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+                     dims=['chromosome','Constraint'],
+                     coords={'chromosome':np.arange(np.shape(offSprings)[0]),
+                             'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
 
     for index,individual in enumerate(offSprings):
       newOpt = individual
@@ -674,8 +673,8 @@ class GeneticAlgorithm(RavenSampled):
 
     if self._activeTraj:
       # Step 0 @ n-1: Survivor selection(rlz): Update population container given obtained children
-      survivorSelectionFuncs: dict = {1: survivorSelectors.singleObjSurvivorSelect, 2: survivorSelectors.multiObjSurvivorSelect}
-      survivorSelection = survivorSelectionFuncs.get(objInd, survivorSelectors.singleObjSurvivorSelect)
+      survivorSelectionFuncs: dict = {1: survivorSelectionProcess.singleObjSurvivorSelect, 2: survivorSelectionProcess.multiObjSurvivorSelect}
+      survivorSelection = survivorSelectionFuncs.get(objInd, survivorSelectionProcess.singleObjSurvivorSelect)
       survivorSelection(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g)
 
       # Step 1 @ n-1: Plot results
