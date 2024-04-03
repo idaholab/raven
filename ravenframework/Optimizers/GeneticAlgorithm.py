@@ -280,13 +280,14 @@ class GeneticAlgorithm(RavenSampled):
                   \begin{itemize}
                         \item \textit{invLinear} - It assigns fitness values inversely proportional to the individual's objective function values, 
                         prioritizing solutions with lower objective function values (i.e., minimization) for selection and reproduction. It suppoort only single-objective optimization problem.\\\\
-                        $fitness = -a \times obj_j - b \times \sum_{j=1}^{nConstraint} max(0,-penalty_j) $\\
+                        $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty_{j}) $\\
                         where j represents an index of objects
                         \\
 
                         \item \textit{logistic} - It applies a logistic function to transform raw objective function values into fitness scores.  It suppoort only single-objective optimization problem.\\\\
                         $fitness = \frac{1}{1+e^{a\times(obj-b)}}$\\ 
                         \item \textit{feasibleFirst} It prioritizes solutions that meet constraints by assigning higher fitness scores to feasible solutions, 
+
                         encouraging the evolution of individuals that satisfy the problem's constraints.  It suppoort single-and multi-objective optimization problem.\\\\
                         $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right$\\
                   \end{itemize} """)                 
