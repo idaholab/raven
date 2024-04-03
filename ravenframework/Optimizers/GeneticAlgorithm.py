@@ -286,7 +286,7 @@ class GeneticAlgorithm(RavenSampled):
 
                         \item \textit{logistic} - It applies a logistic function to transform raw objective function values into fitness scores.  It suppoort only single-objective optimization problem.\\\\
                         $fitness = \frac{1}{1+e^{a\times(obj-b)}}$\\ 
-                        \item \textit{feasibleFirst} It prioritizes solutions that meet constraints by assigning higher fitness scores to feasible solutions, 
+                        \item \textit{feasibleFirst} - It prioritizes solutions that meet constraints by assigning higher fitness scores to feasible solutions, 
 
                         encouraging the evolution of individuals that satisfy the problem's constraints.  It suppoort single-and multi-objective optimization problem.\\\\
                         $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right$\\
