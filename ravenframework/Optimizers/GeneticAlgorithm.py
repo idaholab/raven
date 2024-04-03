@@ -42,8 +42,10 @@ from .crossOverOperators.crossovers import returnInstance as crossoversReturnIns
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .survivorSelectors import survivorSelectors 
+from .survivorSelectors import survivorSelectors 
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
+
 # Internal Modules End------------------------------------------------------------------------------
 
 class GeneticAlgorithm(RavenSampled):
@@ -901,6 +903,7 @@ class GeneticAlgorithm(RavenSampled):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
         rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
+        rlzDict.update(dict((var,objVal.data[i][j]) for j, var in enumerate(objVal.obj.data)))
         rlzDict['batchId'] = rlz['batchId'].data[i]
         for j in range(len(self._objectiveVar)):
           rlzDict[self._objectiveVar[j]] = objVal.data[i][j]
