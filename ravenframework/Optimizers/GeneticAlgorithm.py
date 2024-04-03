@@ -40,11 +40,11 @@ from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .parentSelectors.parentSelectors import countConstViolation
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
-from .crossOverOperators.crossovers import adaptiveLinearCrossoverProbability
-from .crossOverOperators.crossovers import adaptiveQuadraticCrossoverProbability
+from .crossOverOperators.crossovers import getLinearCrossoverProbability
+from .crossOverOperators.crossovers import getQuadraticCrossoverProbability
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
-from .mutators.mutators import adaptiveLinearMutationProbability
-from .mutators.mutators import adaptiveQuadraticmutationProbability
+from .mutators.mutators import getLinearMutationProbability
+from .mutators.mutators import getQuadraticmutationProbability
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
@@ -785,43 +785,31 @@ class GeneticAlgorithm(RavenSampled):
                                               objVal = self._objectiveVar
                                               )
 
-      # 2 @ n: Crossover from set of parents
-      # Create childrenCoordinates (x1,...,xM)
-      # if crossover probability is a float, keep it as is. But, If it's a string, called appropriate function.
+    # 2 @ n: Crossover from set of parents
+    # Create childrenCoordinates (x1,...,xM)
+    # if crossover probability is a float, keep it as is. But, If it's a string, called appropriate function.
       if(self._crossoverProbType == "static"):
-        childrenXover = self._crossoverInstance(parents=parents,
-                                                variables=list(self.toBeSampled),
-                                                crossoverProb=self._crossoverProb,
-                                                points=self._crossoverPoints)
-      elif(self._crossoverProb == "linear"):
-        childrenXover = self._crossoverInstance(parents=parents,
-                                                variables=list(self.toBeSampled),
-                                                crossoverProb=adaptiveLinearCrossoverProbability(self.getIteration(traj),self.limit),
-                                                points=self._crossoverPoints)
+        crossOverProb = self._crossoverProb
+      if(self._crossoverProb == "linear"):
+        crossOverProb = getLinearCrossoverProbability(self.getIteration(traj),self.limit)
       elif(self._crossoverProb == "quadratic"):
-        childrenXover = self._crossoverInstance(parents=parents,
+        crossOverProb = getQuadraticCrossoverProbability(self.getIteration(traj),self.limit)
+      childrenXover = self._crossoverInstance(parents=parents,
                                                 variables=list(self.toBeSampled),
-                                                crossoverProb=adaptiveQuadraticCrossoverProbability(self.getIteration(traj),self.limit),
+                                                crossoverProb=crossOverProb,
                                                 points=self._crossoverPoints)
         # 3 @ n: Mutation
         # Perform random directly on childrenCoordinates
       if(self._mutationProbTpye == "static"):
-        childrenMutated = self._mutationInstance(offSprings=childrenXover,
-                                                distDict=self.distDict,
-                                                locs=self._mutationLocs,
-                                                mutationProb=self._mutationProb,
-                                                variables=list(self.toBeSampled))
+        mutatiOnProb = self._mutationProb
       elif(self._mutationProb == "linear"):
-        childrenMutated = self._mutationInstance(offSprings=childrenXover,
-                                                distDict=self.distDict,
-                                                locs=self._mutationLocs,
-                                                mutationProb=adaptiveLinearMutationProbability(self.getIteration(traj),self.limit),
-                                                variables=list(self.toBeSampled))
+        mutatiOnProb = getLinearMutationProbability(self.getIteration(traj),self.limit)
       elif(self._mutationProb == "quadratic"):
-        childrenMutated = self._mutationInstance(offSprings=childrenXover,
+        mutatiOnProb = getQuadraticmutationProbability(self.getIteration(traj),self.limit)
+      childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                 distDict=self.distDict,
                                                 locs=self._mutationLocs,
-                                                mutationProb=adaptiveQuadraticmutationProbability(self.getIteration(traj),self.limit),
+                                                mutationProb=mutatiOnProb,
                                                 variables=list(self.toBeSampled))
       # 4 @ n: repair/replacement
       # Repair should only happen if multiple genes in a single chromosome have the same values (),

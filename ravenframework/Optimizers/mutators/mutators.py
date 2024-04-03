@@ -139,18 +139,9 @@ def randomMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by randomMutator')
-  k=0
   for child in offSprings:
     # the mutation is performed for each child independently
-    new_mutationProb1=(k/len(offSprings)) #ILM/DHC method
-    new_mutationProb2=1-(k/len(offSprings)) #DHM/ILC method
-    new_mutationProb3=-(1/((len(offSprings)**2)))*k**2+1 #Quadratic function method
-    if((k/len(offSprings))>=0.5):
-      new_mutationProb4=0
-    else:
-      new_mutationProb4=1
-    k=k+1
-    if randomUtils.random(dim=1,samples=1)<new_mutationProb3:
+    if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # kwargs['mutationProb']
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
@@ -231,12 +222,20 @@ def returnInstance(cls, name):
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __mutators[name]
 
-def adaptiveLinearMutationProbability(iter, limit):
-  #Correct equation
-
+def getLinearMutationProbability(iter, limit):
+  """
+  This method is designed to DHM(Decreasing High Mutation) adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(iteration / limit) as mutation rate
+  """
   return 1-(iter/limit)
 
-def adaptiveQuadraticmutationProbability(iter, limit):
+def getQuadraticmutationProbability(iter, limit):
+  """
+  This method is designed to Quadratic adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(((1+iteration)/limit))^2 as mutation rate
+  """
   if(iter == 0):
     mutationProb = 1
   else:
