@@ -55,7 +55,9 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
                                                  \item Differential Evolution: A style of evolutionary algorithm, which specializes in floating point
                                                  representations of decision variables. Works similar to its parent algorithm Genetic Algorithm
                                                  \item SLSQP: A Sequential Least Squares algorithm, which uses an BFGS update and
-                                                 Lawson and Hanson’s NNLS nonlinear least-squares solver.""", default='differentialEvolution'))
+                                                 Lawson and Hanson’s NNLS nonlinear least-squares solver.
+                                                 \end{itemize}
+                                                 """, default='differentialEvolution'))
     specs.addSub(InputData.parameterInputFactory('seedingCount', contentType=InputTypes.IntegerType,
                                                  descr=r"""If the method is gradient based or typically handled with singular
                                                  decisions (ex. slsqp approximates a quadratic program using the gradient), this number
@@ -330,6 +332,37 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     for varName in list(trainingInputs):
       xStar[varName] = trainingInputs[varName][minDex]
     return muStar, xStar, stdStar
+
+  def _recommendSolutionForPretrainedRom(self, bayesianOptimizer):
+    """
+      Identify a best solution point in the existing training data from pre-trained ROM
+      @ In, bayesianOptimizer, BayesianOptimizer object, instance of BayesianOptimizer class
+      @ Out, xStar, dict, point associated with best solution for the current data
+      @ Out, minDex, int, the index of best solution for the current data
+    """
+    # Pulling input data from BO instance
+    trainingInputs = copy.copy(bayesianOptimizer._trainingInputs[0])
+    for varName, array in trainingInputs.items():
+      trainingInputs[varName] = np.asarray(array)
+    # Evaluating constraints at all training points
+    invalidIndices = []
+    if self._constraints is not None:
+      arrayTrainingInputs = bayesianOptimizer.featurePointToArray(trainingInputs)
+      for constraint in self._constraints:
+        constraintArray = constraint.fun(arrayTrainingInputs)
+        invalidArray = np.less(constraintArray, np.zeros(constraintArray.shape))
+        invalidWhere = np.where(invalidArray[0])
+        for index in invalidWhere[0]:
+          invalidIndices.append(index)
+    fopt = np.asarray(bayesianOptimizer._trainingTargets[0])
+    # Removing values at locations where constraint violation has occurred
+    np.put(fopt, invalidIndices, np.inf)
+    minDex = np.argmin(fopt)
+    # Retrieving location of recommended solution
+    xStar = {}
+    for varName in list(trainingInputs):
+      xStar[varName] = trainingInputs[varName][minDex]
+    return xStar, minDex
 
   ###################
   # Utility Methods #

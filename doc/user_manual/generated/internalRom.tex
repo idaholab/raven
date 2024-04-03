@@ -2056,6 +2056,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
       The \xmlNode{fourier} node recognizes the following subnodes:
@@ -2068,8 +2076,8 @@ Example:
     \item \xmlNode{arma}:
       characterizes the signal using Auto-Regressive and Moving Average         coefficients to
       stochastically fit the training signal.         The ARMA representation has the following
-      form:         \begin{equation*}           A\_t = \sum\_{i=1}^P \phi\_i A\_{t-i} + \epsilon\_t +
-      \sum\_{j=1}^Q \theta\_j \epsilon\_{t-j},         \end{equation*}         where $t$ indicates a
+      form:         \begin{equation*}           A\_t = \sum_{i=1}^P \phi\_i A_{t-i} + \epsilon\_t +
+      \sum_{j=1}^Q \theta\_j \epsilon_{t-j},         \end{equation*}         where $t$ indicates a
       discrete time step, $\phi$ are the signal lag (or auto-regressive)         coefficients, $P$
       is the number of signal lag terms to consider, $\epsilon$ is a random noise         term,
       $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
@@ -2081,6 +2089,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
           \item \xmlAttr{reduce\_memory}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
             activates a lower memory usage ARMA training. This does tend to result
             in a slightly slower training time, at the benefit of lower memory usage. For
@@ -2114,8 +2130,8 @@ Example:
     \item \xmlNode{varma}:
       characterizes the vector-valued signal using Auto-Regressive and Moving         Average
       coefficients to stochastically fit the training signal.         The VARMA representation has
-      the following form:         \begin{equation*}           A\_t = \sum\_{i=1}^P \phi\_i A\_{t-i} +
-      \epsilon\_t + \sum\_{j=1}^Q \theta\_j \epsilon\_{t-j},         \end{equation*}         where $t$
+      the following form:         \begin{equation*}           A\_t = \sum_{i=1}^P \phi\_i A_{t-i} +
+      \epsilon\_t + \sum_{j=1}^Q \theta\_j \epsilon_{t-j},         \end{equation*}         where $t$
       indicates a discrete time step, $\phi$ are the signal lag (or auto-regressive)
       coefficients, $P$ is the number of signal lag terms to consider, $\epsilon$ is a random noise
       term, $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
@@ -2129,6 +2145,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
       The \xmlNode{varma} node recognizes the following subnodes:
@@ -2146,14 +2170,14 @@ Example:
       characterizes the signal using autoregressive (AR) coefficients conditioned         on the
       state of a hidden Markov model (HMM) to stochastically fit the training signal.         The
       Markov-switching autoregressive model (MSAR) has the following form:         \begin{equation*}
-      Y\_t = \mu\_{S\_t} \sum\_{i=1}^p \phi\_{i,{S\_t}} \left(Y\_{t-i} - \mu\_{S\_{t-i}}\right) +
-      \varepsilon\_{t,{S\_t}},         \end{equation*}         where $t$ indicates a discrete time
+      Y\_t = \mu_{S\_t} \sum_{i=1}^p \phi_{i,{S\_t}} \left(Y_{t-i} - \mu_{S_{t-i}}\right) +
+      \varepsilon_{t,{S\_t}},         \end{equation*}         where $t$ indicates a discrete time
       step, $\phi$ are the signal lag (or auto-regressive)         coefficients, $p$ is the number
       of signal lag terms to consider, $\varepsilon$ is a random noise         term with mean 0 and
-      variance $\sigma^2\_{S\_t}$, and $S\_t$ is the HMM state at time $t$.         The HMM state is
+      variance $\sigma^2_{S\_t}$, and $S\_t$ is the HMM state at time $t$.         The HMM state is
       determined by the transition probabilities between states, which are conditioned         on
       the previous state. The transition probabilities are stored in a transition matrix $P$,
-      where entry $p\_{ij}$ is the probability of transitioning from state $i$ to state $j$
+      where entry $p_{ij}$ is the probability of transitioning from state $i$ to state $j$
       conditional         on being in state $i$. For a MSAR model with HMM state dimensionality $r$,
       the transition matrix         $P$ is of size $r \times r$. Each of the mean, autoregressive,
       and noise variance terms may be         switching or non-switching parameters.
@@ -2163,6 +2187,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
           \item \xmlAttr{switching\_ar}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
             indicates whether the autoregressive coefficients are switching parameters. \default{True}
           \item \xmlAttr{switching\_variance}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
@@ -2190,6 +2222,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
       The \xmlNode{STL} node recognizes the following subnodes:
@@ -2214,6 +2254,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
       The \xmlNode{wavelet} node recognizes the following subnodes:
@@ -2250,6 +2298,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
       The \xmlNode{PolynomialRegression} node recognizes the following subnodes:
@@ -2266,6 +2322,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
       The \xmlNode{rwd} node recognizes the following subnodes:
@@ -2294,6 +2358,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{minmaxscaler}:
@@ -2305,6 +2377,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{robustscaler}:
@@ -2316,6 +2396,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{standardscaler}:
@@ -2327,6 +2415,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{preserveCDF}:
@@ -2340,6 +2436,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{differencing}:
@@ -2350,6 +2454,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
       The \xmlNode{differencing} node recognizes the following subnodes:
@@ -2369,6 +2481,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{logtransformer}:
@@ -2380,6 +2500,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{arcsinhtransformer}:
@@ -2391,6 +2519,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{tanhtransformer}:
@@ -2402,6 +2538,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{sigmoidtransformer}:
@@ -2413,6 +2557,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
       \end{itemize}
 
     \item \xmlNode{outtruncation}:
@@ -2424,6 +2576,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
           \item \xmlAttr{domain}: \xmlDesc{[positive, negative], required}, 
             -- no description yet --
       \end{itemize}
@@ -2436,6 +2596,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
           \item \xmlAttr{nQuantiles}: \xmlDesc{integer, optional}, 
             number of quantiles to use in the transformation. If \xmlAttr{nQuantiles}
             is greater than the number of data, then the number of data is used instead. \default{1000}
@@ -2450,6 +2618,14 @@ Example:
             indicates the variables for which this algorithm will be used for characterization.
           \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
             sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
           \item \xmlAttr{nQuantiles}: \xmlDesc{integer, optional}, 
             number of quantiles to use in the transformation. If \xmlAttr{nQuantiles}
             is greater than the number of data, then the number of data is used instead. \default{1000}
@@ -2489,7 +2665,7 @@ Example:
   Fourier signal processing, sometimes referred to as a FARMA.                         ARMA is a
   type of time dependent model that characterizes the autocorrelation between time series data. The
   mathematic description of ARMA is given as                         \begin{equation*}
-  x\_t = \sum\_{i=1}^p\phi\_ix\_{t-i}+\alpha\_t+\sum\_{j=1}^q\theta\_j\alpha\_{t-j},
+  x\_t = \sum_{i=1}^p\phi\_ix_{t-i}+\alpha\_t+\sum_{j=1}^q\theta\_j\alpha_{t-j},
   \end{equation*}                         where $x$ is a vector of dimension $n$, and $\phi\_i$ and
   $\theta\_j$ are both $n$ by $n$ matrices. When $q=0$, the above is
   autoregressive (AR); when $p=0$, the above is moving average (MA).                         When
@@ -3062,11 +3238,11 @@ General ARMA Example:
 \subsubsection{PolyExponential}
   The \xmlNode{PolyExponential} contains a single ROM type, aimed to construct a     time-dependent
   (or any other monotonic variable) surrogate model based on polynomial sum of exponential term.
-  This surrogate have the form:     \begin{equation}       SM(X,z) = \sum\_{i=1}^{N} P\_{i}(X) \times
-  \exp ( - Q\_{i}(X) \times z )     \end{equation}     where:     \begin{itemize}       \item
+  This surrogate have the form:     \begin{equation}       SM(X,z) = \sum_{i=1}^{N} P_{i}(X) \times
+  \exp ( - Q_{i}(X) \times z )     \end{equation}     where:     \begin{itemize}       \item
   $\mathbf{z}$ is the independent  monotonic variable (e.g. time)       \item $\mathbf{X}$  is the
-  vector of the other independent (parametric) variables  (Features)       \item $\mathbf{P\_{i}}(X)$
-  is a polynomial of rank M function of the parametric space X       \item  $\mathbf{Q\_{i}}(X)$ is a
+  vector of the other independent (parametric) variables  (Features)       \item $\mathbf{P_{i}}(X)$
+  is a polynomial of rank M function of the parametric space X       \item  $\mathbf{Q_{i}}(X)$ is a
   polynomial of rank M function of the parametric space X       \item  $\mathbf{N}$ is the number of
   requested exponential terms.     \end{itemize}     It is crucial to notice that this model is
   quite suitable for FOMs whose drivers are characterized by an exponential-like behavior.     In

@@ -9,16 +9,17 @@ Structure:
 Note all install methods after "main" take
   Instructions:
 
- add library:                <library>pinned.version.number</library>
- add with no pinned version: <library/>
- remove a library:           <library>remove</library>
- action for limited OS:      <library os='windows'>...
- action for certain machine  <library machine='arm64'>...
- add library from forge:     <library source='forge'>...
- optional:                   <library optional='True'>...
- skip run/install check:     <library skip_check='True'>...
+ add library:                     <library>pinned.version.number</library>
+ add with no pinned version:      <library/>
+ remove a library:                <library>remove</library>
+ action for limited OS:           <library os='windows'>...
+ action for certain machine       <library machine='arm64'>...
+ add library from forge:          <library source='forge'>...
+ add library from git repository: <library source='pip' repo='https://addressOfRepository/libraryName.git'>...
+ optional:                        <library optional='True'>...
+ skip run/install check:          <library skip_check='True'>...
  add pip library with extra parameters:
-                             <ray source="pip" pip_extra="[tune]">1.9</ray>
+                                  <ray source="pip" pip_extra="[tune]">1.9</ray>
    the above will use pip_extra to translate into a command:
      pip install ray[tune]==1.9.*
    which installs ray and the dependencies for Ray Tune
@@ -62,7 +63,6 @@ Note all install methods after "main" take
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
-    <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
     <ray source="pip" pip_extra="[default]">2.6</ray>
@@ -84,9 +84,9 @@ Note all install methods after "main" take
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools/>
     <!-- This is because liblapack 3.9.0 build 21 is broken (and can probably be removed if there ever is a build 22).  This can also be removed when scipy is updated to version 1.12 -->
-    <liblapack skip_check='True' os='linux'>3.9.0=20_linux64_openblas</liblapack>
-    <liblapack skip_check='True' os='windows'>3.9.0=20_win64_mkl</liblapack>
-    <liblapack skip_check='True' os='mac'>3.9.0=20_osx64_openblas</liblapack>
+    <liblapack skip_check='True' os='linux' machine='x86_64'>3.9.0=20_linux64_openblas</liblapack>
+    <liblapack skip_check='True' os='windows' machine='x86_64'>3.9.0=20_win64_mkl</liblapack>
+    <liblapack skip_check='True' os='mac' machine='x86_64'>3.9.0=20_osx64_openblas</liblapack>
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source="mamba" skip_check='True'/>
   </main>
@@ -96,7 +96,6 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
     <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
@@ -105,6 +104,5 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
   </alternate>
 </dependencies>

@@ -13,3 +13,6 @@
 [submodule "plugins/FARM"]
 	path = plugins/FARM
 	url = https://github.com/Argonne-National-Laboratory/FARM.git
+[submodule "plugins/BayCal"]
+	path = plugins/BayCal
+	url = https://github.com/idaholab/BayCal.git

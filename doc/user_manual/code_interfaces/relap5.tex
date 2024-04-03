@@ -111,7 +111,8 @@ $\: restartFileWithCustomName.r$''), the user might use (optionally) the \xmlNod
 \end{lstlisting}
 
 An additional feature of the RELAP5 Code interface is the possibility to specify operation based on the value of user-inputted
-cards. For example, let's assume the values in cards 1180801:2 and 1180802:2 must come from a calculation based on sampled variables (e.g. 20100154:2 and 20100155:2), the user can specify the following XML node:
+cards. For example, let's assume the values in cards 1180801:2 and 1180802:2 must come from a calculation based on
+sampled variables (e.g. 20100154:2 and 20100155:2), the user can specify the following XML node:
 
 \begin{itemize}
    \item \xmlNode{operator}, \xmlDesc{XML node, optional parameter}, The operator block.
@@ -143,6 +144,34 @@ An example is reported below:
       <expression> %card%*20100155:2*2./20100155:2</expression>
       <cards>1180801:2,1180802:2,1180901:3</cards>
     </operator>
+    ...
+  </Code>
+</Models>
+\end{lstlisting}
+
+The RELAP interface also allows for specifying the datatype of the cards' values. Indeed there are cards and
+words in relap that requires, for example, the values to be integers. By default (if the following card is not inputted)
+the code will treat all the values as floats.
+In order to input the datatypes, the user can specify the following XML node:
+
+\begin{itemize}
+   \item \xmlNode{datatypes}, \xmlDesc{XML node, optional parameter}, The datatypes block.
+    This XML node can optionally contain the following attribute:
+     \begin{itemize}
+      \item \textit{integers}, \xmlDesc{comma separated list, optional parameter}, The list of cards that must
+      be cast as integers (e.g. 1180802:2,1180803:2)
+      \end{itemize}
+\end{itemize}
+
+An example is reported below:
+\begin{lstlisting}[style=XML]
+<Models>
+  <Code name='MyRELAP' subType='Relap5'>
+    <executable>~/path_to_the_executable</executable>
+    ...
+    <datatypes>
+      <integers>1180802:2,1180803:2</integers>
+    </datatypes>
     ...
   </Code>
 </Models>
