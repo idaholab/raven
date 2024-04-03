@@ -636,7 +636,7 @@ if __name__ == '__main__':
         equals = '=='
         equalsTail = '.*'
         actionArgs = ''
-        addOptional = False
+        addOptional = args.addOptional
         limit = ['pip']
       elif args.subset == 'pyomo':
         src = ''
