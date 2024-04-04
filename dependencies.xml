@@ -89,6 +89,7 @@ Note all install methods after "main" take
     <liblapack skip_check='True' os='mac' machine='x86_64'>3.9.0=20_osx64_openblas</liblapack>
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source="mamba" skip_check='True'/>
+    <serpentTools optional='True' source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>

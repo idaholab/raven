@@ -1,0 +1,84 @@
+set title "MSBR, no Th,U-233 8.5E-11, after 400 days 7.75E-1"
+
+include "./geom_file"
+
+% --- Fuel with UF4 mole frac of : 0.2
+mat fuel -10.0 burn 1 vol 1.95057E+07
+3007.09c   -7.89734292214    % Mass fraction of Li-7 
+3006.09c   -0.000379090656614   % Mass fraction of Li-6
+9019.09c   -45.456495785   % Mass fraction of F-19
+4009.09c   -2.26065246969    % Mass fraction of Be-9
+90232.09c  -43.6544155437   % Mass fraction of Th-232
+92233.09c  -0.730714188807  % Mass fraction of U-233
+% --- Moderator graphite:
+mat moder    -1.843 rgb 68 1 84 tmp 900 moder gr 6000 6000.09c    -1.0
+% --- Hastelloy N
+mat hast     -1.843
+rgb 127 205 187
+6000.09c -1.0
+%28000.06c    -72.0      % Mass fraction of Ni
+%42000.06c    -16.0      % Mass fraction of Mo
+%24000.06c    -7.0       % Mass fraction of Cr
+%26000.06c    -5.0       % Mass fraction of Fe
+% --- Refill from 20000 kg lump of Th232:
+mat refill -11.72 burn 1 vol 1.95057E+07
+3007.09c   -0.00   % fraction of Li-7 
+3006.09c   -0.00   % fraction of Li-6
+9019.09c   -0.00   % fraction of F-19
+4009.09c   -0.00   % fraction of Be-9
+90232.09c  -50.00 % fraction of Th-232
+91233.09c  -0.00   % fraction of Pa-233
+92233.09c  -50.00   % fraction of U-233 (0.232% mole)
+94239.09c  -0.00   % fraction of Pu-239 (0.0006% mole)
+% --- Tank for Pa-233 decay -------
+mat tank  -19.1 burn 1 vol 1.95057E+07
+3007.09c   -0.00   % fraction of Li-7 
+3006.09c   -0.00   % fraction of Li-6
+9019.09c   -0.00   % fraction of F-19
+4009.09c   -0.00   % fraction of Be-9
+90232.09c  -0.00   % fraction of Th-232
+91233.09c  -0.00   % fraction of Pa-233
+92233.09c  -100.0   % fraction of U-233
+94239.09c  -0.00   % fraction of Pu-239
+% --- Outflow to two different streams:
+mat outflow 0.0 burn 1 vol 1.95057E+07
+3007.09c   0.00   % fraction of Li-7 
+3006.09c   0.00   % fraction of Li-6
+9019.09c   0.00   % fraction of F-19
+4009.09c   0.00   % fraction of Be-9
+90232.09c  0.00   % fraction of Th-232
+91233.09c  0.00   % fraction of Pa-233
+92233.09c  0.00   % fraction of U-233 (0.232% mole)
+94239.09c  0.00   % fraction of Pu-239 (0.0006% mole)
+
+mat nobelgs 0.00 burn 1 vol 1.0
+3007.09c   0.00   % fraction of Li-7 
+3006.09c   0.00   % fraction of Li-6
+9019.09c   0.00   % fraction of F-19
+4009.09c   0.00   % fraction of Be-9
+90232.09c  0.00   % fraction of Th-232
+91233.09c  0.00   % fraction of Pa-233
+92233.09c  0.00   % fraction of U-233 (0.232% mole)
+94239.09c  0.00   % fraction of Pu-239 (0.0006% mole)
+% --- Thermal scattering data for graphite:
+
+therm gr 900 gr05.32t gr06.32t       % 900K C-12
+
+% --- Cross section data library file path:
+set acelib "./serpent/xsdata/jeff312/sss_jeff312.xsdata" %this for BW
+
+
+% --- Periodic boundary condition:
+set bc 1
+set nfg  4  0.625E-6  5.5E-3  0.821
+
+% --- Neutron population and criticality cycles:
+
+set pop 30000 100 20 
+
+% --- Decay and fission yield libraries:
+set declib "./serpent/xsdata/jeff312/sss_jeff33.dec"       % for BW
+set nfylib "./serpent/xsdata/jeff312/sss_jeff33.nfy"       % for BW
+
+%---- Print compositions of depleted materials after each step
+set printm 1 0.0
