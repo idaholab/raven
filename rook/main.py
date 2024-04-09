@@ -394,7 +394,10 @@ if __name__ == "__main__":
       Tester.add_non_default_run_type(ndrt)
 
   # Remove testers that are not in the list of testers we want to run
-  allowed_testers = [x.strip() for x in args.only_testers.split(',')]
+  if args.only_testers is None:
+    allowed_testers = testers.keys()
+  else:
+    allowed_testers = [x.strip() for x in args.only_testers.split(',')]
 
   if args.list_testers:
     print("Testers:")
