@@ -230,7 +230,7 @@ def getLinearMutationProbability(iter, limit):
   """
   return 1-(iter/limit)
 
-def getQuadraticmutationProbability(iter, limit):
+def getQuadraticMutationProbability(iter, limit):
   """
   This method is designed to Quadratic adaptive mutation methodology each iteration with probability.
   @ In, Current iteration number, Total iteration number

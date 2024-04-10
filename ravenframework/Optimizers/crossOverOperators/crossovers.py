@@ -213,7 +213,7 @@ def uniformCrossoverMethod(parent1,parent2,crossoverProb):
 
   return children1,children2
 
-def twoPointsCrossoverMethod2(parent1,parent2,locL,locU):
+def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
   """
     Method designed to perform a twopoint crossover on 2 arrays:
     Partition each array in three sequences (A,B,C):
