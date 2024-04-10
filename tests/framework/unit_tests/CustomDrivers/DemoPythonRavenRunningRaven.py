@@ -41,13 +41,12 @@ raven.loadWorkflowFromFile('basic.xml')
 # raven-running-raven setup of the current test is a bit of a special case and similar situations are
 # unlikely to arise in more typical workflows.
 ravenInnerModel = raven.getEntity('Models', 'raven')
-ravenInnerModel.executable
 pipPath = shutil.which('raven_framework')
 sourcePath = os.path.join(frameworkDir, 'raven_framework')
 if pipPath is not None:
-  ravenInnerModel.executable = sourcePath
-elif os.path.exists(sourcePath):
   ravenInnerModel.executable = pipPath
+elif os.path.exists(sourcePath):
+  ravenInnerModel.executable = sourcePath
 else:
   raise RuntimeError('Could not find the RAVEN executable. Tried source path: ' + sourcePath +
                      ' and pip path: ' + pipPath)
