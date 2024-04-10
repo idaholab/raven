@@ -567,6 +567,7 @@ class Code(Model):
     command = command.replace("%METHOD%",kwargs['METHOD'])
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
     command = command.replace("%PYTHON%", sys.executable)
+
     if "raven_framework" in sys.executable:
       ravenExecutable = sys.executable
     elif "python" in os.path.basename(sys.executable) \
@@ -574,12 +575,16 @@ class Code(Model):
           and sys.argv[0].endswith(".py"):
       # command was "python path/to/raven_framework.py ..."
       ravenExecutable = f"{sys.executable} {sys.argv[0]}"
-    elif "%RAVENEXECUTABLE%" in command:
+    else:
+      ravenExecutable = ''
+
+    if "%RAVENEXECUTABLE%" in command and ravenExecutable == '':
       self.raiseAnError(IOError, "The command contains %RAVENEXECUTABLE% but the way the " +\
                                  "outer framework was could not be inferred. Only using " +\
                                  "scripts or executables that contain 'raven_framework' " +\
                                  "or using python to run a .py file with 'raven_framework' " +\
                                  "in the name is supported.")
+
     command = command.replace("%RAVENEXECUTABLE%", ravenExecutable)
 
     self.raiseAMessage('Execution command submitted:',command)
