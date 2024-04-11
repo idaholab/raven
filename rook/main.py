@@ -100,8 +100,8 @@ parser.add_argument('--only-testers', dest='only_testers',
 
 parser.add_argument('--tester-command', nargs='*', dest='tester_commands',
                     help='Command to run. The first argument is the tester name, the second is the '
-                         'command to run for that tester. Any number of (tester, command) pairs may '
-                         'be specified. The tester name must be the name of a tester class.')
+                         'command to run for that tester. Any number of (tester, command) pairs '
+                         'may be specified. The tester name must be the name of a tester class.')
 
 parser.add_argument('--command-prefix', dest='command_prefix',
                     help='prefix for the test commands')
