@@ -229,12 +229,6 @@ class Code(Model):
           self.raiseAnError(IOError,'filearg type '+argtype+' not recognized!')
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
-    # elif self.executable == '%RAVENFRAMEWORK%':
-    #   # Special case: the executable was specified as %RAVENFRAMEWORK%, which means the executable should be
-    #   # whatever was used to run RAVEN in the first place. Figuring out what that should be is handled in the
-    #   # ravenframework.CodeInterfaceClasses.RAVEN.RAVENInterface.RAVEN class. For now, we just print a message.
-    #   self.raiseADebug('The node "<executable>" was found to be "%RAVENFRAMEWORK%" in the body of the code model ' + str(self.name) +
-    #                    ' so the code will be run using the same executable that is running RAVEN...')
     else:
       if utils.stringIsFalse(os.environ.get('RAVENinterfaceCheck','False')):
         if '~' in self.executable:
@@ -261,6 +255,19 @@ class Code(Model):
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
+
+    # TODO REMOVE ME
+    # This is some temporary debugging code to help me figure out what's going on with RavenRunsRaven
+    # in the cluster_tests that use dask or ray.
+    self.raiseADebug("sys.executable: " + sys.executable)
+    self.raiseADebug("sys.argv: " + str(sys.argv))
+    self.raiseADebug("os.getcwd(): " + os.getcwd())
+    self.raiseADebug("self.executable: " + self.executable)
+    self.raiseADebug("self.preExec: " + str(self.preExec))
+    self.raiseADebug("self.clargs: " + str(self.clargs))
+    self.raiseADebug("self.fargs: " + str(self.fargs))
+    self.raiseADebug("self.code: " + str(self.code))
+    self.raiseADebug("self.foundExecutable: " + str(self.foundExecutable))
 
   def getInitParams(self):
     """
@@ -579,11 +586,15 @@ class Code(Model):
       ravenExecutable = ''
 
     if "%RAVENEXECUTABLE%" in command and ravenExecutable == '':
-      self.raiseAnError(IOError, "The command contains %RAVENEXECUTABLE% but the way the " +\
-                                 "outer framework was could not be inferred. Only using " +\
-                                 "scripts or executables that contain 'raven_framework' " +\
-                                 "or using python to run a .py file with 'raven_framework' " +\
-                                 "in the name is supported.")
+      message = f"""The command contains %RAVENEXECUTABLE% but the way the outer framework was run
+      could not be inferred. Only using scripts or executables that contain 'raven_framework' or
+      using python to run a .py file with 'raven_framework' in the name is supported. sys.executable
+      is {sys.executable}, sys.argv[0] is {sys.argv[0]}. Here is everything else I can think you
+      might want to see:
+      command: {command}
+      kwargs: {kwargs}
+      sys.argv: {sys.argv}"""
+      self.raiseAnError(IOError, message)
 
     command = command.replace("%RAVENEXECUTABLE%", ravenExecutable)
 
