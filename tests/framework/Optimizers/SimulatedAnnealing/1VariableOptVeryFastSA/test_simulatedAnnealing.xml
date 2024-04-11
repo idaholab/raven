@@ -71,11 +71,13 @@
         <distribution>beale_dist</distribution>
         <initial>-2.0</initial>
       </variable>
-      <!-- we set y as constant to test a 1-variable optimization case -->
-      <constant name="y">0.5</constant>
       
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      
+      <!-- we set y as constant to test a 1-variable optimization case -->
+      <constant name="y">0.5</constant>
+      
     </SimulatedAnnealing>
   </Optimizers>
 
