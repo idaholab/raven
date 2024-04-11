@@ -97,6 +97,18 @@
     [../]
   [../]
 
+  [./1VariableOptVeryFastSA]
+    type = 'RavenFramework'
+    input = '1VariableOptVeryFastSA/test_simulatedAnnealing.xml'
+    max_time = 300
+    [./data]
+      type = OrderedCSV
+      output = '1VariableOptVeryFastSA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./FunctionallyConstrainedSA]
     type = 'RavenFramework'
     input = 'FunctionallyConstrainedSA/test_funcConstrSimulatedAnnealing.xml'
