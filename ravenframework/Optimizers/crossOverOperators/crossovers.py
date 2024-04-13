@@ -53,7 +53,7 @@ def onePointCrossover(parents,**kwargs):
   parentsPairs = list(combinations(parents,2))
   for ind,parent in enumerate(parentsPairs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
-    if randomUtils.random(dim=1,samples=1) <= kwargs['crossoverProb']:
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
       if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
         point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
       elif (any(i>=nGenes-1 for i in kwargs['points'])):
@@ -127,11 +127,14 @@ def twoPointsCrossover(parents, **kwargs):
   parentPairs = list(combinations(parents,2))
   k=0
   index=0
-
+  if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
+    crossoverProb = randomUtils.random(dim=1, samples=1)
+  else:
+    crossoverProb = kwargs['crossoverProb']
   if nGenes<=2:
     ValueError('In Two point Crossover the number of genes should be >=3!')
   for couples in parentPairs:
-    if randomUtils.random(dim=1,samples=1) <= kwargs['crossoverProb']:
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
       [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
       if loc1 > loc2:
         locL = loc2
