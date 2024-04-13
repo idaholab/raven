@@ -203,25 +203,6 @@ def locationsGenerator(offSprings,locs):
     loc2 = np.maximum(locs[0], locs[1])
   return loc1, loc2
 
-__mutators = {}
-__mutators['swapMutator']       = swapMutator
-__mutators['scrambleMutator']   = scrambleMutator
-__mutators['bitFlipMutator']    = bitFlipMutator
-__mutators['inversionMutator']  = inversionMutator
-__mutators['randomMutator']     = randomMutator
-
-
-def returnInstance(cls, name):
-  """
-    Method designed to return class instance:
-    @ In, cls, class type
-    @ In, name, string, name of class
-    @ Out, __crossovers[name], instance of class
-  """
-  if name not in __mutators:
-    cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
-  return __mutators[name]
-
 def getLinearMutationProbability(iter, limit):
   """
   This method is designed to DHM(Decreasing High Mutation) adaptive mutation methodology each iteration with probability.
@@ -242,3 +223,21 @@ def getQuadraticMutationProbability(iter, limit):
     mutationProb = 1-(((iter+1)/(limit))**2)
   return mutationProb
 
+
+__mutators = {}
+__mutators['swapMutator']       = swapMutator
+__mutators['scrambleMutator']   = scrambleMutator
+__mutators['bitFlipMutator']    = bitFlipMutator
+__mutators['inversionMutator']  = inversionMutator
+__mutators['randomMutator']     = randomMutator
+
+def returnInstance(cls, name):
+  """
+    Method designed to return class instance:
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
+  """
+  if name not in __mutators:
+    cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
+  return __mutators[name]

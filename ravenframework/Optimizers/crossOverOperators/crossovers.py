@@ -148,22 +148,25 @@ def twoPointsCrossover(parents, **kwargs):
       index = index + 2
   return children
 
-__crossovers = {}
-__crossovers['onePointCrossover']  = onePointCrossover
-__crossovers['twoPointsCrossover'] = twoPointsCrossover
-__crossovers['uniformCrossover']   = uniformCrossover
-
-
-def returnInstance(cls, name):
+def getLinearCrossoverProbability(iter, limit):
   """
-    Method designed to return class instance
-    @ In, cls, class type
-    @ In, name, string, name of class
-    @ Out, __crossovers[name], instance of class
+  This method is designed to ILC(Increasing Low Crossover) adaptive crossover methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, (iteration / limit) as crossover rate
   """
-  if name not in __crossovers:
-    cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
-  return __crossovers[name]
+  return iter/limit
+
+def getQuadraticCrossoverProbability(iter, limit):
+  """
+  This method is designed to quadratic adaptive crossover methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out,  (iteration+1/limit)^2 as crossover rate
+  """
+  if(iter == 0):
+    crossoverProb = 0
+  else:
+    crossoverProb = ((iter+1)/(limit))**2
+  return crossoverProb
 
 def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
   """
@@ -239,22 +242,19 @@ def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
   children2[locL:locU] = seqB2
   return children1,children2
 
-def getLinearCrossoverProbability(iter, limit):
-  """
-  This method is designed to ILC(Increasing Low Crossover) adaptive crossover methodology each iteration with probability.
-  @ In, Current iteration number, Total iteration number
-  @ Out, (iteration / limit) as crossover rate
-  """
-  return iter/limit
+__crossovers = {}
+__crossovers['onePointCrossover']  = onePointCrossover
+__crossovers['twoPointsCrossover'] = twoPointsCrossover
+__crossovers['uniformCrossover']   = uniformCrossover
 
-def getQuadraticCrossoverProbability(iter, limit):
+
+def returnInstance(cls, name):
   """
-  This method is designed to quadratic adaptive crossover methodology each iteration with probability.
-  @ In, Current iteration number, Total iteration number
-  @ Out,  (iteration+1/limit)^2 as crossover rate
+    Method designed to return class instance
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
   """
-  if(iter == 0):
-    crossoverProb = 0
-  else:
-    crossoverProb = ((iter+1)/(limit))**2
-  return crossoverProb
+  if name not in __crossovers:
+    cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
+  return __crossovers[name]
