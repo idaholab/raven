@@ -394,6 +394,7 @@ class RavenSampled(Optimizer):
         status = info['reason']
         self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=s * val))
       # check converged traj
+      ##TODO: @Junyung maybe you need an if statement here to deal with multiobjective
       for traj, info in self._convergedTraj.items():
         opt = self._optPointHistory[traj][-1][0]
         val = info['value']

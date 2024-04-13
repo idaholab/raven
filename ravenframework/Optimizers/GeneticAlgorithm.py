@@ -605,7 +605,8 @@ class GeneticAlgorithm(RavenSampled):
       self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
       return traj, g, objectiveVal, offSprings, offSpringFitness
 
-  def multiConstraint(self, info, rlz):
+  def multiConstraint(self, info, rlz): ## TODO: Junyung, why this doesn't have a dockstring?,
+                                                        # why the value is always hardcoded to 0?
     traj = info['traj']
     for t in self._activeTraj[1:]:
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
@@ -983,7 +984,7 @@ class GeneticAlgorithm(RavenSampled):
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
-      self._closeTrajectory(traj, 'converge', 'converged', self.bestObjective)
+      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestPoint)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     objVal = [[] for x in range(len(self.objectiveVal[0]))]
@@ -1053,7 +1054,7 @@ class GeneticAlgorithm(RavenSampled):
       optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
-    if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
+    if (self.counter >= 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
       point.update(gOfBest)
       self.bestPoint = point
       self.bestFitness = fit[0]
