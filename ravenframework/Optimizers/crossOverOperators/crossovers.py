@@ -79,7 +79,7 @@ def uniformCrossover(parents,**kwargs):
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
     @ Out, children, xr.DataArray, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
-  nParents,nGenes = np.shape(parents)
+  nParents,_ = np.shape(parents)
   children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),np.shape(parents)[1])),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
@@ -89,16 +89,17 @@ def uniformCrossover(parents,**kwargs):
     crossoverProb = randomUtils.random(dim=1, samples=1)
   else:
     crossoverProb = kwargs['crossoverProb']
-
-  index = 0
   parentsPairs = list(combinations(parents,2))
-  for parentPair in parentsPairs:
+  for index,parentPair in enumerate(parentsPairs):
     parent1 = parentPair[0].values
     parent2 = parentPair[1].values
-    children1,children2 = uniformCrossoverMethod(parent1,parent2,crossoverProb)
-    children[index]   = children1
-    children[index+1] = children2
-    index +=  2
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+      children1,children2 = uniformCrossoverMethod(parent1,parent2,crossoverProb)
+    else:
+      children1 = parent1
+      children2 = parent2
+    children[2*index]   = children1
+    children[2*index+1] = children2
   return children
 
 
@@ -125,15 +126,13 @@ def twoPointsCrossover(parents, **kwargs):
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})
   parentPairs = list(combinations(parents,2))
-  k=0
-  index=0
   if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
     crossoverProb = randomUtils.random(dim=1, samples=1)
   else:
     crossoverProb = kwargs['crossoverProb']
   if nGenes<=2:
     ValueError('In Two point Crossover the number of genes should be >=3!')
-  for couples in parentPairs:
+  for ind, couples in enumerate(parentPairs):
     if randomUtils.random(dim=1,samples=1) <= crossoverProb:
       [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
       if loc1 > loc2:
@@ -145,10 +144,12 @@ def twoPointsCrossover(parents, **kwargs):
       parent1 = couples[0]
       parent2 = couples[1]
       children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
+    else:
+      children1 = couples[0].copy(deep=True)
+      children2 = couples[1].copy(deep=True)
 
-      children[index]   = children1
-      children[index+1] = children2
-      index = index + 2
+    children[2*ind]   = children1
+    children[2*ind+1] = children2
   return children
 
 def getLinearCrossoverProbability(iter, limit):
