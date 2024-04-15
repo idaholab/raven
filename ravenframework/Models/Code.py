@@ -256,19 +256,6 @@ class Code(Model):
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 
-    # TODO REMOVE ME
-    # This is some temporary debugging code to help me figure out what's going on with RavenRunsRaven
-    # in the cluster_tests that use dask or ray.
-    self.raiseADebug("sys.executable: " + sys.executable)
-    self.raiseADebug("sys.argv: " + str(sys.argv))
-    self.raiseADebug("os.getcwd(): " + os.getcwd())
-    self.raiseADebug("self.executable: " + self.executable)
-    self.raiseADebug("self.preExec: " + str(self.preExec))
-    self.raiseADebug("self.clargs: " + str(self.clargs))
-    self.raiseADebug("self.fargs: " + str(self.fargs))
-    self.raiseADebug("self.code: " + str(self.code))
-    self.raiseADebug("self.foundExecutable: " + str(self.foundExecutable))
-
   def getInitParams(self):
     """
       This function is called from the base class to print some of the information inside the class.
@@ -582,20 +569,6 @@ class Code(Model):
           and sys.argv[0].endswith(".py"):
       # command was "python path/to/raven_framework.py ..."
       ravenExecutable = f"{sys.executable} {sys.argv[0]}"
-    # Ideally, we have already found the raven_framework executable, but if we haven't, we can look
-    # for it in a few other places before giving up. This seems to help mostly with cases where qsub
-    # is used for parallel execution, which can muddy the way the command was run. In both cases,
-    # we raise a message for the user to be explicit on how the executable was found and where it is
-    # located.
-    elif (ravenframeworkInPath := shutil.which("raven_framework")) is not None:
-      # This is the case where a raven_framework is in the path. This would be the case in a pip
-      # installed RAVEN.
-      ravenExecutable = ravenframeworkInPath
-      self.raiseAMessage(f"Using raven_framework found in path: {ravenExecutable}")
-    elif os.path.exists(os.path.join(kwargs["FRAMEWORK_DIR"], ".." "raven_framework")):
-      # Finally, we can look relative to the framework directory for a raven_framework file.
-      ravenExecutable = os.path.join(kwargs["FRAMEWORK_DIR"], ".." "raven_framework")
-      self.raiseAMessage(f"Using raven_framework found in framework directory: {ravenExecutable}")
     else:
       ravenExecutable = ''
 
@@ -605,9 +578,7 @@ class Code(Model):
       using python to run a .py file with 'raven_framework' in the name is supported. Possibilities
       considered were:
       1. 'raven_framework' in sys.executable (received: {sys.executable})
-      2. 'raven_framework' in sys.argv[0] (received: {sys.argv[0]})
-      3. 'raven_framework' in the path (not found)
-      4. 'raven_framework' in directory {os.path.join(kwargs["FRAMEWORK_DIR"], "..")} (not found)
+      2. 'raven_framework' or 'raven_framework.py' in sys.argv[0] (received: {sys.argv[0]})
       Note that users may also directly specify the path to an appropriate raven_framework
       executable instead of using the %RAVENEXECUTABLE% placeholder."""
       self.raiseAnError(IOError, message)

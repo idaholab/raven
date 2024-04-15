@@ -56,8 +56,6 @@ class RavenFramework(Tester):
   """
   RavenFramework is the class to use for testing standard raven inputs.
   """
-  _binaryLocation = ''
-
   @staticmethod
   def get_valid_params():
     """
@@ -102,15 +100,6 @@ class RavenFramework(Tester):
     params.add_param('python3_only', False, 'if true, then only use with Python3')
     params.add_param('ignore_sign', False, 'if true, then only compare the absolute values')
     return params
-
-  @classmethod
-  def set_binary_location(cls, location):
-    """
-      Sets the path to a RAVEN binary or standalone script.
-      @ In, location, string, path to the binary
-      @ Out, None
-    """
-    cls._binaryLocation = location
 
   def get_command(self):
     """
