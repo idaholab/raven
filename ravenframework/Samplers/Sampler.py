@@ -84,7 +84,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         descr=r"""name of the function that
               defines the calculation of this variable from other distributed variables.  Its name
               needs to be contained in the \xmlNode{Functions} block explained in Section
-              \ref{sec:functions}. This function must implement a method named ``evaluate''.
+              \ref{sec:functions}. This function module must contain and implement a method either with the same name of the function or a method named  ``evaluate''.
               \nb{Each \xmlNode{variable} must contain only one \xmlNode{Function} or
               \xmlNode{Distribution}, but not both.} """)
     variableInput.addSub(functionInput)
