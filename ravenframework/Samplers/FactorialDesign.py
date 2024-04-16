@@ -28,7 +28,7 @@ import sys
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
-from ..contrib import pyDOE as doe
+import pyDOE3 as doe
 from ..utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
