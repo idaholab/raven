@@ -88,7 +88,7 @@ class SERPENT(GenericCode):
     # if additional files are required, the user should request them here
     addFileTypes = xmlNode.find("additionalFileTypes")
     if addFileTypes is not None:
-      serpentFileTypes = [ft.strip().lower() for ft in addFileTypes.text.split(",")]
+      serpentFileTypes = [ft.strip() for ft in addFileTypes.text.split(",")]
       if 'ResultsReader' in  serpentFileTypes:
         # we pop this because it is the default
         serpentFileTypes.pop(serpentFileTypes.index('ResultsReader'))
