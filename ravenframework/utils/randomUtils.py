@@ -267,11 +267,11 @@ class NumpyRNG:
     """
     self._engine.integers(0, 2 ** 32 - 1, endpoint=True, size=count)
 
-setupCpp()
 boxMullerGen = BoxMullerGenerator()
 if stochasticEnv == 'numpy':
   npStochEnv = NumpyRNG()
 else:
+  setupCpp()
   crowStochEnv = CrowRNG()
 
 def setStochasticEnv(env):

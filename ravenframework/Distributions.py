@@ -34,7 +34,7 @@ from .BaseClasses import BaseEntity, InputDataUser
 from .utils import utils
 from .utils.randomUtils import random
 from .utils import randomUtils
-CrowDistribution1D = utils.findCrowModule('distribution1D')
+# CrowDistribution1D = utils.findCrowModule('distribution1D')
 from . import Distributions1D
 from . import DistributionsND
 from .utils import mathUtils, InputData, InputTypes
