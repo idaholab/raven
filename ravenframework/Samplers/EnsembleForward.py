@@ -248,7 +248,7 @@ class EnsembleForward(Sampler):
 
     # Update dependent variables
     for var in self.dependentSample:
-      test = self.funcDict[var].instance.evaluate(self.funcDict[var]..methodName, self.inputInfo['SampledVars'])
+      test = self.funcDict[var].instance.evaluate(self.funcDict[var].methodName, self.inputInfo['SampledVars'])
       for corrVar in var.split(","):
         self.values[corrVar.strip()] = test
         self.inputInfo['SampledVars'][corrVar.strip()] = test
