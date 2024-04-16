@@ -22,6 +22,6 @@ e_calc = imp.load_source('e_calc', os.path.join(os.path.dirname(os.path.abspath(
 
 def raven_d_calc(ravenContainer):
   return d_calc.evaluate(ravenContainer)
-  
+
 def raven_e_calc(ravenContainer):
   return e_calc.evaluate(ravenContainer)
