@@ -708,6 +708,7 @@ class SimulatedAnnealing(RavenSampled):
     elif self._coolingMethod == 'cauchy':
       amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
       delta = alpha*self.T*np.tan(amp)
+    delta = np.atleast_1d(delta)
     for i,var in enumerate(self.toBeSampled.keys()):
       nextNeighbour[var] = rlz[var] + delta[i]
       self.info['amp_'+var] = amp

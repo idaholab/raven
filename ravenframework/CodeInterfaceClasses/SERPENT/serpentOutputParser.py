@@ -51,7 +51,7 @@ def checkCompatibilityFileTypesAndInputFile(inputFile, fileTypesToRead):
       lines = data.split('\n')
       cnt = 0
       for line in lines:
-        if 'include' in line.strip():
+        if 'include' in line.strip() and '$RAVEN-' not in line.strip():
           includeFileName = line.split('include')[-1].split("%")[0].replace('"', '')
           additionalText += '\n' + open(os.path.join(inputFile.getPath().strip(), includeFileName.strip())).read() + '\n'
           cnt += 1

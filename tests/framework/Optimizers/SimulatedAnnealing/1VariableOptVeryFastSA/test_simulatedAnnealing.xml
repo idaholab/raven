@@ -1,0 +1,113 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/Optimizers/SimulatedAnnealing.1VariableOptVeryFastSA</name>
+    <author>alfoa</author>
+    <created>2024-04-11</created>
+    <classesTested>SimulatedAnnealing</classesTested>
+    <description>
+      This test is aimed to test the possibility to use SimulatedAnnealing method for 1 variable optimization problems.
+      The test is based on ``framework.Optimizers.SimulatedAnnealing.VeryFastSA'' test and it uses the Beale function.
+      The nominal dimensionality of the problem is 2, i.e., variables are x, y. For this test the variable y is constant
+      at its ``optimal value'' (0.5).
+      The objective variable is ans.
+      The global minimum is at: ans(3,0.5) = 0.0
+      Parameter range is $-4.5 \leq x,y \leq 4.5$.
+    </description>
+    <analytic>
+      This test uses beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='beale_dist'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <SimulatedAnnealing name="simOpt">
+      <samplerInit>
+        <limit>3000</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+      <convergence>
+        <objective>-1</objective>
+        <temperature>1e-2</temperature>
+        <persistence>1</persistence>
+      </convergence>
+      <coolingSchedule>
+        <cauchy>
+          <d>1.0</d>
+        </cauchy>
+      </coolingSchedule>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
+      </variable>
+      
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      
+      <!-- we set y as constant to test a 1-variable optimization case -->
+      <constant name="y">0.5</constant>
+      
+    </SimulatedAnnealing>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,iteration,amp_x,delta_x,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+</Simulation>
