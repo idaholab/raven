@@ -655,6 +655,14 @@ def find_crow(framework_dir):
     @ In, framework_dir, string, the absolute path of the framework
     @ Out, None
   """
+  # Rearrange the values in sys.path so that any entry containing "site-packages" is at the
+  # beginning. If there's a pip-installed version of crow_modules, we want to be able to import it
+  # before looking for the source version. No paths are added or removed, just reordered.
+  sitePackagesDir = [loc for loc in sys.path if loc.endswith("site-packages")]
+  for loc in sitePackagesDir:
+    sys.path.remove(loc)
+    sys.path.insert(0, loc)
+
   try:
     import crow_modules.distribution1D
     return
