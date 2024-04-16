@@ -24,8 +24,9 @@
   </RunInfo>
 
   <Files>
-    <Input name="simp_imp.py" type="">../RedundantInputs/simp_imp.py</Input>
     <Input name="input.py" type="">../RedundantInputs/input.py</Input>
+    <Input name="simp_imp.py" type="">RedundantInputs/simp_imp.py</Input>
+    
   </Files>
 
   <Steps>
@@ -56,7 +57,7 @@
   <Samplers>
     <MonteCarlo name="5factMC">
       <samplerInit>
-        <limit>20</limit>
+        <limit>2</limit>
         <initialSeed>452508</initialSeed>
         <reseedEachIteration>false</reseedEachIteration>
       </samplerInit>
@@ -83,7 +84,7 @@
 
   <Models>
     <Code name="py_script" subType="GenericCode">
-      <executable>../RedundantInputs/simp_imp.py</executable>
+      <executable>RedundantInputs/simp_imp.py</executable>
       <prepend>python</prepend>
       <inputExtentions>.py</inputExtentions>
       <clargs arg="python" type="prepend"/>
