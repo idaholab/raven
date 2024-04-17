@@ -72,7 +72,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, None.
     """
     baseName = os.path.basename(xmlNode.find("executable").text)
-    if baseName not in ['raven_framework','raven_framework.py']:
+    if baseName not in ['raven_framework','raven_framework.py', '%RAVENEXECUTABLE%']:
       raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)! Got "'+baseName+'"!')
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
@@ -173,7 +173,7 @@ class RAVEN(CodeInterfaceBase):
     # executable command will be: "python <path>/raven_framework.py"
     # in which case make sure executable ends with .py
     # Note that for raven_framework to work, it needs to be in the path.
-    if executable == 'raven_framework':
+    if executable == 'raven_framework' or executable == '%RAVENEXECUTABLE%':
       self.preCommand = ''
     elif not executable.endswith(".py"):
       executable += ".py"

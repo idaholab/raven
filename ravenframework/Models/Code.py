@@ -562,6 +562,29 @@ class Code(Model):
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
     command = command.replace("%PYTHON%", sys.executable)
 
+    if "raven_framework" in sys.executable:
+      ravenExecutable = sys.executable
+    elif "python" in os.path.basename(sys.executable) \
+          and "raven_framework" in sys.argv[0] \
+          and sys.argv[0].endswith(".py"):
+      # command was "python path/to/raven_framework.py ..."
+      ravenExecutable = f"{sys.executable} {sys.argv[0]}"
+    else:
+      ravenExecutable = ''
+
+    if "%RAVENEXECUTABLE%" in command and ravenExecutable == '':
+      message = f"""The command contains %RAVENEXECUTABLE% but the way the outer framework was run
+      could not be inferred. Only using scripts or executables that contain 'raven_framework' or
+      using python to run a .py file with 'raven_framework' in the name is supported. Possibilities
+      considered were:
+      1. 'raven_framework' in sys.executable (received: {sys.executable})
+      2. 'raven_framework' or 'raven_framework.py' in sys.argv[0] (received: {sys.argv[0]})
+      Note that users may also directly specify the path to an appropriate raven_framework
+      executable instead of using the %RAVENEXECUTABLE% placeholder."""
+      self.raiseAnError(IOError, message)
+
+    command = command.replace("%RAVENEXECUTABLE%", ravenExecutable)
+
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
       command = self._expandForWindows(command)

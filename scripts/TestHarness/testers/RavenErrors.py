@@ -62,6 +62,11 @@ class RavenErrors(Tester):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true':
       ravenflag = 'interfaceCheck '
+
+    # If the test command has been specified, use it
+    if (command := self._get_test_command()) is not None:
+      return ' '.join([command, ravenflag, self.specs["input"]])
+
     return ' '.join([self._get_python_command(), raven, ravenflag,
                      self.specs["input"]])
 
