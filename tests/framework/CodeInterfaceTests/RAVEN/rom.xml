@@ -49,7 +49,7 @@
   <!-- MODELS -->
   <Models>
     <Code name="raven_running_rom" subType="RAVEN">
-        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <executable>%RAVENEXECUTABLE%</executable>
         <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
         <conversion>
           <module source="testConversionModule.py">
