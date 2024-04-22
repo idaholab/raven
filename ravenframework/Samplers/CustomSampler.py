@@ -24,6 +24,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 # External Modules----------------------------------------------------------------------------------
 import copy
 import numpy as np
+from collections import namedtuple
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
@@ -153,10 +154,16 @@ class CustomSampler(Sampler):
     for key, val in self.dependentSample.items():
       if val not in initDict['Functions'].keys():
         self.raiseAnError(f'Function {val} was not found among the available functions: {initDict["Functions"].keys()}')
-      self.funcDict[key] = initDict['Functions'][val]
+      fPointer = namedtuple("func", ['methodName', 'instance'])
+      mName = 'evaluate'
       # check if the correct method is present
-      if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError, f'Function {self.funcDict[key].name} does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+      if val not in initDict['Functions'][val].availableMethods():
+        if "evaluate" not in initDict['Functions'][val].availableMethods():
+          self.raiseAnError(IOError, f'Function {initDict["Functions"][val].name} does contain neither a method named "{val}" nor "evaluate". '
+                            'It must be present if this needs to be used in a Sampler!')
+      else:
+        mName = val
+      self.funcDict[key] = fPointer(mName, initDict['Functions'][val])
 
     if 'Source' not in self.assemblerDict:
       self.raiseAnError(IOError, "No Source object has been found!")

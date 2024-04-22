@@ -1,0 +1,120 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.redundantInputsWithFunctionsInSameFile</name>
+    <author>alfoa</author>
+    <created>2024-04-15</created>
+    <classesTested>Samplers.Sampler, Functions.External</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to treat redundant input variables, specifying the functions in the
+       same python module. This test does not use the legacy approach to create a function python file for each variable but
+       it uses a single python file for all the variables. This is possible creating multiple Functions in the Functions XML
+       node, pointing to the same python module (.py).
+       The test is based on the ``framework.redundantInputs'' test.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2024-04-16">Added test and added description of the test.</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>RedundantInputsFunctionsSameModule</WorkingDir>
+    <Sequence>sim_py_MC</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="input.py" type="">../RedundantInputs/input.py</Input>
+    <Input name="simp_imp.py" type="">RedundantInputs/simp_imp.py</Input>
+    
+  </Files>
+
+  <Steps>
+    <MultiRun name="sim_py_MC" clearRunDir="False">
+      <Input class="Files" type="">input.py</Input>
+      <Model class="Models" type="Code">py_script</Model>
+      <Sampler class="Samplers" type="MonteCarlo">5factMC</Sampler>
+      <Output class="DataObjects" type="PointSet">mcset</Output>
+      <Output class="OutStreams" type="Print">mc_out</Output>
+    </MultiRun>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="a_dist">
+      <lowerBound>-3 </lowerBound>
+      <upperBound>6  </upperBound>
+    </Uniform>
+    <Uniform name="b_dist">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>7.6</upperBound>
+    </Uniform>
+    <Uniform name="c_dist">
+      <lowerBound>155</lowerBound>
+      <upperBound>225</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="5factMC">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>452508</initialSeed>
+        <reseedEachIteration>false</reseedEachIteration>
+      </samplerInit>
+      <variable name="d">
+        <function>raven_d_calc</function>
+      </variable>
+      <variable name="a">
+        <distribution>a_dist</distribution>
+      </variable>
+      <variable name="b">
+        <distribution>b_dist</distribution>
+      </variable>
+      <variable name="c">
+        <distribution>c_dist</distribution>
+      </variable>
+      <variable name="e">
+        <function>raven_e_calc</function>
+      </variable>
+      <variable name="z,l">
+        <function>raven_e_calc</function>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <Code name="py_script" subType="GenericCode">
+      <executable>RedundantInputs/simp_imp.py</executable>
+      <prepend>python</prepend>
+      <inputExtentions>.py</inputExtentions>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".py" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+  </Models>
+
+  <Functions>
+    <External file="RedundantInputsFunctionsSameModule/two_functions_module_calc.py" name="raven_d_calc">
+      <variables>a,c</variables>
+    </External>
+    <External file="RedundantInputsFunctionsSameModule/two_functions_module_calc.py" name="raven_e_calc">
+      <variables>b,c</variables>
+    </External>
+  </Functions>
+
+  <DataObjects>
+    <PointSet name="mcset">
+      <Input>a,b,c,d,e,z,l</Input>
+      <Output>f,g,h</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="mc_out">
+      <type>csv</type>
+      <source>mcset</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
