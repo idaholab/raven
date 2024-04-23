@@ -43,22 +43,24 @@
     </Gaussianize>
     <ARMA>
       <signal0>
-        <constant>4.845532824e-03</constant>
-        <AR_0>4.711740544e-01</AR_0>
-        <AR_1>1.073644196e-01</AR_1>
-        <MA_0>1.495391809e-01</MA_0>
-        <MA_1>1.881403539e-01</MA_1>
-        <MA_2>1.434737494e-01</MA_2>
-        <variance>4.917653477e-01</variance>
+        <constant>4.845534460e-03</constant>
+        <AR_0>4.711740521e-01</AR_0>
+        <AR_1>1.073644214e-01</AR_1>
+        <MA_0>1.495391834e-01</MA_0>
+        <MA_1>1.881403533e-01</MA_1>
+        <MA_2>1.434737504e-01</MA_2>
+        <variance>4.917653474e-01</variance>
+        <order>2,0,3</order>
       </signal0>
       <signal1>
-        <constant>3.270470871e-03</constant>
-        <AR_0>6.989112456e-01</AR_0>
-        <AR_1>8.753311577e-02</AR_1>
-        <MA_0>-1.698365143e-01</MA_0>
-        <MA_1>9.744189247e-02</MA_1>
-        <MA_2>-1.413858343e-02</MA_2>
-        <variance>4.949581023e-01</variance>
+        <constant>3.270397313e-03</constant>
+        <AR_0>6.989113244e-01</AR_0>
+        <AR_1>8.753301419e-02</AR_1>
+        <MA_0>-1.698366098e-01</MA_0>
+        <MA_1>9.744195391e-02</MA_1>
+        <MA_2>-1.413859360e-02</MA_2>
+        <variance>4.949581056e-01</variance>
+        <order>2,0,3</order>
       </signal1>
     </ARMA>
   </synth>
