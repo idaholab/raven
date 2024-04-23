@@ -4,7 +4,7 @@
     <name>framework/ROM/TimeSeries/SyntheticHistory.FourierARMA</name>
     <author>j-bryan</author>
     <created>2023-08-18</created>
-    <classesTested>SupervisedLearning.SyntheticHistory,TSA.ST>,TSA.ARMA</classesTested>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.ST&gt;,TSA.ARMA</classesTested>
     <description>
       Tests the SyntheticHistory ROM using STL decomposition then ARMA TimeSeriesAnalyzer algorithms.
     </description>
@@ -68,9 +68,9 @@
         <period>10</period>
       </STL>
       <gaussianize target="signal0, signal1"/>
-      <arma target="signal0, signal1" seed='42'>
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
+      <arma target="signal0, signal1" seed="42">
+        <P>2</P>
+        <Q>3</Q>
       </arma>
     </ROM>
   </Models>

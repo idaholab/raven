@@ -32,23 +32,19 @@
       <Input class="Files" type="">input</Input>
       <Output class="DataObjects" type="HistorySet">input</Output>
     </IOStep>
-
     <RomTrainer name="train">
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
-
     <IOStep name="meta">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="DataObjects" type="DataSet">meta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
-
     <IOStep name="serialize">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="Files" type="">pk</Output>
     </IOStep>
-
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">arma</Model>
@@ -56,7 +52,6 @@
       <Output class="DataObjects" type="DataSet">synth</Output>
       <Output class="OutStreams" type="Print">synth</Output>
     </MultiRun>
-
   </Steps>
 
   <DataObjects>
@@ -64,7 +59,6 @@
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <HistorySet name="input">
       <Input>scaling,YEAR</Input>
       <Output>TOTALLOAD,WIND,SOLAR,HOUR</Output>
@@ -72,7 +66,6 @@
         <pivotParameter>HOUR</pivotParameter>
       </options>
     </HistorySet>
-
     <DataSet name="synth">
       <Input>scaling</Input>
       <Output>TOTALLOAD,WIND,SOLAR</Output>
@@ -95,9 +88,9 @@
         <periods>8760, 4380, 2920, 2190, 438, 168, 24, 12, 6, 3</periods>
       </fourier>
       <gaussianize target="TOTALLOAD,WIND,SOLAR"/>
-      <arma target="TOTALLOAD,WIND,SOLAR" seed='42'>
-        <SignalLag>1</SignalLag>
-        <NoiseLag>0</NoiseLag>
+      <arma target="TOTALLOAD,WIND,SOLAR" seed="42">
+        <P>1</P>
+        <Q>0</Q>
       </arma>
     </ROM>
   </Models>
@@ -107,7 +100,6 @@
       <type>csv</type>
       <source>meta</source>
     </Print>
-
     <Print name="synth">
       <type>csv</type>
       <source>synth</source>
@@ -123,4 +115,5 @@
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
+
 </Simulation>
