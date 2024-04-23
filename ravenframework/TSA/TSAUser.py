@@ -18,6 +18,7 @@ Created on August 3, 2021
 Contains a utility base class for accessing commonly-used TSA functions.
 """
 import numpy as np
+import copy
 from inspect import isabstract
 
 from ..utils import xmlUtils, InputData, InputTypes
@@ -72,10 +73,11 @@ class TSAUser:
     self._tsaTargets = None          # cached list of targets
     self.target = None
 
-  def readTSAInput(self, spec):
+  def readTSAInput(self, spec, hasClusters=None):
     """
       Read in TSA algorithms
       @ In, spec, InputData.parameterInput, input specs filled with user entries
+      @ In, hasClusters, bool, is this a ROM with clustered segments?
       @ Out, None
     """
     if self.pivotParameterID is None: # might be handled by parent
@@ -83,7 +85,7 @@ class TSAUser:
     for sub in spec.subparts:
       if sub.name in factory.knownTypes():
         algo = factory.returnInstance(sub.name)
-        self._tsaAlgoSettings[algo] = algo.handleInput(sub)
+        self._tsaAlgoSettings[algo] = algo.handleInput(sub,hasClusters)
         if self._tsaAlgoSettings[algo]['global']:
           self._tsaGlobalAlgorithms.append(algo)
         else:
@@ -209,7 +211,8 @@ class TSAUser:
       if np.isnan(signal).any() and not algo.canAcceptMissingValues():
         raise ValueError(f'Missing values (NaN) found in input to {algo.name}, '
                          f'but {algo.name} cannot accept missing values!')
-      params = algo.fit(signal, pivots, targets, settings)
+      trainedParams = copy.deepcopy(self._tsaTrainedParams) if algo.needsPriorAlgoFeatures() else None
+      params = algo.fit(signal, pivots, targets, settings, trainedParams=trainedParams)
       # store characteristics
       self._tsaTrainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
@@ -294,3 +297,30 @@ class TSAUser:
       algoNode = xmlUtils.newNode(algo.name)
       algo.writeXML(algoNode, self._tsaTrainedParams[algo])
       root.append(algoNode)
+
+  def getTSApointwiseData(self):
+    """
+      Allows the SVE to accumulate data arrays to later add to a DataObject
+      Overload in subclasses.
+      @ In, None,
+      @ Out, segmentData, dict
+    """
+    #
+    segmentNonFeatures = {}
+    for algo in self._tsaAlgorithms:
+      if algo not in self._tsaTrainedParams:
+        continue
+      segmentNonFeatures[algo.name] = algo.getNonClusterFeatures(self._tsaTrainedParams[algo])
+    return segmentNonFeatures
+
+  def writeTSAPointwiseData(self, writeTo):
+    """
+      Writes pointwise data about segmentation to a realization.
+      @ In, writeTo, DataObject, data structure into which data should be written
+      @ Out, rlz, dict, realization data structure where each entry is an np.ndarray
+    """
+    for algo in self._tsaAlgorithms:
+      if algo not in self._tsaTrainedParams:
+        continue
+      algo_rlz = {}
+    return algo_rlz
