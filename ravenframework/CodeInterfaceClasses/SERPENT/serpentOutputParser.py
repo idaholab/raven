@@ -186,9 +186,17 @@ class SerpentOutputParser(object):
           raise ValueError(f"Target {target} for EOL calcs is not in result data")
         targetValues = res.resdata[target][:,0]
         sorting = np.argsort(targetValues)
-        endOfLife = np.interp(value,targetValues[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
-        resultsResults[f'EOL_{target}'] = np.asarray([endOfLife]*targetValues.size)
-
+        minTarget, maxTarget = np.min(targetValues[sorting]), np.max(targetValues[sorting])
+        if value >= minTarget and value <= maxTarget:
+          # we can compute the EOL with interpolation
+          endOfLife = np.interp(value,targetValues[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
+          resultsResults[f'EOL_{target}'] = np.asarray([endOfLife]*targetValues.size)
+        else:
+          if value >= maxTarget:
+            # if value is > maximum, the EOL_target == res.resdata['burnDays'][:,0]
+            resultsResults[f'EOL_{target}'] = np.asarray([min(res.resdata['burnDays'][:,0])]*targetValues.size)
+          elif value <= minTarget:
+            resultsResults[f'EOL_{target}'] = np.asarray([max(res.resdata['burnDays'][:,0])]*targetValues.size)
     return resultsResults, nSteps
 
   def _detectorReader(self, buSteps):
