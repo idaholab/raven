@@ -721,7 +721,7 @@ class SupervisedLearning(BaseInterface):
     # only true if overridden.
     return False
 
-  def setClusterability(self, willHaveClusters: bool):
+  def overrideHasClusters(self, willHaveClusters: bool):
     """
       Sets protected class member which tells ROM whether there will be clustering
       @ In, willHaveClusters. bool, will the ROM have clustering in this run?

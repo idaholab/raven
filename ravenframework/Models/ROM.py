@@ -238,10 +238,10 @@ class ROM(Dummy):
       romXml = copy.deepcopy(xmlNode)
       romXml.remove(segment)
       # depending on segType, this ROM *will* have clusters and we will need this fact later
-      self._interfaceROM.setClusterability(segType in ['cluster', 'interpolate'])
+      self._interfaceROM.overrideHasClusters(segType in ['cluster', 'interpolate'])
     else:
       romXml = xmlNode
-      self._interfaceROM.setClusterability(False) # just making sure it's False otherwise
+      self._interfaceROM.overrideHasClusters(False) # just making sure it's False otherwise
     self._interfaceROM._readMoreXML(romXml)
 
     if self.segment:
