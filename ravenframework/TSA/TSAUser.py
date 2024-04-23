@@ -73,7 +73,7 @@ class TSAUser:
     self._tsaTargets = None          # cached list of targets
     self.target = None
 
-  def readTSAInput(self, spec, hasClusters=None):
+  def readTSAInput(self, spec, hasClusters=False):
     """
       Read in TSA algorithms
       @ In, spec, InputData.parameterInput, input specs filled with user entries
@@ -85,7 +85,9 @@ class TSAUser:
     for sub in spec.subparts:
       if sub.name in factory.knownTypes():
         algo = factory.returnInstance(sub.name)
-        self._tsaAlgoSettings[algo] = algo.handleInput(sub,hasClusters)
+        if not algo.canBeAppliedPerCluster() and hasClusters:
+          self.resolveGlobalvsCluster(sub)
+        self._tsaAlgoSettings[algo] = algo.handleInput(sub)
         if self._tsaAlgoSettings[algo]['global']:
           self._tsaGlobalAlgorithms.append(algo)
         else:
@@ -101,6 +103,22 @@ class TSAUser:
     elif self.pivotParameterID not in self.target:
       # NOTE this assumes that every TSAUser is also an InputUser!
       raise IOError('TSA: The pivotParameter must be included in the target space.')
+
+  def resolveGlobalvsCluster(self, spec):
+    """
+      Method to resolve scenario when algorithm can not be applied per cluster and we're dealing
+      with a clustered ROM. If user does not specify it as a `global` algorithm, prints a warning.
+      If user specifically requests `global` as False, it raises an error.
+      @ In, spec, InputData.InputParams, input specifications
+      @ Out, None
+    """
+    requestedGlobal = spec.parameterValues.get('global', None)
+    if requestedGlobal is None:
+      print(f"{spec.name} algorithm will be applied to the global signal.")
+    elif requestedGlobal is False:
+      msg = f"{spec.name} algorithm must be used as a global TSA algorithm when using a "
+      msg += "clustered TSA ROM. The `global` parameter must be set to True in the input."
+      raise IOError(msg)
 
   def canCharacterize(self):
     """

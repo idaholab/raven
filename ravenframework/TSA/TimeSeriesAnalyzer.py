@@ -32,6 +32,8 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   _acceptsMissingValues = False
   ## defines if usage of algorithm requires output from a prior algorithm
   _needsPriorAlgoFeatures = False
+  ## defines if algorithm can be applied per cluster (otherwise it can only be used on global signal)
+  _canBeAppliedPerCluster = True
 
   @classmethod
   def getInputSpecification(cls):
@@ -93,6 +95,16 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     return cls._needsPriorAlgoFeatures
 
+  @classmethod
+  def canBeAppliedPerCluster(cls):
+    """
+      Determines if algorithm can be applied per cluster. Otherwise it can only be used
+      on the global signal.
+      @ In, None
+      @ Out, canBeAppliedPerCluster, bool, True if this algorithm can be applied per cluster
+    """
+    return cls._canBeAppliedPerCluster
+
   ### INHERITED METHODS ###
   def __init__(self, *args, **kwargs):
     """
@@ -117,11 +129,10 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
                            params[target variable][characteristic] = value
     """
 
-  def handleInput(self, spec, enforce_global=False):
+  def handleInput(self, spec):
     """
       Reads user inputs into this object.
       @ In, spec, InputData.InputParams, input specifications
-      @ In, enforce_global, bool,
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = {}
