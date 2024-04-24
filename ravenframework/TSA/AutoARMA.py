@@ -79,6 +79,12 @@ class AutoARMA(TimeSeriesCharacterizer):
                  descr=r"""upper bound for the number of terms in the Moving Average term to retain
                        in the regression; typically represented as $Q$ in Noise Lag
                        literature."""))
+    opt_criterion = InputTypes.makeEnumType("criterion", "criterionType", ['aic', 'aicc','bic'])
+    specs.addSub(InputData.parameterInputFactory('criterion', contentType=opt_criterion,
+                 descr=r"""information criterion used to determine optimal ARMA parameters. The
+                 options are `aic` for Akaike Information Criterion, `aicc` for corrected AIC which
+                 is used when number of observations is small, and `bic` for Bayesian Information
+                 Criterion. Default is `aicc`."""))
     return specs
 
   #
@@ -95,6 +101,7 @@ class AutoARMA(TimeSeriesCharacterizer):
     super().__init__(*args, **kwargs)
     # maximum value that P+Q can have as an upper bound
     self._maxCombinedPQ = 5
+    self._ic = 'aicc'
 
   def handleInput(self, spec):
     """
@@ -103,8 +110,9 @@ class AutoARMA(TimeSeriesCharacterizer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
-    settings['P_upper'] = spec.findFirst('P_upper').value
-    settings['Q_upper'] = spec.findFirst('Q_upper').value
+
+    for sub in spec.subparts:
+      settings[sub.name] = sub.value
     # AutoARMA is currently only a global TSA algorithm; this is enforced in TSAUser
 
     return settings
@@ -120,6 +128,12 @@ class AutoARMA(TimeSeriesCharacterizer):
       settings['global'] = True
     if 'engine' not in settings:
       settings['engine'] = randomUtils.newRNG()
+    if 'P_upper' not in settings:
+      settings['P_upper'] = self._maxCombinedPQ
+    if 'Q_upper' not in settings:
+      settings['Q_upper'] = self._maxCombinedPQ
+    if 'criterion' not in settings:
+      settings['criterion'] = self._ic
     return settings
 
   def fit(self, signal, pivot, targets, settings, trainedParams=None):
