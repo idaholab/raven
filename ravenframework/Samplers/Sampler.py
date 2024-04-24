@@ -23,6 +23,7 @@ import abc
 import json
 import itertools
 import numpy as np
+from collections import namedtuple
 from ..BaseClasses.InputDataUser import InputDataUser
 
 from ..utils import utils,randomUtils,InputData, InputTypes
@@ -83,7 +84,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         descr=r"""name of the function that
               defines the calculation of this variable from other distributed variables.  Its name
               needs to be contained in the \xmlNode{Functions} block explained in Section
-              \ref{sec:functions}. This function must implement a method named ``evaluate''.
+              \ref{sec:functions}. This function module must contain and implement a method either with the same name of the function or a method named  ``evaluate''.
               \nb{Each \xmlNode{variable} must contain only one \xmlNode{Function} or
               \xmlNode{Distribution}, but not both.} """)
     variableInput.addSub(functionInput)
@@ -192,51 +193,61 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, None
     """
     super().__init__()
-    self.batch                         = 1                         # determines the size of each sampling batch to run
-    self.onlySampleAfterCollecting     = True                     # if True, then no new samples unless collection has occurred
-    self.ableToHandelFailedRuns        = False                     # is this sampler able to handle failed runs?
-    self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
-    self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
-    self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
-    self.dependentSample               = {}                        # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
-    self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
-    self.funcDict                      = {}                        # Contains the instance of the function     to be used, it is created every time the sampler is initialized. keys are the variable names
-    self.values                        = {}                        # for each variable the current value {'var name':value}
-    self.variableShapes                = {}                        # stores the dimensionality of each variable by name, as tuple e.g. (2,3) for [[#,#,#],[#,#,#]]
-    self.inputInfo                     = {}                        # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
-    self.initSeed                      = None                      # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
-    self.inputInfo['SampledVars'     ] = self.values               # this is the location where to get the values of the sampled variables
-    self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
-    self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
-    self.constants                     = {}                        # In this dictionary
-    self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
-    self.FIXME                         = False                     # FIXME flag
-    self.printTag                      = self.type                 # prefix for all prints (sampler type)
+    self.batch                         = 1           # determines the size of each sampling batch to run
+    self.onlySampleAfterCollecting     = True        # if True, then no new samples unless collection has occurred
+    self.ableToHandelFailedRuns        = False       # is this sampler able to handle failed runs?
+    self.counter                       = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.auxcnt                        = 0           # Aux counter of samples performed (for its usage check initialize method)
+    self.limit                         = sys.maxsize # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
+    self.toBeSampled                   = {}          # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
+    self.dependentSample               = {}          # Sampling mapping dictionary for dependent variables {'Variable Name':'name of the external function'}
+    self.distDict                      = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.funcDict                      = {}          # Mapping between variable name and the a 2-element namedtuple namedtuple('func', ['methodName', 'instance']) containing:
+                                                     # element 0 (methodName): name of the method in the function to be be invoked. Either the default "evaluate", or the function name
+                                                     # element 1 (instance): instance of the function to be used, it is created every time the sampler is initialized.
+    self.values                        = {}          # for each variable the current value {'var name':value}
+    self.variableShapes                = {}          # stores the dimensionality of each variable by name, as tuple e.g. (2,3) for [[#,#,#],[#,#,#]]
+    self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
+    self.initSeed                      = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
+    self.inputInfo['SampledVars'     ] = self.values # this is the location where to get the values of the sampled variables
+    self.inputInfo['SampledVarsPb'   ] = {}          # this is the location where to get the probability of the sampled variables
+    self.inputInfo['crowDist']         = {}          # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
+    self.constants                     = {}          # In this dictionary
+    self.reseedAtEachIteration         = False       # Logical flag. True if every newer evaluation is performed after a new reseeding
+    self.FIXME                         = False       # FIXME flag
+    self.printTag                      = self.type   # prefix for all prints (sampler type)
 
-    self.restartData                   = None                      # presampled points to restart from
-    self.restartTolerance              = 1e-14                     # strictness with which to find matches in the restart data
-    self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
-    self._jobsToEnd                    = []                        # list of strings, containing job prefixes that should be cancelled.
+    self.restartData                   = None        # presampled points to restart from
+    self.restartTolerance              = 1e-14       # strictness with which to find matches in the restart data
+    self.restartIsCompatible           = None        # flags restart as compatible with the sampling scheme (used to speed up checking)
+    self._jobsToEnd                    = []          # list of strings, containing job prefixes that should be cancelled.
 
-    self.constantSourceData            = None                      # dictionary of data objects from which constants can take values
-    self.constantSources               = {}                        # storage for the way to obtain constant information
+    self.constantSourceData            = None        # dictionary of data objects from which constants can take values
+    self.constantSources               = {}          # storage for the way to obtain constant information
 
-    self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
+    self._endJobRunnable               = sys.maxsize # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
     self.distributions2variablesIndexList = {}
 
     ######
-    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; reducedDim = dimension of the variable in the transformed space; totDim = total dimensionality of its associated distribution
-    self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
-    self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
+    # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'reducedDim': 1,'totDim': 2, 'name': 'distName'} ;
+    #                                                                           dim = dimension of the variable;
+    #                                                                           reducedDim = dimension of the variable in the transformed space;
+    #                                                                           totDim = total dimensionality of its associated distribution
+    self.variables2distributionsMapping = {}
+    # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
+    self.distributions2variablesMapping = {}
+    # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the
+    # ND inverseCDF ('initialGridDisc' and 'tolerance')
+    self.NDSamplingParams               = {}
     ######
     self.addAssemblerObject('Restart', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('ConstantSource', InputData.Quantity.zero_to_infinity)
 
     #used for PCA analysis
-    self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
-    self.transformationMethod           = {}                       # transformation method used in variablesTransformation node {'modelName':method}
-    self.entitiesToRemove               = []                       # This variable is used in order to make sure the transformation info is printed once in the output xml file.
+    self.variablesTransformationDict    = {}         # for each variable 'modelName', the following informations are included:
+                                                     # {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
+    self.transformationMethod           = {}         # transformation method used in variablesTransformation node {'modelName':method}
+    self.entitiesToRemove               = []         # This variable is used in order to make sure the transformation info is printed once in the output xml file.
 
   def _generateDistributions(self, availableDist, availableFunc):
     """
@@ -254,11 +265,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
     for key, val in self.dependentSample.items():
       if val not in availableFunc.keys():
-        self.raiseAnError('Function', val, 'was not found among the available functions:', availableFunc.keys())
-      self.funcDict[key] = availableFunc[val]
+        self.raiseAnError(ValueError, f'Function {val} was not found among the available functions:', availableFunc.keys())
+      fPointer = namedtuple("func", ['methodName', 'instance'])
+      mName = 'evaluate'
       # check if the correct method is present
-      if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError, f'Function {self.funcDict[key].name} does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+      if val not in availableFunc[val].availableMethods():
+        if "evaluate" not in availableFunc[val].availableMethods():
+          self.raiseAnError(IOError, f'Function {availableFunc[val].name} does contain neither a method named "{val}" nor "evaluate". '
+                            'It must be present if this needs to be used in a Sampler!')
+      else:
+        mName = val
+      self.funcDict[key] = fPointer(mName, availableFunc[val])
 
   def _localGenerateAssembler(self, initDict):
     """
@@ -838,11 +855,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       if self.inputInfo.get('batchMode',False):
         for b in range(self.inputInfo['batchInfo']['nRuns']):
           values = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars']
-          test=self.funcDict[var].evaluate("evaluate",values)
+          test=self.funcDict[var].instance.evaluate(self.funcDict[var].methodName,values)
           for corrVar in var.split(","):
             self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'][corrVar.strip()] = test
       else:
-        test=self.funcDict[var].evaluate("evaluate", self.values)
+        test=self.funcDict[var].instance.evaluate(self.funcDict[var].methodName, self.values)
         for corrVar in var.split(","):
           self.values[corrVar.strip()] = test
 

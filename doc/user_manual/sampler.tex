@@ -182,7 +182,8 @@ XML node and the requirements for other attributes change:
   \xmlNode{function}, \xmlDesc{string, required field}, name of the function that
   defines the calculation of this variable from other distributed variables.  Its name
   needs to be contained in the \xmlNode{Functions} block explained in Section
-  \ref{sec:functions}. This function must implement a method named ``evaluate''.
+  \ref{sec:functions}. This function module must contain and implement a method either
+   with the same name of the function or a method named  ``evaluate''.
  \nb{Alternatively, this node must be omitted
   if the \xmlNode{distribution} node is supplied.}
 }
@@ -563,8 +564,8 @@ is actually derived from the previous two, as \xmlString{thickness} = \xmlString
 RAVEN supports this type of redundant input through a Function entity.  In this case,
 instead of a \xmlNode{distribution} node in the \xmlNode{variable} block, there is a
 \xmlNode{function} node, specifying the name of the function (defined in the \xmlNode{Functions} block).
-In order to work properly, this function must have a method named ``evaluate''
-that returns a single python float object. In this way, multiple variables can be associated with the same function.  For example,
+In order to work properly, this function must contain either a method named with the same name of the function or a method named ``evaluate''. 
+Such method needs to return a single python object (float, integer, string). In this way, multiple variables can be associated with the same function.  For example,
 \begin{lstlisting}[style=XML]
 ...
 <Functions>
@@ -590,13 +591,70 @@ that returns a single python float object. In this way, multiple variables can b
 \end{lstlisting}
 The corresponding function file \xmlString{torus\_calcs.py} needs the following method:
 \begin{lstlisting}
+def torus_calcs(self):
+  return self.outer_radius - self.inner_radius
+\end{lstlisting}
+or the default method named ``evaluate'':
+\begin{lstlisting}
 def evaluate(self):
   return self.outer_radius - self.inner_radius
 \end{lstlisting}
+
 The \xmlString{thickness} parameter will still be treated as an input for the sake of csv
-printing and DataObjects storage.
+printing and DataObjects and Database storage.
 \\\nb It is important to notice that if the user use variables with no-Python compatible names (e.g. parenthesis, etc.),
 the \xmlNode{alias} system needs to be used to alias the variables.
+
+If the \xmlNode{function}  name is used to define the method, it is possible to implement different functions
+in the same python module. For example, if 3 functions need to be implemented, 3 files are required if
+the methods are named ``evaluate'' or just 1 file is required if the methods are called with the function name.
+For example, we can create 3 functions (IDs) pointing to the same Python file for 3 different variables:
+\begin{lstlisting}[style=XML]
+...
+<Functions>
+  <External name='torus_calcs1' file='torus_calcs.py'>
+    <variable>outer_radius</variable>
+    <variable>inner_radius</variable>
+  </External>
+   <External name='torus_calcs2' file='torus_calcs.py'>
+    <variable>outer_radius</variable>
+    <variable>inner_radius</variable>
+  </External>
+   <External name='torus_calcs3' file='torus_calcs.py'>
+    <variable>outer_radius</variable>
+    <variable>inner_radius</variable>
+  </External>
+<Functions>
+...
+<Samplers>
+  <WhatEverSampler name='myExampleSampler'>
+    <variable name='inner_radius'>
+      <distribution>inner_dist</distribution>
+    </variable>
+    <variable name='outer_radius'>
+      <distribution>outer_dist</distribution>
+    </variable>
+    <variable name='thickness1'>
+      <function>torus_calcs1</function>
+    </variable>
+        <variable name='thickness2'>
+      <function>torus_calcs2</function>
+    </variable>
+        <variable name='thickness3'>
+      <function>torus_calcs3</function>
+    </variable>
+  </WhatEverSampler>
+</Samplers>
+\end{lstlisting}
+The corresponding function file \xmlString{torus\_calcs.py} will contain 3 methods: 
+\begin{lstlisting}
+def torus_calcs1(self):
+  return self.outer_radius - self.inner_radius
+def torus_calcs2(self):
+  return (self.outer_radius - self.inner_radius)*1.01
+def torus_calcs3(self):
+  return (self.outer_radius - self.inner_radius)*1.02
+\end{lstlisting}
 
 In the sampler class a special node exists: the \xmlNode{sampler\textunderscore init} node.
 This node contains specific parameters that characterize each particular sampler.
