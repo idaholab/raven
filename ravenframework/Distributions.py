@@ -1633,7 +1633,7 @@ class Categorical(Distribution):
     self.type           = 'Categorical'
     self.dimensionality = 1
     self.distType       = 'Discrete'
-    self.isFloat        = False
+    self.isFloat        = True
 
   def _handleInput(self, paramInput):
     """
@@ -1642,22 +1642,21 @@ class Categorical(Distribution):
       @ Out, None
     """
     super()._handleInput(paramInput)
+    isFloats = []
     for child in paramInput.subparts:
       if child.getName() == "state":
         outcome = child.parameterValues["outcome"]
         value = child.value
         self.mapping[outcome] = value
-        try:
-          float(outcome)
-          self.isFloat = True
-        except:
-          self.isFloat = False
+        isFloats.append(utils.floatConversion(outcome) is not None)
         if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
           self.values.add(float(outcome) if self.isFloat else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
+    if len(set(isFloats)) != 1:
+      self.isFloat = False
     self.initializeDistribution()
     self.upperBoundUsed = True
     self.lowerBoundUsed = True
@@ -1690,10 +1689,13 @@ class Categorical(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
+    isFloats = []
     for idx, val in enumerate(inputDict['outcome']):
       self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
-
+      isFloats.append(utils.floatConversion(val) is not None)
+    if len(set(isFloats)) != 1:
+      self.isFloat = False
     self.checkDistParams()
 
   def initializeDistribution(self):
@@ -1741,7 +1743,12 @@ class Categorical(Distribution):
       if self.isFloat:
         vals = sorted(list(self.values))
         idx = bisect.bisect(vals, x)
+        val = list(vals)[idx]
         pdfValue = self.mapping[list(vals)[idx]]
+        utils.isClose(val, x, relTolerance=1e-6)
+        
+        
+        
       else:
         self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
@@ -1846,6 +1853,7 @@ class UniformDiscrete(Distribution):
     self.dimensionality = 1
     self.distType       = 'Discrete'
     self.memory         = True
+    self.nPoints = None
 
   def _handleInput(self, paramInput):
     """
@@ -1861,16 +1869,14 @@ class UniformDiscrete(Distribution):
       self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
 
     strategy = paramInput.findFirst('strategy')
-    if strategy != None:
+    if strategy is not None:
       self.strategy = strategy.value
     else:
       self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
 
     nPoints = paramInput.findFirst('nPoints')
-    if nPoints != None:
+    if nPoints is not None:
       self.nPoints = nPoints.value
-    else:
-      self.nPoints = None
 
     self.initializeDistribution()
 
@@ -1905,6 +1911,7 @@ class UniformDiscrete(Distribution):
     paramsDict['state'] = self.pdfArray
 
     self.categoricalDist = Categorical()
+    #isFloat
     self.categoricalDist.initializeFromDict(paramsDict)
     initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
     self.pot = np.asarray(initialPerm)
