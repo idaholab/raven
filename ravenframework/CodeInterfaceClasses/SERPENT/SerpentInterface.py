@@ -50,7 +50,7 @@ class SERPENT(GenericCode):
     self._fileTypesToRead = ['ResultsReader'] # container of file types to read
     # in case of burnup calc, the interface can compute the time at which FOMs (e.g. keff) crosses
     # a target. For example (default), we can compute the time (burnDays) at which absKeff crosses 1.0
-    self.eolTarget = {'absKeff':1.0}
+    self.eolTarget = {}
 
   def _findInputFile(self, inputFiles):
     """
