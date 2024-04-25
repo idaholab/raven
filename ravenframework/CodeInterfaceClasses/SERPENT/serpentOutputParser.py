@@ -185,11 +185,23 @@ class SerpentOutputParser(object):
         if target not in res.resdata:
           raise ValueError(f"Target {target} for EOL calcs is not in result data")
         targetValues = res.resdata[target][:,0]
-        sorting = np.argsort(targetValues)
-        minTarget, maxTarget = np.min(targetValues[sorting]), np.max(targetValues[sorting])
+        minTarget, maxTarget = np.min(targetValues), np.max(targetValues)
         if value >= minTarget and value <= maxTarget:
-          # we can compute the EOL with interpolation
-          endOfLife = np.interp(value,targetValues[sorting],res.resdata['burnDays'][:,0][sorting],left=min(res.resdata['burnDays'][:,0]),right=max(res.resdata['burnDays'][:,0]))
+          endOfLifes = []
+          timeIntervals = []
+          for idx in range(targetValues.size-1):
+            if value >= targetValues[idx] and value <=  targetValues[idx+1] or value >=  targetValues[idx+1] and value <=  targetValues[idx]:
+              sorting = np.argsort(targetValues[idx:idx+2])
+              endOfLifes.append(np.interp(value,targetValues[idx:idx+2][sorting],res.resdata['burnDays'][:,0][idx:idx+2][sorting]))
+              timeIntervals.append(res.resdata['burnDays'][:,0][idx:idx+2].tolist())
+          endOfLife = np.max(endOfLifes)
+          if len(endOfLifes) > 1:
+            # the target has been crossed multiple times
+            msg = f"The target ({target}) value ({value}) has been crossed multiple times in burnup calculation. "
+            ti = ", ".join([f'{t[0]}|{t[1]}' for t in timeIntervals])
+            msg += f"The computed EOL_{target}(s) are: {', '.join([str(eol) for eol in endOfLifes])}. The value crossing happens at the following time (days) intervals: {ti}. "
+            msg += f"The maximum EOL_{target} ({endOfLife}) will be stored in the results' container."
+            warnings.warn(f"SERPENT Interface: {msg}")
           resultsResults[f'EOL_{target}'] = np.asarray([endOfLife]*targetValues.size)
         else:
           if value >= maxTarget:
