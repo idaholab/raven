@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.BoltzmanEggHolder</name>
+    <name>framework/Optimizers/SimulatedAnnealing.ExponentialEggHolder</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
@@ -51,20 +51,20 @@
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>5000</limit>
+        <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
         <objective>-1</objective>
-        <temperature>3e-3</temperature>
+        <temperature>1e-30</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <boltzmann>
-          <d>1.0</d>
-        </boltzmann>
+        <exponential>
+          <alpha>0.94</alpha>
+        </exponential>
       </coolingSchedule>
       <variable name="x">
         <distribution>eggHolder_dist</distribution>
@@ -80,7 +80,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/eggHolder" name="eggHolder" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/eggHolder" name="eggHolder" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>

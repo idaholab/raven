@@ -1,15 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.FuncionallyConstrainedSA</name>
+    <name>framework/Optimizers/SimulatedAnnealing.BoltzmanSA</name>
     <author>MohammadAbdo</author>
-    <created>2020-02-05</created>
-    <classesTested>Optimizer</classesTested>
+    <created>2020-02-11</created>
+    <classesTested>SimulatedAnnealing</classesTested>
     <description>
-      This test uses a multidimensional linear function such that the trajectory must pass through
-      a functional constraint to reach the optimal point.
-      The test is designed by @talbpaul and is applied to simulated annealing.
+      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Beale function.
+      The nominal dimensionality of the problem is 2, i.e., variables are x, y.
+      The objective variable is ans.
+      The global minimum is at: ans(3,0.5) = 0.0
+      Parameter range is $-4.5 \leq x,y \leq 4.5$.
     </description>
+    <analytic>
+      This test uses Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
   </TestInfo>
 
   <RunInfo>
@@ -18,10 +24,10 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize">
+    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">goal</Model>
-      <Optimizer class="Optimizers" type="SimulatedAnnealing">opter</Optimizer>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -35,52 +41,45 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='dist'>
-      <lowerBound>-1</lowerBound>
-      <upperBound>1</upperBound>
+    <Uniform name='beale_dist'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
-    <SimulatedAnnealing name="opter">
+    <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>500</limit>
+        <limit>5000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>1e-4</objective>
-        <temperature>1e-16</temperature>
+        <objective>1e-6</objective>
+        <temperature>5e-3</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <exponential>
-          <alpha>0.94</alpha>
-        </exponential>
+        <boltzmann>
+          <d>1.0</d>
+        </boltzmann>
       </coolingSchedule>
       <variable name="x">
-        <distribution>dist</distribution>
-        <initial>0.9</initial>
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
       </variable>
       <variable name="y">
-        <distribution>dist</distribution>
-        <initial>0.7</initial>
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-            <Constraint class='Functions' type='External'>goal</Constraint>
     </SimulatedAnnealing>
   </Optimizers>
 
-  <Functions>
-    <External file="../../../AnalyticModels/optimizing/offset_parabola" name="goal">
-      <variables>x,y</variables>
-    </External>
-  </Functions>
-
   <Models>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/offset_parabola" name="goal" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
@@ -108,5 +107,4 @@
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
-
 </Simulation>

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.BoltzmanSA</name>
+    <name>framework/Optimizers/SimulatedAnnealing.CauchySA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
@@ -37,6 +37,7 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
     </IOStep>
   </Steps>
 
@@ -50,20 +51,20 @@
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>5000</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>1e-6</objective>
-        <temperature>5e-3</temperature>
+        <objective>-1</objective>
+        <temperature>1e-4</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <boltzmann>
-          <d>1.0</d>
-        </boltzmann>
+        <cauchy>
+          <d>5.0</d>
+        </cauchy>
       </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
@@ -79,7 +80,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
@@ -106,5 +107,9 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x,y,ans</vars>
+    </Plot>
   </OutStreams>
 </Simulation>

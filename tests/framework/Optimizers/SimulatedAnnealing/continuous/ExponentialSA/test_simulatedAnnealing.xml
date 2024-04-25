@@ -1,20 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.ExponentialEggHolder</name>
+    <name>framework/Optimizers/SimulatedAnnealing.ExponentialSA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
     <description>
-      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Eggholder function.
-      The eggholder function is a very challenging objective function, as it has enourmous number of local minima,
+      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Beale function.
       The nominal dimensionality of the problem is 2, i.e., variables are x, y.
       The objective variable is ans.
-      The global minimum is at: ans(512,404.2319) = -959.6407
-      parameter range is $-512 \leq x,y \leq 512$
+      The global minimum is at: ans(3,0.5) = 0.0
+      Parameter range is $-4.5 \leq x,y \leq 4.5$.
     </description>
     <analytic>
-      This test uses eggHolder's function, which is documented in the analytic tests documentation under
+      This test uses beale's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
   </TestInfo>
@@ -27,7 +26,7 @@
   <Steps>
     <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">eggHolder</Model>
+      <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
@@ -42,23 +41,23 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='eggHolder_dist'>
-      <lowerBound>-512</lowerBound>
-      <upperBound>512</upperBound>
+    <Uniform name='beale_dist'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>2000</limit>
+        <limit>3000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
         <objective>-1</objective>
-        <temperature>1e-30</temperature>
+        <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
@@ -67,12 +66,12 @@
         </exponential>
       </coolingSchedule>
       <variable name="x">
-        <distribution>eggHolder_dist</distribution>
-        <initial>300</initial>
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
       </variable>
       <variable name="y">
-        <distribution>eggHolder_dist</distribution>
-        <initial>500</initial>
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
@@ -80,7 +79,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/eggHolder" name="eggHolder" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
