@@ -59,9 +59,9 @@
     </Gaussianize>
     <AutoARMA>
       <signal0>
-        <P_opt>5</P_opt>
+        <P_opt>1</P_opt>
         <D_opt>0</D_opt>
-        <Q_opt>0</Q_opt>
+        <Q_opt>2</Q_opt>
       </signal0>
       <signal1>
         <P_opt>2</P_opt>
@@ -71,14 +71,12 @@
     </AutoARMA>
     <ARMA>
       <signal0>
-        <constant>-1.753877510e-03</constant>
-        <AR_0>6.975955072e-01</AR_0>
-        <AR_1>2.145354665e-01</AR_1>
-        <AR_2>-1.124237205e-01</AR_2>
-        <AR_3>-1.274829227e-01</AR_3>
-        <AR_4>5.274823933e-02</AR_4>
-        <variance>4.303670076e-01</variance>
-        <order>5,0,0</order>
+        <constant>-2.228884514e-03</constant>
+        <AR_0>6.875771216e-01</AR_0>
+        <MA_0>-3.706671624e-03</MA_0>
+        <MA_1>2.338466293e-01</MA_1>
+        <variance>4.328239816e-01</variance>
+        <order>1,0,2</order>
       </signal0>
       <signal1>
         <constant>8.584247694e-04</constant>

@@ -71,6 +71,7 @@
       <autoarma target="signal0, signal1" seed='42'>
         <P_upper>5</P_upper>
         <Q_upper>5</Q_upper>
+        <criterion>bic</criterion>
       </autoarma>
       <arma target="signal0, signal1" auto_select="True" seed='42'>
         <P>1</P> <!-- NOTE: because `auto-select` is True, these are ignored -->

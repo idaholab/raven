@@ -85,6 +85,12 @@ class AutoARMA(TimeSeriesCharacterizer):
                  options are `aic` for Akaike Information Criterion, `aicc` for corrected AIC which
                  is used when number of observations is small, and `bic` for Bayesian Information
                  Criterion. Default is `aicc`."""))
+    specs.addSub(InputData.parameterInputFactory('use_approximation', contentType=InputTypes.BoolType,
+                 descr=r"""if True, this uses the default version of the AutoARIMA algorithm
+                 within `statsforecast` which uses heuristics to find an approximate solution
+                 in much faster time. This previously led to different answers between Linux and
+                 Windows, but may be a good option if the alternative is taking too long.
+                 Default is False."""))
     return specs
 
   #
@@ -101,6 +107,7 @@ class AutoARMA(TimeSeriesCharacterizer):
     super().__init__(*args, **kwargs)
     # maximum value that P+Q can have as an upper bound
     self._maxCombinedPQ = 5
+    self._use_approximation = False
     self._ic = 'aicc'
 
   def handleInput(self, spec):
@@ -134,6 +141,8 @@ class AutoARMA(TimeSeriesCharacterizer):
       settings['Q_upper'] = self._maxCombinedPQ
     if 'criterion' not in settings:
       settings['criterion'] = self._ic
+    if 'use_approximation' not in settings:
+      settings['use_approximation'] = self._use_approximation
     return settings
 
   def fit(self, signal, pivot, targets, settings, trainedParams=None):
@@ -168,7 +177,9 @@ class AutoARMA(TimeSeriesCharacterizer):
         "max_p": settings['P_upper'],
         "max_q": settings['Q_upper'],
         "max_order": maxOrder,
-        "ic": 'aicc',
+        "ic": settings['criterion'],
+        "stepwise": settings['use_approximation'],
+        "approximation": settings['use_approximation'],
       }
 
     params = {}
