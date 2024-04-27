@@ -374,6 +374,7 @@
      rel_err = 0.001
     [../]
   [../]
+
   [./NSGA-II_MinwoRepMultiObjective]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
@@ -391,6 +392,96 @@
     #  type = OrderedCSV
     UnorderedCsv = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.0Xover-0.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.0Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+    UnorderedCSV = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.0Mutation/opt_export_0.csv'
+    rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.0Xover-0.1Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.0Xover-0.9Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.0Xover-1.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.1Xover-0.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.1Xover-0.9Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.5Xover-0.5Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-0.9Xover-0.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    # [../]
+  [../]
+
+  [./ZDT1-static-1.0Xover-0.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation.xml'
+    # [./csv]
+    #  type = OrderedCSV
+     UnorderedCsv = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
     # [../]
   [../]
 
