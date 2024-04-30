@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.1VariableOptVeryFastSA</name>
+    <name>framework/Optimizers/SimulatedAnnealing/continuous.1VariableOptVeryFastSA</name>
     <author>alfoa</author>
     <created>2024-04-11</created>
     <classesTested>SimulatedAnnealing</classesTested>

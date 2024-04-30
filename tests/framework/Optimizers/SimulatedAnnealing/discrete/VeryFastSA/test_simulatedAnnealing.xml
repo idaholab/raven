@@ -1,13 +1,15 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing/continuous.ExponentialSA</name>
-    <author>MohammadAbdo</author>
-    <created>2020-02-11</created>
+    <name>framework/Optimizers/SimulatedAnnealing/discrete.VeryFastSA</name>
+    <author>alfoa</author>
+    <created>2024-04-30</created>
     <classesTested>SimulatedAnnealing</classesTested>
     <description>
-      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Beale function.
+      This test assesses the usage of Simulated Annealing with discrete variables using Boltzmann cooling schedule on the Beale function.
       The nominal dimensionality of the problem is 2, i.e., variables are x, y.
+      This test is based on ``framework.Optimizers.SimulatedAnnealing.continuous.VeryFastSA'' simply swapping the distribution from Uniform
+      to UniformDiscrete.
       The objective variable is ans.
       The global minimum is at: ans(3,0.5) = 0.0
       Parameter range is $-4.5 \leq x,y \leq 4.5$.
@@ -41,10 +43,12 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='beale_dist'>
+    <UniformDiscrete name='beale_dist'>
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
-    </Uniform>
+      <nPoints>100</nPoints>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
   </Distributions>
 
   <Optimizers>
@@ -57,21 +61,21 @@
       </samplerInit>
       <convergence>
         <objective>-1</objective>
-        <temperature>1e-20</temperature>
+        <temperature>1e-3</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <exponential>
-          <alpha>0.94</alpha>
-        </exponential>
+        <cauchy>
+          <d>1.0</d>
+        </cauchy>
       </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <initial>-2.0</initial>
+        <initial>-1.8</initial>
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <initial>-2.0</initial>
+        <initial>-1.8</initial>
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.CauchySA</name>
+    <name>framework/Optimizers/SimulatedAnnealing/continuous.CauchySA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
