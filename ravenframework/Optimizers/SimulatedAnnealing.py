@@ -58,6 +58,7 @@ import numpy as np
 from ..utils import mathUtils, randomUtils, InputData, InputTypes
 from .RavenSampled import RavenSampled
 from .stepManipulators import NoConstraintResolutionFound
+from ..Distributions import distType
 # Internal Modules End------------------------------------------------------------------------------
 
 class SimulatedAnnealing(RavenSampled):
@@ -248,9 +249,28 @@ class SimulatedAnnealing(RavenSampled):
     for var in self.toBeSampled:
       self.info['amp_'+var] = None
       self.info['delta_'+var] = None
-    # queue up the first run for each trajectory
+
+    initialValues = self._initialValues
     for traj, init in enumerate(self._initialValues):
-      self._submitRun(init,traj,self.getIteration(traj))
+      values = {}
+      init = self.denormalizeData(init)
+      initialValues[traj] = self.denormalizeData(initialValues[traj])
+      for var in init:
+        if var in self.toBeSampled and self.distDict[var].distType == distType.discrete:
+          val = init[var]
+          values[var] = self.distDict[var].ppf(self.distDict[var].cdf(val))
+          if not  np.isclose(initialValues[traj][var], values[var], 1e-4):
+            self.raiseAWarning(f"Traj: {traj}. Variable {var} is associated with a discrete distribution. The inputted initial value {initialValues[traj][var]} "
+                               f"is not among available discrete values. Closest value is {values[var]}")
+        else:
+          values[var] =  init[var]
+      values = self.normalizeData(values)
+
+      self._submitRun(values,traj,self.getIteration(traj))
+
+    # queue up the first run for each trajectory
+    #for traj, init in enumerate(self._initialValues):
+    #  self._submitRun(init,traj,self.getIteration(traj))
 
   def initializeTrajectory(self, traj=None):
     """
@@ -323,6 +343,16 @@ class SimulatedAnnealing(RavenSampled):
         self.raiseAMessage(f'Optimizer "{self.name}" trajectory {traj} was unable to continue due to functional or boundary constraints.')
         self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar])
         return
+
+      suggested = self.denormalizeData(suggested)
+      for var in suggested:
+        if var in self.toBeSampled and self.distDict[var].distType == distType.discrete:
+          # if discrete, we make sure that the suggested value is within the possible outcomes
+          val = suggested[var]
+          suggested[var] = self.distDict[var].ppf(self.distDict[var].cdf(val))
+        else:
+          suggested[var] =  suggested[var]
+      suggested = self.normalizeData(suggested)
       self._submitRun(suggested, traj, self.getIteration(traj))
 
   def flush(self):
