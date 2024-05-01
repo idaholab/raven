@@ -160,7 +160,7 @@ class SyntheticCloud(PlotInterface):
       else:
         rootname = self.name
   
-      filename = self._createFilename(self, defaultName= f'{rootname}_{m}.png')
+      filename = self._createFilename(defaultName= f'{rootname}_{m}.png')
       if originalFilename is not None:
         self.filename = originalFilename 
   

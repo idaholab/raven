@@ -17,7 +17,6 @@ Created on April 6, 2021
 @author: talbpaul
 """
 from collections import defaultdict
-import os
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -129,7 +128,7 @@ class OptPath(PlotInterface):
                title='Legend')
 
     # create filename
-    filename = self._createFilename(self, defaultName=f'{self.name}.png')
+    filename = self._createFilename(defaultName=f'{self.name}.png')
     
     plt.savefig(filename)
 

@@ -18,7 +18,6 @@ Created on November 20th, 2021
 """
 
 # External Imports
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -159,7 +158,7 @@ class PopulationPlot(PlotInterface):
 
     if self.how in ['png','pdf','svg','jpeg']:
       # create filename
-      filename = self._createFilename(self, defaultName=self.name +'.%s'  % self.how)      
+      filename = self._createFilename(defaultName=self.name +'.%s'  % self.how)      
       plt.savefig(filename, format=self.how)
     else:
       self.raiseAnError(IOError, f'Digital format of the plot "{self.name}" is not available!')

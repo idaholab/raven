@@ -17,7 +17,6 @@ Created on April 1, 2021
 @author: talbpaul
 """
 import matplotlib.pyplot as plt
-import os
 
 from .PlotInterface import PlotInterface
 from ...utils import InputData, InputTypes
@@ -106,7 +105,7 @@ class SamplePlot(PlotInterface):
     fig.align_ylabels(axes[:])
     
     # create filename
-    filename = self._createFilename(self, defaultName=f'{self.name}.png')
+    filename = self._createFilename(defaultName=f'{self.name}.png')
     plt.savefig(filename)
 
   def plotScalar(self, ax, ids, vals):

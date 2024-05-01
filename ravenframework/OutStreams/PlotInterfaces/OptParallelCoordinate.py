@@ -20,7 +20,6 @@ Created on November 20th, 2021
 # External Imports
 import numpy as np
 import imageio
-import os
 
 # Internal Imports
 from ...utils import plotUtils
@@ -127,7 +126,7 @@ class OptParallelCoordinatePlot(PlotInterface):
       filesID.append(fileID)
 
     # create filename
-    giffilename = self._createFilename(self, defaultName=f'{self.name}.gif')
+    giffilename = self._createFilename(defaultName=f'{self.name}.gif')
     
     with imageio.get_writer(giffilename, mode='I') as writer:
       for filename in filesID:
