@@ -405,6 +405,7 @@ class Tester:
     self.results = TestResult()
     self._needed_executable = self.specs['needed_executable']
     self.__command_prefix = ""
+    self.__test_command = None
     self.__python_command = sys.executable
     if os.name == "nt":
       #Command is python on windows in conda and Python.org install
@@ -485,6 +486,14 @@ class Tester:
       @ Out, None
     """
     self.__command_prefix = command_prefix
+
+  def set_test_command(self, command):
+    """
+      Sets the tester command. This is the command that will be used to run the test.
+      @ In, command, string, the command to run
+      @ Out, None
+    """
+    self.__test_command = command
 
   def set_python_command(self, python_command):
     """
@@ -732,6 +741,14 @@ class Tester:
       @ Out, __python_command, string, string command to run a python program
     """
     return self.__python_command
+
+  def _get_test_command(self):
+    """
+      Returns the command set by the user to run the test
+      @ In, None
+      @ Out, get_command, string, string command to run.
+    """
+    return self.__test_command
 
   def get_command(self):
     """
