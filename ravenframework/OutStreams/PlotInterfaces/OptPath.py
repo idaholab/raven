@@ -131,10 +131,10 @@ class OptPath(PlotInterface):
     filename = self.filename if self.filename is not None else f'{self.name}.png'
     prefix = str(self.counter) + '-' if not self.overwrite else ''
     filename = f'{prefix}{filename}'
-    
+
     if self.subDirectory is not None:
       filename = os.path.join(self.subDirectory,filename)
-    
+
     plt.savefig(filename)
 
   def addPoint(self, ax, i, value, accepted):

@@ -104,7 +104,7 @@ class SamplePlot(PlotInterface):
       ax.set_ylabel(var)
     axes[-1].set_xlabel('RAVEN Sample Number')
     fig.align_ylabels(axes[:])
-    
+
     filename = self.filename if self.filename is not None else f'{self.name}.png'
     prefix = str(self.counter) + '-' if not self.overwrite else ''
     filename = f'{prefix}{filename}'

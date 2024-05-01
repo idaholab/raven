@@ -130,7 +130,7 @@ class OptParallelCoordinatePlot(PlotInterface):
     giffilename = self.filename if self.filename is not None else f'{self.name}.gif'
     prefix = str(self.counter) + '-' if not self.overwrite else ''
     giffilename = f'{prefix}{giffilename}'
-    
+
     if self.subDirectory is not None:
       giffilename = os.path.join(self.subDirectory,giffilename)
 

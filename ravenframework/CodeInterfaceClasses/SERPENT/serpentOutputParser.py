@@ -201,7 +201,7 @@ class SerpentOutputParser(object):
             ti = ", ".join([f'{t[0]}|{t[1]}' for t in timeIntervals])
             msg += f"The computed EOL_{target}(s) are: {', '.join([str(eol) for eol in endOfLifes])}. The value crossing happens at the following time (days) intervals: {ti}. "
             msg += f"The maximum EOL_{target} ({endOfLife}) will be stored in the results' container."
-            warnings.warn(f"SERPENT Interface: {msg}")
+            print(f"SERPENT Interface: {msg}")
           resultsResults[f'EOL_{target}'] = np.asarray([endOfLife]*targetValues.size)
         else:
           if value >= maxTarget:

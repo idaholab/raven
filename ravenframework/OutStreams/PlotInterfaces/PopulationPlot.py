@@ -163,7 +163,7 @@ class PopulationPlot(PlotInterface):
       filename = f'{prefix}{filename}'
       if self.subDirectory is not None:
         filename = os.path.join(self.subDirectory,filename)
-    
+
       plt.savefig(filename, format=self.how)
     else:
       self.raiseAnError(IOError, f'Digital format of the plot "{self.name}" is not available!')
