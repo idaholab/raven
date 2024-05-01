@@ -148,5 +148,5 @@ class PlotInterface(OutStreamInterface):
     filename = f'{prefix}{filename}'
     if self.subDirectory is not None:
       filename = os.path.join(self.subDirectory,filename)
-    
+
     return filename

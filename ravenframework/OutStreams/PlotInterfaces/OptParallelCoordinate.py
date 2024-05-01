@@ -127,7 +127,7 @@ class OptParallelCoordinatePlot(PlotInterface):
 
     # create filename
     giffilename = self._createFilename(defaultName=f'{self.name}.gif')
-    
+
     with imageio.get_writer(giffilename, mode='I') as writer:
       for filename in filesID:
         image = imageio.imread(filename)

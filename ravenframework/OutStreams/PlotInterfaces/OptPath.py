@@ -129,7 +129,7 @@ class OptPath(PlotInterface):
 
     # create filename
     filename = self._createFilename(defaultName=f'{self.name}.png')
-    
+
     plt.savefig(filename)
 
   def addPoint(self, ax, i, value, accepted):

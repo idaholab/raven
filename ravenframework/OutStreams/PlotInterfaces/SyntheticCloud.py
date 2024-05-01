@@ -159,11 +159,11 @@ class SyntheticCloud(PlotInterface):
         self.filename = None
       else:
         rootname = self.name
-  
+
       filename = self._createFilename(defaultName= f'{rootname}_{m}.png')
       if originalFilename is not None:
-        self.filename = originalFilename 
-  
+        self.filename = originalFilename
+
       plt.savefig(filename)
       self.raiseAMessage(f'Wrote "{filename}".')
 
