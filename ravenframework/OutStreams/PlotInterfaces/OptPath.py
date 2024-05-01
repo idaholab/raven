@@ -17,6 +17,7 @@ Created on April 6, 2021
 @author: talbpaul
 """
 from collections import defaultdict
+import os
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -84,6 +85,7 @@ class OptPath(PlotInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
+    super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
@@ -103,6 +105,7 @@ class OptPath(PlotInterface):
       @ In, None
       @ Out, None
     """
+    self.counter += 1
     fig, axes = plt.subplots(len(self.vars), 1, sharex=True)
     fig.suptitle('Optimization Path')
     for r in range(len(self.source)): # realizations
@@ -124,7 +127,15 @@ class OptPath(PlotInterface):
                loc='center right',
                borderaxespad=0.1,
                title='Legend')
-    plt.savefig(f'{self.name}.png')
+
+    filename = self.filename if self.filename is not None else f'{self.name}.png'
+    prefix = str(self.counter) + '-' if not self.overwrite else ''
+    filename = f'{prefix}{filename}'
+    
+    if self.subDirectory is not None:
+      filename = os.path.join(self.subDirectory,filename)
+    
+    plt.savefig(filename)
 
   def addPoint(self, ax, i, value, accepted):
     """

@@ -17,6 +17,7 @@ Created on April 1, 2021
 @author: talbpaul
 """
 import matplotlib.pyplot as plt
+import os
 
 from .PlotInterface import PlotInterface
 from ...utils import InputData, InputTypes
@@ -46,7 +47,7 @@ class SamplePlot(PlotInterface):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'PlotInterface'
+    self.printTag = 'SamplePlot'
     self.source = None      # reference to DataObject source
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
@@ -88,6 +89,7 @@ class SamplePlot(PlotInterface):
       @ In, None
       @ Out, None
     """
+    self.counter += 1
     fig, axes = plt.subplots(len(self.vars), 1, sharex=True)
     allDims = self.source.getDimensions()
     data, meta = self.source.getData()
@@ -102,7 +104,14 @@ class SamplePlot(PlotInterface):
       ax.set_ylabel(var)
     axes[-1].set_xlabel('RAVEN Sample Number')
     fig.align_ylabels(axes[:])
-    plt.savefig(f'{self.name}.png')
+    
+    filename = self.filename if self.filename is not None else f'{self.name}.png'
+    prefix = str(self.counter) + '-' if not self.overwrite else ''
+    filename = f'{prefix}{filename}'
+    if self.subDirectory is not None:
+      filename = os.path.join(self.subDirectory,filename)
+
+    plt.savefig(filename)
 
   def plotScalar(self, ax, ids, vals):
     """

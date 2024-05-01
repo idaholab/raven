@@ -42,6 +42,7 @@ class PlotInterface(OutStreamInterface):
       @ Out, None
     """
     super().__init__()
+    self.counter = 0
     self.printTag = 'PlotInterface'
 
   def handleInput(self, spec):
@@ -60,6 +61,7 @@ class PlotInterface(OutStreamInterface):
       current step. The sources are searched into this.
       @ Out, None
     """
+    self.counter = 0
     super().initialize(stepEntities)
 
   @abstractmethod

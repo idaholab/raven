@@ -2242,7 +2242,7 @@ class GeneralPlot(PlotInterface):
       else:
         prefix = ''
 
-      if len(self.filename) > 0:
+      if self.filename is not None:
         name = self.filename
       else:
         name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")

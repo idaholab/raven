@@ -133,7 +133,7 @@ class FilePrint(PrintInterface):
     super().run()
     dictOptions = {}
     dictOptions['filenameroot'] = self.name
-    if len(self.filename) > 0:
+    if self.filename is not None:
       dictOptions['filenameroot'] = self.filename
     if self.subDirectory is not None:
       dictOptions['filenameroot'] = os.path.join(self.subDirectory,dictOptions['filenameroot'])
