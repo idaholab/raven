@@ -128,13 +128,9 @@ class OptPath(PlotInterface):
                borderaxespad=0.1,
                title='Legend')
 
-    filename = self.filename if self.filename is not None else f'{self.name}.png'
-    prefix = str(self.counter) + '-' if not self.overwrite else ''
-    filename = f'{prefix}{filename}'
-
-    if self.subDirectory is not None:
-      filename = os.path.join(self.subDirectory,filename)
-
+    # create filename
+    filename = self._createFilename(self, defaultName=f'{self.name}.png')
+    
     plt.savefig(filename)
 
   def addPoint(self, ax, i, value, accepted):

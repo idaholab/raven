@@ -158,12 +158,8 @@ class PopulationPlot(PlotInterface):
     fig.tight_layout()
 
     if self.how in ['png','pdf','svg','jpeg']:
-      filename = self.filename if self.filename is not None else self.name +'.%s'  % self.how
-      prefix = str(self.counter) + '-' if not self.overwrite else ''
-      filename = f'{prefix}{filename}'
-      if self.subDirectory is not None:
-        filename = os.path.join(self.subDirectory,filename)
-
+      # create filename
+      filename = self._createFilename(self, defaultName=self.name +'.%s'  % self.how)      
       plt.savefig(filename, format=self.how)
     else:
       self.raiseAnError(IOError, f'Digital format of the plot "{self.name}" is not available!')

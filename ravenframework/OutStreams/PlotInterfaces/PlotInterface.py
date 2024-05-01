@@ -16,7 +16,7 @@ Created on April 1, 2021
 
 @author: talbpaul
 """
-
+import os
 from abc import abstractmethod
 from .. import OutStreamInterface, OutStreamEntity
 from ...utils.utils import displayAvailable
@@ -131,4 +131,22 @@ class PlotInterface(OutStreamInterface):
       paramDict['Overwrite output everytime called'] = 'True'
     else:
       paramDict['Overwrite output everytime called'] = 'False'
+    if self.filename is not None:
+      paramDict['Inputted filename'] = self.filename
+    if self.subDirectory is not None:
+      paramDict['Sub-directory'] = self.subDirectory
     return paramDict
+
+  def _createFilename(self, defaultName):
+    """
+      Utility method to create output file names (it considers the overwrite and subDirectory flag)
+      @ In, defaultName, str, the default filename if self.filename is not set
+      @ Out, filename, str, the formatted filename
+    """
+    filename = self.filename if self.filename is not None else defaultName
+    prefix = str(self.counter) + '-' if not self.overwrite else ''
+    filename = f'{prefix}{filename}'
+    if self.subDirectory is not None:
+      filename = os.path.join(self.subDirectory,filename)
+    
+    return filename

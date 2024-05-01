@@ -126,14 +126,9 @@ class OptParallelCoordinatePlot(PlotInterface):
       plotUtils.generateParallelPlot(ys,genID,yMin,yMax,self.vars,fileID)
       filesID.append(fileID)
 
-
-    giffilename = self.filename if self.filename is not None else f'{self.name}.gif'
-    prefix = str(self.counter) + '-' if not self.overwrite else ''
-    giffilename = f'{prefix}{giffilename}'
-
-    if self.subDirectory is not None:
-      giffilename = os.path.join(self.subDirectory,giffilename)
-
+    # create filename
+    giffilename = self._createFilename(self, defaultName=f'{self.name}.gif')
+    
     with imageio.get_writer(giffilename, mode='I') as writer:
       for filename in filesID:
         image = imageio.imread(filename)
