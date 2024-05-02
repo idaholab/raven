@@ -38,7 +38,7 @@ class PluginError(RuntimeError):
   pass
 
 ## Method definitions
-def loadPlugins(path, catalogue):
+def loadPlugins(path, catalogue, debug=False):
   """
     Loads plugins and their entities into factory storage.
     @ In, path, str, location of plugins folder
@@ -53,14 +53,15 @@ def loadPlugins(path, catalogue):
       raise PluginError('Installation is corrupted for plugin "{}". Check raven/plugins/plugin_directory.xml and try reinstalling using raven/scripts/intall_plugin')
     if name is None:
       name = os.path.basename(location)
-    print('Loading plugin "{}" at {}'.format(name, location))
+    if debug:
+      print('Loading plugin "{}" at {}'.format(name, location))
     module = loadPluginModule(name, location)
     loadEntities(name, module)
 
 #Stores the name of the plugin, and the (spec, plugin, loaded)
 _delayedPlugins = {}
 
-def loadPluginModule(name, location):
+def loadPluginModule(name, location, debug=False):
   """
     Loads the plugin as a package
     @ In, name, str, name of plugin package
@@ -79,7 +80,8 @@ def loadPluginModule(name, location):
   # load the module
   #Save plugin so spec.loader.exec_module(plugin) can be called later
   _delayedPlugins[name] = (spec, plugin, False)
-  print(' ... successfully imported "{}" ...'.format(name))
+  if debug:
+    print(' ... successfully imported "{}" ...'.format(name))
   return plugin
 
 def finishLoadPlugin(name):
