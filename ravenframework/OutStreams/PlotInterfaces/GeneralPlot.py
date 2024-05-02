@@ -2236,6 +2236,7 @@ class GeneralPlot(PlotInterface):
 
       defaultName = self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
       filename = self._createFilename(defaultName=f'{defaultName}.{fileType}')
+      filename = filename if filename.endswith(fileType) else f'{filename}.{fileType}'
       self.fig.savefig(filename, format=fileType)
 
     if 'screen' not in self.destinations:
