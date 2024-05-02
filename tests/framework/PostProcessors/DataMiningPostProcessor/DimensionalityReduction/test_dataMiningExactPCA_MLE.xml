@@ -69,7 +69,7 @@
       <type>csv</type>
       <source>drInfo</source>
     </Print>
-    <Plot name="PlotIris" overwrite="false" verbosity="debug">
+    <Plot name="PlotIris" overwrite="True" verbosity="debug">
       <filename>PlotIris_mle</filename>
       <plotSettings>
         <plot>
