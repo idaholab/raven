@@ -119,7 +119,6 @@ class PopulationPlot(PlotInterface):
       @ In, None
       @ Out, None
     """
-    self.counter += 1
     data = self.source.asDataset().to_dataframe()
     inVars = self.source.getVars(subset='input')
 

@@ -88,7 +88,6 @@ class SamplePlot(PlotInterface):
       @ In, None
       @ Out, None
     """
-    self.counter += 1
     fig, axes = plt.subplots(len(self.vars), 1, sharex=True)
     allDims = self.source.getDimensions()
     data, meta = self.source.getData()

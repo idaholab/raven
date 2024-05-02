@@ -42,6 +42,7 @@ class PlotInterface(OutStreamInterface):
       @ Out, None
     """
     super().__init__()
+    # keeps track of how many times the same plot has been plotted
     self.counter = 0
     self.printTag = 'PlotInterface'
 
@@ -63,6 +64,14 @@ class PlotInterface(OutStreamInterface):
     """
     self.counter = 0
     super().initialize(stepEntities)
+
+  def increaseCounter(self):
+    """
+      Function to increase the counter (number of times this plot instance has been called after the initialization)
+      @ In, None
+      @ Out, None
+    """
+    self.counter += 1
 
   @abstractmethod
   def run(self):

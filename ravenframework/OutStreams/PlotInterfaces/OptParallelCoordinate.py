@@ -104,7 +104,6 @@ class OptParallelCoordinatePlot(PlotInterface):
       @ In, None
       @ Out, None
     """
-    self.counter += 1
     data = self.source.asDataset().to_dataframe()
     minGen = int(min(data[self.index]))
     maxGen = int(max(data[self.index]))

@@ -104,7 +104,6 @@ class OptPath(PlotInterface):
       @ In, None
       @ Out, None
     """
-    self.counter += 1
     fig, axes = plt.subplots(len(self.vars), 1, sharex=True)
     fig.suptitle('Optimization Path')
     for r in range(len(self.source)): # realizations
