@@ -71,6 +71,14 @@
    type = RavenFramework
    max_time = 3600
  [../]
+ [./test_mpi_noprecommand]
+   input='test_mpiqsub_noprecommand.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMPre/FirstMPreRun/1/out~simple_gp_test.csv FirstMPre/FirstMPreRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
  [./test_mpi_fake]
    input=test_mpi.xml
    skip = 'cluster only test'

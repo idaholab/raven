@@ -376,6 +376,12 @@ RAVEN currently supports one pre-defined ``mode'':
          \item The max memory needed can be specified with the
            \xmlNode{memory} XML node.  This will be used in the
            \texttt{qsub} command select statement.
+         \item If the automaticly generated mpi command is not needed,
+           \xmlNode{noPrecommand} can be used to completely disable
+           generating a precommand. This can be useful if calling a
+           script that will call \texttt{mpiexec} itself.  Note that
+           the machine host file is located at
+           \texttt{\%BASE\_WORKING\_DIR\%/node\_\%INDEX\%}
          \item The placement can be specified with the \xmlNode{place}
            XML node.  This will be used in the \texttt{qsub} place
            statement.
