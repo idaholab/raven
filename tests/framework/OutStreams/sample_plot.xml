@@ -70,7 +70,7 @@
   </Distributions>
 
   <OutStreams>
-    <Plot name="plotter" subType="SamplePlot">
+    <Plot name="plotter" subType="SamplePlot" overwrite="True">
       <source>samples</source>
       <vars>v0,angle,r</vars>
     </Plot>
