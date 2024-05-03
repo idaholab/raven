@@ -40,7 +40,7 @@
   </DataObjects>
 
   <OutStreams>
-    <Plot name="plotter" subType="OptParallelCoordinatePlot">
+    <Plot name="plotter" subType="OptParallelCoordinatePlot"  overwrite="True">
       <source>samples</source>
       <vars>a,b,c,d</vars>
       <index>batchId</index>

@@ -101,7 +101,7 @@
       <source>search_path</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Plot name="path" subType="OptPath">
+    <Plot name="path" subType="OptPath" overwrite="True">
       <source>search_path</source>
       <vars>v0,angle,ymax,r</vars>
     </Plot>

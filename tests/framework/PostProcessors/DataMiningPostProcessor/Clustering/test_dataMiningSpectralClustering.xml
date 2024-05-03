@@ -62,7 +62,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot name="PlotSpectralCircles" overwrite="false">
+    <Plot name="PlotSpectralCircles" overwrite="True">
       <plotSettings>
         <plot>
           <type>scatter</type>
