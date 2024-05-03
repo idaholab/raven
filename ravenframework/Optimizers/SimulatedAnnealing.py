@@ -724,26 +724,32 @@ class SimulatedAnnealing(RavenSampled):
     """
     nextNeighbour = {}
     D = len(self.toBeSampled.keys())
-    alpha = 0.94
+    delta = {}
     if self._coolingMethod in ['exponential', 'geometric']:
-      amp = ((fraction)**-1) / 20
-      r = randomUtils.random(dim=D, samples=1)
-      delta = (-amp/2.)+ amp * r
+      amp = 1.-fraction
+      for var in self.toBeSampled:
+        delta[var] = self.distDict[var].rvs() * amp + (-amp / 2.) * (self.distDict[var].upperBound - self.distDict[var].lowerBound)
+      #delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
-      amp = min(np.sqrt(self.T), 1/3.0/alpha)
-      delta =  randomUtils.randomNormal(size=D)*alpha*amp
+      amp = min(np.sqrt(self.T), 1/3.0/self._coolingParameters.get('alpha', 0.94)) *self._coolingParameters.get('alpha', 0.94)
+      #delta =  randomUtils.randomNormal(size=D)*alpha*amp
+      for var in self.toBeSampled:
+        delta[var] = self.distDict[var].rvs() * amp      
     elif self._coolingMethod == 'veryfast':
-      amp = randomUtils.random(dim=D, samples=1)
-      delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
+      at = randomUtils.random(dim=D, samples=1)
+      amp = np.sign(at-0.5)*self.T*((1+1.0/self.T)**abs(2*at-1)-1.0)
+      for var in self.toBeSampled:
+        delta[var] = self.distDict[var].rvs() * amp  
     elif self._coolingMethod == 'cauchy':
       amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
-      delta = alpha*self.T*np.tan(amp)
+      
+      delta = self._coolingParameters.get('alpha', 0.94)*self.T*np.tan(amp)
     delta = np.atleast_1d(delta)
 
     for i,var in enumerate(self.toBeSampled.keys()):
-      nextNeighbour[var] = rlz[var] + delta[i]
+      nextNeighbour[var] = rlz[var] + delta[var]
       self.info['amp_'+var] = amp
-      self.info['delta_'+var] = delta[i]
+      self.info['delta_'+var] = delta[var]
     self.info['fraction'] = fraction
 
     return nextNeighbour
