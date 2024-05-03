@@ -99,7 +99,6 @@ class GeneralPlot(PlotInterface):
     # general attributes
     self.printTag = 'OUTSTREAM PLOT'
     self.options = {}        # outstreaming options # no addl info from original developer
-    self.counter = 0         # keeps track of how many times the same plot has been plotted
     self.dim = None          # default plot is 2D
     self.sourceName = []     # list of source names
     self.sourceData = None   # source of data
@@ -1085,8 +1084,6 @@ class GeneralPlot(PlotInterface):
     if not self.__fillCoordinatesFromSource():
       self.raiseAWarning('Nothing to Plot Yet. Returning.')
       return
-
-    self.counter += 1
     if self.counter > 1:
       self.actcm = None
     clusterDict = deepcopy(self.outStreamTypes)
@@ -2237,20 +2234,10 @@ class GeneralPlot(PlotInterface):
       if fileType == 'screen':
         continue
 
-      if not self.overwrite:
-        prefix = str(self.counter) + '-'
-      else:
-        prefix = ''
-
-      if len(self.filename) > 0:
-        name = self.filename
-      else:
-        name = prefix + self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
-
-      if self.subDirectory is not None:
-        name = os.path.join(self.subDirectory,name)
-
-      self.fig.savefig(name + '.' + fileType, format=fileType)
+      defaultName = self.name + '_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "")
+      filename = self._createFilename(defaultName=f'{defaultName}.{fileType}')
+      filename = filename if filename.endswith(fileType) else f'{filename}.{fileType}'
+      self.fig.savefig(filename, format=fileType)
 
     if 'screen' not in self.destinations:
       plt.close(fig=self.fig)

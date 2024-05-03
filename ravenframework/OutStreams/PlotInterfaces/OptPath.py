@@ -84,6 +84,7 @@ class OptPath(PlotInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
+    super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
@@ -124,7 +125,11 @@ class OptPath(PlotInterface):
                loc='center right',
                borderaxespad=0.1,
                title='Legend')
-    plt.savefig(f'{self.name}.png')
+
+    # create filename
+    filename = self._createFilename(defaultName=f'{self.name}.png')
+
+    plt.savefig(filename)
 
   def addPoint(self, ax, i, value, accepted):
     """

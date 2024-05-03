@@ -99,6 +99,7 @@ class Plot(OutStreamEntity):
       @ In, None
       @ Out, None
     """
+    self._plotter.increaseCounter()
     self._plotter.run()
 
   ################

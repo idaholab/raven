@@ -63,7 +63,7 @@
       <source>DataSets</source>
       <what>Output|labels</what>
     </Print>
-    <Plot name="PlotVariationalGMMBlobs" overwrite="false">
+    <Plot name="PlotVariationalGMMBlobs" overwrite="True">
       <plotSettings>
         <plot>
           <type>scatter</type>

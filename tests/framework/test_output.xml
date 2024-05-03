@@ -634,7 +634,7 @@
       </plotSettings>
     </Plot>
     <Plot  name="historyPlot2D" overwrite="false" verbosity="debug">
-      <filename>1-2DHistoryPlot_histogram</filename>
+      <filename>2DHistoryPlot_histogram</filename>
       <plotSettings>
         <plot>
           <type>histogram</type>

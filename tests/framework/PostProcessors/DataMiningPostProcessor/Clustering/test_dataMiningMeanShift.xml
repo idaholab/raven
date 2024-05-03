@@ -99,7 +99,7 @@
       <source>DataSetsIII</source>
       <what>Output|MeanShiftMoonsLabels</what>
     </Print>
-    <Plot name="PlotMeanShift" overwrite="false">
+    <Plot name="PlotMeanShift" overwrite="True">
       <plotSettings>
         <gridSpace>3 1</gridSpace>
         <plot>

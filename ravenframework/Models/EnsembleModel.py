@@ -742,7 +742,7 @@ class EnsembleModel(Dummy):
       # we evaluate the model directly
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception as e:
+      except Exception:
         excType, excValue, excTrace = sys.exc_info()
         evaluation = None
     else:
@@ -759,9 +759,12 @@ class EnsembleModel(Dummy):
       finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=self.name+identifier)
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
+        if finishedRun[0].exceptionTrace is not None:
+          excType, excValue, excTrace = finishedRun[0].exceptionTrace
+        else:
+          # the failure happened at the input creation stage
+          excType, excValue, excTrace = IOError, IOError("Failure happened at the input creation stage. See trace above"), None
         evaluation = None
-        excType, excValue, excTrace = finishedRun[0].exceptionTrace
-        e = rerror
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)

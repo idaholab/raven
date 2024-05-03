@@ -18,10 +18,8 @@ Created on November 20th, 2021
 """
 
 # External Imports
-from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.lines import Line2D
 
 # Internal Imports
 from ...utils import plotUtils
@@ -101,6 +99,7 @@ class PopulationPlot(PlotInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
+    super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
@@ -157,8 +156,9 @@ class PopulationPlot(PlotInterface):
     fig.tight_layout()
 
     if self.how in ['png','pdf','svg','jpeg']:
-      fileName = self.name +'.%s'  % self.how
-      plt.savefig(fileName, format=self.how)
+      # create filename
+      filename = self._createFilename(defaultName=self.name +'.%s'  % self.how)
+      plt.savefig(filename, format=self.how)
     else:
       self.raiseAnError(IOError, f'Digital format of the plot "{self.name}" is not available!')
 

@@ -71,7 +71,7 @@
       <source>data</source>
       <what>Output|kMeansLabels</what>
     </Print>
-    <Plot name="plot" overwrite="false">
+    <Plot name="plot" overwrite="True">
       <plotSettings>
         <plot>
           <type>scatter</type>

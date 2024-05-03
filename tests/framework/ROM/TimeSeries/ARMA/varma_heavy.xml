@@ -169,7 +169,7 @@
       <source>stats</source>
       <what>input,output</what>
     </Print>
-    <Plot name="plot_samples" overwrite="false">
+    <Plot name="plot_samples" overwrite="True">
       <filename>plot_VARMA</filename>
       <plotSettings>
         <plot>
@@ -192,7 +192,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot name="plot_training" overwrite="false">
+    <Plot name="plot_training" overwrite="True">
       <filename>plot_input</filename>
       <plotSettings>
         <plot>

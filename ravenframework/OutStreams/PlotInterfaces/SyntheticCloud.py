@@ -94,6 +94,7 @@ class SyntheticCloud(PlotInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
+    super().initialize(stepEntities)
     train = self.findSource(self.trainingName, stepEntities)
     if train is None:
       self.raiseAnError(IOError, f'No input named "{self.trainingName}" was found in the Step for Plotter "{self.name}"!')
@@ -115,7 +116,6 @@ class SyntheticCloud(PlotInterface):
       @ In, None
       @ Out, None
     """
-    tTag = self.training.sampleTag
     sTag = self.samples.sampleTag
     training = self.training.asDataset()
     samples = self.samples.asDataset()
@@ -151,7 +151,19 @@ class SyntheticCloud(PlotInterface):
         if mTraining is not None:
           ax.plot(mTraining[self.microName].values, mTraining[var].values, 'k-.')
 
-      filename =  f'{self.name}_{m}.png'
+      # create filename
+      originalFilename = None
+      if  self.filename is not None:
+        originalFilename = self.filename
+        rootname = originalFilename.split(".")[0]
+        self.filename = None
+      else:
+        rootname = self.name
+
+      filename = self._createFilename(defaultName= f'{rootname}_{m}.png')
+      if originalFilename is not None:
+        self.filename = originalFilename
+
       plt.savefig(filename)
       self.raiseAMessage(f'Wrote "{filename}".')
 
