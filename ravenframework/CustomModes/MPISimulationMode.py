@@ -47,6 +47,7 @@ class MPISimulationMode(Simulation.SimulationMode):
     self.__memNeeded = None #If not none, use this for mem=
     self.__place = "free" #use this for place=
     self.__mpiparams = [] #Paramaters to give to mpi
+    self.__createPrecommand = True #If true, do create precommand.
     self.printTag = 'MPI SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
@@ -112,7 +113,10 @@ class MPISimulationMode(Simulation.SimulationMode):
       mpiParams = ""
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+mpiParams+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
+    if self.__createPrecommand:
+      newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+mpiParams+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
+    else:
+      newRunInfo['precommand'] = runInfoDict['precommand']
     if runInfoDict['NumThreads'] > 1:
       newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       #add number of threads to the post command.
@@ -210,5 +214,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         self.__runQsub = True
       elif child.tag.lower() == "mpiparam":
         self.__mpiparams.append(child.text.strip())
+      elif child.tag.lower() == "noprecommand":
+        self.__createPrecommand = False
       else:
         self.raiseADebug("We should do something with child "+str(child))
