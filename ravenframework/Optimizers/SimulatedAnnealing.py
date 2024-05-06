@@ -725,6 +725,7 @@ class SimulatedAnnealing(RavenSampled):
     nextNeighbour = {}
     D = len(self.toBeSampled.keys())
     delta = {}
+    r = randomUtils.random(dim=1, samples=1)
     if self._coolingMethod in ['exponential', 'geometric']:
       amp = 1.-fraction
       for var in self.toBeSampled:
@@ -744,7 +745,7 @@ class SimulatedAnnealing(RavenSampled):
       amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
       
       delta = self._coolingParameters.get('alpha', 0.94)*self.T*np.tan(amp)
-    delta = np.atleast_1d(delta)
+    #delta = np.atleast_1d(delta)
 
     for i,var in enumerate(self.toBeSampled.keys()):
       nextNeighbour[var] = rlz[var] + delta[var]
