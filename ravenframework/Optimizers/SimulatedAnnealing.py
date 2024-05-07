@@ -697,7 +697,7 @@ class SimulatedAnnealing(RavenSampled):
       for boltzmann cooling:
       .. math::
 
-          amp = min(\\sqrt(T), \\frac{upper-lower}{3*learning_rate}
+          amp = min(\\sqrt(T), \\frac{1}{3*learning_rate}
 
           delta = r * learning_rate * amp
 
@@ -708,7 +708,7 @@ class SimulatedAnnealing(RavenSampled):
 
           amp = r
 
-          delta = learning_rate * T * tan(amp) * (upper-lower)
+          delta = learning_rate * T * tan(amp)
 
       where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
 
@@ -717,7 +717,7 @@ class SimulatedAnnealing(RavenSampled):
 
           amp = r
 
-          delta = \\sign(amp-0.5)*T*((1.0+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0} * (upper-lower)
+          delta = \\sign(amp-0.5)*T*((1.0+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0}
 
       where :math: `r \\sim \\mathcal{U}(0,1)`
     """
