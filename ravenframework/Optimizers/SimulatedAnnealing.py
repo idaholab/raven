@@ -137,7 +137,7 @@ class SimulatedAnnealing(RavenSampled):
                   In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + d}$$"""
                   #In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-ck)$$
                   +r"""In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D}),$$
-                  where $D$ is the dimentionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
+                  where $D$ is the dimensionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
                   $T^{0} = \max{(0.01,1-\frac{k}{\xmlNode{limit}})}$ is the initial temperature, and $T^{k}$ is the current temperature
                   according to the specified cooling schedule.
                   \default{exponential}.""")
