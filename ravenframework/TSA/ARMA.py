@@ -85,7 +85,10 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
                          option.
                          """, default=False)
     specs.addParam('auto_select', param_type=InputTypes.BoolType, required=False,
-                   descr=r""" """, default=False)
+                   descr=r"""if set to True, the ARMA algorithm will use P and Q, the signal and
+                         noise lag respectively, determined by the `autoarma` TSA algorithm.
+                         The `autoarma` algorithm must be selected in the TSA input sequence before
+                         the `ARMA` algorithm.""", default=False)
     specs.addSub(InputData.parameterInputFactory('P', contentType=InputTypes.IntegerListType,
                  descr=r"""the number of terms in the AutoRegressive (AR) term to retain in the
                        regression; typically represented as $P$ or Signal Lag in literature.
@@ -134,6 +137,9 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer, TimeSeriesTransformer):
 
     targets = settings['target']
     if settings['auto_select']:
+      # checking to make sure P and Q are not selected
+      if spec.findAll('P') or spec.findAll('Q'):
+        raise IOError("P and Q values for ARMA are not accepted if `auto_select` is True.")
       # if auto-selecting, replace P and Q with Nones to check for and replace later
       settings['P'] = dict((target, None) for target in targets )
       settings['Q'] = dict((target, None) for target in targets )

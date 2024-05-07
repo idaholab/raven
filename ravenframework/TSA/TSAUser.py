@@ -323,7 +323,7 @@ class TSAUser:
       @ In, None,
       @ Out, segmentData, dict
     """
-    #
+    # gathering features that TSA does NOT use to cluster, but still useful to report back
     segmentNonFeatures = {}
     for algo in self._tsaAlgorithms:
       if algo not in self._tsaTrainedParams:

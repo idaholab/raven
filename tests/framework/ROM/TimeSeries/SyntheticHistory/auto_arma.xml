@@ -73,10 +73,7 @@
         <Q_upper>5</Q_upper>
         <criterion>bic</criterion>
       </autoarma>
-      <arma target="signal0, signal1" auto_select="True" seed='42'>
-        <P>1</P> <!-- NOTE: because `auto-select` is True, these are ignored -->
-        <Q>0</Q> <!-- NOTE: because `auto-select` is True, these are ignored -->
-      </arma>
+      <arma target="signal0, signal1" auto_select="True" seed='42'/>
     </ROM>
   </Models>
 
