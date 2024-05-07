@@ -82,8 +82,8 @@ class SimulatedAnnealing(RavenSampled):
                     'exponential':{'alpha':r"""slowing down constant, should be between 0,1 and preferable very close to 1. \default{0.94}"""},
                     #'fast':{'c':r"""decay constant, \default{1.0}"""},
                     'veryfast':{'c':r"""decay constant, \default{1.0}"""},
-                    'cauchy':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.5}"""},
-                    'boltzmann':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.5}"""}}
+                    'cauchy':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.9}"""},
+                    'boltzmann':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.9}"""}}
   ##########################
   # Initialization Methods #
   ##########################
@@ -237,7 +237,7 @@ class SimulatedAnnealing(RavenSampled):
       self._coolingParameters['beta'] = 0.1
       self._coolingParameters['c'] = 1.0
       self._coolingParameters['d'] = 1.0
-      self._coolingParameters['learningRate'] = 0.5
+      self._coolingParameters['learningRate'] = 0.9
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -723,22 +723,22 @@ class SimulatedAnnealing(RavenSampled):
     """
     nextNeighbour = {}
     D = len(self.toBeSampled.keys())
-    learnRate = self._coolingParameters.get('learningRate', 0.5)
+    learnRate = self._coolingParameters.get('learningRate', 0.9)
     if self._coolingMethod in ['exponential', 'geometric']:
-      amp = 1-fraction
+      amp = (fraction ** -1) / 20.0 # aa: I don't find a reference that justifies this factor 20.0
       r = randomUtils.random(dim=D, samples=1)
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
-      amp = [min(np.sqrt(self.T)/(self.distDict[var].upperBound - self.distDict[var].lowerBound), 1.0/3.0/learnRate) for var in self.toBeSampled.keys()]
+      amp = [min(np.sqrt(self.T), 1.0/3.0/learnRate) for var in self.toBeSampled.keys()]
       delta = np.asarray(amp).flatten() * randomUtils.randomNormal(size=(D,)).flatten() * learnRate
     elif self._coolingMethod == 'veryfast':
       amp = randomUtils.random(dim=D, samples=1)
       delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
     elif self._coolingMethod == 'cauchy':
-      amp = np.pi*randomUtils.random(dim=D, samples=1)-(np.pi / 2.) 
+      amp = 2 * np.pi*randomUtils.random(dim=D, samples=1)-(np.pi)
       delta = learnRate*self.T*np.tan(amp)
     delta = np.atleast_1d(delta)
-    
+
     for i,var in enumerate(self.toBeSampled.keys()):
       nextNeighbour[var] = rlzNormalized[var] + delta[i]
       nextNeighbour[var] =  0 if nextNeighbour[var] < 0 else nextNeighbour[var]
@@ -749,7 +749,7 @@ class SimulatedAnnealing(RavenSampled):
       self.info['amp_'+var] = amp
       self.info['delta_'+var] = delta[i]
     self.info['fraction'] = fraction
-  
+
     return nextNeighbour
 
   def _fixFuncConstraintViolations(self,suggested):

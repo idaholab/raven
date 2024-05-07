@@ -64,6 +64,7 @@
       <coolingSchedule>
         <cauchy>
           <d>5.0</d>
+          <learningRate>0.94</learningRate>
         </cauchy>
       </coolingSchedule>
       <variable name="x">

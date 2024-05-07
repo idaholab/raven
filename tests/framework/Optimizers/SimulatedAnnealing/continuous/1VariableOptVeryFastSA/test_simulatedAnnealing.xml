@@ -59,13 +59,13 @@
       </samplerInit>
       <convergence>
         <objective>-1</objective>
-        <temperature>1e-2</temperature>
+        <temperature>1e-7</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <cauchy>
-          <d>1.0</d>
-        </cauchy>
+        <veryfast>
+          <c>0.5</c>
+        </veryfast>
       </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
