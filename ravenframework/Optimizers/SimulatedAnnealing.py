@@ -82,8 +82,8 @@ class SimulatedAnnealing(RavenSampled):
                     'exponential':{'alpha':r"""slowing down constant, should be between 0,1 and preferable very close to 1. \default{0.94}"""},
                     #'fast':{'c':r"""decay constant, \default{1.0}"""},
                     'veryfast':{'c':r"""decay constant, \default{1.0}"""},
-                    'cauchy':{'d':r"""bias, \default{1.0}"""},
-                    'boltzmann':{'d':r"""bias, \default{1.0}"""}}
+                    'cauchy':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.5}"""},
+                    'boltzmann':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.5}"""}}
   ##########################
   # Initialization Methods #
   ##########################
@@ -226,7 +226,7 @@ class SimulatedAnnealing(RavenSampled):
       for sub in coolingNode.subparts:
         self._coolingMethod = sub.name
         for subSub in sub.subparts:
-          self._coolingParameters = {subSub.name: subSub.value}
+          self._coolingParameters[subSub.name] = subSub.value
 
     #defaults
     if not self._coolingMethod:
@@ -237,6 +237,7 @@ class SimulatedAnnealing(RavenSampled):
       self._coolingParameters['beta'] = 0.1
       self._coolingParameters['c'] = 1.0
       self._coolingParameters['d'] = 1.0
+      self._coolingParameters['learningRate'] = 0.5
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -315,7 +316,7 @@ class SimulatedAnnealing(RavenSampled):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
+      @ In, rlz, dict, realized realization (NORMALIZED)
       @ In, optVal, float, value of objective variable (corrected for min/max)
       @ Out, None
     """
@@ -350,8 +351,6 @@ class SimulatedAnnealing(RavenSampled):
           # if discrete, we make sure that the suggested value is within the possible outcomes
           val = suggested[var]
           suggested[var] = self.distDict[var].ppf(self.distDict[var].cdf(val))
-        else:
-          suggested[var] =  suggested[var]
       suggested = self.normalizeData(suggested)
       self._submitRun(suggested, traj, self.getIteration(traj))
 
@@ -677,12 +676,12 @@ class SimulatedAnnealing(RavenSampled):
     else:
       self.raiseAnError(NotImplementedError, 'cooling schedule type not implemented.')
 
-  def _nextNeighbour(self, rlz, fraction=1):
+  def _nextNeighbour(self, rlzNormalized, fraction=1):
     r"""
       Perturbs the state to find the next random neighbor based on the cooling schedule
-      @ In, rlz, dict, current realization
+      @ In, rlzNormalized, dict, current realization (NORMALIZED)
       @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iteration}{Limit}$
-      @ Out, nextNeighbour, dict, the next random state
+      @ Out, nextNeighbour, dict, the next random state (NORMALIZED)
 
       for exponential cooling:
       .. math::
@@ -691,16 +690,16 @@ class SimulatedAnnealing(RavenSampled):
 
           amp = 1-fraction
 
-          delta = \\frac{-amp}{2} + amp * r
+          delta = \\frac{-amp}{2} + amp * r * (upper-lower)
 
       where :math: `r \sim \mathcal{U}(0,1)`
 
       for boltzmann cooling:
       .. math::
 
-          amp = min(\\sqrt(T), \\frac{1}{3*alpha}
+          amp = min(\\sqrt(T), \\frac{upper-lower}{3*learning_rate}
 
-          delta = r * alpha * amp
+          delta = r * learning_rate * amp
 
       where :math: `r \\sim \\mathcal{N}(0,1)`
 
@@ -709,7 +708,7 @@ class SimulatedAnnealing(RavenSampled):
 
           amp = r
 
-          delta = alpha * T * tan(amp)
+          delta = learning_rate * T * tan(amp) * (upper-lower)
 
       where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
 
@@ -718,41 +717,39 @@ class SimulatedAnnealing(RavenSampled):
 
           amp = r
 
-          delta = \\sign(amp-0.5)*T*((1.0+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0}
+          delta = \\sign(amp-0.5)*T*((1.0+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0} * (upper-lower)
 
       where :math: `r \\sim \\mathcal{U}(0,1)`
     """
     nextNeighbour = {}
     D = len(self.toBeSampled.keys())
-    delta = {}
-    r = randomUtils.random(dim=1, samples=1)
+    learnRate = self._coolingParameters.get('learningRate', 0.5)
     if self._coolingMethod in ['exponential', 'geometric']:
-      amp = 1.-fraction
-      for var in self.toBeSampled:
-        delta[var] = self.distDict[var].rvs() * amp + (-amp / 2.) * (self.distDict[var].upperBound - self.distDict[var].lowerBound)
-      #delta = (-amp/2.)+ amp * r
+      amp = 1-fraction
+      r = randomUtils.random(dim=D, samples=1)
+      delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
-      amp = min(np.sqrt(self.T), 1/3.0/self._coolingParameters.get('alpha', 0.94)) *self._coolingParameters.get('alpha', 0.94)
-      #delta =  randomUtils.randomNormal(size=D)*alpha*amp
-      for var in self.toBeSampled:
-        delta[var] = self.distDict[var].rvs() * amp      
+      amp = [min(np.sqrt(self.T)/(self.distDict[var].upperBound - self.distDict[var].lowerBound), 1.0/3.0/learnRate) for var in self.toBeSampled.keys()]
+      delta = np.asarray(amp).flatten() * randomUtils.randomNormal(size=(D,)).flatten() * learnRate
     elif self._coolingMethod == 'veryfast':
-      at = randomUtils.random(dim=D, samples=1)
-      amp = np.sign(at-0.5)*self.T*((1+1.0/self.T)**abs(2*at-1)-1.0)
-      for var in self.toBeSampled:
-        delta[var] = self.distDict[var].rvs() * amp  
+      amp = randomUtils.random(dim=D, samples=1)
+      delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
     elif self._coolingMethod == 'cauchy':
-      amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
-      
-      delta = self._coolingParameters.get('alpha', 0.94)*self.T*np.tan(amp)
-    #delta = np.atleast_1d(delta)
-
+      amp = np.pi*randomUtils.random(dim=D, samples=1)-(np.pi / 2.) 
+      delta = learnRate*self.T*np.tan(amp)
+    delta = np.atleast_1d(delta)
+    
     for i,var in enumerate(self.toBeSampled.keys()):
-      nextNeighbour[var] = rlz[var] + delta[var]
+      nextNeighbour[var] = rlzNormalized[var] + delta[i]
+      nextNeighbour[var] =  0 if nextNeighbour[var] < 0 else nextNeighbour[var]
+      nextNeighbour[var] =  1 if nextNeighbour[var] > 1 else nextNeighbour[var]
+      if self.distDict[var].distType == distType.discrete:
+        val = nextNeighbour[var]
+        nextNeighbour[var] = self.distDict[var].cdf(self.distDict[var].ppf(val))
       self.info['amp_'+var] = amp
-      self.info['delta_'+var] = delta[var]
+      self.info['delta_'+var] = delta[i]
     self.info['fraction'] = fraction
-
+  
     return nextNeighbour
 
   def _fixFuncConstraintViolations(self,suggested):
