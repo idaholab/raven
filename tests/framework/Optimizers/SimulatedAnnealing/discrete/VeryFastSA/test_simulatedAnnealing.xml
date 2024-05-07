@@ -46,7 +46,7 @@
     <UniformDiscrete name='beale_dist'>
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
-      <nPoints>100</nPoints>
+      <nPoints>1000</nPoints>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
@@ -61,13 +61,13 @@
       </samplerInit>
       <convergence>
         <objective>-1</objective>
-        <temperature>1e-3</temperature>
+        <temperature>5e-4</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <cauchy>
-          <d>1.0</d>
-        </cauchy>
+        <veryfast>
+          <c>0.5</c>
+        </veryfast>
       </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>

@@ -38,7 +38,7 @@
     <UniformDiscrete name='distx'>
       <lowerBound>-1</lowerBound>
       <upperBound>1</upperBound>
-      <nPoints>10000</nPoints>
+      <nPoints>1000</nPoints>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
     <Uniform name='disty'>
@@ -61,9 +61,9 @@
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <exponential>
-          <alpha>0.94</alpha>
-        </exponential>
+        <veryfast>
+          <c>0.75</c>
+        </veryfast>
       </coolingSchedule>
       <variable name="x">
         <distribution>distx</distribution>
