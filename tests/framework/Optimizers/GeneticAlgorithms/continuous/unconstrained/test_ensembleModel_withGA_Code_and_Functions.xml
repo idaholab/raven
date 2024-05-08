@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Optimizers/GeneticAlgorithms.GAwithEnsembleModelIncludingCode</name>
-    <author>mandd</author>
+    <author>alfoa</author>
     <created>2024-05-07</created>
     <classesTested>Models.EnsembleModel, Optimizers.GeneticAlgorithm</classesTested>
     <description>
