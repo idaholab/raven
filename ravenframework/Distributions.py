@@ -1669,7 +1669,7 @@ class Categorical(Distribution):
           self.values.add(float(outcome) if isFloats[-1] else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
-    if len(set(isFloats)) != 1:
+    if False in isFloats:
       self.isFloat = False
     else:
       self.rtol = paramInput.findNodesAndExtractValues(['rtol'])[0]['rtol']
@@ -1710,7 +1710,7 @@ class Categorical(Distribution):
       self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
       isFloats.append(utils.floatConversion(val) is not None)
-    if len(set(isFloats)) != 1:
+    if False in isFloats:
       self.isFloat = False
     self.checkDistParams()
 
