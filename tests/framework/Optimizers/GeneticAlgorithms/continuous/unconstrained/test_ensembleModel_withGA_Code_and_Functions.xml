@@ -1,10 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
- 
+  <TestInfo>
+    <name>framework/Optimizers/GeneticAlgorithms.GAwithEnsembleModelIncludingCode</name>
+    <author>mandd</author>
+    <created>2024-05-07</created>
+    <classesTested>Models.EnsembleModel, Optimizers.GeneticAlgorithm</classesTested>
+    <description>
+         This test is aimed to test the usage of the GeneticAlgorithm with an EnsembleModel, including
+         a model Code. This test has been created to test the modifications performed to address issue
+         #2304 (see \\url{https://github.com/idaholab/raven/issues/2304}).
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <JobName>metaModelWithCodeAndFunctionsAndGenetic</JobName>
     <Sequence>
-        sampleMC
+        optimize
     </Sequence>
     <WorkingDir>metaModelWithCodeAndFunctionsAndGenetic</WorkingDir>
     <batchSize>1</batchSize>
@@ -16,7 +27,7 @@
 
   <Models>
     <Code name="testModel" subType="GenericCode">
-      <executable>/Users/aalfonsi/projects/raven/tests/framework/user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <executable>../../../../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
@@ -124,21 +135,21 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="sampleMC">
+    <MultiRun name="optimize">
       <Input class="Files" type="">referenceInput.xml</Input>
       <Input class="DataObjects" type="PointSet">inputPlaceHolderForInternalObjects</Input>
       <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">finalResponses</Output>
-      <Output class="OutStreams" type="Print">printFinalResults</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
   </Steps>
 
   <OutStreams>
-    <Print name="printFinalResults">
+    <Print name="opt_export">
       <type>csv</type>
-      <source>finalResponses</source>
+      <source>opt_export</source>
       <what>input,output</what>
     </Print>
   </OutStreams>
