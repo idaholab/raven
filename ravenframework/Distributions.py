@@ -1666,7 +1666,7 @@ class Categorical(Distribution):
         if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome) if self.isFloat else outcome)
+          self.values.add(float(outcome) if isFloats[-1] else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     if len(set(isFloats)) != 1:
