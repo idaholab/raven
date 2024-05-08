@@ -563,7 +563,14 @@ class EnsembleModel(Dummy):
                   uniqueHandler=uniqueHandler, forceUseThreads=forceThreads,
                   groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
       else:
-        jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+        # for parallel strategy 2, the ensemble model works as a step => it needs the jobHandler
+        kw['jobHandler'] = jobHandler
+        # for parallel strategy 2, we need to make sure that the batchMode is set to False in the inner runs since only the
+        # ensemble model evaluation should be batched (THIS IS REQUIRED because the CODE does not submit runs like the other models)
+        kw['batchMode'] = False
+        jobHandler.addClientJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                  uniqueHandler=uniqueHandler,
+                  groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
