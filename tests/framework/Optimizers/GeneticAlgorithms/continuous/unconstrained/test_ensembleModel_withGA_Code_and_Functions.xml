@@ -34,7 +34,8 @@
       <prepend>python</prepend>
     </Code>
     <ExternalModel ModuleToLoad="ABCDsum" name="sumOfABCD" subType="">
-      <variables>A,B,C,D,sum</variables>
+      <inputs>A,B,C,D</inputs>
+      <outputs>sum</outputs>
     </ExternalModel>
     <EnsembleModel name="codeAndExtModel" subType="">
       <Model class="Models" type="ExternalModel">
