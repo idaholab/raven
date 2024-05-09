@@ -18,7 +18,7 @@
         optimize
     </Sequence>
     <WorkingDir>metaModelWithCodeAndFunctionsAndGenetic</WorkingDir>
-    <batchSize>1</batchSize>
+    <batchSize>2</batchSize>
   </RunInfo>
 
   <Files>

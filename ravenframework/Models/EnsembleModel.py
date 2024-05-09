@@ -549,6 +549,7 @@ class EnsembleModel(Dummy):
     for index in range(nRuns):
       if batchMode:
         kw =  kwargs['batchInfo']['batchRealizations'][index]
+        kw['batchRun'] = index + 1
       else:
         kw = kwargs
 
@@ -667,8 +668,11 @@ class EnsembleModel(Dummy):
             else:
               self.raiseAnError(IOError,"No initial conditions provided for variable "+ initialConditionToSet)
         # set new identifiers
-        inputKwargs[modelIn]['prefix']        = modelIn+utils.returnIdSeparator()+identifier
-        inputKwargs[modelIn]['uniqueHandler'] = self.name+identifier
+        suffix = ''
+        if 'batchRun' in  inputKwargs[modelIn]:
+          suffix = f"{utils.returnIdSeparator()}{inputKwargs[modelIn]['batchRun']}"        
+        inputKwargs[modelIn]['prefix']        = modelIn+utils.returnIdSeparator()+identifier + suffix
+        inputKwargs[modelIn]['uniqueHandler'] = self.name + identifier + suffix
         if metadataToTransfer is not None:
           inputKwargs[modelIn]['metadataToTransfer'] = metadataToTransfer
 
@@ -742,9 +746,11 @@ class EnsembleModel(Dummy):
       @ Out, evaluation, dict, the evaluation dictionary with the "unprojected" data
     """
     returnDict = {}
-
+    suffix = ''
+    if 'batchRun' in  inputKwargs:
+      suffix = f"{utils.returnIdSeparator()}{inputKwargs['batchRun']}"
     self.raiseADebug('Submitting model',modelToExecute['Instance'].name)
-    localIdentifier =  modelToExecute['Instance'].name+utils.returnIdSeparator()+identifier
+    localIdentifier = f"{modelToExecute['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"
     if self.parallelStrategy == 1:
       # we evaluate the model directly
       try:
@@ -763,7 +769,7 @@ class EnsembleModel(Dummy):
           time.sleep(1.e-3)
         moveOn = True
       # get job that just finished to gather the results
-      finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=self.name+identifier)
+      finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         if finishedRun[0].exceptionTrace is not None:
@@ -774,7 +780,8 @@ class EnsembleModel(Dummy):
         evaluation = None
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
-          jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
+          jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}", uniqueHandler = f"{self.name}{identifier}{suffix}")
+          
       else:
         # collect the target evaluation
         modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
