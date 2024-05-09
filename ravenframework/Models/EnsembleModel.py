@@ -670,7 +670,7 @@ class EnsembleModel(Dummy):
         # set new identifiers
         suffix = ''
         if 'batchRun' in  inputKwargs[modelIn]:
-          suffix = f"{utils.returnIdSeparator()}{inputKwargs[modelIn]['batchRun']}"        
+          suffix = f"{utils.returnIdSeparator()}{inputKwargs[modelIn]['batchRun']}"
         inputKwargs[modelIn]['prefix']        = modelIn+utils.returnIdSeparator()+identifier + suffix
         inputKwargs[modelIn]['uniqueHandler'] = self.name + identifier + suffix
         if metadataToTransfer is not None:
@@ -781,7 +781,7 @@ class EnsembleModel(Dummy):
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}", uniqueHandler = f"{self.name}{identifier}{suffix}")
-          
+
       else:
         # collect the target evaluation
         modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
