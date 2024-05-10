@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""
+  EnsembleModel module, containing the class and methods to create a comunication 'pipeline' among
+  different models in terms of Input/Output relation
+"""
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3----------------------------------------------------------------
