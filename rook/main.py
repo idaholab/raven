@@ -472,8 +472,8 @@ if __name__ == "__main__":
           #print(test_name,"child",child)
           child_type = child.attrib['type']
           if child_type not in differs:
-            raise IOError("Differ type '" +  child_type + "' unknown! Available are: " + ', '.join(list(differs.keys())) +
-                          ". Test file: "+ test_file)
+            raise IOError("Differ type '" +  child_type + "' unknown! Available are: " + 
+                          ', '.join(list(differs.keys())) +  ". Test file: "+ test_file)
           child_param_handler = differs[child_type].get_valid_params()
           if not child_param_handler.check_for_required(child.attrib):
             raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag +
