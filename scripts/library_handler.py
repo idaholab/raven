@@ -54,7 +54,7 @@ libAlias = {'scikit-learn': 'sklearn',
 # some bad actors can't use the metadata correctly
 # and so need special treatment
 # -> see findLibAndVersion
-metaExceptions = ['pyside2', 'AMSC', 'PIL', 'cvxpy']
+metaExceptions = ['pyside2', 'AMSC', 'PIL']
 
 # load up the ravenrc if it's present
 ## TODO we only want to do this once, but does it need to get updated?
@@ -170,6 +170,9 @@ def checkSingleLibrary(lib, version=None, useImportCheck=False):
   ## this avoids actually importing the modules
   if usePackageMeta and not useImportCheck:
     found, msg, foundVersion = findLibAndVersion(lib, version=version)
+    if not found:
+      # try slower approach
+      found, msg, foundVersion = findLibAndVersionSubprocess(lib, version=version)
   # otherwise, use the slower subprocess method
   else:
     found, msg, foundVersion = findLibAndVersionSubprocess(lib, version=version)
@@ -215,8 +218,6 @@ def findLibAndVersion(lib, version=None):
       return findLibAndVersionSubprocess('AMSC')
     elif lib == 'PIL':
       return findLibAndVersionSubprocess('PIL')
-    elif lib == 'cvxpy':
-      return findLibAndVersionSubprocess('cvxpy')
     else:
       raise NotImplementedError('Library "{}" on exception list, but no exception implemented!'.format(lib))
   return found, output, foundVersion
