@@ -189,7 +189,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
 
     ## Check if a label feature is provided by the user and in the training data
     if self.labelFeature in tdict:
-      self.labelValues = tidct[self.labelFeature]
+      self.labelValues = tdict[self.labelFeature]
       resp = self.checkArrayConsistency(self.labelValues)
       if not resp[0]:
         self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])
@@ -857,7 +857,7 @@ class temporalSciKitLearn(unSupervisedLearning):
 
     ## Check if a label feature is provided by the user and in the training data
     if self.labelFeature in names:
-      self.labelValues = tidct[self.labelFeature]
+      self.labelValues = tdict[self.labelFeature]
       resp = self.checkArrayConsistency(self.labelValues,[self.numberOfSample, self.numberOfHistoryStep])
       if not resp[0]:
         self.raiseAnError(IOError, 'In training set for ground truth labels ' + self.labelFeature + ':' + resp[1])

@@ -25,6 +25,23 @@
     [../]
   [../]
 
+  [./AutoARMA]
+    type = 'RavenFramework'
+    input = 'auto_arma.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'AutoARMA/samples_0.csv AutoARMA/samples_1.csv'
+      rel_err = 4.7e-1
+      zero_threshold = 1e-12
+    [../]
+    [./xml]
+      type = XML
+      output = 'AutoARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
   [./ARMASample]
     prereq = ARMA
     type = 'RavenFramework'

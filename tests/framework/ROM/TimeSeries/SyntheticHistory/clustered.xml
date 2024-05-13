@@ -65,9 +65,9 @@
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
       <gaussianize target="signal0, signal1"/>
-      <arma target="signal0, signal1" seed='42'>
-        <SignalLag>1</SignalLag>
-        <NoiseLag>0</NoiseLag>
+      <arma target="signal0, signal1" seed="42">
+        <P>1</P>
+        <Q>0</Q>
       </arma>
       <Segment grouping="cluster">
         <Classifier class="Models" type="PostProcessor">classifier</Classifier>

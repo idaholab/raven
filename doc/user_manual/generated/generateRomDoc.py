@@ -221,8 +221,8 @@ Example:
         <periods>12, 24</periods>
       </fourier>
       <arma target="signal1, signal2" seed='42'>
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
+        <P>2</P>
+        <Q>3</Q>
       </arma>
     </ROM>
     ...

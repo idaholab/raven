@@ -9,11 +9,11 @@
     </dims>
     <general>
       <datasetName>romMeta</datasetName>
-      <pointwise_meta>ClusterFeature|signal0|ARMA|ar_0|scaled,ClusterFeature|signal0|ARMA|ar_0|unscaled,ClusterFeature|signal0|ARMA|const|scaled,ClusterFeature|signal0|ARMA|const|unscaled,ClusterFeature|signal0|ARMA|var|scaled,ClusterFeature|signal0|ARMA|var|unscaled,ClusterFeature|signal1|ARMA|ar_0|scaled,ClusterFeature|signal1|ARMA|ar_0|unscaled,ClusterFeature|signal1|ARMA|const|scaled,ClusterFeature|signal1|ARMA|const|unscaled,ClusterFeature|signal1|ARMA|var|scaled,ClusterFeature|signal1|ARMA|var|unscaled,ClusterLabels,seg_index_end,seg_index_start,seg_pivot_end,seg_pivot_start</pointwise_meta>
+      <pointwise_meta>ClusterFeature|signal0|ARMA|ar_0|scaled,ClusterFeature|signal0|ARMA|ar_0|unscaled,ClusterFeature|signal0|ARMA|const|scaled,ClusterFeature|signal0|ARMA|const|unscaled,ClusterFeature|signal0|ARMA|var|scaled,ClusterFeature|signal0|ARMA|var|unscaled,ClusterFeature|signal1|ARMA|ar_0|scaled,ClusterFeature|signal1|ARMA|ar_0|unscaled,ClusterFeature|signal1|ARMA|const|scaled,ClusterFeature|signal1|ARMA|const|unscaled,ClusterFeature|signal1|ARMA|var|scaled,ClusterFeature|signal1|ARMA|var|unscaled,ClusterLabels,Feature|signal0|ARMA|d,Feature|signal0|ARMA|p,Feature|signal0|ARMA|q,Feature|signal1|ARMA|d,Feature|signal1|ARMA|p,Feature|signal1|ARMA|q,seg_index_end,seg_index_start,seg_pivot_end,seg_pivot_start</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>
   </DataSet>
-
+  
   <synth type="Static">
     <ROM>
       <type>Clustered ROM</type>
@@ -28,14 +28,16 @@
       </Gaussianize>
       <ARMA>
         <signal0>
-          <constant>-8.003280283e-04</constant>
-          <AR_0>5.063587372e-01</AR_0>
+          <constant>-8.003288827e-04</constant>
+          <AR_0>5.063587371e-01</AR_0>
           <variance>1.066660163e+00</variance>
+          <order>1,0,0</order>
         </signal0>
         <signal1>
-          <constant>1.159304248e-03</constant>
+          <constant>1.159304232e-03</constant>
           <AR_0>-4.529610029e-01</AR_0>
           <variance>1.142738326e+00</variance>
+          <order>1,0,0</order>
         </signal1>
       </ARMA>
       <segments_represented>0, 1, 2, 3, 4</segments_represented>
@@ -48,19 +50,21 @@
       </Gaussianize>
       <ARMA>
         <signal0>
-          <constant>-2.222335898e-03</constant>
-          <AR_0>-5.122369801e-01</AR_0>
+          <constant>-2.222335945e-03</constant>
+          <AR_0>-5.122369800e-01</AR_0>
           <variance>1.073478650e+00</variance>
+          <order>1,0,0</order>
         </signal0>
         <signal1>
-          <constant>4.528710922e-04</constant>
+          <constant>4.528710748e-04</constant>
           <AR_0>3.788900499e-01</AR_0>
-          <variance>1.233379552e+00</variance>
+          <variance>1.233379551e+00</variance>
+          <order>1,0,0</order>
         </signal1>
       </ARMA>
       <segments_represented>5, 6, 7, 8, 9</segments_represented>
       <indices>100, 199</indices>
     </ClusterROM>
   </synth>
-
+  
 </DataObjectMetadata>
