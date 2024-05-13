@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/SyntheticHistory.Clustered</name>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.AutoARMA</name>
     <author>talbpaul</author>
     <created>2021-02-11</created>
     <classesTested>SupervisedLearning.SyntheticHistory,TSA.Fourier,TSA.ARMA</classesTested>
@@ -11,7 +11,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>GlobalFourierARMA</WorkingDir>
+    <WorkingDir>AutoARMA</WorkingDir>
     <Sequence>read, train, print, sample, plot</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -64,30 +64,17 @@
       <Target>signal0, signal1, pivot</Target>
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
-      <fourier target="signal0,signal1" global="True">
+      <fourier target="signal0,signal1">
         <periods>2, 5, 10, 20, 50</periods>
       </fourier>
       <gaussianize target="signal0, signal1"/>
-      <arma target="signal0, signal1" seed="42">
-        <P>1</P>
-        <Q>0</Q>
-      </arma>
-      <Segment grouping="cluster">
-        <Classifier class="Models" type="PostProcessor">classifier</Classifier>
-        <subspace divisions="10">pivot</subspace>
-        <evalMode>full</evalMode>
-      </Segment>
+      <autoarma target="signal0, signal1" seed='42'>
+        <P_upper>5</P_upper>
+        <Q_upper>5</Q_upper>
+        <criterion>bic</criterion>
+      </autoarma>
+      <arma target="signal0, signal1" auto_select="True" seed='42'/>
     </ROM>
-    <PostProcessor name="classifier" subType="DataMining">
-      <KDD labelFeature="labels" lib="SciKitLearn">
-        <Features>signal0, signal1</Features>
-        <SKLtype>cluster|KMeans</SKLtype>
-        <n_clusters>2</n_clusters>
-        <tol>1E-12</tol>
-        <init>k-means++</init>
-        <random_state>3</random_state>
-      </KDD>
-    </PostProcessor>
   </Models>
 
   <OutStreams>

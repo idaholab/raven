@@ -83,7 +83,7 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
     settings['periods'] = spec.findFirst('periods').value
     return settings
 
-  def fit(self, signal, pivot, targets, settings, simultFit=True):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None, simultFit=True):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
