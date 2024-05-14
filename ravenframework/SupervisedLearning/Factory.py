@@ -28,12 +28,13 @@ from .MSR                import MSR
 from .NDinvDistWeight    import NDinvDistWeight
 from .NDspline           import NDspline
 from .SyntheticHistory   import SyntheticHistory
+from .MultiResolutionTSA import MultiResolutionTSA
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DMD
 from .DynamicModeDecompositionControl import DMDC
 from .ARMA               import ARMA
-from .ROMCollection      import Segments, Clusters, Interpolated
+from .ROMCollection      import Segments, Clusters, Interpolated, Decomposition
 
 ## Tensorflow-Keras Neural Network Models
 from .KerasMLPClassifier import KerasMLPClassifier

@@ -32,6 +32,7 @@ from scipy.interpolate import interp1d
 from ..utils import utils, mathUtils, xmlUtils, randomUtils
 from ..utils import InputData, InputTypes
 from .SupervisedLearning import SupervisedLearning
+from .SyntheticHistory import SyntheticHistory
 # import pickle as pk # TODO remove me!
 import os
 #
@@ -1864,6 +1865,246 @@ class Interpolated(SupervisedLearning):
         default = [] if vals.size == 1 else [pivotID]
         results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
     results[self._macroParameter] = macroIndexValues
+    return results
+
+  ############### DUMMY ####################
+  # dummy methods that are required by SVL and not generally used
+  def __confidenceLocal__(self, featureVals):
+    """
+      This should return an estimation of the quality of the prediction.
+      This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
+      @ In, featureVals, 2-D numpy array , [n_samples,n_features]
+      @ Out, __confidenceLocal__, float, the confidence
+    """
+    pass
+
+  def __resetLocal__(self):
+    """
+      Reset ROM. After this method the ROM should be described only by the initial parameter settings
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      Returns a dictionary with the parameters and their current values
+      @ In, None
+      @ Out, params, dict, dictionary of parameter names and current values
+    """
+    return {}
+
+  def __returnInitialParametersLocal__(self):
+    """
+      Returns a dictionary with the parameters and their initial values
+      @ In, None
+      @ Out, params, dict,  dictionary of parameter names and initial values
+    """
+    return {}
+
+  # Are private-ish so should not be called directly, so we don't implement them, as they don't fit the collection.
+  def __evaluateLocal__(self, featureVals):
+    """
+      @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
+      @ Out, targetVals , np.array, 1-D numpy array [n_samples]
+    """
+    pass
+
+  def _train(self, featureVals, targetVals):
+    """
+      Perform training on samples in featureVals with responses y.
+      For an one-class model, +1 or -1 is returned.
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature values
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
+    pass
+#
+#
+#
+class Decomposition(SupervisedLearning):
+
+  @classmethod
+  def getInputSpecification(cls):
+    spec = super().getInputSpecification()
+    # segmenting and clustering
+    segment = InputData.parameterInputFactory("Segment", strictMode=True,
+                                              descr=r"""provides an alternative way to build the ROM. When
+                                                this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+                                                requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+                                                during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+                                                is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+                                                segments. By default, no segmentation occurs.""")
+    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'segmentGroupType', ['decomposition'])
+    segment.addParam('grouping', segmentGroups, descr=r"""enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node.""", default='decomposition')
+    # sl = SupervisedLearning.getInputSpecification()
+    # segment.addSub(SupervisedLearning.getInputSpecification())
+    sl = SyntheticHistory.getInputSpecification()
+    for sub in sl.subs:
+      segment.addSub(sub)
+    # synthHist = SyntheticHistory.getInputSpecification()
+    # for sub in synthHist.subs:
+    #   segment.addSub(sub)
+    spec.addSub(segment)
+    return spec
+
+  def __init__(self):
+    super().__init__()
+    self._macroTemplate = SyntheticHistory()
+    self.name = 'Decomposition'
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    self._templateROM = romInfo.get('modelInstance')
+    self._romName = romInfo.get('name', 'unnamed')
+    if self._templateROM is None:
+      self.raiseAnError(IOError, 'A rom instance is required by', self.name, 'please check your implementation')
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
+    #           "macroParameter" is for macro-steps (e.g. from year to year)
+    inputSpecs = paramInput.findFirst('Segment')
+    self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
+    self._macroTemplate._handleInput(inputSpecs)            # example "yearly" SVL engine collection
+
+  ############### TRAINING ####################
+  def train(self, tdict):
+    """
+      Trains the SVL and its supporting SVLs etc. Overwrites base class behavior due to
+        special clustering and macro-step needs.
+      @ In, trainDict, dict, dicitonary with training data
+      @ Out, None
+    """
+    # run first set of MR TSA algorithms (should include some sort of MRA transformer)
+    self._templateROM.train(tdict)
+
+    # Now we handle all the decomposition levels
+    # temporary...
+    mrTrainedParams = list(self._templateROM._globalROM._tsaTrainedParams.items())[-1]
+    assert mrTrainedParams[0].name == 'DWT', "Only recognizing DWT as MR TSA algo for now"
+
+    noPivotTargets = [x for x in self.target if x != self.pivotID]
+    numLvls = len(mrTrainedParams[1][noPivotTargets[0]]['results']['coeff_d'])
+
+    # create new ROM for every level
+    for lvl in range(numLvls):
+      new = copy.deepcopy(self._macroTemplate)
+      self._macroSteps[lvl] = new
+
+    # NOW we train each level decomposition
+    for lvl, decomp in enumerate(self._macroSteps.values()):
+      # write training dict
+      decomp_tdict = copy.deepcopy(tdict)
+      for target in noPivotTargets:
+        decomp_tdict[target] = [mrTrainedParams[1][target]['results']['coeff_d'][lvl]]
+      # train global algos
+      _, newTrainingDict = decomp.getGlobalRomSegmentSettings(decomp_tdict, None)
+      # train
+      decomp.train(newTrainingDict)
+
+    self.amITrained = True
+
+  ############### EVALUATING ####################
+  def evaluate(self, edict):
+    """
+      Evaluate the set of interpolated models
+      @ In, edict, dict, dictionary of evaluation parameters
+      @ Out, result, dict, result of evaluation
+    """
+    # can we run SupervisedLearning.evaluate? Should this be an evaluateLocal?
+    ## set up the results dict with the correct dimensionality
+    ### actually, let's wait for the first sample to come in.
+    self.raiseADebug('Evaluating interpolated ROM ...')
+    results = None
+
+    # mrTrainedParams = list(self._templateROM._globalROM._tsaTrainedParams.items())[-1]
+    noPivotTargets = [x for x in self.target if x != self.pivotID]
+    # numLvls, nPivot = mrTrainedParams[1][noPivotTargets[0]]['results']['coeff_d'].shape
+
+    # first find the DWT/MRA re-comp algo
+    mrAlgo = [key for key in self._templateROM._globalROM._tsaTrainedParams.keys() if key.name=='DWT']
+    assert len(mrAlgo)>0
+
+    # this should be reference to trainedParams
+    mrTrainedParams = self._templateROM._globalROM._tsaTrainedParams[mrAlgo[0]]
+
+    for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+      # evaluate algos
+      subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
+      # evaluate global algos
+      result = model.finalizeGlobalRomSegmentEvaluation(None, subResult, weights=None, slicer=None)
+      for target in noPivotTargets:
+        mrTrainedParams[target]['results']['coeff_d'][m] = result[target]
+
+
+    # run first set of MR TSA algorithms (should include some sort of MRA transformer)
+    results = self._templateROM.evaluate(edict)
+
+    # ## TODO set up right for ND??
+    # forcedMax = self._maxCycles if self._maxCycles is not None else np.inf
+    # numMacro = min(len(self._macroSteps), forcedMax)
+    # macroIndexValues = []
+    # for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+    #   if m + 1 > numMacro:
+    #     break
+    #   # m is an index of the macro step, in order of the macro values (e.g. in order of years)
+    #   # macroStep is the actual macro step value (e.g. the year)
+    #   # model is the ClusterROM instance for this macro step
+    #   macroIndexValues.append(macroStep)
+    #   self.raiseADebug(f' ... evaluating macro step "{macroStep}" ({m+1} / {numMacro})')
+    #   subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
+    #   indexMap = subResult.get('_indexMap', {})
+    #   # if not set up yet, then frame results structure
+    #   if results is None:
+    #     results = {}
+    #     finalIndexMap = indexMap # in case every rlz doesn't use same order, which would be lame
+    #     pivotID = model._templateROM.pivotParameterID
+    #     indices = set([pivotID, self._macroParameter])
+    #     for indexes in finalIndexMap.values():
+    #       indices.update(set(indexes))
+    #     #pivotVals = subResult[pivotID]
+    #     #numPivot = len(pivotVals)
+    #     for target, values in subResult.items():
+    #       # if an index, just set the values now # FIXME assuming always the same!
+    #       ## FIXME thing is, they're not always the same, we're clustering, so sometimes there's diff num days!
+    #       ## TODO for now, we simply require using a classifier that always has the same number of entries.
+    #       if target in [pivotID, '_indexMap'] or target in indices:
+    #         results[target] = values
+    #       else:
+    #         # TODO there's a strange behavior here where we have nested numpy arrays instead of
+    #         # proper matrices sometimes; maybe it has to be this way for unequal clusters
+    #         # As a result, we use the object dtype, onto which we can place a whole numpy array.
+    #         results[target] = np.zeros([numMacro] + list(values.shape), dtype=object)
+    #   # END setting up results structure, if needed
+    #   # FIXME reshape in case indexMap is not the same as finalIndexMap?
+    #   for target, values in subResult.items():
+    #     if target in [pivotID, '_indexMap'] or target in indices:# indexMap:
+    #       continue
+    #     indexer = tuple([m] + [None]*len(values.shape))
+    #     try:
+    #       results[target][indexer] = values
+    #     except ValueError:
+    #       self.raiseAnError(RuntimeError, 'The shape of the histories along the pivot parameter is not consistent! Try using a clustering classifier that always returns the same number of clusters.')
+    # results['_indexMap'] = {} #finalIndexMap
+    # for target, vals in results.items():
+    #   if target not in indices and target not in ['_indexMap']: # TODO get a list of meta vars?
+    #     default = [] if vals.size == 1 else [pivotID]
+    #     results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
+    # results[self._macroParameter] = macroIndexValues
     return results
 
   ############### DUMMY ####################
