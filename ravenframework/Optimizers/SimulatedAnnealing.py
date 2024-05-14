@@ -260,18 +260,17 @@ class SimulatedAnnealing(RavenSampled):
         if var in self.toBeSampled and self.distDict[var].distType == distType.discrete:
           val = init[var]
           values[var] = self.distDict[var].ppf(self.distDict[var].cdf(val))
-          if not  np.isclose(initialValues[traj][var], values[var], 1e-4):
+          if not np.isclose(initialValues[traj][var], values[var]):
             self.raiseAWarning(f"Traj: {traj}. Variable {var} is associated with a discrete distribution. The inputted initial value {initialValues[traj][var]} "
                                f"is not among available discrete values. Closest value is {values[var]}")
         else:
           values[var] =  init[var]
       values = self.normalizeData(values)
 
+      # queue up the first run for each trajectory
       self._submitRun(values,traj,self.getIteration(traj))
 
-    # queue up the first run for each trajectory
-    #for traj, init in enumerate(self._initialValues):
-    #  self._submitRun(init,traj,self.getIteration(traj))
+
 
   def initializeTrajectory(self, traj=None):
     """
@@ -745,7 +744,8 @@ class SimulatedAnnealing(RavenSampled):
       nextNeighbour[var] =  1 if nextNeighbour[var] > 1 else nextNeighbour[var]
       if self.distDict[var].distType == distType.discrete:
         val = nextNeighbour[var]
-        nextNeighbour[var] = self.distDict[var].cdf(self.distDict[var].ppf(val))
+        coord = self.denormalizeVariable(val, var)
+        nextNeighbour[var] = self.distDict[var].cdf(coord)
       self.info['amp_'+var] = amp
       self.info['delta_'+var] = delta[i]
     self.info['fraction'] = fraction

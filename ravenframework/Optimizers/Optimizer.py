@@ -485,10 +485,28 @@ class Optimizer(AdaptiveSampler):
 
     return normalized
 
-  def denormalizeData(self, normalized):
+  def denormalizeVariable(self, value, variable):
     """
-      Method to normalize the data
+      Method to enormalize the variable 'variable'
+      @ In, value, float,  value of decision variable to be denormalized
+      @ In, variable, str, variable to be denormalized
+      @ Out, denormed, float, the denormalized value
+    """
+    # some algorithms should not be normalizing and denormalizing!
+    # in that case, we allow this method to turn off normalization
+    if self.needDenormalized():
+      return value
+    denormed = value
+    if variable in self.toBeSampled:
+      lower, upper = self._variableBounds[variable]
+      denormed = value * (upper - lower) + lower
+    return denormed
+
+  def denormalizeData(self, normalized, variable = None):
+    """
+      Method to denormalize the data
       @ In, normalized, dict, dictionary containing the value of decision variables to be denormalized, in form of {varName: varValue}
+      @ In, var, str, optional, if present, only the var 'var' is denormalized
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
     # some algorithms should not be normalizing and denormalizing!
@@ -497,11 +515,9 @@ class Optimizer(AdaptiveSampler):
       return normalized
     denormed = copy.deepcopy(normalized)
     for var in self.toBeSampled:
-      val = normalized[var]
-      lower, upper = self._variableBounds[var]
-      denormed[var] = val * (upper - lower) + lower
-
+      denormed[var] = self.denormalizeVariable(normalized[var], var)
     return denormed
+
 
   def needDenormalized(self):
     """
