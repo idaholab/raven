@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.redundantInputs</name>
+    <name>framework.VariablesFunctionsSamplersOptimizers.redundantInputs</name>
     <author>talbpaul</author>
     <created>2015-06-25</created>
     <classesTested>Samplers.Sampler, Functions.External</classesTested>
@@ -15,6 +15,7 @@
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="alfoa" date="2024-05-14">Moved test to dedicated subfolder for test reorganization</revision>
     </revisions>
   </TestInfo>
 

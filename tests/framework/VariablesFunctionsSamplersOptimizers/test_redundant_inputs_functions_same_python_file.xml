@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.redundantInputsWithFunctionsInSameFile</name>
+    <name>framework.VariablesFunctionsSamplersOptimizers.redundantInputsWithFunctionsInSameFile</name>
     <author>alfoa</author>
     <created>2024-04-15</created>
     <classesTested>Samplers.Sampler, Functions.External</classesTested>
@@ -14,6 +14,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2024-04-16">Added test and added description of the test.</revision>
+      <revision author="alfoa" date="2024-05-14">Moved test to dedicated subfolder for test reorganization</revision>
     </revisions>
   </TestInfo>
 
