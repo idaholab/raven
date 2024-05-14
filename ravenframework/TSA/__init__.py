@@ -31,7 +31,11 @@ from .STL import STL
 from .Transformers import MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
                           LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
                           QuantileTransformer, OutTruncation, ZeroFilter, PreserveCDF, Gaussianize, \
+<<<<<<< HEAD
                           Differencing, FilterBankDWT, BoundDomain
+=======
+                          Differencing, DWT
+>>>>>>> ed77ac54c (new classes for multiresolutionTSA and discrete wavelet transform algo)
 
 from .Factory import factory
 
