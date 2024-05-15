@@ -852,7 +852,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
   def _evaluateFunctionsOrder(self):
     """
       Method to evaluate the function execution order using graph theory
-      The order is stored in self.functionExecutionList
+      The order is stored in self.variableFunctionExecutionList
       @ In, None
       @ Out, None
     """
