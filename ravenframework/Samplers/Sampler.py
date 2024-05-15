@@ -205,7 +205,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.distDict                      = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.funcDict                      = {}          # Mapping between variable name and the a 2-element namedtuple namedtuple('func', ['methodName', 'instance']) containing:
                                                      # element 0 (methodName): name of the method in the function to be be invoked. Either the default "evaluate", or the function name
-    self.variableFunctionExecutionList = None        # This is an ordered sequence of functions that need to be performed (in case of interdependency)
+    self.variableFunctionExecutionList = []          # This is an ordered sequence of functions that need to be performed (in case of interdependency)
                                                      # element 1 (instance): instance of the function to be used, it is created every time the sampler is initialized.
     self.values                        = {}          # for each variable the current value {'var name':value}
     self.variableShapes                = {}          # stores the dimensionality of each variable by name, as tuple e.g. (2,3) for [[#,#,#],[#,#,#]]
@@ -870,6 +870,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       outputMatch = list(set(outputMatch))
       functionsToVariables[var] =  outputMatch
     variableFunctionsGraph = graphStructure.graphObject(functionsToVariables)
+
     isolatedVariables = []
     if not variableFunctionsGraph.isConnectedNet():
       # isolated functions are functions that are not connected to other functions
@@ -877,6 +878,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       isolatedVariables = variableFunctionsGraph.findIsolatedVertices()
     self.variableFunctionExecutionList = isolatedVariables
     if len(isolatedVariables) != len(self.funcDict):
+      if variableFunctionsGraph.isALoop():
+        self.raiseAnError(IOError, "Function variables are interdependent but connections determined a loop of dependencies that "
+                          "is not supported in the Function system. Use EnsembleModel to solve such dependencies.")
       allPath = variableFunctionsGraph.findAllUniquePaths([])
       # the execution list is reversed becuase we created a graph above in reversed order (output to input)
       self.variableFunctionExecutionList = variableFunctionsGraph.createSingleListOfVertices(allPath)
@@ -1207,4 +1211,4 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.auxcnt = 0
     self.distDict = {}
     self.funcDict = {}
-    self.variableFunctionExecutionList = None
+    self.variableFunctionExecutionList = []
