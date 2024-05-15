@@ -48,5 +48,5 @@ if __name__ == '__main__':
         vv.append(str(df[var][tts]))
       fo.write(",".join(vv)+'\n')
 
-  
- 
+
+

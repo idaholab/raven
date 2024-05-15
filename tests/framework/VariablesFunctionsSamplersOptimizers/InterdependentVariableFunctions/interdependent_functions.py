@@ -28,7 +28,7 @@ def raven_b_calc_f_a(ravenContainer):
 
 def raven_c_calc_f_b(ravenContainer):
   return ravenContainer.b*1.2
-  
+
 def raven_z_l_calc_f_a(ravenContainer):
   return ravenContainer.a*1.2
-          
+
