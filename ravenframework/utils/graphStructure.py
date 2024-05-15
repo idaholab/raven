@@ -20,7 +20,6 @@ Created on Oct 27, 2016
 from __future__ import division, print_function, absolute_import
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
-import sys
 import itertools
 import copy
 #External Modules End--------------------------------------------------------------------------------

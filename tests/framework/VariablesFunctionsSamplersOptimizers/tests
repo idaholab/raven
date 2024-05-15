@@ -28,6 +28,13 @@
    UnorderedCsv = 'RedundantInputs/hdmr_out.csv'
    rel_err = 1.0E-6
  [../]
+ [./interdependentVariablesFromFunctions]
+   type = 'RavenFramework'
+   input = 'test_interdependent_variables_from_functions.xml'
+   output = 'InterdependentVariableFunctions/mc_out.xml'
+   csv = 'InterdependentVariableFunctions/mc_out.csv'
+   rel_err = 1.0e-4
+ [../]
 
 []
 
