@@ -2,13 +2,12 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Optimizers/SimulatedAnnealing/discrete.FuncionallyConstrainedSA</name>
-    <author>MohammadAbdo</author>
-    <created>2020-02-05</created>
-    <classesTested>Optimizer</classesTested>
+    <author>alfoa</author>
+    <created>2024-05-15</created>
+    <classesTested>Optimizer.SimulatedAnnealing</classesTested>
     <description>
-      This test uses a multidimensional linear function such that the trajectory must pass through
-      a functional constraint to reach the optimal point.
-      The test is designed by @talbpaul and is applied to simulated annealing.
+     This test assesses the usage of Simulated Annealing with discrete variables and functional constraints. 
+     The test is an adaptation of the test ``framework.Optimizers.SimulatedAnnealing.continuous.FuncionallyConstrainedSA'' using discrete distributions.
     </description>
   </TestInfo>
 
