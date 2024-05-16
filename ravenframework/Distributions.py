@@ -83,7 +83,6 @@ DistributionTypes = namedtuple('DistributionType', ['discrete', 'continuous'])
 # Adding values
 distType = DistributionTypes('Discrete', 'Continuous')
 
-
 class DistributionsCollection(InputData.ParameterInput):
   """
     Class for reading in a collection of distributions
