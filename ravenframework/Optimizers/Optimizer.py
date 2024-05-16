@@ -487,7 +487,7 @@ class Optimizer(AdaptiveSampler):
 
   def denormalizeVariable(self, value, variable):
     """
-      Method to enormalize the variable 'variable'
+      Method to denormalize the variable 'variable'
       @ In, value, float,  value of decision variable to be denormalized
       @ In, variable, str, variable to be denormalized
       @ Out, denormed, float, the denormalized value
@@ -502,11 +502,10 @@ class Optimizer(AdaptiveSampler):
       denormed = value * (upper - lower) + lower
     return denormed
 
-  def denormalizeData(self, normalized, variable = None):
+  def denormalizeData(self, normalized):
     """
       Method to denormalize the data
       @ In, normalized, dict, dictionary containing the value of decision variables to be denormalized, in form of {varName: varValue}
-      @ In, var, str, optional, if present, only the var 'var' is denormalized
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
     # some algorithms should not be normalizing and denormalizing!

@@ -1931,7 +1931,6 @@ class UniformDiscrete(Distribution):
     paramsDict['state'] = self.pdfArray
 
     self.categoricalDist = Categorical()
-    #isFloat
     self.categoricalDist.initializeFromDict(paramsDict)
     initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
     self.pot = np.asarray(initialPerm)

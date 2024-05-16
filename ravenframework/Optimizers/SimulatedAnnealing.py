@@ -271,7 +271,6 @@ class SimulatedAnnealing(RavenSampled):
       self._submitRun(values,traj,self.getIteration(traj))
 
 
-
   def initializeTrajectory(self, traj=None):
     """
       Handles the generation of a trajectory.
