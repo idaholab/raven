@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module where the base class and the specialization of different type of Model are
+  EnsembleModel module, containing the class and methods to create a comunication 'pipeline' among
+  different models in terms of Input/Output relation
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -38,7 +39,8 @@ from ..Runners import Error as rerror
 
 class EnsembleModel(Dummy):
   """
-    EnsembleModel class. This class is aimed to create a comunication 'pipe' among different models in terms of Input/Output relation
+    EnsembleModel class. This class is aimed to create a comunication 'pipe' among
+    different models in terms of Input/Output relation
   """
   @classmethod
   def specializeValidateDict(cls):
@@ -118,7 +120,9 @@ class EnsembleModel(Dummy):
             # list(metadataToTranfer, ModelSource,Alias (optional))
             if 'source' not in childChild.attrib.keys():
               self.raiseAnError(IOError, 'when metadataToTransfer XML block is defined, the "source" attribute must be inputted!')
-            self.modelsInputDictionary[modelName][childChild.tag].append([childChild.text.strip(),childChild.attrib['source'],childChild.attrib.get("alias",None)])
+            self.modelsInputDictionary[modelName][childChild.tag].append([childChild.text.strip(),
+                                                                          childChild.attrib['source'],
+                                                                          childChild.attrib.get("alias",None)])
           else:
             try:
               self.modelsInputDictionary[modelName][childChild.tag].append(childChild.text.strip())
@@ -158,7 +162,7 @@ class EnsembleModel(Dummy):
       elif child.tag == 'initialConditions':
         for var in child:
           if "repeat" in var.attrib.keys():
-            self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat'])) #np.array([float(var.text.split()[0]) for _ in range(int(var.attrib['repeat']))])
+            self.initialConditions[var.tag] = np.repeat([float(var.text.split()[0])], int(var.attrib['repeat']))
           else:
             try:
               values = var.text.split()
@@ -342,7 +346,8 @@ class EnsembleModel(Dummy):
         self.raiseAnError(IOError,"Picard's iterations mode activated but no initial conditions provided!")
     else:
       if len(self.initialStartModels) !=0:
-        self.raiseAnError(IOError, "The 'initialStartModels' xml node is not needed for non-Picard calculations, since the running sequence can be automatically determined by the code! Please delete this node to avoid a mistake.")
+        self.raiseAnError(IOError, "The 'initialStartModels' xml node is not needed for non-Picard calculations, "
+                          "since the running sequence can be automatically determined by the code! Please delete this node to avoid a mistake.")
       self.raiseAMessage("EnsembleModel connections determined a linear system. Picard's iterations not activated!")
 
     for modelIn in self.modelsDictionary.keys():
@@ -395,7 +400,7 @@ class EnsembleModel(Dummy):
     for key in kwargs["SampledVars"].keys():
       if key in self.modelsDictionary[modelName]['Input']:
         selectedkwargs['SampledVars'][key]   = kwargs["SampledVars"][key]
-        selectedkwargs['SampledVarsPb'][key] = kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs.keys() and key in kwargs["SampledVarsPb"].keys() else 1.0
+        selectedkwargs['SampledVarsPb'][key] = kwargs["SampledVarsPb"][key] if 'SampledVarsPb' in kwargs and key in kwargs["SampledVarsPb"] else 1.
     return selectedkwargs
 
   def createNewInput(self,myInput,samplerType,**kwargs):
@@ -422,7 +427,7 @@ class EnsembleModel(Dummy):
       for modelIn, specs in self.modelsDictionary.items():
         for inp in specs['Input']:
           if inp not in allCoveredVariables:
-            self.raiseAnError(RuntimeError,"for sub-model "+ modelIn + " the input "+inp+" has not been found among other models' outputs and sampled variables!")
+            self.raiseAnError(RuntimeError,f"for sub-model {modelIn} the input {inp} has not been found among other models' outputs and sampled variables!")
 
     ## Now prepare the new inputs for each model
     for modelIn, specs in self.modelsDictionary.items():
@@ -488,8 +493,8 @@ class EnsembleModel(Dummy):
 
   def getAdditionalInputEdits(self,inputInfo):
     """
-      Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
-      of the sub-models
+      Collects additional edits for the sampler to use when creating a new input. In this case,
+      it calls all the getAdditionalInputEdits methods of the sub-models
       @ In, inputInfo, dict, dictionary in which to add edits
       @ Out, None.
     """
@@ -549,6 +554,7 @@ class EnsembleModel(Dummy):
     for index in range(nRuns):
       if batchMode:
         kw =  kwargs['batchInfo']['batchRealizations'][index]
+        kw['batchRun'] = index + 1
       else:
         kw = kwargs
 
@@ -563,7 +569,14 @@ class EnsembleModel(Dummy):
                   uniqueHandler=uniqueHandler, forceUseThreads=forceThreads,
                   groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
       else:
-        jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+        # for parallel strategy 2, the ensemble model works as a step => it needs the jobHandler
+        kw['jobHandler'] = jobHandler
+        # for parallel strategy 2, we need to make sure that the batchMode is set to False in the inner runs since only the
+        # ensemble model evaluation should be batched (THIS IS REQUIRED because the CODE does not submit runs like the other models)
+        kw['batchMode'] = False
+        jobHandler.addClientJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                  uniqueHandler=uniqueHandler,
+                  groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
@@ -660,8 +673,11 @@ class EnsembleModel(Dummy):
             else:
               self.raiseAnError(IOError,"No initial conditions provided for variable "+ initialConditionToSet)
         # set new identifiers
-        inputKwargs[modelIn]['prefix']        = modelIn+utils.returnIdSeparator()+identifier
-        inputKwargs[modelIn]['uniqueHandler'] = self.name+identifier
+        suffix = ''
+        if 'batchRun' in  inputKwargs[modelIn]:
+          suffix = f"{utils.returnIdSeparator()}{inputKwargs[modelIn]['batchRun']}"
+        inputKwargs[modelIn]['prefix']        = f"{modelIn}{utils.returnIdSeparator()}{identifier}{suffix}"
+        inputKwargs[modelIn]['uniqueHandler'] = f"{self.name}{identifier}{suffix}"
         if metadataToTransfer is not None:
           inputKwargs[modelIn]['metadataToTransfer'] = metadataToTransfer
 
@@ -669,7 +685,7 @@ class EnsembleModel(Dummy):
           inputKwargs[modelIn]["SampledVars"  ][key] =  dependentOutput[key]
           ## FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transferred from outside
           ## Who has this information? -- DPM 4/11/17
-          inputKwargs[modelIn]["SampledVarsPb"][key] =  1.0
+          inputKwargs[modelIn]["SampledVarsPb"][key] =  1.
         self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVars"  ],'input',False)
         self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVarsPb"],'input',False)
         ## FIXME: this will come after we rework the "runInfo" collection in the code
@@ -696,8 +712,10 @@ class EnsembleModel(Dummy):
             if iterationCount == 1:
               residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
           for out in gotOutputs[modelCnt].keys():
-            residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
-          residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(list(residueContainer[modelIn]['iterValues'][1].values()))-np.asarray(list(residueContainer[modelIn]['iterValues'][0].values())))
+            residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) -
+                                                            np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
+          residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(list(residueContainer[modelIn]['iterValues'][1].values()))-
+                                                              np.asarray(list(residueContainer[modelIn]['iterValues'][0].values())))
 
       # if nonlinear system, check the total residue and convergence
       if self.activatePicard:
@@ -735,9 +753,11 @@ class EnsembleModel(Dummy):
       @ Out, evaluation, dict, the evaluation dictionary with the "unprojected" data
     """
     returnDict = {}
-
+    suffix = ''
+    if 'batchRun' in  inputKwargs:
+      suffix = f"{utils.returnIdSeparator()}{inputKwargs['batchRun']}"
     self.raiseADebug('Submitting model',modelToExecute['Instance'].name)
-    localIdentifier =  modelToExecute['Instance'].name+utils.returnIdSeparator()+identifier
+    localIdentifier = f"{modelToExecute['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"
     if self.parallelStrategy == 1:
       # we evaluate the model directly
       try:
@@ -756,7 +776,7 @@ class EnsembleModel(Dummy):
           time.sleep(1.e-3)
         moveOn = True
       # get job that just finished to gather the results
-      finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=self.name+identifier)
+      finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         if finishedRun[0].exceptionTrace is not None:
@@ -767,7 +787,9 @@ class EnsembleModel(Dummy):
         evaluation = None
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
-          jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
+          jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}",
+                                 uniqueHandler = f"{self.name}{identifier}{suffix}")
+
       else:
         # collect the target evaluation
         modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
