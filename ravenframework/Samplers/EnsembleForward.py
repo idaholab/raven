@@ -179,6 +179,9 @@ class EnsembleForward(Sampler):
         mName = val
       self.funcDict[key] = fPointer(mName, availableFunc[val])
 
+    # evaluate function order in custom sampler
+    self._evaluateFunctionsOrder()
+
   def localInitialize(self):
     """
       Initialize the EnsembleForward sampler. It calls the localInitialize method of all the Samplers defined in this input
