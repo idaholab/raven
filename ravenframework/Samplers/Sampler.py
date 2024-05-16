@@ -205,16 +205,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.distDict                      = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.funcDict                      = {}          # Mapping between variable name and the a 2-element namedtuple namedtuple('func', ['methodName', 'instance']) containing:
                                                      # element 0 (methodName): name of the method in the function to be be invoked. Either the default "evaluate", or the function name
-    self.variableFunctionExecutionList = []          # This is an ordered sequence of functional variable 
-                                                                              # (linked to functions) that need to be performed (in case of 
-                                                                              # interdependency). This list is always created. If no interdependence
-                                                                              # is detected, the order is just random, otherwise the order is 
-                                                                              # determined through graph theory. 
+    self.variableFunctionExecutionList = []          # This is an ordered sequence of functional variable
+                                                     # (linked to functions) that need to be performed (in case of
+                                                     # interdependency). This list is always created. If no interdependence
+                                                     # is detected, the order is just random, otherwise the order is
+                                                     # determined through graph theory.
                                                      # element 1 (instance): instance of the function to be used, it is created every time the sampler is initialized.
     self.values                        = {}          # for each variable the current value {'var name':value}
     self.variableShapes                = {}          # stores the dimensionality of each variable by name, as tuple e.g. (2,3) for [[#,#,#],[#,#,#]]
     self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
-    self.initSeed                      = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
+    self.initSeed                      = None        # if not provided the seed is randomly generated at the initialization of the sampler, the step can override the seed by sending in another one
     self.inputInfo['SampledVars'     ] = self.values # this is the location where to get the values of the sampled variables
     self.inputInfo['SampledVarsPb'   ] = {}          # this is the location where to get the probability of the sampled variables
     self.inputInfo['crowDist']         = {}          # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
