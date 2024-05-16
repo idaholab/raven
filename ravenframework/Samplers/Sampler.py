@@ -875,11 +875,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       functionsToVariables[var] =  outputMatch
     variableFunctionsGraph = graphStructure.graphObject(functionsToVariables)
 
-    isolatedVariables = []
-    if not variableFunctionsGraph.isConnectedNet():
-      # isolated functions are functions that are not connected to other functions
-      # consequentially thse functions can be executed first (since no interdependency exists)
-      isolatedVariables = variableFunctionsGraph.findIsolatedVertices()
+    # check for isolated functions:
+    # isolated functions are functions that are not connected to other functions
+    # consequentially thse functions can be executed first (since no interdependency exists)
+    isolatedVariables = variableFunctionsGraph.findIsolatedVertices()
     self.variableFunctionExecutionList = isolatedVariables
     if len(isolatedVariables) != len(self.funcDict):
       if variableFunctionsGraph.isALoop():
