@@ -55,7 +55,7 @@ import numpy as np
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ..utils import mathUtils, randomUtils, InputData, InputTypes
+from ..utils import mathUtils, randomUtils, InputData, InputTypes, utils
 from .RavenSampled import RavenSampled
 from .stepManipulators import NoConstraintResolutionFound
 from ..Distributions import distType
@@ -260,7 +260,7 @@ class SimulatedAnnealing(RavenSampled):
         if var in self.toBeSampled and self.distDict[var].distType == distType.discrete:
           val = init[var]
           values[var] = self.distDict[var].ppf(self.distDict[var].cdf(val))
-          if not np.isclose(initialValues[traj][var], values[var]):
+          if not utils.isClose(initialValues[traj][var], values[var]):
             self.raiseAWarning(f"Traj: {traj}. Variable {var} is associated with a discrete distribution. The inputted initial value {initialValues[traj][var]} "
                                f"is not among available discrete values. Closest value is {values[var]}")
         else:
