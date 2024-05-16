@@ -384,4 +384,14 @@
      rel_err = 0.001
     [../]
   [../]
+
+  [./GAwithEnsembleModelIncludingCode]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/test_ensembleModel_withGA_Code_and_Functions.xml'
+    [./csv]
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/opt_export.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 []

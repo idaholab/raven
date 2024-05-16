@@ -64,9 +64,9 @@
       <Target>signal0, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <arma target="signal0" seed='42'>
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
+      <arma target="signal0" seed="42">
+        <P>2</P>
+        <Q>3</Q>
       </arma>
       <Segment grouping="interpolate">
         <macroParameter>macro</macroParameter>
