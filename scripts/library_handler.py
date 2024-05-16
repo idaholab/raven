@@ -170,6 +170,9 @@ def checkSingleLibrary(lib, version=None, useImportCheck=False):
   ## this avoids actually importing the modules
   if usePackageMeta and not useImportCheck:
     found, msg, foundVersion = findLibAndVersion(lib, version=version)
+    if not found:
+      # try slower approach
+      found, msg, foundVersion = findLibAndVersionSubprocess(lib, version=version)
   # otherwise, use the slower subprocess method
   else:
     found, msg, foundVersion = findLibAndVersionSubprocess(lib, version=version)
