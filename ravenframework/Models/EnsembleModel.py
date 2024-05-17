@@ -136,7 +136,7 @@ class EnsembleModel(Dummy):
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsInputDictionary[modelName].values()) > allowedEntriesLen:
           self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
-        if child.attrib['type'].strip() == "Code":
+        if child.attrib['type'].strip() in ["Code", 'HybridModel', 'LogicalModel']:
           self.createWorkingDir = True
       if child.tag == 'settings':
         self.__readSettings(child)
@@ -246,6 +246,7 @@ class EnsembleModel(Dummy):
     for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
       if not isThereACode:
         isThereACode = modelType == 'Code'
+   
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
       for inputName in self.modelsInputDictionary[modelName]['Input']:
@@ -267,6 +268,12 @@ class EnsembleModel(Dummy):
 
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
+      if modelType in ['HybridModel', 'LogicalModel']:
+        for submodelInst in self.modelsDictionary[modelName]['Instance'].modelInstances.values():
+          if not isThereACode:
+            isThereACode = submodelInst.type == 'Code'       
+      
+      
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
       # assert acceptable TargetEvaluation types are used

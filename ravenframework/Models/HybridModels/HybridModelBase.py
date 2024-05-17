@@ -161,9 +161,32 @@ class HybridModelBase(Dummy):
     ## Hybrid models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
     ## will suffice until we can better redesign this whole process.
-    prefix = kwargs['prefix']
-    kwargs['jobHandler'] = jobHandler
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
+
+    for index in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][index]
+        kw['batchMode'] = False
+      else:
+        kw = kwargs
+
+      kw['jobHandler'] = jobHandler
+
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
+      ## These kw are updated by createNewInput, so the job either should not
+      ## have access to the metadata, or it needs to be updated from within the
+      ## evaluateSample function, which currently is not possible since that
+      ## function does not know about the job instance.
+      metadata = kw
+    
+      jobHandler.addClientJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                  uniqueHandler=uniqueHandler,
+                  groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
@@ -187,7 +210,9 @@ class HybridModelBase(Dummy):
     # assure rlz has all metadata
     rlz = dict((var,np.atleast_1d(kwargsToKeep[var])) for var in kwargsToKeep.keys())
     # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(kwargsToKeep['SampledVars'][var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),kwargsToKeep['SampledVars'].keys()))))
+    rlz.update(dict((var,np.atleast_1d(kwargsToKeep['SampledVars'][var]
+                                       if var in kwargs['SampledVars'] else result[var]))
+                    for var in set(itertools.chain(result.keys(),kwargsToKeep['SampledVars'].keys()))))
     return rlz
 
   @abc.abstractmethod

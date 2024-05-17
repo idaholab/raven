@@ -22,7 +22,6 @@ import os
 import copy
 import sys
 import threading
-from random import randint
 import socket
 import re
 
@@ -46,6 +45,85 @@ if _rayAvail:
 
 # FIXME: Finished jobs can bog down the queue waiting for other objects to take
 # them away. Can we shove them onto a different list and free up the job queue?
+
+class IdentifiersFactory(BaseType):
+  """
+    Identifier Factory. This class contains the memory of identifiers used to execute
+    JOBS in the job handler. The identifiers are removed from the Factory once out of
+    scope (i.e. once the job is collected)
+  """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    self.__IDENTIFIERS_FACTORY = {} # {identifier:uniqueHandler}
+    self.__IDENTIFIERS_CREATED = []
+    self.__counter = 0
+
+  def __len__(self):
+    """
+      length (number of identifiers)
+    """
+    return len(self.__IDENTIFIERS_FACTORY)
+
+  def addIdentifier(self, identifier: str, uniqueHandler: str | None) -> None:
+    """
+      Add identifier in factory
+      @ In, identifier, str, new identifier to add
+      @ In, uniqueHandler, str, optional, the `uniqueHandler` if associated with this identifier
+      @ Out, None
+    """
+    if identifier in self.__IDENTIFIERS_FACTORY:
+      self.raiseAnError(RuntimeError, f"Identifier {identifier} is still in use and cannot be re-used yet!")
+
+    self.__IDENTIFIERS_FACTORY[identifier] = uniqueHandler
+    self.__counter += 1
+
+  def removeIdentifier(self, identifier: str) -> None:
+    """
+      Remove identifier in factory
+      @ In, identifier, str, new identifier to add
+      @ Out, None
+    """
+    if identifier not in self.__IDENTIFIERS_FACTORY:
+      self.raiseAnError(RuntimeError, f"Identifier {identifier} is not present in identifier factory. It cannot be removed!")
+
+    self.__IDENTIFIERS_FACTORY.pop(identifier)
+    if identifier in  self.__IDENTIFIERS_CREATED:
+      self.__IDENTIFIERS_CREATED.pop(self.__IDENTIFIERS_CREATED.index(identifier))
+
+  def createIdentifier(self, root: str) -> str:
+    """
+      This method is a utility method used to create an identifier based on a root string
+      that has not been used yet in the factory.
+      @ In, root, str, the root identifier (e.g. ModelName++whatever)
+      @ Out, identifier, str, the new identifier
+    """
+    cnt = self.__counter
+    keepLooking = True
+    while keepLooking:
+      identifier = f"{root}{utils.returnIdSeparator()}{len(self)}{utils.returnIdSeparator()}{cnt}"
+      if identifier not in list(self.__IDENTIFIERS_FACTORY.keys()) + self.__IDENTIFIERS_CREATED:
+        keepLooking = False
+      else:
+        cnt += 1
+    self.__IDENTIFIERS_CREATED.append(identifier)
+    return identifier
+
+
+  def clear(self) -> None:
+    """
+      Clear
+      @ In, None
+      @ Out, None
+    """
+    self.__IDENTIFIERS_FACTORY = {}
+
+IDENTIFIERS_COLLECTOR = IdentifiersFactory()
+
+
 
 class JobHandler(BaseType):
   """
@@ -162,7 +240,7 @@ class JobHandler(BaseType):
     # initialize PBS
     with self.__queueLock:
       self.__running       = [None]*self.runInfoDict['batchSize']
-      self.__clientRunning = [None]*self.runInfoDict['batchSize']
+      self.__clientRunning = [None]*self.runInfoDict['batchSize'] * 2
     self._parallelLib = ParallelLibEnum.shared
     if self.runInfoDict['parallelMethod'] is not None and self.runInfoDict['parallelMethod'] != ParallelLibEnum.distributed:
       self._parallelLib = self.runInfoDict['parallelMethod']
@@ -640,6 +718,7 @@ class JobHandler(BaseType):
         clientQueue
       @ Out, None
     """
+    global IDENTIFIERS_COLLECTOR
     assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
            " decorated with RAVEN Parallel decorator"
     if self._server is None or forceUseThreads:
@@ -686,6 +765,9 @@ class JobHandler(BaseType):
       self.__batching[groupId]["ids"].append(identifier)
     # add the runner in the Queue
     self.reAddJob(internalJob)
+    # update identifier factory
+    print(identifier, uniqueHandler)
+    IDENTIFIERS_COLLECTOR.addIdentifier(identifier, uniqueHandler)
 
   def reAddJob(self, runner):
     """
@@ -912,6 +994,7 @@ class JobHandler(BaseType):
         finished =    [job1, job2, [job3.1, job3.2], job4 ] (job3.1/3.2 belong to the same groupID)
                    or [job1, job2, job3, job4]
     """
+    global IDENTIFIERS_COLLECTOR
     # If the user does not specify a jobIdentifier, then set it to the empty
     # string because every job will match this starting string.
     if jobIdentifier is None:
@@ -955,6 +1038,7 @@ class JobHandler(BaseType):
       if removeFinished:
         for i in reversed(runsToBeRemoved):
           self.__finished[i].trackTime('collected')
+          IDENTIFIERS_COLLECTOR.removeIdentifier(self.__finished[i].identifier)
           del self.__finished[i]
 
       # end with self.__queueLock
@@ -1140,8 +1224,10 @@ class JobHandler(BaseType):
     @ In, None
     @ Out, None
     """
+    global IDENTIFIERS_COLLECTOR
     self.completed = True
     self.__shutdownParallel()
+    IDENTIFIERS_COLLECTOR.clear()
 
   def terminateAll(self):
     """

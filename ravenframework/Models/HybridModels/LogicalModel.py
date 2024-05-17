@@ -200,7 +200,7 @@ class LogicalModel(HybridModelBase):
     # TODO: execute control function, move this to createNewInput
     modelToRun = inputKwargs.pop('modelToRun')
     inputKwargs['prefix'] = modelToRun + utils.returnIdSeparator() + identifier
-    inputKwargs['uniqueHandler'] = self.name + identifier
+    inputKwargs['uniqueHandler'] = self.name + utils.returnIdSeparator() +  identifier
 
     moveOn = False
     while not moveOn:
