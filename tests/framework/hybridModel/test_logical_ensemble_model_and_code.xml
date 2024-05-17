@@ -1,0 +1,138 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>abcd</name>
+    <author>abcd</author>
+    <created>2020-05-07</created>
+    <classesTested>Models.LogicalModel</classesTested>
+    <description>
+ 
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <JobName>testLogicalCodeAndExtModelInEnsembleModel</JobName>
+    <Sequence>logicalAndExtModel</Sequence>
+    <WorkingDir>logicalModelCodeAndExtModelInEnsembleModel</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="gen.one" type="">/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/gen.one</Input>
+    <Input name="gen.two" type="">/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/gen.two</Input>
+  </Files>
+
+  <Functions>
+    <External file="/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/control" name="control">
+      <variables>x, y</variables>
+    </External>
+  </Functions>
+
+  <Models>
+    <Code name="poly" subType="GenericCode">
+      <executable>/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/poly_code.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <fileargs arg="output" type="output"/>
+    </Code>
+    <Code name="exp" subType="GenericCode">
+      <executable>/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/exp_code.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <fileargs arg="output" type="output"/>
+    </Code>
+    <LogicalModel name="logical" subType="">
+      <Model class="Models" type="Code">poly</Model>
+      <Model class="Models" type="Code">exp</Model>
+      <ControlFunction class="Functions" type="External">control</ControlFunction>
+    </LogicalModel>
+    
+    <ExternalModel ModuleToLoad="steadyState" name="steadyState" subType="">
+      <inputs>x</inputs>
+      <outputs>y</outputs>
+    </ExternalModel>
+    
+    <EnsembleModel name="ExternalModelAndLogical" subType="">
+      <Model class="Models" type="LogicalModel">
+          logical
+        <Input class="Files" type="">gen.one</Input>
+        <Input class="Files" type="">gen.two</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">samplesLogical</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+          steadyState
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">samplesSteadyState</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+    
+    
+  </Models>
+
+  <Distributions>
+    <Uniform name="xd">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="LHS">
+      <variable name="x">
+        <distribution>xd</distribution>
+        <grid construction="equal" steps="15" type="CDF">0.3 0.9</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="logicalAndExtModel">
+      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">gen.two</Input>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+
+      <Model class="Models" type="EnsembleModel">ExternalModelAndLogical</Model>
+      <Sampler class="Samplers" type="Stratified">LHS</Sampler>
+      
+      <Output class="DataObjects" type="PointSet">finalResults</Output>
+      <Output class="DataObjects" type="PointSet">samplesLogical</Output>
+      <Output class="OutStreams" type="Print">samplesLogical</Output>
+      <Output class="DataObjects" type="PointSet">samplesSteadyState</Output>
+      <Output class="OutStreams" type="Print">samplesSteadyState</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputHolder"/>
+      
+    <PointSet name="samplesSteadyState">
+      <Input>x</Input>
+      <Output>y</Output>
+    </PointSet>
+    <PointSet name="samplesLogical">
+      <Input>x,y</Input>
+      <Output>poly</Output>
+    </PointSet>
+    
+    <PointSet name="finalResults">
+      <Input>x,y</Input>
+      <Output>poly</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samplesLogical">
+      <type>csv</type>
+      <source>samplesLogical</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="samplesSteadyState">
+      <type>csv</type>
+      <source>samplesSteadyState</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
