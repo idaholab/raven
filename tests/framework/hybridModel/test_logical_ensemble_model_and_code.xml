@@ -1,43 +1,43 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>abcd</name>
+    <name>logicalCodeAndExtModelInEnsembleModel</name>
     <author>abcd</author>
-    <created>2020-05-07</created>
-    <classesTested>Models.LogicalModel</classesTested>
+    <created>2024-05-17</created>
+    <classesTested>Models.LogicalModel, Models.EnsembleModel</classesTested>
     <description>
  
     </description>
   </TestInfo>
 
   <RunInfo>
-    <JobName>testLogicalCodeAndExtModelInEnsembleModel</JobName>
+    <JobName>logicalCodeAndExtModelInEnsembleModel</JobName>
     <Sequence>logicalAndExtModel</Sequence>
     <WorkingDir>logicalModelCodeAndExtModelInEnsembleModel</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="gen.one" type="">/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/gen.one</Input>
-    <Input name="gen.two" type="">/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/gen.two</Input>
+    <Input name="gen.one" type="">gen.one</Input>
+    <Input name="gen.two" type="">gen.two</Input>
   </Files>
 
   <Functions>
-    <External file="/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/control" name="control">
+    <External file="../logicalCode/control" name="control">
       <variables>x, y</variables>
     </External>
   </Functions>
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/poly_code.py</executable>
+      <executable>../../../logicalCode/poly_code.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
     </Code>
     <Code name="exp" subType="GenericCode">
-      <executable>/Users/aalfonsi/projects/raven/tests/framework/hybridModel/logicalCode/exp_code.py</executable>
+      <executable>../../../logicalCode/exp_code.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
@@ -98,9 +98,9 @@
       
       <Output class="DataObjects" type="PointSet">finalResults</Output>
       <Output class="DataObjects" type="PointSet">samplesLogical</Output>
-      <Output class="OutStreams" type="Print">samplesLogical</Output>
       <Output class="DataObjects" type="PointSet">samplesSteadyState</Output>
-      <Output class="OutStreams" type="Print">samplesSteadyState</Output>
+      
+      <Output class="OutStreams" type="Print">finalResults</Output>
     </MultiRun>
   </Steps>
 
@@ -123,14 +123,9 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name="samplesLogical">
+    <Print name="finalResults">
       <type>csv</type>
-      <source>samplesLogical</source>
-      <what>input, output</what>
-    </Print>
-    <Print name="samplesSteadyState">
-      <type>csv</type>
-      <source>samplesSteadyState</source>
+      <source>finalResults</source>
       <what>input, output</what>
     </Print>
   </OutStreams>
