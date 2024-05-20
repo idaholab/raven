@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.CauchySA</name>
+    <name>framework/Optimizers/SimulatedAnnealing/continuous.BoltzmanSA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
@@ -50,20 +50,21 @@
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>5000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>-1</objective>
-        <temperature>1e-4</temperature>
+        <objective>1e-6</objective>
+        <temperature>5e-3</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <cauchy>
-          <d>5.0</d>
-        </cauchy>
+        <boltzmann>
+          <d>1.0</d>
+          <learningRate>0.94</learningRate>
+        </boltzmann>
       </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
@@ -79,7 +80,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>

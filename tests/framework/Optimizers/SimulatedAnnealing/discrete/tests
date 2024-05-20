@@ -1,0 +1,24 @@
+[Tests]
+  [./VeryFastSA]
+    type = 'RavenFramework'
+    input = 'VeryFastSA/test_simulatedAnnealing.xml'
+    max_time = 600
+    [./data]
+      type = OrderedCSV
+      output = 'VeryFastSA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./FunctionallyConstrainedSA]
+    type = 'RavenFramework'
+    input = 'FunctionallyConstrainedSA/test_funcConstrSimulatedAnnealing.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'FunctionallyConstrainedSA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+[]

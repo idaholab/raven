@@ -1,22 +1,14 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.CauchyEggHolder</name>
-    <author>MohammadAbdo</author>
-    <created>2020-02-11</created>
-    <classesTested>SimulatedAnnealing</classesTested>
+    <name>framework/Optimizers/SimulatedAnnealing/discrete.FuncionallyConstrainedSA</name>
+    <author>alfoa</author>
+    <created>2024-05-15</created>
+    <classesTested>Optimizer.SimulatedAnnealing</classesTested>
     <description>
-      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Eggholder function.
-      The eggholder function is a very challenging objective function, as it has enourmous number of local minima,
-      The nominal dimensionality of the problem is 2, i.e., variables are x, y.
-      The objective variable is ans.
-      The global minimum is at: ans(512,404.2319) = -959.6407
-      parameter range is $-512 \leq x,y \leq 512$
+     This test assesses the usage of Simulated Annealing with discrete variables and functional constraints. 
+     The test is an adaptation of the test ``framework.Optimizers.SimulatedAnnealing.continuous.FuncionallyConstrainedSA'' using discrete distributions.
     </description>
-    <analytic>
-      This test uses eggHolder's function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.
-    </analytic>
   </TestInfo>
 
   <RunInfo>
@@ -25,10 +17,10 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
+    <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">eggHolder</Model>
-      <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
+      <Model class="Models" type="ExternalModel">goal</Model>
+      <Optimizer class="Optimizers" type="SimulatedAnnealing">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -42,45 +34,58 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='eggHolder_dist'>
-      <lowerBound>-512</lowerBound>
-      <upperBound>512</upperBound>
+    <UniformDiscrete name='distx'>
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+      <nPoints>1000</nPoints>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+    <Uniform name='disty'>
+      <lowerBound>-0.5</lowerBound>
+      <upperBound>0.5</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
-    <SimulatedAnnealing name="simOpt">
+    <SimulatedAnnealing name="opter">
       <samplerInit>
-        <limit>6000</limit>
+        <limit>500</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>-1</objective>
-        <temperature>1e-20</temperature>
+        <objective>1e-4</objective>
+        <temperature>1e-16</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <cauchy>
-          <d>10.0</d>
-        </cauchy>
+        <veryfast>
+          <c>0.75</c>
+        </veryfast>
       </coolingSchedule>
       <variable name="x">
-        <distribution>eggHolder_dist</distribution>
-        <initial>400</initial>
+        <distribution>distx</distribution>
+        <initial>0.9</initial>
       </variable>
       <variable name="y">
-        <distribution>eggHolder_dist</distribution>
-        <initial>400</initial>
+        <distribution>disty</distribution>
+        <initial>0.7</initial>
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+            <Constraint class='Functions' type='External'>goal</Constraint>
     </SimulatedAnnealing>
   </Optimizers>
 
+  <Functions>
+    <External file="../../../../AnalyticModels/optimizing/offset_parabola" name="goal">
+      <variables>x,y</variables>
+    </External>
+  </Functions>
+
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/eggHolder" name="eggHolder" subType="">
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/offset_parabola" name="goal" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
@@ -108,4 +113,5 @@
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
+
 </Simulation>
