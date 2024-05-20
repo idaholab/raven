@@ -28,6 +28,7 @@ from numpy import linalg as LA
 import copy
 import math as math
 import bisect
+from collections import namedtuple
 
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
@@ -75,6 +76,12 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'LogUniform' : 'LogUniformDistribution',
                               'UniformDiscrete' : 'UniformDiscreteDistribution'
 }
+
+
+# Declaring namedtuple(DistributionTypes)
+DistributionTypes = namedtuple('DistributionType', ['discrete', 'continuous'])
+# Adding values
+distType = DistributionTypes('Discrete', 'Continuous')
 
 class DistributionsCollection(InputData.ParameterInput):
   """
@@ -393,7 +400,7 @@ class BoostDistribution(Distribution):
     """
     super().__init__()
     self.dimensionality  = 1
-    self.distType        = 'Continuous'
+    self.distType        = distType.continuous
 
   def cdf(self,x):
     """
@@ -798,7 +805,7 @@ class Gamma(BoostDistribution):
     self.alpha = alpha
     self.beta = beta
     self.type = 'Gamma'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Laguerre')
     self.compatibleQuadrature.append('CDF')
@@ -955,7 +962,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('CDF')
@@ -1129,7 +1136,7 @@ class Triangular(BoostDistribution):
     self.min  = None  # domain lower boundary
     self.max  = None  # domain upper boundary
     self.type = 'Triangular'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1244,7 +1251,7 @@ class Poisson(BoostDistribution):
     self.mu  = 0.0
     self.type = 'Poisson'
     self.hasInfiniteBound = True
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1340,7 +1347,7 @@ class Binomial(BoostDistribution):
     self.p       = 0.0
     self.type     = 'Binomial'
     self.hasInfiniteBound = True
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1439,7 +1446,7 @@ class Bernoulli(BoostDistribution):
     super().__init__()
     self.p        = 0.0
     self.type     = 'Bernoulli'
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1532,7 +1539,7 @@ class Geometric(BoostDistribution):
     super().__init__()
     self.p        = 0.0
     self.type     = 'Geometric'
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1614,6 +1621,11 @@ class Categorical(Distribution):
     StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
     StatePartInput.addParam("outcome", InputTypes.FloatOrStringType, True)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    inputSpecification.addSub(InputData.parameterInputFactory("rtol",
+                                                              contentType=InputTypes.FloatType,
+                                                              descr=r"""Relative tolerance used to identify close state in case of"""
+                                                              r""" float/int states. Not used for string states!""", default=1e-6))
+
 
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
@@ -1632,8 +1644,9 @@ class Categorical(Distribution):
     self.values         = set()
     self.type           = 'Categorical'
     self.dimensionality = 1
-    self.distType       = 'Discrete'
-    self.isFloat        = False
+    self.distType       = distType.discrete
+    self.isFloat        = True
+    self.rtol = 1e-6
 
   def _handleInput(self, paramInput):
     """
@@ -1642,22 +1655,23 @@ class Categorical(Distribution):
       @ Out, None
     """
     super()._handleInput(paramInput)
+    isFloats = []
     for child in paramInput.subparts:
       if child.getName() == "state":
         outcome = child.parameterValues["outcome"]
         value = child.value
         self.mapping[outcome] = value
-        try:
-          float(outcome)
-          self.isFloat = True
-        except:
-          self.isFloat = False
+        isFloats.append(utils.floatConversion(outcome) is not None)
         if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome) if self.isFloat else outcome)
+          self.values.add(float(outcome) if isFloats[-1] else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
+    if False in isFloats:
+      self.isFloat = False
+    else:
+      self.rtol = paramInput.findNodesAndExtractValues(['rtol'])[0]['rtol']
     self.initializeDistribution()
     self.upperBoundUsed = True
     self.lowerBoundUsed = True
@@ -1690,10 +1704,13 @@ class Categorical(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
+    isFloats = []
     for idx, val in enumerate(inputDict['outcome']):
       self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
-
+      isFloats.append(utils.floatConversion(val) is not None)
+    if False in isFloats:
+      self.isFloat = False
     self.checkDistParams()
 
   def initializeDistribution(self):
@@ -1721,9 +1738,9 @@ class Categorical(Distribution):
         self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1')
 
     localSum = sum(self.mapping.values())
-    if not mathUtils.compareFloats(localSum,1.0):
-      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!')
+    if not mathUtils.compareFloats(localSum,1., self.rtol):
+      self.raiseAnError(f'Categorical distribution cannot be initialized: sum of probabilities is {localSum},'
+                        ' not 1.0! Please re-normalize it to 1!')
 
     # Probability values normalization
     for key in self.mapping.keys():
@@ -1740,10 +1757,19 @@ class Categorical(Distribution):
     else:
       if self.isFloat:
         vals = sorted(list(self.values))
-        idx = bisect.bisect(vals, x)
-        pdfValue = self.mapping[list(vals)[idx]]
+        idx = [idx for idx in range(len(vals)) if utils.isClose(vals[idx], x, relTolerance=self.rtol)]
+        if not len(idx):
+          self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the closest '
+                            f'state {list(vals)[bisect.bisect(vals, x)]} is outside the acceptance interval given by the provided relative tolerance {self.rtol}!')
+        idx = idx[0]
+        val =  list(vals)[idx]
+        pdfValue = self.mapping[val]
+        if not utils.isClose(val, x, relTolerance=self.rtol):
+          self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the closest '
+                            f'state {val} is outside the acceptance interval given by the provided relative tolerance {self.rtol}!')
       else:
-        self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
+        self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the states are not floats/integers and the'
+                            f'value {x} is not present in the list of states!!')
     return pdfValue
 
   def cdf(self,x):
@@ -1755,6 +1781,7 @@ class Categorical(Distribution):
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == sortedMapping[-1][0]:
       return 1.0
+
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
@@ -1764,12 +1791,12 @@ class Categorical(Distribution):
     else:
       if self.isFloat:
         cumulative=0.0
-        for element in sortedMapping:
-          cumulative += element[1]
-          if x >= element[0]:
+        for idx in range(len(sortedMapping)-1):
+          cumulative += sortedMapping[idx][1]
+          if x >= sortedMapping[idx][0] and x <= sortedMapping[idx+1][0]:
             return cumulative
       # if we reach this point we must error out
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
+      self.raiseAnError(IOError,f'{self.type} distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
     """
@@ -1777,8 +1804,8 @@ class Categorical(Distribution):
       @ In, x, float, value to get the ppf at
       @ Out, element[0], float/string, requested inverse cdf
     """
-    if x > 1.0 or x < 0:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
+    if x > 1. or x < 0.:
+      self.raiseAnError(IOError,f'{self.type} distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == 1.0:
       return float(sortedMapping[-1][0]) if self.isFloat else sortedMapping[-1][0]
@@ -1844,8 +1871,9 @@ class UniformDiscrete(Distribution):
     super().__init__()
     self.type           = 'UniformDiscrete'
     self.dimensionality = 1
-    self.distType       = 'Discrete'
+    self.distType       = distType.discrete
     self.memory         = True
+    self.nPoints = None
 
   def _handleInput(self, paramInput):
     """
@@ -1861,16 +1889,14 @@ class UniformDiscrete(Distribution):
       self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
 
     strategy = paramInput.findFirst('strategy')
-    if strategy != None:
+    if strategy is not None:
       self.strategy = strategy.value
     else:
       self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
 
     nPoints = paramInput.findFirst('nPoints')
-    if nPoints != None:
+    if nPoints is not None:
       self.nPoints = nPoints.value
-    else:
-      self.nPoints = None
 
     self.initializeDistribution()
 
@@ -2036,7 +2062,7 @@ class MarkovCategorical(Categorical):
     """
     super().__init__()
     self.dimensionality = 1
-    self.distType       = 'Discrete'
+    self.distType       = distType.discrete
     self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
     self.transition     = None # transition matrix of a continuous time Markov Model
@@ -2163,7 +2189,7 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2273,7 +2299,7 @@ class Laplace(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Laplace'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2376,7 +2402,7 @@ class Exponential(BoostDistribution):
     self.lambdaVar = 1.0
     self.low        = 0.0
     self.type = 'Exponential'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2516,7 +2542,7 @@ class LogNormal(BoostDistribution):
     self.sigma = 1.0
     self.low = 0.0
     self.type = 'LogNormal'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2632,7 +2658,7 @@ class Weibull(BoostDistribution):
     self.lambdaVar = 1.0
     self.k = 1.0
     self.type = 'Weibull'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
@@ -2754,7 +2780,7 @@ class Custom1D(Distribution):
     self.functionID      = None
     self.variableID      = None
     self.dimensionality  = 1
-    self.distType        = 'Continuous'
+    self.distType        = distType.continuous
     # Scipy.interpolate.UnivariateSpline is used
     self.k               = 4 # Degree of the smoothing spline, Must be <=5
     self.s               = 0 # Positive smoothing factor used to choose the number of knots
@@ -3556,7 +3582,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     super().__init__()
     self.type = 'MultivariateNormal'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.mu  = None
     self.covariance = None
     self.covarianceType = 'abs'  # abs: absolute covariance, rel: relative covariance matrix

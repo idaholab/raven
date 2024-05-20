@@ -55,9 +55,10 @@ import numpy as np
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ..utils import mathUtils, randomUtils, InputData, InputTypes
+from ..utils import mathUtils, randomUtils, InputData, InputTypes, utils
 from .RavenSampled import RavenSampled
 from .stepManipulators import NoConstraintResolutionFound
+from ..Distributions import distType
 # Internal Modules End------------------------------------------------------------------------------
 
 class SimulatedAnnealing(RavenSampled):
@@ -81,8 +82,8 @@ class SimulatedAnnealing(RavenSampled):
                     'exponential':{'alpha':r"""slowing down constant, should be between 0,1 and preferable very close to 1. \default{0.94}"""},
                     #'fast':{'c':r"""decay constant, \default{1.0}"""},
                     'veryfast':{'c':r"""decay constant, \default{1.0}"""},
-                    'cauchy':{'d':r"""bias, \default{1.0}"""},
-                    'boltzmann':{'d':r"""bias, \default{1.0}"""}}
+                    'cauchy':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.9}"""},
+                    'boltzmann':{'d':r"""bias, \default{1.0}""", 'learningRate': r"""learning rate, Scale constant for adjusting guesses. \default{0.9}"""}}
   ##########################
   # Initialization Methods #
   ##########################
@@ -136,7 +137,7 @@ class SimulatedAnnealing(RavenSampled):
                   In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + d}$$"""
                   #In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-ck)$$
                   +r"""In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D}),$$
-                  where $D$ is the dimentionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
+                  where $D$ is the dimensionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
                   $T^{0} = \max{(0.01,1-\frac{k}{\xmlNode{limit}})}$ is the initial temperature, and $T^{k}$ is the current temperature
                   according to the specified cooling schedule.
                   \default{exponential}.""")
@@ -225,7 +226,7 @@ class SimulatedAnnealing(RavenSampled):
       for sub in coolingNode.subparts:
         self._coolingMethod = sub.name
         for subSub in sub.subparts:
-          self._coolingParameters = {subSub.name: subSub.value}
+          self._coolingParameters[subSub.name] = subSub.value
 
     #defaults
     if not self._coolingMethod:
@@ -236,6 +237,7 @@ class SimulatedAnnealing(RavenSampled):
       self._coolingParameters['beta'] = 0.1
       self._coolingParameters['c'] = 1.0
       self._coolingParameters['d'] = 1.0
+      self._coolingParameters['learningRate'] = 0.9
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -248,9 +250,26 @@ class SimulatedAnnealing(RavenSampled):
     for var in self.toBeSampled:
       self.info['amp_'+var] = None
       self.info['delta_'+var] = None
-    # queue up the first run for each trajectory
+
+    initialValues = self._initialValues
     for traj, init in enumerate(self._initialValues):
-      self._submitRun(init,traj,self.getIteration(traj))
+      values = {}
+      init = self.denormalizeData(init)
+      initialValues[traj] = self.denormalizeData(initialValues[traj])
+      for var in init:
+        if var in self.toBeSampled and self.distDict[var].distType == distType.discrete:
+          val = init[var]
+          values[var] = self.distDict[var].ppf(self.distDict[var].cdf(val))
+          if not utils.isClose(initialValues[traj][var], values[var]):
+            self.raiseAWarning(f"Traj: {traj}. Variable {var} is associated with a discrete distribution. The inputted initial value {initialValues[traj][var]} "
+                               f"is not among available discrete values. Closest value is {values[var]}")
+        else:
+          values[var] =  init[var]
+      values = self.normalizeData(values)
+
+      # queue up the first run for each trajectory
+      self._submitRun(values,traj,self.getIteration(traj))
+
 
   def initializeTrajectory(self, traj=None):
     """
@@ -295,7 +314,7 @@ class SimulatedAnnealing(RavenSampled):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
+      @ In, rlz, dict, realized realization (NORMALIZED)
       @ In, optVal, float, value of objective variable (corrected for min/max)
       @ Out, None
     """
@@ -323,6 +342,14 @@ class SimulatedAnnealing(RavenSampled):
         self.raiseAMessage(f'Optimizer "{self.name}" trajectory {traj} was unable to continue due to functional or boundary constraints.')
         self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar])
         return
+
+      suggested = self.denormalizeData(suggested)
+      for var in suggested:
+        if var in self.toBeSampled and self.distDict[var].distType == distType.discrete:
+          # if discrete, we make sure that the suggested value is within the possible outcomes
+          val = suggested[var]
+          suggested[var] = self.distDict[var].ppf(self.distDict[var].cdf(val))
+      suggested = self.normalizeData(suggested)
       self._submitRun(suggested, traj, self.getIteration(traj))
 
   def flush(self):
@@ -647,12 +674,12 @@ class SimulatedAnnealing(RavenSampled):
     else:
       self.raiseAnError(NotImplementedError, 'cooling schedule type not implemented.')
 
-  def _nextNeighbour(self, rlz, fraction=1):
+  def _nextNeighbour(self, rlzNormalized, fraction=1):
     r"""
       Perturbs the state to find the next random neighbor based on the cooling schedule
-      @ In, rlz, dict, current realization
+      @ In, rlzNormalized, dict, current realization (NORMALIZED)
       @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iteration}{Limit}$
-      @ Out, nextNeighbour, dict, the next random state
+      @ Out, nextNeighbour, dict, the next random state (NORMALIZED)
 
       for exponential cooling:
       .. math::
@@ -661,16 +688,16 @@ class SimulatedAnnealing(RavenSampled):
 
           amp = 1-fraction
 
-          delta = \\frac{-amp}{2} + amp * r
+          delta = \\frac{-amp}{2} + amp * r * (upper-lower)
 
       where :math: `r \sim \mathcal{U}(0,1)`
 
       for boltzmann cooling:
       .. math::
 
-          amp = min(\\sqrt(T), \\frac{1}{3*alpha}
+          amp = min(\\sqrt(T), \\frac{1}{3*learning_rate}
 
-          delta = r * alpha * amp
+          delta = r * learning_rate * amp
 
       where :math: `r \\sim \\mathcal{N}(0,1)`
 
@@ -679,7 +706,7 @@ class SimulatedAnnealing(RavenSampled):
 
           amp = r
 
-          delta = alpha * T * tan(amp)
+          delta = learning_rate * T * tan(amp)
 
       where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
 
@@ -694,23 +721,30 @@ class SimulatedAnnealing(RavenSampled):
     """
     nextNeighbour = {}
     D = len(self.toBeSampled.keys())
-    alpha = 0.94
+    learnRate = self._coolingParameters.get('learningRate', 0.9)
     if self._coolingMethod in ['exponential', 'geometric']:
-      amp = ((fraction)**-1) / 20
+      amp = (fraction ** -1) / 20.0 # aa: I don't find a reference that justifies this factor 20.0
       r = randomUtils.random(dim=D, samples=1)
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
-      amp = min(np.sqrt(self.T), 1/3.0/alpha)
-      delta =  randomUtils.randomNormal(size=D)*alpha*amp
+      amp = [min(np.sqrt(self.T), 1.0/3.0/learnRate) for var in self.toBeSampled.keys()]
+      delta = np.asarray(amp).flatten() * randomUtils.randomNormal(size=(D,)).flatten() * learnRate
     elif self._coolingMethod == 'veryfast':
       amp = randomUtils.random(dim=D, samples=1)
       delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
     elif self._coolingMethod == 'cauchy':
-      amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
-      delta = alpha*self.T*np.tan(amp)
+      amp = 2 * np.pi*randomUtils.random(dim=D, samples=1)-(np.pi)
+      delta = learnRate*self.T*np.tan(amp)
     delta = np.atleast_1d(delta)
+
     for i,var in enumerate(self.toBeSampled.keys()):
-      nextNeighbour[var] = rlz[var] + delta[i]
+      nextNeighbour[var] = rlzNormalized[var] + delta[i]
+      nextNeighbour[var] =  0 if nextNeighbour[var] < 0 else nextNeighbour[var]
+      nextNeighbour[var] =  1 if nextNeighbour[var] > 1 else nextNeighbour[var]
+      if self.distDict[var].distType == distType.discrete:
+        val = nextNeighbour[var]
+        coord = self.denormalizeVariable(val, var)
+        nextNeighbour[var] = self.distDict[var].cdf(coord)
       self.info['amp_'+var] = amp
       self.info['delta_'+var] = delta[i]
     self.info['fraction'] = fraction

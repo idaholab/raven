@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.ExponentialSA</name>
+    <name>framework/Optimizers/SimulatedAnnealing/continuous.CauchySA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
@@ -13,7 +13,7 @@
       Parameter range is $-4.5 \leq x,y \leq 4.5$.
     </description>
     <analytic>
-      This test uses beale's function, which is documented in the analytic tests documentation under
+      This test uses Beale's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
   </TestInfo>
@@ -37,6 +37,7 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
     </IOStep>
   </Steps>
 
@@ -50,20 +51,21 @@
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>3000</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
         <objective>-1</objective>
-        <temperature>1e-20</temperature>
+        <temperature>1e-4</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <exponential>
-          <alpha>0.94</alpha>
-        </exponential>
+        <cauchy>
+          <d>5.0</d>
+          <learningRate>0.94</learningRate>
+        </cauchy>
       </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
@@ -79,7 +81,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
@@ -106,5 +108,9 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
+    <Plot name="opt_path" subType="OptPath" overwrite="True">
+      <source>opt_export</source>
+      <vars>x,y,ans</vars>
+    </Plot>
   </OutStreams>
 </Simulation>

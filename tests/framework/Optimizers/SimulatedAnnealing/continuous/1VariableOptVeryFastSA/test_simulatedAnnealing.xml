@@ -1,20 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.ExponentialEggHolder</name>
-    <author>MohammadAbdo</author>
-    <created>2020-02-11</created>
+    <name>framework/Optimizers/SimulatedAnnealing/continuous.1VariableOptVeryFastSA</name>
+    <author>alfoa</author>
+    <created>2024-04-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
     <description>
-      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Eggholder function.
-      The eggholder function is a very challenging objective function, as it has enourmous number of local minima,
-      The nominal dimensionality of the problem is 2, i.e., variables are x, y.
+      This test is aimed to test the possibility to use SimulatedAnnealing method for 1 variable optimization problems.
+      The test is based on ``framework.Optimizers.SimulatedAnnealing.VeryFastSA'' test and it uses the Beale function.
+      The nominal dimensionality of the problem is 2, i.e., variables are x, y. For this test the variable y is constant
+      at its ``optimal value'' (0.5).
       The objective variable is ans.
-      The global minimum is at: ans(512,404.2319) = -959.6407
-      parameter range is $-512 \leq x,y \leq 512$
+      The global minimum is at: ans(3,0.5) = 0.0
+      Parameter range is $-4.5 \leq x,y \leq 4.5$.
     </description>
     <analytic>
-      This test uses eggHolder's function, which is documented in the analytic tests documentation under
+      This test uses beale's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
   </TestInfo>
@@ -27,7 +28,7 @@
   <Steps>
     <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">eggHolder</Model>
+      <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
@@ -42,45 +43,46 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='eggHolder_dist'>
-      <lowerBound>-512</lowerBound>
-      <upperBound>512</upperBound>
+    <Uniform name='beale_dist'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>2000</limit>
+        <limit>3000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
         <objective>-1</objective>
-        <temperature>1e-30</temperature>
+        <temperature>1e-7</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <exponential>
-          <alpha>0.94</alpha>
-        </exponential>
+        <veryfast>
+          <c>0.5</c>
+        </veryfast>
       </coolingSchedule>
       <variable name="x">
-        <distribution>eggHolder_dist</distribution>
-        <initial>300</initial>
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
       </variable>
-      <variable name="y">
-        <distribution>eggHolder_dist</distribution>
-        <initial>500</initial>
-      </variable>
+      
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      
+      <!-- we set y as constant to test a 1-variable optimization case -->
+      <constant name="y">0.5</constant>
+      
     </SimulatedAnnealing>
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/eggHolder" name="eggHolder" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
@@ -93,7 +95,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x,delta_y,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output>
+      <Output>x,y,ans,iteration,amp_x,delta_x,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output>
     </PointSet>
   </DataObjects>
 

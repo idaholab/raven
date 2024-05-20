@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.FuncionallyConstrainedSA</name>
+    <name>framework/Optimizers/SimulatedAnnealing/continuous.FuncionallyConstrainedSA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-05</created>
     <classesTested>Optimizer</classesTested>
@@ -74,13 +74,13 @@
   </Optimizers>
 
   <Functions>
-    <External file="../../../AnalyticModels/optimizing/offset_parabola" name="goal">
+    <External file="../../../../AnalyticModels/optimizing/offset_parabola" name="goal">
       <variables>x,y</variables>
     </External>
   </Functions>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/offset_parabola" name="goal" subType="">
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/offset_parabola" name="goal" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
