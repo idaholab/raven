@@ -52,12 +52,13 @@ class IdentifiersFactory(BaseType):
     JOBS in the job handler. The identifiers are removed from the Factory once out of
     scope (i.e. once the job is collected)
   """
-  def __init__(self):
+  def __init__(self, **kwargs):
     """
       Constructor
       @ In, None
       @ Out, None
     """
+    super().__init__(**kwargs)
     self.__IDENTIFIERS_FACTORY = {} # {identifier:uniqueHandler}
     self.__counter = 0
 
@@ -812,14 +813,19 @@ class JobHandler(BaseType):
       @ In, profile, bool, optional, if True then at de-construction timing statements will be printed
       @ Out, None
     """
+    global IDENTIFIERS_COLLECTOR
+
     # create a placeholder runner
     run = Runners.factory.returnInstance('PassthroughRunner', data, None,
+                                         identifier=metadata.get('prefix'),
                                          metadata=metadata,
                                          uniqueHandler=uniqueHandler,
                                          profile=profile)
     # place it on the finished queue
     with self.__queueLock:
       self.__finished.append(run)
+      # update identifier factory
+      IDENTIFIERS_COLLECTOR.addIdentifier(run.identifier, uniqueHandler)
 
   def isFinished(self, uniqueHandler=None):
     """
