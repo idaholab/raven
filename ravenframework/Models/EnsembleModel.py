@@ -246,7 +246,7 @@ class EnsembleModel(Dummy):
     for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
       if not isThereACode:
         isThereACode = modelType == 'Code'
-   
+
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
       for inputName in self.modelsInputDictionary[modelName]['Input']:
@@ -271,9 +271,9 @@ class EnsembleModel(Dummy):
       if modelType in ['HybridModel', 'LogicalModel']:
         for submodelInst in self.modelsDictionary[modelName]['Instance'].modelInstances.values():
           if not isThereACode:
-            isThereACode = submodelInst.type == 'Code'       
-      
-      
+            isThereACode = submodelInst.type == 'Code'
+
+
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
       # assert acceptable TargetEvaluation types are used

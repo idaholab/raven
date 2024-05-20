@@ -59,7 +59,6 @@ class IdentifiersFactory(BaseType):
       @ Out, None
     """
     self.__IDENTIFIERS_FACTORY = {} # {identifier:uniqueHandler}
-    self.__IDENTIFIERS_CREATED = []
     self.__counter = 0
 
   def __len__(self):
@@ -91,27 +90,14 @@ class IdentifiersFactory(BaseType):
       self.raiseAnError(RuntimeError, f"Identifier {identifier} is not present in identifier factory. It cannot be removed!")
 
     self.__IDENTIFIERS_FACTORY.pop(identifier)
-    if identifier in  self.__IDENTIFIERS_CREATED:
-      self.__IDENTIFIERS_CREATED.pop(self.__IDENTIFIERS_CREATED.index(identifier))
 
-  def createIdentifier(self, root: str) -> str:
+  def checkIfIdentifierIsInUse(self, identifier: str) -> bool:
     """
-      This method is a utility method used to create an identifier based on a root string
-      that has not been used yet in the factory.
-      @ In, root, str, the root identifier (e.g. ModelName++whatever)
-      @ Out, identifier, str, the new identifier
+      This method is a utility method used to check if an identifier is in use.
+      @ In, identifier, str, the  identifier to check
+      @ Out, checkIfIdentifierIsInUse, bool, is the Identifier in use?
     """
-    cnt = self.__counter
-    keepLooking = True
-    while keepLooking:
-      identifier = f"{root}{utils.returnIdSeparator()}{len(self)}{utils.returnIdSeparator()}{cnt}"
-      if identifier not in list(self.__IDENTIFIERS_FACTORY.keys()) + self.__IDENTIFIERS_CREATED:
-        keepLooking = False
-      else:
-        cnt += 1
-    self.__IDENTIFIERS_CREATED.append(identifier)
-    return identifier
-
+    return identifier in list(self.__IDENTIFIERS_FACTORY.keys())
 
   def clear(self) -> None:
     """
@@ -122,8 +108,6 @@ class IdentifiersFactory(BaseType):
     self.__IDENTIFIERS_FACTORY = {}
 
 IDENTIFIERS_COLLECTOR = IdentifiersFactory()
-
-
 
 class JobHandler(BaseType):
   """

@@ -505,7 +505,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
 
   def constructModelBasedIdentifier(self, jobId):
     """
-      
+
       @ In, jobId, str, jobId (the default identifier coming from Samplers/Optimizers)
       @ Out, new, set, set of filenames that are needed
     """

@@ -183,7 +183,7 @@ class HybridModelBase(Dummy):
       ## evaluateSample function, which currently is not possible since that
       ## function does not know about the job instance.
       metadata = kw
-    
+
       jobHandler.addClientJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
                   uniqueHandler=uniqueHandler,
                   groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
