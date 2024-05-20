@@ -751,7 +751,7 @@ class JobHandler(BaseType):
     # add the runner in the Queue
     self.reAddJob(internalJob)
     # update identifier factory
-    IDENTIFIERS_COLLECTOR.addIdentifier(identifier, uniqueHandler)
+    IDENTIFIERS_COLLECTOR.addIdentifier(internalJob.identifier, uniqueHandler)
 
   def reAddJob(self, runner):
     """
