@@ -2,11 +2,11 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>logicalCodeAndExtModelInEnsembleModel</name>
-    <author>abcd</author>
+    <author>alfoa</author>
     <created>2024-05-17</created>
     <classesTested>Models.LogicalModel, Models.EnsembleModel</classesTested>
     <description>
- 
+     This test is aimed to show how to use a LogicalModel (or HybridModel) within an EnsembleModel. 
     </description>
   </TestInfo>
 
