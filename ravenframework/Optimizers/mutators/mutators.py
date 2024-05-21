@@ -51,7 +51,10 @@ def swapMutator(offSprings, distDict, **kwargs):
   for i in range(np.shape(offSprings)[0]):
     children[i] = offSprings[i]
     ## TODO What happens if loc1 or 2 is out of range?! should we raise an error?
-    if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
+    new_mutationProb=(i/len(children)) #ILM/DHC method
+    new_mutationProb2=1-(i/len(children)) #DHM/ILC method
+    if randomUtils.random(dim=1,samples=1)<new_mutationProb2:
+      #kwargs['mutationProb']
       # convert loc1 and loc2 in terms on cdf values
       cdf1 = distDict[offSprings.coords['Gene'].values[loc1]].cdf(float(offSprings[i,loc1].values))
       cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
@@ -139,6 +142,7 @@ def randomMutator(offSprings, distDict, **kwargs):
   for child in offSprings:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
+      # kwargs['mutationProb']
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
       loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
@@ -199,13 +203,33 @@ def locationsGenerator(offSprings,locs):
     loc2 = np.maximum(locs[0], locs[1])
   return loc1, loc2
 
+def getLinearMutationProbability(iter, limit):
+  """
+  This method is designed to DHM(Decreasing High Mutation) adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(iteration / limit) as mutation rate
+  """
+  return 1-(iter/limit)
+
+def getQuadraticMutationProbability(iter, limit):
+  """
+  This method is designed to Quadratic adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(((1+iteration)/limit))^2 as mutation rate
+  """
+  if(iter == 0):
+    mutationProb = 1
+  else:
+    mutationProb = 1-(((iter+1)/(limit))**2)
+  return mutationProb
+
+
 __mutators = {}
 __mutators['swapMutator']       = swapMutator
 __mutators['scrambleMutator']   = scrambleMutator
 __mutators['bitFlipMutator']    = bitFlipMutator
 __mutators['inversionMutator']  = inversionMutator
 __mutators['randomMutator']     = randomMutator
-
 
 def returnInstance(cls, name):
   """

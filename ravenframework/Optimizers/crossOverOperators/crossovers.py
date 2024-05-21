@@ -26,7 +26,6 @@ from itertools import combinations
 import xarray as xr
 from ...utils import randomUtils
 
-
 # @profile
 def onePointCrossover(parents,**kwargs):
   """
@@ -44,8 +43,6 @@ def onePointCrossover(parents,**kwargs):
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                   'Gene':kwargs['variables']})
-
-
   # defaults
   if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
     crossoverProb = randomUtils.random(dim=1, samples=1)
@@ -54,10 +51,8 @@ def onePointCrossover(parents,**kwargs):
 
   # create children
   parentsPairs = list(combinations(parents,2))
-
   for ind,parent in enumerate(parentsPairs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
-
     if randomUtils.random(dim=1,samples=1) <= crossoverProb:
       if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
         point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
@@ -84,7 +79,7 @@ def uniformCrossover(parents,**kwargs):
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
     @ Out, children, xr.DataArray, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
-  nParents,nGenes = np.shape(parents)
+  nParents,_ = np.shape(parents)
   children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),np.shape(parents)[1])),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
@@ -94,16 +89,17 @@ def uniformCrossover(parents,**kwargs):
     crossoverProb = randomUtils.random(dim=1, samples=1)
   else:
     crossoverProb = kwargs['crossoverProb']
-
-  index = 0
   parentsPairs = list(combinations(parents,2))
-  for parentPair in parentsPairs:
+  for index,parentPair in enumerate(parentsPairs):
     parent1 = parentPair[0].values
     parent2 = parentPair[1].values
-    children1,children2 = uniformCrossoverMethod(parent1,parent2,crossoverProb)
-    children[index]   = children1
-    children[index+1] = children2
-    index +=  2
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+      children1,children2 = uniformCrossoverMethod(parent1,parent2,crossoverProb)
+    else:
+      children1 = parent1
+      children2 = parent2
+    children[2*index]   = children1
+    children[2*index+1] = children2
   return children
 
 
@@ -130,43 +126,51 @@ def twoPointsCrossover(parents, **kwargs):
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})
   parentPairs = list(combinations(parents,2))
-  index = 0
+  if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
+    crossoverProb = randomUtils.random(dim=1, samples=1)
+  else:
+    crossoverProb = kwargs['crossoverProb']
   if nGenes<=2:
     ValueError('In Two point Crossover the number of genes should be >=3!')
-  for couples in parentPairs:
-    [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
-    if loc1 > loc2:
-      locL = loc2
-      locU = loc1
+  for ind, couples in enumerate(parentPairs):
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+      [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
+      if loc1 > loc2:
+        locL = loc2
+        locU = loc1
+      else:
+        locL=loc1
+        locU=loc2
+      parent1 = couples[0]
+      parent2 = couples[1]
+      children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
     else:
-      locL=loc1
-      locU=loc2
-    parent1 = couples[0]
-    parent2 = couples[1]
-    children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
+      children1 = couples[0].copy(deep=True)
+      children2 = couples[1].copy(deep=True)
 
-    children[index]   = children1
-    children[index+1] = children2
-    index = index + 2
-
+    children[2*ind]   = children1
+    children[2*ind+1] = children2
   return children
 
-__crossovers = {}
-__crossovers['onePointCrossover']  = onePointCrossover
-__crossovers['twoPointsCrossover'] = twoPointsCrossover
-__crossovers['uniformCrossover']   = uniformCrossover
-
-
-def returnInstance(cls, name):
+def getLinearCrossoverProbability(iter, limit):
   """
-    Method designed to return class instance
-    @ In, cls, class type
-    @ In, name, string, name of class
-    @ Out, __crossovers[name], instance of class
+  This method is designed to ILC(Increasing Low Crossover) adaptive crossover methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, (iteration / limit) as crossover rate
   """
-  if name not in __crossovers:
-    cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
-  return __crossovers[name]
+  return iter/limit
+
+def getQuadraticCrossoverProbability(iter, limit):
+  """
+  This method is designed to quadratic adaptive crossover methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out,  (iteration+1/limit)^2 as crossover rate
+  """
+  if(iter == 0):
+    crossoverProb = 0
+  else:
+    crossoverProb = ((iter+1)/(limit))**2
+  return crossoverProb
 
 def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
   """
@@ -215,3 +219,46 @@ def uniformCrossoverMethod(parent1,parent2,crossoverProb):
       children2[pos] = parent2[pos]
 
   return children1,children2
+
+def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
+  """
+    Method designed to perform a twopoint crossover on 2 arrays:
+    Partition each array in three sequences (A,B,C):
+    parent1 = A1 B1 C1
+    parent2 = A2 B2 C2
+    Then:
+    children1 = A1 B2 C1
+    children2 = A2 B1 C2
+    @ In, parent1: first array
+    @ In, parent2: second array
+    @ In, LocL: first location
+    @ In, LocU: second location
+    @ Out, children1: first generated array
+    @ Out, children2: second generated array
+  """
+  children1 = parent1.copy(deep=True)
+  children2 = parent2.copy(deep=True)
+
+  seqB1 = parent1.values[locL:locU]
+  seqB2 = parent2.values[locL:locU]
+
+  children1[locL:locU] = seqB1
+  children2[locL:locU] = seqB2
+  return children1,children2
+
+__crossovers = {}
+__crossovers['onePointCrossover']  = onePointCrossover
+__crossovers['twoPointsCrossover'] = twoPointsCrossover
+__crossovers['uniformCrossover']   = uniformCrossover
+
+
+def returnInstance(cls, name):
+  """
+    Method designed to return class instance
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
+  """
+  if name not in __crossovers:
+    cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
+  return __crossovers[name]

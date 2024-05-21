@@ -65,17 +65,18 @@ population = xr.DataArray(population,
                           coords = {'chromosome': np.arange(np.shape(population)[0]),
                                     'Gene':optVars})
 nParents = 2
-children = twoPointsCrossover(population)
+crossoverProb = 1.0
+children = twoPointsCrossover(population,crossoverProb = crossoverProb)
 
 print('twoPointsCrossover')
 print('*'*19)
 print('generated children are: {}'.format(children))
-expectedChildren = xr.DataArray([[ 11.,  22.,  13.],
-                                 [ 21.,  12.,  23.],
-                                 [ 11.,  32.,  13.],
-                                 [ 31.,  12.,  33.],
-                                 [ 21.,  32.,  23.],
-                                 [ 31.,  22.,  33.]],
+expectedChildren = xr.DataArray([[ 11.,  12.,  13.],
+                                 [ 21.,  22.,  23.],
+                                 [ 11.,  12.,  13.],
+                                 [ 31.,  32.,  33.],
+                                 [ 21.,  22.,  23.],
+                                 [ 31.,  32.,  33.]],
                                  dims   = ['chromosome','Gene'],
                                  coords = {'chromosome': np.arange(6),
                                            'Gene'      : optVars})
