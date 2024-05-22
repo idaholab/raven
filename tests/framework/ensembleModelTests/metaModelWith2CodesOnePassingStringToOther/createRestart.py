@@ -14,7 +14,7 @@
 """
 Created on May 14 2024
 
-@author: andrea
+@author: alfoa
 
 This python script/module mimics a code that  creates a solution vector (CSV in this case) that 
 can be used by another code to restart a calculation. The solution vector is contained 
