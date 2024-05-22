@@ -901,7 +901,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, None
     """
     # generate the function variable values
-    for var in  self.variableFunctionExecutionList:
+    for var in self.variableFunctionExecutionList:
       if self.inputInfo.get('batchMode',False):
         for b in range(self.inputInfo['batchInfo']['nRuns']):
           values = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars']
