@@ -15,6 +15,11 @@
 Created on May 14 2024
 
 @author: andrea
+
+This python script/module mimics a code that  creates a solution vector (CSV in this case) that 
+can be used by another code to restart a calculation. The solution vector is contained 
+in a filename that is dumped as well.
+The  'restart' file name can be retrieved by RAVEN and stored in a RAVEN variable.
 """
 import xml.etree.ElementTree as ET
 import sys
