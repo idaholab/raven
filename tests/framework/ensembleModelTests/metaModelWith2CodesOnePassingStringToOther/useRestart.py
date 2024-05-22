@@ -16,8 +16,8 @@ Created on May 14 2024
 
 @author: alfoa
 
-This python script/module mimics a code that  can retrieve a restart file containing a solution vector 
-(CSV in this case) and simply moltiply the content by a factor 'multiplication_factor' retrieved from 
+This python script/module mimics a code that  can retrieve a restart file containing a solution vector
+(CSV in this case) and simply moltiply the content by a factor 'multiplication_factor' retrieved from
 the input file.
 The  'restart' file name can be inputted by RAVEN as a Sampled Variable
 """
