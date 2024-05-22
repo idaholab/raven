@@ -225,7 +225,7 @@ class JobHandler(BaseType):
     # initialize PBS
     with self.__queueLock:
       self.__running       = [None]*self.runInfoDict['batchSize']
-      self.__clientRunning = [None]*self.runInfoDict['batchSize'] * 2
+      self.__clientRunning = [None]*self.runInfoDict['batchSize']
     self._parallelLib = ParallelLibEnum.shared
     if self.runInfoDict['parallelMethod'] is not None and self.runInfoDict['parallelMethod'] != ParallelLibEnum.distributed:
       self._parallelLib = self.runInfoDict['parallelMethod']
