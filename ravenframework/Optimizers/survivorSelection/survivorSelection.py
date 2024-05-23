@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Implementation of survivorSelection step for new generation
-  selection process in Genetic Algorithm. 
+  selection process in Genetic Algorithm.
 
   Created Apr,3,2024
   @authors: Mohammad Abdo, Junyung Kim
