@@ -21,7 +21,7 @@
   5.  randomMutator
 
   Created June,16,2020
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
+  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
 """
 import numpy as np
 import xarray as xr
@@ -34,14 +34,19 @@ def swapMutator(offSprings, distDict, **kwargs):
     E.g.:
     child=[a,b,c,d,e] --> b and d are selected --> child = [a,d,c,b,e]
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           locs, list, the 2 locations of the genes to be swapped
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
           variables, list, variables names.
     @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
-  loc1,loc2 = locationsGenerator(offSprings, kwargs['locs'])
+  if kwargs['locs'] == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+    loc1 = np.minimum(locs[0], locs[1])
+    loc2 = np.maximum(locs[0], locs[1])
+  else:
+    loc1 = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
+    loc2 = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -65,7 +70,6 @@ def scrambleMutator(offSprings, distDict, **kwargs):
     This method performs the scramble mutator. For each child, a subset of genes is chosen
     and their values are shuffled randomly.
     @ In, offSprings, xr.DataArray, offsprings after crossover
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           chromosome, numpy.array, the chromosome that will mutate to the new child
           locs, list, the locations of the genes to be randomly scrambled
@@ -73,7 +77,12 @@ def scrambleMutator(offSprings, distDict, **kwargs):
           variables, list, variables names.
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
-  loc1,loc2 = locationsGenerator(offSprings, kwargs['locs'])
+  if kwargs['locs'] == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+    locs.sort()
+  else:
+    locs = [kwargs['locs'][0], kwargs['locs'][1]]
+    locs.sort()
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -86,9 +95,9 @@ def scrambleMutator(offSprings, distDict, **kwargs):
       children[i,j] = distDict[offSprings[i].coords['Gene'].values[j]].cdf(float(offSprings[i,j].values))
 
   for i in range(np.shape(offSprings)[0]):
-    for ind,element in enumerate([loc1,loc2]):
+    for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
-        children[i,loc1:loc2+1] = randomUtils.randomPermutation(list(children.data[i,loc1:loc2+1]),None)
+        children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(children.data[i,locs[0]:locs[-1]+1]),None)
 
   for i in range(np.shape(offSprings)[0]):
     for j in range(np.shape(offSprings)[1]):
@@ -103,7 +112,6 @@ def bitFlipMutator(offSprings, distDict, **kwargs):
     The gene to be flipped is completely random.
     The new value of the flipped gene is is completely random.
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
@@ -129,7 +137,6 @@ def randomMutator(offSprings, distDict, **kwargs):
   """
     This method is designed to randomly mutate a single gene in each chromosome with probability = mutationProb.
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
@@ -156,13 +163,18 @@ def inversionMutator(offSprings, distDict, **kwargs):
     E.g. given chromosome C = [0,1,2,3,4,5,6,7,8,9] and sampled locL=2 locU=6;
          New chromosome  C' = [0,1,6,5,4,3,2,7,8,9]
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
   # sample gene locations: i.e., determine locL and locU
-  locL,locU = locationsGenerator(offSprings, kwargs['locs'])
+  if kwargs['locs'] == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+    locL = np.minimum(locs[0], locs[1])
+    locU = np.maximum(locs[0], locs[1])
+  else:
+    locL = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
+    locU = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
 
   for child in offSprings:
     # the mutation is performed for each child independently
@@ -171,7 +183,7 @@ def inversionMutator(offSprings, distDict, **kwargs):
       seq = np.arange(locL,locU+1)
       allElems = []
       for i,elem in enumerate(seq):
-        allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
+         allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
 
       mirrSeq = allElems[::-1]
       mirrElems = []
@@ -181,23 +193,6 @@ def inversionMutator(offSprings, distDict, **kwargs):
       child.values[locL:locU+1]=mirrElems
 
   return offSprings
-
-def locationsGenerator(offSprings,locs):
-  """
-  Methods designed to process the locations for the mutators. These locations can be either user specified or
-  randomly generated.
-  @ In, offSprings, xr.DataArray, children resulting from the crossover process
-  @ In, locs, list, the two locations of the genes to be swapped
-  @ Out, loc1, loc2, int, the two ordered processed locations required by the mutators
-  """
-  if locs == None:
-    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-    loc1 = np.minimum(locs[0], locs[1])
-    loc2 = np.maximum(locs[0], locs[1])
-  else:
-    loc1 = np.minimum(locs[0], locs[1])
-    loc2 = np.maximum(locs[0], locs[1])
-  return loc1, loc2
 
 __mutators = {}
 __mutators['swapMutator']       = swapMutator
