@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers/SimulatedAnnealing.BoltzmanSA</name>
+    <name>framework/Optimizers/SimulatedAnnealing/continuous.ExponentialSA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
@@ -13,7 +13,7 @@
       Parameter range is $-4.5 \leq x,y \leq 4.5$.
     </description>
     <analytic>
-      This test uses Beale's function, which is documented in the analytic tests documentation under
+      This test uses beale's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
   </TestInfo>
@@ -50,20 +50,20 @@
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>5000</limit>
+        <limit>3000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>1e-6</objective>
-        <temperature>5e-3</temperature>
+        <objective>-1</objective>
+        <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>
-        <boltzmann>
-          <d>1.0</d>
-        </boltzmann>
+        <exponential>
+          <alpha>0.94</alpha>
+        </exponential>
       </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
@@ -79,7 +79,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
