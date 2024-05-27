@@ -132,7 +132,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot name="PlotAll" overwrite="false" verbosity="debug">
+    <Plot name="PlotAll" overwrite="True" verbosity="debug">
       <plotSettings>
         <gridSpace>5 1</gridSpace>
         <plot>

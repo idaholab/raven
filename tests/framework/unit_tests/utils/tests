@@ -39,6 +39,10 @@
   type = 'RavenPython'
   input = 'testFrontUtils.py'
  [../]
+ [./inputDataToXML]
+  type = 'RavenPython'
+  input = 'testInputDataToXml.py'
+ [../]
 []
 
 

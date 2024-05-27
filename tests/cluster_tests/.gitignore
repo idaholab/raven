@@ -8,6 +8,8 @@ FirstMFRun/
 FirstMLRun/
 FirstMForcedRun/
 FirstMQL/
+FirstMPre/FirstMPreRun/
+FirstMPre/samples.xml
 DatabaseStorage/
 *.log
 InternalParallel/InternalParallelExtModel/test*Set_dump.xml

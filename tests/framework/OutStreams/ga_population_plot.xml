@@ -39,7 +39,7 @@
   </DataObjects>
 
   <OutStreams>
-    <Plot name="plotter" subType="PopulationPlot">
+    <Plot name="plotter" subType="PopulationPlot"  overwrite="True" dir="OptimizationPlots">
       <source>samples</source>
       <vars>a,b,c,d,ans</vars>
       <logVars>ans</logVars>

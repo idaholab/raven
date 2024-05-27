@@ -66,13 +66,14 @@ class PolynomialRegression(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeS
     settings['degree'] = spec.findFirst('degree').value
     return settings
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, additional settings specific to this algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characteristic parameters
     """
     from sklearn.preprocessing import PolynomialFeatures

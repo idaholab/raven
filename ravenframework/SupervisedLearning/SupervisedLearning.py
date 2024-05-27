@@ -204,6 +204,8 @@ class SupervisedLearning(BaseInterface):
     # After the computation, the importances are set as attribute of the self.model
     # variable and called 'feature_importances_' and accessable as self.model.feature_importances_
     self.computeImportances = False
+    # distinction between existing param `isClusterable` and whether it does, in fact, have clusters
+    self._hasClusters = False # can only be true if `isClusterable`==True
 
   def __getstate__(self):
     """
@@ -658,6 +660,17 @@ class SupervisedLearning(BaseInterface):
     # by default, nothing to write!
     self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
+  def getSegmentPointwiseData(self):
+    """
+      Allows the SVE to accumulate data arrays to later add to a DataObject
+      Overload in subclasses.
+      @ In, None
+      @ Out, segmentData, dict
+    """
+    # by default, nothing to write!
+    self.raiseAMessage('Writing ROM, but no pointwise data found. Moving on ...')
+    return {}
+
   def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
@@ -701,12 +714,35 @@ class SupervisedLearning(BaseInterface):
   ### ROM Clustering (see ROMCollection.py) ###
   def isClusterable(self):
     """
-      Allows ROM to declare whether it has methods for clustring. Default is no.
+      Allows ROM to declare whether it has methods for clustering. Default is no.
       @ In, None
       @ Out, isClusterable, bool, if True then has clustering mechanics.
     """
     # only true if overridden.
     return False
+
+  def overrideHasClusters(self, willHaveClusters: bool):
+    """
+      Sets protected class member which tells ROM whether there will be clustering
+      @ In, willHaveClusters. bool, will the ROM have clustering in this run?
+      @ Out, None
+    """
+    assert isinstance(willHaveClusters, bool)
+    if not self.isClusterable():
+      # if ROM can't cluster in the first place... default to False
+      if willHaveClusters:
+        self.raiseAWarning("Clustering not allowed in this ROM, defaulting `hasClusters` to False")
+      self._hasClusters = False
+    else:
+      self._hasClusters = willHaveClusters
+
+  def hasClusters(self):
+    """
+      Allows ROM to declare if is *has* clusters, not just if it is capable. Default is no.
+      @ In, None
+      @ Out, hasClusters, bool, if True then contains clusters
+    """
+    return self._hasClusters
 
   def checkRequestedClusterFeatures(self, request):
     """

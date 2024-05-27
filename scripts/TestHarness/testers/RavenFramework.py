@@ -56,7 +56,6 @@ class RavenFramework(Tester):
   """
   RavenFramework is the class to use for testing standard raven inputs.
   """
-
   @staticmethod
   def get_valid_params():
     """
@@ -106,16 +105,19 @@ class RavenFramework(Tester):
     """
       Gets the raven command to run this test.
       @ In, None
-      @ Out, get_command, string, command to run.
+      @ Out, command, string, command to run.
     """
-    ravenflag = ''
+    flags = []
     if self.specs['test_interface_only']:
-      ravenflag += ' interfaceCheck '
+      flags.append('interfaceCheck')
 
     if self.specs['interactive']:
-      ravenflag += ' interactiveCheck '
+      flags.append('interactiveCheck')
 
-    return self._get_python_command() + " " + self.driver + " " + ravenflag + self.specs["input"]
+    if (command := self._get_test_command()) is not None:
+      return ' '.join([command, *flags, self.specs["input"]])
+    else:
+      return ' '.join([self._get_python_command(), self.driver, *flags, self.specs["input"]])
 
   def __make_differ(self, specName, differClass, extra=None):
     """

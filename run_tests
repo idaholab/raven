@@ -20,12 +20,18 @@ source $RAVEN_RC_SCRIPT
 # set up installation manager
 INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
 
+# maybe skip loading the environment in .ravenrc
+SKIP_LOAD_ENV=0
+
 # read command-line arguments
 ARGS=()
 for A in "$@"; do
     case $A in
         --skip-conda)
             INSTALLATION_MANAGER=PIP
+            ;;
+        --skip-load-env)
+            SKIP_LOAD_ENV=1
             ;;
         --raven)
             TEST_SET=0
@@ -44,12 +50,18 @@ for A in "$@"; do
     esac
 done
 echo 'Loading libraries ...'
-if  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
+if [[ $SKIP_LOAD_ENV == 1 ]];
+then
+    echo Using currently active python environment, with command $(which python)
+    PYTHON_COMMAND=$(which python)
+elif  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
+    echo Loaded conda environment, with command $(which python)
 elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
+    echo Loaded pip environment, with command $(which python)
 else
     echo No installation: $INSTALLATION_MANAGER
     if [ -z $PYTHON_COMMAND ];
@@ -106,6 +118,8 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo 'Running RAVEN tests ...'
 
+  echo "Python command: $PYTHON_COMMAND"
+  echo "Script directory: $SCRIPT_DIR"
   $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
   # store return codes individually (rc) and combined (ALL_PASS)
   rc=$?

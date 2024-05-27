@@ -5,45 +5,29 @@
 \subsection{SERPENT Interface}
 \label{subsec:serpentInterface}
 The Serpent interface is meant to run multiple user-defined SERPENT simulations
-while storing the following values: 
+while storing the values contained in the following output file types: 
 \begin{itemize}
-\item Input composition
-\item Depletion time
-\item Output composition
-\item Beginning Of Cycle / End Of Cycle Keff
+\item Results' file (``\_res.m'')
+\item Detectors' files  (``\_det[bu].m'')
+\item Depletion file (``\_dep.m'')
+\item Burn-up matrices' files (``\_depmtx\_[mat]\_[bu]\_[ss].m'')
 \end{itemize}
 
-It allows users to run SERPENT by varying a value
-(e.g. depletion time, input composition) from a template input file.
-For example, a user can run a \texttt{MultiRun} where the depletion
-time of a fixed input composition is varied, to see the effect of
-depletion time on the output composition and End Of Cycle Keff.
-
-There are some limitations for this interface:
+where:
 \begin{itemize}
-\item Only the parameters mentioned above will be stored in the output csv file
-\item You cannot run multiple depletion steps
+\item  \texttt{bu} is the burn up step index
+\item  \texttt{mat} is the material name
+\item  \texttt{ss} is the sub step id (if depletion with sub-steps is activated).
 \end{itemize}
 
-Due to the large number of isotopes that might be tracked,
-a utility script is provided in
-$RAVEN\_HOME/framework/CodeInterfaces/SERPENT/utilityForCreatingVariables$
-to create the variable names that can be used in a RAVEN input file.
-
-The user can edit the \texttt{isoFile} so that it
-matches the exact isotope nomenclature used in the SERPENT simulations for the isotopes
-to be in the output csv file. To do so:
-
-\begin{enumerate}
-\item edit \texttt{isoFile} to match isotope nomenclature in SERPENT
-\item run \texttt{python generateCustomVariable.py}
-\end{enumerate}
-
-This will automatically generate the feature and target space XML files
-used in the RAVEN input file.
-
+The interface allows users to run SERPENT by varying values from a 
+template input file using the wildcard approach available through the
+generic code interface. In section \ref{subsec:genericInterface}  information
+on how to use the wildcard approach and all the available options of the interface
+can be found.
 
 \subsubsection{Models}
+\label{subsubsec:serpentInterfaceModels}
 In order to run the code, make sure you have a valid SERPENT input file.
 
 In the RAVEN input file, your \xmlNode{Models} node should look like:
@@ -54,14 +38,12 @@ In the RAVEN input file, your \xmlNode{Models} node should look like:
       <executable>/my/path/to/serpent/sss2</executable>
       <clargs arg="" extension=".serpent" type="input"/>
       <clargs arg="--noplot" type="postpend"/>
-      <traceCutOff>1e-6<traceCutOff/>
-      <isotope_list>mylist.csv<isotope_list/>
-      <!-- or 
-      <isotope_list>
-        1001,290750,34078,38089,411090,451121,
-        481191,501281,531390,571450,611570,671661,882280
-      <isotope_list/>
-      -->
+      <additionalFileTypes>
+        DepletionReader, DetectorReader, DepmtxReader
+      <additionalFileTypes/>
+      <!-- EOL parameters -->
+      <EOL target="absKeff">1.0</EOL>
+      <EOL target="impKeff">1.0</EOL>
     </Code>
 </Models>
 \end{lstlisting}
@@ -78,21 +60,57 @@ where the \texttt{inputFile} is defined in the \xmlNode{Files} node as:
 </Files>
 \end{lstlisting}
 
-Two additional XML nodes can be added in the bloc:
-
+Additional XML sub-nodes can be optionally added in the \xmlNode{Code} XML node is:
 \begin{itemize}
-   \item \xmlNode{traceCutOff}, \xmlDesc{float, optional parameter},  the trace cut off density.
-   \item \xmlNode{isotope\_list}, \xmlDesc{string or comma separated list, required parameter}, This node contains the list
-   of isotopes to track. If a ``csv'' is provided, the list is read from such file, otherwise the isotopes are read from the node
-   directly.
+   \item \xmlNode{additionalFileTypes}, \xmlDesc{comma separated list, optional parameter},  additional output file types 
+                                                              that the interface needs to process.  
+                                                              Available options are:  
+                                                              \begin{itemize}
+                                                                \item  \textit{ResultsReader} (``*\_res.m''), Results’ file.
+                                                                \item  \textit{DepletionReader} (``*\_dep.m''), Depletion file.
+                                                                 \item \textit{DetectorReader}  (``*\_det[bu].m''), Detectors’ files.
+                                                                \item  \textit{DepmtxReader} (``*\_depmtx\_[mat]\_[bu]\_[ss].m''), Burn-up matrices’ files.
+                                                              \end{itemize}
+                                                              \nb By default  the ``Results'' (``\_res.m'') file (using the ``ResultReader'') is the 
+                                                               only output file processed (``*\_res.m'') by the interface. 
+                                                               For variable processing conventions, see section  
+                                                               \ref{subsubsec:serpentInterfaceOutputConversion}.
+   \item \xmlNode{EOL}, \xmlDesc{float, optional parameter},  value of the ``target'' at which the time (in burnup calculations) of end of life should be recorded.
+                                                             The  \xmlNode{EOL} node  must contain the attribute \xmlAttr{target}, which indicates the FOM in the Results file that should be
+                                                             monitored (e.g. ``absKeff''). The user can specify as many  \xmlNode{EOL} as needed.
+                                                              
+                                                              \nb  The output parser will generate an output variable called ``EOL\_\textit{target}'' that represents the time at which the 
+                                                              parameter ``target'' takes the value indicated in this node. For example,  if ``target'' == absKeff and the value of the XML node is 1.0, 
+                                                              the variable ``EOL\_absKeff'' will contain the time (burnDays) at which the ``absKeff'' == 1.0.
+                                                              
 \end{itemize}
 
 \subsubsection{Files}
 The only input file needed is a complete SERPENT input file,
 which means that it should either be self sufficient, or includes
 the necessary files (e.g. geometry, material definition files).
-The input file extension will depend on the the extension definition
-in the \xmlNode{Models} node.
+The main \textit{SERPENT} input file must be tagged with the
+type ``serpent'' (as shown below). The auxiliary files, included in the
+main input file through the SERPENT include nomenclature (i.e., `` include "myAuxFile" ''),
+do not need to be tagged with any specific type:
+
+\begin{lstlisting}[style=XML]
+  <Files>
+    <Input name="sMainInput" type="serpent">
+      mySerpentInputFile.serpent
+     </Input>
+    <Input name="detectors"  type="">
+     detectors
+     </Input>
+    <Input name="geometry"  type="">
+      geometry
+    </Input>
+  </Files>
+\end{lstlisting}
+
+\nb Since the Generic Code interface (see section  \ref{subsec:genericInterface})
+      is used to perturb the SERPENT input file, the wild-carded variables to perturb
+      can be present in any of the files needed by SERPENT (main input file and its ``include'' files).
 
 \subsubsection{Samplers / Optimizers}
 In the \xmlNode{Samplers} block the user can define the variables
@@ -116,10 +134,9 @@ Then in the RAVEN input file, the \xmlNode{Samplers} block would be:
     </Grid>
   </Samplers>
 \end{lstlisting}
-where the distributiong \texttt{timedist} is defined in the \xmlNode{Distributions}:
+where the distribution \texttt{timedist} is defined in the \xmlNode{Distributions}:
 \begin{lstlisting}[style=XML]
   <Distributions>
-    <!-- uniform distribution from 0.1 to 1 -->
     <Uniform name="timedist">
       <lowerBound>0.0</lowerBound>
       <upperBound>100</upperBound>
@@ -130,69 +147,150 @@ where the distributiong \texttt{timedist} is defined in the \xmlNode{Distributio
 Then this run would be defined in the \xmlNode{Steps} block as \xmlNode{MultiRun}:
 \begin{lstlisting}[style=XML]
 <MultiRun name="runGrid">
-      <!-- runGrid runs serpent by the number of steps with sampled variable -->
-      <Input   class="Files"       type=""          >originalInput</Input>
-      <Model   class="Models"      type="Code"      >SERPENT</Model>
-      <Sampler class="Samplers"    type="Grid"      >myGrid</Sampler>
-      <Output  class="DataObjects" type="PointSet"  >outPointSet</Output>
+      <!-- runGrid runs serpent by 
+           the number of steps with
+           sampled variable 
+       -->
+      <Input class="Files" type="serpent">
+        sMainInput
+      </Input>
+      <Input  class="Files" type="">
+        detectors
+      </Input>
+      <Input class="Files" type="">
+        geometry
+      </Input>
+      <Model class="Models" type="Code">
+        SERPENT
+      </Model>
+      <Sampler class="Samplers" type="Grid" >
+        myGrid
+      </Sampler>
+      <Output class="DataObjects" type="PointSet">
+        outPointSet
+      </Output>
 </MultiRun>
 \end{lstlisting}
 
 \subsubsection{Output Files Conversion}
-A single SERPENT run creates at least three output files,
-\texttt{[input]\_res.m, [input].out, [input]\_dep.m}.
-Since the interface is
-focused on acquiring the depleted composition, the \texttt{[input].bumat[n]}
-file is used as well. Examples of the SERPENT output files are replicated below.
+\label{subsubsec:serpentInterfaceOutputConversion}
+SERPENT can generate several output files. The description of 
+such output files can be found in SERPENT documentation page  
+(available at \url{https://serpent.vtt.fi/mediawiki/index.php/Main_Page}).
 
-\begin{lstlisting}[language={}]
-% bumat file
-% .bumat0 is initial, .bumat1 is depleted
-mat  fuel  7.98978775163891E-02 vol 1.95057E+07
-            % isotope    % atomic density
-            3006.09c  1.27142536007818E-06
-            3007.09c  2.27080541933364E-02
-           90232.09c  3.79539634267135E-03
-           92233.09c  6.32566047430223E-05
-\end{lstlisting}
+As mentioned in previous sections, the interface processes, by default, the
+main Results file \texttt{[input]\_res.m} (both in time-independent  and burnup calculations).
+Additional output files can be requested, as described in Section 
+\ref{subsubsec:serpentInterfaceModels}. Such output types are:
+\begin{itemize}
+   \item  \textit{ResultsReader} (``*\_res.m''), Results’ file.
+   \item  \textit{DepletionReader} (``*\_dep.m''), Depletion file.
+   \item \textit{DetectorReader}  (``*\_det[bu].m''), Detectors’ files.
+   \item  \textit{DepmtxReader} (``*\_depmtx\_[mat]\_[bu]\_[ss].m''), Burn-up matrices’ files.
+\end{itemize}
 
-\begin{lstlisting}[language={}]
+In this section, the naming conventions for the variables in each of the available output types 
+are reported.\\
+
+\textit{\textbf{\underline{ResultsReader}}}
+\\The \textit{ResultsReader} is the default output parsing option. 
+The reader is responsible to read the result files (``*\_res.m'').
+The parser reads all the results (time-independent  or burnup dependent) that can
+be found in the file.
+The variable names are converted from using underscores (``\_'') to \textit{\textbf{camelBack}}. For example,
+the variables \textit{\textbf{ANA\_KEFF}} and  \textit{\textbf{IMP\_KEFF}}  will be renamed
+ as \textit{\textbf{anaKeff}} and \textit{\textbf{impKeff}}, respectively. 
+ \\In addition, the variables characterized by multiple elements will be expanded in unique variables, 
+ appending to the variable name the element index (e.g. 0, 1, 2, etc.). 
+ \begin{lstlisting}[language={matlab}]
 % _res.m file
-% The file contains all results by the code, including Keff value
-% Only the section with criticality eigenvalues are used.
+ANA_KEFF  (idx, [1:   6]) = [1.0E+00 0.001 9.9E-01 0.001 1.0E-02 0.001];
+IMP_KEFF  (idx, [1:   2]) = [1.0E+00 0.001];
+\end{lstlisting}
+For example, for the above snippet of the result file, the variables generated would be:
 
-% Criticality eigenvalues:
-% [mean standard dev]
-ANA_KEFF  (idx, [1:   6]) = [  9.69430E-01 0.00074  1.07409E-01 0.00074  3.01736E-04 0.01757 ];
-IMP_KEFF  (idx, [1:   2]) = [  9.69535E-01 0.00030 ];
-COL_KEFF  (idx, [1:   2]) = [  9.69943E-01 0.00070 ];
+\begin{table}[ht]
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
+\hline
+\textit{anaKeff\_0} & \textit{anaKeff\_1} & \textit{anaKeff\_2} & \textit{anaKeff\_3} & \textit{anaKeff\_4} & \textit{anaKeff\_5} & \textit{impKeff\_0} & \textit{impKeff\_1} \\ \hline
+1.E+00              & 0.001               & 9.9E-01             & 0.001               & 1.E-02              & 0.001               & 1.E+00              & 0.001               \\ \hline
+\end{tabular}
+\end{table}
+
+For burnup calculations the same syntax is used with the different that multiple rows are generated each of them indexed by the burnup step.
+
+\textit{\textbf{\underline{DepletionReader}}}
+\\The \textit{DepletionReader} is aimed to parse and process depletion files.
+The reader is responsible to read the depletion file (``*\_dep.m'').
+The parser reads all the depletion results that can
+be found in the file.
+The variable names are converted from using underscores (``\_'') to \textit{\textbf{camelBack}}. For example,
+the variable \textit{\textbf{ING\_TOX}} will be renamed
+ as \textit{\textbf{ingTox}}.
+ The parser parses the materials, isotopes and quantities for creating unique variables, based on the following nomenclature:
+  \begin{lstlisting}[language={matlab}]
+   [materialName]_[isotope]_[quantity]
+\end{lstlisting}
+For example, The variable referring to the  \textit{activity}  of the  \textit{U235}  isotope in material  \textit{UO2} will be called:
+\textit{UO2\_U235\_activity}.
+For global variables (not linked to specific isotopes) the same nomenclature reported above is used removing the ``isotope'' section.
+For example, the burnup of the material \textit{UO2} will be named \textit{UO2\_burnup}.
+
+\textit{\textbf{\underline{DetectorReader}}}
+\\The \textit{DetectorReader} is aimed to parse and process the detector output files.
+The reader is responsible to read the detector files (``*\_det[bu].m'') for both time-independent and burnup calculations.
+The parser reads all the detector results that can
+be found in the files.
+For detector returning scalar quantities (E.g. total flux on a surface), the variable nomenclature is as follows:
+  \begin{lstlisting}[language={matlab}]
+   for the actual scalar result:
+   [dName]
+   for the uncertainty/error associated with the detector score:
+   [dName]_err
+\end{lstlisting}
+For detector returning a field quantity (e.g. energy and spatial dependent flux), the variable nomenclature is as follows:
+  \begin{lstlisting}[language={matlab}]
+   for the actual detector score entry
+   [dName]_[gridIndexName1]_[gridIndexValue1] (...)_[gridIndexNameN]_[gridIndexValueN]  ]
+   for the uncertainty/error associated with the detector score entry:
+   [dName]_[gridIndexName1]_[gridIndexValue1] (...)_[gridIndexNameN]_[gridIndexValueN]_err
 \end{lstlisting}
 
 
-The interface parses through \texttt{[input]\_res.m} file
-to obtain the Beginning Of Cycle and End Of Cycle Keffs, and the 
-\texttt{[input].bumat0} and \texttt{[input].bumat1} file to obtain the
-input / output compositions. In the output csv file, the input compositions
-are prepended with the letter `f', and the output compositions with the letter `d'
-(e.g. f92235, d94239), for separation. 
+\textit{\textbf{\underline{DepmtxReader}}}
+\\The \textit{DepmtxReader} is aimed to parse and process Burn-up matrices’ files.
+Since the matrices can be quite large, the parser reads the matrices and store them in a serialized file.
+The filename is returned to RAVEN following the nomenclature:
+  \begin{lstlisting}[language={matlab}]
+    filename_depmtx_zai_[materialName]_[bu]_[ss]
+\end{lstlisting}
+ In addition, the 1 group flux used for the depletion is returned as follows:
+  \begin{lstlisting}[language={matlab}]
+     flx_[materialName]_[bu]_[ss]
+\end{lstlisting} 
 
-An example is given below where only two isotopes, U-235 and Pu-241 are tracked.
-The values under the isotopes are in atomic density.
+\subsubsection{SERPENT/RAVEN variable generation through script}
+Since the number of output variables generated by SERPENT and processable by SERPENT/RAVEN interface is quite large and,
+consequentially, manually listing them would be cumbersome, 
+an utility script has been provided to create  \xmlNode{VariableGroups} (\xmlNode{Group}s XML nodes) containing all the
+variables (with the correct nomenclature as seen in section \ref{subsubsec:serpentInterfaceOutputConversion} extractable by
+specific output files.
+\\In order to link the variable generation to the specific SERPENT case of interest, the script inspects pre-generated SERPENT output files
+provided by the user.
+\\The script is located at \path{RAVEN_HOME/ravenframework/CodeInterfaceClasses/SERPENT/utilityForCreatingVariables/generateRavenVariables.py} and
+can be invoked like indicated (for example) below:
+\begin{lstlisting}[language=bash]
+python generateRavenVariables.py -fileTypes ResultsReader,DepletionReader,DetectorReader,DepmtxReader   -fileRoot mySerpentInputFile -o myOptionalScriptOutputFilename
+\end{lstlisting}
+where:
+\begin{itemize}
+\item  \texttt{-fileTypes}, Comma-separated list of output file types from which variable names need to be extracted. 
+                                     Currently, the available types  are the ones indicated in \ref{subsubsec:serpentInterfaceOutputConversion} 
+                                     (e.g. ResultsReader,DepletionReader,DetectorReader,DepmtxReader)
+\item  \texttt{-fileRoot}, File name root from which all the output files are going to be inferred. 
+                                    For example, if the ``fileRoot'' is ``myInputFile'', the ``ResultsReader'' file that the script will parse
+                                    must be named ``myInputFile\_res.m''.
+\item  \texttt{-o}, Optional output file name. If not provided, the script will store the  \xmlNode{VariableGroups} in file named \path{ravenOutputVariables.xml}.
+\end{itemize}
 
-\begin{table}[h]
-  \centering
-  \resizebox{\textwidth}{!}{
-    \begin{tabular}{|l|l|l|l|l|l|l|}
-      \hline eocKeff
-      f92235 & f94241 & deptime & eocKeff & bocKeff & d92235 & d94241 \\
-      \hline
-      6.32e-05 &  0.00 & 1.0 & 0.9694 &  9.6065 & 3.79e-03 & 7.07e-41 \\
-      \hline
-      6.32e-05 &  0.00 & 10.0 & 0.9694 &  9.536 & 6.32e-05 & 4.50e-37 \\
-      \hline
-    \end{tabular}
-    }
-    \caption{Example csv file generated by RAVEN running SERPENT}
-    \label{tab:ser-rav}
-\end {table}
 

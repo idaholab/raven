@@ -54,7 +54,7 @@ class OutStreamInterface(BaseInterface):
     self.printTag = 'OutStreamInterface'
     self.overwrite = True       # overwrite existing creations?
     self.subDirectory = None    # directory to save generated files to
-    self.filename = ''          # target file name
+    self.filename = None        # target file name
     self.numberAggregatedOS = 1 # number of aggregated outstreams # no addl info from original OutStream
 
   def handleInput(self, spec):

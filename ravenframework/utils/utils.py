@@ -547,6 +547,30 @@ def importFromPath(filename, printImporting = True):
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
 
+def importOrInstall(package):
+  """
+    Method to import or install (if not found) a library named "package"
+    @ In, package, str, the package name to import
+    @ Out, pckImport, module, the imported module
+
+    NOTE: This method should be used only by developers
+          since it silently install packages
+          if not found
+  """
+  pckImport = None
+  try:
+    pckImport = __import__(package)
+  except ImportError:
+    print("(            ) "+UreturnPrintTag('UTILS')+": "+UreturnPrintPostTag('Message') + " -> Python package "+package+"not found. Trying to install it via pip!")
+    import subprocess
+    s = subprocess.getstatusoutput("python -m pip install " + package)
+    if int(s[0]) == 0:
+      print("(            ) "+ UreturnPrintTag('UTILS')+": "+ UreturnPrintPostTag('Message') + " -> Installation succeded!")
+      pckImport = __import__(package)
+    else:
+      print("(            ) " + UreturnPrintTag('UTILS')+ ": " + UreturnPrintPostTag('Message') + " -> Installation failed with error: " + s[1] )
+  return pckImport
+
 def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
   """
     !!WARNING!! This method expects "sortedList" to already be a sorted list of float values!
@@ -655,6 +679,14 @@ def find_crow(framework_dir):
     @ In, framework_dir, string, the absolute path of the framework
     @ Out, None
   """
+  # Rearrange the values in sys.path so that any entry containing "site-packages" is at the
+  # beginning. If there's a pip-installed version of crow_modules, we want to be able to import it
+  # before looking for the source version. No paths are added or removed, just reordered.
+  sitePackagesDir = [loc for loc in sys.path if loc.endswith("site-packages")]
+  for loc in sitePackagesDir:
+    sys.path.remove(loc)
+    sys.path.insert(0, loc)
+
   try:
     import crow_modules.distribution1D
     return

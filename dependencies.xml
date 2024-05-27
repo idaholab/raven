@@ -60,10 +60,10 @@ Note all install methods after "main" take
     <lxml/>
     <psutil/>
     <pip/>
+    <pyDOE3/>
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
-    <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
     <ray source="pip" pip_extra="[default]">2.6</ray>
@@ -73,6 +73,7 @@ Note all install methods after "main" take
     <smt machine='x86_64'/> <!-- not available on macos arm64 -->
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
+    <statsforecast/>
     <pywavelets optional='True'>1.2</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
@@ -90,6 +91,7 @@ Note all install methods after "main" take
     <liblapack skip_check='True' os='mac' machine='x86_64'>3.9.0=20_osx64_openblas</liblapack>
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source="mamba" skip_check='True'/>
+    <serpentTools optional='True' source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
@@ -97,7 +99,6 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
     <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
@@ -106,6 +107,5 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
   </alternate>
 </dependencies>

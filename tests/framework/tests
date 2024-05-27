@@ -230,6 +230,13 @@
    csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
    rel_err = 2.0e-3
  [../]
+ [./redundantInputsWithFunctionsInSameFile]
+   type = 'RavenFramework'
+   input = 'test_redundant_inputs_functions_same_python_file.xml'
+   output = 'RedundantInputsFunctionsSameModule/mc_out.xml'
+   csv = 'RedundantInputsFunctionsSameModule/mc_out.csv'
+   rel_err = 2.0e-3
+ [../]
  [./redundantInputsSCgPC]
    type = 'RavenFramework'
    input = 'test_redundant_scgpc.xml'

@@ -1,0 +1,91 @@
+<DataObjectMetadata name="romMeta">
+  <synth type="Static">
+    <ROM>
+      <type>SyntheticHistoryROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,pivot</Targets>
+    </ROM>
+    <Fourier>
+      <signal0>
+        <fit_intercept>4.190088012e+01</fit_intercept>
+        <waveform period="2.000000000e+00" frequency="5.000000000e-01">
+          <amplitude>8.158731520e+00</amplitude>
+          <phase>-9.086070095e-03</phase>
+        </waveform>
+        <waveform period="5.000000000e+00" frequency="2.000000000e-01">
+          <amplitude>9.876028874e+00</amplitude>
+          <phase>7.730227735e-01</phase>
+        </waveform>
+        <waveform period="1.000000000e+01" frequency="1.000000000e-01">
+          <amplitude>1.195819352e+01</amplitude>
+          <phase>3.107425093e+00</phase>
+        </waveform>
+        <waveform period="2.000000000e+01" frequency="5.000000000e-02">
+          <amplitude>1.510292050e+01</amplitude>
+          <phase>3.864956787e-01</phase>
+        </waveform>
+        <waveform period="5.000000000e+01" frequency="2.000000000e-02">
+          <amplitude>4.984277709e+01</amplitude>
+          <phase>1.531541001e-03</phase>
+        </waveform>
+      </signal0>
+      <signal1>
+        <fit_intercept>4.179230611e+01</fit_intercept>
+        <waveform period="2.000000000e+00" frequency="5.000000000e-01">
+          <amplitude>8.078937429e+00</amplitude>
+          <phase>8.082315775e-03</phase>
+        </waveform>
+        <waveform period="5.000000000e+00" frequency="2.000000000e-01">
+          <amplitude>9.637360630e+00</amplitude>
+          <phase>7.955316550e-01</phase>
+        </waveform>
+        <waveform period="1.000000000e+01" frequency="1.000000000e-01">
+          <amplitude>1.198551278e+01</amplitude>
+          <phase>3.130758005e+00</phase>
+        </waveform>
+        <waveform period="2.000000000e+01" frequency="5.000000000e-02">
+          <amplitude>1.515150978e+01</amplitude>
+          <phase>3.893342125e-01</phase>
+        </waveform>
+        <waveform period="5.000000000e+01" frequency="2.000000000e-02">
+          <amplitude>5.032208201e+01</amplitude>
+          <phase>8.256117239e-04</phase>
+        </waveform>
+      </signal1>
+    </Fourier>
+    <Gaussianize>
+      <signal0 />
+      <signal1 />
+    </Gaussianize>
+    <AutoARMA>
+      <signal0>
+        <P_opt>1</P_opt>
+        <D_opt>0</D_opt>
+        <Q_opt>2</Q_opt>
+      </signal0>
+      <signal1>
+        <P_opt>2</P_opt>
+        <D_opt>0</D_opt>
+        <Q_opt>0</Q_opt>
+      </signal1>
+    </AutoARMA>
+    <ARMA>
+      <signal0>
+        <constant>-2.228884514e-03</constant>
+        <AR_0>6.875771216e-01</AR_0>
+        <MA_0>-3.706671624e-03</MA_0>
+        <MA_1>2.338466293e-01</MA_1>
+        <variance>4.328239816e-01</variance>
+        <order>1,0,2</order>
+      </signal0>
+      <signal1>
+        <constant>8.584247694e-04</constant>
+        <AR_0>5.127096640e-01</AR_0>
+        <AR_1>2.679723462e-01</AR_1>
+        <variance>4.902910626e-01</variance>
+        <order>2,0,0</order>
+      </signal1>
+    </ARMA>
+  </synth>
+  
+</DataObjectMetadata>

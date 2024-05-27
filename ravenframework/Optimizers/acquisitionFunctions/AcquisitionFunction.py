@@ -55,7 +55,9 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
                                                  \item Differential Evolution: A style of evolutionary algorithm, which specializes in floating point
                                                  representations of decision variables. Works similar to its parent algorithm Genetic Algorithm
                                                  \item SLSQP: A Sequential Least Squares algorithm, which uses an BFGS update and
-                                                 Lawson and Hanson’s NNLS nonlinear least-squares solver.""", default='differentialEvolution'))
+                                                 Lawson and Hanson’s NNLS nonlinear least-squares solver.
+                                                 \end{itemize}
+                                                 """, default='differentialEvolution'))
     specs.addSub(InputData.parameterInputFactory('seedingCount', contentType=InputTypes.IntegerType,
                                                  descr=r"""If the method is gradient based or typically handled with singular
                                                  decisions (ex. slsqp approximates a quadratic program using the gradient), this number
