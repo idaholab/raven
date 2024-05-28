@@ -27,7 +27,7 @@ from collections import namedtuple
 from ..BaseClasses.InputDataUser import InputDataUser
 
 from ..utils import utils,randomUtils,InputData, InputTypes
-from ..utils import graphStructure
+from ..utils.graphStructure import evaluateModelsOrder
 from ..BaseClasses import BaseEntity, Assembler
 
 class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputDataUser):
@@ -860,9 +860,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, None
     """
-    if not len(self.funcDict):
-      return
-    # evaluate execution order
     functionsToVariables = {}
     for var in  self.funcDict:
       outputMatch = []
@@ -873,22 +870,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
           outputMatch.append(inpVar)
       outputMatch = list(set(outputMatch))
       functionsToVariables[var] =  outputMatch
-    variableFunctionsGraph = graphStructure.graphObject(functionsToVariables)
-
-    # check for isolated functions:
-    # isolated functions are functions that are not connected to other functions
-    # consequentially thse functions can be executed first (since no interdependency exists)
-    isolatedVariables = variableFunctionsGraph.findIsolatedVertices()
-    self.variableFunctionExecutionList = isolatedVariables
-    if len(isolatedVariables) != len(self.funcDict):
-      if variableFunctionsGraph.isALoop():
-        self.raiseAnError(IOError, "Function variables are interdependent but connections determined a loop of dependencies that "
-                          "is not supported in the Function system. Use EnsembleModel to solve such dependencies.")
-      allPath = variableFunctionsGraph.findAllUniquePaths([])
-      # the execution list is reversed becuase we created a graph above in reversed order (output to input)
-      self.variableFunctionExecutionList = variableFunctionsGraph.createSingleListOfVertices(allPath)
-      self.variableFunctionExecutionList.reverse()
-      self.variableFunctionExecutionList = isolatedVariables + self.variableFunctionExecutionList
+    executionList, variableFunctionsGraph, errMsg = evaluateModelsOrder(functionsToVariables, acceptLoop=False, reverse=True)
+    if errMsg is not None:
+      self.raiseAnError(*errMsg)
+    if  executionList:
+      self.variableFunctionExecutionList = executionList
       self.raiseAMessage("Function Variables are interdependent")
       self.raiseAMessage("Variable Evaluation and Function Execution list: "+
                          ' -> '.join([f"variable:{var} | function: {self.funcDict[var].instance.name}"
