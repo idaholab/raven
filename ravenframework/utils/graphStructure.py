@@ -22,13 +22,14 @@ from __future__ import division, print_function, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import itertools
 import copy
+from typing import Optional
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 from . import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-def evaluateModelsOrder(modelDict: dict, acceptLoop: bool | True, reverse: bool | False,) -> tuple(list, graphObject, tuple):
+def evaluateModelsOrder(modelDict: dict, acceptLoop: Optional[bool] = True, reverse:  Optional[bool] = False,):
   """
     Method to evaluate the function execution order using graph theory
     The order is stored in self.variableFunctionExecutionList
