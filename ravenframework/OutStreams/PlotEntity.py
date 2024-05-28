@@ -27,8 +27,6 @@ from .PlotInterfaces import factory as PlotFactory
 display = utils.displayAvailable()
 if not display:
   matplotlib.use('Agg')
-matplotlib.use('Agg')
-matplotlib.pyplot.switch_backend('Agg')
 
 
 class Plot(OutStreamEntity):
