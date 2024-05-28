@@ -29,13 +29,14 @@ from . import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-def evaluateModelsOrder(modelDict: dict, acceptLoop: Optional[bool] = True, reverse:  Optional[bool] = False,):
+def evaluateModelsOrder(modelDict: dict, acceptLoop: Optional[bool] = True, reverse:  Optional[bool] = False,initialStartingModels: Optional[list] = []):
   """
     Method to evaluate the function execution order using graph theory
     The order is stored in self.variableFunctionExecutionList
     @ In, modelDict, dict, dictionary of models to outputs (e.g. {modelName1:[modelName2,modelName3],modelName2:[modelName4],..})
     @ In, acceptLoop, bool, optional, should loops be accepted? Default: True
     @ In, reverse, bool, optional, should the execution list be reversed? (Ie. First to Last or Last to First)
+    @ In, initialStartingModels, list, optional, initial starting models in case of "non-linear" connections
     @ Out, executionList, list, model execution (ordered) list
     @ Out, modelsGraph, graphObject, graph object
     @ Out, errMsg, tuple or None, if tuple: el[0] -> Exception, el[1] -> error msg
@@ -54,7 +55,7 @@ def evaluateModelsOrder(modelDict: dict, acceptLoop: Optional[bool] = True, reve
       errMsg = (IOError, "Models are interdependent but connections determined a loop of dependencies that "
                         "is not supported in the system. Use EnsembleModel to solve such dependencies.")
       return
-    allPath = modelsGraph.findAllUniquePaths([])
+    allPath = modelsGraph.findAllUniquePaths(initialStartingModels)
     executionList = modelsGraph.createSingleListOfVertices(allPath)
     if reverse:
       # the execution list is reversed becuase the created a graph above in reversed order (output to input)

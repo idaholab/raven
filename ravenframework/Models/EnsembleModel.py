@@ -318,8 +318,7 @@ class EnsembleModel(Dummy):
         outputMatch.extend(match if match is not None else [])
       outputMatch = list(set(outputMatch))
       modelsToOutputModels[modelIn] = outputMatch
-    executionList, modelsGraph, _ = evaluateModelsOrder(modelsToOutputModels, acceptLoop=True, reverse=False)
-
+    executionList, modelsGraph, _ = evaluateModelsOrder(modelsToOutputModels, acceptLoop=True, reverse=False, initialStartingModels=self.initialStartModels)
     # construct the ensemble model directed graph
     #self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
     self.ensembleModelGraph = modelsGraph #graphStructure.graphObject(modelsToOutputModels)
