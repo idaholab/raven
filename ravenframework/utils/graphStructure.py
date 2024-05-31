@@ -31,7 +31,7 @@ from . import utils
 
 def evaluateModelsOrder(modelDict: dict, acceptLoop: Optional[bool] = True, reverse:  Optional[bool] = False,initialStartingModels: Optional[list] = []):
   """
-    Utility method to evaluate the model/node execution order (From First(s) nodes till to the last 
+    Utility method to evaluate the model/node execution order (From First(s) nodes till to the last
     node(s) in the dictionary). The method uses graph theory for such evaluation.
     The order, the graph object and (eventually) the error messages are returned in a tuple.
     @ In, modelDict, dict, dictionary of models to outputs (e.g. {modelName1:[modelName2,modelName3],modelName2:[modelName4],..})
