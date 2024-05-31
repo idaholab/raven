@@ -31,8 +31,9 @@ from . import utils
 
 def evaluateModelsOrder(modelDict: dict, acceptLoop: Optional[bool] = True, reverse:  Optional[bool] = False,initialStartingModels: Optional[list] = []):
   """
-    Method to evaluate the function execution order using graph theory
-    The order is stored in self.variableFunctionExecutionList
+    Utility method to evaluate the model/node execution order (From First(s) nodes till to the last 
+    node(s) in the dictionary). The method uses graph theory for such evaluation.
+    The order, the graph object and (eventually) the error messages are returned in a tuple.
     @ In, modelDict, dict, dictionary of models to outputs (e.g. {modelName1:[modelName2,modelName3],modelName2:[modelName4],..})
     @ In, acceptLoop, bool, optional, should loops be accepted? Default: True
     @ In, reverse, bool, optional, should the execution list be reversed? (Ie. First to Last or Last to First)
