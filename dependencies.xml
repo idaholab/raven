@@ -84,7 +84,7 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
-    <setuptools/>
+    <setuptools>69</setuptools>
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source="mamba" skip_check='True'/>
     <serpentTools optional='True' source="pip"/>
