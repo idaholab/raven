@@ -84,7 +84,7 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
-    <setuptools/>
+    <setuptools>69</setuptools> <!-- ray 2.6 can't be installed with setuptools 70 -->
     <!-- This is because liblapack 3.9.0 build 21 is broken (and can probably be removed if there ever is a build 22).  This can also be removed when scipy is updated to version 1.12 -->
     <liblapack skip_check='True' os='linux' machine='x86_64'>3.9.0=20_linux64_openblas</liblapack>
     <liblapack skip_check='True' os='windows' machine='x86_64'>3.9.0=20_win64_mkl</liblapack>
