@@ -28,6 +28,8 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
     </IOStep>
   </Steps>
 
@@ -121,5 +123,15 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
+    <Plot name = "opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x, y , obj1, obj2</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source> opt_export</source>
+      <vars>x, y , obj1, obj2</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
   </OutStreams>
 </Simulation>

@@ -20,7 +20,7 @@
 
 def evaluate(x,y):
   beale = (1.5 - x + x*y)**2 + (2.25 - x + x*y*y)**2 + (2.625 - x + x*y*y*y)**2
-  return -1.0*beale
+  return -1.0 * beale
 
 def run(self,Inputs):
   self.obj1 = -1* evaluate(self.x,self.y)

@@ -21,10 +21,238 @@
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
   References
     ----------
-    .. [1] Holland, John H. "Genetic algorithms." Scientific American 267.1 (1992): 66-73.
+       [1] Holland, John H. "Genetic algorithms." Scientific American 267.1 (1992): 66-73.
        [2] Z. Michalewicz, "Genetic Algorithms. + Data Structures. = Evolution Programs," Third, Revised and Extended Edition, Springer (1996).
        [3] Deb, Kalyanmoy, et al. "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary computation 6.2 (2002): 182-197.
        [4] Deb, Kalyanmoy. "An efficient constraint handling method for genetic algorithms." Computer methods in applied mechanics and engineering 186.2-4 (2000): 311-338.
+                                                                +--------------------------+
+                                                                |     AdaptiveSampler      |
+                                                                |--------------------------|
+                                                                |                          |
+                                                                +--------------------------+
+                                                                               .
+                                                                              /_\
+                                                                               |
+                                                                               |
+                                                                               |
+                                                                               |
+                                                                               |
+                                                                +--------------------------------+
+                                                                |           Optimizer            |
+                                                                |--------------------------------|
+                                                                | _activeTraj                    |
+                                                                | _cancelledTraj                 |
+                                                                | _constraintFunctions           |
+                                                                | _convergedTraj                 |
+                                                                | _impConstraintFunctions        |
+                                                                | _initSampler                   |
+                                                                | _initialValues                 |
+                                                                | _initialValuesFromInput        |
+                                                                | _minMax                        |
+                                                                | _numRepeatSamples              |
+                                                                | _objectiveVar                  |
+                                                                | _requireSolnExport             |
+                                                                | _seed                          |
+                                                                | _trajCounter                   |
+                                                                | _variableBounds                |
+                                                                | assemblerDict                  |
+                                                                | metadataKeys                   |
+                                                                | optAssemblerList               |
+                                                                |--------------------------------|
+                                                                | __init__                       |
+                                                                | _addTrackingInfo               |
+                                                                | _closeTrajectory               |
+                                                                | _collectOptPoint               |
+                                                                | _collectOptValue               |
+                                                                | _initializeInitSampler         |
+                                                                | _localGenerateAssembler        |
+                                                                | _localWhatDoINeed              |
+                                                                | _updateSolutionExport          |
+                                                                | amIreadyToProvideAnInput       |
+                                                                | checkConvergence               |
+                                                                | denormalizeData                |
+                                                                | denormalizeVariable            |
+                                                                | flush                          |
+                                                                | getInputSpecification          |
+                                                                | handleInput                    |
+                                                                | initialize                     |
+                                                                | initializeTrajectory           |
+                                                                | localInputAndChecks            |
+                                                                | needDenormalized               |
+                                                                | normalizeData                  |
+                                                                | userManualDescription          |
+                                                                +--------------------------------+
+                                                                                 .
+                                                                                /_\
+                                                                                 |
+                                                                                 |
+                                                                                 |
+                                                                                 |
+                                                                                 |
+                                                                +------------------------------------+
+                                                                |            RavenSampled            |
+                                                                |------------------------------------|
+                                                                | __stepCounter                      |
+                                                                | _maxHistLen                        |
+                                                                | _optPointHistory                   |
+                                                                | _rerunsSinceAccept                 |
+                                                                | _stepTracker                       |
+                                                                | _submissionQueue                   |
+                                                                | _writeSteps                        |
+                                                                | batch                              |
+                                                                | batchId                            |
+                                                                | convFormat                         |
+                                                                | inputInfo                          |
+                                                                | limit                              |
+                                                                | type                               |
+                                                                | values                             |
+                                                                |------------------------------------|
+                                                                | __init__                           |
+                                                                | _addToSolutionExport               |
+                                                                | _applyBoundaryConstraints          |
+                                                                | _applyFunctionalConstraints        |
+                                                                | _cancelAssociatedJobs              |
+                                                                | _checkAcceptability                |
+                                                                | _checkBoundaryConstraints          |
+                                                                | _checkForImprovement               |
+                                                                | _checkFunctionalConstraints        |
+                                                                | _checkImpFunctionalConstraints     |
+                                                                | _closeTrajectory                   |
+                                                                | _handleExplicitConstraints         |
+                                                                | _handleImplicitConstraints         |
+                                                                | _initializeStep                    |
+                                                                | _rejectOptPoint                    |
+                                                                | _resolveNewOptPoint                |
+                                                                | _updateConvergence                 |
+                                                                | _updatePersistence                 |
+                                                                | _updateSolutionExport              |
+                                                                | _useRealization                    |
+                                                                | amIreadyToProvideAnInput           |
+                                                                | checkConvergence                   |
+                                                                | finalizeSampler                    |
+                                                                | flush                              |
+                                                                | getInputSpecification              |
+                                                                | getIteration                       |
+                                                                | getSolutionExportVariableNames     |
+                                                                | handleInput                        |
+                                                                | incrementIteration                 |
+                                                                | initialize                         |
+                                                                | initializeTrajectory               |
+                                                                | localFinalizeActualSampling        |
+                                                                | localGenerateInput                 |
+                                                                +------------------------------------+
+                                                                                 .
+                                                                                /_\
+                                                                                 |
+                                                                                 |
+                                                                                 |
+                                                                                 |
+                                                                                 |
+                                                                +------------------------------------+
+                                                                |          GeneticAlgorithm          |
+                                                                |------------------------------------|
+                                                                | _acceptHistory                     |
+                                                                | _acceptRerun                       |
+                                                                | _canHandleMultiObjective           |
+                                                                | _convergenceCriteria               |
+                                                                | _convergenceInfo                   |
+                                                                | _crossoverInstance                 |
+                                                                | _crossoverPoints                   |
+                                                                | _crossoverProb                     |
+                                                                | _crossoverType                     |
+                                                                | _expConstr                         |
+                                                                | _fitnessInstance                   |
+                                                                | _fitnessType                       |
+                                                                | _impConstr                         |
+                                                                | _kSelection                        |
+                                                                | _mutationInstance                  |
+                                                                | _mutationLocs                      |
+                                                                | _mutationProb                      |
+                                                                | _mutationType                      |
+                                                                | _nChildren                         |
+                                                                | _nParents                          |
+                                                                | _numOfConst                        |
+                                                                | _objCoeff                          |
+                                                                | _objectiveVar                      |
+                                                                | _parentSelection                   |
+                                                                | _parentSelectionInstance           |
+                                                                | _parentSelectionType               |
+                                                                | _penaltyCoeff                      |
+                                                                | _populationSize                    |
+                                                                | _repairInstance                    |
+                                                                | _requiredPersistence               |
+                                                                | _stepTracker                       |
+                                                                | _submissionQueue                   |
+                                                                | _survivorSelectionInstance         |
+                                                                | _survivorSelectionType             |
+                                                                | ahd                                |
+                                                                | ahdp                               |
+                                                                | batch                              |
+                                                                | batchId                            |
+                                                                | bestFitness                        |
+                                                                | bestObjective                      |
+                                                                | bestPoint                          |
+                                                                | constraintsV                       |
+                                                                | convergenceOptions                 |
+                                                                | crowdingDistance                   |
+                                                                | fitness                            |
+                                                                | hdsm                               |
+                                                                | multiBestCD                        |
+                                                                | multiBestConstraint                |
+                                                                | multiBestFitness                   |
+                                                                | multiBestObjective                 |
+                                                                | multiBestPoint                     |
+                                                                | multiBestRank                      |
+                                                                | objectiveVal                       |
+                                                                | popAge                             |
+                                                                | population                         |
+                                                                | rank                               |
+                                                                |------------------------------------|
+                                                                | _GD                                |
+                                                                | _GDp                               |
+                                                                | __init__                           |
+                                                                | _addToSolutionExport               |
+                                                                | _ahd                               |
+                                                                | _ahdp                              |
+                                                                | _applyFunctionalConstraints        |
+                                                                | _checkAcceptability                |
+                                                                | _checkConvAHD                      |
+                                                                | _checkConvAHDp                     |
+                                                                | _checkConvHDSM                     |
+                                                                | _checkConvObjective                |
+                                                                | _checkForImprovement               |
+                                                                | _checkFunctionalConstraints        |
+                                                                | _checkImpFunctionalConstraints     |
+                                                                | _collectOptPoint                   |
+                                                                | _collectOptPointMulti              |
+                                                                | _envelopeSize                      |
+                                                                | _formatSolutionExportVariableNames |
+                                                                | _handleExplicitConstraints         |
+                                                                | _handleImplicitConstraints         |
+                                                                | _hdsm                              |
+                                                                | _popDist                           |
+                                                                | _rejectOptPoint                    |
+                                                                | _resolveNewGeneration              |
+                                                                | _resolveNewGenerationMulti         |
+                                                                | _solutionExportUtilityUpdate       |
+                                                                | _submitRun                         |
+                                                                | _updateConvergence                 |
+                                                                | _updatePersistence                 |
+                                                                | _useRealization                    |
+                                                                | checkConvergence                   |
+                                                                | flush                              |
+                                                                | getInputSpecification              |
+                                                                | getSolutionExportVariableNames     |
+                                                                | handleInput                        |
+                                                                | initialize                         |
+                                                                | initializeTrajectory               |
+                                                                | multiObjectiveConstraintHandling   |
+                                                                | needDenormalized                   |
+                                                                | singleObjectiveConstraintHandling  |
+                                                                +------------------------------------+
+
+
+
 """
 # External Modules----------------------------------------------------------------------------------
 from collections import deque, defaultdict
@@ -544,7 +772,7 @@ class GeneticAlgorithm(RavenSampled):
     # overload as needed in inheritors
     return True
 
-  def singleConstraint(self, info, rlz):
+  def singleObjectiveConstraintHandling(self, info, rlz):
     traj = info['traj']
     for t in self._activeTraj[1:]:
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
@@ -594,7 +822,7 @@ class GeneticAlgorithm(RavenSampled):
       self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
       return traj, g, objectiveVal, offSprings, offSpringFitness
 
-  def multiConstraint(self, info, rlz):
+  def multiObjectiveConstraintHandling(self, info, rlz):
     traj = info['traj']
     for t in self._activeTraj[1:]:
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
@@ -667,8 +895,8 @@ class GeneticAlgorithm(RavenSampled):
 
     info['step'] = self.counter
     objInd = int(len(self._objectiveVar)>1) + 1 #if len(self._objectiveVar) == 1 else 2
-    constraintFuncs: dict = {1: GeneticAlgorithm.singleConstraint, 2: GeneticAlgorithm.multiConstraint}
-    const = constraintFuncs.get(objInd, GeneticAlgorithm.singleConstraint)
+    constraintFuncs: dict = {1: GeneticAlgorithm.singleObjectiveConstraintHandling, 2: GeneticAlgorithm.multiObjectiveConstraintHandling}
+    const = constraintFuncs.get(objInd, GeneticAlgorithm.singleObjectiveConstraintHandling)
     traj, g, objectiveVal, offSprings, offSpringFitness = const(self, info, rlz)
 
     if self._activeTraj:
@@ -884,7 +1112,7 @@ class GeneticAlgorithm(RavenSampled):
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
-      self._closeTrajectory(traj, 'converge', 'converged', self.bestObjective)
+      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     objVal = [[] for x in range(len(self.objectiveVal[0]))]

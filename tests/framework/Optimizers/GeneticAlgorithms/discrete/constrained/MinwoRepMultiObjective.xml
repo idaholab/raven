@@ -9,7 +9,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Multi_MinwoReplacement/</WorkingDir>
+    <WorkingDir>Multi_MinwoReplacement</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

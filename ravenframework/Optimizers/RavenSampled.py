@@ -378,7 +378,7 @@ class RavenSampled(Optimizer):
       bestValue = None
       bestTraj = None
       bestPoint = None
-      s = -1 if self._minMax == 'max' else 1
+      s = [1 if w == 'min' else -1 for w in self._minMax]
       # check converged trajectories
       self.raiseAMessage('*' * 80)
       self.raiseAMessage('Optimizer Final Results:')
@@ -386,18 +386,31 @@ class RavenSampled(Optimizer):
       self.raiseADebug(' - Trajectory Results:')
       self.raiseADebug('  TRAJ   STATUS    VALUE')
       statusTemplate = '   {traj:2d}  {status:^11s}  {val: 1.3e}'
-      statusTemplate_multi = '   {traj:2d}  {status:^11s}  {val1: ^11s}  {val2: ^11s}'
+      templateNoValue = '   {traj:2d}  {status:^11s}'
+      # Define the template for the values
+      valueTemplate = '{val: 1.3e}'
 
       # print cancelled traj
       for traj, info in self._cancelledTraj.items():
         val = info['value']
         status = info['reason']
-        self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=s * val))
+        if isinstance(val,int):
+          self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=val))
+        # TODO: else: maybe error out?
+
       # check converged traj
       for traj, info in self._convergedTraj.items():
         opt = self._optPointHistory[traj][-1][0]
         val = info['value']
-        self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=s * val))
+
+        # Format the values in the array
+        formatted_values = np.vectorize(lambda v: valueTemplate.format(val=v))(s*val)
+
+        # Combine the formatted values into a single string with appropriate spacing
+        formatted_values_string = '\n'.join(['   '.join(row) for row in formatted_values])
+
+        # Raise debug message for the entire formatted string
+        self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formatted_values_string.format(formatted_values))
         if bestValue is None or val < bestValue:
           bestTraj = traj
           bestValue = val

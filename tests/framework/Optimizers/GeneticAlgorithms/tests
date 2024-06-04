@@ -377,31 +377,26 @@
   [./NSGA-II_MinwoRepMultiObjective]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
-    # [./csv]
-    #  type = UnorderedCSV
     UnorderedCsv = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
     rel_err = 0.001
-    # [../]
   [../]
 
   [./NSGA-II_ZDT1]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/ZDT1.xml'
-    # [./csv]
-    #  type = OrderedCSV
+    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png'
+    required_libraries = 'imageio'
     UnorderedCsv = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
     rel_err = 0.001
-    # [../]
   [../]
 
   [./NSGA-II_Beale]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'
-    # [./csv]
-    #  type = OrderedCSV
+    image = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png'
+    required_libraries = 'imageio'
     UnorderedCsv = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
     rel_err = 0.001
-    # [../]
   [../]
 
   [./GAwithEnsembleModelIncludingCode]
