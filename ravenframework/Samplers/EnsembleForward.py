@@ -179,6 +179,9 @@ class EnsembleForward(Sampler):
         mName = val
       self.funcDict[key] = fPointer(mName, availableFunc[val])
 
+    # evaluate function order in custom sampler
+    self._evaluateFunctionsOrder()
+
   def localInitialize(self):
     """
       Initialize the EnsembleForward sampler. It calls the localInitialize method of all the Samplers defined in this input
@@ -247,11 +250,7 @@ class EnsembleForward(Sampler):
     self.inputInfo['SamplerType'] = 'EnsembleForward'
 
     # Update dependent variables
-    for var in self.dependentSample:
-      test = self.funcDict[var].instance.evaluate(self.funcDict[var].methodName, self.inputInfo['SampledVars'])
-      for corrVar in var.split(","):
-        self.values[corrVar.strip()] = test
-        self.inputInfo['SampledVars'][corrVar.strip()] = test
+    self._functionalVariables()
 
   def flush(self):
     """

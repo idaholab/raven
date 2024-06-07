@@ -1,0 +1,6 @@
+<inputs>
+    <time_steps>5</time_steps>
+    <randomSeed>$RAVEN-seed$</randomSeed>
+    <randomVariableNames>A,B,C</randomVariableNames>
+    <outputFileName>code_1_results.csv</outputFileName>
+</inputs>
