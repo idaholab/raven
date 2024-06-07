@@ -1,3 +1,6 @@
+[submodule "plugins/TEAL"]
+	path = plugins/TEAL
+	url = https://github.com/idaholab/TEAL.git
 [submodule "plugins/HERON"]
 	path = plugins/HERON
 	url = https://github.com/idaholab/HERON.git
