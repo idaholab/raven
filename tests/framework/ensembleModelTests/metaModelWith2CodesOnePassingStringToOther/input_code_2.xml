@@ -1,0 +1,5 @@
+<inputs>
+    <multiplication_factor>$RAVEN-multiplicationFactor$</multiplication_factor>
+    <restartFileName>$RAVEN-restartInModel2$</restartFileName>
+    <outputFileName>code_2_results.csv</outputFileName>
+</inputs>
