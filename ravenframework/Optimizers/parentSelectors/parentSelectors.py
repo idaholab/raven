@@ -85,7 +85,13 @@ def rouletteWheel(population,**kwargs):
   return selectedParent
 
 def countConstViolation(const):
-  return sum(1 for i in const if i < 0)
+  """
+    Counts the number of constraints that are violated
+    @ In, const, list, list of constraints
+    @ Out, count, int, number of constraints that are violated
+  """
+  count = sum(1 for i in const if i < 0)
+  return count
 
 def tournamentSelection(population,**kwargs):
   """

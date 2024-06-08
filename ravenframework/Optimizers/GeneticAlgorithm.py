@@ -267,7 +267,11 @@ from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
+from .crossOverOperators.crossovers import getLinearCrossoverProbability
+from .crossOverOperators.crossovers import getQuadraticCrossoverProbability
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
+from .mutators.mutators import getLinearMutationProbability
+from .mutators.mutators import getQuadraticMutationProbability
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .survivorSelection import survivorSelection as survivorSelectionProcess
 from .fitness.fitness import returnInstance as fitnessReturnInstance
@@ -452,9 +456,11 @@ class GeneticAlgorithm(RavenSampled):
         descr=r""" point/gene(s) at which crossover will occur.""")
     crossover.addSub(crossoverPoint)
     crossoverProbability = InputData.parameterInputFactory('crossoverProb', strictMode=True,
-        contentType=InputTypes.FloatType,
-        printPriority=108,
-        descr=r""" The probability governing the crossover step, i.e., the probability that if exceeded crossover will occur.""")
+                                                           contentType=InputTypes.FloatOrStringType,
+                                                           printPriority=108,
+                                                           descr=r""" The probability governing the crossover step, i.e., the probability that if exceeded crossover will occur.""")
+    crossoverProbability.addParam("type", InputTypes.makeEnumType('crossoverProbability','crossoverProbabilityType',['static','adaptive']), False,
+                       descr="type of crossover operation to be used (e.g., static,adaptive)")
     crossover.addSub(crossoverProbability)
     reproduction.addSub(crossover)
     # 2.  Mutation
@@ -477,9 +483,11 @@ class GeneticAlgorithm(RavenSampled):
         descr=r""" locations at which mutation will occur.""")
     mutation.addSub(mutationLocs)
     mutationProbability = InputData.parameterInputFactory('mutationProb', strictMode=True,
-        contentType=InputTypes.FloatType,
+        contentType=InputTypes.FloatOrStringType,
         printPriority=108,
         descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will occur.""")
+    mutationProbability.addParam("type", InputTypes.makeEnumType('mutationProbability','mutationProbabilityType',['static','adaptive']), False,
+                       descr="type of mutation probability operation to be used (e.g., static, adaptive)")
     mutation.addSub(mutationProbability)
     reproduction.addSub(mutation)
     GAparams.addSub(reproduction)
@@ -616,7 +624,7 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     # k-Selection node                                                                #
     ####################################################################################
-    if reproductionNode.findFirst('kSelection') is None:
+    if reproductionNode.findFirst('kSelection') is None: ##TODO: I don't like this. @junyung, please make this a user-input and the default is 3
       self._kSelection = 3 # Default value is set to 3.
     else:
       self._kSelection = reproductionNode.findFirst('kSelection').value
@@ -632,6 +640,11 @@ class GeneticAlgorithm(RavenSampled):
       self._crossoverPoints = None
     else:
       self._crossoverPoints = crossoverNode.findFirst('points').value
+    crossoverProbNode = crossoverNode.findFirst('crossoverProb')
+    try:
+      self._crossoverProbType = crossoverProbNode.parameterValues['type']
+    except:
+      self._crossoverProbType = 'static'
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
 
@@ -646,6 +659,11 @@ class GeneticAlgorithm(RavenSampled):
       self._mutationLocs = None
     else:
       self._mutationLocs = mutationNode.findFirst('locs').value
+    mutationProbNode = mutationNode.findFirst('mutationProb')
+    try:
+      self._mutationProbType = mutationProbNode.parameterValues['type']
+    except:
+      self._mutationProbType = 'static'
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
 
@@ -688,7 +706,7 @@ class GeneticAlgorithm(RavenSampled):
       if len(self._penaltyCoeff) != len(self._objectiveVar) * self._numOfConst:
         self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
     else:
-      pass
+      pass ## TODO: revise this
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
 
     # TODO: @JunyungKim, the code lines below are for 'feasibleFirst' temperarily. It should be generalized for invLinear as well.
@@ -773,6 +791,12 @@ class GeneticAlgorithm(RavenSampled):
     return True
 
   def singleObjectiveConstraintHandling(self, info, rlz):
+    """
+      This function handles the constraints for a single objective optimization.
+      @ In, info, dict, dictionary containing information about the run
+      @ In, rlz, dict, dictionary containing the results of the run
+      @ Out, None
+    """
     traj = info['traj']
     for t in self._activeTraj[1:]:
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
@@ -823,6 +847,12 @@ class GeneticAlgorithm(RavenSampled):
       return traj, g, objectiveVal, offSprings, offSpringFitness
 
   def multiObjectiveConstraintHandling(self, info, rlz):
+    """
+      This function handles the constraints for a multi-objective optimization.
+      @ In, info, dict, dictionary containing information about the run
+      @ In, rlz, dict, dictionary containing the results of the run
+      @ Out, None
+    """
     traj = info['traj']
     for t in self._activeTraj[1:]:
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
