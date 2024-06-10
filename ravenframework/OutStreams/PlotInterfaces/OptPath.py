@@ -115,12 +115,14 @@ class OptPath(PlotInterface):
         self.addPoint(ax, r, value, accepted)
         if v == len(self.vars) - 1:
           ax.set_xlabel('Optimizer Iteration')
-        ax.set_ylabel(var)
+        ax.set_title(var)
+    fig.tight_layout()
     # common legend
     fig.subplots_adjust(right=0.80)
     lns = []
     for cond in self.markerMap.keys():
       lns.append(Line2D([0], [0], color=self.markerMap[cond][0], marker=self.markerMap[cond][1]))
+
     fig.legend(lns, list(self.markerMap.keys()),
                loc='center right',
                borderaxespad=0.1,
