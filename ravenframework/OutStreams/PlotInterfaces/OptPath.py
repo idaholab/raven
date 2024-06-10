@@ -115,7 +115,7 @@ class OptPath(PlotInterface):
         self.addPoint(ax, r, value, accepted)
         if v == len(self.vars) - 1:
           ax.set_xlabel('Optimizer Iteration')
-        ax.set_title(var)
+        ax.set_ylabel('\n'.join(var.split('_')))
     fig.tight_layout()
     # common legend
     fig.subplots_adjust(right=0.80)
