@@ -148,10 +148,13 @@ class ParameterInput(object):
       create new instance.
       @ Out, None
     """
-    self.parameterValues = {}
-    self.subparts = []
-    self.value = ""
-    self.additionalInput = [] # List of raven.utils.TreeStructure.InputNode instances
+    self.parameterValues = {} # attributes of the hierarchal input, attached to nodes, but not nodes themselves
+    self.subparts = []        # pre-defined nodes that are children of this node
+    self.value = ""           # non-hierarchal value associated with this node
+    # addtionalInput is a List of raven.utils.TreeStructure.InputNode instances. Unlike subparts, these do not have
+    #   a predefined structure, and will not directly be parsed as part of the spec. Only used when
+    #   strictMode is set to False for this node.
+    self.additionalInput = []
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
