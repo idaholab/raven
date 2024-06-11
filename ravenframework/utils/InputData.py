@@ -151,7 +151,7 @@ class ParameterInput(object):
     self.parameterValues = {}
     self.subparts = []
     self.value = ""
-    self.additionalInput = []
+    self.additionalInput = [] # List of raven.utils.TreeStructure.InputNode instances
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
