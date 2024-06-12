@@ -7,6 +7,7 @@
 #if !defined(FUSION_REVERSE_VIEW_07202005_0836)
 #define FUSION_REVERSE_VIEW_07202005_0836
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/fusion/support/is_view.hpp>
 #include <boost/fusion/support/category_of.hpp>
@@ -25,6 +26,11 @@
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/inherit.hpp>
 #include <boost/mpl/identity.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -49,19 +55,22 @@ namespace boost { namespace fusion
                 bidirectional_traversal_tag
               , typename traits::category_of<first_type>::type>::value));
 
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         reverse_view(Sequence& in_seq)
             : seq(in_seq)
         {}
 
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         first_type first() const { return fusion::begin(seq); }
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         last_type last() const { return fusion::end(seq); }
         typename mpl::if_<traits::is_view<Sequence>, Sequence, Sequence&>::type seq;
-
-    private:
-        // silence MSVC warning C4512: assignment operator could not be generated
-        reverse_view& operator= (reverse_view const&);
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #endif
 

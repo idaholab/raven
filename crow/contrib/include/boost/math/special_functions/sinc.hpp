@@ -19,14 +19,10 @@
 #include <boost/math/tools/precision.hpp>
 #include <boost/math/policies/policy.hpp>
 #include <boost/math/special_functions/math_fwd.hpp>
-#include <boost/config/no_tr1/cmath.hpp>
-#include <boost/limits.hpp>
+#include <limits>
 #include <string>
 #include <stdexcept>
-
-
-#include <boost/config.hpp>
-
+#include <cmath>
 
 // These are the the "Sinus Cardinal" functions.
 
@@ -43,34 +39,14 @@ namespace boost
         {
             BOOST_MATH_STD_USING
 
-            T const    taylor_0_bound = tools::epsilon<T>();
-            T const    taylor_2_bound = tools::root_epsilon<T>();
-            T const    taylor_n_bound = tools::forth_root_epsilon<T>();
-
-            if    (abs(x) >= taylor_n_bound)
+            if    (abs(x) >= 3.3 * tools::forth_root_epsilon<T>())
             {
                 return(sin(x)/x);
             }
             else
             {
-                // approximation by taylor series in x at 0 up to order 0
-                T    result = static_cast<T>(1);
-
-                if    (abs(x) >= taylor_0_bound)
-                {
-                    T    x2 = x*x;
-
-                    // approximation by taylor series in x at 0 up to order 2
-                    result -= x2/static_cast<T>(6);
-
-                    if    (abs(x) >= taylor_2_bound)
-                    {
-                        // approximation by taylor series in x at 0 up to order 4
-                        result += (x2*x2)/static_cast<T>(120);
-                    }
-                }
-
-                return(result);
+                // |x| < (eps*120)^(1/4)
+                return 1 - x * x / 6;
             }
         }
 
@@ -90,7 +66,6 @@ namespace boost
           return detail::sinc_pi_imp(static_cast<result_type>(x));
        }
 
-#ifndef    BOOST_NO_TEMPLATE_TEMPLATES
         template<typename T, template<typename> class U>
         inline U<T>    sinc_pi(const U<T> x)
         {
@@ -137,7 +112,6 @@ namespace boost
         {
            return sinc_pi(x);
         }
-#endif    /* BOOST_NO_TEMPLATE_TEMPLATES */
     }
 }
 
