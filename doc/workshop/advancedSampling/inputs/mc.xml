@@ -1,0 +1,132 @@
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>test</WorkingDir>
+    <Sequence>generate_data,plot,stats</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="generate_data">
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
+    </IOStep>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Model class="Models" type="PostProcessor">stats_pp</Model>
+      <Output class="DataObjects" type="PointSet">stats_data</Output>
+      <Output class="OutStreams" type="Print">stats_file</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t,timeOption</variables>
+    </ExternalModel>
+    <PostProcessor name="stats_pp" subType="BasicStatistics">
+      <expectedValue prefix="mean">r,t</expectedValue>
+      <variance prefix="var">r,t</variance>
+      <samples prefix="samples">r</samples>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">1</constant>
+      <constant name="y0">0</constant>
+    </MonteCarlo>
+    <Grid name="my_grid">
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+        <grid construction="equal" steps="31" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+        <grid construction="equal" steps="31" type="CDF">0.0 1.0</grid>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">1</constant>
+      <constant name="y0">0</constant>
+    </Grid>
+    <Stratified name="my_lhs">
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+        <grid construction="equal" steps="31" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+        <grid construction="equal" steps="31" type="CDF">0.0 1.0</grid>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">1</constant>
+      <constant name="y0">0</constant>
+    </Stratified>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+    <Uniform name="v0_dist">
+      <lowerBound>15</lowerBound>
+      <upperBound>50</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="results">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="stats_data">
+      <Output>mean_r,var_r,mean_t,var_t,samples_r</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="to_file">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+    <Print name="stats_file">
+      <type>csv</type>
+      <source>stats_data</source>
+    </Print>
+    <Plot name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>results|Input|v0</x>
+          <y>results|Input|angle</y>
+          <z>results|Output|r</z>
+          <colorMap>results|Output|t</colorMap>
+        </plot>
+        <xlabel>v0</xlabel>
+        <ylabel>angle</ylabel>
+        <zlabel>r</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+</Simulation>
