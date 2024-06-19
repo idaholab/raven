@@ -146,7 +146,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted </Output>
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted </Output>
     </PointSet>
   </DataObjects>
 
