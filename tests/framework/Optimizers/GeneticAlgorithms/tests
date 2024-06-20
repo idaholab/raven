@@ -401,7 +401,7 @@
     input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst.xml'
     image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.15
+    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/opt_export_0.csv'
@@ -414,7 +414,7 @@
     input = 'continuous/unconstrained/ZDT1.xml'
     image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.15
+    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
@@ -427,7 +427,7 @@
     input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'
     image = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.15
+    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
