@@ -464,7 +464,14 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    outcomes, targetEvaluations, optionalOutputs = evaluation[1]
+    
+    isPassthroughRunner = type(finishedJob).__name__ == 'PassthroughRunner' 
+    if not isPassthroughRunner:
+      outcomes, targetEvaluations, optionalOutputs = evaluation[1]
+    else:
+      outcomes =  evaluation
+      optionalOutputs = {}
+    
     joinedResponse = {}
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
@@ -472,19 +479,24 @@ class EnsembleModel(Dummy):
     joinedIndexMap = {} # collect all the index maps, then we can keep the ones we want?
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
-      # collect data
-      newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
-      if newIndexMap:
-        joinedIndexMap.update(newIndexMap[0])
-      joinedResponse.update(outcomes[modelIn]['response'])
-      joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
+      if not isPassthroughRunner:
+        # collect data
+        newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
+        if newIndexMap:
+          joinedIndexMap.update(newIndexMap[0])
+        joinedResponse.update(outcomes[modelIn]['response'])
+        joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
       optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
+      if isPassthroughRunner:
+        optionalOutputs[modelIn] = outcomes  
     # the prefix is re-set here
-    joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
-    if joinedIndexMap:
-      joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
-
+    if not isPassthroughRunner:
+      joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
+      if joinedIndexMap:
+        joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
+    else:
+      joinedResponse = outcomes
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
