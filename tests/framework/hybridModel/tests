@@ -55,4 +55,13 @@
   remove_unicode_identifier = true
  [../]
 
+ [./logicalCodeAndExtModelInEnsembleModel]
+  type = 'RavenFramework'
+  input = 'test_logical_ensemble_model_and_code.xml'
+  csv = 'logicalModelCodeAndExtModelInEnsembleModel/finalResults.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
+
+
 []
