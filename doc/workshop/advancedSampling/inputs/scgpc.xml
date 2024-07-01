@@ -1,0 +1,114 @@
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>sample,train,stats,plot</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Sampler class="Samplers" type="SparseGridCollocation">my_sgc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="Models" type="ROM">gpc</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">gpc</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Print">stats_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t,timeOption</variables>
+    </ExternalModel>
+    <PostProcessor name="stats_pp" subType="BasicStatistics">
+      <expectedValue prefix="mean">r,t</expectedValue>
+      <variance prefix="var">r,t</variance>
+      <samples prefix="samples">r</samples>
+    </PostProcessor>
+    <ROM name="gpc" subType="GaussPolynomialRom">
+      <Target>r,t</Target>
+      <Features>v0,angle</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <SparseGridCollocation name="my_sgc">
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">1</constant>
+      <constant name="y0">0</constant>
+      <ROM class="Models" type="ROM">gpc</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+    <Uniform name="v0_dist">
+      <lowerBound>15</lowerBound>
+      <upperBound>50</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="results">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="stats_data">
+      <Output>mean_r,var_r,mean_t,var_t,samples_r</Output>
+    </PointSet>
+    <DataSet name="rom_stats"/>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="to_file">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+    <Print name="stats_file">
+      <type>csv</type>
+      <source>rom_stats</source>
+    </Print>
+    <Plot name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>results|Input|v0</x>
+          <y>results|Input|angle</y>
+          <z>results|Output|r</z>
+          <colorMap>results|Output|t</colorMap>
+        </plot>
+        <xlabel>v0</xlabel>
+        <ylabel>angle</ylabel>
+        <zlabel>r</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+</Simulation>

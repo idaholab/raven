@@ -1,0 +1,139 @@
+<?xml version="1.0" ?>
+<Simulation color="true" verbosity="debug">
+  <TestInfo>
+    <name>adaptScCompare</name>
+    <author>talbpw</author>
+    <created>2024-06-04</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: compare trained ROM to original model</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>sample_model,load_rom,sample_rom,out</Sequence>
+    <batchSize>8</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="pkfile">scgpc_adapt.pk</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="sample_model">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples_model</Output>
+    </MultiRun>
+    <MultiRun name="sample_rom">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">scgpc_rom</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples_rom</Output>
+    </MultiRun>
+    <IOStep name="load_rom">
+      <Input class="Files" type="">pkfile</Input>
+      <Output class="Models" type="ROM">scgpc_rom</Output>
+    </IOStep>
+    <IOStep name="out">
+      <Input class="DataObjects" type="PointSet">samples_model</Input>
+      <Input class="DataObjects" type="PointSet">samples_rom</Input>
+      <Output class="OutStreams" type="Print">print_model</Output>
+      <Output class="OutStreams" type="Print">print_rom</Output>
+      <Output class="OutStreams" type="Plot">plot_model</Output>
+      <Output class="OutStreams" type="Plot">plot_rom</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="angle_dist">
+      <lowerBound>25</lowerBound>
+      <upperBound>65</upperBound>
+    </Uniform>
+    <Uniform name="v0_dist">
+      <lowerBound>15</lowerBound>
+      <upperBound>40</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+        <grid construction="equal" steps="33" type="CDF">0.0 1.0</grid>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+        <grid construction="equal" steps="33" type="CDF">0.0 1.0</grid>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">1</constant>
+      <constant name="y0">0</constant>
+    </Grid>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t,timeOption</variables>
+    </ExternalModel>
+    <ROM name="scgpc_rom" subType="pickledROM"/>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="samples_model">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="samples_rom">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="print_model">
+      <type>csv</type>
+      <source>samples_model</source>
+    </Print>
+    <Print name="print_rom">
+      <type>csv</type>
+      <source>samples_rom</source>
+    </Print>
+    <Plot name="plot_model">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>samples_model|Input|v0</x>
+          <y>samples_model|Input|angle</y>
+          <z>samples_model|Output|r</z>
+          <colorMap>samples_model|Output|t</colorMap>
+        </plot>
+        <xlabel>y0</xlabel>
+        <ylabel>angle</ylabel>
+        <zlabel>r</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="plot_rom">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>samples_rom|Input|v0</x>
+          <y>samples_rom|Input|angle</y>
+          <z>samples_rom|Output|r</z>
+          <colorMap>samples_rom|Output|t</colorMap>
+        </plot>
+        <xlabel>y0</xlabel>
+        <ylabel>angle</ylabel>
+        <zlabel>r</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>
