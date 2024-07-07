@@ -93,8 +93,8 @@
           <type>scatter</type>
           <x>outPP|Output|X (m)</x>
           <y>outPP|Output|Y (m)</y>
-          <c>black</c>
-          <marker>x</marker>
+          <c>magenta</c>
+          <marker>*</marker>
         </plot>
         <xlabel>x</xlabel>
         <ylabel>y</ylabel>
