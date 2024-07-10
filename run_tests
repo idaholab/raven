@@ -143,7 +143,8 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub "${ARGS[@]}"
+  EXTRA="--test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub"
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py $EXTRA "${ARGS[@]}"
   # $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
   rc=$?
   ALL_PASS=$(($ALL_PASS + $rc))
@@ -170,12 +171,13 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo
     echo Starting tests for plugin "$P" ...
     # add RAVEN testers to plugin testers
-    echo Running ROOK command: "$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]} ..."
+    EXTRA="--test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub"
+    echo Running ROOK command: "$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py $EXTRA ${ARGS[@]} ..."
     {
       # try
-      # this is copy/paste from line 173
-      # saving this command in a string variable causes problems when there are multi-word args using quotes (--arg="con tent") in ARGS
-      $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub "${ARGS[@]}"
+      # this is copy/paste from line 175
+      # saving this entire command in a string variable causes problems when there are multi-word args using quotes (--arg="con tent") in ARGS
+      $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py $EXTRA "${ARGS[@]}"
       rc=$?
     } || {
       # catch
