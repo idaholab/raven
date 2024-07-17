@@ -60,12 +60,6 @@ class Code(Model):
     inputSpecification.addSub(InputData.parameterInputFactory("commandSeparator", contentType=InputTypes.makeEnumType("commandSeparator",
                                                                                                                       "commandSeparatorType",
                                                                                                                       ["&&","||",";"])))
-   
-    
-    monitorScriptNode =  InputData.parameterInputFactory("monitorScript", contentType=InputTypes.StringType)
-    monitorScriptNode.addParam("fileOrExtToMonitor", InputTypes.StringType)
-    inputSpecification.addSub(monitorScriptNode)
-
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
@@ -115,7 +109,6 @@ class Code(Model):
     super().__init__()
     self.executable = ''         # name of the executable (abs path)
     self.preExec = None          # name of the pre-executable, if any
-    self.monitorScript = None    # script to monitor the execution. 
     self.oriInputFiles = []      # list of the original input files (abs path)
     self.workingDir = ''         # location where the code is currently running
     self.outFileRoot = ''        # root to be used to generate the sequence of output files
@@ -158,9 +151,6 @@ class Code(Model):
         self.preExec = child.value
       elif child.getName() =='commandSeparator':
         self.commandSeparator = child.value
-      elif child.getName() == 'monitorScript':  
-        self.monitorScript = [child.value]
-        self.monitorScript.append(child.parameterValues.get('fileOrExtToMonitor'))
       elif child.getName() == 'clargs':
         argtype    = child.parameterValues['type']      if 'type'      in child.parameterValues else None
         arg        = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
@@ -256,17 +246,6 @@ class Code(Model):
       else:
         self.foundExecutable = False
         self.raiseAMessage('InterfaceCheck: ignored executable '+self.executable, 'ExceptedError')
-        
-    if self.monitorScript is not None:
-      if '~' in self.monitorScript[0]:
-        self.monitorScript[0] = os.path.expanduser(self.monitorScript[0])
-      abspath = os.path.abspath(self.monitorScript[0])
-      if os.path.exists(abspath):
-        self.monitorScript[0] = abspath
-      else:
-        self.raiseAnError(Exception, 'not found monitorScript '+self.monitorScript[0])
-      if self.monitorScript[1] is None:
-        self.raiseAnError(Exception, '"fileOrExtToMonitor" attribute in node <monitorScript> not found!!!')
 
     if self.preExec is not None:
       if '~' in self.preExec:
@@ -629,9 +608,8 @@ class Code(Model):
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    if self.maxWallTime is not None or self.monitorScript is not None:
-      maxWallTime = self.maxWallTime if self.maxWallTime is not None else sys.float_info.max
-      timeout = time.time() + maxWallTime
+    if self.maxWallTime is not None:
+      timeout = time.time() + self.maxWallTime
       while True:
         time.sleep(0.5)
         process.poll()

@@ -464,14 +464,14 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    
-    isPassthroughRunner = type(finishedJob).__name__ == 'PassthroughRunner' 
+
+    isPassthroughRunner = type(finishedJob).__name__ == 'PassthroughRunner'
     if not isPassthroughRunner:
       outcomes, targetEvaluations, optionalOutputs = evaluation[1]
     else:
       outcomes =  evaluation
       optionalOutputs = {}
-    
+
     joinedResponse = {}
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
@@ -489,7 +489,7 @@ class EnsembleModel(Dummy):
       # collect the output of the STEP
       optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
       if isPassthroughRunner:
-        optionalOutputs[modelIn] = outcomes  
+        optionalOutputs[modelIn] = outcomes
     # the prefix is re-set here
     if not isPassthroughRunner:
       joinedResponse['prefix'] = np.asarray([finishedJob.identifier])

@@ -106,7 +106,7 @@ class DMD(SupervisedLearning):
     specs.addSub(InputData.parameterInputFactory("exactModes", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the exact modes need to be computed (eigenvalues and
                                                  eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).""", default=True))
-    specs.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     return specs
