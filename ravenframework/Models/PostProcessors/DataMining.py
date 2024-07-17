@@ -335,6 +335,7 @@ class DataMining(PostProcessorInterface):
       featureList = [elem for elem in dataList if elem not in toRemove]
     else:
       featureList = [feature.strip() for feature in self.initializationOptionDict['KDD']['Features'].split(',')]
+
     for key in featureList:
       inputDict['Features'][key] = copy.deepcopy(preProcessedData['data'][key])
 

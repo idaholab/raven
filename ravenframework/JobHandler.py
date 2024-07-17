@@ -197,6 +197,17 @@ class JobHandler(BaseType):
     self.__dict__.update(d)
     self.__queueLock = threading.RLock()
 
+  def createCloneJobHandler(self):
+    """
+      Method to create a clone of this JobHandler.
+      The clone is a copy of the jobhandler (initialized)
+      @ In, None
+      @ Out, clone, JobHandler, a clone of the curreny JobHandler
+    """
+    clone = copy.deepcopy(self)
+    clone.terminateAll()
+    return clone
+
   def applyRunInfo(self, runInfo):
     """
       Allows access to the RunInfo data

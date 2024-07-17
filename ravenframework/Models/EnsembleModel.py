@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules----------------------------------------------------------------------------------
 import io
 import sys
+import atexit
 import copy
 import numpy as np
 import time
@@ -35,6 +36,7 @@ from .Dummy import Dummy
 from ..utils import utils, InputData
 from ..utils import graphStructure
 from ..Runners import Error as rerror
+from ..Runners.SharedMemoryRunner import InterruptibleThread
 #Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleModel(Dummy):
@@ -73,7 +75,7 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     super().__init__()
-    self.testj = None
+    self.localJobHandler = None
     self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
                                                         # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.modelsInputDictionary  = {}                    # to allow reusability of ensemble modes (similar in construction to self.modelsDictionary)
@@ -565,20 +567,15 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    if  self.testj is None:
-      self.testj = copy.deepcopy(jobHandler)
-      self.testj.terminateAll()
-      import threading
-      self.pollingThread = threading.Thread(target=self.testj.startLoop)
-      # This allows RAVEN to exit when the only thing left is the JobHandler
-      # This should no longer be necessary since the jobHandler now has an off
-      # switch that this object can flip when it is complete, however, if
-      # simulation fails before it is finished, we should probably still ensure
-      # that this thread is killed as well, so maybe it is best to keep it for
-      # now.
-      self.pollingThread.daemon = True
-      self.pollingThread.start()
-
+    if  self.localJobHandler is None:
+      # create local clone of jobhandler
+      self.localJobHandler = jobHandler.createCloneJobHandler()
+      # start the job handler
+      self.localPollingThread = InterruptibleThread(target=self.localJobHandler.startLoop)
+      self.localPollingThread.daemon = True
+      self.localPollingThread.start()
+      # register function to kill the thread at the end of the execution
+      atexit.register(self.localPollingThread.kill)
     nRuns = 1
     batchMode =  kwargs.get("batchMode", False)
     if batchMode:
@@ -604,16 +601,13 @@ class EnsembleModel(Dummy):
       else:
         # for parallel strategy 2, the ensemble model works as a step => it needs the jobHandler
         kw['jobHandler'] = jobHandler
-        kw['jobHandler'] = self.testj
+        kw['jobHandler'] = self.localJobHandler
         # for parallel strategy 2, we need to make sure that the batchMode is set to False in the inner runs since only the
         # ensemble model evaluation should be batched (THIS IS REQUIRED because the CODE does not submit runs like the other models)
         kw['batchMode'] = False
         jobHandler.addClientJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
                   uniqueHandler=uniqueHandler,
                   groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
-
-
-
 
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
