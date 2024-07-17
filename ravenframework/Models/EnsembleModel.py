@@ -75,7 +75,8 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     super().__init__()
-    self.localJobHandler = None
+    self.localJobHandler = None                         # local jobhandler used in case of parallelStrategy == 2
+    self.localPollingThread = None                      # local jobhandler thread used in case of parallelStrategy == 2
     self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
                                                         # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.modelsInputDictionary  = {}                    # to allow reusability of ensemble modes (similar in construction to self.modelsDictionary)
@@ -567,7 +568,7 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    if  self.localJobHandler is None:
+    if  self.localJobHandler is None and self.parallelStrategy == 2:
       # create local clone of jobhandler
       self.localJobHandler = jobHandler.createCloneJobHandler()
       # start the job handler
