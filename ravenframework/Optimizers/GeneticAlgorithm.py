@@ -398,8 +398,8 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
-    if self._crossoverType not in ['onePointCrossover','twoPointsCrossover','uniformCrossover']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support onePointCrossover, twoPointsCrossover and uniformCrossover as a crossover, whereas provided crossover is {self._crossoverType}')
+    if self._crossoverType not in ['onePointCrossover','twoPointsCrossover','uniformCrossover', 'partiallyMappedCrossover']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support onePointCrossover, twoPointsCrossover, uniformCrossover and partiallyMappedCrossover as a crossover, whereas provided crossover is {self._crossoverType}')
     if crossoverNode.findFirst('points') is None:
       self._crossoverPoints = None
     else:
