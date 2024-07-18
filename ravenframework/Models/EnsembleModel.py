@@ -34,7 +34,7 @@ from ..Decorators.Parallelization import Parallel
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 from ..utils import utils, InputData
-from ..utils import graphStructure
+from ..utils.graphStructure import evaluateModelsOrder
 from ..Runners import Error as rerror
 from ..Runners.SharedMemoryRunner import InterruptibleThread
 #Internal Modules End--------------------------------------------------------------------------------
@@ -329,17 +329,17 @@ class EnsembleModel(Dummy):
         outputMatch.extend(match if match is not None else [])
       outputMatch = list(set(outputMatch))
       modelsToOutputModels[modelIn] = outputMatch
+    executionList, modelsGraph, _ = evaluateModelsOrder(modelsToOutputModels, acceptLoop=True, reverse=False, initialStartingModels=self.initialStartModels)
     # construct the ensemble model directed graph
-    self.ensembleModelGraph = graphStructure.graphObject(modelsToOutputModels)
+    self.ensembleModelGraph = modelsGraph #graphStructure.graphObject(modelsToOutputModels)
     # make some checks
     if not self.ensembleModelGraph.isConnectedNet():
       isolatedModels = self.ensembleModelGraph.findIsolatedVertices()
       self.raiseAnError(IOError, "Some models are not connected. Possible candidates are: "+' '.join(isolatedModels))
     # get all paths
-    allPath = self.ensembleModelGraph.findAllUniquePaths(self.initialStartModels)
     ###################################################
     # to be removed once executionList can be handled #
-    self.orderList = self.ensembleModelGraph.createSingleListOfVertices(allPath)
+    self.orderList = executionList
     self.raiseAMessage("Model Execution list: "+' -> '.join(self.orderList))
     ###################################################
     ###########################################################################################

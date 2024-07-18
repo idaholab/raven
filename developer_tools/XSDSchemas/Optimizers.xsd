@@ -117,12 +117,14 @@
     <xsd:complexType name="boltzmanCoolingType">
       <xsd:all>
       <xsd:element name="d" type="xsd:float"/>
+      <xsd:element name="learningRate" type="xsd:float"/>
       </xsd:all>
     </xsd:complexType>
 
     <xsd:complexType name="cauchyCoolingType">
       <xsd:all>
       <xsd:element name="d" type="xsd:float"/>
+      <xsd:element name="learningRate" type="xsd:float"/>
       </xsd:all>
     </xsd:complexType>
 
