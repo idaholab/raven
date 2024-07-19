@@ -30,7 +30,7 @@ def evaluate(Inputs):
   Sum = 0
   for ind,var in enumerate(Inputs.keys()):
     # write the objective function here
-    Sum +=
+    Sum += (ind+1) * Inputs[var]
   return Sum[:]
 
 def run(self,Inputs):
@@ -40,4 +40,4 @@ def run(self,Inputs):
     @ In, Inputs, dict, additional inputs
     @ Out, None
   """
-  self.?? = evaluate(Inputs) # Complete This # make sure the name of the objective is consistent obj
+  self.ans = evaluate(Inputs) # Complete This # make sure the name of the objective is consistent obj

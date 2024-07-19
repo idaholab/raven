@@ -36,13 +36,15 @@ class SimulateData:
     # retrieve data
     self.data['axial_mesh'] = self.axialMeshExtractor()
     self.data['keff'] = self.coreKeffEOC()
-    self.data['FDeltaH'] = self.maxFDH()
+    self.data["MaxFDH"] = self.maxFDH()
     self.data["kinf"] = self.kinfEOC()
-    self.data["boron"] = self.boronEOC()
+    self.data["max_boron"] = self.boronEOC()
     self.data["cycle_length"] = self.EOCEFPD()
-    self.data["PinPowerPeaking"] = self.pinPeaking()
+    self.data["pin_peaking"] = self.pinPeaking()
     self.data["exposure"] = self.burnupEOC()
-    self.data["assembly_power"] = self.assemblyPeakingFactors()
+    # self.data["assembly_power"] = self.assemblyPeakingFactors()
+    # self.data["fuel_cost"] = self.fuel_cost()
+
     # this is a dummy variable for demonstration with MOF
     # check if something has been found
     if all(v is None for v in self.data.values()):
@@ -142,52 +144,52 @@ class SimulateData:
     return outputDict
 
 
-  def assemblyPeakingFactors(self):
-    """
-      Extracts the assembly radial power peaking factors as a dictionary
-      with the depletion step in GWD/MTU as the dictionary keys.
-      @ In, None
-      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
-                            {'info_ids':list(of ids of data),
-                              'values': list}
-    """
-    radialPowerDictionary = {}
-    searching_ = False
-    outputDict = None
-    for line in self.lines:
-      if "Case" in line and "GWd/MT" in line:
-        elems = line.strip().split()
-        depl = elems[-2]
-        if depl in radialPowerDictionary:
-          pass
-        else:
-          radialPowerDictionary[depl] = {}
-      if "**   H-     G-     F-     E-     D-     C-     B-     A-     **" in line:
-        searching_ = False
+  # def assemblyPeakingFactors(self):
+  #   """
+  #     Extracts the assembly radial power peaking factors as a dictionary
+  #     with the depletion step in GWD/MTU as the dictionary keys.
+  #     @ In, None
+  #     @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+  #                           {'info_ids':list(of ids of data),
+  #                             'values': list}
+  #   """
+  #   radialPowerDictionary = {}
+  #   searching_ = False
+  #   outputDict = None
+  #   for line in self.lines:
+  #     if "Case" in line and "GWd/MT" in line:
+  #       elems = line.strip().split()
+  #       depl = elems[-2]
+  #       if depl in radialPowerDictionary:
+  #         pass
+  #       else:
+  #         radialPowerDictionary[depl] = {}
+  #     if "**   H-     G-     F-     E-     D-     C-     B-     A-     **" in line:
+  #       searching_ = False
 
-      if searching_:
-        elems = line.strip().split()
-        if elems[0] == "**":
-          posList = elems[1:-1]
-        else:
-          radialPowerDictionary[depl][elems[0]] = {}
-          for i,el in enumerate(elems[1:-1]):
-            radialPowerDictionary[depl][elems[0]][posList[i]] = float(el)
+  #     if searching_:
+  #       elems = line.strip().split()
+  #       if elems[0] == "**":
+  #         posList = elems[1:-1]
+  #       else:
+  #         radialPowerDictionary[depl][elems[0]] = {}
+  #         for i,el in enumerate(elems[1:-1]):
+  #           radialPowerDictionary[depl][elems[0]][posList[i]] = float(el)
 
-      if "PRI.STA 2RPF  - Assembly 2D Ave RPF - Relative Power Fraction" in line:
-        searching_ = True
+  #     if "PRI.STA 2RPF  - Assembly 2D Ave RPF - Relative Power Fraction" in line:
+  #       searching_ = True
 
-    if not radialPowerDictionary:
-      return ValueError("No values returned. Check Simulate File executed correctly")
-    else:
-      maxPeaking = 0.0
-      for depl in radialPowerDictionary:
-        for row in radialPowerDictionary[depl]:
-          for col in radialPowerDictionary[depl][row]:
-            maxPeaking = max(radialPowerDictionary[depl][row][col],maxPeaking)
-      outputDict = {'info_ids':['FA_peaking'], 'values': [maxPeaking] }
+  #   if not radialPowerDictionary:
+  #     return ValueError("No values returned. Check Simulate File executed correctly")
+  #   else:
+  #     maxPeaking = 0.0
+  #     for depl in radialPowerDictionary:
+  #       for row in radialPowerDictionary[depl]:
+  #         for col in radialPowerDictionary[depl][row]:
+  #           maxPeaking = max(radialPowerDictionary[depl][row][col],maxPeaking)
+  #     outputDict = {'info_ids':['FA_peaking'], 'values': [maxPeaking] }
 
-    return outputDict
+  #   return outputDict
 
   def EOCEFPD(self):
     """
@@ -255,6 +257,8 @@ class SimulateData:
         elems = line.strip().split()
         spot = elems.index('Max-3PIN')
         list_.append(float(elems[spot+1]))
+
+    print(f"This is Fq={max(list_)}")
 
     if not list_:
       return ValueError("No values returned. Check Simulate File executed correctly")
@@ -484,6 +488,80 @@ class SimulateData:
     else:
       outputDict = {'info_ids':['exposure'], 'values': [burnups[-1]] }
 
+    return outputDict
+
+  def fuel_cost(self):
+    """
+      Extracts the fuel types used in the core map and calculates the fuel cost based on a front end approach. 
+      This function applies only to quarter core symmetries.
+      @ In, Non
+      @ Out, outputDict, dict, the dictionary containing the rea data (None if non found)
+                            {'info_ids': list(of ids of data),
+                            'values': list}
+    """
+    outputDict = None
+    # First, we need to parse the core map from the output file.
+    # NOTE: Given that a run is not needed to know the Loading Pattern, this function could be on the input side. 
+    FA_list = []
+    for line in self.lines:
+      if "'FUE.TYP'" in line:
+        p1 = line.index(",")
+        p2 = line.index("/")
+        search_space = line[p1:p2]
+        search_space = search_space.replace(",","")
+        temp = search_space.split()
+        for i in temp:
+          FA_list.append(float(i))
+    FA_types = list(set(FA_list))
+    quartcore_size = len(temp)
+
+    # We separate the core map depending on how many times their elements are counted in the symmetry:  
+    # FA_list_A counted once, as it is the center of the core.
+    # FA_list_B counted twice, as they are are the centerlines.
+    # FA_list_C counted four times, as they are are the rest of fuel assemblies.
+    FA_list_A = FA_list[0]
+    FA_list_B = FA_list[1:quartcore_size] + FA_list[quartcore_size:quartcore_size*(quartcore_size-1)+1:quartcore_size]
+    FA_list_C = []
+    for i in range(quartcore_size-1):
+      FA_list_C.append(FA_list[(i+1)*quartcore_size + 1: (i+2)*quartcore_size])
+    FA_list_C = [item for sublist in FA_list_C for item in sublist] # To flatten FA_list_C
+    # Now we proceed to count how many fuel types of each type are there in our core.
+    FA_count_A = [float(fa == FA_list_A) for fa in FA_types]
+    FA_count_B = [float(FA_list_B.count(fa)*2) for fa in FA_types]
+    FA_count_C = [float(FA_list_C.count(fa)*4) for fa in FA_types]
+    FA_count = [FA_count_A[j] + FA_count_B[j] + FA_count_C[j] for j in range(len(FA_types))]
+    # And create a dictionary with all the fuel types count.
+    FA_types_dict = {int(FA_types[i]):FA_count[i] for i in range(len(FA_types))}
+    
+    # Dictionary with the unit cost for each FA type.
+
+    # FA type 0 = empty         -> M$ 0.0
+    # FA type 1 = reflector     -> M$ 0.0
+    # FA type 2 = 2.00 wt%      -> M$ 2.69520839
+    # FA type 3 = 2.50 wt%      -> M$ 3.24678409
+    # FA type 4 = 2.50 wt% + Gd -> M$ 3.24678409
+    # FA type 5 = 3.20 wt%      -> M$ 4.03739539
+    # FA type 6 = 3.20 wt% + Gd -> M$ 4.03739539
+    # The cost of burnable poison is not being considered.
+    
+    cost_dict = {
+      0: 0,
+      1: 0,
+      2: 2.69520839,
+      3: 3.24678409,
+      4: 3.24678409,
+      5: 4.03739539,
+      6: 4.03739539
+    }
+
+    fuel_cost = 0
+    for fuel_type, fuel_count in FA_types_dict.items():
+      fuel_cost += fuel_count * cost_dict[fuel_type]
+
+    if not fuel_cost:
+      return ValueError("No values returned. Check Simulate file executed correctly.")
+    else:
+      outputDict = {'info_ids':['fuel_cost'], 'values': [fuel_cost]}
     return outputDict
 
   def writeCSV(self, fileout):

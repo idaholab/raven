@@ -44,7 +44,7 @@ def YY(Input):#Complete this: give the function the correct name#
   return g
 
 
-def XX(Input):#You are free to pick this name but it has to be similar to the one in the xml#
+def expConstr1(Input):   #You are free to pick this name but it has to be similar to the one in the xml#
   """
     Let's assume that the constraint is:
     $ x3+x4 < 8 $
@@ -54,7 +54,7 @@ def XX(Input):#You are free to pick this name but it has to be similar to the on
     @ In, Input, object, RAVEN container
     @ out, g, float, explicit constraint 1 evaluation function
   """
-  g = # Write the explicit constraint here
+  g = Input.x3 + Input.x4 - 8 # Write the explicit constraint here
   return g
 
 def expConstr2(Input):
@@ -76,7 +76,7 @@ def impConstr1(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 1 evaluation function
   """
-  return 10 - Input.x1**2 - Input.obj
+  return 10 - Input.x1**2 - Input.ans
 
 def impConstr2(Input):
   """
@@ -85,5 +85,5 @@ def impConstr2(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 2 evaluation function
   """
-  g = Input.x1**2 + Input.obj - 10
+  g = Input.x1**2 + Input.ans - 10
   return g
