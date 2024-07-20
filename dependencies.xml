@@ -91,6 +91,7 @@ Note all install methods after "main" take
     <mamba source="mamba" skip_check='True'/>
     <serpentTools optional='True' source="pip"/>
     <pydmd source="pip"/>
+    <ezyrb source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
