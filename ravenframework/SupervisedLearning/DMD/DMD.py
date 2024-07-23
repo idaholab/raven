@@ -19,7 +19,7 @@
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
-from ....utils.importerUtils import importModuleLazy
+from ...utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -29,9 +29,9 @@ ezyrb = importModuleLazy("ezyrb")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from ....SupervisedLearning.DMD import DMDBase
-from ....utils import utils
-from ....utils import InputData, InputTypes
+from ...SupervisedLearning.DMD import DMDBase
+from ...utils import utils
+from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DynamicModeDecomposition(DMDBase):
@@ -47,10 +47,9 @@ class DynamicModeDecomposition(DMDBase):
       @ Out, None
     """
     super().__init__()
-    import pydmd
-    import pydmd.DMD
+
     # local model
-    self._dmdBase = pydmd.DMD
+    self._dmdBase = {} # DMD
 
   @classmethod
   def getInputSpecification(cls):
@@ -90,25 +89,34 @@ class DynamicModeDecomposition(DMDBase):
       \item \xmlNode{modes}, XML node containing the dynamic modes (imaginary and real part)
     \end{itemize}"""
 
-    specs.addSub(InputData.parameterInputFactory("rankSVD", contentType=InputTypes.IntegerType,
+    specs.addSub(InputData.parameterInputFactory("svd_rank", contentType=InputTypes.FloatOrIntType,
                                                  descr=r"""defines the truncation rank to be used for the SVD.
                                                  Available options are:
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
                                                  \item \textit{>1}, this rank is going to be used for the truncation
-                                                 \end{itemize}""", default=None))
-    specs.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputTypes.FloatType,
-                                                 descr=r"""energy level ($0.0 < float < 1.0$) used to compute the rank such
+
+                                                 \end{itemize}
+                                                 If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by
-                                                   \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}""", default=None))
-    specs.addSub(InputData.parameterInputFactory("rankTLSQ", contentType=InputTypes.IntegerType,
+                                                   \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}
+                                                 """, default=0))
+    specs.addSub(InputData.parameterInputFactory("tlsq_rank", contentType=InputTypes.IntegerType,
                                                  descr=r"""$int > 0$ that defines the truncation rank to be used for the total
                                                   least square problem. If not inputted, no truncation is applied""", default=None))
-    specs.addSub(InputData.parameterInputFactory("exactModes", contentType=InputTypes.BoolType,
+    specs.addSub(InputData.parameterInputFactory("exact", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the exact modes need to be computed (eigenvalues and
                                                  eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).""", default=True))
-    specs.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory("forward_backward", contentType=InputTypes.BoolType,
+                                                 descr=r"""If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
+                                                 Default is False.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("tikhonov_regularization", contentType=InputTypes.FloatOrIntType,
+                                                 descr=r"""Tikhonov parameter for the regularization.
+                                                 If `None`, no regularization is applied, if `float`, it is used as the
+                                                 :math:`\lambda` tikhonov parameter.""", default=None))
+
+    specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.FloatType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     return specs
@@ -119,30 +127,28 @@ class DynamicModeDecomposition(DMDBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    import pydmd
+    from pydmd import DMD
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','rankSVD', 'energyRankSVD',
-                                                               'rankTLSQ','exactModes','optimized'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank',
+                                                               'exact','forward_backward','tikhonov_regularization', 'opt'])
     # notFound must be empty
     assert(not notFound)
-    # pivot parameter
-    self.pivotParameterID            = settings.get("pivotParameter")
     # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
-    self.dmdParams['rankSVD'       ] = settings.get('rankSVD')
-    #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
-    self.dmdParams['energyRankSVD' ] = settings.get('energyRankSVD')
+    # if 0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by this float value
+    self.dmdParams['svd_rank'       ] = settings.get('svd_rank')
     # truncation rank for total least square
-    self.dmdParams['rankTLSQ'      ] = settings.get('rankTLSQ')
+    self.dmdParams['tlsq_rank' ] = settings.get('tlsq_rank')
     # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
-    self.dmdParams['exactModes'    ] = settings.get('exactModes')
+    self.dmdParams['exact'      ] = settings.get('exact')
+    # If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
+    self.dmdParams['forward_backward'    ] = settings.get('forward_backward')
+    # Tikhonov parameter for the regularization.
+    self.dmdParams['tikhonov_regularization'     ] = settings.get('tikhonov_regularization')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
-    self.dmdParams['optimized'     ] = settings.get('optimized')
-    # some checks
-    if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
-      self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
-    # check if the pivotParameter is among the targetValues
-    if self.pivotParameterID not in self.target:
-      self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
-    if len(self.target) < 2:
-      self.raiseAnError(IOError,"At least one Target in addition to the pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
-    
+    self.dmdParams['opt'     ] = settings.get('opt')
+    # for target
+    for target in  set(self.target) - set(self.pivotID):
+      self._dmdBase[target] = DMD
+    # intialize the model
     self.initializeModel(settings)
