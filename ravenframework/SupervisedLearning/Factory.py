@@ -36,6 +36,7 @@ from .DynamicModeDecompositionControl import DMDC
 from .DMD.DMD import DMD
 from .DMD.CDMD import CDMD
 from .DMD.EDMD import EDMD
+from .DMD.FbDMD import FbDMD
 
 from .ARMA               import ARMA
 from .ROMCollection      import Segments, Clusters, Interpolated

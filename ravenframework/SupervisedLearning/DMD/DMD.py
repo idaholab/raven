@@ -75,11 +75,11 @@ class DMD(DMDBase):
     via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
     in \xmlNode{OutStream} of type \xmlAttr{Print}):
     \begin{itemize}
-      \item \xmlNode{svd_rank}, see XML input specifications below
-      \item \xmlNode{tlsq_rank}, see XML input specifications below
+      \item \xmlNode{svd\_rank}, see XML input specifications below
+      \item \xmlNode{tlsq\_rank}, see XML input specifications below
       \item \xmlNode{opt}, see XML input specifications below
       \item \xmlNode{exact}, see XML input specifications below
-      \item \xmlNode{forward_backward}, see XML input specifications below
+      \item \xmlNode{forward\_backward}, see XML input specifications below
       \item \xmlNode{tikhonov_regularization}, see XML input specifications below
       \item \xmlNode{features}, see XML input specifications below
       \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
@@ -99,9 +99,9 @@ class DMD(DMDBase):
                                                  \item \textit{>1}, this rank is going to be used for the truncation
 
                                                  \end{itemize}
-                                                 If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
+                                                 If $0.0 < svd\_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by
-                                                   \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}
+                                                   \xmlNode{svd\_rank}.
                                                  """, default=0))
     specs.addSub(InputData.parameterInputFactory("tlsq_rank", contentType=InputTypes.IntegerType,
                                                  descr=r"""$int > 0$ that defines the truncation rank to be used for the total
@@ -117,7 +117,7 @@ class DMD(DMDBase):
                                                  If `None`, no regularization is applied, if `float`, it is used as the
                                                  :math:`\lambda` tikhonov parameter.""", default=None))
 
-    specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     return specs

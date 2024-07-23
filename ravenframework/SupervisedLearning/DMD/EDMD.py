@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa
-  Compressed Dynamic Mode Decomposition
+  Kernalized Dynamic Mode Decomposition
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -75,14 +75,10 @@ class EDMD(DMDBase):
     via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters  can be exported (i.e. \xmlNode{what} node
     in \xmlNode{OutStream} of type \xmlAttr{Print}):
     \begin{itemize}
-      \item \xmlNode{svd_rank}, see XML input specifications below
-      \item \xmlNode{tlsq_rank}, see XML input specifications below
-      \item \xmlNode{compression_matrix}, see XML input specifications below
+      \item \xmlNode{svd\_rank}, see XML input specifications below
+      \item \xmlNode{tlsq\_rank}, see XML input specifications below
       \item \xmlNode{opt}, see XML input specifications below
-      \item \xmlNode{rescale_mode}, see XML input specifications below
-      \item \xmlNode{forward_backward}, see XML input specifications below
-      \item \xmlNode{sorted_eigs}, see XML input specifications below
-      \item \xmlNode{tikhonov_regularization}, see XML input specifications below
+      \item \xmlNode{kernel\_metric}, see XML input specifications below
       \item \xmlNode{features}, see XML input specifications below
       \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
       \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be used as mapping
@@ -100,9 +96,9 @@ class EDMD(DMDBase):
                                                  \item \textit{>1}, this rank is going to be used for the truncation
 
                                                  \end{itemize}
-                                                 If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
+                                                 If $0.0 < svd\_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by
-                                                   \xmlNode{svd_rank}.
+                                                   \xmlNode{svd\_rank}.
                                                  """, default=-1))
     specs.addSub(InputData.parameterInputFactory("tlsq_rank", contentType=InputTypes.IntegerType,
                                                  descr=r"""$int > 0$ that defines the truncation rank to be used for the total
@@ -121,7 +117,7 @@ class EDMD(DMDBase):
                                                     \item \textit{sigmoid}, sigmoid kernel
                                                     \item \textit{cosine}, cosine kernel
                                                   \end{itemize}""", default="linear"))
-    specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.FloatType,
+    specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""",
                                                  default=False))

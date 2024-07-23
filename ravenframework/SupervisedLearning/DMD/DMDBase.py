@@ -203,7 +203,7 @@ class DMDBase(SupervisedLearning):
     for target in self.model:
       self.model[target].parameters = featureVals
       data = self.model[target].reconstructed_data
-      returnEvaluation[target] = data[:, 0, :].flatten()
+      returnEvaluation[target] = data[:, 0, :].flatten().real
     return returnEvaluation
 
   def writeXMLPreamble(self, writeTo, targets = None):

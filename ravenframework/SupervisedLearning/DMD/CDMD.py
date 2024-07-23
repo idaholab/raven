@@ -132,7 +132,7 @@ class CDMD(DMDBase):
                                                  descr=r"""Sort eigenvalues (and modes/dynamics accordingly) by magnitude if sorted_eigs=``abs'',
                                                  by real part (and then by imaginary part to break ties) if sorted_eigs=``real''.
                                                  """, default=False))
-    specs.addSub(InputData.parameterInputFactory("tikhonov_regularization", contentType=InputTypes.FloatOrIntType,
+    specs.addSub(InputData.parameterInputFactory("tikhonov_regularization", contentType=InputTypes.FloatType,
                                                  descr=r"""Tikhonov parameter for the regularization.
                                                  If `None`, no regularization is applied, if `float`, it is used as the
                                                  :math:`\lambda` tikhonov parameter.""", default=None))
