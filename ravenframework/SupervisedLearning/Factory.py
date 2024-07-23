@@ -30,10 +30,12 @@ from .NDspline           import NDspline
 from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
-from .DynamicModeDecomposition import DMD
+from .DynamicModeDecomposition import DMD as DMDold
 from .DynamicModeDecompositionControl import DMDC
 
-from .DMD.DMD import DynamicModeDecomposition
+from .DMD.DMD import DMD
+from .DMD.CDMD import CDMD
+from .DMD.EDMD import EDMD
 
 from .ARMA               import ARMA
 from .ROMCollection      import Segments, Clusters, Interpolated

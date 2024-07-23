@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on Jan 21, 2020
+  Created on July 21, 2024
 
-  @author: alfoa, wangc
-  Support Vector Regression
+  @author: alfoa 
+  Dynamic Mode Decomposition base class
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -215,7 +215,7 @@ class DMDBase(SupervisedLearning):
     """
     # add description
     super().writeXMLPreamble(writeTo, targets)
-    description  = f' This XML file contains the main information of the DMD ROM type {self.dmdParams["dmdType"]}.'
+    description  = ' This XML file contains the main information of the DMD-based ROM .'
     description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
     description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
     description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
@@ -236,10 +236,8 @@ class DMDBase(SupervisedLearning):
       skip = []
 
     # check what
-    what = ['exact','opt','dmdType','features','timeScale','eigs','amplitudes','modes','dmdTimeScale']
-    if self.dmdParams['tlsq_rank'] is not None:
-      what.append('tlsq_rank')
-    what.append('svd_rank')
+    
+    what = ['features','timeScale','eigs','amplitudes','modes','dmdTimeScale'] + list(self.dmdParams.keys())
     if targets is None:
       readWhat = what
     else:
@@ -253,11 +251,8 @@ class DMDBase(SupervisedLearning):
       what = readWhat
 
     target = self.target[-1]
-    toAdd = ['exact','opt','dmdType']
-    if self.dmdParams['tlsq_rank'] is not None:
-      toAdd.append('tlsq_rank')
-    toAdd.append('svd_rank' )
-
+    toAdd = list(self.dmdParams.keys())
+ 
     for add in toAdd:
       if add in what :
         writeTo.addScalar(target,add,self.dmdParams[add])

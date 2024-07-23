@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The ScikitLearn folder includes different types of ScikitLearn based ROMs
+  The DMD folder includes different types of DMD based ROMs
   that are available via RAVEN
 
-  Created on Jan 21, 2020
+  Created on July 21, 2024
   @author: alfoa
 """
 # These lines ensure that we do not have to do something like:

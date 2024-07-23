@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa
-  Traditional Dynamic Mode Decomposition
+  Compressed Dynamic Mode Decomposition
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -34,9 +34,9 @@ from ...utils import utils
 from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class DMD(DMDBase):
+class EDMD(DMDBase):
   """
-    Dynamic Mode Decomposition (Parametric)
+    Kernelized Extended Dynamic Mode Decomposition (Parametric)
   """
   info = {'problemtype':'regression', 'normalize':False}
 
@@ -49,7 +49,7 @@ class DMD(DMDBase):
     super().__init__()
 
     # local model
-    self._dmdBase = {} # DMD
+    self._dmdBase = {} # CDMD
 
   @classmethod
   def getInputSpecification(cls):
@@ -60,10 +60,10 @@ class DMD(DMDBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(DMD, cls).getInputSpecification()
+    specs = super(EDMD, cls).getInputSpecification()
 
-    specs.description = r"""The \xmlString{DynamicModeDecomposition} ROM aimed to construct a time-dependent (or any other monotonic
-    variable) surrogate model based on Dynamic Mode Decomposition
+    specs.description = r"""The \xmlString{EDMD} ROM (Kernelized Extended Dynamic Mode Decomposition) aimed to construct a time-dependent (or any other monotonic
+    variable) surrogate model based on Compressed Dynamic Mode Decomposition
     This surrogate is aimed to perform a ``dimensionality reduction regression'', where, given time
     series (or any monotonic-dependent variable) of data, a set of modes each of which is associated
     with a fixed oscillation frequency and decay/growth rate is computed
@@ -72,14 +72,16 @@ class DMD(DMDBase):
     \xmlAttr{subType} needs to be set equal to \xmlString{DMD}.
     \\
     Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
-    via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
+    via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters  can be exported (i.e. \xmlNode{what} node
     in \xmlNode{OutStream} of type \xmlAttr{Print}):
     \begin{itemize}
       \item \xmlNode{svd_rank}, see XML input specifications below
       \item \xmlNode{tlsq_rank}, see XML input specifications below
+      \item \xmlNode{compression_matrix}, see XML input specifications below
       \item \xmlNode{opt}, see XML input specifications below
-      \item \xmlNode{exact}, see XML input specifications below
+      \item \xmlNode{rescale_mode}, see XML input specifications below
       \item \xmlNode{forward_backward}, see XML input specifications below
+      \item \xmlNode{sorted_eigs}, see XML input specifications below
       \item \xmlNode{tikhonov_regularization}, see XML input specifications below
       \item \xmlNode{features}, see XML input specifications below
       \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
@@ -95,31 +97,35 @@ class DMD(DMDBase):
                                                  Available options are:
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
-                                                 \item \textit{0}, optimal rank is internally computed
                                                  \item \textit{>1}, this rank is going to be used for the truncation
 
                                                  \end{itemize}
                                                  If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by
-                                                   \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}
-                                                 """, default=0))
+                                                   \xmlNode{svd_rank}.
+                                                 """, default=-1))
     specs.addSub(InputData.parameterInputFactory("tlsq_rank", contentType=InputTypes.IntegerType,
                                                  descr=r"""$int > 0$ that defines the truncation rank to be used for the total
-                                                  least square problem. If not inputted, no truncation is applied""", default=None))
-    specs.addSub(InputData.parameterInputFactory("exact", contentType=InputTypes.BoolType,
-                                                 descr=r"""True if the exact modes need to be computed (eigenvalues and
-                                                 eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).""", default=True))
-    specs.addSub(InputData.parameterInputFactory("forward_backward", contentType=InputTypes.BoolType,
-                                                 descr=r"""If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-                                                 Default is False.""", default=False))
-    specs.addSub(InputData.parameterInputFactory("tikhonov_regularization", contentType=InputTypes.FloatOrIntType,
-                                                 descr=r"""Tikhonov parameter for the regularization.
-                                                 If `None`, no regularization is applied, if `float`, it is used as the
-                                                 :math:`\lambda` tikhonov parameter.""", default=None))
-
+                                                  least square problem. If not inputted, no truncation is applied""", default=0))
+    specs.addSub(InputData.parameterInputFactory("kernel_metric", contentType=InputTypes.makeEnumType("kernel_metric", "kernelMetricType",
+                                                                                                        ["additive_chi2", "chi2", "linear", "poly",
+                                                                                                         "rbf", "laplacian", "sigmoid", "cosine"]),
+                                                 descr=r"""The kernel function to apply (for more details, see ``sklearn.metrics.pairwise_kernels''). Available are:
+                                                  \begin{itemize}
+                                                    \item \textit{additive_chi2}, additive_chi2 kernel
+                                                    \item \textit{chi2}, chi2 kernel
+                                                    \item \textit{linear}, linear kernel
+                                                    \item \textit{poly}, polynomial kernel
+                                                    \item \textit{rbf}, radial basis function
+                                                    \item \textit{laplacian}, laplacian kernel
+                                                    \item \textit{sigmoid}, sigmoid kernel
+                                                    \item \textit{cosine}, cosine kernel
+                                                  \end{itemize}""", default="linear"))
     specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.FloatType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
-                                                  between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
+                                                  between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""",
+                                                 default=False))
+ 
     return specs
 
   def _handleInput(self, paramInput):
@@ -129,27 +135,22 @@ class DMD(DMDBase):
       @ Out, None
     """
     import pydmd
-    from pydmd import DMD
+    from pydmd import EDMD
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank',
-                                                               'exact','forward_backward','tikhonov_regularization', 'opt'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','kernel_metric', 'opt'])
     # notFound must be empty
     assert(not notFound)
     # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
     # if 0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by this float value
     self.dmdParams['svd_rank'       ] = settings.get('svd_rank')
     # truncation rank for total least square
-    self.dmdParams['tlsq_rank' ] = settings.get('tlsq_rank')
-    # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
-    self.dmdParams['exact'      ] = settings.get('exact')
-    # If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-    self.dmdParams['forward_backward'    ] = settings.get('forward_backward')
-    # Tikhonov parameter for the regularization.
-    self.dmdParams['tikhonov_regularization'     ] = settings.get('tikhonov_regularization')
+    self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
+    # Kernel metric
+    self.dmdParams['kernel_metric'] = settings.get('kernel_metric') 
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
-    self.dmdParams['opt'     ] = settings.get('opt')
+    self.dmdParams['opt'] = settings.get('opt')
     # for target
     for target in  set(self.target) - set(self.pivotID):
-      self._dmdBase[target] = DMD
+      self._dmdBase[target] = EDMD
     # intialize the model
     self.initializeModel(settings)
