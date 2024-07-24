@@ -113,6 +113,21 @@ class MultiResolutionTSA(SupervisedLearning):
       msg += ' multiresolution time series analysis. None were found. Example: FilterBankDWT.'
       self.raiseAnError(IOError, msg)
 
+    # check that there is a multiresolution algorithm
+    allAlgorithms = self._globalROM._tsaAlgorithms
+    allAlgorithms.extend(self._globalROM._tsaGlobalAlgorithms)
+    foundMRAalgorithm = False
+    for algo in allAlgorithms:
+      if algo.canTransform():
+        if algo.isMultiResolutionAlgorithm():
+          foundMRAalgorithm = True
+          self.decompositionAlgorithm = algo.name
+          break
+    if not foundMRAalgorithm:
+      msg = 'The MultiResolutionTSA ROM class requires a TSA algorithm capable of '
+      msg += ' multiresolution time series analysis. None were found. Example: FilterBankDWT.'
+      self.raiseAnError(IOError, msg)
+
   def _train(self, featureVals, targetVals):
     """
       Perform training on input database stored in featureVals.
