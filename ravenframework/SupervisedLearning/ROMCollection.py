@@ -1941,14 +1941,9 @@ class Decomposition(SupervisedLearning):
         addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
         segmentation without clustering. If clustering, then an additional node needs to be included in the
         \xmlNode{Segment} node.""", default='decomposition')
-    # sl = SupervisedLearning.getInputSpecification()
-    # segment.addSub(SupervisedLearning.getInputSpecification())
-    sl = SyntheticHistory.getInputSpecification()
-    for sub in sl.subs:
+    sh = SyntheticHistory.getInputSpecification()
+    for sub in sh.subs:
       segment.addSub(sub)
-    # synthHist = SyntheticHistory.getInputSpecification()
-    # for sub in synthHist.subs:
-    #   segment.addSub(sub)
     spec.addSub(segment)
     return spec
 
@@ -1978,8 +1973,22 @@ class Decomposition(SupervisedLearning):
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
     inputSpecs = paramInput.findFirst('Segment')
-    self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
+    self._macroSteps = {}                                   # collection of macro steps (e.g. each year)
     self._macroTemplate._handleInput(inputSpecs)            # example "yearly" SVL engine collection
+
+    # check that there is a multiresolution algorithm (by this point, the `_templateROM` will have been populated)
+    allAlgorithms = self._templateROM._globalROM._tsaAlgorithms
+    allAlgorithms.extend(self._templateROM._globalROM._tsaGlobalAlgorithms)
+    foundMRAalgorithm = False
+    for algo in allAlgorithms:
+      if algo.canTransform():
+        if algo.isMultiResolutionAlgorithm():
+          foundMRAalgorithm = True
+    if not foundMRAalgorithm:
+      msg = 'The Decomposition ROMCollection segment class requires a TSA algorithm capable of '
+      msg += ' multiresolution time series analysis. None were found.'
+      raise IOError(msg)
+
 
   ############### TRAINING ####################
   def train(self, tdict):
@@ -1995,7 +2004,7 @@ class Decomposition(SupervisedLearning):
     # Now we handle all the decomposition levels
     # temporary...
     mrTrainedParams = list(self._templateROM._globalROM._tsaTrainedParams.items())[-1]
-    assert mrTrainedParams[0].name == 'DWT', "Only recognizing DWT as MR TSA algo for now"
+    assert mrTrainedParams[0].name == 'FilterBankDWT', "Only recognizing DWT as MR TSA algo for now"
 
     noPivotTargets = [x for x in self.target if x != self.pivotID]
     numLvls = len(mrTrainedParams[1][noPivotTargets[0]]['results']['coeff_d'])
@@ -2036,7 +2045,7 @@ class Decomposition(SupervisedLearning):
     # numLvls, nPivot = mrTrainedParams[1][noPivotTargets[0]]['results']['coeff_d'].shape
 
     # first find the DWT/MRA re-comp algo
-    mrAlgo = [key for key in self._templateROM._globalROM._tsaTrainedParams.keys() if key.name=='DWT']
+    mrAlgo = [key for key in self._templateROM._globalROM._tsaTrainedParams.keys() if key.name=='FilterBankDWT']
     assert len(mrAlgo)>0
 
     # this should be reference to trainedParams
