@@ -1201,10 +1201,10 @@ class Triangular(BoostDistribution):
       See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.triang.html} for more details.
       """
     inputSpecification.addSub(InputData.parameterInputFactory("min",
-        descr=r"""lower domain boundary of this distribution, referred to as $a$ in euqation form.""",
+        descr=r"""lower domain boundary of this distribution, referred to as $a$ in equation form.""",
         contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("max",
-        descr=r"""upper domain boundary of this distribution, referred to as $b$ in euqation form.""",
+        descr=r"""upper domain boundary of this distribution, referred to as $b$ in equation form.""",
         contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("apex",
         descr=r"""location of the peak of the distribution, referred to as $c$ in equation form.""",
@@ -1537,7 +1537,7 @@ class Bernoulli(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Bernoulli, cls).getInputSpecification()
-    inputSpecification.description = r"""classical Bournoulli discrete distribution. The probability mass function for the
+    inputSpecification.description = r"""classical Bernoulli discrete distribution. The probability mass function for the
       Bernoulli distribution is given by
       $f(k;p)=p$ if $k=1$ and $f(k;p)=1-p$ if $k=0$, where $k$ is the possible outcomes and $p$ is the probabilty of occurance.
       See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.Bernoulli.html} for more details.
@@ -3397,7 +3397,7 @@ class NDInverseWeight(NDimensionalDistributions):
         specifying input of cls.
     """
     inputSpecification = super(NDInverseWeight, cls).getInputSpecification()
-    inputSpecification.description = r"""Custom user-defined N-diminsional distribution. This allows empirically-defined
+    inputSpecification.description = r"""Custom user-defined N-dimensional distribution. This allows empirically-defined
         custom distributions that are not currently defined in RAVEN to be used for probability weighting and sampling.
         The combined distribution is defined through empirical distribution in a CSV file."""
     DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename",
@@ -3787,7 +3787,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     inputSpecification = super(MultivariateNormal, cls).getInputSpecification()
     inputSpecification.description = r"""describes a N-dimensional multivariate Gaussian normal distribution.
-        This generalizes the univariate nurmal distribution to higher dimensions. The multivariate normal
+        This generalizes the univariate normal distribution to higher dimensions. The multivariate normal
         distribution is defined by an N-dimensional random vector $\widehat{x}$ and is defined by a multidimensional
         mean $\widehat{\mu}$ and standard deviation $\Sigma$. The probability density function for this distribution is
         $f(\widehat{x})=\frac{1}{\sqrt{(2\pi)^k}\left|\Sigma\right| } e^{-\frac{1}{2}(\widehat{x}-\widehat{\mu})^T \Sigma^{-1}(\widehat{x}-\widehat{\mu})}$."""
