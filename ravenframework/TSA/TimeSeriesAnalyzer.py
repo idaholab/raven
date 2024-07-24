@@ -317,6 +317,10 @@ class TimeSeriesTransformer(TimeSeriesAnalyzer):
     Acts as a mix-in class for algorithms that can transform time-dependent signals. Algorithms
     which receive an input signal, then produce an output signal should inherit from this class.
   """
+  # class attribute
+  ## defines if algorithm is capable of decomposing a signal into multiple resolution signals
+  _multiResolution = False
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -327,6 +331,15 @@ class TimeSeriesTransformer(TimeSeriesAnalyzer):
     """
     specs = super().getInputSpecification()
     return specs
+
+  @classmethod
+  def isMultiResolutionAlgorithm(cls):
+    """
+      Determines if algorithm can be used to decompose a signal for multiresolution analysis.
+      @ In, None
+      @ Out, multiResolution, bool, True if this algorithm is capable of multiresolution analysis
+    """
+    return cls._multiResolution
 
   @abc.abstractmethod
   def getResidual(self, initial, params, pivot, settings):

@@ -25,10 +25,13 @@ from ..TimeSeriesAnalyzer import TimeSeriesTransformer
 from ...utils import xmlUtils, InputTypes, InputData
 
 
-class DWT(TimeSeriesTransformer):
-  """ Differences the signal N times. """
+class FilterBankDWT(TimeSeriesTransformer):
+  """ Applies a Discrete Wavelet Transform algorithm as a filter bank to decompose signal into
+      multiple time resolution signals.
+  """
 
   _acceptsMissingValues = True
+  _multiResolution = True
 
   def __init__(self, *args, **kwargs):
     """
@@ -48,9 +51,10 @@ class DWT(TimeSeriesTransformer):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.name = 'dwt'
+    specs.name = 'filterbankdwt'
     specs.description = r"""Discrete Wavelet TimeSeriesAnalysis algorithm. Performs a discrete wavelet transform
-        on time-dependent data. Note: This TSA module requires pywavelets to be installed within your
+        on time-dependent data as a filter bank to decompose the signal to multiple frequency levels.
+        Note: This TSA module requires pywavelets to be installed within your
         python environment."""
     specs.addSub(InputData.parameterInputFactory(
       'family',
@@ -148,7 +152,6 @@ class DWT(TimeSeriesTransformer):
 
       results['coeff_a'] = coeffs[0]
       results['coeff_d'] = np.vstack([coeffs[i] for i in range(1,levels)]) if levels>1 else coeffs[1][np.newaxis]
-
 
     return params
 
