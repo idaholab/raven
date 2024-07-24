@@ -39,6 +39,7 @@ from .DMD.EDMD import EDMD
 from .DMD.FbDMD import FbDMD
 from .DMD.HankelDMD import HankelDMD
 from .DMD.HAVOK import HAVOK
+from .DMD.HODMD import HODMD
 
 from .ARMA               import ARMA
 from .ROMCollection      import Segments, Clusters, Interpolated
