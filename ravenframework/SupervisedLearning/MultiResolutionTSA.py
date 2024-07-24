@@ -66,6 +66,7 @@ class MultiResolutionTSA(SupervisedLearning):
     self.printTag = 'Multiresolution Synthetic History'
     self._globalROM = SyntheticHistory()
     self._decompParams = {}
+    self.decompositionAlgorithm = None
 
   def _handleInput(self, paramInput):
     """
@@ -77,6 +78,21 @@ class MultiResolutionTSA(SupervisedLearning):
     self._globalROM._handleInput(paramInput)
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
 
+    # check that there is a multiresolution algorithm
+    allAlgorithms = self._globalROM._tsaAlgorithms
+    allAlgorithms.extend(self._globalROM._tsaGlobalAlgorithms)
+    foundMRAalgorithm = False
+    for algo in allAlgorithms:
+      if algo.canTransform():
+        if algo.isMultiResolutionAlgorithm():
+          foundMRAalgorithm = True
+          self.decompositionAlgorithm = algo.name
+          break
+    if not foundMRAalgorithm:
+      msg = 'The MultiResolutionTSA ROM class requires a TSA algorithm capable of '
+      msg += ' multiresolution time series analysis. None were found. Example: FilterBankDWT.'
+      self.raiseAnError(IOError, msg)
+
   def _train(self, featureVals, targetVals):
     """
       Perform training on input database stored in featureVals.
@@ -86,6 +102,14 @@ class MultiResolutionTSA(SupervisedLearning):
     """
     self._globalROM.trainTSASequential(targetVals)
 
+  def _getTrainedParams(self):
+
+    trainedParams = list(self._globalROM._tsaTrainedParams.items())[-1]
+    multiResolutionAlgoSettings = self._globalROM._tsaAlgoSettings[trainedParams[0]]
+    # TODO: this should be more generalizable once we add more algos
+    numLvls = multiResolutionAlgoSettings['levels'] - 1
+    return trainedParams, numLvls
+
   def __evaluateLocal__(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
@@ -93,6 +117,10 @@ class MultiResolutionTSA(SupervisedLearning):
     """
     rlz = self._globalROM.evaluateTSASequential()
     return rlz
+
+
+
+
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
