@@ -1941,6 +1941,8 @@ class Decomposition(SupervisedLearning):
         addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
         segmentation without clustering. If clustering, then an additional node needs to be included in the
         \xmlNode{Segment} node.""", default='decomposition')
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType,
+        descr=r"""pivot parameter for macro steps (e.g. years)"""))
     sh = SyntheticHistory.getInputSpecification()
     for sub in sh.subs:
       segment.addSub(sub)
@@ -1949,7 +1951,10 @@ class Decomposition(SupervisedLearning):
 
   def __init__(self):
     super().__init__()
-    self._macroTemplate = SyntheticHistory()
+    self._macroTemplate = SyntheticHistory() # empty SyntheticHistory object, deepcopy'd later to train multiple instances per decomposition level
+    self._macroParameter = None
+    self._macroSteps = {}                                   # collection of macro steps (e.g. each year)
+    self._decompSteps = {}
     self.name = 'Decomposition'
 
   def setTemplateROM(self, romInfo):
@@ -1962,6 +1967,9 @@ class Decomposition(SupervisedLearning):
     self._romName = romInfo.get('name', 'unnamed')
     if self._templateROM is None:
       self.raiseAnError(IOError, 'A rom instance is required by', self.name, 'please check your implementation')
+    # only allowing Decomposition ROMCollection to be used with MultiResolutionTSA ROM subtype
+    if self._templateROM.printTag != 'Multiresolution Synthetic History':
+      self.raiseAnError(IOError, 'The Decomposition ROMCollection segment class requires a ROM subtype of MultiResolutionTSA.')
 
   def _handleInput(self, paramInput):
     """
@@ -1973,21 +1981,12 @@ class Decomposition(SupervisedLearning):
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
     inputSpecs = paramInput.findFirst('Segment')
-    self._macroSteps = {}                                   # collection of macro steps (e.g. each year)
-    self._macroTemplate._handleInput(inputSpecs)            # example "yearly" SVL engine collection
+    try:
+      self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
+    except:
+      self.raiseAnError(IOError, '<macroParameter> input spec is required for Decomposition class')
 
-    # check that there is a multiresolution algorithm (by this point, the `_templateROM` will have been populated)
-    allAlgorithms = self._templateROM._globalROM._tsaAlgorithms
-    allAlgorithms.extend(self._templateROM._globalROM._tsaGlobalAlgorithms)
-    foundMRAalgorithm = False
-    for algo in allAlgorithms:
-      if algo.canTransform():
-        if algo.isMultiResolutionAlgorithm():
-          foundMRAalgorithm = True
-    if not foundMRAalgorithm:
-      msg = 'The Decomposition ROMCollection segment class requires a TSA algorithm capable of '
-      msg += ' multiresolution time series analysis. None were found.'
-      raise IOError(msg)
+    self._macroTemplate._handleInput(inputSpecs)            # example "yearly" SVL engine collection
 
 
   ############### TRAINING ####################
@@ -1995,37 +1994,54 @@ class Decomposition(SupervisedLearning):
     """
       Trains the SVL and its supporting SVLs etc. Overwrites base class behavior due to
         special clustering and macro-step needs.
-      @ In, trainDict, dict, dicitonary with training data
+      @ In, trainDict, dict, dictionary with training data
       @ Out, None
     """
-    # run first set of MR TSA algorithms (should include some sort of MRA transformer)
-    self._templateROM.train(tdict)
-
-    # Now we handle all the decomposition levels
-    # temporary...
-    mrTrainedParams = list(self._templateROM._globalROM._tsaTrainedParams.items())[-1]
-    assert mrTrainedParams[0].name == 'FilterBankDWT', "Only recognizing DWT as MR TSA algo for now"
-
+    # create macro steps as needed
+    self._createMacroSteps(tdict)
     noPivotTargets = [x for x in self.target if x != self.pivotID]
-    numLvls = len(mrTrainedParams[1][noPivotTargets[0]]['results']['coeff_d'])
 
-    # create new ROM for every level
-    for lvl in range(numLvls):
-      new = copy.deepcopy(self._macroTemplate)
-      self._macroSteps[lvl] = new
+    # step through macroparameters (years)
+    for s, step in enumerate(self._macroSteps.values()):
+      self.raiseADebug('Training Statepoint Year {} ...'.format(s))
+      trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
 
-    # NOW we train each level decomposition
-    for lvl, decomp in enumerate(self._macroSteps.values()):
-      # write training dict
-      decomp_tdict = copy.deepcopy(tdict)
-      for target in noPivotTargets:
-        decomp_tdict[target] = [mrTrainedParams[1][target]['results']['coeff_d'][lvl]]
-      # train global algos
-      _, newTrainingDict = decomp.getGlobalRomSegmentSettings(decomp_tdict, None)
-      # train
-      decomp.train(newTrainingDict)
+      self.raiseADebug('... Training on Full Signal Year ...')
+      step.train(trainingData)
 
+      trainedParams, numLvls = step._getTrainedParams()
+      self.raiseADebug('... Training Decomposition Levels ...')
+
+      # create new ROM for every level
+      for lvl in range(numLvls):
+        new = copy.deepcopy(self._macroTemplate)
+        self._decompSteps[lvl] = new
+
+      # NOW we train each level decomposition
+      for lvl, decomp in enumerate(self._decompSteps.values()):
+        # write training dict
+        decomp_tdict = copy.deepcopy(trainingData)
+        for target in noPivotTargets:
+          decomp_tdict[target] = [trainedParams[1][target]['results']['coeff_d'][lvl]]
+        # train global algos
+        _, newTrainingDict = decomp.getGlobalRomSegmentSettings(decomp_tdict, None)
+        # train
+        decomp.train(newTrainingDict)
     self.amITrained = True
+
+  def _createMacroSteps(self, tdict):
+    """
+    """
+    # tdict should have two parameters, the pivotParameter and the macroParameter -> one step per realization
+    if self._macroParameter not in tdict:
+      self.raiseAnError(IOError, f'The <macroParameter> "{self._macroParameter}" was not found in the training DataObject! Training is not possible.')
+
+    # create each progressive step
+    for macroID in tdict[self._macroParameter]:
+      macroID = macroID[0]
+      new = copy.deepcopy(self._templateROM)
+      self._macroSteps[macroID] = new
+      self._decompSteps[macroID] = {}
 
   ############### EVALUATING ####################
   def evaluate(self, edict):
