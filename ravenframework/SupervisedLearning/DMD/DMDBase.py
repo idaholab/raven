@@ -50,12 +50,22 @@ class DMDBase(SupervisedLearning):
     self.settings = None # initial settings for the ROM
     self.dmdParams = {}
     # parametric model
-    self.model = {} # dict or ParametericDMD
+    self.model = None #  ParametericDMD
     # local models
-    self._DRrom = {} # POD
-    self._interpolator = {} # RBF
-    self._dmdBase = None  # base specific DMD estimator/model (Set by derived classes)
-    self.uniqueVals = None # flag to indicate targets only have a single unique value
+    ## POD
+    self._DRrom = None
+    ## RBF
+    self._interpolator = None
+    ## base specific DMD estimator/model (Set by derived classes)
+    self._dmdBase = None
+    ## DMD fit arguments (overloaded by derived classes (if needed))
+    self.fitArguments = {}
+    # flag to indicate that the model has a single target (in addition to the pivot parameter)
+    # This flag is needed because the DMD based model has an issue with single target (space dimension == 1) and
+    # a counter mesurament (concatenation of snapshots) is required
+    self.singleTarget = False
+    # target indeces
+    self.targetIndeces = None
 
   @property
   def featureImportances_(self):
@@ -124,6 +134,7 @@ class DMDBase(SupervisedLearning):
     if len(self.target) < 2:
       self.raiseAnError(IOError,f"At least one Target in addition to the pivotParameter {self.pivotParameterID} must be part of the Target space!")
 
+
   def initializeModel(self, dmdParams):
     """
       Method to initialize the surrogate model with a dmdParams dictionary
@@ -137,17 +148,26 @@ class DMDBase(SupervisedLearning):
     if self.dmdParams is None:
       self.dmdParams = dmdParams
 
-    for target in  set(self.target) - set(self.pivotID):
-      # intialize dimensionality reduction
-      self._DRrom[target] = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])
-      # initialize coefficient interpolator
-      self._interpolator[target] = RBF(kernel='thin_plate_spline', smooth=0, neighbors=None, epsilon=None, degree=None)
-      # initialize the base model
-      self._dmdBase[target] = self._dmdBase[target](**self.dmdParams)
-      self.model[target] = ParametricDMD(self._dmdBase[target], self._DRrom[target], self._interpolator[target])
-
+    #for target in  set(self.target) - set(self.pivotID):
+      ## intialize dimensionality reduction
+      #self._DRrom[target] = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])
+      ## initialize coefficient interpolator
+      #self._interpolator[target] = RBF(kernel='thin_plate_spline', smooth=0, neighbors=None, epsilon=None, degree=None)
+      ## initialize the base model
+      #self._dmdBase[target] = self._dmdBase[target](**self.dmdParams)
+      #self.model[target] = ParametricDMD(self._dmdBase[target], self._DRrom[target], self._interpolator[target])
+    # intialize dimensionality reduction
+    self._DRrom = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])
+    # initialize coefficient interpolator
+    self._interpolator = RBF(kernel='thin_plate_spline', smooth=0, neighbors=None, epsilon=None, degree=None)
+    # initialize the base model
+    self._dmdBase = self._dmdBase(**self.dmdParams)
+    self.model = ParametricDMD(self._dmdBase, self._DRrom, self._interpolator, light=self.settings['light'], dmd_fit_kwargs=self.fitArguments)
     # set type of dmd class
     self.dmdParams['dmdType'] = self.__class__.__name__
+    # check if single target
+    self.singleTarget = len(self.target) == 2
+    self.targetIndeces = tuple([i for i,x in enumerate(self.target) if x != self.pivotID])    
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -166,9 +186,23 @@ class DMDBase(SupervisedLearning):
       @ In, None
       @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
-    timeScaleInfo = list(self.model.values())[0].dmd_time
-    timeScale = np.arange(timeScaleInfo['t0'], (timeScaleInfo['tend']+1)*timeScaleInfo['dt'], timeScaleInfo['dt'])
+    try:
+      timeScaleInfo = self.model.dmd_time
+      timeScale = np.arange(timeScaleInfo['t0'], (timeScaleInfo['tend']+1)*timeScaleInfo['dt'], timeScaleInfo['dt'])
+    except AttributeError:
+      if 'time' in  dir(self.model._reference_dmd):
+        timeScale = self.model._reference_dmd.time
+      else:
+        timeScale = self.pivotValues.flatten()
     return timeScale
+
+  def _preFitModifications(self):
+    """
+      Method to modify parameters and populate fit argument before fitting
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def _train(self,featureVals,targetVals):
     """
@@ -185,11 +219,17 @@ class DMDBase(SupervisedLearning):
     self.pivotValues  = targetVals[0,:,pivotParamIndex]
 
     snapshots = np.swapaxes(targetVals, 1, 2)
-    for target in self.model:
-      targetSnaps = snapshots[:, self.target.index(target), :].reshape((snapshots.shape[0], 1, snapshots.shape[-1]))
-      self.model[target].fit(np.concatenate((targetSnaps, targetSnaps), axis=1), training_parameters=featureVals)
-      self.model[target].parameters = featureVals
-
+    if self.singleTarget:
+      targetSnaps = snapshots[:, self.targetIndeces, :].reshape((snapshots.shape[0], 1, snapshots.shape[-1]))
+      targetSnaps = np.concatenate((targetSnaps, targetSnaps), axis=1)
+    else:
+      targetSnaps = snapshots[:, self.targetIndeces, :]
+    # populate fit arguments and allow for modifications (if needed)
+    self._preFitModifications()
+    # fit model
+    self.model.fit(targetSnaps, training_parameters=featureVals)
+    self.model.parameters = featureVals
+      
   def __evaluateLocal__(self,featureVals):
     """
       This method is used to inquire the DMD to evaluate (after normalization that in
@@ -200,10 +240,12 @@ class DMDBase(SupervisedLearning):
     """
     returnEvaluation = dict.fromkeys(self.target)
     returnEvaluation[self.pivotID] = self.pivotValues
-    for target in self.model:
-      self.model[target].parameters = featureVals
-      data = self.model[target].reconstructed_data
-      returnEvaluation[target] = data[:, 0, :].flatten().real
+    self.model.parameters = featureVals
+    data = self.model.reconstructed_data
+    for didx, tidx in enumerate(self.targetIndeces):
+      target = self.target[tidx]
+      returnEvaluation[target] = data[:, didx, :].flatten().real
+      
     return returnEvaluation
 
   def writeXMLPreamble(self, writeTo, targets = None):
@@ -250,7 +292,7 @@ class DMDBase(SupervisedLearning):
     else:
       what = readWhat
 
-    target = self.target[-1]
+    target = self.name
     toAdd = list(self.dmdParams.keys())
  
     for add in toAdd:
@@ -264,24 +306,32 @@ class DMDBase(SupervisedLearning):
     if "dmdTimeScale" in what:
       writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self._getTimeScale()]))
     if "eigs" in what:
-      eigsReal = " ".join(['%.6e' % self.model[target]._reference_dmd.eigs[indx].real for indx in
-                       range(len(self.model[target]._reference_dmd.eigs))])
+      eigsReal = " ".join(['%.6e' % self.model._reference_dmd.eigs[indx].real for indx in
+                       range(len(self.model._reference_dmd.eigs))])
       writeTo.addScalar("eigs","real", eigsReal, root=targNode)
-      eigsImag = " ".join(['%.6e' % self.model[target]._reference_dmd.eigs.imag[indx] for indx in
-                               range(len(self.model[target]._reference_dmd.eigs))])
+      eigsImag = " ".join(['%.6e' % self.model._reference_dmd.eigs.imag[indx] for indx in
+                               range(len(self.model._reference_dmd.eigs))])
       writeTo.addScalar("eigs","imaginary", eigsImag, root=targNode)
-    if "amplitudes" in what:
-      ampsReal = " ".join(['%.6e' % self.model[target]._reference_dmd.amplitudes.real[indx] for indx in
-                       range(len(self.model[target]._reference_dmd.amplitudes))])
+    if "amplitudes" in what and 'amplitudes' in dir(self.model._reference_dmd):
+      ampsReal = " ".join(['%.6e' % self.model._reference_dmd.amplitudes.real[indx] for indx in
+                       range(len(self.model._reference_dmd.amplitudes))])
       writeTo.addScalar("amplitudes","real", ampsReal, root=targNode)
-      ampsImag = " ".join(['%.6e' % self.model[target]._reference_dmd.amplitudes.imag[indx] for indx in
-                               range(len(self.model[target]._reference_dmd.amplitudes))])
+      ampsImag = " ".join(['%.6e' % self.model._reference_dmd.amplitudes.imag[indx] for indx in
+                               range(len(self.model._reference_dmd.amplitudes))])
       writeTo.addScalar("amplitudes","imaginary", ampsImag, root=targNode)
     if "modes" in what:
-      for smp in range(len(self.model[target]._reference_dmd.modes)):
-        valDict = {'real': ' '.join([ '%.6e' % elm for elm in self.model[target]._reference_dmd.modes[smp,:].real]),
-                   'imaginary':' '.join([ '%.6e' % elm for elm in self.model[target]._reference_dmd.modes[smp,:].imag])}
+      nSamples = self.featureVals.shape[0]
+      delays = int(self.model._reference_dmd.modes.shape[0] / nSamples)
+      loopCnt = 0
+      for smp in range(nSamples):
+        valDict = {'real':'', 'imaginary': ''}
+        for _ in range(delays):
+          valDict['real'] += ' '.join([ '%.6e' % elm for elm in self.model._reference_dmd.modes[loopCnt,:].real]) + ' ' 
+          valDict['imaginary'] += ' '.join([ '%.6e' % elm for elm in self.model._reference_dmd.modes[loopCnt,:].imag]) +' '
+          loopCnt += 1
         attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
+        if delays > 1:
+          attributeDict['shape'] = f"({self.model._reference_dmd.modes.shape[1]},{delays})"
         writeTo.addVector("modes","realization",valDict, root=targNode, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):

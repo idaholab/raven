@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on Jan 21, 2020
+  Created on July 21, 2024
 
   @author: alfoa
   Forward/Backward Dynamic Mode Decomposition
@@ -30,7 +30,6 @@ ezyrb = importModuleLazy("ezyrb")
 
 #Internal Modules------------------------------------------------------------------------------------
 from ...SupervisedLearning.DMD import DMDBase
-from ...utils import utils
 from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -49,7 +48,7 @@ class FbDMD(DMDBase):
     super().__init__()
 
     # local model
-    self._dmdBase = {} # FbDMD
+    self._dmdBase = None #{} # FbDMD
 
   @classmethod
   def getInputSpecification(cls):
@@ -152,7 +151,8 @@ class FbDMD(DMDBase):
     self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')   
 
     # for target
-    for target in  set(self.target) - set(self.pivotID):
-      self._dmdBase[target] = FbDMD
+    #for target in  set(self.target) - set(self.pivotID):
+    #  self._dmdBase[target] = FbDMD
+    self._dmdBase = FbDMD
     # intialize the model
     self.initializeModel(settings)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on Jan 21, 2020
+  Created on July 21, 2024
 
   @author: alfoa
   Kernalized Dynamic Mode Decomposition
@@ -30,7 +30,6 @@ ezyrb = importModuleLazy("ezyrb")
 
 #Internal Modules------------------------------------------------------------------------------------
 from ...SupervisedLearning.DMD import DMDBase
-from ...utils import utils
 from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -49,7 +48,7 @@ class EDMD(DMDBase):
     super().__init__()
 
     # local model
-    self._dmdBase = {} # CDMD
+    self._dmdBase = None # {} # CDMD
 
   @classmethod
   def getInputSpecification(cls):
@@ -146,7 +145,8 @@ class EDMD(DMDBase):
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
     # for target
-    for target in  set(self.target) - set(self.pivotID):
-      self._dmdBase[target] = EDMD
+    #for target in  set(self.target) - set(self.pivotID):
+    #  self._dmdBase[target] = EDMD
+    self._dmdBase = EDMD
     # intialize the model
     self.initializeModel(settings)

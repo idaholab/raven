@@ -49,7 +49,7 @@ class CDMD(DMDBase):
     super().__init__()
 
     # local model
-    self._dmdBase = {} # CDMD
+    self._dmdBase = None # CDMD
 
   @classmethod
   def getInputSpecification(cls):
@@ -171,7 +171,8 @@ class CDMD(DMDBase):
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
     # for target
-    for target in  set(self.target) - set(self.pivotID):
-      self._dmdBase[target] = CDMD
+    #for target in  set(self.target) - set(self.pivotID):
+      #self._dmdBase[target] = CDMD
+    self._dmdBase = CDMD
     # intialize the model
     self.initializeModel(settings)

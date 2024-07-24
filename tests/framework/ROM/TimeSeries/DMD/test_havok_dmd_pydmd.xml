@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/DMD.traditionalDMD</name>
+    <name>framework/ROM/TimeSeries/DMD.hankelDMD</name>
     <author>alfoa</author>
     <created>2018-04-25</created>
-    <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
+    <classesTested>SupervisedLearning.HenkelDMD</classesTested>
     <description>
        This test is aimed to check the mechanics of the DMD ROM using the standard SVD-based
        algorithm.
@@ -20,7 +20,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>TraditionalDMD</WorkingDir>
+    <WorkingDir>HAVOK</WorkingDir>
     <Sequence>
              readIn,
              DMDTrain,
@@ -65,14 +65,18 @@
   </Samplers>
 
   <Models>
-    <ROM name="DMDrom" subType="DMD">
+    <ROM name="DMDrom" subType="HAVOK">
       <Target>t,decay_heat,decay_heat_pu</Target>
       <Features>enrichment,burnup</Features>
       <pivotParameter>t</pivotParameter>
       <reductionMethod>svd</reductionMethod>
       <reductionRank>0</reductionRank>
       <svd_rank>0</svd_rank>
-      <tlsq_rank>7</tlsq_rank>
+      <delays>3</delays>
+      <lag>1</lag>
+      <num_chaos>1</num_chaos>
+      <structured>False</structured>
+      <lstsq>True</lstsq>
     </ROM>
   </Models>
 
