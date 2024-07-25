@@ -43,6 +43,8 @@ from .DMD.HAVOK import HAVOK
 from .DMD.HODMD import HODMD
 from .DMD.PiDMD import PiDMD
 from .DMD.RDMD import RDMD
+from .DMD.SpDMD import SpDMD
+
 
 
 from .ARMA               import ARMA
