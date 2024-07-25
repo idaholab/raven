@@ -259,7 +259,7 @@ class DMDBase(SupervisedLearning):
     super().writeXMLPreamble(writeTo, targets)
     description  = ' This XML file contains the main information of the DMD-based ROM .'
     description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
-    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'
+    description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the basic method'
     description += ' is explained in P.J. Schmid, Dynamic mode decomposition'
     description += ' of numerical and experimental data, Journal of Fluid Mechanics 656.1 (2010), 5-28'
     writeTo.addScalar('ROM',"description",description)
@@ -312,7 +312,7 @@ class DMDBase(SupervisedLearning):
       eigsImag = " ".join(['%.6e' % self.model._reference_dmd.eigs.imag[indx] for indx in
                                range(len(self.model._reference_dmd.eigs))])
       writeTo.addScalar("eigs","imaginary", eigsImag, root=targNode)
-    if "amplitudes" in what and 'amplitudes' in dir(self.model._reference_dmd):
+    if "amplitudes" in what and 'amplitudes' in dir(self.model._reference_dmd) and self.model._reference_dmd.amplitudes is not None:
       ampsReal = " ".join(['%.6e' % self.model._reference_dmd.amplitudes.real[indx] for indx in
                        range(len(self.model._reference_dmd.amplitudes))])
       writeTo.addScalar("amplitudes","real", ampsReal, root=targNode)
@@ -321,7 +321,7 @@ class DMDBase(SupervisedLearning):
       writeTo.addScalar("amplitudes","imaginary", ampsImag, root=targNode)
     if "modes" in what:
       nSamples = self.featureVals.shape[0]
-      delays = int(self.model._reference_dmd.modes.shape[0] / nSamples)
+      delays = max(1, int(self.model._reference_dmd.modes.shape[0] / nSamples))
       loopCnt = 0
       for smp in range(nSamples):
         valDict = {'real':'', 'imaginary': ''}
