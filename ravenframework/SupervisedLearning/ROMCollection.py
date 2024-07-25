@@ -2006,10 +2006,10 @@ class Decomposition(SupervisedLearning):
       self.raiseADebug('Training Statepoint Year {} ...'.format(s))
       trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
 
-      self.raiseADebug('... Training on Full Signal Year ...')
+      self.raiseADebug('... Training Global Signal per Year ...')
       step.train(trainingData)
 
-      trainedParams, numLvls = step._getTrainedParams()
+      numLvls, trainedParams = step._getMRTrainedParams()
       self.raiseADebug('... Training Decomposition Levels ...')
 
       # create new ROM for every level
@@ -2022,10 +2022,10 @@ class Decomposition(SupervisedLearning):
         # write training dict
         decomp_tdict = copy.deepcopy(trainingData)
         for target in noPivotTargets:
-          decomp_tdict[target] = [trainedParams[1][target]['results']['coeff_d'][lvl]]
+          decomp_tdict[target] = [trainedParams[target][lvl]]
         # train global algos
         _, newTrainingDict = decomp.getGlobalRomSegmentSettings(decomp_tdict, None)
-        # train
+        # train non-global algos
         decomp.train(newTrainingDict)
     self.amITrained = True
 
