@@ -42,6 +42,8 @@ from .DMD.HankelDMD import HankelDMD
 from .DMD.HAVOK import HAVOK
 from .DMD.HODMD import HODMD
 from .DMD.PiDMD import PiDMD
+from .DMD.RDMD import RDMD
+
 
 from .ARMA               import ARMA
 from .ROMCollection      import Segments, Clusters, Interpolated

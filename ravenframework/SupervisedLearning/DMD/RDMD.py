@@ -15,7 +15,7 @@
   Created on Jan 21, 2020
 
   @author: alfoa
-  Compressed Dynamic Mode Decomposition
+  Randomized Dynamic Mode Decomposition
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -30,13 +30,12 @@ ezyrb = importModuleLazy("ezyrb")
 
 #Internal Modules------------------------------------------------------------------------------------
 from ...SupervisedLearning.DMD import DMDBase
-from ...utils import utils
 from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CDMD(DMDBase):
+class RDMD(DMDBase):
   """
-    Compressed Dynamic Mode Decomposition (Parametric)
+    Randomized Dynamic Mode Decomposition (Parametric)
   """
   info = {'problemtype':'regression', 'normalize':False}
 
@@ -49,7 +48,7 @@ class CDMD(DMDBase):
     super().__init__()
 
     # local model
-    self._dmdBase = None # CDMD
+    self._dmdBase = None # RDMD
 
   @classmethod
   def getInputSpecification(cls):
@@ -60,10 +59,10 @@ class CDMD(DMDBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(CDMD, cls).getInputSpecification()
+    specs = super(RDMD, cls).getInputSpecification()
 
-    specs.description = r"""The \xmlString{CDMD} ROM (Compressed Dynamic Mode Decomposition) aimed to construct a time-dependent (or any other monotonic
-    variable) surrogate model based on Compressed Dynamic Mode Decomposition
+    specs.description = r"""The \xmlString{RDMD} ROM (Randomized Dynamic Mode Decomposition) aimed to construct a time-dependent (or any other monotonic
+    variable) surrogate model based on Randomized Dynamic Mode Decomposition
     This surrogate is aimed to perform a ``dimensionality reduction regression'', where, given time
     series (or any monotonic-dependent variable) of data, a set of modes each of which is associated
     with a fixed oscillation frequency and decay/growth rate is computed
@@ -80,9 +79,12 @@ class CDMD(DMDBase):
       \item \xmlNode{compression\_matrix}, see XML input specifications below
       \item \xmlNode{opt}, see XML input specifications below
       \item \xmlNode{rescale\_mode}, see XML input specifications below
-      \item \xmlNode{forward_backward}, see XML input specifications below
-      \item \xmlNode{sorted\_eigs}, see XML input specifications below
-      \item \xmlNode{tikhonov\_regularization}, see XML input specifications below
+      \item \xmlNode{forward\_backward}, see XML input specifications below
+      \item \xmlNode{sorted_eigs}, see XML input specifications below
+      \item \xmlNode{tikhonov_regularization}, see XML input specifications below
+      \item \xmlNode{seed}, see XML input specifications below
+      \item \xmlNode{oversampling}, see XML input specifications below
+      \item \xmlNode{power\_iters}, see XML input specifications below
       \item \xmlNode{features}, see XML input specifications below
       \item \xmlNode{timeScale}, XML node containing the array of the training time steps values
       \item \xmlNode{dmdTimeScale}, XML node containing the array of time scale in the DMD space (can be used as mapping
@@ -108,15 +110,6 @@ class CDMD(DMDBase):
     specs.addSub(InputData.parameterInputFactory("tlsq_rank", contentType=InputTypes.IntegerType,
                                                  descr=r"""$int > 0$ that defines the truncation rank to be used for the total
                                                   least square problem. If not inputted, no truncation is applied""", default=None))
-    specs.addSub(InputData.parameterInputFactory("compression_matrix", contentType=InputTypes.makeEnumType("compression_matrix", "compressionMatrixType",
-                                                                                                        ["linear", "sparse", "uniform", "sample"]),
-                                                 descr=r"""The matrix method that pre-multiplies the snapshots matrix in order to compress it. Available are:
-                                                  \begin{itemize}
-                                                    \item \textit{linear}, linearized matrix
-                                                    \item \textit{sparse}, sparse matrix
-                                                    \item \textit{uniform}, uniform
-                                                    \item \textit{sample}, sampled matrix.
-                                                  \end{itemize}""", default="uniform"))
     specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.FloatType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
@@ -136,6 +129,14 @@ class CDMD(DMDBase):
                                                  descr=r"""Tikhonov parameter for the regularization.
                                                  If `None`, no regularization is applied, if `float`, it is used as the
                                                  :math:`\lambda` tikhonov parameter.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Seed used to initialize the random generator when computing random test matrices.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("oversampling", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Number of additional samples (beyond the target rank) to use when computing the
+                                                 random test matrix. Note that values in the range $[5, 10]$ tend to be sufficient.""", default=10))
+    specs.addSub(InputData.parameterInputFactory("power_iters", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Number of power iterations to perform when executing the Randomized QB Decomposition.
+                                                 Note that as many as 1 to 2 power iterations often lead to considerable improvements.""", default=2))     
 
 
     return specs
@@ -147,10 +148,10 @@ class CDMD(DMDBase):
       @ Out, None
     """
     import pydmd
-    from pydmd import CDMD
+    from pydmd import RDMD
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs', 
-                                                               'compression_matrix','forward_backward','tikhonov_regularization', 'opt'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs',
+                                                               'forward_backward','tikhonov_regularization', 'opt', 'seed', 'oversampling', 'power_iters'])
     # notFound must be empty
     assert(not notFound)
     # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
@@ -160,8 +161,6 @@ class CDMD(DMDBase):
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
     self.dmdParams['forward_backward'] = settings.get('forward_backward')    
-    # Compression matrix
-    self.dmdParams['compression_matrix'] = settings.get('compression_matrix')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
     # Sorted eigs
@@ -170,9 +169,13 @@ class CDMD(DMDBase):
     self.dmdParams['tikhonov_regularization'] = settings.get('tikhonov_regularization')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
-    # for target
-    #for target in  set(self.target) - set(self.pivotID):
-      #self._dmdBase[target] = CDMD
-    self._dmdBase = CDMD
+    # seed
+    self.dmdParams['seed'] = settings.get('seed')
+    # Number of additional samples (beyond the target rank) to use when computing the random test matrix
+    self.dmdParams['oversampling'] = settings.get('oversampling')
+    # Number of power iterations
+    self.dmdParams['power_iters'] = settings.get('power_iters')
+    
+    self._dmdBase = RDMD
     # intialize the model
     self.initializeModel(settings)
