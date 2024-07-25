@@ -102,13 +102,20 @@ class MultiResolutionTSA(SupervisedLearning):
     """
     self._globalROM.trainTSASequential(targetVals)
 
-  def _getTrainedParams(self):
+  def _getMRTrainedParams(self):
 
-    trainedParams = list(self._globalROM._tsaTrainedParams.items())[-1]
-    multiResolutionAlgoSettings = self._globalROM._tsaAlgoSettings[trainedParams[0]]
-    # TODO: this should be more generalizable once we add more algos
-    numLvls = multiResolutionAlgoSettings['levels'] - 1
-    return trainedParams, numLvls
+    # get all trained parameters from final algorithm (should be multiresolution transformer)
+    trainedParams = list(self._globalROM._tsaTrainedParams.items())
+    mrAlgo, mrTrainedParams = trainedParams[-1]
+
+    # eh, maybe this should live in TSAUser in the future...
+    # extract settings used for that last algorithm (should have some sort of "levels")
+    numLevels = mrAlgo._getDecompositionLevels()
+
+    # reformat the trained params
+    sortedTrainedParams = mrAlgo._sortTrainedParamsByLevels(mrTrainedParams)
+
+    return numLevels, sortedTrainedParams
 
   def __evaluateLocal__(self, featureVals):
     """
