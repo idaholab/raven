@@ -1407,7 +1407,7 @@ validInternalRom = ['NDspline',
             'PolyExponential',
             'DMD',
             'DMDC']
-            
+
 vaildInternalDMDRom = ['DMD',
             'HODMD',
             'BOPDMD',
