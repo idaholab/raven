@@ -3,20 +3,12 @@
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.SubspaceDMD</name>
     <author>alfoa</author>
-    <created>2018-04-25</created>
+    <created>2024-07-26</created>
     <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
     <description>
-       This test is aimed to check the mechanics of the DMD ROM using the standard SVD-based
-       algorithm.
-       In addition, it tests the capability for the user to export the ROM info in an XML output
-       file (requirement).
+       This test is aimed to check the mechanics of the DMD ROM using the Subspace
+       dynamic mode decomposition for stochastic Koopman analysis.
     </description>
-    <revisions>
-      <revision author="alfoa" date="2018-04-25">Adding this test description.</revision>
-      <revision author="alfoa" date="2018-10-01">This test is a requirement test now.</revision>
-      <revision author="talbpaul" date="2019-01-09">moving from ROM-files to ROM-dataobjects</revision>
-    </revisions>
-    <requirements>R-F-5</requirements>
   </TestInfo>
 
   <RunInfo>
@@ -103,13 +95,13 @@
     <IOStep name="writeOut" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">synDataDMD</Input>
       <Input class="DataObjects" type="DataSet">rom_stats</Input>
-      <Output class="OutStreams" type="Print">outputDMDtraditional</Output>
+      <Output class="OutStreams" type="Print">outputDMD</Output>
       <Output class="OutStreams" type="Print">ROMCoefficientsXML</Output>
     </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="outputDMDtraditional" dir="outputDMD">
+    <Print name="outputDMD" dir="outputSubspaceDMD">
       <type>csv</type>
       <source>synDataDMD</source>
     </Print>

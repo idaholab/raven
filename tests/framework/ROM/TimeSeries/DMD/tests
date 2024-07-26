@@ -1,17 +1,105 @@
 [Tests]
- [./TraditionalDMD]
+ [./traditionalDMD]
    type = 'RavenFramework'
-   input = 'test_traditional_dmd.xml'
-   output = 'TraditionalDMD/ROMpk TraditionalDMD/outputDMD/outputDMDtraditional.xml TraditionalDMD/ROMCoefficientsXML.xml'
-   csv = 'TraditionalDMD/outputDMD/outputDMDtraditional_0.csv'
+   input = 'test_traditional_dmd_pydmd.xml'
+   output = 'TraditionalDMD/ROMpk TraditionalDMD/outputDMD/outputDMD.xml TraditionalDMD/ROMCoefficientsXML.xml'
+   csv = 'TraditionalDMD/outputDMD/outputDMD_0.csv'
    rel_err = 0.0001
   [../]
 
- [./HighOrderDMD]
+ [./BOPDMD]
    type = 'RavenFramework'
-   input = 'test_high_order_dmd.xml'
-   output = 'HighOrderDMD/ROMpk HighOrderDMD/outputDMD/outputDMDHighOrder.xml HighOrderDMD/ROMCoefficientsXML.xml'
-   csv = 'HighOrderDMD/outputDMD/outputDMDHighOrder_0.csv'
+   input = 'test_bopdmd_pydmd.xml'
+   output = 'BOPDMD/ROMpk BOPDMD/outputBOPDMD/outputDMD.xml BOPDMD/ROMCoefficientsXML.xml'
+   csv = 'BOPDMD/outputBOPDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./compressedDMD]
+   type = 'RavenFramework'
+   input = 'test_compressed_dmd_pydmd.xml'
+   output = 'CompressedDMD/ROMpk CompressedDMD/outputCompressedDMD/outputDMD.xml CompressedDMD/ROMCoefficientsXML.xml'
+   csv = 'CompressedDMD/outputCompressedDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./forwardBackwardDMD]
+   type = 'RavenFramework'
+   input = 'test_forward_backward_dmd_pydmd.xml'
+   output = 'ForwardBackwardDMD/ROMpk ForwardBackwardDMD/outputForwardBackwardDMD/outputDMD.xml ForwardBackwardDMD/ROMCoefficientsXML.xml'
+   csv = 'ForwardBackwardDMD/outputForwardBackwardDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./hankelDMD]
+   type = 'RavenFramework'
+   input = 'test_hankel_dmd_pydmd.xml'
+   output = 'HankelDMD/ROMpk HankelDMD/outputHankelDMD/outputDMD.xml HankelDMD/ROMCoefficientsXML.xml'
+   csv = 'HankelDMD/outputHankelDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./havokDMD]
+   type = 'RavenFramework'
+   input = 'test_havok_dmd_pydmd.xml'
+   output = 'HAVOK/ROMpk HAVOK/outputHAVOKDMD/outputDMD.xml HAVOK/ROMCoefficientsXML.xml'
+   csv = 'HAVOK/outputHAVOKDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./HODMD]
+   type = 'RavenFramework'
+   input = 'test_hodmd_pydmd.xml'
+   output = 'HODMD/ROMpk HODMD/outputHODMD/outputDMD.xml HODMD/ROMCoefficientsXML.xml'
+   csv = 'HODMD/outputHODMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./kernalizedDMD]
+   type = 'RavenFramework'
+   input = 'test_kernelized_dmd_pydmd.xml'
+   output = 'KernalizedDMD/ROMpk KernalizedDMD/outputKernalizedDMD/outputDMD.xml KernalizedDMD/ROMCoefficientsXML.xml'
+   csv = 'KernalizedDMD/outputKernalizedDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./PiDMD]
+   type = 'RavenFramework'
+   input = 'test_pidmd_pydmd.xml'
+   output = 'PiDMD/ROMpk PiDMD/outputPiDMD/outputDMD.xml PiDMD/ROMCoefficientsXML.xml'
+   csv = 'PiDMD/outputPiDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./randomizedDMD]
+   type = 'RavenFramework'
+   input = 'test_rdmd_pydmd.xml'
+   output = 'RDMD/ROMpk RDMD/outputRDMD/outputDMD.xml RDMD/ROMCoefficientsXML.xml'
+   csv = 'RDMD/outputRDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./SpDMD]
+   type = 'RavenFramework'
+   input = 'test_spdmd_pydmd.xml'
+   output = 'SpDMD/ROMpk SpDMD/outputSpDMD/outputDMD.xml SpDMD/ROMCoefficientsXML.xml'
+   csv = 'SpDMD/outputSpDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./SubspaceDMD]
+   type = 'RavenFramework'
+   input = 'test_subspacedmd_pydmd.xml'
+   output = 'SubspaceDMD/ROMpk SubspaceDMD/outputSubspaceDMD/outputDMD.xml SubspaceDMD/ROMCoefficientsXML.xml'
+   csv = 'SubspaceDMD/outputSubspaceDMD/outputDMD_0.csv'
+   rel_err = 0.0001
+  [../]
+
+ [./VarProDMD]
+   type = 'RavenFramework'
+   input = 'test_subspacedmd_pydmd.xml'
+   output = 'VarProDMD/ROMpk VarProDMD/outputVarProDMD/outputDMD.xml VarProDMD/ROMCoefficientsXML.xml'
+   csv = 'VarProDMD/outputVarProDMD/outputDMD_0.csv'
    rel_err = 0.0001
   [../]
 
@@ -21,7 +109,7 @@
    output = 'PickledHighOrderDMD/outputDMD/outputDMDHighOrder.xml'
    csv = 'PickledHighOrderDMD/outputDMD/outputDMDHighOrder_0.csv'
    rel_err = 0.0001
-   prereq = HighOrderDMD
+   prereq = HODMD
   [../]
 
   [./ParameterizedDMDC]
