@@ -767,9 +767,24 @@ validInternalRom = ['NDspline',
             'PolyExponential',
             'DMD',
             'DMDC']
+            
+vaildInternalDMDRom = ['DMD',
+            'HODMD',
+            'BOPDMD',
+            'CDMD',
+            'EDMD',
+            'FbDMD',
+            'HankelDMD',
+            'HAVOK',
+            'PiDMD',
+            'RDMD',
+            'SpDMD',
+            'SubspaceDMD',
+            'VarProDMD',
+            'DMDC']
 validRom = list(SupervisedLearning.factory.knownTypes())
 orderedValidRom = []
-for rom in validInternalRom + validRom:
+for rom in validInternalRom + vaildInternalDMDRom + validRom:
   if rom not in orderedValidRom:
     orderedValidRom.append(rom)
 ### Internal ROM file generation
