@@ -100,7 +100,7 @@ class BOPDMD(DMDBase):
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
                                                  \end{itemize}
                                                  If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by
@@ -122,7 +122,7 @@ class BOPDMD(DMDBase):
                                                  descr=r"""Size of the randomly selected subset of observations to use for each trial of bagged optimized dmd (BOP-DMD).
                                                  Available options are:
                                                  \begin{itemize}
-                                                   \item \textit{>1}, trial\_size many observations will be used per trial.
+                                                   \item \textit{$>1$}, trial\_size many observations will be used per trial.
                                                    \item $0.0 < trial\_size < 1.0$, $int(trial\_size * m)$ many observations will be used per trial,
                                                        where $m$ denotes the total number of data points observed.
                                                  \end{itemize}
@@ -138,7 +138,7 @@ class BOPDMD(DMDBase):
                                                  \end{itemize}
                                                  """, default="auto"))
     specs.addSub(InputData.parameterInputFactory("eig_constraints", contentType=InputTypes.makeEnumType("eig_constraints", "EigenConstraintType",
-                                                                                                        ["stable", "imag", "conjugate_pairs", None]),
+                                                                                                        ["stable", "imag", "conjugate_pairs", "None"]),
                                                  descr=r"""Set containing desired DMD operator eigenvalue constraints.. Available options are:
                                                  \begin{itemize}
                                                    \item \textit{stable}, constrains eigenvalues to the left half of the complex plane.
@@ -174,6 +174,8 @@ class BOPDMD(DMDBase):
     self.dmdParams['trial_size'] = settings.get('trial_size')
     # Eigen value constraints to apply
     self.dmdParams['eig_constraints'] = set([settings.get('eig_constraints')])
+    if self.dmdParams["eig_constraints"] is 'None':
+      self.dmdParams["eig_constraints"] = None
     # Sorted eigs
     self.dmdParams['eig_sort'] = settings.get('eig_sort')
 

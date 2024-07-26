@@ -109,7 +109,7 @@ class DMDBase(SupervisedLearning):
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
                                                  \end{itemize}""", default=0))
     return specs
 

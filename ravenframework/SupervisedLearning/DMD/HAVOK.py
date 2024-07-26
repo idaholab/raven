@@ -96,7 +96,7 @@ class HAVOK(DMDBase):
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
                                                  \end{itemize}
                                                  If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by

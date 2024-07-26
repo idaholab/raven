@@ -96,7 +96,7 @@ class DMD(DMDBase):
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
 
                                                  \end{itemize}
                                                  If $0.0 < svd\_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
@@ -115,7 +115,7 @@ class DMD(DMDBase):
     specs.addSub(InputData.parameterInputFactory("tikhonov_regularization", contentType=InputTypes.FloatOrIntType,
                                                  descr=r"""Tikhonov parameter for the regularization.
                                                  If `None`, no regularization is applied, if `float`, it is used as the
-                                                 :math:`\lambda` tikhonov parameter.""", default=None))
+                                                 $`\lambda`$ tikhonov parameter.""", default=None))
 
     specs.addSub(InputData.parameterInputFactory("opt", contentType=InputTypes.BoolType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error

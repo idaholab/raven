@@ -3864,7 +3864,7 @@ Example to export the coefficients of trained PolyExponential ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -3873,7 +3873,7 @@ Example to export the coefficients of trained PolyExponential ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$,
       this parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -3917,16 +3917,15 @@ Example:
   ...
   <Models>
     ...
-   <ROM name='DMD' subType='DMD'>
-      <Target>time,totals_watts, xe135_dens</Target>
-      <Features>enrichment,bu</Features>
-      <dmdType>dmd</dmdType>
-      <pivotParameter>time</pivotParameter>
-      <rankSVD>0</rankSVD>
-      <rankTLSQ>5</rankTLSQ>
-      <exactModes>False</exactModes>
-      <optimized>True</optimized>
-    </ROM
+    <ROM name="DMDrom" subType="DMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+    </ROM>
     ...
   </Models>
   ...
@@ -4212,7 +4211,7 @@ Example to export the coefficients of trained DMD ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{None}
 
@@ -4594,7 +4593,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -4603,7 +4602,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$,
       this parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -4638,7 +4637,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$,
       this parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -4668,6 +4667,58 @@ Example to export the coefficients of trained DMDC ROM:
       element-wise mean.
   \default{first}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="HODMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>0</tlsq_rank>
+      <opt>False</opt>
+      <d>1</d>
+      <forward_backward>False</forward_backward>
+      <reconstruction_method>mean</reconstruction_method>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{BOPDMD}
@@ -4928,7 +4979,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -4937,7 +4988,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -4964,7 +5015,7 @@ Example to export the coefficients of trained DMDC ROM:
     \item \xmlNode{trial\_size}: \xmlDesc{float or integer}, 
       Size of the randomly selected subset of observations to use for each trial of bagged optimized
       dmd (BOP-DMD).                                                  Available options are:
-      \begin{itemize}                                                    \item \textit{>1},
+      \begin{itemize}                                                    \item \textit{$>1$},
       trial\_size many observations will be used per trial.
       \item $0.0 < trial\_size < 1.0$, $int(trial\_size * m)$ many observations will be used per
       trial,                                                        where $m$ denotes the total
@@ -4991,6 +5042,59 @@ Example to export the coefficients of trained DMDC ROM:
       complex conjugate.                                                  \end{itemize}
   \default{None}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="BOPDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <compute_A>False</compute_A>
+      <use_proj>True</use_proj>
+      <num_trials>0</num_trials>
+      <trial_size>0.6</trial_size>
+      <eig_sort>auto</eig_sort>
+      <eig_constraints>stable</eig_constraints>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{CDMD}
@@ -5251,7 +5355,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -5260,7 +5364,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -5316,6 +5420,56 @@ Example to export the coefficients of trained DMDC ROM:
       Seed of the random number generator
   \default{None}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="CDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>0</tlsq_rank>
+      <compression_matrix>sample</compression_matrix>
+      <seed>20201986</seed>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{EDMD}
@@ -5572,7 +5726,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -5580,7 +5734,7 @@ Example to export the coefficients of trained DMDC ROM:
       defines the truncation rank to be used for the SVD.
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$,
       this parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -5611,6 +5765,55 @@ Example to export the coefficients of trained DMDC ROM:
       considered
   \default{False}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="EDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>3</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <kernel_metric>linear</kernel_metric>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{FbDMD}
@@ -5869,7 +6072,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -5878,7 +6081,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -5912,6 +6115,56 @@ Example to export the coefficients of trained DMDC ROM:
       by real part (and then by imaginary part to break ties) if sorted\_eigs=``real''.
   \default{False}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="FbDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <exact>True</exact>
+      <opt>True</opt>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{HankelDMD}
@@ -6172,7 +6425,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -6181,7 +6434,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -6232,6 +6485,58 @@ Example to export the coefficients of trained DMDC ROM:
       element-wise mean.
   \default{first}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="HankelDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <opt>False</opt>
+      <d>1</d>
+      <forward_backward>False</forward_backward>
+      <reconstruction_method>first</reconstruction_method>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{HAVOK}
@@ -6490,7 +6795,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -6499,7 +6804,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -6532,6 +6837,58 @@ Example to export the coefficients of trained DMDC ROM:
       If True, least-squares is used, otherwise the pseudo- inverse is used.
   \default{True}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="HAVOK">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <delays>3</delays>
+      <lag>1</lag>
+      <num_chaos>1</num_chaos>
+      <structured>False</structured>
+      <lstsq>True</lstsq>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{PiDMD}
@@ -6789,7 +7146,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -6798,7 +7155,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$,
       this parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -6859,6 +7216,58 @@ Example to export the coefficients of trained DMDC ROM:
       do not use \textit{manifold\_opt}.
   \default{None}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="PiDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <opt>False</opt>
+      <manifold>BCCB</manifold>
+      <manifold_opt>1,9</manifold_opt>
+      <compute_A>True</compute_A>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{RDMD}
@@ -7121,7 +7530,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -7130,7 +7539,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -7186,6 +7595,57 @@ Example to export the coefficients of trained DMDC ROM:
       Note that as many as 1 to 2 power iterations often lead to considerable improvements.
   \default{2}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="RDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <seed>20021986</seed>
+      <oversampling>5</oversampling>
+      <power_iters>2</power_iters>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{SpDMD}
@@ -7453,7 +7913,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -7462,7 +7922,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -7541,6 +8001,54 @@ Example to export the coefficients of trained DMDC ROM:
       Zero absolute tolerance.
   \default{1e-12}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="SpDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{SubspaceDMD}
@@ -7796,7 +8304,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -7818,6 +8326,55 @@ Example to export the coefficients of trained DMDC ROM:
       by real part (and then by imaginary part to break ties) if sorted\_eigs=``real''.
   \default{False}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="SubspaceDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>-1</svd_rank>
+      <rescale_mode>None</rescale_mode>
+      <sorted_eigs>False</sorted_eigs>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{VarProDMD}
@@ -8075,7 +8632,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
 
@@ -8084,7 +8641,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$, this
       parameter represents the energy level.The value is used to compute the rank such
       as computed rank is the number of the biggest singular values needed to reach the energy
@@ -8119,6 +8676,53 @@ Example to export the coefficients of trained DMDC ROM:
       \end{itemize}
   \default{False}
   \end{itemize}
+
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="VarProDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
 
 
 \subsubsection{DMDBase}
@@ -8356,7 +8960,7 @@ Example to export the coefficients of trained DMDC ROM:
       Available options are:                                                  \begin{itemize}
       \item \textit{-1}, no truncation is performed
       \item \textit{0}, optimal rank is internally computed
-      \item \textit{>1}, this rank is going to be used for the truncation
+      \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
   \end{itemize}

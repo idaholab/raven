@@ -68,7 +68,6 @@
       <manifold>BCCB</manifold>
       <manifold_opt>1,9</manifold_opt>
       <compute_A>True</compute_A>
- 
     </ROM>
   </Models>
 

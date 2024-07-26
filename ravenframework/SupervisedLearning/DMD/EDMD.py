@@ -92,7 +92,7 @@ class EDMD(DMDBase):
                                                  Available options are:
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
 
                                                  \end{itemize}
                                                  If $0.0 < svd\_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such

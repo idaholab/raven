@@ -100,7 +100,7 @@ class RDMD(DMDBase):
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
 
                                                  \end{itemize}
                                                  If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
@@ -117,11 +117,11 @@ class RDMD(DMDBase):
                                                  descr=r"""If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
                                                  Default is False.""", default=False))
     specs.addSub(InputData.parameterInputFactory("rescale_mode", contentType=InputTypes.makeEnumType("rescale_mode", "RescaleType",
-                                                                                                        ["auto", None]),
+                                                                                                        ["auto", 'None']),
                                                  descr=r"""Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular values.
                                                  """, default=None))
     specs.addSub(InputData.parameterInputFactory("sorted_eigs", contentType=InputTypes.makeEnumType("sorted_eigs", "SortedType",
-                                                                                                        ["real", "abs", False]),
+                                                                                                        ["real", "abs", 'False']),
                                                  descr=r"""Sort eigenvalues (and modes/dynamics accordingly) by magnitude if sorted_eigs=``abs'',
                                                  by real part (and then by imaginary part to break ties) if sorted_eigs=``real''.
                                                  """, default=False))
@@ -163,8 +163,12 @@ class RDMD(DMDBase):
     self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
+    if self.dmdParams["rescale_mode"] is 'None':
+      self.dmdParams["rescale_mode"] = None
     # Sorted eigs
     self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
+    if self.dmdParams["sorted_eigs"] is 'False':
+      self.dmdParams["sorted_eigs"] = False
     # Tikhonov parameter for the regularization.
     self.dmdParams['tikhonov_regularization'] = settings.get('tikhonov_regularization')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)

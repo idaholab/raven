@@ -99,7 +99,7 @@ class HankelDMD(DMDBase):
                                                  \begin{itemize}
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
-                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
                                                  \end{itemize}
                                                  If $0.0 < svd_rank < 1.0$, this parameter represents the energy level.The value is used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by
@@ -116,7 +116,7 @@ class HankelDMD(DMDBase):
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""",
                                                  default=False))
     specs.addSub(InputData.parameterInputFactory("rescale_mode", contentType=InputTypes.makeEnumType("rescale_mode", "RescaleType",
-                                                                                                        ["auto", None]),
+                                                                                                        ["auto", 'None']),
                                                  descr=r"""Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular values.
                                                  """, default=None))
     specs.addSub(InputData.parameterInputFactory("forward_backward", contentType=InputTypes.BoolType,
@@ -127,7 +127,7 @@ class HankelDMD(DMDBase):
                                                  """, default=1))
 
     specs.addSub(InputData.parameterInputFactory("sorted_eigs", contentType=InputTypes.makeEnumType("sorted_eigs", "SortedType",
-                                                                                                        ["real", "abs", False]),
+                                                                                                        ["real", "abs", 'False']),
                                                  descr=r"""Sort eigenvalues (and modes/dynamics accordingly) by magnitude if sorted_eigs=``abs'',
                                                  by real part (and then by imaginary part to break ties) if sorted_eigs=``real''.
                                                  """, default=False))
@@ -164,12 +164,16 @@ class HankelDMD(DMDBase):
     self.dmdParams['opt'] = settings.get('opt')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
+    if self.dmdParams["rescale_mode"] is 'None':
+      self.dmdParams["rescale_mode"] = None
+    # Sorted eigs
+    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
+    if self.dmdParams["sorted_eigs"] is 'False':
+      self.dmdParams["sorted_eigs"] = False
     # Forward Backward method (see FbDMD)
     self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Sorted eigs
     self.dmdParams['d'] = settings.get('d')
-    # Sorted eigs
-    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
     # Reconstruction method
     self.dmdParams['reconstruction_method'] = settings.get('reconstruction_method')
 
