@@ -32,8 +32,7 @@ from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 
 ## Dynamic Mode Decomposition-based methods
-from .DynamicModeDecompositionControl import DMDC
-from .DynamicModeDecomposition import DMD as DMDold
+from .DMD.DynamicModeDecompositionControl import DMDC
 from .DMD.DMD import DMD
 from .DMD.CDMD import CDMD
 from .DMD.EDMD import EDMD
