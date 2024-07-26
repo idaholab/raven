@@ -317,16 +317,23 @@ class DMDBase(SupervisedLearning):
       nSamples = self.featureVals.shape[0]
       delays = max(1, int(self.model._reference_dmd.modes.shape[0] / nSamples))
       loopCnt = 0
+      noSampled = False
+      if nSamples * delays !=  self.model._reference_dmd.modes.shape[0]:
+        nSamples = self.model._reference_dmd.modes.shape[0]
+        noSampled = True
       for smp in range(nSamples):
         valDict = {'real':'', 'imaginary': ''}
         for _ in range(delays):
           valDict['real'] += ' '.join([ '%.6e' % elm for elm in self.model._reference_dmd.modes[loopCnt,:].real]) + ' '
           valDict['imaginary'] += ' '.join([ '%.6e' % elm for elm in self.model._reference_dmd.modes[loopCnt,:].imag]) +' '
           loopCnt += 1
-        attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
+        if noSampled:
+          attributeDict = {"index":f'{loopCnt}'}
+        else:
+          attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}
         if delays > 1:
           attributeDict['shape'] = f"({self.model._reference_dmd.modes.shape[1]},{delays})"
-        writeTo.addVector("modes","realization",valDict, root=targNode, attrs=attributeDict)
+        writeTo.addVector("modes","realization" if not noSampled else "element",valDict, root=targNode, attrs=attributeDict)
 
   def __confidenceLocal__(self,featureVals):
     """

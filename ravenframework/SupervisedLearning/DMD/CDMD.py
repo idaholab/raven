@@ -136,7 +136,8 @@ class CDMD(DMDBase):
                                                  descr=r"""Tikhonov parameter for the regularization.
                                                  If `None`, no regularization is applied, if `float`, it is used as the
                                                  :math:`\lambda` tikhonov parameter.""", default=None))
-
+    specs.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Seed of the random number generator""", default=None))
 
     return specs
 
@@ -149,7 +150,7 @@ class CDMD(DMDBase):
     import pydmd
     from pydmd import CDMD
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs',
+    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs','seed',
                                                                'compression_matrix','forward_backward','tikhonov_regularization', 'opt'])
     # notFound must be empty
     assert(not notFound)
@@ -170,9 +171,9 @@ class CDMD(DMDBase):
     self.dmdParams['tikhonov_regularization'] = settings.get('tikhonov_regularization')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
-    # for target
-    #for target in  set(self.target) - set(self.pivotID):
-      #self._dmdBase[target] = CDMD
+    # seed
+    import numpy as np
+    np.random.seed(settings.get('seed'))
     self._dmdBase = CDMD
     # intialize the model
     self.initializeModel(settings)

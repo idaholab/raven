@@ -97,7 +97,7 @@
 
  [./VarProDMD]
    type = 'RavenFramework'
-   input = 'test_subspacedmd_pydmd.xml'
+   input = 'test_varprodmd_pydmd.xml'
    output = 'VarProDMD/ROMpk VarProDMD/outputVarProDMD/outputDMD.xml VarProDMD/ROMCoefficientsXML.xml'
    csv = 'VarProDMD/outputVarProDMD/outputDMD_0.csv'
    rel_err = 0.0001

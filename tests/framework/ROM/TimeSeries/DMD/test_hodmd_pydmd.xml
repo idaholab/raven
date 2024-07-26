@@ -63,11 +63,11 @@
       <reductionMethod>svd</reductionMethod>
       <reductionRank>0</reductionRank>
       <svd_rank>0</svd_rank>
-      <tlsq_rank>7</tlsq_rank>
+      <tlsq_rank>0</tlsq_rank>
       <opt>False</opt>
       <d>1</d>
       <forward_backward>False</forward_backward>
-      <reconstruction_method>first</reconstruction_method>
+      <reconstruction_method>mean</reconstruction_method>
     </ROM>
   </Models>
 
