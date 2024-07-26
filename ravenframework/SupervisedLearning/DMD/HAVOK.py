@@ -119,7 +119,7 @@ class HAVOK(DMDBase):
                                                  If True, least-squares is used, otherwise the pseudo- inverse is used.""",
                                                  default=True))
     return specs
-  
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -138,7 +138,7 @@ class HAVOK(DMDBase):
     # The number of consecutive time-shifted copies of the data to use when building Hankel matrices.
     self.dmdParams['delays'] = settings.get('delays')
     # the number of time steps between each time-shifted copy of data in the Hankel matrix
-    self.dmdParams['lag'      ] = settings.get('lag')    
+    self.dmdParams['lag'      ] = settings.get('lag')
     # The number of forcing terms to use in the HAVOK model.
     self.dmdParams['num_chaos'] = settings.get('num_chaos')
     # Whether to perform standard HAVOK or structured HAVOK (sHAVOK)

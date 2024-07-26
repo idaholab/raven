@@ -120,7 +120,7 @@ class EDMD(DMDBase):
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""",
                                                  default=False))
- 
+
     return specs
 
   def _handleInput(self, paramInput):
@@ -141,7 +141,7 @@ class EDMD(DMDBase):
     # truncation rank for total least square
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # Kernel metric
-    self.dmdParams['kernel_metric'] = settings.get('kernel_metric') 
+    self.dmdParams['kernel_metric'] = settings.get('kernel_metric')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
     # for target

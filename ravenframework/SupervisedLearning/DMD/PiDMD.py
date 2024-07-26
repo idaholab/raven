@@ -154,11 +154,11 @@ class PiDMD(DMDBase):
                                                  .   \end{itemize}
                                                    \item If manifold $==$ \textit{BC},\textit{BCTB},\textit{BCCB},\textit{BCCBunitary},\textit{BCCBsymmetric},
                                                      \textit{BCCBskewsymmetric}, \textit{manifold\_opt} must be a 2D tuple that specifies the desired dimensions
-                                                      of the blocks of A. 
+                                                      of the blocks of A.
                                                  \end{itemize}
-                                      
+
                                                  Note that all other manifolds do not use \textit{manifold\_opt}.""",
-                                                 default=None))    
+                                                 default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -179,7 +179,7 @@ class PiDMD(DMDBase):
     # truncation rank for total least square
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # Compute full A operator?
-    self.dmdParams['compute_A'] = settings.get('compute_A')    
+    self.dmdParams['compute_A'] = settings.get('compute_A')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
     # Manifold
@@ -187,8 +187,8 @@ class PiDMD(DMDBase):
     if  self.dmdParams['manifold'] is None:
       self.raiseAnError(IOError, f"XML node <manifold> must be inputted for ROM type 'PiDMD' named {self.name}")
     # Manifold opt
-    self.dmdParams['manifold_opt'] = settings.get('manifold_opt')      
-      
+    self.dmdParams['manifold_opt'] = settings.get('manifold_opt')
+
     if self.dmdParams['manifold'].startswith("BC") or self.dmdParams['manifold'] == 'diagonal':
       if self.dmdParams['manifold_opt'] is None:
         self.raiseAnError(IOError, f"XML node <manifold_opt> must be inputted for ROM type 'PiDMD' named {self.name} if"
@@ -199,7 +199,7 @@ class PiDMD(DMDBase):
       else:
         # tuple
         self.dmdParams['manifold_opt'] = tuple([int(el) for el in self.dmdParams['manifold_opt']])
-        
+
     self._dmdBase = PiDMD
     # intialize the model
     self.initializeModel(settings)

@@ -15,7 +15,7 @@
   Created on July 21, 2024
 
   @author: alfoa
-  Higher Order Dynamic Mode Decomposition 
+  Higher Order Dynamic Mode Decomposition
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -118,7 +118,7 @@ class HODMD(DMDBase):
     specs.addSub(InputData.parameterInputFactory("rescale_mode", contentType=InputTypes.makeEnumType("rescale_mode", "RescaleType",
                                                                                                         ["auto", None]),
                                                  descr=r"""Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular values.
-                                                 """, default=None))    
+                                                 """, default=None))
     specs.addSub(InputData.parameterInputFactory("svd_rank_extra", contentType=InputTypes.FloatOrIntType,
                                                  descr=r"""the rank for the initial reduction of the input data, performed before the rearrangement
                                                  of the input data to the (pseudo) Hankel matrix format
@@ -138,8 +138,8 @@ class HODMD(DMDBase):
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     specs.addSub(InputData.parameterInputFactory("d", contentType=InputTypes.IntegerType,
                                                  descr=r"""The new order for spatial dimension of the input snapshots.
-                                                 """, default=1))      
-    
+                                                 """, default=1))
+
     specs.addSub(InputData.parameterInputFactory("sorted_eigs", contentType=InputTypes.makeEnumType("sorted_eigs", "SortedType",
                                                                                                         ["real", "abs", False]),
                                                  descr=r"""Sort eigenvalues (and modes/dynamics accordingly) by magnitude if sorted_eigs=``abs'',
@@ -150,7 +150,7 @@ class HODMD(DMDBase):
                                                  descr=r"""Method used to reconstruct the snapshots of the dynamical system from the multiple versions available
                                                  due to how HankelDMD is conceived. If ``first'' (default) the first version available is selected
                                                  (i.e. the nearest to the 0-th row in the augmented matrix). If ``mean'' we compute the element-wise mean.
-                                                 """, default='first'))    
+                                                 """, default='first'))
     return specs
 
   def _handleInput(self, paramInput):
@@ -162,7 +162,7 @@ class HODMD(DMDBase):
     import pydmd
     from pydmd import HODMD
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','exact', 'opt', 'rescale_mode','svd_rank_extra', 
+    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','exact', 'opt', 'rescale_mode','svd_rank_extra',
                                                                'forward_backward', 'd', 'sorted_eigs', 'reconstruction_method'])
     # notFound must be empty
     assert(not notFound)
@@ -172,7 +172,7 @@ class HODMD(DMDBase):
     # truncation rank for total least square
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
-    self.dmdParams['exact'      ] = settings.get('exact')    
+    self.dmdParams['exact'      ] = settings.get('exact')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
     # Rescale mode
@@ -180,13 +180,13 @@ class HODMD(DMDBase):
     # Forward Backward method (see FbDMD)
     self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Sorted eigs
-    self.dmdParams['d'] = settings.get('d')     
+    self.dmdParams['d'] = settings.get('d')
     # Sorted eigs
     self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
     # Reconstruction method
     self.dmdParams['reconstruction_method'] = settings.get('reconstruction_method')
     # svd_rank_extra
-    self.dmdParams['svd_rank_extra'] = settings.get('svd_rank_extra')      
+    self.dmdParams['svd_rank_extra'] = settings.get('svd_rank_extra')
     self._dmdBase = HODMD
     # intialize the model
     self.initializeModel(settings)

@@ -121,11 +121,11 @@ class HankelDMD(DMDBase):
                                                  """, default=None))
     specs.addSub(InputData.parameterInputFactory("forward_backward", contentType=InputTypes.BoolType,
                                                  descr=r"""If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-                                                 """, default=False))    
+                                                 """, default=False))
     specs.addSub(InputData.parameterInputFactory("d", contentType=InputTypes.IntegerType,
                                                  descr=r"""The new order for spatial dimension of the input snapshots.
-                                                 """, default=1))      
-    
+                                                 """, default=1))
+
     specs.addSub(InputData.parameterInputFactory("sorted_eigs", contentType=InputTypes.makeEnumType("sorted_eigs", "SortedType",
                                                                                                         ["real", "abs", False]),
                                                  descr=r"""Sort eigenvalues (and modes/dynamics accordingly) by magnitude if sorted_eigs=``abs'',
@@ -137,7 +137,7 @@ class HankelDMD(DMDBase):
                                                  due to how HankelDMD is conceived. If ``first'' (default) the first version available is selected
                                                  (i.e. the nearest to the 0-th row in the augmented matrix). If ``mean'' we compute the element-wise mean.
                                                  """, default='first'))
- 
+
     return specs
 
   def _handleInput(self, paramInput):
@@ -159,7 +159,7 @@ class HankelDMD(DMDBase):
     # truncation rank for total least square
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
-    self.dmdParams['exact'      ] = settings.get('exact')    
+    self.dmdParams['exact'      ] = settings.get('exact')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
     # Rescale mode
@@ -167,11 +167,11 @@ class HankelDMD(DMDBase):
     # Forward Backward method (see FbDMD)
     self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Sorted eigs
-    self.dmdParams['d'] = settings.get('d')     
+    self.dmdParams['d'] = settings.get('d')
     # Sorted eigs
     self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
     # Reconstruction method
-    self.dmdParams['reconstruction_method'] = settings.get('reconstruction_method')     
+    self.dmdParams['reconstruction_method'] = settings.get('reconstruction_method')
 
     # for target
     #for target in  set(self.target) - set(self.pivotID):

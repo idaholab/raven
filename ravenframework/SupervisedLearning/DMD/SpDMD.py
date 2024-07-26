@@ -121,7 +121,7 @@ class SpDMD(DMDBase):
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     specs.addSub(InputData.parameterInputFactory("forward_backward", contentType=InputTypes.BoolType,
                                                  descr=r"""If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-                                                 Default is False.""", default=False))    
+                                                 Default is False.""", default=False))
     specs.addSub(InputData.parameterInputFactory("rescale_mode", contentType=InputTypes.makeEnumType("rescale_mode", "RescaleType",
                                                                                                         ["auto", None]),
                                                  descr=r"""Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular values.
@@ -136,16 +136,16 @@ class SpDMD(DMDBase):
     specs.addSub(InputData.parameterInputFactory("rel_tolerance", contentType=InputTypes.FloatType,
                                                  descr=r"""Controls the convergence of ADMM. Relative tolerance from iteration $k$ and $k-1$.""", default=0.0001))
     specs.addSub(InputData.parameterInputFactory("max_iterations", contentType=InputTypes.IntegerType,
-                                                 descr=r"""The maximum number of iterations performed by ADMM, after that the algorithm is stopped.""", default=10000))    
+                                                 descr=r"""The maximum number of iterations performed by ADMM, after that the algorithm is stopped.""", default=10000))
     specs.addSub(InputData.parameterInputFactory("rho", contentType=InputTypes.FloatType,
                                                  descr=r"""Controls the convergence of ADMM. For a reference on the optimal value for rho see
                                                  10.1109/TAC.2014.2354892 or 10.3182/20120914-2-US-4030.00038.""", default=1))
     specs.addSub(InputData.parameterInputFactory("gamma", contentType=InputTypes.FloatType,
                                                  descr=r"""Controls the level of “promotion” assigned to sparse solution. Increasing gamma will
-                                                 result in an higher number of zero-amplitudes.""", default=10))    
+                                                 result in an higher number of zero-amplitudes.""", default=10))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
                                                  descr=r"""If False, the information provided by SpDMD (like the number of iterations performed
-                                                 by ADMM) are not shown.""", default=False)) 
+                                                 by ADMM) are not shown.""", default=False))
     specs.addSub(InputData.parameterInputFactory("enforce_zero", contentType=InputTypes.BoolType,
                                                  descr=r"""If True the DMD amplitudes which should be set to zero
                                                  according to the solution of ADMM are manually set to 0 (since we
@@ -153,7 +153,7 @@ class SpDMD(DMDBase):
                                                  very small terms may survive in some cases).""", default=True))
     specs.addSub(InputData.parameterInputFactory("release_memory", contentType=InputTypes.BoolType,
                                                  descr=r"""If True the intermediate matrices computed by the algorithm are deleted
-                                                 after the termination of a call to train.""", default=True))    
+                                                 after the termination of a call to train.""", default=True))
     specs.addSub(InputData.parameterInputFactory("zero_absolute_tolerance", contentType=InputTypes.FloatType,
                                                  descr=r"""Zero absolute tolerance.""", default=1e-12))
     return specs
@@ -167,7 +167,7 @@ class SpDMD(DMDBase):
     import pydmd
     from pydmd import SpDMD
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs', 
+    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs',
                                                                 'forward_backward', 'opt',
                                                                 'abs_tolerance', 'rel_tolerance','max_iterations', 'rho', 'gamma',
                                                                 'verbose', 'enforce_zero', 'release_memory', 'zero_absolute_tolerance'])
@@ -179,7 +179,7 @@ class SpDMD(DMDBase):
     # truncation rank for total least square
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-    self.dmdParams['forward_backward'] = settings.get('forward_backward')    
+    self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # abs tolerance
     self.dmdParams['abs_tolerance'] = settings.get('abs_tolerance')
     # rel tolerance
@@ -197,14 +197,14 @@ class SpDMD(DMDBase):
     # release_memory?
     self.dmdParams['release_memory'] = settings.get('release_memory')
     # zero_absolute_tolerance
-    self.dmdParams['zero_absolute_tolerance'] = settings.get('zero_absolute_tolerance')    
+    self.dmdParams['zero_absolute_tolerance'] = settings.get('zero_absolute_tolerance')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
     # Sorted eigs
-    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs') 
+    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
- 
+
     self._dmdBase = SpDMD
     # intialize the model
     self.initializeModel(settings)

@@ -14,7 +14,7 @@
 """
   Created on July 21, 2024
 
-  @author: alfoa 
+  @author: alfoa
   Dynamic Mode Decomposition base class
 
 """
@@ -167,7 +167,7 @@ class DMDBase(SupervisedLearning):
     self.dmdParams['dmdType'] = self.__class__.__name__
     # check if single target
     self.singleTarget = len(self.target) == 2
-    self.targetIndeces = tuple([i for i,x in enumerate(self.target) if x != self.pivotID])    
+    self.targetIndeces = tuple([i for i,x in enumerate(self.target) if x != self.pivotID])
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -229,7 +229,7 @@ class DMDBase(SupervisedLearning):
     # fit model
     self.model.fit(targetSnaps, training_parameters=featureVals)
     self.model.parameters = featureVals
-      
+
   def __evaluateLocal__(self,featureVals):
     """
       This method is used to inquire the DMD to evaluate (after normalization that in
@@ -245,7 +245,7 @@ class DMDBase(SupervisedLearning):
     for didx, tidx in enumerate(self.targetIndeces):
       target = self.target[tidx]
       returnEvaluation[target] = data[:, didx, :].flatten().real
-      
+
     return returnEvaluation
 
   def writeXMLPreamble(self, writeTo, targets = None):
@@ -278,7 +278,7 @@ class DMDBase(SupervisedLearning):
       skip = []
 
     # check what
-    
+
     what = ['features','timeScale','eigs','amplitudes','modes','dmdTimeScale'] + list(self.dmdParams.keys())
     if targets is None:
       readWhat = what
@@ -294,7 +294,7 @@ class DMDBase(SupervisedLearning):
 
     target = self.name
     toAdd = list(self.dmdParams.keys())
- 
+
     for add in toAdd:
       if add in what :
         writeTo.addScalar(target,add,self.dmdParams[add])
@@ -326,7 +326,7 @@ class DMDBase(SupervisedLearning):
       for smp in range(nSamples):
         valDict = {'real':'', 'imaginary': ''}
         for _ in range(delays):
-          valDict['real'] += ' '.join([ '%.6e' % elm for elm in self.model._reference_dmd.modes[loopCnt,:].real]) + ' ' 
+          valDict['real'] += ' '.join([ '%.6e' % elm for elm in self.model._reference_dmd.modes[loopCnt,:].real]) + ' '
           valDict['imaginary'] += ' '.join([ '%.6e' % elm for elm in self.model._reference_dmd.modes[loopCnt,:].imag]) +' '
           loopCnt += 1
         attributeDict = {self.features[index]:'%.6e' % self.featureVals[smp,index] for index in range(len(self.features))}

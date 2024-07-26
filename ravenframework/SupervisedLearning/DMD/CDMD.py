@@ -122,7 +122,7 @@ class CDMD(DMDBase):
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     specs.addSub(InputData.parameterInputFactory("forward_backward", contentType=InputTypes.BoolType,
                                                  descr=r"""If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-                                                 Default is False.""", default=False))    
+                                                 Default is False.""", default=False))
     specs.addSub(InputData.parameterInputFactory("rescale_mode", contentType=InputTypes.makeEnumType("rescale_mode", "RescaleType",
                                                                                                         ["auto", None]),
                                                  descr=r"""Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular values.
@@ -149,7 +149,7 @@ class CDMD(DMDBase):
     import pydmd
     from pydmd import CDMD
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs', 
+    settings, notFound = paramInput.findNodesAndExtractValues(['svd_rank', 'tlsq_rank','rescale_mode', 'sorted_eigs',
                                                                'compression_matrix','forward_backward','tikhonov_regularization', 'opt'])
     # notFound must be empty
     assert(not notFound)
@@ -159,13 +159,13 @@ class CDMD(DMDBase):
     # truncation rank for total least square
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-    self.dmdParams['forward_backward'] = settings.get('forward_backward')    
+    self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Compression matrix
     self.dmdParams['compression_matrix'] = settings.get('compression_matrix')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
     # Sorted eigs
-    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')    
+    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
     # Tikhonov parameter for the regularization.
     self.dmdParams['tikhonov_regularization'] = settings.get('tikhonov_regularization')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)

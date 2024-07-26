@@ -114,10 +114,10 @@ class BOPDMD(DMDBase):
                                                  descr=r"""Flag that determines the type of computation to perform. If True, fit input
                                                  data projected onto the first svd_rank POD modes or columns of proj_basis if provided.
                                                  If False, fit the full input data. Default is True, fit projected data.""", default=True))
-    
+
     specs.addSub(InputData.parameterInputFactory("num_trials", contentType=InputTypes.IntegerType,
                                                  descr=r"""Number of BOP-DMD trials to perform. If num_trials is a positive integer,
-                                                 num\_trials BOP-DMD trials are performed. Otherwise, standard optimized dmd is performed""", default=0))    
+                                                 num\_trials BOP-DMD trials are performed. Otherwise, standard optimized dmd is performed""", default=0))
     specs.addSub(InputData.parameterInputFactory("trial_size", contentType=InputTypes.FloatOrIntType,
                                                  descr=r"""Size of the randomly selected subset of observations to use for each trial of bagged optimized dmd (BOP-DMD).
                                                  Available options are:
@@ -126,7 +126,7 @@ class BOPDMD(DMDBase):
                                                    \item $0.0 < trial\_size < 1.0$, $int(trial\_size * m)$ many observations will be used per trial,
                                                        where $m$ denotes the total number of data points observed.
                                                  \end{itemize}
-                                                 """, default=0.6))    
+                                                 """, default=0.6))
     specs.addSub(InputData.parameterInputFactory("eig_sort", contentType=InputTypes.makeEnumType("eig_sort", "SortedType",
                                                                                                         ["real", "abs", "imag", "auto"]),
                                                  descr=r"""Method used to sort eigenvalues (and modes accordingly) when performing BOP-DMD. Available options are:
@@ -134,7 +134,7 @@ class BOPDMD(DMDBase):
                                                    \item \textit{real}, eigenvalues will be sorted by real part and then by imaginary part to break ties.
                                                    \item  \textit{imag}, eigenvalues will be sorted by imaginary part and then by real part to break ties.
                                                    \item  \textit{abs}, eigenvalues will be sorted by magnitude.
-                                                   \item  \textit{auto}, one of the previously-mentioned sorting methods is chosen depending on eigenvalue variance.  
+                                                   \item  \textit{auto}, one of the previously-mentioned sorting methods is chosen depending on eigenvalue variance.
                                                  \end{itemize}
                                                  """, default="auto"))
     specs.addSub(InputData.parameterInputFactory("eig_constraints", contentType=InputTypes.makeEnumType("eig_constraints", "EigenConstraintType",
@@ -167,7 +167,7 @@ class BOPDMD(DMDBase):
     # compute full A matrix
     self.dmdParams['compute_A'] = settings.get('compute_A')
     # Type of projection to perform
-    self.dmdParams['use_proj'] = settings.get('use_proj')    
+    self.dmdParams['use_proj'] = settings.get('use_proj')
     # Number of trials
     self.dmdParams['num_trials'] = settings.get('num_trials')
     # Trial size
@@ -180,7 +180,7 @@ class BOPDMD(DMDBase):
     self._dmdBase = BOPDMD
     # intialize the model
     self.initializeModel(settings)
-    
+
   def _preFitModifications(self):
     """
       Method to modify parameters and populate fit argument before fitting

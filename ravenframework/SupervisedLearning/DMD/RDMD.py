@@ -115,7 +115,7 @@ class RDMD(DMDBase):
                                                   between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     specs.addSub(InputData.parameterInputFactory("forward_backward", contentType=InputTypes.BoolType,
                                                  descr=r"""If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-                                                 Default is False.""", default=False))    
+                                                 Default is False.""", default=False))
     specs.addSub(InputData.parameterInputFactory("rescale_mode", contentType=InputTypes.makeEnumType("rescale_mode", "RescaleType",
                                                                                                         ["auto", None]),
                                                  descr=r"""Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular values.
@@ -136,7 +136,7 @@ class RDMD(DMDBase):
                                                  random test matrix. Note that values in the range $[5, 10]$ tend to be sufficient.""", default=10))
     specs.addSub(InputData.parameterInputFactory("power_iters", contentType=InputTypes.IntegerType,
                                                  descr=r"""Number of power iterations to perform when executing the Randomized QB Decomposition.
-                                                 Note that as many as 1 to 2 power iterations often lead to considerable improvements.""", default=2))     
+                                                 Note that as many as 1 to 2 power iterations often lead to considerable improvements.""", default=2))
 
 
     return specs
@@ -160,11 +160,11 @@ class RDMD(DMDBase):
     # truncation rank for total least square
     self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-    self.dmdParams['forward_backward'] = settings.get('forward_backward')    
+    self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
     # Sorted eigs
-    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')    
+    self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
     # Tikhonov parameter for the regularization.
     self.dmdParams['tikhonov_regularization'] = settings.get('tikhonov_regularization')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
@@ -175,7 +175,7 @@ class RDMD(DMDBase):
     self.dmdParams['oversampling'] = settings.get('oversampling')
     # Number of power iterations
     self.dmdParams['power_iters'] = settings.get('power_iters')
-    
+
     self._dmdBase = RDMD
     # intialize the model
     self.initializeModel(settings)
