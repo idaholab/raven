@@ -147,15 +147,6 @@ class DMDBase(SupervisedLearning):
     assert(self._dmdBase is not None)
     if self.dmdParams is None:
       self.dmdParams = dmdParams
-
-    #for target in  set(self.target) - set(self.pivotID):
-      ## intialize dimensionality reduction
-      #self._DRrom[target] = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])
-      ## initialize coefficient interpolator
-      #self._interpolator[target] = RBF(kernel='thin_plate_spline', smooth=0, neighbors=None, epsilon=None, degree=None)
-      ## initialize the base model
-      #self._dmdBase[target] = self._dmdBase[target](**self.dmdParams)
-      #self.model[target] = ParametricDMD(self._dmdBase[target], self._DRrom[target], self._interpolator[target])
     # intialize dimensionality reduction
     self._DRrom = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])
     # initialize coefficient interpolator
@@ -188,7 +179,10 @@ class DMDBase(SupervisedLearning):
     """
     try:
       timeScaleInfo = self.model.dmd_time
-      timeScale = np.arange(timeScaleInfo['t0'], (timeScaleInfo['tend']+1)*timeScaleInfo['dt'], timeScaleInfo['dt'])
+      if isinstance(timeScaleInfo, dict):
+        timeScale = np.arange(timeScaleInfo['t0'], (timeScaleInfo['tend']+1)*timeScaleInfo['dt'], timeScaleInfo['dt'])
+      else:
+        timeScale = timeScaleInfo
     except AttributeError:
       if 'time' in  dir(self.model._reference_dmd):
         timeScale = self.model._reference_dmd.time

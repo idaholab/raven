@@ -46,6 +46,7 @@ from .DMD.RDMD import RDMD
 from .DMD.SpDMD import SpDMD
 from .DMD.BOPDMD import BOPDMD
 from .DMD.SubspaceDMD import SubspaceDMD
+from .DMD.VarProDMD import VarProDMD
 
 from .ARMA               import ARMA
 from .ROMCollection      import Segments, Clusters, Interpolated
