@@ -26,9 +26,9 @@ from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from ..utils import mathUtils
-from ..utils import InputData, InputTypes
-from .DynamicModeDecomposition import DMD
+from ...utils import mathUtils
+from ...utils import InputData, InputTypes
+from .DMD import DMD
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DMDC(DMD):
