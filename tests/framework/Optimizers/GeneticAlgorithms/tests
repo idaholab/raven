@@ -375,60 +375,140 @@
     [../]
   [../]
 
-
-  [./GAwithEnsembleModelIncludingCode]
+  [./NSGA-II_MinwoRepMultiObjective]
     type = 'RavenFramework'
-    input = 'continuous/unconstrained/test_ensembleModel_withGA_Code_and_Functions.xml'
+    input = 'discrete/constrained/MinwoRepMultiObjective.xml'
+    UnorderedCsv = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
+    rel_err = 0.001
+  [../]
+
+  [./ZDT1-adaptive-LinearXover-LinearMutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation.xml'
+    image = 'continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation/1-opt_path.png continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
     [./csv]
      type = UnorderedCSV
-     output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/opt_export.csv'
+     output = 'continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation/opt_export_0.csv'
      rel_err = 0.001
     [../]
   [../]
 
-  [./NSGA-II_MinwoRepMultiObjective]
+  [./ZDT1-static-0.0Xover-0.1Mutation]
     type = 'RavenFramework'
-    input = 'discrete/constrained/MinwoRepMultiObjective.xml'
+    input = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
     [./csv]
-      type = UnorderedCSV
-      output = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
-      rel_err = 0.001
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation/opt_export_0.csv'
+     rel_err = 0.001
     [../]
   [../]
 
-  [./NSGA-II_MinwoRepFeasibleFirst]
+  [./ZDT1-static-0.0Xover-0.9Mutation]
     type = 'RavenFramework'
-    input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst.xml'
-    image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
+    input = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.25
+    rel_err = 0.1
     [./csv]
-      type = UnorderedCSV
-      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/opt_export_0.csv'
-      rel_err = 0.001
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation/opt_export_0.csv'
+     rel_err = 0.001
     [../]
   [../]
 
-  [./NSGA-II_ZDT1]
+  [./ZDT1-static-0.0Xover-1.0Mutation]
     type = 'RavenFramework'
-    input = 'continuous/unconstrained/ZDT1.xml'
-    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png'
+    input = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.25
+    rel_err = 0.1
     [./csv]
-      type = UnorderedCSV
-      output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
-      rel_err = 0.001
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./ZDT1-static-0.1Xover-0.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [./csv]
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./ZDT1-static-0.1Xover-0.9Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [./csv]
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./ZDT1-static-0.5Xover-0.5Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [./csv]
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./ZDT1-static-0.9Xover-0.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [./csv]
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./ZDT1-static-1.0Xover-0.0Mutation]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation.xml'
+    image = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [./csv]
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation/opt_export_0.csv'
+     rel_err = 0.001
     [../]
   [../]
 
   [./NSGA-II_Beale]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'
+    image = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
     [./csv]
-      type = UnorderedCSV
-      output = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
-      rel_err = 0.001
+     type = UnorderedCSV
+     output = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
+     rel_err = 0.001
     [../]
   [../]
 []

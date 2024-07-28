@@ -194,6 +194,26 @@ def inversionMutator(offSprings, distDict, **kwargs):
 
   return offSprings
 
+def getLinearMutationProbability(iter, limit):
+  """
+  This method is designed to DHM(Decreasing High Mutation) adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(iteration / limit) as mutation rate
+  """
+  return 1-(iter/limit)
+
+def getQuadraticMutationProbability(iter, limit):
+  """
+  This method is designed to Quadratic adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(((1+iteration)/limit))^2 as mutation rate
+  """
+  if(iter == 0):
+    mutationProb = 1
+  else:
+    mutationProb = 1-(((iter+1)/(limit))**2)
+  return mutationProb
+
 __mutators = {}
 __mutators['swapMutator']       = swapMutator
 __mutators['scrambleMutator']   = scrambleMutator
