@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<Simulation color="true" verbosity="debug">
+  <TestInfo>
+    <name>adaptScTrain</name>
+    <author>talbpw</author>
+    <created>2024-06-04</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>Workshop test: using adaptive sthochastic collocation sampler to train and evaluate a Gaussian Polynomial ROM</description>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-08'>moved from ROM->XML to ROM->DataObject</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>run</WorkingDir>
+    <Sequence>make_adaptive,train,rom_out,serialize,print</Sequence>
+    <batchSize>8</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="pkfile">scgpc_adapt.pk</Input>
+  </Files>
+
+  <Steps>
+    <MultiRun name="make_adaptive">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="AdaptiveSparseGrid">sg_samp</Sampler>
+      <Output class="DataObjects" type="PointSet">training_data</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="PointSet">training_data</Input>
+      <Output class="Models" type="ROM">scgpc_rom</Output>
+    </RomTrainer>
+    <IOStep name='rom_out'>
+      <Input class="Models" type="ROM">scgpc_rom</Input>
+      <Output class="DataObjects" type="PointSet">rom_stats_adapt</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">rom_stats_adapt</Input>
+      <Output class="OutStreams" type="Print">rom_stats_adapt</Output>
+    </IOStep>
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">scgpc_rom</Input>
+      <Output class="Files" type="">pkfile</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name="angle_dist">
+      <lowerBound>25</lowerBound>
+      <upperBound>65</upperBound>
+    </Uniform>
+    <Uniform name="v0_dist">
+      <lowerBound>15</lowerBound>
+      <upperBound>40</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <AdaptiveSparseGrid name="sg_samp">
+      <Convergence target="variance">1e-3</Convergence>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
+      <ROM class="Models" type="ROM">scgpc_rom</ROM>
+      <TargetEvaluation class="DataObjects" type="PointSet">training_data</TargetEvaluation>
+    </AdaptiveSparseGrid>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r,t,timeOption</variables>
+    </ExternalModel>
+    <ROM name="scgpc_rom" subType="GaussPolynomialRom">
+      <Target>r,t</Target>
+      <Features>v0,angle</Features>
+      <IndexSet>HyperbolicCross</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <pivotParameter>t</pivotParameter>
+    </ROM>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="rom_stats_adapt"/>
+    <PointSet name="training_data">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="rom_stats_adapt">
+      <type>csv</type>
+      <source>rom_stats_adapt</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>
