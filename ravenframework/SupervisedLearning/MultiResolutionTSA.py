@@ -125,6 +125,17 @@ class MultiResolutionTSA(SupervisedLearning):
 
     mrAlgo._combineTrainedParamsByLevels(mrTrainedParams, params)
 
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Allows the SVE to put whatever it wants into an XML to print to file.
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused (kept for compatability)
+      @ In, skip, list, optional, unused (kept for compatability)
+      @ Out, None
+    """
+
   def __evaluateLocal__(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor

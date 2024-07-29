@@ -133,14 +133,14 @@ class FilterBankDWT(TimeSeriesTransformer):
     ## time-dependent series is independent, uniquely indexed and
     ## sorted in time.
     family = settings['family']
-    levels = settings.get('levels', 1)
     params = {target: {'results': {}} for target in targets}
 
     # determine maximum decomposition level
     max_level = pywt.dwt_max_level(len(pivot), family)
-    if levels>max_level:
+    if self._levels>max_level:
       print(f"Number of levels requested is larger than maximum DWT decomposition level, switching to maximum allowed: {max_level}")
-      levels = max_level
+      self._levels = max_level - 1
+      settings['levels'] = self._levels
 
     for i, target in enumerate(targets):
       history = signal[:, i]
@@ -149,12 +149,12 @@ class FilterBankDWT(TimeSeriesTransformer):
       # TODO:this is temporary for zero-filter SOLAR data... should this also look back to find filter results?
 
       results = params[target]['results']
-      coeffs = pywt.mra(history, family, levels, transform='dwt' )
+      coeffs = pywt.mra(history, family, self._levels, transform='dwt' )
       for coeff in coeffs:
         coeff[mask] = np.nan
 
       results['coeff_a'] = coeffs[0]
-      results['coeff_d'] = np.vstack([coeffs[i] for i in range(1,levels)]) if levels>1 else coeffs[1][np.newaxis]
+      results['coeff_d'] = np.vstack([coeffs[i] for i in range(1,self._levels+1)]) if self._levels>1 else coeffs[1][np.newaxis]
 
     return params
 
@@ -243,7 +243,7 @@ class FilterBankDWT(TimeSeriesTransformer):
     for target, contents in params.items():
       sortedParams[target] = {}
       for lvl in range(self._levels):
-        sortedParams[target][lvl] = contents['results']['coeff_d'][lvl]
+        sortedParams[target][lvl] = contents['results']['coeff_d'][lvl,:]
     return sortedParams
 
   def _combineTrainedParamsByLevels(self, params, newParams):
