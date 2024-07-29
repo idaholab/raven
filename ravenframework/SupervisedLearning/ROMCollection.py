@@ -2002,27 +2002,27 @@ class Decomposition(SupervisedLearning):
     noPivotTargets = [x for x in self.target if x != self.pivotID]
 
     # step through macroparameters (years)
-    for s, step in enumerate(self._macroSteps.values()):
+    for s, (macroID,step) in enumerate(self._macroSteps.items()):
       self.raiseADebug('Training Statepoint Year {} ...'.format(s))
       trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
 
-      self.raiseADebug('... Training Global Signal per Year ...')
+      self.raiseADebug(f'... Training Global Signal per Year {macroID} ...')
       step.train(trainingData)
 
       numLvls, trainedParams = step._getMRTrainedParams()
-      self.raiseADebug('... Training Decomposition Levels ...')
 
       # create new ROM for every level
       for lvl in range(numLvls):
         new = copy.deepcopy(self._macroTemplate)
-        self._decompSteps[lvl] = new
+        self._decompSteps[macroID][lvl] = new
 
       # NOW we train each level decomposition
-      for lvl, decomp in enumerate(self._decompSteps.values()):
+      for lvl, decomp in enumerate(self._decompSteps[macroID].values()):
         # write training dict
         decomp_tdict = copy.deepcopy(trainingData)
         for target in noPivotTargets:
           decomp_tdict[target] = [trainedParams[target][lvl]]
+        self.raiseADebug(f'... Training Decomposition Level {lvl} ...')
         # train global algos
         _, newTrainingDict = decomp.getGlobalRomSegmentSettings(decomp_tdict, None)
         # train non-global algos
@@ -2050,86 +2050,60 @@ class Decomposition(SupervisedLearning):
       @ In, edict, dict, dictionary of evaluation parameters
       @ Out, result, dict, result of evaluation
     """
-    # can we run SupervisedLearning.evaluate? Should this be an evaluateLocal?
-    ## set up the results dict with the correct dimensionality
-    ### actually, let's wait for the first sample to come in.
-    self.raiseADebug('Evaluating interpolated ROM ...')
-    results = None
-
-    # mrTrainedParams = list(self._templateROM._globalROM._tsaTrainedParams.items())[-1]
+    self.raiseADebug('Evaluating decomposition ROM ...')
     noPivotTargets = [x for x in self.target if x != self.pivotID]
-    # numLvls, nPivot = mrTrainedParams[1][noPivotTargets[0]]['results']['coeff_d'].shape
+    # keys which include targets and other metadata
+    resultsKeys = [x for x in self.target]
+    resultsKeys.extend([self.pivotID,'_indexMap'])
+    results = {}  # this is the dictionary that gets sent upstream to the rest of RAVEN/ROM stuff
 
-    # first find the DWT/MRA re-comp algo
-    mrAlgo = [key for key in self._templateROM._globalROM._tsaTrainedParams.keys() if key.name=='FilterBankDWT']
-    assert len(mrAlgo)>0
+    numMacro = len(self._macroSteps)
 
-    # this should be reference to trainedParams
-    mrTrainedParams = self._templateROM._globalROM._tsaTrainedParams[mrAlgo[0]]
+    # step through trained macroSteps (e.g., years)
+    macroIndexValues = []
+    for m, (macroID, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+      macroIndexValues.append(macroID)
+      decompModels = self._decompSteps[macroID]
+      decompResults = {x:{} for x in self.target if x != self.pivotID}
+      for d, (lvl, decompModel) in enumerate(decompModels.items()):
+        # evaluate algos for given decomposition level
+        subResult = decompModel.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
+        # evaluate global algos for given decomposition level
+        decompResult = decompModel.finalizeGlobalRomSegmentEvaluation(None, subResult, weights=None, slicer=None)
 
-    for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
-      # evaluate algos
-      subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
-      # evaluate global algos
-      result = model.finalizeGlobalRomSegmentEvaluation(None, subResult, weights=None, slicer=None)
-      for target in noPivotTargets:
-        mrTrainedParams[target]['results']['coeff_d'][m] = result[target]
+        # singular decomposition level stored in larger decompResult*s* dict
+        for target, contents in decompResult.items():
+          if target not in [self.pivotID,'_indexMap']:
+            decompResults[target][lvl] = contents
 
+      # combine results and save to macroStep model trainedParams
+      model._updateMRTrainedParams(decompResults)
 
-    # run first set of MR TSA algorithms (should include some sort of MRA transformer)
-    results = self._templateROM.evaluate(edict)
+      # run first set of MR TSA algorithms (should include some sort of MRA transformer)
+      macroResults = model.evaluate(edict)
 
-    # ## TODO set up right for ND??
-    # forcedMax = self._maxCycles if self._maxCycles is not None else np.inf
-    # numMacro = min(len(self._macroSteps), forcedMax)
-    # macroIndexValues = []
-    # for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
-    #   if m + 1 > numMacro:
-    #     break
-    #   # m is an index of the macro step, in order of the macro values (e.g. in order of years)
-    #   # macroStep is the actual macro step value (e.g. the year)
-    #   # model is the ClusterROM instance for this macro step
-    #   macroIndexValues.append(macroStep)
-    #   self.raiseADebug(f' ... evaluating macro step "{macroStep}" ({m+1} / {numMacro})')
-    #   subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
-    #   indexMap = subResult.get('_indexMap', {})
-    #   # if not set up yet, then frame results structure
-    #   if results is None:
-    #     results = {}
-    #     finalIndexMap = indexMap # in case every rlz doesn't use same order, which would be lame
-    #     pivotID = model._templateROM.pivotParameterID
-    #     indices = set([pivotID, self._macroParameter])
-    #     for indexes in finalIndexMap.values():
-    #       indices.update(set(indexes))
-    #     #pivotVals = subResult[pivotID]
-    #     #numPivot = len(pivotVals)
-    #     for target, values in subResult.items():
-    #       # if an index, just set the values now # FIXME assuming always the same!
-    #       ## FIXME thing is, they're not always the same, we're clustering, so sometimes there's diff num days!
-    #       ## TODO for now, we simply require using a classifier that always has the same number of entries.
-    #       if target in [pivotID, '_indexMap'] or target in indices:
-    #         results[target] = values
-    #       else:
-    #         # TODO there's a strange behavior here where we have nested numpy arrays instead of
-    #         # proper matrices sometimes; maybe it has to be this way for unequal clusters
-    #         # As a result, we use the object dtype, onto which we can place a whole numpy array.
-    #         results[target] = np.zeros([numMacro] + list(values.shape), dtype=object)
-    #   # END setting up results structure, if needed
-    #   # FIXME reshape in case indexMap is not the same as finalIndexMap?
-    #   for target, values in subResult.items():
-    #     if target in [pivotID, '_indexMap'] or target in indices:# indexMap:
-    #       continue
-    #     indexer = tuple([m] + [None]*len(values.shape))
-    #     try:
-    #       results[target][indexer] = values
-    #     except ValueError:
-    #       self.raiseAnError(RuntimeError, 'The shape of the histories along the pivot parameter is not consistent! Try using a clustering classifier that always returns the same number of clusters.')
-    # results['_indexMap'] = {} #finalIndexMap
-    # for target, vals in results.items():
-    #   if target not in indices and target not in ['_indexMap']: # TODO get a list of meta vars?
-    #     default = [] if vals.size == 1 else [pivotID]
-    #     results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
-    # results[self._macroParameter] = macroIndexValues
+      # if first macro step, must set up dict correctly
+      if not results:
+        for k in resultsKeys:
+          if k == self.pivotID:
+            # storing pivot parameter array (assuming same for all macroSteps/years)
+            results[k] = macroResults[self.pivotID]
+          elif k == '_indexMap':
+            # an instance of _indexMap stored for each target
+            results[k] = {}
+            for target in self.target:
+              if target != self.pivotID:
+                results[k][target] = [self._macroParameter, self.pivotID]
+          elif k in noPivotTargets:
+            # this was taken from the Interpolated method, specifying dtype fixed an error as well...
+            results[k] = np.zeros([numMacro] + list((macroResults[noPivotTargets[0]].shape)), dtype=object)
+
+      # storing results from a single macroStep (includes all decomp levels)
+      for target, contents in results.items():
+        if target not in [self.pivotID, '_indexMap']:
+          contents = macroResults[target]
+
+    results[self._macroParameter] = macroIndexValues
     return results
 
   ############### DUMMY ####################

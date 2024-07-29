@@ -117,6 +117,14 @@ class MultiResolutionTSA(SupervisedLearning):
 
     return numLevels, sortedTrainedParams
 
+  def _updateMRTrainedParams(self, params):
+
+    # get all trained parameters from final algorithm (should be multiresolution transformer)
+    trainedParams = list(self._globalROM._tsaTrainedParams.items())
+    mrAlgo, mrTrainedParams = trainedParams[-1]
+
+    mrAlgo._combineTrainedParamsByLevels(mrTrainedParams, params)
+
   def __evaluateLocal__(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor

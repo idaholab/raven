@@ -245,3 +245,20 @@ class FilterBankDWT(TimeSeriesTransformer):
       for lvl in range(self._levels):
         sortedParams[target][lvl] = contents['results']['coeff_d'][lvl]
     return sortedParams
+
+  def _combineTrainedParamsByLevels(self, params, newParams):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    # reformatting the results of the trained `params` to fit this algo's format:
+    #     {target: {lvl: [ values, ... ], }, }
+    # this might look different per algorithm
+    for target, originalContents in params.items():
+      for lvl, newContents in newParams[target].items():
+        originalContents['results']['coeff_d'][lvl,:] = newContents
