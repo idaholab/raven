@@ -16,7 +16,7 @@
   that are available via RAVEN
 
   Created on July 21, 2024
-  @author: alfoa
+  @author: Andrea Alfonsi
 """
 # These lines ensure that we do not have to do something like:
 from .DMDBase import DMDBase
