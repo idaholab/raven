@@ -53,17 +53,17 @@ class SparseSensing(PostProcessorReadyInterface):
                                                 printPriority=108,
                                                 descr=r"""Features/inputs of the data model""")
     goal.addSub(features)
-    xValue = InputData.parameterInputFactory("xValue", contentType=InputTypes.StringListType, 
+    xValue = InputData.parameterInputFactory("xValue", contentType=InputTypes.StringListType,
                                                 printPriority=108,
                                                 descr=r"""Variable plotted on the X-axis of the data model""")
     goal.addSub(xValue)
-    yValue = InputData.parameterInputFactory("yValue", contentType=InputTypes.StringListType, 
+    yValue = InputData.parameterInputFactory("yValue", contentType=InputTypes.StringListType,
                                                 printPriority=108,
                                                 descr=r"""Variable plotted on the Y-axis of the data model""")  ##Do we want another Z-value
     goal.addSub(yValue)
     measuredState = InputData.parameterInputFactory("measuredState", contentType=InputTypes.StringType,
                                                 printPriority=108,
-                                                descr=r"""State Variable to be measured/sensed""")  
+                                                descr=r"""State Variable to be measured/sensed""")
     goal.addSub(measuredState)
     labels = InputData.parameterInputFactory("labels", contentType=InputTypes.StringType,
                                                 printPriority=108,
@@ -242,7 +242,7 @@ class SparseSensing(PostProcessorReadyInterface):
       self.ConstrainedRegion = child.findFirst('ConstrainedRegion').value
       if self.sparseSensingGoal == 'classification':
         self.sensingLabels = child.findFirst('labels').value
-      self._ConstrainedRegionType = ConstrainedRegion.parameterValues['type']  ##Check for is not None
+      self._ConstrainedRegionType = self.ConstrainedRegion.parameterValues['type']  ##Check for is not None
       if self._ConstrainedRegionType.lower() == 'circle':
         self.center_x = child.findFirst('center_x').value
         self.center_y = child.findFirst('center_y').value
@@ -336,7 +336,8 @@ class SparseSensing(PostProcessorReadyInterface):
     else:
       self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals') 
     ### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
-    data = inputDS[self.sensingStateVariable].data  ## Moved data up so as to pass onto instanced of constraint class
+    data = inputDS[self.sensingStateVariable].data  ## Moved data up so as to pass into instance of constraint class
+    allSensors = range(0, data.shape[1]) ## Data must be [n_samples, n_features] 
     if self._ConstrainedRegionType.lower() == 'circle':
       circle = ps.utils._constraints.Circle(center_x = self.center_x, center_y = self.center_y, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable) 
       idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)  
