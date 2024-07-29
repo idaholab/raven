@@ -22,8 +22,12 @@ Discrete Wavelet Transform
 import numpy as np
 
 from ..TimeSeriesAnalyzer import TimeSeriesTransformer
-from ...utils import xmlUtils, InputTypes, InputData
-
+from ...utils import xmlUtils, InputTypes, InputData, importerUtils
+try:
+  pywv = importerUtils.importModuleLazy("pywt", globals())
+except ModuleNotFoundError as exc:
+  print("The FilterBankDWT TSA Module requires the PYWAVELETS library to be installed in the current python environment")
+  raise ModuleNotFoundError from exc
 
 class FilterBankDWT(TimeSeriesTransformer):
   """ Applies a Discrete Wavelet Transform algorithm as a filter bank to decompose signal into
@@ -122,11 +126,6 @@ class FilterBankDWT(TimeSeriesTransformer):
       @ Out, params, dict, characteristic parameters
     """
     # TODO extend to continuous wavelet transform
-    try:
-      import pywt
-    except ModuleNotFoundError as exc:
-      print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
-      raise ModuleNotFoundError from exc
 
     ## The pivot input parameter isn't used explicity in the
     ## transformation as it assumed/required that each element in the
@@ -185,12 +184,6 @@ class FilterBankDWT(TimeSeriesTransformer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, composite, np.array, resulting composite signal
     """
-    try:
-      import pywt
-    except ModuleNotFoundError:
-      print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
-      raise ModuleNotFoundError
-
     synthetic = np.zeros((len(pivot), len(params)))
     for t, (target, _) in enumerate(params.items()):
       results = params[target]['results']
