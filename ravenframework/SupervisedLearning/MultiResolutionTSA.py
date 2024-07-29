@@ -12,35 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on January 10, 2019
+  Created on July 29, 2024
 
-  @author: talbpaul, wangc
-  Container to handle ROMs that are made of many sub-roms
+  @author: sotogj
+  Class to specifically handle multi-resolution time series analysis training
 """
-# standard libraries
-import copy
-import warnings
-from collections import defaultdict, OrderedDict
-import pprint
-
-# external libraries
-import abc
-import numpy as np
-import pandas as pd
-from scipy.interpolate import interp1d
 # internal libraries
-from ..utils import utils, mathUtils, xmlUtils, randomUtils
-from ..utils import InputData, InputTypes
 from .SupervisedLearning import SupervisedLearning
 from .SyntheticHistory import SyntheticHistory
-# import pickle as pk # TODO remove me!
-import os
 #
 #
 #
 #
 class MultiResolutionTSA(SupervisedLearning):
-  """ In addition to clusters for each history, interpolates between histories. """
+  """ Class to specifically handle multi-resolution time series analysis training and evaluation."""
 
   @classmethod
   def getInputSpecification(cls):
@@ -52,7 +37,7 @@ class MultiResolutionTSA(SupervisedLearning):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.description = r"""Provides an alternative way to build the ROM. In addition to clusters for each history, interpolates between histories."""
+    spec.description = r"""Class to specifically handle multi-resolution time series analysis training and evaluation."""
     spec = SyntheticHistory.addTSASpecs(spec)
     return spec
 
@@ -103,7 +88,13 @@ class MultiResolutionTSA(SupervisedLearning):
     self._globalROM.trainTSASequential(targetVals)
 
   def _getMRTrainedParams(self):
-
+    """
+      Get trained params for multi-resolution time series analysis. Returns number of decomposition levels
+      and a sorted (or re-indexed) version of the trained params dictionary.
+      @ In, None
+      @ Out, numLevels, int, number of decomposition levels
+      @ Out, sortedTrainedParams, dict, dictionary of trained parameters
+    """
     # get all trained parameters from final algorithm (should be multiresolution transformer)
     trainedParams = list(self._globalROM._tsaTrainedParams.items())
     mrAlgo, mrTrainedParams = trainedParams[-1]
@@ -114,11 +105,15 @@ class MultiResolutionTSA(SupervisedLearning):
 
     # reformat the trained params
     sortedTrainedParams = mrAlgo._sortTrainedParamsByLevels(mrTrainedParams)
-
     return numLevels, sortedTrainedParams
 
   def _updateMRTrainedParams(self, params):
-
+    """
+      Method to update trained parameter dictionary from this class using imported `params` dictionary
+      containing multiple-decomposition-level trainings
+      @ In, params, dict, dictionary of trained parameters from previous decomposition levels
+      @ Out, None
+    """
     # get all trained parameters from final algorithm (should be multiresolution transformer)
     trainedParams = list(self._globalROM._tsaTrainedParams.items())
     mrAlgo, mrTrainedParams = trainedParams[-1]
@@ -138,6 +133,7 @@ class MultiResolutionTSA(SupervisedLearning):
 
   def __evaluateLocal__(self, featureVals):
     """
+    Evaluate algorithms for ROM generation
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, rlz, dict, realization dictionary of values for each target
     """

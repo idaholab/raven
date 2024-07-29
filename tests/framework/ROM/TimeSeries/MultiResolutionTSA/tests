@@ -21,7 +21,7 @@
     input = 'multiYearDWT.xml'
     [./csv]
       type = OrderedCSV
-      output = 'multiYearDWT/samples.csv'
+      output = 'MultiYearDWT/samples.csv'
       rel_err = 4.7e-1
       zero_threshold = 1e-12
     [../]

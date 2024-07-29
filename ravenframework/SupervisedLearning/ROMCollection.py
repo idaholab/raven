@@ -1924,9 +1924,19 @@ class Interpolated(SupervisedLearning):
 #
 #
 class Decomposition(SupervisedLearning):
+  """ Time series histories are decomposed into multiple levels for training and evaluation.
+      Histories are combined into a single signal upon evaluation.
+  """
 
   @classmethod
   def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
     spec = super().getInputSpecification()
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True,
@@ -1950,6 +1960,11 @@ class Decomposition(SupervisedLearning):
     return spec
 
   def __init__(self):
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
     super().__init__()
     self._macroTemplate = SyntheticHistory() # empty SyntheticHistory object, deepcopy'd later to train multiple instances per decomposition level
     self._macroParameter = None
@@ -1993,8 +2008,8 @@ class Decomposition(SupervisedLearning):
   def train(self, tdict):
     """
       Trains the SVL and its supporting SVLs etc. Overwrites base class behavior due to
-        special clustering and macro-step needs.
-      @ In, trainDict, dict, dictionary with training data
+        special decomposition and macro-step needs.
+      @ In, tdict, dict, dictionary with training data
       @ Out, None
     """
     # create macro steps as needed
@@ -2031,6 +2046,9 @@ class Decomposition(SupervisedLearning):
 
   def _createMacroSteps(self, tdict):
     """
+      Initializes the macroStep ROMs required for each step (e.g., year).
+      @ In, tdict, dict, dictionary with training data
+      @ Out, None
     """
     # tdict should have two parameters, the pivotParameter and the macroParameter -> one step per realization
     if self._macroParameter not in tdict:
@@ -2046,7 +2064,7 @@ class Decomposition(SupervisedLearning):
   ############### EVALUATING ####################
   def evaluate(self, edict):
     """
-      Evaluate the set of interpolated models
+      Evaluate the set of decomposition models
       @ In, edict, dict, dictionary of evaluation parameters
       @ Out, result, dict, result of evaluation
     """
