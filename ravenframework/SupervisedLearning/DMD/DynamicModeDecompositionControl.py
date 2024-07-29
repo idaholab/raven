@@ -236,6 +236,14 @@ class DMDC(DMD):
       if str(self.parametersIDs[i]).endswith('_init'):
         self.parametersIDs.remove(self.parametersIDs[i])
 
+  def initializeModel(self, dmdParams):
+    """
+      Method to initialize the surrogate model with a dmdParams dictionary
+      @ In, dmdParams, dict, the dictionary containin the parameters/settings to instanciate the model
+      @ Out, None
+    """
+    pass
+
   def _getTimeScale(self,dmd=True):
     """
       Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
@@ -469,7 +477,7 @@ class DMDC(DMD):
     if skip is None: # skip =  None
       skip = []
 
-    what = ['dmdType','rankSVD','acturators',
+    what = ['rankSVD','acturators',
             'stateVariables','outputs','initStateVariables',
             'Atilde','Btilde','Ctilde','UNorm','XNorm','YNorm',
             'XLast','dmdTimeScale']
@@ -490,7 +498,7 @@ class DMDC(DMD):
 
     target = 'DMDcModel'
 
-    toAdd = ['dmdType','rankSVD']
+    toAdd = ['rankSVD']
     self.dmdParams['rankSVD'] = self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
 
     for add in toAdd: # toAdd = ['dmdType','rankSVD']

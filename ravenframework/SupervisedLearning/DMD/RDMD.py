@@ -163,11 +163,11 @@ class RDMD(DMDBase):
     self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
-    if self.dmdParams["rescale_mode"] is 'None':
+    if self.dmdParams["rescale_mode"] == 'None':
       self.dmdParams["rescale_mode"] = None
     # Sorted eigs
     self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
-    if self.dmdParams["sorted_eigs"] is 'False':
+    if self.dmdParams["sorted_eigs"] == 'False':
       self.dmdParams["sorted_eigs"] = False
     # Tikhonov parameter for the regularization.
     self.dmdParams['tikhonov_regularization'] = settings.get('tikhonov_regularization')

@@ -174,7 +174,7 @@ class BOPDMD(DMDBase):
     self.dmdParams['trial_size'] = settings.get('trial_size')
     # Eigen value constraints to apply
     self.dmdParams['eig_constraints'] = set([settings.get('eig_constraints')])
-    if self.dmdParams["eig_constraints"] is 'None':
+    if self.dmdParams["eig_constraints"] == 'None':
       self.dmdParams["eig_constraints"] = None
     # Sorted eigs
     self.dmdParams['eig_sort'] = settings.get('eig_sort')

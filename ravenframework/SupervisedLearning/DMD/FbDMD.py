@@ -147,11 +147,11 @@ class FbDMD(DMDBase):
     self.dmdParams['opt'] = settings.get('opt')
     # Rescale mode
     self.dmdParams['rescale_mode'] = settings.get('rescale_mode')
-    if self.dmdParams["rescale_mode"] is 'None':
+    if self.dmdParams["rescale_mode"] == 'None':
       self.dmdParams["rescale_mode"] = None
     # Sorted eigs
     self.dmdParams['sorted_eigs'] = settings.get('sorted_eigs')
-    if self.dmdParams["sorted_eigs"] is 'False':
+    if self.dmdParams["sorted_eigs"] == 'False':
       self.dmdParams["sorted_eigs"] = False
 
     self._dmdBase = FbDMD

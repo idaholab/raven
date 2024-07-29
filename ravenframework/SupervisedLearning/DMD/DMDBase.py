@@ -155,7 +155,7 @@ class DMDBase(SupervisedLearning):
     self._dmdBase = self._dmdBase(**self.dmdParams)
     self.model = ParametricDMD(self._dmdBase, self._DRrom, self._interpolator, light=self.settings['light'], dmd_fit_kwargs=self.fitArguments)
     # set type of dmd class
-    self.dmdParams['dmdType'] = self.__class__.__name__
+    self.dmdType = self.__class__.__name__
     # check if single target
     self.singleTarget = len(self.target) == 2
     self.targetIndeces = tuple([i for i,x in enumerate(self.target) if x != self.pivotID])
