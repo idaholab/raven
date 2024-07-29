@@ -3,7 +3,7 @@
   <TestInfo>
     <name>tests/framework/Postprocessors/SparseSensing</name>
     <author>Mohammad Abdo (@Jimmy-INL)</author>
-    <created>2022-07-18</created>
+    <created>2023-11-04</created>
     <classesTested>Models.Postprocessors.SparseSensing</classesTested>
     <description>This test aims to check the ability of the Sparse Sensing Postprocessor
      to locate and plot the selected sensors to reconstruct the temperature field of the OPTI-TWIST prototype
@@ -12,7 +12,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>reconstructionOptiTwist</WorkingDir>
+    <WorkingDir>classificationOptiTwist</WorkingDir>
     <Sequence>LoadCSV, mySPpp, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -46,32 +46,33 @@
 
   <Models>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
-      <Goal subType="reconstruction">
-        <features>X (m),Y (m),Temperature (K)</features>
+      <Goal subType="classification">
+        <features>X (m),Y (m),Temperature (K), label</features>
         <measuredState>Temperature (K)</measuredState>
+        <labels>label</labels>
         <basis>SVD</basis>
         <nModes>4</nModes>
         <nSensors>4</nSensors>
-        <optimizer>QR</optimizer>
+        <classifier>LDA</classifier>
       </Goal>
     </PostProcessor>
   </Models>
 
   <DataObjects>
     <PointSet name="myDO">
-      <Output>X (m), Temperature (K),Y (m)</Output>
+      <Output>X (m),Temperature (K),Y (m), label</Output>
     </PointSet>
     <HistorySet name="TwistDO">
       <Input> Power (W), BCTemperature (K)</Input>
-      <Output>X (m), Temperature (K), Y (m)</Output>
+      <Output>X (m),Temperature (K),Y (m), label</Output>
       <options>
         <pivotParameter>index</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
-      <Output>Temperature (K), X (m), Y (m)</Output>
-      <Index var="sensor">X (m), Y (m), Temperature (K)</Index>
+      <Output>Temperature (K), X (m), Y (m), label</Output>
+      <Index var="sensor">X (m),Y (m),Temperature (K), label</Index>
     </DataSet>
   </DataObjects>
 

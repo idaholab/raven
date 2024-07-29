@@ -2,17 +2,17 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>tests/framework/Postprocessors/SparseSensing</name>
-    <author>Mohammad Abdo (@Jimmy-INL)</author>
-    <created>2022-07-18</created>
+    <author>Niharika Karnik (@niharika2999), Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2024-04-01</created>
     <classesTested>Models.Postprocessors.SparseSensing</classesTested>
     <description>This test aims to check the ability of the Sparse Sensing Postprocessor
      to locate and plot the selected sensors to reconstruct the temperature field of the OPTI-TWIST prototype
-     when perturbing the heater power.
+     when perturbing the heater power in the presence of constraints. We assume the region near the heater to have very limited sensing capability and thus accomodate no sensors.
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>reconstructionOptiTwist</WorkingDir>
+    <WorkingDir>reconstructionConstraintsOptiTwist</WorkingDir>
     <Sequence>LoadCSV, mySPpp, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -37,7 +37,7 @@
     <IOStep name="print">
       <Input class="DataObjects" type="DataSet">outPP</Input>
       <Input class="DataObjects" type="PointSet">myDO</Input>
-      <Input class="DataObjects" type="HostorySet">TwistDO</Input>
+      <Input class="DataObjects" type="HistorySet">TwistDO</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">mySensorPlot</Output>
       <Output class="OutStreams" type="Plot">mySensorPlot3D</Output>
@@ -47,12 +47,20 @@
   <Models>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
-        <features>X (m),Y (m),Temperature (K)</features>
+        <features>X (m),Y (m),Temperature (K)</features>  ### Try removing features, get X, Y from user
         <measuredState>Temperature (K)</measuredState>
         <basis>SVD</basis>
         <nModes>4</nModes>
         <nSensors>4</nSensors>
-        <optimizer>QR</optimizer>
+        <nConstSensors>0</nConstSensors>
+        <constraintOption>"exact_n"</constraintOption>
+        <ConstrainedRegions type = "circle"> 
+          <center_x></center_x>  #center coordinates instead (x,y) (r, \theta)
+          <center_y></center_y>   
+          <loc>'in'</loc>
+          <radius></radius>
+        </ConstrainedRegions>
+        <optimizer>GQR</optimizer>
       </Goal>
     </PostProcessor>
   </Models>
