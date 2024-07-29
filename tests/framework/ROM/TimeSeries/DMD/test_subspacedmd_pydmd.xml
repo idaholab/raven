@@ -4,7 +4,7 @@
     <name>framework/ROM/TimeSeries/DMD.SubspaceDMD</name>
     <author>alfoa</author>
     <created>2024-07-26</created>
-    <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
+    <classesTested>SupervisedLearning.DMD.SubspaceDMD</classesTested>
     <description>
        This test is aimed to check the mechanics of the DMD ROM using the Subspace
        dynamic mode decomposition for stochastic Koopman analysis.
