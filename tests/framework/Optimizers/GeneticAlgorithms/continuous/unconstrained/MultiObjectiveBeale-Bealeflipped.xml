@@ -51,7 +51,7 @@
       <samplerInit>
         <limit>5</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>every</writeSteps>
+        <writeSteps>final</writeSteps>
         <type>min, max</type>
       </samplerInit>
       <GAparams>
@@ -61,14 +61,12 @@
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
-          <mutation type="swapMutator"> <!--swapMutator, scrambleMutator, bitFlipMutator, inversionMutator-->
+          <mutation type="swapMutator">
             <mutationProb>0.8</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
-          <!-- <b>50, 50, 100, 100, 100, 150</b>  -->
-        </fitness>
-        <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
+        <fitness type="feasibleFirst"></fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
       <convergence>
         <AHDp>0.0</AHDp>
@@ -82,7 +80,6 @@
       <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-      <!-- <Constraint class='Functions' type='External'>expConstr3</Constraint> -->
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -109,7 +106,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output><!--ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3-->
+      <Output>x,y,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
     </PointSet>
   </DataObjects>
 
