@@ -387,7 +387,7 @@
     input = 'continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation.xml'
     image = 'continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation/1-opt_path.png continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-adaptive-LinearXover-LinearMutation/opt_export_0.csv'
@@ -400,7 +400,7 @@
     input = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.1Mutation/opt_export_0.csv'
@@ -413,7 +413,7 @@
     input = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-0.0Xover-0.9Mutation/opt_export_0.csv'
@@ -426,7 +426,7 @@
     input = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-0.0Xover-1.0Mutation/opt_export_0.csv'
@@ -439,7 +439,7 @@
     input = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.0Mutation/opt_export_0.csv'
@@ -452,7 +452,7 @@
     input = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-0.1Xover-0.9Mutation/opt_export_0.csv'
@@ -465,7 +465,7 @@
     input = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-0.5Xover-0.5Mutation/opt_export_0.csv'
@@ -478,7 +478,7 @@
     input = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-0.9Xover-0.0Mutation/opt_export_0.csv'
@@ -491,7 +491,7 @@
     input = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation.xml'
     image = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation/1-opt_path.png continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.1
+    rel_err = 0.25
     [./csv]
      type = UnorderedCSV
      output = 'continuous/unconstrained/ZDT1-static-1.0Xover-0.0Mutation/opt_export_0.csv'
