@@ -24,7 +24,7 @@ import numpy as np
 from ..TimeSeriesAnalyzer import TimeSeriesTransformer
 from ...utils import xmlUtils, InputTypes, InputData, importerUtils
 try:
-  pywv = importerUtils.importModuleLazy("pywt", globals())
+  pywt = importerUtils.importModuleLazy("pywt", globals())
 except ModuleNotFoundError as exc:
   print("The FilterBankDWT TSA Module requires the PYWAVELETS library to be installed in the current python environment")
   raise ModuleNotFoundError from exc
@@ -209,25 +209,19 @@ class FilterBankDWT(TimeSeriesTransformer):
 
   def _getDecompositionLevels(self):
     """
-      Removes trained signal from data and find residual
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+      Returns number of decomposition levels requested from user (overwritten by max. allowed
+      per wavelet family as a function of signal length).
+      @ In, None
+      @ Out, levels, int, number of decomposition levels
     """
     return self._levels
 
   def _sortTrainedParamsByLevels(self, params):
     """
-      Removes trained signal from data and find residual
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
+      Sorts or reformats the training parameters dictionary in a manner specific to each
+      multi resolution algorithm.
       @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+      @ Out, sortedParams, dict, reformatted training parameters
     """
     # reformatting the results of the trained `params` to be:
     #     {target: {lvl: [ values, ... ], }, }
@@ -241,13 +235,11 @@ class FilterBankDWT(TimeSeriesTransformer):
 
   def _combineTrainedParamsByLevels(self, params, newParams):
     """
-      Removes trained signal from data and find residual
-      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
-                               same order as self.target
-      @ In, params, dict, training parameters as from self.characterize
-      @ In, pivot, np.array, time-like array values
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+      Updates training parameter dictionary with trained parameters from previous
+      decomposition levels.
+      @ In, params, dict, original training parameters as from self.characterize
+      @ In, newParams, dict, new training parameters from other decomposition levels
+      @ Out, None
     """
     # reformatting the results of the trained `params` to fit this algo's format:
     #     {target: {lvl: [ values, ... ], }, }
