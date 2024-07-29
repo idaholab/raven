@@ -1,0 +1,10 @@
+<DataObjectMetadata name="romMeta">
+  <synth type="Static">
+    <ROM>
+      <type>Decomposition</type>
+      <Features>scaling</Features>
+      <Targets>signal0,seconds</Targets>
+    </ROM>
+  </synth>
+  
+</DataObjectMetadata>

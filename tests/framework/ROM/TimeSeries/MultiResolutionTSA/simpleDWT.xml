@@ -45,13 +45,21 @@
   </Steps>
 
   <Files>
+<<<<<<< HEAD
     <Input name="infile">../TrainingData/simpleMR.csv</Input>
+=======
+    <Input name="infile">../TrainingData/SimpleMR.csv</Input>
+>>>>>>> 0c0973de1 (multiresolution tests)
   </Files>
 
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
+<<<<<<< HEAD
         <limit>1</limit>
+=======
+        <limit>2</limit>
+>>>>>>> 0c0973de1 (multiresolution tests)
         <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
@@ -60,6 +68,7 @@
 
   <Models>
     <ROM name="synth" subType="MultiResolutionTSA">
+<<<<<<< HEAD
       <Target>signal0,signal1, pivot</Target>
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
@@ -80,6 +89,23 @@
         <arma target="signal0,signal1" seed="42">
           <P>1,1</P>
           <Q>1,2</Q>
+=======
+      <Target>signal0, signal1, pivot</Target>
+      <Features>scaling</Features>
+      <pivotParameter>pivot</pivotParameter>
+      <filterbankdwt target="signal0, signal1" seed='42'>
+        <family>db8</family>
+        <levels>4</levels>
+      </filterbankdwt>
+      <Segment grouping="decomposition">
+        <Target>signal0, signal1, pivot</Target>
+        <Features>scaling</Features>
+        <macroParameter>macro</macroParameter>
+        <pivotParameter>pivot</pivotParameter>
+        <arma target="signal0, signal1" seed='42'>
+          <P>2</P>
+          <Q>3</Q>
+>>>>>>> 0c0973de1 (multiresolution tests)
         </arma>
       </Segment>
     </ROM>
@@ -100,16 +126,26 @@
     <PointSet name="placeholder"/>
     <HistorySet name="indata">
       <Input>scaling, macro</Input>
+<<<<<<< HEAD
       <Output>pivot, signal0,signal1</Output>
+=======
+      <Output>pivot, signal0, signal1</Output>
+>>>>>>> 0c0973de1 (multiresolution tests)
       <options>
         <pivotParameter>pivot</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="samples">
       <Input>scaling</Input>
+<<<<<<< HEAD
       <Output>pivot, signal0,signal1</Output>
       <Index var="pivot">signal0,signal1</Index>
       <Index var="macro">signal0,signal1</Index>
+=======
+      <Output>pivot, signal0, signal1</Output>
+      <Index var="pivot">signal0, signal1</Index>
+      <Index var="macro">signal0, signal1</Index>
+>>>>>>> 0c0973de1 (multiresolution tests)
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>

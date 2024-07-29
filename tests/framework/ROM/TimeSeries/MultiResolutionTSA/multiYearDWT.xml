@@ -51,7 +51,11 @@
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
+<<<<<<< HEAD
         <limit>1</limit>
+=======
+        <limit>2</limit>
+>>>>>>> 0c0973de1 (multiresolution tests)
         <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
@@ -60,6 +64,7 @@
 
   <Models>
     <ROM name="synth" subType="MultiResolutionTSA">
+<<<<<<< HEAD
       <Target>signal, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
@@ -77,6 +82,21 @@
         <pivotParameter>seconds</pivotParameter>
         <gaussianize target="signal"/>
         <arma target="signal" seed="42">
+=======
+      <Target>signal0, seconds</Target>
+      <Features>scaling</Features>
+      <pivotParameter>seconds</pivotParameter>
+      <filterbankdwt target="signal0" seed='42'>
+        <family>db2</family>
+        <levels>4</levels>
+      </filterbankdwt>
+      <Segment grouping="decomposition">
+        <Target>signal0, seconds</Target>
+        <macroParameter>macro</macroParameter>
+        <Features>scaling</Features>
+        <pivotParameter>seconds</pivotParameter>
+        <arma target="signal0" seed='42'>
+>>>>>>> 0c0973de1 (multiresolution tests)
           <P>2</P>
           <Q>3</Q>
         </arma>
@@ -99,16 +119,26 @@
     <PointSet name="placeholder"/>
     <HistorySet name="indata">
       <Input>scaling, macro</Input>
+<<<<<<< HEAD
       <Output>signal, seconds</Output>
+=======
+      <Output>signal0, seconds</Output>
+>>>>>>> 0c0973de1 (multiresolution tests)
       <options>
         <pivotParameter>seconds</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="samples">
       <Input>scaling</Input>
+<<<<<<< HEAD
       <Output>seconds, signal</Output>
       <Index var="seconds">signal</Index>
       <Index var="macro">signal</Index>
+=======
+      <Output>seconds, signal0</Output>
+      <Index var="seconds">signal0</Index>
+      <Index var="macro">signal0</Index>
+>>>>>>> 0c0973de1 (multiresolution tests)
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
