@@ -2106,6 +2106,16 @@ class Decomposition(SupervisedLearning):
     results[self._macroParameter] = macroIndexValues
     return results
 
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Write out ARMA information
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused
+      @ In, skip, list, optional, unused
+      @ Out, None
+    """
+
+
   ############### DUMMY ####################
   # dummy methods that are required by SVL and not generally used
   def __confidenceLocal__(self, featureVals):
