@@ -1,0 +1,35 @@
+[Tests]
+  [./simpleDWT]
+    type = 'RavenFramework'
+    input = 'simpleDWT.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'SimpleDWT/samples.csv'
+      rel_err = 4.7e-1 # thank you, Windows and Linux diffs
+      zero_threshold = 1e-12
+    [../]
+    [./xml]
+      type = XML
+      output = 'SimpleDWT/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3 # "constant" causes problems, all the rest are more accurate
+    [../]
+  [../]
+
+  [./multiYearDWT]
+    type = 'RavenFramework'
+    input = 'multiYearDWT.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'multiYearDWT/samples.csv'
+      rel_err = 4.7e-1
+      zero_threshold = 1e-12
+    [../]
+    [./xml]
+      type = XML
+      output = 'multiYearDWT/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+[]
