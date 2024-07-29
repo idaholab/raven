@@ -4,7 +4,7 @@
     <name>framework/ROM/TimeSeries/DMD.SpDMD</name>
     <author>alfoa</author>
     <created>2024-07-26</created>
-    <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
+    <classesTested>SupervisedLearning.DMD.SpDMD</classesTested>
     <description>
        This test is aimed to check the mechanics of the DMD ROM using Sparsity-Promoting Dynamic Mode Decomposition.
        Promotes solutions having an high number of amplitudes set to zero (i.e. sparse solutions).
