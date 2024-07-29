@@ -14,7 +14,7 @@
 """
   Created on July 21, 2024
 
-  @author: alfoa
+  @author: Andrea Alfonsi
   Hankel Alternative View of Koopman (HAVOK) model
 
 """

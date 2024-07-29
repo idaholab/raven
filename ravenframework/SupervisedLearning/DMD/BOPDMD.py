@@ -14,7 +14,7 @@
 """
   Created on July 21, 2024
 
-  @author: alfoa
+  @author: Andrea Alfonsi
   Optimized DMD and Bagging, Optimized DMD
 
 """

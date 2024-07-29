@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on Jan 21, 2020
+  Created on July 22, 2024
 
-  @author: alfoa
+  @author: Andrea Alfonsi
   Compressed Dynamic Mode Decomposition
 
 """
