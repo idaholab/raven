@@ -40,7 +40,7 @@
   </Steps>
 
   <Files>
-    <Input name="infile">../TrainingData/SimpleMR.csv</Input>
+    <Input name="infile">../TrainingData/simpleMR.csv</Input>
   </Files>
 
   <Samplers>
