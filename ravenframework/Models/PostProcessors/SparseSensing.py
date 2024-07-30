@@ -239,36 +239,37 @@ class SparseSensing(PostProcessorReadyInterface):
       self.basis = child.findFirst('basis').value
       self.sensingFeatures = child.findFirst('features').value
       self.sensingStateVariable = child.findFirst('measuredState').value  ## This is Field
-      self.ConstrainedRegion = child.findFirst('ConstrainedRegion').value
       if self.sparseSensingGoal == 'classification':
         self.sensingLabels = child.findFirst('labels').value
-      self._ConstrainedRegionType = self.ConstrainedRegion.parameterValues['type']  ##Check for is not None
-      if self._ConstrainedRegionType.lower() == 'circle':
-        self.center_x = child.findFirst('center_x').value
-        self.center_y = child.findFirst('center_y').value
-        self.radius = child.findFirst('radius').value
-        self.loc = child.findFirst('loc').value
-      elif self._ConstrainedRegionType.lower() == 'ellipse':
-        self.center_x = child.findFirst('center_x').value
-        self.center_y = child.findFirst('center_y').value
-        self.width = child.findFirst('width').value
-        self.height = child.findFirst('height').value
-        self.angle = child.findFirst('angle').value
-        self.loc = child.findFirst('loc').value
-      elif self._ConstrainedRegionType.lower() == 'line':
-        self.x1 = child.findFirst('x1').value
-        self.x2 = child.findFirst('x2').value
-        self.y1 = child.findFirst('y1').value
-        self.y2 = child.findFirst('y2').value
-      elif self._ConstrainedRegionType.lower() == 'parabola':
-        self.h = child.findFirst('h').value
-        self.k = child.findFirst('k').value
-        self.a = child.findFirst('a').value
-        self.loc = child.findFirst('loc').value
-      elif self._ConstrainedRegaionType.lower() == 'polygon':
-        self.xy_coords = child.findFirst('xy_coords').value
-        self.loc = child.findFirst('loc').value
-      # elif self._ConstrainedRregionType.lower() == 'UserDefinedConstraint'
+      if child.findFirst('ConstrainedRegion') is not None:
+        self.ConstrainedRegion = child.findFirst('ConstrainedRegion').value
+        self._ConstrainedRegionType = self.ConstrainedRegion.parameterValues['type']  ##Check for is not None
+        if self._ConstrainedRegionType.lower() == 'circle':
+          self.center_x = child.findFirst('center_x').value
+          self.center_y = child.findFirst('center_y').value
+          self.radius = child.findFirst('radius').value
+          self.loc = child.findFirst('loc').value
+        elif self._ConstrainedRegionType.lower() == 'ellipse':
+          self.center_x = child.findFirst('center_x').value
+          self.center_y = child.findFirst('center_y').value
+          self.width = child.findFirst('width').value
+          self.height = child.findFirst('height').value
+          self.angle = child.findFirst('angle').value
+          self.loc = child.findFirst('loc').value
+        elif self._ConstrainedRegionType.lower() == 'line':
+          self.x1 = child.findFirst('x1').value
+          self.x2 = child.findFirst('x2').value
+          self.y1 = child.findFirst('y1').value
+          self.y2 = child.findFirst('y2').value
+        elif self._ConstrainedRegionType.lower() == 'parabola':
+          self.h = child.findFirst('h').value
+          self.k = child.findFirst('k').value
+          self.a = child.findFirst('a').value
+          self.loc = child.findFirst('loc').value
+        elif self._ConstrainedRegionType.lower() == 'polygon':
+          self.xy_coords = child.findFirst('xy_coords').value
+          self.loc = child.findFirst('loc').value
+        # elif self._ConstrainedRregionType.lower() == 'UserDefinedConstraint'
 
       if child.findFirst('optimizer') is not None:
         self.optimizer = child.findFirst('optimizer').value
