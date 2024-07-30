@@ -241,32 +241,32 @@ class SparseSensing(PostProcessorReadyInterface):
       self.sensingStateVariable = child.findFirst('measuredState').value  ## This is Field
       if self.sparseSensingGoal == 'classification':
         self.sensingLabels = child.findFirst('labels').value
-      if child.findFirst('ConstrainedRegion') is not None:
-        self.ConstrainedRegion = child.findFirst('ConstrainedRegion').value
-        self._ConstrainedRegionType = self.ConstrainedRegion.parameterValues['type']  ##Check for is not None
-        if self._ConstrainedRegionType.lower() == 'circle':
+      if child.findFirst('ConstrainedRegions') is not None:
+        self.ConstrainedRegions = child.findFirst('ConstrainedRegions').value
+        self._ConstrainedRegionsType = self.ConstrainedRegions.parameterValues['type']  ##Check for is not None
+        if self._ConstrainedRegionsType.lower() == 'circle':
           self.center_x = child.findFirst('center_x').value
           self.center_y = child.findFirst('center_y').value
           self.radius = child.findFirst('radius').value
           self.loc = child.findFirst('loc').value
-        elif self._ConstrainedRegionType.lower() == 'ellipse':
+        elif self._ConstrainedRegionsType.lower() == 'ellipse':
           self.center_x = child.findFirst('center_x').value
           self.center_y = child.findFirst('center_y').value
           self.width = child.findFirst('width').value
           self.height = child.findFirst('height').value
           self.angle = child.findFirst('angle').value
           self.loc = child.findFirst('loc').value
-        elif self._ConstrainedRegionType.lower() == 'line':
+        elif self._ConstrainedRegionsType.lower() == 'line':
           self.x1 = child.findFirst('x1').value
           self.x2 = child.findFirst('x2').value
           self.y1 = child.findFirst('y1').value
           self.y2 = child.findFirst('y2').value
-        elif self._ConstrainedRegionType.lower() == 'parabola':
+        elif self._ConstrainedRegionsType.lower() == 'parabola':
           self.h = child.findFirst('h').value
           self.k = child.findFirst('k').value
           self.a = child.findFirst('a').value
           self.loc = child.findFirst('loc').value
-        elif self._ConstrainedRegionType.lower() == 'polygon':
+        elif self._ConstrainedRegionsType.lower() == 'polygon':
           self.xy_coords = child.findFirst('xy_coords').value
           self.loc = child.findFirst('loc').value
         # elif self._ConstrainedRregionType.lower() == 'UserDefinedConstraint'
@@ -339,19 +339,19 @@ class SparseSensing(PostProcessorReadyInterface):
     ### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
     data = inputDS[self.sensingStateVariable].data  ## Moved data up so as to pass into instance of constraint class
     allSensors = range(0, data.shape[1]) ## Data must be [n_samples, n_features]
-    if self._ConstrainedRegionType.lower() == 'circle':
+    if self._ConstrainedRegionsType.lower() == 'circle':
       circle = ps.utils._constraints.Circle(center_x = self.center_x, center_y = self.center_y, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
       idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionType.lower() == 'ellipse':
+    if self._ConstrainedRegionsType.lower() == 'ellipse':
       ellipse = ps.utils._constraints.Ellipse(center_x = self.center_x, center_y = self.center_y, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
       idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionType.lower() == 'line':
+    if self._ConstrainedRegionsType.lower() == 'line':
       line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
       idxConstrained, rank = line.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionType.lower() == 'parabola':
+    if self._ConstrainedRegionsType.lower() == 'parabola':
       parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
       idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionType.lower() == 'polygon':
+    if self._ConstrainedRegionsType.lower() == 'polygon':
       polygon = ps.utils._constraints.Polygon( xy_coords = self.xy_coords,data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
       idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=data)
     # reconstruction, binary classification, multiclass classification or anomaly detection
