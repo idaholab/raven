@@ -85,7 +85,7 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The number of constraint sensors for GQR optimizer""")
     goal.addSub(nConstSensors)
-    constraintOption = InputData.parameterInputFactory("constraintOption", contentType=InputTypes.makeEnumType("Constraint","ConstraintOption",["max_n","exact_n","predetermined"]),  
+    constraintOption = InputData.parameterInputFactory("constraintOption", contentType=InputTypes.makeEnumType("Constraint","ConstraintOption",["max_n","exact_n","predetermined"]),
                                                 printPriority=108,
                                                 descr=r"""The constraint the user wants to implement (max_n, exact_n, predetermined)""")
     goal.addSub(constraintOption)
@@ -94,7 +94,7 @@ class SparseSensing(PostProcessorReadyInterface):
                                                 descr=r"""The shape of region we want to constrain""")
     goal.addSub(ConstrainedRegions)
     ConstrainedRegions.addParam("type", InputTypes.makeEnumType("Constraint","ConstraintType",['Circle','Ellipse','Line','Polygon','Parabola']), True,
-                       descr="type of Constrained Region shape the user wants- (Constraint can be a circle, parabola, ellipse, line, rectangle, square or user defined constraint too)")    ## Defining 'type' and making it Enum type. 
+                       descr="type of Constrained Region shape the user wants- (Constraint can be a circle, parabola, ellipse, line, rectangle, square or user defined constraint too)")    ## Defining 'type' and making it Enum type.
     optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer","optimizer type",['QR']),
                                                            printPriority=108,
                                                            descr=r"""The type of optimizer used""",default='QR')
@@ -200,7 +200,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.radius = None                                       # The radius of circle,ellipse
     self.loc = None                                          # Whether the constraint region is inside or outside the shape defined as constraint
     self.width = None                                        # Width of the ellipse
-    self.height = None                                       # Height of the ellipse                                 
+    self.height = None                                       # Height of the ellipse
     self.angle = None                                        # Angle of rotation of the ellipse
     self.x1 = None                                           # X co-ordinate of one of the points that defines the line
     self.x2 = None                                           # X co-ordinate of the other point that defines the line
@@ -231,7 +231,7 @@ class SparseSensing(PostProcessorReadyInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.name = paramInput.parameterValues['name']  ## Figure out field, data, X,Y from features etc.. 
+    self.name = paramInput.parameterValues['name']  ## Figure out field, data, X,Y from features etc..
     for child in paramInput.subparts:
       self.sparseSensingGoal = child.parameterValues['subType']
       self.nSensors = child.findFirst('nSensors').value
@@ -269,10 +269,10 @@ class SparseSensing(PostProcessorReadyInterface):
         self.xy_coords = child.findFirst('xy_coords').value
         self.loc = child.findFirst('loc').value
       # elif self._ConstrainedRregionType.lower() == 'UserDefinedConstraint'
-        
+
       if child.findFirst('optimizer') is not None:
         self.optimizer = child.findFirst('optimizer').value
-        if self.optimizer == 'GQR':                                    
+        if self.optimizer == 'GQR':
             self.nConstSensors = child.findFirst('nConstSensors').value
             self.constraintOption = child.findFirst('constraintOption').value
       else:
@@ -290,7 +290,7 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.sparseSensingGoal == 'classification':
       _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','measuredState','labels'])
     else:
-      _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','measuredState'])   
+      _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','measuredState'])
     # notFound must be empty
     assert not notFound, "Unexpected nodes in _handleInput"
 
@@ -320,7 +320,7 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.sparseSensingGoal == 'reconstruction':
       if self.optimizer.lower() == 'qr':
         optimizer = ps.optimizers.QR()
-      ## TODO: Add GQR for constrained optimization  
+      ## TODO: Add GQR for constrained optimization
       elif self.optimizer.lower() == 'gqr':
         optimizer = ps.optimizers.GQR()
       ## TODO: Add CCQR for cost constrained optimization
@@ -332,28 +332,28 @@ class SparseSensing(PostProcessorReadyInterface):
       if self.classifier == None or self.classifier.lower() == 'lda':
         classifier = ps.classification._sspoc.LinearDiscriminantAnalysis()
       else:
-        self.raiseAnError(IOError, 'classifier is not recognized!. Currently, only LDA classifier is implemented')  
+        self.raiseAnError(IOError, 'classifier is not recognized!. Currently, only LDA classifier is implemented')
     else:
-      self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals') 
+      self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals')
     ### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
     data = inputDS[self.sensingStateVariable].data  ## Moved data up so as to pass into instance of constraint class
-    allSensors = range(0, data.shape[1]) ## Data must be [n_samples, n_features] 
+    allSensors = range(0, data.shape[1]) ## Data must be [n_samples, n_features]
     if self._ConstrainedRegionType.lower() == 'circle':
-      circle = ps.utils._constraints.Circle(center_x = self.center_x, center_y = self.center_y, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable) 
-      idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)  
+      circle = ps.utils._constraints.Circle(center_x = self.center_x, center_y = self.center_y, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+      idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)
     if self._ConstrainedRegionType.lower() == 'ellipse':
-      ellipse = ps.utils._constraints.Ellipse(center_x = self.center_x, center_y = self.center_y, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable) 
-      idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=data)  
+      ellipse = ps.utils._constraints.Ellipse(center_x = self.center_x, center_y = self.center_y, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+      idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=data)
     if self._ConstrainedRegionType.lower() == 'line':
-      line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable) 
+      line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
       idxConstrained, rank = line.get_constraint_indices(all_sensors = allSensors, info=data)
     if self._ConstrainedRegionType.lower() == 'parabola':
-      parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable) 
-      idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=data)  
+      parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+      idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=data)
     if self._ConstrainedRegionType.lower() == 'polygon':
-      polygon = ps.utils._constraints.Polygon( xy_coords = self.xy_coords,data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable) 
-      idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=data)  
-    # reconstruction, binary classification, multiclass classification or anomaly detection        
+      polygon = ps.utils._constraints.Polygon( xy_coords = self.xy_coords,data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+      idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=data)
+    # reconstruction, binary classification, multiclass classification or anomaly detection
     if self.sparseSensingGoal == 'reconstruction':
       if self.optimizer == 'GQR':
         optimizer_kwargs = {'idx_constrained': idxConstrained, 'n_sensors': self.n_sensors, 'n_const_sensors': self.n_const_sensors,'all_sensors': self.all_sensors, 'constraint_option': self.constraint_option}
