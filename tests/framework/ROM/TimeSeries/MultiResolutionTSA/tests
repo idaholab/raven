@@ -27,7 +27,7 @@
     [../]
     [./xml]
       type = XML
-      output = 'multiYearDWT/romMeta.xml'
+      output = 'MultiYearDWT/romMeta.xml'
       rel_err = 1e-2
       zero_threshold = 1e-3
     [../]
