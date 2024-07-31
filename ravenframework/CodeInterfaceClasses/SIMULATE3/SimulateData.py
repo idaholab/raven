@@ -13,7 +13,7 @@
 # limitations under the License.
 """
 Created on June 04, 2022
-@author: khnguy22 NCSU
+@author: khnguy22 NCSU, luquj NCSU
 
 comments: Interface for SIMULATE3 loading pattern optimzation
 """
@@ -42,6 +42,7 @@ class SimulateData:
     self.data["cycle_length"] = self.EOCEFPD()
     self.data["pin_peaking"] = self.pinPeaking()
     self.data["exposure"] = self.burnupEOC()
+    self.data["neutron_leakage"] = self.neutron_leakage()
     # self.data["assembly_power"] = self.assemblyPeakingFactors()
     # self.data["fuel_cost"] = self.fuel_cost()
 
@@ -562,6 +563,26 @@ class SimulateData:
       return ValueError("No values returned. Check Simulate file executed correctly.")
     else:
       outputDict = {'info_ids':['fuel_cost'], 'values': [fuel_cost]}
+    return outputDict
+
+  def neutron_leakage(self):
+    """
+      Returns Maximum neutron leakage found in the current cycle.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
+    """
+    outputDict = None
+    leakage_list = []
+    for line in self.lines:
+      if "Total Neutron Leakage" in line:
+        elems = line.strip().split()
+        leakage_list.append(float(elems[-1]))
+    if not leakage_list:
+      return ValueError("No values returned. Check Simulate File executed correctly")
+    else:
+      outputDict = {'info_ids':['neutron_leakage'], 'values':[10000*max(leakage_list)]}
     return outputDict
 
   def writeCSV(self, fileout):
