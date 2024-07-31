@@ -44,6 +44,8 @@ In the RAVEN input file, your \xmlNode{Models} node should look like:
       <!-- EOL parameters -->
       <EOL target="absKeff">1.0</EOL>
       <EOL target="impKeff">1.0</EOL>
+      <!-- Volume calculation -->
+      <volumeCalculation nPoints="1e9">True</volumeCalculation>
     </Code>
 </Models>
 \end{lstlisting}
@@ -82,7 +84,10 @@ Additional XML sub-nodes can be optionally added in the \xmlNode{Code} XML node 
                                                               \nb  The output parser will generate an output variable called ``EOL\_\textit{target}'' that represents the time at which the 
                                                               parameter ``target'' takes the value indicated in this node. For example,  if ``target'' == absKeff and the value of the XML node is 1.0, 
                                                               the variable ``EOL\_absKeff'' will contain the time (burnDays) at which the ``absKeff'' == 1.0.
-                                                              
+   \item \xmlNode{volumeCalculation}, \xmlDesc{bool, optional parameter},  true to activate the stochastic material volume calculation via Serpent ``checkvolumes'' command. If True, the execution of 
+                                                             SERPENT is always preceded with a volume calculation. If the user wants to use the volume calculation output file in its SERPENT template input, he needs to include 
+                                                             the filename in the SERPENT template input (e.g. include ``myInputFile.mvol'')  value of the ``target'' at which the time (in burnup calculations) of end of life should be recorded.
+                                                             The  \xmlNode{volumeCalculation} node  must contain the attribute \xmlAttr{nPoints}, which indicates the number of samples that needs to be used by SERPENT for the calculation of the volumes (e.g. 1e8).                                                         
 \end{itemize}
 
 \subsubsection{Files}

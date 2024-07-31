@@ -145,7 +145,7 @@ class SingleRun(Step):
               self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists. ' +
                                 'Files present in this directory may be replaced, and error handling may not occur as expected.')
             workingDirReady = True
-          # register function to remove the locked file at the end of execution
+        # register function to remove the locked file at the end of execution
         atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 

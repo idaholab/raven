@@ -57,7 +57,9 @@ class Code(Model):
     inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputTypes.StringType))
-
+    inputSpecification.addSub(InputData.parameterInputFactory("commandSeparator", contentType=InputTypes.makeEnumType("commandSeparator",
+                                                                                                                      "commandSeparatorType",
+                                                                                                                      ["&&","||",";"])))
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
@@ -118,6 +120,7 @@ class Code(Model):
     self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
     self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
     self._ravenWorkingDir = None # RAVEN's working dir
+    self.commandSeparator = "&&" # command separator
 
   def applyRunInfo(self, runInfo):
     """
@@ -146,6 +149,8 @@ class Code(Model):
         self.maxWallTime = child.value
       if child.getName() =='preexec':
         self.preExec = child.value
+      elif child.getName() =='commandSeparator':
+        self.commandSeparator = child.value
       elif child.getName() == 'clargs':
         argtype    = child.parameterValues['type']      if 'type'      in child.parameterValues else None
         arg        = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
@@ -241,6 +246,7 @@ class Code(Model):
       else:
         self.foundExecutable = False
         self.raiseAMessage('InterfaceCheck: ignored executable '+self.executable, 'ExceptedError')
+
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
@@ -475,7 +481,7 @@ class Code(Model):
                 self.raiseAWarning("Could not find msys in "+os.getcwd())
               commandSplit = realExecutable + [executable] + commandSplit[1:]
               return commandSplit
-        except PermissionError as e:
+        except PermissionError:
             self.raiseAWarning("Permission denied to open executable ! Skipping!")
     return origCommand
 
@@ -542,9 +548,10 @@ class Code(Model):
       elif runtype.lower() == 'serial':
         commands.append(cmd)
       else:
-        self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead received: ',runtype,'\nPlease check the code interface.')
+        self.raiseAnError(IOError,'For execution command <'+cmd+'> the run type was neither "serial" nor "parallel"!  Instead received: ',
+                          runtype,'\nPlease check the code interface.')
 
-    command = ' && '.join(commands)+' '
+    command = f' {self.commandSeparator} '.join(commands)+' '
 
     command = command.replace("%INDEX%",kwargs['INDEX'])
     command = command.replace("%INDEX1%",kwargs['INDEX1'])
