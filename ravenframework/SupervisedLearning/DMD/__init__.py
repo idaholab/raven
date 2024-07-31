@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The SupervisedLearning module includes different types of ROM strategies available in RAVEN
+  The DMD folder includes different types of DMD based ROMs
+  that are available via RAVEN
+
+  Created on July 21, 2024
+  @author: Andrea Alfonsi
 """
-
-from .SupervisedLearning import SupervisedLearning
-from .ScikitLearn.ScikitLearnBase import ScikitLearnBase
-from .DMD.DMDBase import DMDBase
-from .KerasBase import KerasBase
-from .KerasRegression import KerasRegression
-from .KerasClassifier import KerasClassifier
-from .ROMCollection import Collection
-from .NDinterpolatorRom  import NDinterpolatorRom
-
-from .Factory import factory
+# These lines ensure that we do not have to do something like:
+from .DMDBase import DMDBase
