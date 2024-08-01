@@ -267,11 +267,11 @@ class SparseSensing(PostProcessorReadyInterface):
           self.a = child.findFirst('a').value
           self.loc = child.findFirst('loc').value
         elif self._ConstrainedRegionsType == 'polygon':
-          self.xy_coords = child.findFirst('xy_coords').value
           self.loc = child.findFirst('loc').value
         # elif self._ConstrainedRregionType.lower() == 'UserDefinedConstraint'
       else:
         self.ConstrainedRegions = None
+        self._ConstrainedRegionsType = None
 
       if child.findFirst('optimizer') is not None:
         self.optimizer = child.findFirst('optimizer').value
