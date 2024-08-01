@@ -35,7 +35,7 @@
       <Output class="DataObjects" type="DataSet">outPP</Output>
     </PostProcess>
     <IOStep name="print">
-      <Input class="DataObjects" type="DataSet">outPP</Input>
+      <Input class="DataObjects" type="DataSet">outPP</Input>cd 
       <Input class="DataObjects" type="PointSet">myDO</Input>
       <Input class="DataObjects" type="HostorySet">TwistDO</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
