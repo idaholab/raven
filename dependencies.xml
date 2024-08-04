@@ -43,7 +43,7 @@ Note all install methods after "main" take
     <scikit-learn>1.0</scikit-learn>
     <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
-    <xarray>2023</xarray>
+    <xarray>2023.12</xarray>
     <netcdf4 source="pip">1.6</netcdf4>
     <matplotlib>3.5</matplotlib>
     <statsmodels>0.13</statsmodels>
