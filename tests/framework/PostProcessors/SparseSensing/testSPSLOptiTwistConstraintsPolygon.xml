@@ -55,7 +55,7 @@
         <nConstSensors>1</nConstSensors>
         <constraintOption>exact_n</constraintOption>
         <ConstrainedRegions type = "Polygon"> 
-          <xyCoords>(0.01,-0.2),(0.03,-0.3),(0.01,0.2),(0.02,0.3)</>
+          <xyCoords>(0.01,-0.2),(0.03,-0.3),(0.01,0.2),(0.02,0.3)</xyCoords>
           <loc>in</loc>
         </ConstrainedRegions>
         <optimizer>GQR</optimizer>

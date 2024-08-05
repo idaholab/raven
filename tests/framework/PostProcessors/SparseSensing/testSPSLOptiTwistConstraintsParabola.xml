@@ -59,7 +59,7 @@
           <h>0.025</h>
           <k>0</k>
           <a>100</a>
-          <loc>in<loc>
+          <loc>in</loc>
         </ConstrainedRegions>
         <optimizer>GQR</optimizer>
       </Goal>

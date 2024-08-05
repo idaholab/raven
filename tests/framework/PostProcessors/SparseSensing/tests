@@ -71,4 +71,16 @@
       rel_err = 0.001
     [../]
   [../]
+  [./testSPSLOptiTwistConstraintsLine]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwistConstraintsLine.xml'
+    image = 'reconstructionOptiTwistConstraintsLine/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsLine/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [./csv]
+      type = OrderedCSV
+      output = 'reconstructionOptiTwistConstraintsLine/outPP.csv'
+      rel_err = 0.001
+    [../]
+  [../]
 []
