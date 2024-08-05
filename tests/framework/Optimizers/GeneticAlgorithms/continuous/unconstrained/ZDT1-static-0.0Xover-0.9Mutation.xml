@@ -6,24 +6,24 @@
     <created>2024-07-28</created>
     <classesTested/>
     <description>ZDT1 test using NSGA-II.
-      design variable $\vec{x} = [x1,x2,...x_n]; n here is equal to 3$
+      design variable $\vec{x} = [x\_1,x\_2,...x\_n]; n here is equal to 3$
 
-      $obj_1(x) = x_1$
+      $obj\_1(x) = x\_1$
 
-      $g(x) = 1 + \frac{9}{n-1} \sum_{2}^{n} x_i = 1 + 4.5 * (x_2 + x_3)$
+      $g(x) = 1 + \frac{9}{n-1} \sum\_{2}^{n} x\_i = 1 + 4.5 * (x\_2 + x\_3)$
 
-      $h(obj1,g(x)) = 1 - \sqrt{\frac{obj_1}{g(x)}} = 1 - \sqrt(\frac{x_1}{1 + 4.5 * (x_2 + x_3)})$
+      $h(obj1,g(x)) = 1 - \sqrt{\frac{obj\_1}{g(x)}} = 1 - \sqrt(\frac{x\_1}{1 + 4.5 * (x\_2 + x\_3)})$
 
-      $obj_2 = g(x) * h(obj_1,g(x))$ = [1 + 4.5 * (x_2 + x_3)] * \sqrt(x_1) * \sqrt(1 + 4.5 * (x_2 + x_3))
+      $obj\_2 = g(x) * h(obj\_1,g(x)) = [1 + 4.5 * (x\_2 + x\_3)] * \sqrt(x\_1) * \sqrt(1 + 4.5 * (x\_2 + x\_3))$
 
       The analytic solution of this problem is as follows:
       Pareto front:
       $\vec{x}$:
-      $0 \leq x_1 \leq 1, x_2 = 0, x_3 = 0,$
-      $obj_1$:
-      $0 \leq obj_1 \leq 1$
-      $obj_2$
-      $1 \geq obj_1 \geq 0$
+      $0 \leq x\_1 \leq 1, x\_2 = 0, x\_3 = 0,$
+      $obj\_1$:
+      $0 \leq obj\_1 \leq 1$
+      $obj\_2$
+      $1 \geq obj\_1 \geq 0$
 
      1.0  *
           *

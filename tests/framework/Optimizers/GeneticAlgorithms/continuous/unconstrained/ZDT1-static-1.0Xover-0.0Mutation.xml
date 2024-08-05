@@ -14,7 +14,7 @@
 
       $h(obj1,g(x)) = 1 - \sqrt{\frac{obj_1}{g(x)}} = 1 - \sqrt(\frac{x_1}{1 + 4.5 * (x_2 + x_3)})$
 
-      $obj_2 = g(x) * h(obj_1,g(x))$ = [1 + 4.5 * (x_2 + x_3)] * \sqrt(x_1) * \sqrt(1 + 4.5 * (x_2 + x_3))
+      $obj_2 = g(x) * h(obj_1,g(x))$ = [1 + 4.5 * (x_2 + x_3)] * \sqrt(x_1) * \sqrt(1 + 4.5 * (x_2 + x_3))$
 
       The analytic solution of this problem is as follows:
       Pareto front:
