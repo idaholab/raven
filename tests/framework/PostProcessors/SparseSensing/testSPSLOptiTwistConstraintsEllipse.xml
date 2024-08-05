@@ -54,14 +54,13 @@
         <nSensors>4</nSensors>
         <nConstSensors>1</nConstSensors>
         <constraintOption>exact_n</constraintOption>
-        <ConstrainedRegions type = "ellipse"> 
+        <ConstrainedRegions type = "Ellipse"> 
           <centerX>0.025</centerX>
           <centerY>0</centerY>
           <loc>in</loc>
           <width>0.02</width>
           <height>0.01</height>
           <angle>10</angle>
-          <radius>0.02</radius>
         </ConstrainedRegions>
         <optimizer>GQR</optimizer>
       </Goal>

@@ -55,7 +55,7 @@
         <nSensors>4</nSensors>
         <nConstSensors>1</nConstSensors>
         <constraintOption>exact_n</constraintOption>
-        <ConstrainedRegions type = "parabola"> 
+        <ConstrainedRegions type = "Parabola"> 
           <h>0.025</h>
           <k>0</k>
           <a>100</a>

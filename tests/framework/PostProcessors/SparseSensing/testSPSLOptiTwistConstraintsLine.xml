@@ -55,7 +55,7 @@
         <nSensors>4</nSensors>
         <nConstSensors>1</nConstSensors>
         <constraintOption>exact_n</constraintOption>
-        <ConstrainedRegions type = "line"> 
+        <ConstrainedRegions type = "Line"> 
           <x1>0</x1>
           <x2>0.05</x2>
           <y1>0.2</y1>
