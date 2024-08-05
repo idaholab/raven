@@ -44,7 +44,7 @@ class MultiResolutionTSA(SupervisedLearning):
   def __init__(self):
     """
       Constructor.
-      @ In, kwargs, dict, initialization options
+      @ In, None
       @ Out, None
     """
     super().__init__()
@@ -130,6 +130,7 @@ class MultiResolutionTSA(SupervisedLearning):
       @ In, skip, list, optional, unused (kept for compatability)
       @ Out, None
     """
+    return
 
   def __evaluateLocal__(self, featureVals):
     """

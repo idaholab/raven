@@ -20,6 +20,7 @@ Discrete Wavelet Transform
 """
 
 import numpy as np
+import copy
 
 from ..TimeSeriesAnalyzer import TimeSeriesTransformer
 from ...utils import xmlUtils, InputTypes, InputData, importerUtils
@@ -123,6 +124,7 @@ class FilterBankDWT(TimeSeriesTransformer):
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, additional settings specific to this algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characteristic parameters
     """
     # TODO extend to continuous wavelet transform
@@ -167,7 +169,7 @@ class FilterBankDWT(TimeSeriesTransformer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
-    residual = np.zeros(initial.shape)
+    residual = copy.deepcopy(initial)
     for i, target in enumerate(settings['target']):
       residual = initial[:,i] - params[target]['results']['coeff_a']
     return residual
