@@ -198,6 +198,7 @@ class MultiResolutionTSA(SupervisedLearning):
       @ In, skip, list, optional, unused (kept for compatability)
       @ Out, None
     """
+    return
 
   def __evaluateLocal__(self, featureVals):
     """
