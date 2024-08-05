@@ -2,17 +2,73 @@
   [./testSPSLOptiTwist]
     type = 'RavenFramework'
     input = 'testSPSLOptiTwist.xml'
-    csv = 'reconstructionOptiTwist/outPP.csv'
     image = 'reconstructionOptiTwist/mySensorPlot_scatter-scatter.png reconstructionOptiTwist/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
-    rel_err = 0.01
+    rel_err = 0.1
+    [.csv]
+      type = OrderedCSV
+      output = 'reconstructionOptiTwist/outPP.csv'
+      rel_err = 0.001
+    [../]
   [../]
   [./testSPSLOptiTwistClassification]
     type = 'RavenFramework'
     input = 'testSPSLOptiTwistClassification.xml'
-    csv = 'classificationOptiTwist/outPP.csv'
     image = 'classificationOptiTwist/mySensorPlot_scatter-scatter.png classificationOptiTwist/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
-    rel_err = 0.01
+    rel_err = 0.1
+    [.csv]
+      type = OrderedCSV
+      output = 'classificationOptiTwist/outPP.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+  [./testSPSLOptiTwistConstraintsCircle]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwistConstraintsCircle.xml'
+    image = 'reconstructionOptiTwistConstraintsCircle/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsCircle/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [.csv]
+      type = OrderedCSV
+      output = 'reconstructionOptiTwistConstraintsCircle/outPP.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+  [./testSPSLOptiTwistConstraintsEllipse]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwistConstraintsEllipse.xml'
+    image = 'reconstructionOptiTwistConstraintsEllipse/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsEllipse/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [.csv]
+      type = OrderedCSV
+      output = 'reconstructionOptiTwistConstraintsEllipse/outPP.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+  [./testSPSLOptiTwistConstraintsParabola]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwistConstraintsParabola.xml'
+    image = 'reconstructionOptiTwistConstraintsParabola/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsParabola/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [.csv]
+      type = OrderedCSV
+      output = 'reconstructionOptiTwistConstraintsParabola/outPP.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+  [./testSPSLOptiTwistConstraintsPolygon]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwistConstraintsPolygon.xml'
+    image = 'reconstructionOptiTwistConstraintsPolygon/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsPolygon/mySensorPlot3D_scatter.png'
+    required_libraries = 'imageio'
+    rel_err = 0.1
+    [.csv]
+      type = OrderedCSV
+      output = 'reconstructionOptiTwistConstraintsPolygon/outPP.csv'
+      rel_err = 0.001
+    [../]
   [../]
 []

@@ -2,17 +2,17 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>tests/framework/Postprocessors/SparseSensing</name>
-    <author>Mohammad Abdo (@Jimmy-INL)</author>
-    <created>2022-07-18</created>
+    <author>Niharika Karnik (@niharika2999), Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2024-04-01</created>
     <classesTested>Models.Postprocessors.SparseSensing</classesTested>
     <description>This test aims to check the ability of the Sparse Sensing Postprocessor
      to locate and plot the selected sensors to reconstruct the temperature field of the OPTI-TWIST prototype
-     when perturbing the heater power.
+     when perturbing the heater power in the presence of constraints. We assume a polygonal region which can accomodate just 1 sensor. 
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>reconstructionOptiTwist</WorkingDir>
+    <WorkingDir>reconstructionConstraintsOptiTwist</WorkingDir>
     <Sequence>LoadCSV, mySPpp, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -52,7 +52,13 @@
         <basis>SVD</basis>
         <nModes>4</nModes>
         <nSensors>4</nSensors>
-        <optimizer>QR</optimizer>
+        <nConstSensors>1</nConstSensors>
+        <constraintOption>exact_n</constraintOption>
+        <ConstrainedRegions type = "polygon"> 
+          <xyCoords>[(0.01,-0.2),(0.03,-0.3),(0.01,0.2),(0.02,0.3)]</>
+          <loc>in</loc>
+        </ConstrainedRegions>
+        <optimizer>GQR</optimizer>
       </Goal>
     </PostProcessor>
   </Models>

@@ -42,8 +42,8 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
   \item \xmlNode{ConstrainedRegions},
         \item \xmlNode{type}, \xmlDesc{string, required field when optimizer is GQR}, type of Constrained Region shape the user wants- (Constraint can be a circle, parabola, ellipse, line, rectangle, square or user defined constraint too)
   \item \xmlNode{classifier}, \xmlDesc{string, optional field}, The type of classifier used, default='LDA'
-  \item \xmlNode{center\_x}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is circle, ellipse}, The x co-ordinate of center of circle, ellipse
-  \item \xmlNode{center\_y}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is circle, ellipse}, The y co-ordinate of center of circle, ellipse
+  \item \xmlNode{centerX}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is circle, ellipse}, The x co-ordinate of center of circle, ellipse
+  \item \xmlNode{centerY}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is circle, ellipse}, The y co-ordinate of center of circle, ellipse
   \item \xmlNode{radius}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is circle, ellipse}, The radius of circle, ellipse
   \item \xmlNode{loc}, \xmlDesc{string, optional field}, whether the constraint region is inside or outside the shape defined as constraint
   \item \xmlNode{width}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is ellipse}, Width of the ellipse
@@ -56,7 +56,7 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
   \item \xmlNode{h}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is parabola}, X coordinate of the vertex of the parabola we want to be constrained
   \item \xmlNode{k}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is parabola}, Y coordinate of the vertex of the parabola we want to be constrained
   \item \xmlNode{a}, \xmlDesc{float, required field when optimizer is GQR and ConstrainedRegions type is parabola}, X coordinate of the focus of the parabola
-  \item \xmlNode{xy\_coords}, \xmlDesc{float list, required field when optimizer is GQR and ConstrainedRegions type is polygon}, an array consisting of tuples for (x,y) coordinates of points of the Polygon where N = No. of sides of the polygon
+  \item \xmlNode{xyCoords}, \xmlDesc{float list, required field when optimizer is GQR and ConstrainedRegions type is polygon}, an array consisting of tuples for (x,y) coordinates of points of the Polygon where N = No. of sides of the polygon
 \end{itemize}
 \end{itemize}
 
@@ -119,11 +119,11 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
         <nModes>4</nModes>
         <nSensors>4</nSensors>
         <nConstSensors>0</nConstSensors>
-        <constraintOption>"exact_n"</constraintOption>
+        <constraintOption>exact_n</constraintOption>
         <ConstrainedRegions type = "circle"> 
-          <center_x>0.025</center_x>
-          <center_y>0</center_y>
-          <loc>'in'</loc>
+          <centerX>0.025</centerX>
+          <centerY>0</centerY>
+          <loc>in</loc>
           <radius>0.02</radius>
         </ConstrainedRegions>
         <optimizer>GQR</optimizer>
