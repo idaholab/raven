@@ -43,7 +43,8 @@ class ROM(Dummy):
   interfaceFactory = factory
   segmentNameToClass = {'segment': 'Segments',
                  'cluster': 'Clusters',
-                 'interpolate': 'Interpolated'}
+                 'interpolate': 'Interpolated',
+                 'decomposition': 'Decomposition'}
   @classmethod
   def getInputSpecification(cls, xml=None):
     """
