@@ -5,7 +5,7 @@
     image = 'reconstructionOptiTwist/mySensorPlot_scatter-scatter.png reconstructionOptiTwist/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
     rel_err = 0.1
-    [.csv]
+    [./csv]
       type = OrderedCSV
       output = 'reconstructionOptiTwist/outPP.csv'
       rel_err = 0.001
@@ -17,7 +17,7 @@
     image = 'classificationOptiTwist/mySensorPlot_scatter-scatter.png classificationOptiTwist/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
     rel_err = 0.1
-    [.csv]
+    [./csv]
       type = OrderedCSV
       output = 'classificationOptiTwist/outPP.csv'
       rel_err = 0.001
@@ -29,7 +29,7 @@
     image = 'reconstructionOptiTwistConstraintsCircle/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsCircle/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
     rel_err = 0.1
-    [.csv]
+    [./csv]
       type = OrderedCSV
       output = 'reconstructionOptiTwistConstraintsCircle/outPP.csv'
       rel_err = 0.001
@@ -41,7 +41,7 @@
     image = 'reconstructionOptiTwistConstraintsEllipse/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsEllipse/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
     rel_err = 0.1
-    [.csv]
+    [./csv]
       type = OrderedCSV
       output = 'reconstructionOptiTwistConstraintsEllipse/outPP.csv'
       rel_err = 0.001
@@ -53,7 +53,7 @@
     image = 'reconstructionOptiTwistConstraintsParabola/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsParabola/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
     rel_err = 0.1
-    [.csv]
+    [./csv]
       type = OrderedCSV
       output = 'reconstructionOptiTwistConstraintsParabola/outPP.csv'
       rel_err = 0.001
@@ -65,7 +65,7 @@
     image = 'reconstructionOptiTwistConstraintsPolygon/mySensorPlot_scatter-scatter.png reconstructionOptiTwistConstraintsPolygon/mySensorPlot3D_scatter.png'
     required_libraries = 'imageio'
     rel_err = 0.1
-    [.csv]
+    [./csv]
       type = OrderedCSV
       output = 'reconstructionOptiTwistConstraintsPolygon/outPP.csv'
       rel_err = 0.001
