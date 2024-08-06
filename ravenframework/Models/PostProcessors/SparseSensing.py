@@ -344,7 +344,7 @@ class SparseSensing(PostProcessorReadyInterface):
         elif self._ConstrainedRegionsType == 'Polygon':
           polygon = ps.utils._constraints.Polygon( xy_coords = self.xyCoords,data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
           idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=data)
-        else: 
+        else:
           self.raiseAnError(IOError, 'Shape is not recognized!. Currently, only Circle, Line, Polygon, Parabola, Ellipse constraint regions are implemented')
     # reconstruction, binary classification, multiclass classification or anomaly detection
         optimizer_kwargs = {'idx_constrained': idxConstrained, 'n_sensors': self.n_sensors, 'n_const_sensors': self.n_const_sensors,'all_sensors': self.all_sensors, 'constraint_option': self.constraint_option}
@@ -372,11 +372,11 @@ class SparseSensing(PostProcessorReadyInterface):
         model.fit(data,y=labels)
       else:
         self.raiseAnError(IOError, 'classifier is not recognized!. Currently, only LDA classifier is implemented')
-      
+
     else:
       self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals')
       model = ps.SSPOC(basis=basis, n_sensors=self.nSensors, classifier=classifier)
-    
+
     selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
