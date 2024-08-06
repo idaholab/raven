@@ -47,7 +47,7 @@
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
         <features>X (m),Y (m),Temperature (K)</features>
-        <target>Temperature (K)</target>
+        <measuredState>Temperature (K)</measuredState>
         <basis>SVD</basis>
         <nModes>4</nModes>
         <nSensors>4</nSensors>

@@ -37,7 +37,7 @@
     <IOStep name="print">
       <Input class="DataObjects" type="DataSet">outPP</Input>
       <Input class="DataObjects" type="PointSet">myDO</Input>
-      <Input class="DataObjects" type="HostorySet">TwistDO</Input>
+      <Input class="DataObjects" type="HistorySet">TwistDO</Input>
       <Output class="OutStreams" type="Print">outPP</Output>
       <Output class="OutStreams" type="Plot">mySensorPlot</Output>
       <Output class="OutStreams" type="Plot">mySensorPlot3D</Output>
@@ -48,7 +48,7 @@
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
         <features>X (m),Y (m),Temperature (K)</features>
-        <target>Temperature (K)</target>
+        <measuredState>Temperature (K)</measuredState>
         <basis>SVD</basis>
         <nModes>4</nModes>
         <nSensors>4</nSensors>
@@ -59,11 +59,11 @@
 
   <DataObjects>
     <PointSet name="myDO">
-      <Output>X (m),Temperature (K),Y (m)</Output>
+      <Output>X (m), Temperature (K),Y (m)</Output>
     </PointSet>
     <HistorySet name="TwistDO">
       <Input> Power (W), BCTemperature (K)</Input>
-      <Output>X (m),Temperature (K),Y (m)</Output>
+      <Output>X (m), Temperature (K), Y (m)</Output>
       <options>
         <pivotParameter>index</pivotParameter>
       </options>
@@ -71,7 +71,7 @@
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
       <Output>Temperature (K), X (m), Y (m)</Output>
-      <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
+      <Index var="sensor">X (m), Y (m), Temperature (K)</Index>
     </DataSet>
   </DataObjects>
 
