@@ -333,7 +333,6 @@ class SparseSensing(PostProcessorReadyInterface):
       if self.optimizer == 'GQR':
         if self._ConstrainedRegionsType == 'Circle':   ### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
           circle = ps.utils._constraints.Circle(center_x = self.centerX, center_y = self.centerY, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-          print(circle)
           idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)
         elif self._ConstrainedRegionsType == 'Ellipse':
           ellipse = ps.utils._constraints.Ellipse(center_x = self.centerX, center_y = self.centerY, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
