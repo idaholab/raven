@@ -12,26 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# @author: Mohammad Abdo (@Jimmy-INL)
+# @author: Junyung Kim (@JunyungKim-INL) and Mohammad Abdo (@Jimmy-INL)
+
+import math
 
 def evaluate(Inputs):
-  """
-    Evaluates a weighted sum function.
-    $summ = \Sigma_{i=0} (i+1)*x_{i}$
-
-    min with replacement = n*(n-1)/2*lb occurs at x_{i} = lb (i.e., lower bound of the discrete variables)
-    max with replacement = n*(n-1)/2*ub occurs at x_{i} = ub (i.e., upper bound of the discrete variables)
-    min w/o replacement  = $\Sigma_{i=0}^{n-1} (lb+i)(i+1)$ occurs at x_{i} = lb+i
-    max w/o replacement  = $\Sigma_{i=0}^{n-1} (ub-n+1+i)(i+1)$ occurs at x_{i} = ub-n+1+i
-
-    @ In, Inputs, dictionary, dictionary of inputs passed to the external model
-    @ Out, Sum, float, objective function
-  """
   Sum = 0
+  obj1 = 0
+
   for ind,var in enumerate(Inputs.keys()):
     # write the objective function here
-    Sum += (ind+1) * Inputs[var]
-  return Sum[:]
+    if (ind == 0) :
+      obj1 += Inputs[var]
+    if (ind != 0):
+      Sum += Inputs[var]
+  g = 1 + (9/len(Inputs.keys())*Sum )
+  h = 1 - math.sqrt(obj1/g)
+  obj2 = g*h
+  return obj1[:], obj2[:]
 
 def run(self,Inputs):
   """
@@ -40,4 +38,4 @@ def run(self,Inputs):
     @ In, Inputs, dict, additional inputs
     @ Out, None
   """
-  self.ans = evaluate(Inputs) # Complete This # make sure the name of the objective is consistent obj
+  self.obj1,self.obj2 = evaluate(Inputs)

@@ -48,6 +48,12 @@ class DataParser():
     self.symmetry = root.find('symmetry').text.strip()
     self.numberAssemblies = int(root.find('number_assemblies').text)
     self.reflectorFlag = root.find('reflector').text.strip()
+    self.activeHeight = root.find('active_height').text.strip()
+    self.bottomReflectorTypeNumber = root.find('bottom_reflector_typenumber').text.strip()
+    self.topReflectorTypeNumber = root.find('top_reflector_typenumber').text.strip()
+    self.freshFaDict = []
+    for freshFa in root.iter('FreshFA'):
+      self.freshFaDict.append(freshFa.attrib)
     self.faDict = []
     for fa in root.iter('FA'):
       self.faDict.append(fa.attrib)
@@ -115,23 +121,56 @@ class PerturbedPaser():
       file_.write(f"'DIM.PWR' {parameter.coreWidth}/\n")
       file_.write(f"'DIM.CAL' {parameter.axialNodes} 2 2/\n")
       file_.write("'DIM.DEP' 'EXP' 'PIN' 'HTMO' 'HBOR' 'HTF' 'XEN' 'SAM' 'EBP'/     \n")
+      file_.write("'ERR.CHK' 'PERMIT'/\n")
     file_.write("\n")
-    loadingPattern = getMap(parameter, [int(child.attrib['FAid']) for child in self.data])
-    file_.write(loadingPattern) # later, from get map
-    file_.write("\n")
-    if parameter.batchNumber <=1:
-      pass
+    if parameter.batchNumber >=2:
+      file_.write("'FUE.LAB', 6/\n")
+      shufflingScheme = getShufflingScheme(parameter, [int(child.attrib['FAid']) for child in self.data])
+      file_.write(shufflingScheme)
     else:
-      raise ValueError("Larger batch number is not available for this version")
-    file_.write(f"'LIB' '../../{parameter.csLib}' \n")
+      loadingPattern = getMap(parameter, [int(child.attrib['FAid']) for child in self.data])
+      file_.write(loadingPattern) # later, from get map
+    file_.write("\n")
+    # if parameter.batchNumber <=1:
+    #   pass
+    # else:
+    #   raise ValueError("Larger batch number is not available for this version")
+    if parameter.batchNumber <=1:
+      file_.write(f"'LIB' '../../{parameter.csLib}' \n")
     file_.write(f"'COR.OPE' {parameter.power}, {parameter.flow}, {parameter.pressure}/\n")
     file_.write("'COR.TIN' {}/ \n".format(parameter.inletTemperature))
     file_.write("\n")
     if parameter.batchNumber >= 2:
+      # file_.write("'COM'                SERIAL   NUMBER TO    FUEL   BATCH   \n")
+      # file_.write("'COM'                LABEL     CREATE      TYPE   NUMBER \n")
+      # for item in parameter.freshFaDict:
+      #   file_.write(f"'FUE.NEW', 'TYPE{item['type']}', '{item['serial_label']}{parameter.batchNumber}00',     {item['quantity']},        {item['type']},   ,, {parameter.batchNumber}/\n")
+      file_.write("\n")
+      file_.write(f"'RES' '../../{parameter.restartFile}' {parameter.loadPoint}/\n")
+      file_.write(f"'LIB' '../../{parameter.csLib}' \n")
       file_.write(f"'BAT.LAB' {parameter.batchNumber} 'CYC-{parameter.batchNumber}' /\n")
+      file_.write("\n")
+      # for item in parameter.freshFaDict:
+      #   file_.write(f"'SEG.LIB' {item['type']} '{item['name']}'/\n")
+      #   file_.write(f"'FUE.ZON' {item['type']}, 1, '{item['name']}'       {parameter.bottomReflectorTypeNumber},0.0   {item['type']}, {parameter.activeHeight}   {parameter.topReflectorTypeNumber}/\n")
+      #   file_.write("\n")
+      file_.write("'DEP.STA' 'BOS' 0.0/\n")
+      file_.write("'DEP.FPD' 2 .5/ * Equilibrium I and Xe, update Pm and Sm by depletion, depletion time subinterval is 0.5 hrs \n")
       file_.write(f"'DEP.CYC' 'CYCLE{parameter.batchNumber}' 0.0 {parameter.batchNumber}/\n")
+      file_.write("\n")
+      file_.write("'ITE.BOR' 1400/ * Estimate of critical boron concentration \n")
+      file_.write("\n")
+      file_.write("'STA'/\n")
+
+      file_.write("\n")
     file_.write(f"'DEP.STA' 'AVE' 0.0 0.5 1 2 -1 {parameter.depletion} /\n")
     file_.write("'ITE.SRC' 'SET' 'EOLEXP' , , 0.02, , , , , , 'MINBOR' 10., , , , , 4, 4, , , /\n")
+    file_.write("\n")
+    # file_.write("'This is just a test' /\n")
+    # file_.write(f"This is the active height: {parameter.activeHeight}/\n")
+    if parameter.batchNumber >= 2:
+      file_.write("'FUE.INI', 'JILAB'/\n")
+      # file_.write(f"'WRE' 'cycle{parameter.batchNumber}.res'/\n")
     file_.write("'STA'/\n")
     file_.write("'END'/\n")
     file_.close()
@@ -186,6 +225,89 @@ def getMap(parameter, locationList):
   loadingPattern += "\n"
 
   return loadingPattern
+# Code specific to shuffling schemes
+
+def findLabel(faID,faDict,quad):
+  """
+    Get type of FA ID
+    @ In, faID, int/str, the id for FA
+    @ In, faDict, list, list of FA xml input attributes
+    @ Out, faType, list, list of FA types
+  """
+  faLabel = [id[f'type{quad}'] for id in faDict if id['FAid']==str(faID)][0]
+  return faLabel
+
+def quadrant_search(row, col, map_length):
+	# print(map_length)
+	if row > (map_length // 2) and col > (map_length // 2 - 1):
+		quad = 1
+	elif row > (map_length // 2 - 1) and col < (map_length // 2):
+		quad = 2
+	elif row < (map_length // 2) and col < (map_length // 2 + 1):
+		quad = 3
+	elif row < (map_length // 2 + 1) and col > (map_length // 2):
+		quad = 4
+	else:
+		quad = 1
+	return quad
+
+def getShufflingScheme(parameter, locationList):
+  """
+  Genrate Shuffling Scheme
+    @ In, parameter, DataParser Object Instance, Instance store the parameter data
+    @ In, locationList, list, Location list from PerturbedPaser class
+    @ Out, shufflingScheme, str, Shuffling Scheme
+  """ 
+  maxType = max([id['type1'] for id in parameter.faDict])
+  numberSpaces = len(str(maxType)) + 3
+  problemMap = getCoreMap(parameter.mapSize, parameter.symmetry,
+                           parameter.numberAssemblies, parameter.reflectorFlag)
+  rowCount = 1
+  shufflingScheme = ""
+  faDict = parameter.faDict
+  # print(faDict)
+  for row in range(25):    #max core 25x25
+    if row in problemMap:
+      if rowCount <= 9:
+        shufflingScheme += f"{rowCount}   1 "
+      else:
+        shufflingScheme += f"{rowCount}  1 "
+      for col in range(25):
+        if col in problemMap[row]:
+          if not problemMap[row][col]:
+            if isinstance(problemMap[row][col], int):
+              geneNumber = problemMap[row][col]
+              gene = locationList[geneNumber]
+              if parameter.symmetry == 'quarter_rotational':
+                # print("quarter_rotational")
+                quad = quadrant_search(row, col, len(problemMap))
+                value = findLabel(gene, faDict, quad)
+              else:
+                value = findType(gene,faDict)
+              str_ = f"{value}"
+              shufflingScheme += f"{str_.ljust(numberSpaces)}"
+            else:
+              shufflingScheme += f"{' '.ljust(numberSpaces)}"
+          else:
+            geneNumber = problemMap[row][col]
+            gene = locationList[geneNumber]
+            if parameter.symmetry == 'quarter_rotational':
+              # print("Quarter_rotational")
+              # print(f"This is the map length {len(problemMap)}")
+              quad = quadrant_search(row, col, len(problemMap))
+              # print(f"This is the current quadrant {quad}")
+              value = findLabel(gene, faDict, quad)
+              # print(f"This is the value: {value}")
+            else:
+              value = findType(gene,faDict)
+            str_ = f"{value}"
+            shufflingScheme += f"{str_.ljust(numberSpaces)}"
+      shufflingScheme += "\n"
+      rowCount += 1
+  shufflingScheme += "0   0"
+  shufflingScheme += "\n"
+
+  return shufflingScheme
 
 def getCoreMap(mapSize, symmetry, numberAssemblies, reflectorFlag):
   """
@@ -198,7 +320,7 @@ def getCoreMap(mapSize, symmetry, numberAssemblies, reflectorFlag):
   """
   if mapSize.lower() == "full_core" or mapSize.lower() == "full":
       mapKey = "FULL"
-      allowedSymmetries = ("OCTANT","QUARTER_ROTATIONAL","QUARTER_MIRROR")
+      allowedSymmetries = ("OCTANT","QUARTER_ROTATIONAL","QUARTER_MIRROR", "NO_SYMMETRY")
       if symmetry.upper() in allowedSymmetries:
           symmetryKey = symmetry.upper()
       else:
@@ -258,6 +380,42 @@ coreMaps['FULL']['OCTANT'][157]['WITHOUT_REFLECTOR'] = { 0:{0:None,1:None,2:None
                                                          12:{0:None,1:None,2:None,3:19,  4:18,  5:17,  6:16,7:15,8:16,9:17,  10:18,  11:19,  12:None,13:None,14:None},
                                                          13:{0:None,1:None,2:None,3:None,4:23,  5:22,  6:21,7:20,8:21,9:22,  10:23,  11:None,12:None,13:None,14:None},
                                                          14:{0:None,1:None,2:None,3:None,4:None,5:None,6:25,7:24,8:25,9:None,10:None,11:None,12:None,13:None,14:None}}
+coreMaps['FULL']['NO_SYMMETRY'] = {}
+coreMaps['FULL']['NO_SYMMETRY'][157] = {}
+coreMaps['FULL']['NO_SYMMETRY'][157]['WITH_REFLECTOR'] = { 0:{0:None,1:None,2:None,3:None,4:None,5:None, 6:0, 7:1, 8:2, 9:3, 10:4, 11:None,12:None,13:None,14:None, 15:None,16:None},
+                                                       1:{0:None,1:None,2:None,3:None,4:5   ,5:6 ,  6:7 , 7:8,  8:9,  9:10, 10:11, 11:12,  12:13,  13:None,14:None, 15:None,16:None},
+                                                       2:{0:None,1:None,2:None,3:14  ,4:15  ,5:16,  6:17, 7:18, 8:19, 9:20, 10:21, 11:22,  12:23,  13:24,  14:None, 15:None,16:None},
+                                                       3:{0:None,1:None,2:25  ,3:26  ,4:27  ,5:28,  6:29, 7:30, 8:31, 9:32, 10:33, 11:34,  12:35,  13:36,  14:37  , 15:None,16:None},
+                                                       4:{0:None,1:38,  2:39  ,3:40  ,4:41  ,5:42,  6:43, 7:44, 8:45, 9:46, 10:47, 11:48,  12:49,  13:50,  14:51  , 15:52,  16:None},
+                                                       5:{0:None,1:53,  2:54  ,3:55  ,4:56  ,5:57,  6:58, 7:59, 8:60, 9:61, 10:62, 11:63,  12:64,  13:65,  14:66  , 15:67,  16:None},
+                                                       6:{0:68,  1:69,  2:70  ,3:71  ,4:72  ,5:73,  6:74, 7:75, 8:76, 9:77, 10:78, 11:79,  12:80,  13:81,  14:82  , 15:83,  16:84},
+                                                       7:{0:85,  1:86,  2:87  ,3:88  ,4:89  ,5:90,  6:91, 7:92, 8:93, 9:94, 10:95, 11:96,  12:97,  13:98,  14:99  , 15:100, 16:101},
+                                                       8:{0:102, 1:103, 2:104 ,3:105 ,4:106 ,5:107, 6:108,7:109,8:110,9:111,10:112,11:113, 12:114, 13:115, 14:116 , 15:117, 16:118},
+                                                       9:{0:119, 1:120, 2:121 ,3:122 ,4:123 ,5:124, 6:125,7:126,8:127,9:128,10:129,11:130, 12:131, 13:132, 14:133 , 15:134, 16:135},
+                                                      10:{0:136, 1:137, 2:138 ,3:139 ,4:140 ,5:141, 6:142,7:143,8:144,9:145,10:146,11:147, 12:148, 13:149, 14:150 , 15:151, 16:152},
+                                                      11:{0:None,1:153, 2:154 ,3:155 ,4:156 ,5:157, 6:158,7:159,8:160,9:161,10:162,11:163, 12:164, 13:165, 14:166 , 15:167, 16:None},
+                                                      12:{0:None,1:168, 2:169 ,3:170 ,4:171 ,5:172, 6:173,7:174,8:175,9:176,10:177,11:178, 12:179, 13:180, 14:181 , 15:182, 16:None},
+                                                      13:{0:None,1:None,2:183 ,3:184 ,4:185 ,5:186, 6:187,7:188,8:189,9:190,10:191,11:192, 12:193, 13:194, 14:195 , 15:None,16:None},
+                                                      14:{0:None,1:None,2:None,3:196 ,4:197 ,5:198, 6:199,7:200,8:201,9:202,10:203,11:204, 12:205, 13:206, 14:None, 15:None,16:None},
+                                                      15:{0:None,1:None,2:None,3:None,4:207 ,5:208, 6:209,7:210,8:211,9:212,10:213,11:214, 12:215, 13:None,14:None, 15:None,16:None},
+                                                      16:{0:None,1:None,2:None,3:None,4:None,5:None,6:216,7:217,8:218,9:219,10:220,11:None,12:None,13:None,14:None, 15:None,16:None}}
+
+coreMaps['FULL']['NO_SYMMETRY'][157]['WITHOUT_REFLECTOR'] = { 0:{0:None,1:None,2:None,3:None,4:None,5:None, 6:0, 7:1, 8:2, 9:None,10:None,11:None,12:None,13:None,14:None},
+                                                          1:{0:None,1:None,2:None,3:None,4:3,   5:4,   6:5,  7:6,  8:7,  9:8,   10:9,   11:None,12:None,13:None,14:None},
+                                                          2:{0:None,1:None,2:None,3:10,  4:11,  5:12,  6:13, 7:14, 8:15, 9:16,  10:17,  11:18,  12:None,13:None,14:None},
+                                                          3:{0:None,1:None,2:19,  3:20,  4:21,  5:22,  6:23, 7:24, 8:25, 9:26,  10:27,  11:28,  12:29,  13:None,14:None},
+                                                          4:{0:None,1:30,  2:31,  3:32,  4:33,  5:34,  6:35, 7:36, 8:37, 9:38,  10:39,  11:40,  12:41,  13:42,  14:None},
+                                                          5:{0:None,1:43,  2:44,  3:45,  4:46,  5:47,  6:48, 7:49, 8:50, 9:51,  10:52,  11:53,  12:54,  13:55,  14:None},
+                                                          6:{0:56,  1:57,  2:58,  3:59,  4:60,  5:61,  6:62, 7:63, 8:64, 9:65,  10:66,  11:67,  12:68,  13:69,  14:70},
+                                                          7:{0:71,  1:72,  2:73,  3:74,  4:75,  5:76,  6:77, 7:78, 8:79, 9:80,  10:81,  11:82,  12:83,  13:84,  14:85},
+                                                          8:{0:86,  1:87,  2:88,  3:89,  4:90,  5:91,  6:92, 7:93, 8:94, 9:95,  10:96,  11:97,  12:98,  13:99,  14:100},
+                                                          9:{0:None,1:101, 2:102, 3:103, 4:104, 5:105, 6:106,7:107,8:108,9:109, 10:110, 11:111, 12:112, 13:113, 14:None},
+                                                         10:{0:None,1:114, 2:115, 3:116, 4:117, 5:118, 6:119,7:120,8:121,9:122, 10:123, 11:124, 12:125, 13:126,  14:None},
+                                                         11:{0:None,1:None,2:127, 3:128, 4:129, 5:130, 6:131,7:132,8:133,9:134, 10:135, 11:136, 12:137, 13:None,14:None},
+                                                         12:{0:None,1:None,2:None,3:138, 4:139, 5:140, 6:141,7:142,8:143,9:144, 10:145, 11:146, 12:None,13:None,14:None},
+                                                         13:{0:None,1:None,2:None,3:None,4:147, 5:148, 6:149,7:150,8:151,9:152, 10:153, 11:None,12:None,13:None,14:None},
+                                                         14:{0:None,1:None,2:None,3:None,4:None,5:None,6:154,7:155,8:156,9:None,10:None,11:None,12:None,13:None,14:None}}
+
 coreMaps['FULL']['OCTANT'][193] = {}
 coreMaps['FULL']['OCTANT'][193]['WITH_REFLECTOR'] = {0:{0:None,1:None,2:None,3:None,4:39,5:38,6:37,7:36,8:35,9:36,10:37,11:38,12:39,13:None,14:None,15:None,16:None},
                                                       1:{0:None,1:None,2:34,  3:33,  4:32,5:31,6:30,7:29,8:28,9:29,10:30,11:31,12:32,13:33,  14:34,  15:None,16:None},
@@ -438,20 +596,20 @@ coreMaps['FULL']['QUARTER_ROTATIONAL'][157]['WITH_REFLECTOR'] = {0:{0:None,1:Non
                                                                  15:{0:None,1:None,2:None,3:None,4:34,  5:26,  6:17, 7:8, 8:48,9:49,10:50,11:51,  12:52,  13:None,14:None,15:None,16:None},
                                                                  16:{0:None,1:None,2:None,3:None,4:None,5:None,6:18, 7:9, 8:53,9:54,10:55,11:None,12:None,13:None,14:None,15:None,16:None}}
 coreMaps['FULL']['QUARTER_ROTATIONAL'][157]['WITHOUT_REFLECTOR'] = {0 :{0:None, 1:None,  2:None,  3:None,  4:None,  5:None,  6:39,  7:38,  8: 8,  9:None,  10:None  , 11:None, 12:None, 13:None, 14:None},
-                                                                     1 :{0:None, 1:None,  2:None,  3:None,  4:37,    5:36,    6:35,  7:34,  8: 7,  9:15,    10:22,     11:None, 12:None, 13:None, 14:None},
-                                                                     2 :{0:None, 1:None,  2:None,  3:33,    4:32,    5:31,    6:30,  7:29,  8: 6,  9:14,    10:21,     11:28,   12:None, 13:None, 14:None},
-                                                                     3 :{0:None, 1:None,  2:28,    3:27,    4:26,    5:25,    6:24,  7:23,  8: 5,  9:13,    10:20,     11:27,   12:33,   13:None, 14:None},
-                                                                     4 :{0:None, 1:22,    2:21,    3:20,    4:19,    5:18,    6:17,  7:16,  8: 4,  9:12,    10:19,     11:26,   12:32,   13:37,   14:None},
-                                                                     5 :{0:None, 1:15,    2:14,    3:13,    4:12,    5:11,    6:10,  7: 9,  8: 3,  9:11,    10:18,     11:25,   12:31,   13:36,   14:None},
-                                                                     6 :{0: 8,   1: 7,    2: 6,    3: 5,    4: 4,    5: 3,    6:2,   7: 1,  8: 2,  9:10,    10:17,     11:24,   12:30,   13:35,   14:39},
-                                                                     7 :{0:38,   1:34,    2:29,    3:23,    4:16,    5: 9,    6:1,   7: 0,  8: 1,  9: 9,    10:16,     11:23,   12:29,   13:34,   14:38},
-                                                                     8 :{0:39,   1:35,    2:30,    3:24,    4:17,    5:10,    6:2,   7: 1,  8: 2,  9: 3,    10: 4,     11: 5,   12: 6,   13: 7,   14: 8},
-                                                                     9 :{0:None, 1:36,    2:31,    3:25,    4:18,    5:11,    6:4,   7:3,   8:4,   9:5,     10:8,      11:12,   12:17,   13:22,   14:None},
-                                                                     10:{0:None, 1:37,    2:32,    3:26,    4:19,    5:12,    6:4,   7:16,  8:17,  9:18,    10:19,     11:20,   12:21,   13:22,   14:None},
-                                                                     11:{0:None, 1:None,  2:33,    3:27,    4:20,    5:13,    6:5,   7:23,  8:24,  9:25,    10:26,     11:27,   12:28,   13:None, 14:None},
-                                                                     12:{0:None, 1:None,  2:None,  3:28,    4:21,    5:14,    6:6,   7:29,  8:30,  9:31,    10:32,     11:33,   12:None, 13:None, 14:None},
-                                                                     13:{0:None, 1:None,  2:None,  3:None,  4:22,    5:15,    6:7,   7:34,  8:35,  9:36,    10:37,     11:None, 12:None, 13:None, 14:None},
-                                                                     14:{0:None, 1:None,  2:None,  3:None,  4:None,  5:None,  6:8,   7:38,  8:39,  9:None,  10:None  , 11:None, 12:None, 13:None, 14:None}}
+                                                                    1 :{0:None, 1:None,  2:None,  3:None,  4:37,    5:36,    6:35,  7:34,  8: 7,  9:15,    10:22,     11:None, 12:None, 13:None, 14:None},
+                                                                    2 :{0:None, 1:None,  2:None,  3:33,    4:32,    5:31,    6:30,  7:29,  8: 6,  9:14,    10:21,     11:28,   12:None, 13:None, 14:None},
+                                                                    3 :{0:None, 1:None,  2:28,    3:27,    4:26,    5:25,    6:24,  7:23,  8: 5,  9:13,    10:20,     11:27,   12:33,   13:None, 14:None},
+                                                                    4 :{0:None, 1:22,    2:21,    3:20,    4:19,    5:18,    6:17,  7:16,  8: 4,  9:12,    10:19,     11:26,   12:32,   13:37,   14:None},
+                                                                    5 :{0:None, 1:15,    2:14,    3:13,    4:12,    5:11,    6:10,  7: 9,  8: 3,  9:11,    10:18,     11:25,   12:31,   13:36,   14:None},
+                                                                    6 :{0: 8,   1: 7,    2: 6,    3: 5,    4: 4,    5: 3,    6:2,   7: 1,  8: 2,  9:10,    10:17,     11:24,   12:30,   13:35,   14:39},
+                                                                    7 :{0:38,   1:34,    2:29,    3:23,    4:16,    5: 9,    6:1,   7: 0,  8: 1,  9: 9,    10:16,     11:23,   12:29,   13:34,   14:38},
+                                                                    8 :{0:39,   1:35,    2:30,    3:24,    4:17,    5:10,    6:2,   7: 1,  8: 2,  9: 3,    10: 4,     11: 5,   12: 6,   13: 7,   14: 8},
+                                                                    9 :{0:None, 1:36,    2:31,    3:25,    4:18,    5:11,    6:3,   7:9,   8:10,  9:11,    10:12,     11:13,   12:14,   13:15,   14:None},
+                                                                    10:{0:None, 1:37,    2:32,    3:26,    4:19,    5:12,    6:4,   7:16,  8:17,  9:18,    10:19,     11:20,   12:21,   13:22,   14:None},
+                                                                    11:{0:None, 1:None,  2:33,    3:27,    4:20,    5:13,    6:5,   7:23,  8:24,  9:25,    10:26,     11:27,   12:28,   13:None, 14:None},
+                                                                    12:{0:None, 1:None,  2:None,  3:28,    4:21,    5:14,    6:6,   7:29,  8:30,  9:31,    10:32,     11:33,   12:None, 13:None, 14:None},
+                                                                    13:{0:None, 1:None,  2:None,  3:None,  4:22,    5:15,    6:7,   7:34,  8:35,  9:36,    10:37,     11:None, 12:None, 13:None, 14:None},
+                                                                    14:{0:None, 1:None,  2:None,  3:None,  4:None,  5:None,  6:8,   7:38,  8:39,  9:None,  10:None  , 11:None, 12:None, 13:None, 14:None}}
 coreMaps['FULL']['QUARTER_ROTATIONAL'][193] = {}
 
 coreMaps['FULL']['QUARTER_ROTATIONAL'][193]['WITH_REFLECTOR'] = {0:{0:None,1:None,2:None,3:None,4:None,5:78,6:77,7:76,8:75,9:74,10:75,11:76,12:77,13:78,14:None,15:None,16:None,17:None,18:None},
@@ -642,3 +800,35 @@ coreMaps['QUARTER']['OCTANT'][241]['WITHOUT_REFLECTOR'] = {8:{8:0,  9:1,  10:3, 
                                                            14:{8:21, 9:22, 10:23, 11:24, 12:25,  13:26,  14:27,  15:None,16:None},
                                                            15:{8:28, 9:29, 10:30, 11:31, 12:32,  13:33,  14:None,15:None,16:None},
                                                            16:{8:34, 9:35, 10:36, 11:37, 12:None,13:None,14:None,15:None,16:None}}
+
+### shuffleMaps value
+
+shuffleMap = {}
+shuffleMap['FULL'] = {}
+shuffleMap['FULL']['NO_SYMMETRY'] = {}
+shuffleMap['FULL']['NO_SYMMETRY'][157] = { 0:{0:None,  1:None,  2:None,  3:None,  4:None,  5:None,  6:"J-01",7:"H-01",8:"G-01",9:None,  10:None,  11:None,  12:None,  13:None,  14:None},
+                                           1:{0:None,  1:None,  2:None,  3:None,  4:"L-02",5:"K-02",6:"J-02",7:"H-02",8:"G-02",9:"F-02",10:"E-02",11:None,  12:None,  13:None,  14:None},
+                                           2:{0:None,  1:None,  2:None,  3:"M-03",4:"L-03",5:"K-03",6:"J-03",7:"H-03",8:"G-03",9:"F-03",10:"E-03",11:"D-03",12:None,  13:None,  14:None},
+                                           3:{0:None,  1:None,  2:"N-04",3:"M-04",4:"L-04",5:"K-04",6:"J-04",7:"H-04",8:"G-04",9:"F-04",10:"E-04",11:"D-04",12:"C-04",13:None,  14:None},
+                                           4:{0:None,  1:"P-05",2:"N-05",3:"M-05",4:"L-05",5:"K-05",6:"J-05",7:"H-05",8:"G-05",9:"F-05",10:"E-05",11:"D-05",12:"C-05",13:"B-05",14:None},
+                                           5:{0:None,  1:"P-06",2:"N-06",3:"M-06",4:"L-06",5:"K-06",6:"J-06",7:"H-06",8:"G-06",9:"F-06",10:"E-06",11:"D-06",12:"C-06",13:"B-06",14:None},
+                                           6:{0:"R-07",1:"P-07",2:"N-07",3:"M-07",4:"L-07",5:"K-07",6:"J-07",7:"H-07",8:"G-07",9:"F-07",10:"E-07",11:"D-07",12:"C-07",13:"B-07",14:"A-07"},
+                                           7:{0:"R-08",1:"P-08",2:"N-08",3:"M-08",4:"L-08",5:"K-08",6:"J-08",7:"H-08",8:"G-08",9:"F-08",10:"E-08",11:"D-08",12:"C-08",13:"B-08",14:"A-08"},
+                                           8:{0:"R-09",1:"P-09",2:"N-09",3:"M-09",4:"L-09",5:"K-09",6:"J-09",7:"H-09",8:"G-09",9:"F-09",10:"E-09",11:"D-09",12:"C-09",13:"B-09",14:"A-08"},
+                                           9:{0:None,  1:"P-10",2:"N-10",3:"M-10",4:"L-10",5:"K-10",6:"J-10",7:"H-10",8:"G-10",9:"F-10",10:"E-10",11:"D-10",12:"C-10",13:"B-10",14:None},
+                                          10:{0:None,  1:"P-11",2:"N-11",3:"M-11",4:"L-11",5:"K-11",6:"J-11",7:"H-11",8:"G-11",9:"F-11",10:"E-11",11:"D-11",12:"C-11",13:"B-11",14:None},
+                                          11:{0:None,  1:None,  2:"N-12",3:"M-12",4:"L-12",5:"K-12",6:"J-12",7:"H-12",8:"G-12",9:"F-12",10:"E-12",11:"D-12",12:"C-12",13:None,  14:None},
+                                          12:{0:None,  1:None,  2:None,  3:"M-13",4:"L-13",5:"K-13",6:"J-13",7:"H-13",8:"G-13",9:"F-13",10:"E-13",11:"D-13",12:None,  13:None,  14:None},
+                                          13:{0:None,  1:None,  2:None,  3:None,  4:"L-14",5:"K-14",6:"J-14",7:"H-14",8:"G-14",9:"F-14",10:"E-14",11:None,  12:None,  13:None,  14:None},
+                                          14:{0:None,  1:None,  2:None,  3:None,  4:None,  5:None,  6:"J-15",7:"H-15",8:"G-15",9:None,  10:None,  11:None,  12:None,  13:None,  14:None}}
+
+shuffleMap['FULL']['QUARTER'] = {}
+shuffleMap['FULL']['QUARTER'][157] = {}
+shuffleMap['FULL']['QUARTER'][157] = {7 :{7: 0,  8: 1,  9: 9,  10:16,  11:23, 12:29, 13:34, 14:38},
+                                      8 :{7: 1,  8: 2,  9: 3,  10: 4,  11: 5, 12: 6, 13: 7, 14: 8},
+                                      9 :{7: 9,  8:10,  9:11,  10:12,  11:13, 12:14, 13:15, 14:None},
+                                      10:{7:16,  8:17,  9:18,  10:19,  11:20, 12:21, 13:22, 14:None},
+                                      11:{7:23,  8:24,  9:25,  10:26,  11:27, 12:28,    13:None,14:None},
+                                      12:{7:29,  8:30,  9:31,  10:32,  11:33, 12:None,  13:None,14:None},
+                                      13:{7:34,  8:35,  9:36,  10:37,  11:None,12:None, 13:None,14:None},
+                                      14:{7:38,  8:39,  9:None,10:None,11:None,12:None, 13:None,14:None}}

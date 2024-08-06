@@ -15,19 +15,19 @@
 
 import numpy as np
 
-def XX(Input):#Complete this: give the function the correct name#
+def constrain(Input):#Complete this: give the function the correct name#
   """
-    This fuction calls the explicit constraint whose name is passed through Input.name
+    This function calls the explicit constraint whose name is passed through Input.name
     the evaluation function g is negative if the explicit constraint is violated and positive otherwise.
     This suits the constraint handling in the Genetic Algorithms,
-    but not the Gradient Descent as the latter expects True if the soltution passes the constraint and False if it violates it.
+    but not the Gradient Descent as the latter expects True if the solution passes the constraint and False if it violates it.
     @ In, Input, object, RAVEN container
-    @ Out, g, float, expilicit constraint evaluation (negative if violated and positive otherwise)
+    @ Out, g, float, explicit constraint evaluation (negative if violated and positive otherwise)
   """
   g = eval(Input.name)(Input)
   return g
 
-def YY(Input):#Complete this: give the function the correct name#
+def implicitConstraint(Input):
   """
     Evaluates the implicit constraint function at a given point/solution ($\vec(x)$)
     @ In, Input, object, RAVEN container
@@ -44,29 +44,37 @@ def YY(Input):#Complete this: give the function the correct name#
   return g
 
 
-def expConstr1(Input):   #You are free to pick this name but it has to be similar to the one in the xml#
+def expConstr1(Input):#You are free to pick this name but it has to be similar to the one in the xml#
   """
     Let's assume that the constraint is:
     $ x3+x4 < 8 $
     then g the constraint evaluation function (which has to be > 0) is taken to be:
     g = 8 - (x3+x4)
-    in this case if g(\vec(x)) < 0 then this x violates the constraint and vise versa
+    in this case if g(\vec(x)) < 0 then this x violates the constraint and vice versa
     @ In, Input, object, RAVEN container
     @ out, g, float, explicit constraint 1 evaluation function
   """
-  g = Input.x3 + Input.x4 - 8 # Write the explicit constraint here
+  g = 8 - Input.x3 - Input.x4
   return g
 
 def expConstr2(Input):
   """
-    Equality constraint:
+    Explicit Equality Constraint:
     let's consider the constraint x1**2 + x2**2 = 25
-    The way to write g is to use a very small number for imnstance, epsilon = 1e-12
+    The way to write g is to use a very small number for instance, epsilon = 1e-12
     and then g = epsilon - abs(constraint)
     @ In, Input, object, RAVEN container
     @ out, g, float, explicit constraint 2 evaluation function
   """
   g = 1e-12 - abs(Input.x1**2 + Input.x2**2 - 25)
+  return g
+
+def expConstr3(Input):
+  """
+    @ In, Input, object, RAVEN container
+    @ out, g, float, explicit constraint 3 evaluation function
+  """
+  g = 10 - Input.x3 - Input.x4
   return g
 
 def impConstr1(Input):
@@ -76,7 +84,8 @@ def impConstr1(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 1 evaluation function
   """
-  return 10 - Input.x1**2 - Input.ans
+  g = 10 - Input.x1**2 - Input.obj
+  return g
 
 def impConstr2(Input):
   """
@@ -85,5 +94,15 @@ def impConstr2(Input):
     @ In, Input, object, RAVEN container
     @ out, g, float, implicit constraint 2 evaluation function
   """
-  g = Input.x1**2 + Input.ans - 10
+  g = Input.x1**2 + Input.obj1 - 10
+  return g
+
+def impConstr3(Input):
+  """
+    The implicit constraint involves variables from the output space, for example the objective variable or
+    a dependent variable that is not in the optimization search space
+    @ In, Input, object, RAVEN container
+    @ out, g, float, implicit constraint #3 evaluation function
+  """
+  g = 100 - Input.obj1
   return g
