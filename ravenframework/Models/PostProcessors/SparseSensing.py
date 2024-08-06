@@ -111,15 +111,15 @@ class SparseSensing(PostProcessorReadyInterface):
     goal.addSub(ConstrainedRegions)
     ConstrainedRegions.addParam("type", InputTypes.makeEnumType("Constraint","ConstraintType",['Circle','Ellipse','Line','Polygon','Parabola']), True,
                        descr="type of Constrained Region shape the user wants- (Constraint can be a circle, parabola, ellipse, line, rectangle, square or user defined constraint too)")
-    centerX = InputData.parameterInputFactory("centerX", contentType=InputTypes.IntegerType,
+    centerX = InputData.parameterInputFactory("centerX", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""The x co-ordinate of center of circle,ellipse""")
     ConstrainedRegions.addSub(centerX)
-    centerY = InputData.parameterInputFactory("centerY", contentType=InputTypes.IntegerType,
+    centerY = InputData.parameterInputFactory("centerY", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""The y co-ordinate of center of circle,ellipse""")
     ConstrainedRegions.addSub(centerY)
-    radius = InputData.parameterInputFactory("radius", contentType=InputTypes.IntegerType,
+    radius = InputData.parameterInputFactory("radius", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""The radius of circle,ellipse""")
     ConstrainedRegions.addSub(radius)
@@ -127,47 +127,47 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""Whether the constraint region is inside or outside the shape defined as constraint""")
     ConstrainedRegions.addSub(loc)
-    width = InputData.parameterInputFactory("width", contentType=InputTypes.IntegerType,
+    width = InputData.parameterInputFactory("width", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""Width of the ellipse""")
     ConstrainedRegions.addSub(width)
-    height = InputData.parameterInputFactory("height", contentType=InputTypes.IntegerType,
+    height = InputData.parameterInputFactory("height", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""Height of the ellipse""")
     ConstrainedRegions.addSub(height)
-    angle = InputData.parameterInputFactory("angle", contentType=InputTypes.IntegerType,
+    angle = InputData.parameterInputFactory("angle", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""Angle of rotation of the ellipse""")
     ConstrainedRegions.addSub(angle)
-    x1 = InputData.parameterInputFactory("x1", contentType=InputTypes.IntegerType,
+    x1 = InputData.parameterInputFactory("x1", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""X co-ordinate of one of the points that defines the line""")
     ConstrainedRegions.addSub(x1)
-    x2 = InputData.parameterInputFactory("x2", contentType=InputTypes.IntegerType,
+    x2 = InputData.parameterInputFactory("x2", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""X co-ordinate of the other point that defines the line""")
     ConstrainedRegions.addSub(x2)
-    y1 = InputData.parameterInputFactory("y1", contentType=InputTypes.IntegerType,
+    y1 = InputData.parameterInputFactory("y1", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""Y co-ordinate of one of the points that defines the line""")
     ConstrainedRegions.addSub(y1)
-    y2 = InputData.parameterInputFactory("y2", contentType=InputTypes.IntegerType,
+    y2 = InputData.parameterInputFactory("y2", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""Y co-ordinate of the other point that defines the line""")
     ConstrainedRegions.addSub(y2)
-    h = InputData.parameterInputFactory("h", contentType=InputTypes.IntegerType,
+    h = InputData.parameterInputFactory("h", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""X coordinate of the vertex of the parabola we want to be constrained""")
     ConstrainedRegions.addSub(h)
-    k = InputData.parameterInputFactory("k", contentType=InputTypes.IntegerType,
+    k = InputData.parameterInputFactory("k", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r""" Y coordinate of the vertex of the parabola we want to be constrained""")
     ConstrainedRegions.addSub(k)
-    a = InputData.parameterInputFactory("a", contentType=InputTypes.IntegerType,
+    a = InputData.parameterInputFactory("a", contentType=InputTypes.FloatType,
                                                            printPriority=108,
                                                            descr=r"""X coordinate of the focus of the parabola""")
     ConstrainedRegions.addSub(a)
-    xyCoords = InputData.parameterInputFactory("xyCoords", contentType=InputTypes.IntegerListType,
+    xyCoords = InputData.parameterInputFactory("xyCoords", contentType=InputTypes.FloatListType,
                                                            printPriority=108,
                                                            descr=r"""an array consisting of tuples for (x,y) coordinates of points of the Polygon where N = No. of sides of the polygon""")
     ConstrainedRegions.addSub(xyCoords)
@@ -244,33 +244,34 @@ class SparseSensing(PostProcessorReadyInterface):
       self.sensingStateVariable = child.findFirst('measuredState').value  ## This is Field
       if self.sparseSensingGoal == 'classification':
         self.sensingLabels = child.findFirst('labels').value
-      if child.findFirst('ConstrainedRegions') is not None:
-        self._ConstrainedRegionsType = child.findFirst('ConstrainedRegions').value.lower()
+      self.ConstrainedRegions = child.findFirst('ConstrainedRegions')
+      if self.ConstrainedRegions is not None:
+        self._ConstrainedRegionsType = self.ConstrainedRegions.parameterValues['type']
         if self._ConstrainedRegionsType == 'Circle':
-          self.centerX = child.findFirst('centerX').value
-          self.centerY = child.findFirst('centerY').value
-          self.radius = child.findFirst('radius').value
-          self.loc = child.findFirst('loc').value
+          self.centerX = self.ConstrainedRegions.findFirst('centerX').value
+          self.centerY = self.ConstrainedRegions.findFirst('centerY').value
+          self.radius = self.ConstrainedRegions.findFirst('radius').value
+          self.loc = self.ConstrainedRegions.findFirst('loc').value
         elif self._ConstrainedRegionsType == 'Ellipse':
-          self.centerX = child.findFirst('centerX').value
-          self.centerY = child.findFirst('centerY').value
-          self.width = child.findFirst('width').value
-          self.height = child.findFirst('height').value
-          self.angle = child.findFirst('angle').value
-          self.loc = child.findFirst('loc').value
+          self.centerX = self.ConstrainedRegions.findFirst('centerX').value
+          self.centerY = self.ConstrainedRegions.findFirst('centerY').value
+          self.width = self.ConstrainedRegions.findFirst('width').value
+          self.height = self.ConstrainedRegions.findFirst('height').value
+          self.angle = self.ConstrainedRegions.findFirst('angle').value
+          self.loc = self.ConstrainedRegions.findFirst('loc').value
         elif self._ConstrainedRegionsType == 'Line':
-          self.x1 = child.findFirst('x1').value
-          self.x2 = child.findFirst('x2').value
-          self.y1 = child.findFirst('y1').value
-          self.y2 = child.findFirst('y2').value
+          self.x1 = self.ConstrainedRegions.findFirst('x1').value
+          self.x2 = self.ConstrainedRegions.findFirst('x2').value
+          self.y1 = self.ConstrainedRegions.findFirst('y1').value
+          self.y2 = self.ConstrainedRegions.findFirst('y2').value
         elif self._ConstrainedRegionsType == 'Parabola':
-          self.h = child.findFirst('h').value
-          self.k = child.findFirst('k').value
-          self.a = child.findFirst('a').value
-          self.loc = child.findFirst('loc').value
+          self.h = self.ConstrainedRegions.findFirst('h').value
+          self.k = self.ConstrainedRegions.findFirst('k').value
+          self.a = self.ConstrainedRegions.findFirst('a').value
+          self.loc = self.ConstrainedRegions.findFirst('loc').value
         elif self._ConstrainedRegionsType == 'Polygon':
-          self.loc = child.findFirst('loc').value
-          self.xyCoords = child.findFirst('xyCoords').value
+          self.loc = self.ConstrainedRegions.findFirst('loc').value
+          self.xyCoords = self.ConstrainedRegions.findFirst('xyCoords').value
         # elif self._ConstrainedRregionType.lower() == 'UserDefinedConstraint'
       else:
         self.ConstrainedRegions = None
@@ -308,7 +309,6 @@ class SparseSensing(PostProcessorReadyInterface):
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
     _, _, inputDS = inputIn['Data'][0]
-
     ## identify features
     self.features = self.sensingFeatures
     # don't keep the pivot parameter in the feature space
@@ -322,77 +322,64 @@ class SparseSensing(PostProcessorReadyInterface):
       basis=ps.basis.RandomProjection(n_basis_modes=self.nModes)
     else:
       self.raiseAnError(IOError, 'basis are not recognized')
-
-    if self.sparseSensingGoal == 'reconstruction':
-      if self.optimizer.lower() == 'qr':
-        optimizer = ps.optimizers.QR()
-      ## TODO: Add GQR for constrained optimization
-      elif self.optimizer.lower() == 'gqr':
-        optimizer = ps.optimizers.GQR()
-      ## TODO: Add CCQR for cost constrained optimization
-      elif self.optimizer.lower() == 'ccqr':
-        optimizer = ps.optimizer.CCQR()
-      else:
-        self.raiseAnError(IOError, 'optimizer {} not implemented!!!'.format(self.optimizer))
-    elif  self.sparseSensingGoal == 'classification':
-      if self.classifier == None or self.classifier.lower() == 'lda':
-        classifier = ps.classification._sspoc.LinearDiscriminantAnalysis()
-      else:
-        self.raiseAnError(IOError, 'classifier is not recognized!. Currently, only LDA classifier is implemented')
-    else:
-      self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals')
-    ### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
-    data = inputDS[self.sensingStateVariable].data
-    allSensors = range(0, data.shape[1]) ## Data must be [n_samples, n_features]
-    if self._ConstrainedRegionsType == 'circle':
-      circle = ps.utils._constraints.Circle(center_x = self.centerX, center_y = self.centerY, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-      idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionsType == 'ellipse':
-      ellipse = ps.utils._constraints.Ellipse(center_x = self.centerX, center_y = self.centerY, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-      idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionsType == 'line':
-      line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-      idxConstrained, rank = line.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionsType == 'parabola':
-      parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-      idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=data)
-    if self._ConstrainedRegionsType == 'polygon':
-      polygon = ps.utils._constraints.Polygon( xy_coords = self.xyCoords,data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-      idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=data)
-    # reconstruction, binary classification, multiclass classification or anomaly detection
-    if self.sparseSensingGoal == 'reconstruction':
-      if self.optimizer == 'GQR':
-        optimizer_kwargs = {'idx_constrained': idxConstrained, 'n_sensors': self.n_sensors, 'n_const_sensors': self.n_const_sensors,'all_sensors': self.all_sensors, 'constraint_option': self.constraint_option}
-      model = ps.SSPOR(basis=basis, n_sensors=self.nSensors, optimizer=optimizer)
-    else:
-      model = ps.SSPOC(basis=basis, n_sensors=self.nSensors, classifier=classifier)
     features = {}
     for var in self.sensingFeatures:
       features[var] = np.atleast_1d(inputDS[var].data)
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
-    ##TODO ##FIXME
-    if self.sparseSensingGoal == 'classification':
-      ## TODO: maybe add another variable called state variable to distinguish between target or label,
-      # (target is temperature and label is whatever label like 'P_T', or '<T*' '>T*')
-      # Other option is to keep label as the target and add another variable call it state variable, in the classification state will be different than target
-      # Also for LDA we have to error out if number of classes is not less than number of samples
-      labels = inputDS[self.sensingLabels].data[:,0]
-    ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
+    data = inputDS[self.sensingStateVariable].data
     assert np.shape(data) == (nSamples,nfeatures)
-    if self.seed is not None and self.sparseSensingGoal == 'reconstruction':
-      if self.optimizer == 'QR':
-        model.fit(data, seed=self.seed)
-      elif self.optimizer == 'GQR':
-        model.fit(data, seed=self.seed, **optimizer_kwargs)
-    elif self.sparseSensingGoal == 'reconstruction':
-      if self.optimizer == 'QR':
-        model.fit(data)
-      elif self.optimizer == 'GQR':
-        model.fit(data, **optimizer_kwargs)
+    allSensors = np.array(range(0, data.shape[1])) ## Data must be [n_samples, n_features]
+    if self.sparseSensingGoal == 'reconstruction':
+      if self.optimizer == 'GQR':
+        if self._ConstrainedRegionsType == 'Circle':   ### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
+          circle = ps.utils._constraints.Circle(center_x = self.centerX, center_y = self.centerY, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          print(circle)
+          idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)
+        elif self._ConstrainedRegionsType == 'Ellipse':
+          ellipse = ps.utils._constraints.Ellipse(center_x = self.centerX, center_y = self.centerY, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=data)
+        elif self._ConstrainedRegionsType == 'Line':
+          line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = line.get_constraint_indices(all_sensors = allSensors, info=data)
+        elif self._ConstrainedRegionsType == 'Parabola':
+          parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=data)
+        elif self._ConstrainedRegionsType == 'Polygon':
+          polygon = ps.utils._constraints.Polygon( xy_coords = self.xyCoords,data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=data)
+        else: 
+          self.raiseAnError(IOError, 'Shape is not recognized!. Currently, only Circle, Line, Polygon, Parabola, Ellipse constraint regions are implemented')
+    # reconstruction, binary classification, multiclass classification or anomaly detection
+        optimizer_kwargs = {'idx_constrained': idxConstrained, 'n_sensors': self.n_sensors, 'n_const_sensors': self.n_const_sensors,'all_sensors': self.all_sensors, 'constraint_option': self.constraint_option}
+        optimizer = ps.optimizers.GQR()
+        if self.seed is not None:
+          model.fit(data, seed=self.seed, **optimizer_kwargs)
+        else:
+          model.fit(data, **optimizer_kwargs)
+
+      elif self.optimizer == 'QR':
+        optimizer = ps.optimizers.QR()
+        model = ps.SSPOR(basis=basis, n_sensors=self.nSensors, optimizer=optimizer)
+        if self.seed is not None:
+          model.fit(data, seed=self.seed)
+        else:
+          model.fit(data)
+
+      else:
+        self.raiseAnError(IOError, 'optimizer {} not implemented!!!'.format(self.optimizer))
+
     elif self.sparseSensingGoal == 'classification':
-      model.fit(data,y=labels)
+      labels = inputDS[self.sensingLabels].data[:,0]
+      if self.classifier == None or self.classifier.lower() == 'lda':
+        classifier = ps.classification._sspoc.LinearDiscriminantAnalysis()
+        model.fit(data,y=labels)
+      else:
+        self.raiseAnError(IOError, 'classifier is not recognized!. Currently, only LDA classifier is implemented')
+      
     else:
-      raise NotImplementedError('Goal has to be either reconstruction or classification')
+      self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals')
+      model = ps.SSPOC(basis=basis, n_sensors=self.nSensors, classifier=classifier)
+    
     selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
