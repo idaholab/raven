@@ -214,8 +214,6 @@ class SparseSensing(PostProcessorReadyInterface):
     self.a = None                                            # X coordinate of the focus of the parabola
     self.xyCoords = None                                    # an array consisting of tuples for (x,y) coordinates of points of the Polygon where N = No. of sides of the polygon
 
-
-
   def initialize(self, runInfo, inputs, initDict=None):
     """
       Method to initialize the DataClassifier post-processor.
@@ -234,14 +232,14 @@ class SparseSensing(PostProcessorReadyInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.name = paramInput.parameterValues['name']  ## Figure out field, data, X,Y from features etc..
+    self.name = paramInput.parameterValues['name']## Figure out field, data, X,Y from features etc..
     for child in paramInput.subparts:
       self.sparseSensingGoal = child.parameterValues['subType']
       self.nSensors = child.findFirst('nSensors').value
       self.nModes = child.findFirst('nModes').value
       self.basis = child.findFirst('basis').value
       self.sensingFeatures = child.findFirst('features').value
-      self.sensingStateVariable = child.findFirst('measuredState').value  ## This is Field
+      self.sensingStateVariable = child.findFirst('measuredState').value## This is Field
       if self.sparseSensingGoal == 'classification':
         self.sensingLabels = child.findFirst('labels').value
       self.ConstrainedRegions = child.findFirst('ConstrainedRegions')
@@ -328,10 +326,10 @@ class SparseSensing(PostProcessorReadyInterface):
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingStateVariable].data
     assert np.shape(data) == (nSamples,nfeatures)
-    allSensors = np.array(range(0, data.shape[1])) ## Data must be [n_samples, n_features]
+    allSensors = np.array(range(0, data.shape[1]))## Data must be [n_samples, n_features]
     if self.sparseSensingGoal == 'reconstruction':
       if self.optimizer == 'GQR':
-        if self._ConstrainedRegionsType == 'Circle':   ### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
+        if self._ConstrainedRegionsType == 'Circle':### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
           circle = ps.utils._constraints.Circle(center_x = self.centerX, center_y = self.centerY, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
           idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)
         elif self._ConstrainedRegionsType == 'Ellipse':
