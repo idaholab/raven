@@ -43,6 +43,7 @@ class SimulateData:
     self.data["pin_peaking"] = self.pinPeaking()
     self.data["exposure"] = self.burnupEOC()
     self.data["neutron_leakage"] = self.neutron_leakage()
+    self.data["core_avg_burnup"] = self.core_avg_burnup()
     # self.data["assembly_power"] = self.assemblyPeakingFactors()
     # self.data["fuel_cost"] = self.fuel_cost()
 
@@ -583,6 +584,30 @@ class SimulateData:
       return ValueError("No values returned. Check Simulate File executed correctly")
     else:
       outputDict = {'info_ids':['neutron_leakage'], 'values':[10000*max(leakage_list)]}
+    return outputDict
+
+  def core_avg_burnup(self):
+    """
+      Returns the accumulated average core burnup at EOC.
+      @ In, None
+      @ Out, outputDict, dict, the dictionary containing the read data (None if none found)
+                        {'info_ids':list(of ids of data),
+                          'values': list}
+    """
+    list_ = []
+    outputDict = None
+    for line in self.lines:
+      if "Core Average Exposure" in line:
+        if "EBAR" in line:
+          elems = line.strip().split()
+          spot = elems.index("EBAR")
+          list_.append(float(elems[spot+1]))
+    print(list_)
+    print(list_[-1])
+    if not list_:
+      return ValueError("No values returned. Check Simulate file executed correctly.")
+    else:
+      outputDict = {'info_ids':['core_avg_exp'], 'values': [list_[-1]]}
     return outputDict
 
   def writeCSV(self, fileout):
