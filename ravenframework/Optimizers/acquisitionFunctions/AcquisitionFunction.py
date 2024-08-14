@@ -19,7 +19,7 @@
 
 # External Modules
 import scipy.optimize as sciopt
-from smt.sampling_methods import LHS
+from pyDOE3 import lhs
 import numpy as np
 import numdifftools as nd
 import copy
@@ -150,10 +150,9 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       # NOTE one of our seeds will always come from the current recommended solution (best point)
       samplingCount = self._seedingCount - 1
       if samplingCount <= 1:
-        sampler = LHS(xlimits=limits, criterion='center', random_state=bayesianOptimizer._seed)
+        initSamples = lhs(limits.shape[0], samples=samplingCount, criterion='center', random_state=bayesianOptimizer._seed)
       else:
-        sampler = LHS(xlimits=limits, criterion='cm', random_state=bayesianOptimizer._seed)
-      initSamples = sampler(samplingCount)
+        initSamples = lhs(limits.shape[0], samples=samplingCount, criterion='cm', random_state=bayesianOptimizer._seed)
       best = bayesianOptimizer._optPointHistory[0][-1][0]
       # Need to convert 'best point' and add to init array
       tempArray = np.empty((1,self._dim))
@@ -191,8 +190,7 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     funGrad = nd.Gradient(evalMethod, step=0.0001, order=4)
     diffVector = np.empty(nSamples)
     limits = np.array(self._bounds)
-    sampler = LHS(xlimits=limits, criterion='cm', random_state=42)
-    initSamples = sampler(nSamples)
+    initSamples = lhs(limits.shape[0], samples=nSamples, criterion='cm', random_state=42)
     for i in range(nSamples):
       xI = initSamples[i,:]
       analytic = self.gradient(xI, bayesianOptimizer)[0]

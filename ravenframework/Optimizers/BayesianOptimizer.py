@@ -19,7 +19,7 @@
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
-from smt.sampling_methods import LHS
+from pyDOE3 import lhs
 import scipy.optimize as sciopt
 #External Modules End--------------------------------------------------------------------------------
 
@@ -524,9 +524,8 @@ class BayesianOptimizer(RavenSampled):
       for bound in hyperParam.bounds:
         paramBounds.append(tuple(np.log(bound)))
 
-    # Restart locations include current parameter values
-    sampler = LHS(xlimits=np.array(paramBounds), criterion='cm', random_state=self._seed)
-    initSamples = sampler(restartCount-1)
+    _paramBounds = np.array(paramBounds)
+    initSamples = lhs(_paramBounds.shape[0], samples=restartCount-1, criterion='cm', random_state=self._seed)
     currentTheta = np.array([self._model.supervisedContainer[0].model.kernel.theta])
     initSamples = np.concatenate((initSamples, currentTheta))
     # Selecting MAP for each restart
