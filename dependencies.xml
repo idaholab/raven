@@ -70,7 +70,6 @@ Note all install methods after "main" take
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
-    <smt machine='x86_64'/> <!-- not available on macos arm64 -->
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <statsforecast/>
