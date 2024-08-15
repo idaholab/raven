@@ -26,7 +26,7 @@ from ...utils import InputData, InputTypes
 
 class SparseSensing(PostProcessorReadyInterface):
   """
-    This Postprocessor class finds the optimal locations of sparse sensors for both classification and reconstruction problems.
+    This Postprocessor class finds the optimal locations of sparse sensors for both classification and reconstruction problems in the presence of constrained locations for sensing.
     The implemention utilizes the opensource library pysensors and is based on following publications:
     - Brunton, Bingni W., et al. "Sparse sensor placement optimization for classification." SIAM Journal on Applied Mathematics 76.5 (2016): 2099-2122.
     - Manohar, Krithika, et al. "Data-driven sparse sensor placement for reconstruction: Demonstrating the benefits of exploiting known patterns." IEEE Control Systems Magazine 38.3 (2018): 63-86.
