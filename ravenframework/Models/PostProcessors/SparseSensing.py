@@ -17,6 +17,7 @@
              Niharika Karnik (@nkarnik)
 '''
 import pysensors as ps
+import pandas as pd
 import numpy as np
 import xarray as xr
 
@@ -324,31 +325,36 @@ class SparseSensing(PostProcessorReadyInterface):
     for var in self.sensingFeatures:
       features[var] = np.atleast_1d(inputDS[var].data)
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
+    dataframe = inputDS.to_dataframe()
+    dataframe = dataframe.loc[0]
+    dataframe = dataframe.reset_index()
+    dataframe = dataframe.drop('index', axis=1)
     data = inputDS[self.sensingStateVariable].data
     assert np.shape(data) == (nSamples,nfeatures)
     allSensors = np.array(range(0, data.shape[1]))## Data must be [n_samples, n_features]
     if self.sparseSensingGoal == 'reconstruction':
       if self.optimizer == 'GQR':
         if self._ConstrainedRegionsType == 'Circle':### As of now : Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] as of now dependent on order of input from the user (Can be better/need to fix)
-          circle = ps.utils._constraints.Circle(center_x = self.centerX, center_y = self.centerY, radius = self.radius, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-          idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=data)
+          circle = ps.utils._constraints.Circle(center_x = self.centerX, center_y = self.centerY, radius = self.radius, loc = self.loc, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         elif self._ConstrainedRegionsType == 'Ellipse':
-          ellipse = ps.utils._constraints.Ellipse(center_x = self.centerX, center_y = self.centerY, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-          idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=data)
+          ellipse = ps.utils._constraints.Ellipse(center_x = self.centerX, center_y = self.centerY, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         elif self._ConstrainedRegionsType == 'Line':
-          line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-          idxConstrained, rank = line.get_constraint_indices(all_sensors = allSensors, info=data)
+          line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = line.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         elif self._ConstrainedRegionsType == 'Parabola':
-          parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-          idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=data)
+          parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         elif self._ConstrainedRegionsType == 'Polygon':
-          polygon = ps.utils._constraints.Polygon( xy_coords = self.xyCoords,data = data, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
-          idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=data)
+          polygon = ps.utils._constraints.Polygon( xy_coords = self.xyCoords,data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         else:
           self.raiseAnError(IOError, 'Shape is not recognized!. Currently, only Circle, Line, Polygon, Parabola, Ellipse constraint regions are implemented')
     # reconstruction, binary classification, multiclass classification or anomaly detection
-        optimizer_kwargs = {'idx_constrained': idxConstrained, 'n_sensors': self.n_sensors, 'n_const_sensors': self.n_const_sensors,'all_sensors': self.all_sensors, 'constraint_option': self.constraint_option}
+        optimizer_kwargs = {'idx_constrained': idxConstrained, 'n_sensors': self.nSensors, 'n_const_sensors': self.nConstSensors,'all_sensors': allSensors, 'constraint_option': self.constraintOption}
         optimizer = ps.optimizers.GQR()
+        model = ps.SSPOR(basis = basis, optimizer = optimizer, n_sensors = self.nSensors)
         if self.seed is not None:
           model.fit(data, seed=self.seed, **optimizer_kwargs)
         else:
@@ -369,13 +375,14 @@ class SparseSensing(PostProcessorReadyInterface):
       labels = inputDS[self.sensingLabels].data[:,0]
       if self.classifier == None or self.classifier.lower() == 'lda':
         classifier = ps.classification._sspoc.LinearDiscriminantAnalysis()
+        model = ps.SSPOC(basis=basis, n_sensors=self.nSensors, classifier=classifier)
         model.fit(data,y=labels)
       else:
         self.raiseAnError(IOError, 'classifier is not recognized!. Currently, only LDA classifier is implemented')
 
     else:
       self.raiseAnError(IOError, 'Goal is not recognized!. Currently, only regression and classification are the accepted goals')
-      model = ps.SSPOC(basis=basis, n_sensors=self.nSensors, classifier=classifier)
+
 
     selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
