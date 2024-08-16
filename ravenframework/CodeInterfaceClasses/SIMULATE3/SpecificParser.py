@@ -232,24 +232,94 @@ def findLabel(faID,faDict,quad):
     Get type of FA ID
     @ In, faID, int/str, the id for FA
     @ In, faDict, list, list of FA xml input attributes
-    @ Out, faType, list, list of FA types
+    @ Out, faLabel, list, list of FA labels
   """
   faLabel = [id[f'type{quad}'] for id in faDict if id['FAid']==str(faID)][0]
+  if not faLabel:
+    return ValueError("Make sure labels are ordered.")
+  else:
+    faLabel = faLabel
   return faLabel
 
 def quadrant_search(row, col, map_length):
+  """
+    Get quadrant in quarter symmetry.
+    @ In, row, of the FA evaluated
+    @ In, col, of the FA evaluated
+    @ Out, quad, quadrant in which the FA is located
+  """
 	# print(map_length)
-	if row > (map_length // 2) and col > (map_length // 2 - 1):
-		quad = 1
-	elif row > (map_length // 2 - 1) and col < (map_length // 2):
-		quad = 2
-	elif row < (map_length // 2) and col < (map_length // 2 + 1):
-		quad = 3
-	elif row < (map_length // 2 + 1) and col > (map_length // 2):
-		quad = 4
-	else:
-		quad = 1
-	return quad
+  if row > (map_length // 2) and col > (map_length // 2 - 1):
+  	quad = 1
+  elif row > (map_length // 2 - 1) and col < (map_length // 2):
+  	quad = 2
+  elif row < (map_length // 2) and col < (map_length // 2 + 1):
+  	quad = 3
+  elif row < (map_length // 2 + 1) and col > (map_length // 2):
+  	quad = 4
+  else:
+  	quad = 1
+  return quad
+
+def octant_search(row, col, map_length):
+  """
+    Get octant in octant symmetry.
+    @ In, row, of the FA evaluated
+    @ In, col, of the FA evaluated
+    @ Out, oct, quadrant in which the FA is located
+  """
+  # print(map_length)
+  x = col - map_length // 2
+  # print(x)
+  y = map_length // 2 - row
+  # print(y)
+  oct = 0
+  diff = (abs(x) - abs(y))
+  if x > 0:
+  	if y < 0:
+  		if diff < 0:
+  			oct = 1
+  		elif diff > 0:
+  			oct = 8
+  	elif y > 0:
+  		if diff > 0:
+  			oct = 7
+  		elif diff < 0:
+  			oct = 6
+  elif x < 0:
+  	if y < 0:
+  		if diff < 0:
+  			oct = 2
+  		elif diff > 0:
+  			oct = 3
+  	elif y > 0:
+  		if diff > 0:
+  			oct = 4
+  		elif diff < 0:
+  			oct = 5
+  # To check vertical and horizontal centerlines
+  if x == 0:
+  	if y < 0:
+  		oct = 1
+  	else:
+  		oct = 3
+  elif y == 0:
+  	if x < 0:
+  		oct = 2
+  	else:
+  		oct = 4
+  # To check for the diagonals
+  if diff == 0:
+  	if x > 0 and y < 0:
+  		oct = 1
+  	elif x < 0 and y < 0:
+  		oct = 2
+  	elif x < 0 and y > 0:
+  		oct = 3
+  	elif x > 0 and y > 0:
+  		oct = 4
+
+  return oct
 
 def getShufflingScheme(parameter, locationList):
   """
@@ -258,13 +328,14 @@ def getShufflingScheme(parameter, locationList):
     @ In, locationList, list, Location list from PerturbedPaser class
     @ Out, shufflingScheme, str, Shuffling Scheme
   """ 
-  maxType = max([id['type1'] for id in parameter.faDict])
-  numberSpaces = len(str(maxType)) + 3
+  maxLabel = max([len(id['type1']) for id in parameter.faDict])
+  numberSpaces = maxLabel + 3
   problemMap = getCoreMap(parameter.mapSize, parameter.symmetry,
                            parameter.numberAssemblies, parameter.reflectorFlag)
   rowCount = 1
   shufflingScheme = ""
   faDict = parameter.faDict
+  Quarter_symmetries = ("QUARTER_ROTATIONAL","QUARTER_MIRROR")
   # print(faDict)
   for row in range(25):    #max core 25x25
     if row in problemMap:
@@ -278,10 +349,14 @@ def getShufflingScheme(parameter, locationList):
             if isinstance(problemMap[row][col], int):
               geneNumber = problemMap[row][col]
               gene = locationList[geneNumber]
-              if parameter.symmetry == 'quarter_rotational':
+              # if parameter.symmetry == 'quarter_rotational':
+              if parameter.symmetry.upper() in Quarter_symmetries:
                 # print("quarter_rotational")
                 quad = quadrant_search(row, col, len(problemMap))
                 value = findLabel(gene, faDict, quad)
+              elif parameter.symmetry.upper() == 'OCTANT':
+                oct = octant_search(row, col, len(problemMap))
+                value = findLabel(gene, faDict, oct)
               else:
                 value = findType(gene,faDict)
               str_ = f"{value}"
@@ -291,13 +366,17 @@ def getShufflingScheme(parameter, locationList):
           else:
             geneNumber = problemMap[row][col]
             gene = locationList[geneNumber]
-            if parameter.symmetry == 'quarter_rotational':
+            # if parameter.symmetry == 'quarter_rotational':
+            if parameter.symmetry.upper() in Quarter_symmetries:
               # print("Quarter_rotational")
               # print(f"This is the map length {len(problemMap)}")
               quad = quadrant_search(row, col, len(problemMap))
               # print(f"This is the current quadrant {quad}")
               value = findLabel(gene, faDict, quad)
               # print(f"This is the value: {value}")
+            elif parameter.symmetry.upper() == 'OCTANT':
+              oct = octant_search(row, col, len(problemMap))
+              value = findLabel(gene, faDict, oct)
             else:
               value = findType(gene,faDict)
             str_ = f"{value}"
@@ -366,20 +445,20 @@ coreMaps['FULL']['OCTANT'][157]['WITH_REFLECTOR'] = { 0:{0:None,1:None,2:None,3:
                                                       15:{0:None,1:None,2:None,3:None,4:31  ,5:30,  6:29,7:28,8:27,9:28,10:29,11:30,  12:31,  13:None,14:None, 15:None,16:None},
                                                       16:{0:None,1:None,2:None,3:None,4:None,5:None,6:34,7:33,8:32,9:33,10:34,11:None,12:None,13:None,14:None, 15:None,16:None}}
 coreMaps['FULL']['OCTANT'][157]['WITHOUT_REFLECTOR'] = { 0:{0:None,1:None,2:None,3:None,4:None,5:None,6:25,7:24,8:25,9:None,10:None,11:None,12:None,13:None,14:None},
-                                                          1:{0:None,1:None,2:None,3:None,4:23,  5:22,  6:21,7:20,8:21,9:22,  10:23,  11:None,12:None,13:None,14:None},
-                                                          2:{0:None,1:None,2:None,3:19,  4:18,  5:17,  6:16,7:15,8:16,9:17,  10:18,  11:19,  12:None,13:None,14:None},
-                                                          3:{0:None,1:None,2:19,  3:14,  4:13,  5:12,  6:11,7:10,8:11,9:12,  10:13,  11:14,  12:19,  13:None,14:None},
-                                                          4:{0:None,1:23,  2:18,  3:13,  4:9,   5:8,   6:7, 7:6, 8:7, 9:8,   10:9,   11:13,  12:18,  13:23,  14:None},
-                                                          5:{0:None,1:22,  2:17,  3:12,  4:8,   5:5,   6:4, 7:3, 8:4, 9:5,   10:8,   11:12,  12:17,  13:22,  14:None},
-                                                          6:{0:25,  1:21,  2:16,  3:11,  4:7,   5:4,   6:2, 7:1, 8:2, 9:4,   10:7,   11:11,  12:16,  13:21,  14:25},
-                                                          7:{0:24,  1:20,  2:15,  3:10,  4:6,   5:3,   6:1, 7:0, 8:1, 9:3,   10:6,   11:10,  12:15,  13:20,  14:24},
-                                                          8:{0:25,  1:21,  2:16,  3:11,  4:7,   5:4,   6:2, 7:1, 8:2, 9:4,   10:7,   11:11,  12:16,  13:21,  14:25},
-                                                          9:{0:None,1:22,  2:17,  3:12,  4:8,   5:5,   6:4, 7:3, 8:4, 9:5,   10:8,   11:12,  12:17,  13:22,  14:None},
-                                                         10:{0:None,1:23,  2:18,  3:13,  4:9,   5:8,   6:7, 7:6, 8:7,9:8,    10:9 ,  11:13,  12:18,  13:23,  14:None},
-                                                         11:{0:None,1:None,2:19,  3:14,  4:13,  5:12,  6:11,7:10,8:11,9:12,  10:13,  11:14,  12:19,  13:None,14:None},
-                                                         12:{0:None,1:None,2:None,3:19,  4:18,  5:17,  6:16,7:15,8:16,9:17,  10:18,  11:19,  12:None,13:None,14:None},
-                                                         13:{0:None,1:None,2:None,3:None,4:23,  5:22,  6:21,7:20,8:21,9:22,  10:23,  11:None,12:None,13:None,14:None},
-                                                         14:{0:None,1:None,2:None,3:None,4:None,5:None,6:25,7:24,8:25,9:None,10:None,11:None,12:None,13:None,14:None}}
+                                                         1:{0:None,1:None,2:None,3:None,4:23,  5:22,  6:21,7:20,8:21,9:22,  10:23,  11:None,12:None,13:None,14:None},
+                                                         2:{0:None,1:None,2:None,3:19,  4:18,  5:17,  6:16,7:15,8:16,9:17,  10:18,  11:19,  12:None,13:None,14:None},
+                                                         3:{0:None,1:None,2:19,  3:14,  4:13,  5:12,  6:11,7:10,8:11,9:12,  10:13,  11:14,  12:19,  13:None,14:None},
+                                                         4:{0:None,1:23,  2:18,  3:13,  4:9,   5:8,   6:7, 7:6, 8:7, 9:8,   10:9,   11:13,  12:18,  13:23,  14:None},
+                                                         5:{0:None,1:22,  2:17,  3:12,  4:8,   5:5,   6:4, 7:3, 8:4, 9:5,   10:8,   11:12,  12:17,  13:22,  14:None},
+                                                         6:{0:25,  1:21,  2:16,  3:11,  4:7,   5:4,   6:2, 7:1, 8:2, 9:4,   10:7,   11:11,  12:16,  13:21,  14:25},
+                                                         7:{0:24,  1:20,  2:15,  3:10,  4:6,   5:3,   6:1, 7:0, 8:1, 9:3,   10:6,   11:10,  12:15,  13:20,  14:24},
+                                                         8:{0:25,  1:21,  2:16,  3:11,  4:7,   5:4,   6:2, 7:1, 8:2, 9:4,   10:7,   11:11,  12:16,  13:21,  14:25},
+                                                         9:{0:None,1:22,  2:17,  3:12,  4:8,   5:5,   6:4, 7:3, 8:4, 9:5,   10:8,   11:12,  12:17,  13:22,  14:None},
+                                                        10:{0:None,1:23,  2:18,  3:13,  4:9,   5:8,   6:7, 7:6, 8:7, 9:8,   10:9 ,  11:13,  12:18,  13:23,  14:None},
+                                                        11:{0:None,1:None,2:19,  3:14,  4:13,  5:12,  6:11,7:10,8:11,9:12,  10:13,  11:14,  12:19,  13:None,14:None},
+                                                        12:{0:None,1:None,2:None,3:19,  4:18,  5:17,  6:16,7:15,8:16,9:17,  10:18,  11:19,  12:None,13:None,14:None},
+                                                        13:{0:None,1:None,2:None,3:None,4:23,  5:22,  6:21,7:20,8:21,9:22,  10:23,  11:None,12:None,13:None,14:None},
+                                                        14:{0:None,1:None,2:None,3:None,4:None,5:None,6:25,7:24,8:25,9:None,10:None,11:None,12:None,13:None,14:None}}
 coreMaps['FULL']['NO_SYMMETRY'] = {}
 coreMaps['FULL']['NO_SYMMETRY'][157] = {}
 coreMaps['FULL']['NO_SYMMETRY'][157]['WITH_REFLECTOR'] = { 0:{0:None,1:None,2:None,3:None,4:None,5:None, 6:0, 7:1, 8:2, 9:3, 10:4, 11:None,12:None,13:None,14:None, 15:None,16:None},
