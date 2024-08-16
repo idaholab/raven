@@ -168,10 +168,14 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""X coordinate of the focus of the parabola""")
     ConstrainedRegions.addSub(a)
-    xyCoords = InputData.parameterInputFactory("xyCoords", contentType=InputTypes.FloatListType,
+    xCoords = InputData.parameterInputFactory("xCoords", contentType=InputTypes.FloatListType,
                                                            printPriority=108,
-                                                           descr=r"""an array consisting of tuples for (x,y) coordinates of points of the Polygon where N = No. of sides of the polygon""")
-    ConstrainedRegions.addSub(xyCoords)
+                                                           descr=r"""an array consisting of x coordinates of points of the Polygon where N = No. of sides of the polygon""")
+    ConstrainedRegions.addSub(xCoords)
+    yCoords = InputData.parameterInputFactory("yCoords", contentType=InputTypes.FloatListType,
+                                                           printPriority=108,
+                                                           descr=r"""an array consisting of y coordinates of points of the Polygon where N = No. of sides of the polygon""")
+    ConstrainedRegions.addSub(yCoords)
     return inputSpecification
 
   def __init__(self):
@@ -213,7 +217,8 @@ class SparseSensing(PostProcessorReadyInterface):
     self.h = None                                            # X coordinate of the vertex of the parabola we want to be constrained
     self.k = None                                            # Y coordinate of the vertex of the parabola we want to be constrained
     self.a = None                                            # X coordinate of the focus of the parabola
-    self.xyCoords = None                                    # an array consisting of tuples for (x,y) coordinates of points of the Polygon where N = No. of sides of the polygon
+    self.xCoords = None                                    # an array consisting of x coordinates of points of the Polygon where N = No. of sides of the polygon
+    self.yCoords = None                                    # an array consisting of y coordinates of points of the Polygon where N = No. of sides of the polygon
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -270,7 +275,8 @@ class SparseSensing(PostProcessorReadyInterface):
           self.loc = self.ConstrainedRegions.findFirst('loc').value
         elif self._ConstrainedRegionsType == 'Polygon':
           self.loc = self.ConstrainedRegions.findFirst('loc').value
-          self.xyCoords = self.ConstrainedRegions.findFirst('xyCoords').value
+          self.xCoords = self.ConstrainedRegions.findFirst('xCoords').value
+          self.yCoords = self.ConstrainedRegions.findFirst('yCoords').value
         # elif self._ConstrainedRregionType.lower() == 'UserDefinedConstraint'
       else:
         self.ConstrainedRegions = None
@@ -347,7 +353,9 @@ class SparseSensing(PostProcessorReadyInterface):
           parabola = ps.utils._constraints.Parabola( h = self.h, k = self.k, a = self.a , loc = self.loc , data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
           idxConstrained, rank = parabola.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         elif self._ConstrainedRegionsType == 'Polygon':
-          polygon = ps.utils._constraints.Polygon( xy_coords = self.xyCoords,data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          xyTuple = [(self.xCoords[i], self.yCoords[i]) for i in range(0, len(self.xCoords))]
+          print(xyTuple)
+          polygon = ps.utils._constraints.Polygon( xy_coords = xyTuple, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
           idxConstrained, rank = polygon.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         else:
           self.raiseAnError(IOError, 'Shape is not recognized!. Currently, only Circle, Line, Polygon, Parabola, Ellipse constraint regions are implemented')

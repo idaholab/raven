@@ -7,8 +7,8 @@
     <classesTested>Models.Postprocessors.SparseSensing</classesTested>
     <description>This test aims to check the ability of the Sparse Sensing Postprocessor
      to locate and plot the selected sensors to reconstruct the temperature field of the OPTI-TWIST prototype
-     when perturbing the heater power in the presence of constraints. We assume a constrained region divided with the help of a line 
-     which can accomodate just 1 sensor. 
+     when perturbing the heater power in the presence of constraints. We assume a constrained region divided with the help of a line
+     which can accomodate just 1 sensor.
     </description>
   </TestInfo>
 
@@ -55,7 +55,7 @@
         <nSensors>4</nSensors>
         <nConstSensors>1</nConstSensors>
         <constraintOption>exact_n</constraintOption>
-        <ConstrainedRegions type = "Line"> 
+        <ConstrainedRegions type = "Line">
           <x1>0</x1>
           <x2>0.05</x2>
           <y1>0.2</y1>

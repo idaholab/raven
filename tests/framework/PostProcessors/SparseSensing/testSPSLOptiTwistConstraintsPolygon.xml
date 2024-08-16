@@ -12,7 +12,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>reconstructionConstraintsOptiTwist</WorkingDir>
+    <WorkingDir>reconstructionConstraintsPolygonOptiTwist</WorkingDir>
     <Sequence>LoadCSV, mySPpp, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -54,8 +54,9 @@
         <nSensors>4</nSensors>
         <nConstSensors>1</nConstSensors>
         <constraintOption>exact_n</constraintOption>
-        <ConstrainedRegions type = "Polygon"> 
-          <xyCoords>(0.01,-0.2),(0.03,-0.3),(0.01,0.2),(0.02,0.3)</xyCoords>
+        <ConstrainedRegions type = "Polygon">
+          <xCoords>0.01,0.03,0.01,0.02</xCoords>
+          <yCoords>-0.2,-0.3,0.2,0.3</yCoords>
           <loc>in</loc>
         </ConstrainedRegions>
         <optimizer>GQR</optimizer>
