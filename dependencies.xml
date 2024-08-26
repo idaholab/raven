@@ -47,7 +47,7 @@ Note all install methods after "main" take
     <netcdf4 source="pip">1.6</netcdf4>
     <matplotlib>3.5</matplotlib>
     <statsmodels>0.13</statsmodels>
-    <cloudpickle>2.2</cloudpickle>
+    <cloudpickle/>
     <tensorflow source="pip">2.13</tensorflow>
     <grpcio source="pip" />
     <!-- conda is really slow on windows if the version is not specified.-->
@@ -65,7 +65,7 @@ Note all install methods after "main" take
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
-    <dask source="pip" pip_extra="[complete]">2024.7.1</dask>
+    <dask source="pip" pip_extra="[complete]"/>
     <ray source="pip" pip_extra="[default]">2.6</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
