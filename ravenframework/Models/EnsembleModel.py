@@ -22,7 +22,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules----------------------------------------------------------------------------------
 import io
 import sys
-import atexit
 import copy
 import numpy as np
 import time
@@ -33,6 +32,7 @@ from ..Decorators.Parallelization import Parallel
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
+from .HybridModels.HybridModelBase import HybridModelBase
 from ..utils import utils, InputData
 from ..utils.graphStructure import evaluateModelsOrder
 from ..Runners import Error as rerror
@@ -140,7 +140,7 @@ class EnsembleModel(Dummy):
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsInputDictionary[modelName].values()) > allowedEntriesLen:
           self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
-        if child.attrib['type'].strip() in ["Code", 'HybridModel', 'LogicalModel']:
+        if child.attrib['type'].strip() in {'Code', 'HybridModel', 'LogicalModel'}:
           self.createWorkingDir = True
       if child.tag == 'settings':
         self.__readSettings(child)
@@ -272,11 +272,10 @@ class EnsembleModel(Dummy):
 
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
-      if modelType in ['HybridModel', 'LogicalModel']:
+      if issubclass(self.modelsDictionary[modelName]['Instance'], HybridModelBase):
         for submodelInst in self.modelsDictionary[modelName]['Instance'].modelInstances.values():
           if not isThereACode:
             isThereACode = submodelInst.type == 'Code'
-
 
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
@@ -575,8 +574,6 @@ class EnsembleModel(Dummy):
       self.localPollingThread = InterruptibleThread(target=self.localJobHandler.startLoop)
       self.localPollingThread.daemon = True
       self.localPollingThread.start()
-      # register function to kill the thread at the end of the execution
-      atexit.register(self.localPollingThread.kill)
     nRuns = 1
     batchMode =  kwargs.get("batchMode", False)
     if batchMode:
@@ -862,3 +859,13 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
+
+  def endStepActions(self):
+    """
+      This method is intended for performing actions (within the EnsembleModel) at the end of a step
+      @ In, None
+      @ Out, None
+    """
+    super().endStepActions()
+    if self.localPollingThread is not None:
+      self.localPollingThread.kill()

@@ -84,7 +84,6 @@ class SERPENT(GenericCode):
       nPoints = preVolumeCalc.attrib.get("nPoints")
       if nPoints is not None:
         self.nVolumePoints = utils.intConversion(utils.floatConversion(nPoints))
-        print(nPoints)
         if self.nVolumePoints is None:
           raise ValueError(self.printTag+' ERROR: "nPoints" attribute in <volumeCalculation> must be present (and integer) if <volumeCalculation> node is inputted')
 

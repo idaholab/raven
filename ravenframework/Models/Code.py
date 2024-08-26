@@ -59,7 +59,7 @@ class Code(Model):
     inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("commandSeparator", contentType=InputTypes.makeEnumType("commandSeparator",
                                                                                                                       "commandSeparatorType",
-                                                                                                                      ["&&","||",";"])))
+                                                                                                                      ["&&","||",";"]), default="&&"))
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 

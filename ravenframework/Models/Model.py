@@ -503,3 +503,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     serializationFiles = set()
     return serializationFiles
 
+  def endStepActions(self):
+    """
+      This method is intended for performing actions (within the Model) at the end of a step
+      Each model can overload the method to perform specific actions
+      @ In, None
+      @ Out, None
+    """
+    pass
+
