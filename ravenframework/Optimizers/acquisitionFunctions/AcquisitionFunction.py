@@ -151,8 +151,10 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       samplingCount = self._seedingCount - 1
       if samplingCount <= 1:
         initSamples = lhs(limits.shape[0], samples=samplingCount, criterion='center', random_state=bayesianOptimizer._seed)
+        initSamples = limits[:,0] + (limits[:,1] - limits[:,0]) * initSamples
       else:
         initSamples = lhs(limits.shape[0], samples=samplingCount, criterion='cm', random_state=bayesianOptimizer._seed)
+        initSamples = limits[:,0] + (limits[:,1] - limits[:,0]) * initSamples
       best = bayesianOptimizer._optPointHistory[0][-1][0]
       # Need to convert 'best point' and add to init array
       tempArray = np.empty((1,self._dim))
@@ -191,6 +193,7 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     diffVector = np.empty(nSamples)
     limits = np.array(self._bounds)
     initSamples = lhs(limits.shape[0], samples=nSamples, criterion='cm', random_state=42)
+    initSamples = limits[:,0] + (limits[:,1] - limits[:,0]) * initSamples
     for i in range(nSamples):
       xI = initSamples[i,:]
       analytic = self.gradient(xI, bayesianOptimizer)[0]
