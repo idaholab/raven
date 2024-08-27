@@ -21,4 +21,4 @@
 	url = https://github.com/idaholab/BayCal.git
 [submodule "plugins/POEM"]
 	path = plugins/POEM
-	url = git@github.com:idaholab/POEM.git
+	url = https://github.com/idaholab/POEM.git
