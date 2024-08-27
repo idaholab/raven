@@ -32,7 +32,6 @@ from ..Decorators.Parallelization import Parallel
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
-from .HybridModels.HybridModelBase import HybridModelBase
 from ..utils import utils, InputData
 from ..utils.graphStructure import evaluateModelsOrder
 from ..Runners import Error as rerror
@@ -140,8 +139,6 @@ class EnsembleModel(Dummy):
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsInputDictionary[modelName].values()) > allowedEntriesLen:
           self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
-        if child.attrib['type'].strip() in {'Code', 'HybridModel', 'LogicalModel'}:
-          self.createWorkingDir = True
       if child.tag == 'settings':
         self.__readSettings(child)
     if len(self.modelsInputDictionary.keys()) < 2:
@@ -248,9 +245,6 @@ class EnsembleModel(Dummy):
     # collect the models
     self.allOutputs = set()
     for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
-      if not isThereACode:
-        isThereACode = modelType == 'Code'
-
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
       for inputName in self.modelsInputDictionary[modelName]['Input']:
@@ -272,10 +266,8 @@ class EnsembleModel(Dummy):
 
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
-      if issubclass(self.modelsDictionary[modelName]['Instance'], HybridModelBase):
-        for submodelInst in self.modelsDictionary[modelName]['Instance'].modelInstances.values():
-          if not isThereACode:
-            isThereACode = submodelInst.type == 'Code'
+      if not isThereACode:
+        isThereACode = self.modelsDictionary[modelName]['Instance'].containsACode
 
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
@@ -302,6 +294,7 @@ class EnsembleModel(Dummy):
     # END loop to collect models
     self.allOutputs = list(self.allOutputs)
     if isThereACode:
+      self.createWorkingDir = True
       # FIXME: LEAVE IT HERE...WE NEED TO MODIFY HOW THE CODE GET RUN INFO...IT NEEDS TO BE ENCAPSULATED
       ## collect some run info
       ## self.runInfoDict = runInfo

@@ -92,6 +92,7 @@ class HybridModelBase(Dummy):
       self.modelInstances.update({modelNode.value: None})
       if not self.createWorkingDir and modelNode.parameterValues['type'] == 'Code':
         self.createWorkingDir = True
+        self._isThereACode = True    # there is a code
 
   def initialize(self,runInfo,inputs,initDict=None):
     """

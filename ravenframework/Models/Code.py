@@ -121,6 +121,7 @@ class Code(Model):
     self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
     self._ravenWorkingDir = None # RAVEN's working dir
     self.commandSeparator = "&&" # command separator
+    self._isThereACode = True    # it is a code
 
   def applyRunInfo(self, runInfo):
     """

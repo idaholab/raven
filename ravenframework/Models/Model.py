@@ -210,7 +210,16 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     self.runQueue = []
     self.printTag = 'MODEL'
     self.createWorkingDir = False
+    self._isThereACode = False
 
+  @property
+  def containsACode(self):
+    """
+     Property to check if this model is either a Code or contains one
+     @ In, None
+     @ Out, self._isThereACode, bool, is there a code?
+    """
+    return self._isThereACode
 
   def _readMoreXML(self,xmlNode):
     """
