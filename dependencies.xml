@@ -38,8 +38,7 @@ Note all install methods after "main" take
 <dependencies>
   <main>
     <h5py/>
-    <numpy>1.22</numpy>
-    <numpy source="pip">1.22</numpy>
+    <numpy>1.24</numpy>
     <scipy>1.9</scipy>
     <scikit-learn>1.0</scikit-learn>
     <pandas/>
