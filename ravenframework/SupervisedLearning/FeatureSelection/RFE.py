@@ -275,10 +275,10 @@ class RFE(FeatureSelectionBase):
     #FIXME 2051
     nParams = len(self.parametersToInclude)
     # support and ranking for features
-    support_ = np.ones(nParams, dtype=np.bool)
+    support_ = np.ones(nParams, dtype=np.bool_)
     featuresForRanking = np.arange(nParams)[support_]
-    ranking_ = np.ones(nParams, dtype=np.int)
-    supportOfSupport_ = np.ones(nFeatures, dtype=np.bool) if self.whichSpace == 'feature' else np.ones(nTargets, dtype=np.bool)
+    ranking_ = np.ones(nParams, dtype=np.int64)
+    supportOfSupport_ = np.ones(nFeatures, dtype=np.bool_) if self.whichSpace == 'feature' else np.ones(nTargets, dtype=np.bool_)
     mask = maskF if self.whichSpace == 'feature' else maskT
     # number of subgroups
     nGroups = max(len(self.subGroups), 1)
