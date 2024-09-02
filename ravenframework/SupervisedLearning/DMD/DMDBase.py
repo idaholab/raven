@@ -31,6 +31,18 @@ from ..SupervisedLearning import SupervisedLearning
 from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
+
+approximationDefaults = {'GPR': {},'RBF': {}}
+# RBF
+approximationDefaults['RBF']['kernel'] = 'multiquadric'
+approximationDefaults['RBF']['smooth'] = 0.
+approximationDefaults['RBF']['neighbors'] = None
+approximationDefaults['RBF']['epsilon'] = 1.
+approximationDefaults['RBF']['degree'] = None
+# GPR
+approximationDefaults['GPR']['n_restarts_optimizer'] = 0
+approximationDefaults['GPR']['normalize_y'] = True
+
 class DMDBase(SupervisedLearning):
   """
     Base Class for DMD-based surrogate models
@@ -138,33 +150,38 @@ class DMDBase(SupervisedLearning):
                                                  \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
                                                  \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
                                                  \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
-                                                 \end{itemize}""", default='multiquadric'))
+                                                 \end{itemize}""", default=approximationDefaults['RBF']['kernel']))
     approximationSettings.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.FloatType,
                                                  descr=r"""RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
                                                  0 is for interpolation (default), the function will always go through the nodal points in this case.
-                                                 """, default=0.))
+                                                 """, default=approximationDefaults['RBF']['smooth']))
     approximationSettings.addSub(InputData.parameterInputFactory("neighbors", contentType=InputTypes.IntegerType,
                                                  descr=r"""RBF number of neighbors. If specified, the value of the interpolant at each
                                                            evaluation point will be computed using only the nearest data points.
-                                                           If None (default), all the data points are used by default.""", default=None))
+                                                           If None (default), all the data points are used by default.""",
+                                                 default=approximationDefaults['RBF']['neighbors']))
     approximationSettings.addSub(InputData.parameterInputFactory("epsilon", contentType=InputTypes.FloatType,
                                                  descr=r"""RBF Shape parameter that scales the input to the RBF.
                                                            If kernel is ``linear'', ‘thin_plate_spline'', ``cubic'', or ``quintic'', this
-                                                           defaults to 1 and can be ignored. Otherwise, this must be specified.""", default=1.))
+                                                           defaults to 1 and can be ignored. Otherwise, this must be specified.""",
+                                                 default=approximationDefaults['RBF']['epsilon']))
     approximationSettings.addSub(InputData.parameterInputFactory("degree", contentType=InputTypes.IntegerType,
                                                  descr=r"""RBF Degree of the added polynomial. The default value is
-                                                           the minimum degree for kernel or 0 if there is no minimum degree.""", default=None))
+                                                           the minimum degree for kernel or 0 if there is no minimum degree.""",
+                                                 default=approximationDefaults['RBF']['degree']))
     #GPR
     approximationSettings.addSub(InputData.parameterInputFactory("n_restarts_optimizer", contentType=InputTypes.IntegerType,
                                                  descr=r"""GPR restart parameter. The number of restarts of the optimizer for finding the
                                                  kernel parameters which maximize the log-marginal likelihood. The first run of the optimizer
                                                  is performed from the kernel’s initial parameters, the remaining ones (if any) from thetas
                                                  sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
-                                                 all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is performed.""", default=0))
+                                                 all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is performed.""",
+                                                 default=approximationDefaults['GPR']['n_restarts_optimizer']))
     approximationSettings.addSub(InputData.parameterInputFactory("normalize_y", contentType=InputTypes.BoolType,
                                                  descr=r"""GPR normalization. Whether or not to normalize the target values y by removing the mean and scaling
                                                  to unit-variance. This is recommended for cases where zero-mean, unit-variance priors are used.
-                                                 Note that, in this implementation, the normalisation is reversed before the GP predictions are reported.""", default=True))
+                                                 Note that, in this implementation, the normalisation is reversed before the GP predictions are reported.""",
+                                                 default=approximationDefaults['GPR']['normalize_y']))
 
     specs.addSub(approximationSettings)
     return specs
@@ -186,23 +203,29 @@ class DMDBase(SupervisedLearning):
     self.settings['reductionMethod'] = settings.get('reductionMethod')
     self.settings['reductionRank'] = settings.get('reductionRank')
     self.settings['approximationMethod'] = settings.get('approximationMethod')
-    approximationSettings = paramInput.find("approximationSettings")
+    approximationSettings = paramInput.findFirst("approximationSettings")
     self.settings['approximationSettings'] = {}
     if self.settings['approximationMethod'] == 'RBF':
-      RBFsettings, RBFnotFound = approximationSettings.findNodesAndExtractValues(['kernel','smooth', 'neighbors', 'epsilon', 'degree'])
-      # RBFnotFound must be empty
-      assert(not RBFnotFound)
-      self.settings['approximationSettings']['kernel'] = settings.get('kernel')
-      self.settings['approximationSettings']['smooth'] = settings.get('smooth')
-      self.settings['approximationSettings']['neighbors'] = settings.get('neighbors')
-      self.settings['approximationSettings']['epsilon'] = settings.get('epsilon')
-      self.settings['approximationSettings']['degree'] = settings.get('degree')
+      if  approximationSettings is not None:
+        RBFsettings, RBFnotFound = approximationSettings.findNodesAndExtractValues(['kernel','smooth', 'neighbors', 'epsilon', 'degree'])
+        # RBFnotFound must be empty
+        assert(not RBFnotFound)
+      else:
+        RBFsettings = approximationDefaults['RBF']
+      self.settings['approximationSettings']['kernel'] = RBFsettings.get('kernel')
+      self.settings['approximationSettings']['smooth'] = RBFsettings.get('smooth')
+      self.settings['approximationSettings']['neighbors'] = RBFsettings.get('neighbors')
+      self.settings['approximationSettings']['epsilon'] = RBFsettings.get('epsilon')
+      self.settings['approximationSettings']['degree'] = RBFsettings.get('degree')
     elif self.settings['approximationMethod'] == 'GPR':
-      GPRsettings, GPRnotFound = approximationSettings.findNodesAndExtractValues(['n_restarts_optimizer','normalize_y'])
-      # GPRnotFound must be empty
-      assert(not GPRnotFound)
-      self.settings['approximationSettings']['n_restarts_optimizer'] = settings.get('n_restarts_optimizer')
-      self.settings['approximationSettings']['normalize_y'] = settings.get('normalize_y')
+      if  approximationSettings is not None:
+        GPRsettings, GPRnotFound = approximationSettings.findNodesAndExtractValues(['n_restarts_optimizer','normalize_y'])
+        # GPRnotFound must be empty
+        assert(not GPRnotFound)
+      else:
+        GPRsettings =  approximationDefaults['GPR']
+      self.settings['approximationSettings']['n_restarts_optimizer'] = GPRsettings.get('n_restarts_optimizer')
+      self.settings['approximationSettings']['normalize_y'] = GPRsettings.get('normalize_y')
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,f"The pivotParameter {self.pivotParameterID} must be part of the Target space!")
     if len(self.target) < 2:
