@@ -15,7 +15,7 @@
   Created on July 21, 2024
 
   @author: Andrea Alfonsi
-  Kernalized Dynamic Mode Decomposition
+  Kernelized Dynamic Mode Decomposition
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -23,9 +23,7 @@ from ...utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-np = importModuleLazy("numpy")
 pydmd = importModuleLazy("pydmd")
-ezyrb = importModuleLazy("ezyrb")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -46,9 +44,6 @@ class EDMD(DMDBase):
       @ Out, None
     """
     super().__init__()
-
-    # local model
-    self._dmdBase = None # {} # CDMD
 
   @classmethod
   def getInputSpecification(cls):
@@ -144,9 +139,6 @@ class EDMD(DMDBase):
     self.dmdParams['kernel_metric'] = settings.get('kernel_metric')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     self.dmdParams['opt'] = settings.get('opt')
-    # for target
-    #for target in  set(self.target) - set(self.pivotID):
-    #  self._dmdBase[target] = EDMD
     self._dmdBase = EDMD
     # intialize the model
     self.initializeModel(settings)

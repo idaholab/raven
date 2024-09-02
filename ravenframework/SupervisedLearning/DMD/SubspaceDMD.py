@@ -23,9 +23,7 @@ from ...utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-np = importModuleLazy("numpy")
 pydmd = importModuleLazy("pydmd")
-ezyrb = importModuleLazy("ezyrb")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -46,8 +44,6 @@ class SubspaceDMD(DMDBase):
       @ Out, None
     """
     super().__init__()
-    # local model
-    self._dmdBase = None # {} # SubspaceDMD
 
   @classmethod
   def getInputSpecification(cls):

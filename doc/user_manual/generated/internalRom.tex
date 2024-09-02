@@ -3841,7 +3841,7 @@ Example to export the coefficients of trained PolyExponential ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -3867,6 +3867,75 @@ Example to export the coefficients of trained PolyExponential ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -4201,10 +4270,142 @@ Example to export the coefficients of trained DMD ROM:
             either ``input'' or ``output''.
       \end{itemize}
 
+    \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      Whether this instance should be light or not. A light instance uses
+      less memory since it caches a smaller number of resources.
+  \default{False}
+
     \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
       defines the pivot variable (e.g., time) that represents the
       independent monotonic variable
   \default{time}
+
+    \item \xmlNode{reductionMethod}: \xmlDesc{[svd, correlation\_matrix, randomized\_svd]}, 
+      the type of method used for the dimensionality reduction.Available are:
+      \begin{itemize}                                                     \item \textit{svd}, single
+      value decomposition                                                     \item \textit{svd},
+      randomized single value decomposition
+      \item \textit{correlation\_matrix}, correlation-based reduction.
+      \end{itemize}
+  \default{svd}
+
+    \item \xmlNode{reductionRank}: \xmlDesc{integer}, 
+      defines the truncation rank to be used for the reduction method.
+      Available options are:                                                  \begin{itemize}
+      \item \textit{-1}, no truncation is performed
+      \item \textit{0}, optimal rank is internally computed
+      \item \textit{$>1$}, this rank is going to be used for the truncation
+      \end{itemize}
+  \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
+
+    \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
+      defines the truncation rank to be used for the SVD.
+      Available options are:                                                  \begin{itemize}
+      \item \textit{-1}, no truncation is performed
+      \item \textit{0}, optimal rank is internally computed
+      \item \textit{$>1$}, this rank is going to be used for the truncation
+      \end{itemize}                                                  If $0.0 < svd\_rank < 1.0$,
+      this parameter represents the energy level.The value is used to compute the rank such
+      as computed rank is the number of the biggest singular values needed to reach the energy
+      identified by                                                    \xmlNode{svd\_rank}.
+  \default{0}
+
+    \item \xmlNode{tlsq\_rank}: \xmlDesc{integer}, 
+      $int > 0$ that defines the truncation rank to be used for the total
+      least square problem. If not inputted, no truncation is applied
+  \default{None}
+
+    \item \xmlNode{exact}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      True if the exact modes need to be computed (eigenvalues and
+      eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).
+  \default{True}
+
+    \item \xmlNode{forward\_backward}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      If True, the low-rank operator is computed like in fbDMD (reference:
+      https://arxiv.org/abs/1507.02264).                                                  Default is
+      False.
+  \default{False}
+
+    \item \xmlNode{tikhonov\_regularization}: \xmlDesc{float or integer}, 
+      Tikhonov parameter for the regularization.                                                  If
+      `None`, no regularization is applied, if `float`, it is used as the
+      $`\lambda`$ tikhonov parameter.
+  \default{None}
+
+    \item \xmlNode{opt}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+      True if the amplitudes need to be computed minimizing the error
+      between the modes and all the time-steps or False, if only the 1st timestep only needs to be
+      considered
+  \default{False}
 
     \item \xmlNode{rankSVD}: \xmlDesc{integer}, 
       defines the truncation rank to be used for the SVD.
@@ -4570,7 +4771,7 @@ Example to export the coefficients of trained DMDC ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -4596,6 +4797,75 @@ Example to export the coefficients of trained DMDC ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -4956,7 +5226,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -4982,6 +5252,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -5332,7 +5671,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -5358,6 +5697,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -5703,7 +6111,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -5729,6 +6137,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -6049,7 +6526,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -6075,6 +6552,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -6402,7 +6948,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -6428,6 +6974,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -6772,7 +7387,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -6798,6 +7413,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -7123,7 +7807,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -7149,6 +7833,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -7507,7 +8260,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -7533,6 +8286,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -7578,7 +8400,7 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{tikhonov\_regularization}: \xmlDesc{float}, 
       Tikhonov parameter for the regularization.                                                  If
       `None`, no regularization is applied, if `float`, it is used as the
-      $`\lambda`$ tikhonov parameter.
+      :math:`\lambda` tikhonov parameter.
   \default{None}
 
     \item \xmlNode{seed}: \xmlDesc{integer}, 
@@ -7890,7 +8712,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -7916,6 +8738,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -8281,7 +9172,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -8307,6 +9198,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{integer}, 
       defines the truncation rank to be used for the SVD.
@@ -8609,7 +9569,7 @@ Example to export the coefficients of trained DMD ROM:
       \end{itemize}
 
     \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
+      Whether this instance should be light or not. A light instance uses
       less memory since it caches a smaller number of resources.
   \default{False}
 
@@ -8635,6 +9595,75 @@ Example to export the coefficients of trained DMD ROM:
       \item \textit{$>1$}, this rank is going to be used for the truncation
       \end{itemize}
   \default{0}
+
+    \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
+      the type of method used for the interpolation of the parameter space.Available are:
+      \begin{itemize}                                                     \item \textit{RBF},
+      Radial-basis functions                                                     \item \textit{GPR},
+      Gaussian Process Regression                                                   \end{itemize}
+  \default{RBF}
+
+    \item \xmlNode{approximationSettings}: \xmlDesc{[RBF, GPR]}, 
+      the settings available depending on the different type of method used for the interpolation of
+      the parameter space
+  \default{None}
+
+      The \xmlNode{approximationSettings} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{kernel}: \xmlDesc{[cubic, quintic, linear, gaussian, inverse, multiquadric, thin\_plate\_spline]}, 
+          RBF kernel.                                                  Available options are:
+          \begin{itemize}                                                  \item
+          \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+          \item \textit{cubic}, cubic kernel ($r**3$)
+          \item \textit{quintic}, quintic kernel ($r**5$)
+          \item \textit{linear}, linear kernel ($r$)
+          \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+          \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+          \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+          \end{itemize}
+  \default{multiquadric}
+
+        \item \xmlNode{smooth}: \xmlDesc{float}, 
+          RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+          0 is for interpolation (default), the function will always go through the nodal points in
+          this case.
+  \default{0.0}
+
+        \item \xmlNode{neighbors}: \xmlDesc{integer}, 
+          RBF number of neighbors. If specified, the value of the interpolant at each
+          evaluation point will be computed using only the nearest data points.
+          If None (default), all the data points are used by default.
+  \default{None}
+
+        \item \xmlNode{epsilon}: \xmlDesc{float}, 
+          RBF Shape parameter that scales the input to the RBF.
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          defaults to 1 and can be ignored. Otherwise, this must be specified.
+  \default{1.0}
+
+        \item \xmlNode{degree}: \xmlDesc{integer}, 
+          RBF Degree of the added polynomial. The default value is
+          the minimum degree for kernel or 0 if there is no minimum degree.
+  \default{None}
+
+        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+          GPR restart parameter. The number of restarts of the optimizer for finding the
+          kernel parameters which maximize the log-marginal likelihood. The first run of the
+          optimizer                                                  is performed from the kernel’s
+          initial parameters, the remaining ones (if any) from thetas
+          sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          performed.
+  \default{0}
+
+        \item \xmlNode{normalize\_y}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+          GPR normalization. Whether or not to normalize the target values y by removing the mean
+          and scaling                                                  to unit-variance. This is
+          recommended for cases where zero-mean, unit-variance priors are used.
+          Note that, in this implementation, the normalisation is reversed before the GP predictions
+          are reported.
+  \default{True}
+      \end{itemize}
 
     \item \xmlNode{svd\_rank}: \xmlDesc{float or integer}, 
       defines the truncation rank to be used for the SVD.
@@ -8724,243 +9753,4 @@ Example to export the coefficients of trained DMD ROM:
 </Simulation>
 \end{lstlisting}
 
-
-\subsubsection{DMDBase}
-  -- no description yet --
-
-  The \xmlNode{DMDBase} node recognizes the following parameters:
-    \begin{itemize}
-      \item \xmlAttr{name}: \xmlDesc{string, required}, 
-        User-defined name to designate this entity in the RAVEN input file.
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-        Desired verbosity of messages coming from this entity
-      \item \xmlAttr{subType}: \xmlDesc{string, required}, 
-        specify the type of ROM that will be used
-  \end{itemize}
-
-  The \xmlNode{DMDBase} node recognizes the following subnodes:
-  \begin{itemize}
-    \item \xmlNode{Features}: \xmlDesc{comma-separated strings}, 
-      specifies the names of the features of this ROM.         \nb These parameters are going to be
-      requested for the training of this object         (see Section~\ref{subsec:stepRomTrainer})
-
-    \item \xmlNode{Target}: \xmlDesc{comma-separated strings}, 
-      contains a comma separated list of the targets of this ROM. These parameters         are the
-      Figures of Merit (FOMs) this ROM is supposed to predict.         \nb These parameters are
-      going to be requested for the training of this         object (see Section
-      \ref{subsec:stepRomTrainer}).
-
-    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
-      If a time-dependent ROM is requested, please specifies the pivot         variable (e.g. time,
-      etc) used in the input HistorySet.
-  \default{time}
-
-    \item \xmlNode{featureSelection}:
-      Apply feature selection algorithm
-
-      The \xmlNode{featureSelection} node recognizes the following subnodes:
-      \begin{itemize}
-        \item \xmlNode{RFE}:
-          The \xmlString{RFE} (Recursive Feature Elimination) is a feature selection algorithm.
-          Feature selection refers to techniques that select a subset of the most relevant features
-          for a model (ROM).         Fewer features can allow ROMs to run more efficiently (less
-          space or time complexity) and be more effective.         Indeed, some ROMs (machine
-          learning algorithms) can be misled by irrelevant input features, resulting in worse
-          predictive performance.         RFE is a wrapper-type feature selection algorithm. This
-          means that a different ROM is given and used in the core of the         method,         is
-          wrapped by RFE, and used to help select features.         \\RFE works by searching for a
-          subset of features by starting with all features in the training dataset and successfully
-          removing         features until the desired number remains.         This is achieved by
-          fitting the given ROM used in the core of the model, ranking features by importance,
-          discarding the least important features, and re-fitting the model. This process is
-          repeated until a specified number of         features remains.         When the full model
-          is created, a measure of variable importance is computed that ranks the predictors from
-          most         important to least.         At each stage of the search, the least important
-          predictors are iteratively eliminated prior to rebuilding the model.         Features are
-          scored either using the ROM model (if the model provides a mean to compute feature
-          importances) or by         using a statistical method.         \\In RAVEN the
-          \xmlString{RFE} class refers to an augmentation of the basic algorithm, since it allows,
-          optionally,         to perform the search on multiple groups of targets (separately) and
-          then combine the results of the search in a         single set. In addition, when the RFE
-          search is concluded, the user can request to identify the set of features         that
-          bring to a minimization of the score (i.e. maximimization of the accuracy).         In
-          addition, using the ``applyClusteringFiltering'' option, the algorithm can, using an
-          hierarchal clustering algorithm,         identify highly correlated features to speed up
-          the subsequential search.
-          The \xmlNode{RFE} node recognizes the following parameters:
-            \begin{itemize}
-              \item \xmlAttr{name}: \xmlDesc{string, required}, 
-                User-defined name to designate this entity in the RAVEN input file.
-              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-                Desired verbosity of messages coming from this entity
-          \end{itemize}
-
-          The \xmlNode{RFE} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to include in the search.
-  \default{None}
-
-            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
-              Which space to search? Target or Feature (this is temporary till DataSet training is
-              implemented)
-  \default{feature}
-
-            \item \xmlNode{nFeaturesToSelect}: \xmlDesc{integer}, 
-              Exact Number of features to select. If not inputted, ``nFeaturesToSelect'' will be set
-              to $1/2$ of the features in the training dataset.
-  \default{None}
-
-            \item \xmlNode{maxNumberFeatures}: \xmlDesc{integer}, 
-              Maximum Number of features to select, the algorithm will automatically determine the
-              feature list to minimize a total score.
-  \default{None}
-
-            \item \xmlNode{onlyOutputScore}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              If maxNumberFeatures is on, only output score should beconsidered? Or, in case of
-              particular models (e.g. DMDC), state variable space score should be considered as
-              well.
-  \default{False}
-
-            \item \xmlNode{applyClusteringFiltering}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              Applying clustering correlation before RFE search? If true, an hierarchal clustering
-              is applied on the feature         space aimed to remove features that are correlated
-              before the actual RFE search is performed. This approach can stabilize and
-              accelerate the process in case of large feature spaces (e.g > 500 features).
-  \default{False}
-
-            \item \xmlNode{applyCrossCorrelation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-              In case of subgroupping, should a cross correleation analysis should be performed
-              cross sub-groups?         If it is activated, a cross correleation analysis is used to
-              additionally filter the features selected for each         sub-groupping search.
-  \default{False}
-
-            \item \xmlNode{step}: \xmlDesc{float}, 
-              If greater than or equal to 1, then step corresponds to the (integer) number
-              of features to remove at each iteration. If within (0.0, 1.0), then step
-              corresponds to the percentage (rounded down) of features to remove at         each
-              iteration.
-  \default{1}
-
-            \item \xmlNode{subGroup}: \xmlDesc{comma-separated strings, integers, and floats}, 
-              Subgroup of output variables on which to perform the search. Multiple nodes of this
-              type can be inputted. The RFE search will be then performed in each ``subgroup''
-              separately and then the the union of the different feature sets are used for the final
-              ROM.
-          \end{itemize}
-
-        \item \xmlNode{VarianceThreshold}:
-          The \xmlString{VarianceThreshold} is a feature selector that removes     all low-variance
-          features. This feature selection algorithm looks only at the features and not     the
-          desired outputs. The variance threshold can be set by the user.
-          The \xmlNode{VarianceThreshold} node recognizes the following parameters:
-            \begin{itemize}
-              \item \xmlAttr{name}: \xmlDesc{string, required}, 
-                User-defined name to designate this entity in the RAVEN input file.
-              \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-                Desired verbosity of messages coming from this entity
-          \end{itemize}
-
-          The \xmlNode{VarianceThreshold} node recognizes the following subnodes:
-          \begin{itemize}
-            \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-              List of IDs of features/variables to include in the search.
-  \default{None}
-
-            \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
-              Which space to search? Target or Feature (this is temporary till DataSet training is
-              implemented)
-  \default{feature}
-
-            \item \xmlNode{threshold}: \xmlDesc{float}, 
-              Features with a training-set variance lower than this threshold                   will
-              be removed. The default is to keep all features with non-zero
-              variance, i.e. remove the features that have the same value in all
-              samples.
-  \default{0.0}
-          \end{itemize}
-      \end{itemize}
-
-    \item \xmlNode{featureSpaceTransformation}:
-      Use dimensionality reduction technique to perform a trasformation of the training dataset
-      into an uncorrelated one. The dimensionality of the problem will not be reduced but
-      the data will be transformed in the transformed space. E.g if the number of features
-      are 5, the method projects such features into a new uncorrelated space (still 5-dimensional).
-      In case of time-dependent ROMs, all the samples are concatenated in a global 2D matrix
-      (n\_samples*n\_timesteps,n\_features) before applying the transformation and then reconstructed
-      back into the original shape (before fitting the model).
-
-      The \xmlNode{featureSpaceTransformation} node recognizes the following subnodes:
-      \begin{itemize}
-        \item \xmlNode{transformationMethod}: \xmlDesc{[PCA, KernelLinearPCA, KernelPolyPCA, KernelRbfPCA, KernelSigmoidPCA, KernelCosinePCA, ICA]}, 
-          Transformation method to use. Eight options (5 Kernel PCAs) are available:
-          \begin{itemize}                     \item \textit{PCA}, Principal Component Analysis;
-          \item \textit{KernelLinearPCA}, Kernel (Linear) Principal component analysis;
-          \item \textit{KernelPolyPCA}, Kernel (Poly) Principal component analysis;
-          \item \textit{KernelRbfPCA}, Kernel(Rbf) Principal component analysis;
-          \item \textit{KernelSigmoidPCA}, Kernel (Sigmoid) Principal component analysis;
-          \item \textit{KernelCosinePCA}, Kernel (Cosine) Principal component analysis;
-          \item \textit{ICA}, Independent component analysis;                    \end{itemize}
-  \default{PCA}
-
-        \item \xmlNode{parametersToInclude}: \xmlDesc{comma-separated strings}, 
-          List of IDs of features/variables to include in the transformation process.
-  \default{None}
-
-        \item \xmlNode{whichSpace}: \xmlDesc{[Feature, feature, Target, target]}, 
-          Which space to search? Target or Feature?
-  \default{Feature}
-      \end{itemize}
-
-    \item \xmlNode{CV}: \xmlDesc{string}, 
-      The text portion of this node needs to contain the name of the \xmlNode{PostProcessor} with
-      \xmlAttr{subType}         ``CrossValidation``.
-      The \xmlNode{CV} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{Model}
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
-            should be set to \xmlString{PostProcessor}
-      \end{itemize}
-
-    \item \xmlNode{alias}: \xmlDesc{string}, 
-      specifies alias for         any variable of interest in the input or output space. These
-      aliases can be used anywhere in the RAVEN input to         refer to the variables. In the body
-      of this node the user specifies the name of the variable that the model is going to use
-      (during its execution).
-      The \xmlNode{alias} node recognizes the following parameters:
-        \begin{itemize}
-          \item \xmlAttr{variable}: \xmlDesc{string, required}, 
-            define the actual alias, usable throughout the RAVEN input
-          \item \xmlAttr{type}: \xmlDesc{[input, output], required}, 
-            either ``input'' or ``output''.
-      \end{itemize}
-
-    \item \xmlNode{light}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
-      TWhether this instance should be light or not. A light instance uses
-      less memory since it caches a smaller number of resources.
-  \default{False}
-
-    \item \xmlNode{pivotParameter}: \xmlDesc{string}, 
-      defines the pivot variable (e.g., time) that represents the
-      independent monotonic variable
-  \default{time}
-
-    \item \xmlNode{reductionMethod}: \xmlDesc{[svd, correlation\_matrix, randomized\_svd]}, 
-      the type of method used for the dimensionality reduction.Available are:
-      \begin{itemize}                                                     \item \textit{svd}, single
-      value decomposition                                                     \item \textit{svd},
-      randomized single value decomposition
-      \item \textit{correlation\_matrix}, correlation-based reduction.
-      \end{itemize}
-  \default{svd}
-
-    \item \xmlNode{reductionRank}: \xmlDesc{integer}, 
-      defines the truncation rank to be used for the reduction method.
-      Available options are:                                                  \begin{itemize}
-      \item \textit{-1}, no truncation is performed
-      \item \textit{0}, optimal rank is internally computed
-      \item \textit{$>1$}, this rank is going to be used for the truncation
-      \end{itemize}
-  \default{0}
   \end{itemize}

@@ -24,12 +24,10 @@ from ...utils.importerUtils import importModuleLazy
 
 #External Modules------------------------------------------------------------------------------------
 np = importModuleLazy("numpy")
-import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ..SupervisedLearning import SupervisedLearning
-from ...utils import utils
 from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -46,14 +44,17 @@ class DMDBase(SupervisedLearning):
       @ Out, None
     """
     super().__init__()
+    # handling time series?
     self._dynamicHandling = True
-    self.settings = None # initial settings for the ROM
+    # initial settings for the ROM (coming from input)
+    self.settings = {}
+    # dmd-based model parameters (used in the initialization of the DMD models)
     self.dmdParams = {}
     # parametric model
     self.model = None #  ParametericDMD
     # local models
     ## POD
-    self._DRrom = None
+    self._dimReductionRom = None
     ## RBF
     self._interpolator = None
     ## base specific DMD estimator/model (Set by derived classes)
@@ -64,8 +65,8 @@ class DMDBase(SupervisedLearning):
     # This flag is needed because the DMD based model has an issue with single target (space dimension == 1) and
     # a counter mesurament (concatenation of snapshots) is required
     self.singleTarget = False
-    # target indeces
-    self.targetIndeces = None
+    # target indeces (positions in self.target list)
+    self.targetIndices = None
 
   @property
   def featureImportances_(self):
@@ -90,7 +91,7 @@ class DMDBase(SupervisedLearning):
     """
     specs = super().getInputSpecification()
     specs.addSub(InputData.parameterInputFactory("light", contentType=InputTypes.BoolType,
-                                                 descr=r"""TWhether this instance should be light or not. A light instance uses
+                                                 descr=r"""Whether this instance should be light or not. A light instance uses
                                                  less memory since it caches a smaller number of resources.""", default=False))
     specs.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType,
                                                  descr=r"""defines the pivot variable (e.g., time) that represents the
@@ -111,6 +112,61 @@ class DMDBase(SupervisedLearning):
                                                  \item \textit{0}, optimal rank is internally computed
                                                  \item \textit{$>1$}, this rank is going to be used for the truncation
                                                  \end{itemize}""", default=0))
+    specs.addSub(InputData.parameterInputFactory("approximationMethod", contentType=InputTypes.makeEnumType("approximationMethod", "approximationMethodType",
+                                                                                                        ["RBF", "GPR"]),
+                                                 descr=r"""the type of method used for the interpolation of the parameter space.Available are:
+                                                  \begin{itemize}
+                                                    \item \textit{RBF}, Radial-basis functions
+                                                    \item \textit{GPR}, Gaussian Process Regression
+                                                  \end{itemize}""", default="RBF"))
+
+    approximationSettings = InputData.parameterInputFactory("approximationSettings", contentType=InputTypes.makeEnumType("approximationMethod", "approximationMethodType",
+                                                                                                        ["RBF", "GPR"]),
+                                                 descr=r"""the settings available depending on the different type of method used for the interpolation of the parameter space""",
+                                                 default=None)
+    #RBF
+    approximationSettings.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernelRBF", "kernelRBFType",
+                                                                                                        ["cubic", "quintic", "linear",
+                                                                                                         "gaussian", "inverse", "multiquadric", "thin_plate_spline"]),
+                                                 descr=r"""RBF kernel.
+                                                 Available options are:
+                                                 \begin{itemize}
+                                                 \item \textit{thin\_plate\_spline}, thin-plate spline ($r**2 * log(r)$)
+                                                 \item \textit{cubic}, cubic kernel ($r**3$)
+                                                 \item \textit{quintic}, quintic kernel ($r**5$)
+                                                 \item \textit{linear}, linear kernel ($r$)
+                                                 \item \textit{gaussian}, gaussian kernel ($exp(-(r/self.epsilon)**2)$)
+                                                 \item \textit{inverse}, inverse kernel ($1.0/sqrt((r/self.epsilon)**2 + 1)$)
+                                                 \item \textit{multiquadric}, multiquadric kernel ($sqrt((r/self.epsilon)**2 + 1)$)
+                                                 \end{itemize}""", default='multiquadric'))
+    approximationSettings.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.FloatType,
+                                                 descr=r"""RBF smooth factor. Values greater than zero increase the smoothness of the approximation.
+                                                 0 is for interpolation (default), the function will always go through the nodal points in this case.
+                                                 """, default=0.))
+    approximationSettings.addSub(InputData.parameterInputFactory("neighbors", contentType=InputTypes.IntegerType,
+                                                 descr=r"""RBF number of neighbors. If specified, the value of the interpolant at each
+                                                           evaluation point will be computed using only the nearest data points.
+                                                           If None (default), all the data points are used by default.""", default=None))
+    approximationSettings.addSub(InputData.parameterInputFactory("epsilon", contentType=InputTypes.FloatType,
+                                                 descr=r"""RBF Shape parameter that scales the input to the RBF.
+                                                           If kernel is ``linear'', ‘thin_plate_spline'', ``cubic'', or ``quintic'', this
+                                                           defaults to 1 and can be ignored. Otherwise, this must be specified.""", default=1.))
+    approximationSettings.addSub(InputData.parameterInputFactory("degree", contentType=InputTypes.IntegerType,
+                                                 descr=r"""RBF Degree of the added polynomial. The default value is
+                                                           the minimum degree for kernel or 0 if there is no minimum degree.""", default=None))
+    #GPR
+    approximationSettings.addSub(InputData.parameterInputFactory("n_restarts_optimizer", contentType=InputTypes.IntegerType,
+                                                 descr=r"""GPR restart parameter. The number of restarts of the optimizer for finding the
+                                                 kernel parameters which maximize the log-marginal likelihood. The first run of the optimizer
+                                                 is performed from the kernel’s initial parameters, the remaining ones (if any) from thetas
+                                                 sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
+                                                 all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is performed.""", default=0))
+    approximationSettings.addSub(InputData.parameterInputFactory("normalize_y", contentType=InputTypes.BoolType,
+                                                 descr=r"""GPR normalization. Whether or not to normalize the target values y by removing the mean and scaling
+                                                 to unit-variance. This is recommended for cases where zero-mean, unit-variance priors are used.
+                                                 Note that, in this implementation, the normalisation is reversed before the GP predictions are reported.""", default=True))
+
+    specs.addSub(approximationSettings)
     return specs
 
 
@@ -121,7 +177,7 @@ class DMDBase(SupervisedLearning):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','light', 'reductionRank', 'reductionMethod'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','light', 'reductionRank', 'reductionMethod', 'approximationMethod'])
     # notFound must be empty
     assert(not notFound)
     self.settings = {}
@@ -129,11 +185,28 @@ class DMDBase(SupervisedLearning):
     self.settings['light'] = settings.get('light')
     self.settings['reductionMethod'] = settings.get('reductionMethod')
     self.settings['reductionRank'] = settings.get('reductionRank')
+    self.settings['approximationMethod'] = settings.get('approximationMethod')
+    approximationSettings = paramInput.find("approximationSettings")
+    self.settings['approximationSettings'] = {}
+    if self.settings['approximationMethod'] == 'RBF':
+      RBFsettings, RBFnotFound = approximationSettings.findNodesAndExtractValues(['kernel','smooth', 'neighbors', 'epsilon', 'degree'])
+      # RBFnotFound must be empty
+      assert(not RBFnotFound)
+      self.settings['approximationSettings']['kernel'] = settings.get('kernel')
+      self.settings['approximationSettings']['smooth'] = settings.get('smooth')
+      self.settings['approximationSettings']['neighbors'] = settings.get('neighbors')
+      self.settings['approximationSettings']['epsilon'] = settings.get('epsilon')
+      self.settings['approximationSettings']['degree'] = settings.get('degree')
+    elif self.settings['approximationMethod'] == 'GPR':
+      GPRsettings, GPRnotFound = approximationSettings.findNodesAndExtractValues(['n_restarts_optimizer','normalize_y'])
+      # GPRnotFound must be empty
+      assert(not GPRnotFound)
+      self.settings['approximationSettings']['n_restarts_optimizer'] = settings.get('n_restarts_optimizer')
+      self.settings['approximationSettings']['normalize_y'] = settings.get('normalize_y')
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,f"The pivotParameter {self.pivotParameterID} must be part of the Target space!")
     if len(self.target) < 2:
       self.raiseAnError(IOError,f"At least one Target in addition to the pivotParameter {self.pivotParameterID} must be part of the Target space!")
-
 
   def initializeModel(self, dmdParams):
     """
@@ -142,23 +215,29 @@ class DMDBase(SupervisedLearning):
       @ Out, None
     """
     from pydmd import ParametricDMD
-    from ezyrb import POD, RBF
+    from ezyrb import POD, RBF, GPR
 
     assert(self._dmdBase is not None)
-    if self.dmdParams is None:
-      self.dmdParams = dmdParams
+    self.dmdParams = dmdParams
+
     # intialize dimensionality reduction
-    self._DRrom = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])
+    self._dimReductionRom = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])
     # initialize coefficient interpolator
-    self._interpolator = RBF(kernel='thin_plate_spline', smooth=0, neighbors=None, epsilon=None, degree=None)
+    if self.settings['approximationMethod'] == 'RBF':
+      self._interpolator = RBF(kernel=self.settings['approximationSettings']['kernel'], smooth=self.settings['approximationSettings']['smooth'],
+                               neighbors=self.settings['approximationSettings']['neighbors'], epsilon=self.settings['approximationSettings']['epsilon'],
+                               degree=self.settings['approximationSettings']['degree'])
+    elif self.settings['approximationMethod'] == 'GPR':
+      self._interpolator = GPR(n_restarts_optimizer=self.settings['approximationSettings']['n_restarts_optimizer'],
+                               normalize_y=self.settings['approximationSettings']['normalize_y'])
     # initialize the base model
     self._dmdBase = self._dmdBase(**self.dmdParams)
-    self.model = ParametricDMD(self._dmdBase, self._DRrom, self._interpolator, light=self.settings['light'], dmd_fit_kwargs=self.fitArguments)
+    self.model = ParametricDMD(self._dmdBase, self._dimReductionRom, self._interpolator, light=self.settings['light'], dmd_fit_kwargs=self.fitArguments)
     # set type of dmd class
     self.dmdType = self.__class__.__name__
     # check if single target
     self.singleTarget = len(self.target) == 2
-    self.targetIndeces = tuple([i for i,x in enumerate(self.target) if x != self.pivotID])
+    self.targetIndices = tuple([i for i,x in enumerate(self.target) if x != self.pivotID])
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -214,10 +293,10 @@ class DMDBase(SupervisedLearning):
 
     snapshots = np.swapaxes(targetVals, 1, 2)
     if self.singleTarget:
-      targetSnaps = snapshots[:, self.targetIndeces, :].reshape((snapshots.shape[0], 1, snapshots.shape[-1]))
+      targetSnaps = snapshots[:, self.targetIndices, :].reshape((snapshots.shape[0], 1, snapshots.shape[-1]))
       targetSnaps = np.concatenate((targetSnaps, targetSnaps), axis=1)
     else:
-      targetSnaps = snapshots[:, self.targetIndeces, :]
+      targetSnaps = snapshots[:, self.targetIndices, :]
     # populate fit arguments and allow for modifications (if needed)
     self._preFitModifications()
     # fit model
@@ -236,7 +315,7 @@ class DMDBase(SupervisedLearning):
     returnEvaluation[self.pivotID] = self.pivotValues
     self.model.parameters = featureVals
     data = self.model.reconstructed_data
-    for didx, tidx in enumerate(self.targetIndeces):
+    for didx, tidx in enumerate(self.targetIndices):
       target = self.target[tidx]
       returnEvaluation[target] = data[:, didx, :].flatten().real
 

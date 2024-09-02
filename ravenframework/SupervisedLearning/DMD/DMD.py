@@ -23,14 +23,11 @@ from ...utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-np = importModuleLazy("numpy")
 pydmd = importModuleLazy("pydmd")
-ezyrb = importModuleLazy("ezyrb")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from ...SupervisedLearning.DMD import DMDBase
-from ...utils import utils
 from ...utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -137,17 +134,17 @@ class DMD(DMDBase):
     assert(not notFound)
     # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
     # if 0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by this float value
-    self.dmdParams['svd_rank'       ] = settings.get('svd_rank')
+    self.dmdParams['svd_rank'] = settings.get('svd_rank')
     # truncation rank for total least square
-    self.dmdParams['tlsq_rank' ] = settings.get('tlsq_rank')
+    self.dmdParams['tlsq_rank'] = settings.get('tlsq_rank')
     # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
-    self.dmdParams['exact'      ] = settings.get('exact')
+    self.dmdParams['exact'] = settings.get('exact')
     # If True, the low-rank operator is computed like in fbDMD (reference: https://arxiv.org/abs/1507.02264).
-    self.dmdParams['forward_backward'    ] = settings.get('forward_backward')
+    self.dmdParams['forward_backward'] = settings.get('forward_backward')
     # Tikhonov parameter for the regularization.
-    self.dmdParams['tikhonov_regularization'     ] = settings.get('tikhonov_regularization')
+    self.dmdParams['tikhonov_regularization'] = settings.get('tikhonov_regularization')
     # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
-    self.dmdParams['opt'     ] = settings.get('opt')
+    self.dmdParams['opt'] = settings.get('opt')
     # for target
     #for target in  set(self.target) - set(self.pivotID):
     #  self._dmdBase[target] = DMD
