@@ -148,7 +148,7 @@ class HAVOK(DMDBase):
     #  self._dmdBase[target] = HankelDMD
     self._dmdBase = HAVOK
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)
 
   def _preFitModifications(self):
     """

@@ -177,4 +177,4 @@ class RDMD(DMDBase):
 
     self._dmdBase = RDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

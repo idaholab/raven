@@ -177,4 +177,4 @@ class HankelDMD(DMDBase):
     #  self._dmdBase[target] = HankelDMD
     self._dmdBase = HankelDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

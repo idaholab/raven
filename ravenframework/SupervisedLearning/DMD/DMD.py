@@ -150,4 +150,4 @@ class DMD(DMDBase):
     #  self._dmdBase[target] = DMD
     self._dmdBase = DMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

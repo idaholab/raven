@@ -23,9 +23,7 @@ from ...utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-np = importModuleLazy("numpy")
 pydmd = importModuleLazy("pydmd")
-ezyrb = importModuleLazy("ezyrb")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -49,7 +47,6 @@ class BOPDMD(DMDBase):
     super().__init__()
 
     # local model
-    self._dmdBase = None # {} # BOPDMD
     self.fitArguments = {'t': 1}
 
   @classmethod
@@ -173,15 +170,14 @@ class BOPDMD(DMDBase):
     # Trial size
     self.dmdParams['trial_size'] = settings.get('trial_size')
     # Eigen value constraints to apply
-    self.dmdParams['eig_constraints'] = set([settings.get('eig_constraints')])
+    self.dmdParams['eig_constraints'] = set([settings.get('eig_constraints'), ])
     if self.dmdParams["eig_constraints"] == 'None':
       self.dmdParams["eig_constraints"] = None
     # Sorted eigs
     self.dmdParams['eig_sort'] = settings.get('eig_sort')
-
     self._dmdBase = BOPDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)
 
   def _preFitModifications(self):
     """

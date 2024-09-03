@@ -189,4 +189,4 @@ class HODMD(DMDBase):
 
     self._dmdBase = HODMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

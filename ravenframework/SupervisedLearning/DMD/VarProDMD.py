@@ -152,7 +152,7 @@ class VarProDMD(DMDBase):
 
     self._dmdBase = VarProDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)
 
   def _preFitModifications(self):
     """

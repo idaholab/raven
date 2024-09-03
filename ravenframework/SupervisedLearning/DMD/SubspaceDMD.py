@@ -126,6 +126,6 @@ class SubspaceDMD(DMDBase):
 
     self._dmdBase = SubspaceDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)
 
 

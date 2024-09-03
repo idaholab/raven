@@ -206,4 +206,4 @@ class SpDMD(DMDBase):
 
     self._dmdBase = SpDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

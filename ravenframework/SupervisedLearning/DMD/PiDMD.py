@@ -197,4 +197,4 @@ class PiDMD(DMDBase):
 
     self._dmdBase = PiDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

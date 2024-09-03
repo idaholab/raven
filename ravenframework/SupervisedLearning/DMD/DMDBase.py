@@ -242,6 +242,7 @@ class DMDBase(SupervisedLearning):
 
     assert(self._dmdBase is not None)
     self.dmdParams = dmdParams
+    print(self.dmdParams)
 
     # intialize dimensionality reduction
     self._dimReductionRom = POD(self.settings['reductionMethod'], rank=self.settings['reductionRank'])

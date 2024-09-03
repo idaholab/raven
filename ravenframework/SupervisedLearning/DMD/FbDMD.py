@@ -151,4 +151,4 @@ class FbDMD(DMDBase):
 
     self._dmdBase = FbDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

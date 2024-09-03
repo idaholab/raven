@@ -141,4 +141,4 @@ class EDMD(DMDBase):
     self.dmdParams['opt'] = settings.get('opt')
     self._dmdBase = EDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)

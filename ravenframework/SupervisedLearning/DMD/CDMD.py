@@ -48,9 +48,6 @@ class CDMD(DMDBase):
     """
     super().__init__()
 
-    # local model
-    self._dmdBase = None # CDMD
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -180,4 +177,4 @@ class CDMD(DMDBase):
     np.random.seed(settings.get('seed'))
     self._dmdBase = CDMD
     # intialize the model
-    self.initializeModel(settings)
+    self.initializeModel(self.dmdParams)
