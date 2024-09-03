@@ -136,4 +136,21 @@
     rel_err = 0.001
    [../]
 
+  [./HODMDrbf]
+    type = 'RavenFramework'
+    input = 'test_hodmd_pydmd_with_rbf_settings.xml'
+    output = 'HODMDrbf/ROMpk HODMDrbf/outputHODMD/outputDMD.xml HODMDrbf/ROMCoefficientsXML.xml'
+    csv = 'HODMDrbf/outputHODMD/outputDMD_0.csv'
+    rel_err = 0.0001
+   [../]
+
+   [./HODMDgpr]
+     type = 'RavenFramework'
+     input = 'test_hodmd_pydmd_with_gpr_settings.xml'
+     output = 'HODMDgpr/ROMpk HODMDgpr/outputHODMD/outputDMD.xml HODMDgpr/ROMCoefficientsXML.xml'
+     csv = 'HODMDgpr/outputHODMD/outputDMD_0.csv'
+     rel_err = 0.0001
+    [../]
+
+
 []

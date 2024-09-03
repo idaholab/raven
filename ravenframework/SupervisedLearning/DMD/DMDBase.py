@@ -40,7 +40,7 @@ approximationDefaults['RBF']['neighbors'] = None
 approximationDefaults['RBF']['epsilon'] = 1.
 approximationDefaults['RBF']['degree'] = None
 # GPR
-approximationDefaults['GPR']['n_restarts_optimizer'] = 0
+approximationDefaults['GPR']['optimization_restart'] = 0
 approximationDefaults['GPR']['normalize_y'] = True
 
 class DMDBase(SupervisedLearning):
@@ -132,10 +132,8 @@ class DMDBase(SupervisedLearning):
                                                     \item \textit{GPR}, Gaussian Process Regression
                                                   \end{itemize}""", default="RBF"))
 
-    approximationSettings = InputData.parameterInputFactory("approximationSettings", contentType=InputTypes.makeEnumType("approximationMethod", "approximationMethodType",
-                                                                                                        ["RBF", "GPR"]),
-                                                 descr=r"""the settings available depending on the different type of method used for the interpolation of the parameter space""",
-                                                 default=None)
+    approximationSettings = InputData.parameterInputFactory("approximationSettings",
+                                                 descr=r"""the settings available depending on the different type of method used for the interpolation of the parameter space""")
     #RBF
     approximationSettings.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernelRBF", "kernelRBFType",
                                                                                                         ["cubic", "quintic", "linear",
@@ -170,13 +168,13 @@ class DMDBase(SupervisedLearning):
                                                            the minimum degree for kernel or 0 if there is no minimum degree.""",
                                                  default=approximationDefaults['RBF']['degree']))
     #GPR
-    approximationSettings.addSub(InputData.parameterInputFactory("n_restarts_optimizer", contentType=InputTypes.IntegerType,
+    approximationSettings.addSub(InputData.parameterInputFactory("optimization_restart", contentType=InputTypes.IntegerType,
                                                  descr=r"""GPR restart parameter. The number of restarts of the optimizer for finding the
                                                  kernel parameters which maximize the log-marginal likelihood. The first run of the optimizer
                                                  is performed from the kernel’s initial parameters, the remaining ones (if any) from thetas
                                                  sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
                                                  all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is performed.""",
-                                                 default=approximationDefaults['GPR']['n_restarts_optimizer']))
+                                                 default=approximationDefaults['GPR']['optimization_restart']))
     approximationSettings.addSub(InputData.parameterInputFactory("normalize_y", contentType=InputTypes.BoolType,
                                                  descr=r"""GPR normalization. Whether or not to normalize the target values y by removing the mean and scaling
                                                  to unit-variance. This is recommended for cases where zero-mean, unit-variance priors are used.
@@ -219,12 +217,12 @@ class DMDBase(SupervisedLearning):
       self.settings['approximationSettings']['degree'] = RBFsettings.get('degree')
     elif self.settings['approximationMethod'] == 'GPR':
       if  approximationSettings is not None:
-        GPRsettings, GPRnotFound = approximationSettings.findNodesAndExtractValues(['n_restarts_optimizer','normalize_y'])
+        GPRsettings, GPRnotFound = approximationSettings.findNodesAndExtractValues(['optimization_restart','normalize_y'])
         # GPRnotFound must be empty
         assert(not GPRnotFound)
       else:
         GPRsettings =  approximationDefaults['GPR']
-      self.settings['approximationSettings']['n_restarts_optimizer'] = GPRsettings.get('n_restarts_optimizer')
+      self.settings['approximationSettings']['optimization_restart'] = GPRsettings.get('optimization_restart')
       self.settings['approximationSettings']['normalize_y'] = GPRsettings.get('normalize_y')
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,f"The pivotParameter {self.pivotParameterID} must be part of the Target space!")
@@ -252,8 +250,8 @@ class DMDBase(SupervisedLearning):
                                neighbors=self.settings['approximationSettings']['neighbors'], epsilon=self.settings['approximationSettings']['epsilon'],
                                degree=self.settings['approximationSettings']['degree'])
     elif self.settings['approximationMethod'] == 'GPR':
-      self._interpolator = GPR(n_restarts_optimizer=self.settings['approximationSettings']['n_restarts_optimizer'],
-                               normalize_y=self.settings['approximationSettings']['normalize_y'])
+      self._interpolator = GPR(optimization_restart=self.settings['approximationSettings']['optimization_restart'],
+                               normalizer=self.settings['approximationSettings']['normalize_y'])
     # initialize the base model
     self._dmdBase = self._dmdBase(**self.dmdParams)
     self.model = ParametricDMD(self._dmdBase, self._dimReductionRom, self._interpolator, light=self.settings['light'], dmd_fit_kwargs=self.fitArguments)

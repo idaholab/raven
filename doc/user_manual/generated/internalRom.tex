@@ -3918,13 +3918,13 @@ Example to export the coefficients of trained PolyExponential ROM:
           the minimum degree for kernel or 0 if there is no minimum degree.
   \default{None}
 
-        \item \xmlNode{n\_restarts\_optimizer}: \xmlDesc{integer}, 
+        \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
           optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
-          all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
+          all bounds must be finite. Note that $optimization\_restart == 0$ implies that one run is
           performed.
   \default{0}
 
