@@ -6,7 +6,7 @@
     <created>2024-07-26</created>
     <classesTested>SupervisedLearning.DMD.EDMD</classesTested>
     <description>
-       This test is aimed to check the mechanics of the DMD ROM using the Kernalized DMD approach.
+       This test is aimed to check the mechanics of the DMD ROM using the Kernalized DMD approach. 
     </description>
   </TestInfo>
 
