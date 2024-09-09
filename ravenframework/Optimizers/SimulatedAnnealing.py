@@ -191,7 +191,6 @@ class SimulatedAnnealing(RavenSampled):
     self._coolingMethod = None                                  # initializing cooling method
     self._coolingParameters = {}                                # initializing the cooling schedule parameters
     self.info = {}
-    self._canHandleMultiObjective = False                       # Currently Simulated Annealing can only handle single objective
 
   def handleInput(self, paramInput):
     """
