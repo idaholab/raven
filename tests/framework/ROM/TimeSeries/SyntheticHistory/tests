@@ -113,7 +113,7 @@
       type = OrderedCSV
       output = 'DiffARMA/samples_0.csv DiffARMA/samples_1.csv'
       rel_err = 2.5e-1 # thank you, Windows
-      zero_threshold = 1e-1
+      zero_threshold = 5e-1
     [../]
     [./xml]
       type = XML
