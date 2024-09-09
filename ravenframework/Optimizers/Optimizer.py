@@ -264,9 +264,9 @@ class Optimizer(AdaptiveSampler):
       if minMax is not None:
         self._minMax = minMax.value
         if len(self._minMax) != len(self._objectiveVar):
-          self.raiseAnError(IOError, 'The length of <type> in <Optimizers>-<GeneticAlgorithm>-<SamplerInit> and <objective> in <Optimizers>-<GeneticAlgorithm> must be of the same length!')
+          self.raiseAnError(IOError, 'The length of <type> and <objective> in <Optimizers> must be of the same length!')
         if list(set(self._minMax)-set(['min','max'])) != []:
-          self.raiseAnError(IOError, "<type> under <Optimizers>-<GeneticAlgorhtm> must be a either 'min' and/or 'max'")
+          self.raiseAnError(IOError, "<type> under <Optimizers> must be a either 'min' and/or 'max'")
 
     # variables additional reading
     for varNode in paramInput.findAll('variable'):

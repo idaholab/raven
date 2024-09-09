@@ -1097,7 +1097,6 @@ class GeneticAlgorithm(RavenSampled):
       @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
     """
-    self.raiseADebug('*'*80)
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new state ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
@@ -1117,11 +1116,10 @@ class GeneticAlgorithm(RavenSampled):
                           coords={'chromosome':np.arange(np.shape(objVal)[0]),
                                   'obj': self._objectiveVar})
     if self._writeSteps == 'every':
-      print("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
-      print("### self.population.shape is {}".format(self.population.shape))
+      self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
+      self.raiseADebug("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
         rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
         rlzDict.update(dict((var,objVal.data[i][j]) for j, var in enumerate(objVal.obj.data)))
         rlzDict['batchId'] = rlz['batchId'].data[i]
@@ -1594,7 +1592,6 @@ class GeneticAlgorithm(RavenSampled):
     # meta variables
     toAdd = {'age': 0 if self.popAge is None else self.popAge,
              'batchId': self.batchId,
-            #  'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
              'AHD': self.ahd,
              'rank': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else rlz['rank'],

@@ -130,7 +130,7 @@ def fitnessBased(newRlz,**kwargs):
   newFitness = xr.DataArray(newFitness,
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
-  # newFitness = newFitness.to_dataset(name = list(kwargs['fitness'].keys())[0])
+
   newFitness = newFitness.to_dataset(name = list(kwargs['variables'])[0])
 
   #return newPopulationArray,newFitness,newAge

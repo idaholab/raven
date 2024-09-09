@@ -731,17 +731,11 @@ class RavenSampled(Optimizer):
                      'modelRuns': self.counter
                     })
     # optimal point input and output spaces
-    if len(self._objectiveVar) == 1: # Single Objective Optimization
-      objValue = rlz[self._objectiveVar[0]]
-      if 'max' in self._minMax:
+    for i in range(len(self._objectiveVar)):
+      objValue = rlz[self._objectiveVar[i]]
+      if self._minMax[i] == 'max':
         objValue *= -1
-      toExport[self._objectiveVar[0]] = objValue
-    else: # Multi Objective Optimization
-      for i in range(len(self._objectiveVar)):
-        objValue = rlz[self._objectiveVar[i]]
-        if self._minMax[i] == 'max':
-          objValue *= -1
-        toExport[self._objectiveVar[i]] = objValue
+      toExport[self._objectiveVar[i]] = objValue
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)
