@@ -112,4 +112,12 @@
     input = 'nd_ensemble_2outs.xml'
     csv = 'NDEnsemble2Outs/nd1.csv NDEnsemble2Outs/nd2.csv NDEnsemble2Outs/ps.csv'
   [../]
+
+  [./testEnsembleModelWith2CodesUsingVariablesToTransferStrings]
+    type = 'RavenFramework'
+    input = 'test_ensemble_model_2_codes_passing_string_outputs.xml'
+    csv = 'metaModelWith2CodesOnePassingStringToOther/finalResponsesNoPath.csv'
+    output = 'metaModelWith2CodesOnePassingStringToOther/printResponseModel2.csv'
+  [../]
+
 []

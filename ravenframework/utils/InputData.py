@@ -148,9 +148,13 @@ class ParameterInput(object):
       create new instance.
       @ Out, None
     """
-    self.parameterValues = {}
-    self.subparts = []
-    self.value = ""
+    self.parameterValues = {} # attributes of the hierarchal input, attached to nodes, but not nodes themselves
+    self.subparts = []        # pre-defined nodes that are children of this node
+    self.value = ""           # non-hierarchal value associated with this node
+    # addtionalInput is a List of raven.utils.TreeStructure.InputNode instances. Unlike subparts, these do not have
+    #   a predefined structure, and will not directly be parsed as part of the spec. Only used when
+    #   strictMode is set to False for this node.
+    self.additionalInput = []
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
@@ -464,10 +468,12 @@ class ParameterInput(object):
       subs = self.subs
     # read in subnodes
     subNames = set()
+    # loop over each of the nodes in the input and find matches in the defined spec
     for child in node:
       childName = child.tag
       subsSet = self._subDict.get(childName,set())
       foundSubs = 0
+      # loop over defined spec subs and see if there's a match for the input node
       for sub in subsSet:
         if sub._checkCanRead is None:
           subInstance = sub()
@@ -482,6 +488,8 @@ class ParameterInput(object):
       elif self.strictMode:
         allowed = [s.getName() for s in subs]
         handleError(f'Unrecognized input node "{childName}"! Allowed: [{", ".join(allowed)}], tried [{", ".join(subsSet)}]')
+      else:
+        self.additionalInput.append(child)
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:
