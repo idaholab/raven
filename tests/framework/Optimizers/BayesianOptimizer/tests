@@ -2,8 +2,7 @@
   [./Basic_not_linux]
     type = 'RavenFramework'
     input = 'Basic/BayesianBasic.xml'
-    skip_if_OS = 'linux'
-    required_libraries = 'smt'
+    skip_if_OS = 'mac,linux'
     [./data]
       type = OrderedCSV
       output = 'Basic/opt_export_0.csv'
@@ -17,8 +16,7 @@
   [./Basic_linux]
     type = 'RavenFramework'
     input = 'Basic/BayesianBasic.xml'
-    skip_if_OS = 'mac,windows'
-    required_libraries = 'smt'
+    skip_if_OS = 'windows'
     [./data]
       type = OrderedCSV
       output = 'Basic/final_opt.csv'
@@ -30,8 +28,7 @@
   [./MishraBirdConstrained_not_linux]
     type = 'RavenFramework'
     input = 'MishraBirdConstrained/BayesianMishraBirdConstrained.xml'
-    skip_if_OS = 'linux'
-    required_libraries = 'smt'
+    skip_if_OS = 'mac,linux'
     [./data]
       type = OrderedCSV
       output = 'MishraBirdConstrained/opt_export_0.csv'
@@ -45,8 +42,7 @@
   [./MishraBirdConstrained_linux]
     type = 'RavenFramework'
     input = 'MishraBirdConstrained/BayesianMishraBirdConstrained.xml'
-    skip_if_OS = 'mac,windows'
-    required_libraries = 'smt'
+    skip_if_OS = 'windows'
     [./data]
       type = OrderedCSV
       output = 'MishraBirdConstrained/final_opt.csv'
@@ -58,8 +54,7 @@
   [./Matyas_not_linux]
     type = 'RavenFramework'
     input = 'Matyas/BayesianMatyas.xml'
-    skip_if_OS = 'linux'
-    required_libraries = 'smt'
+    skip_if_OS = 'mac,linux'
     [./data]
       type = OrderedCSV
       output = 'Matyas/opt_export_0.csv'
@@ -73,8 +68,7 @@
   [./Matyas_linux]
     type = 'RavenFramework'
     input = 'Matyas/BayesianMatyas.xml'
-    skip_if_OS = 'mac,windows'
-    required_libraries = 'smt'
+    skip_if_OS = 'windows'
     [./data]
       type = OrderedCSV
       output = 'Matyas/final_opt.csv'
@@ -86,7 +80,6 @@
   [./BayesianPretrainedRom]
     type = 'RavenFramework'
     input = 'PreTrainedRom/BayesianPretrainedRom.xml'
-    required_libraries = 'smt'
     [./data]
       type = OrderedCSV
       output = 'PreTrainedRom/final_opt.csv'
