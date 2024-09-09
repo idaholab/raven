@@ -48,7 +48,6 @@ def rouletteWheel(population,**kwargs):
   # Arguments
   pop = population
   fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
-  # fitness = kwargs['fitness'].data
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:

@@ -779,49 +779,48 @@ class GeneticAlgorithm(RavenSampled):
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
     self.incrementIteration(traj)
 
-    if not self._canHandleMultiObjective or len(self._objectiveVar) == 1:  # This is for a single-objective Optimization case.
-      offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
-      objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
+    offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
+    objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
 
-      # Collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
-      constraintData = {}
-      if self._constraintFunctions or self._impConstraintFunctions:
-        params = []
-        for y in (self._constraintFunctions + self._impConstraintFunctions):
-          params += y.parameterNames()
-        for p in list(set(params) -set([self._objectiveVar[0]]) -set(list(self.toBeSampled.keys()))):
-          constraintData[p] = list(np.atleast_1d(rlz[p].data))
-      # Compute constraint function g_j(x) for all constraints (j = 1 .. J) and all x's (individuals) in the population
-      g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
+    # Collect parameters that the constraints functions need (neglecting the default params such as inputs and objective functions)
+    constraintData = {}
+    if self._constraintFunctions or self._impConstraintFunctions:
+      params = []
+      for y in (self._constraintFunctions + self._impConstraintFunctions):
+        params += y.parameterNames()
+      for p in list(set(params) -set([self._objectiveVar[0]]) -set(list(self.toBeSampled.keys()))):
+        constraintData[p] = list(np.atleast_1d(rlz[p].data))
+    # Compute constraint function g_j(x) for all constraints (j = 1 .. J) and all x's (individuals) in the population
+    g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
 
-      g = xr.DataArray(g0,
-                        dims=['chromosome','Constraint'],
-                        coords={'chromosome':np.arange(np.shape(offSprings)[0]),
-                                'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
-      for index,individual in enumerate(offSprings):
-        newOpt = individual
-        opt = {self._objectiveVar[0]:objectiveVal[index]}
-        for p, v in constraintData.items():
-          opt[p] = v[index]
+    g = xr.DataArray(g0,
+                      dims=['chromosome','Constraint'],
+                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
+                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+    for index,individual in enumerate(offSprings):
+      newOpt = individual
+      opt = {self._objectiveVar[0]:objectiveVal[index]}
+      for p, v in constraintData.items():
+        opt[p] = v[index]
 
-        for constIndex, constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
-          if constraint in self._constraintFunctions:
-            g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
-          else:
-            g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
+      for constIndex, constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
+        if constraint in self._constraintFunctions:
+          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
+        else:
+          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
-      offSpringFitness = self._fitnessInstance(rlz,
-                                               objVar=self._objectiveVar[0],
-                                               a=self._objCoeff,
-                                               b=self._penaltyCoeff,
-                                               penalty=None,
-                                               constraintFunction=g,
-                                               constraintNum = self._numOfConst,
-                                               type=self._minMax)
+    offSpringFitness = self._fitnessInstance(rlz,
+                                              objVar=self._objectiveVar[0],
+                                              a=self._objCoeff,
+                                              b=self._penaltyCoeff,
+                                              penalty=None,
+                                              constraintFunction=g,
+                                              constraintNum = self._numOfConst,
+                                              type=self._minMax)
 
-      self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
-      self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
-      return traj, g, objectiveVal, offSprings, offSpringFitness
+    self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
+    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
+    return traj, g, objectiveVal, offSprings, offSpringFitness
 
   def multiObjectiveConstraintHandling(self, info, rlz):
     """
@@ -1097,7 +1096,6 @@ class GeneticAlgorithm(RavenSampled):
       @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
     """
-    self.raiseADebug('*'*80)
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new state ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
@@ -1117,8 +1115,8 @@ class GeneticAlgorithm(RavenSampled):
                           coords={'chromosome':np.arange(np.shape(objVal)[0]),
                                   'obj': self._objectiveVar})
     if self._writeSteps == 'every':
-      print("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
-      print("### self.population.shape is {}".format(self.population.shape))
+      self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
+      self.raiseADebug("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         # rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
@@ -1594,7 +1592,6 @@ class GeneticAlgorithm(RavenSampled):
     # meta variables
     toAdd = {'age': 0 if self.popAge is None else self.popAge,
              'batchId': self.batchId,
-            #  'fitness': rlz['fitness'],
              'AHDp': self.ahdp,
              'AHD': self.ahd,
              'rank': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else rlz['rank'],
