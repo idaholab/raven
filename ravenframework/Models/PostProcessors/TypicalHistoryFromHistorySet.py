@@ -290,7 +290,7 @@ class TypicalHistoryFromHistorySet(PostProcessorReadyInterface):
       @ In, binEdgesIn, numpy array, bins over which CDF value is computed
       @ Out, , numpy array, empirical CDF of the input data.
     """
-    (counts, _) = np.histogram(data,bins=binEdgesIn,normed=True)
+    (counts, _) = np.histogram(data,bins=binEdgesIn,density=True)
     return np.cumsum(counts)/max(np.cumsum(counts))
 
   def __computeDist(self, x1, x2):
