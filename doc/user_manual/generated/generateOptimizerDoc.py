@@ -152,7 +152,7 @@ Genetic Algorithm Example:
       </samplerInit>
 
       <GAparams>
-        <populationSize>20</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction>
           <crossover type="onePointCrossover">
@@ -177,32 +177,32 @@ Genetic Algorithm Example:
 
       <variable name="x1">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20</initial>
+        <initial>1,2,3,4,5,6,7,8,9,10</initial>
       </variable>
 
       <variable name="x2">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1</initial>
+        <initial>2,3,4,5,6,7,8,9,10,1</initial>
       </variable>
 
       <variable name="x3">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2</initial>
+        <initial>3,4,5,6,7,8,9,10,1,2</initial>
       </variable>
 
       <variable name="x4">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3</initial>
+        <initial>4,5,6,7,8,9,10,1,2,3</initial>
       </variable>
 
       <variable name="x5">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4</initial>
+        <initial>5,6,7,8,9,10,1,2,3,4</initial>
       </variable>
 
       <variable name="x6">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4,5</initial>
+        <initial>6,7,8,9,10,1,2,3,4,5</initial>
       </variable>
 
       <objective>ans</objective>

@@ -1,0 +1,167 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
+    <author>Mohammad Abdo</author>
+    <created>2024-04-27</created>
+    <classesTested/>
+    <description>NSGA-II min-min test </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MultiwoReplacementFeasibleFirst</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">myLocalSum</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/myLocalSum_multi.py" name="myLocalSum" subType="">
+      <variables>x1,x2,x3,obj1,obj2</variables>
+    </ExternalModel>
+  </Models>
+
+  <Functions>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="expConstr1">
+      <variables>x1,x2,x3</variables>
+    </External>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr2">
+      <variables>x1,x2,x3,obj1</variables>
+    </External>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr3">
+      <variables>x1,x2,x3,obj1</variables>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <UniformDiscrete name='woRep_dist'>
+      <lowerBound>2</lowerBound>
+      <upperBound>4</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min, max</type>
+      </samplerInit>
+      <GAparams>
+        <populationSize>5</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="twoPointsCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator"> <!--swapMutator, scrambleMutator, bitFlipMutator, inversionMutator-->
+            <mutationProb>0.8</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
+          <!--<b>50, 50, 100, 100, 100, 150</b> <!~~the number of wegith needs to same with the number of objectives multiplied by the number of constraints~~>-->
+        </fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
+      </GAparams>
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <objective>obj1, obj2</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <!-- <Constraint class='Functions' type='External'>expConstr1</Constraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint> -->
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>050877</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <!-- <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable> -->
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x1,x2,x3</Input>
+      <Output>obj1, obj2</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x1,x2,x3,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output><!--ConstraintEvaluation_expConstr1, ConstraintEvaluation_impConstr2, ConstraintEvaluation_impConstr3,-->
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name = "opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x1, x2, x3, obj1, obj2</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source> opt_export</source>
+      <vars>x1, x2, x3, obj1, obj2</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+  </OutStreams>
+</Simulation>

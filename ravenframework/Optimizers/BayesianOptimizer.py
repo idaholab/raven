@@ -150,6 +150,7 @@ class BayesianOptimizer(RavenSampled):
     self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
     self._externalParamOptimizer = 'fmin_l_bfgs_b'                            # Optimizer for external hyperparameter selection
     self._resetModel = False                                                  # Reset regression model if True
+    
 
   def handleInput(self, paramInput):
     """
@@ -232,8 +233,8 @@ class BayesianOptimizer(RavenSampled):
     elif len(self._model.supervisedContainer[0].target) != 1:
       self.raiseAnError(RuntimeError, f'Only one target allowed when using GPR ROM for Bayesian Optimizer! '
                         f'Received {len(self._model.supervisedContainer[0].target)}')
-    elif self._objectiveVar not in self._model.supervisedContainer[0].target:
-      self.raiseAnError(RuntimeError, f'GPR ROM <target> should be obective variable: {self._objectiveVar}, '
+    elif self._objectiveVar[0] not in self._model.supervisedContainer[0].target:
+      self.raiseAnError(RuntimeError, f'GPR ROM <target> should be obective variable: {self._objectiveVar[0]}, '
                         f'Received {self._model.supervisedContainer[0].target}')
 
     if self._resetModel:
@@ -265,8 +266,8 @@ class BayesianOptimizer(RavenSampled):
       trainingData = self.normalizeData(trainingData)
       for varName in self.toBeSampled.keys():
         self._trainingInputs[0][varName] = list(trainingData[varName])
-      self._trainingTargets.append(list(trainingData[self._objectiveVar]))
-      self.raiseAMessage(f"{self._model.name} ROM has been already trained with {len(trainingData[self._objectiveVar])} samples!",
+      self._trainingTargets.append(list(trainingData[self._objectiveVar[0]]))
+      self.raiseAMessage(f"{self._model.name} ROM has been already trained with {len(trainingData[self._objectiveVar[0]])} samples!",
                          "This pre-trained ROM will be used by Optimizer to evaluate the next best point!")
       # retrieving the best solution is based on the acqusition function's utility
       # Constraints are considered in the following method.
@@ -333,7 +334,7 @@ class BayesianOptimizer(RavenSampled):
       # Add new inputs and model evaluations to the dataset
       for varName in list(self.toBeSampled):
         self._trainingInputs[traj][varName].extend(getattr(rlz, varName).values)
-      self._trainingTargets[traj].extend(getattr(rlz, self._objectiveVar).values)
+      self._trainingTargets[traj].extend(getattr(rlz, self._objectiveVar[0]).values)
       # Generate posterior with training data
       self._generatePredictiveModel(traj)
       self._resolveMultiSample(traj, rlz, info)
@@ -343,10 +344,10 @@ class BayesianOptimizer(RavenSampled):
       # Add new input and model evaluation to the dataset
       for varName in list(self.toBeSampled):
         self._trainingInputs[traj][varName].append(rlz[varName])
-      self._trainingTargets[traj].append(rlz[self._objectiveVar])
+      self._trainingTargets[traj].append(rlz[self._objectiveVar[0]])
       # Generate posterior with training data
       self._generatePredictiveModel(traj)
-      optVal = rlz[self._objectiveVar]
+      optVal = rlz[self._objectiveVar[0]]
       self._resolveNewOptPoint(traj, rlz, optVal, info)
 
     # Use acquisition to select next point
@@ -555,7 +556,7 @@ class BayesianOptimizer(RavenSampled):
 
     for varName in list(self.toBeSampled):
       trainingSet[varName] = np.asarray(self._trainingInputs[traj][varName])
-    trainingSet[self._objectiveVar] = np.asarray(self._trainingTargets[traj])
+    trainingSet[self._objectiveVar[0]] = np.asarray(self._trainingTargets[traj])
     self._model.train(trainingSet)
     # NOTE It would be preferrable to use targetEvaluation;
     # however, there does not appear a built in normalization method and as
@@ -596,8 +597,8 @@ class BayesianOptimizer(RavenSampled):
     # Evaluating the regression model
     resultsDict = self._model.evaluate(featurePoint)
     # NOTE only allowing single targets, needs to be fixed when multi-objective optimization is added
-    mu = resultsDict[self._objectiveVar]
-    std = resultsDict[self._objectiveVar+'_std']
+    mu = resultsDict[self._objectiveVar[0]]
+    std = resultsDict[self._objectiveVar[0]+'_std']
     return mu, std
 
   # * * * * * * * * * * * *
@@ -627,7 +628,7 @@ class BayesianOptimizer(RavenSampled):
     for index in range(info['batchSize']):
       for varName in rlzVars:
         singleRlz[varName] = getattr(rlz, varName)[index].values
-      optVal = singleRlz[self._objectiveVar]
+      optVal = singleRlz[self._objectiveVar[0]]
       self._resolveNewOptPoint(traj, singleRlz, optVal, info)
       singleRlz = {} # FIXME is this necessary?
     self.raiseADebug(f'Multi-sample resolution completed')
@@ -664,7 +665,7 @@ class BayesianOptimizer(RavenSampled):
     currentPoint = {}
     for decisionVarName in list(self.toBeSampled):
       currentPoint[decisionVarName] = rlz[decisionVarName]
-    rlz[self._objectiveVar] = self._evaluateRegressionModel(currentPoint)[0][0]
+    rlz[self._objectiveVar[0]] = self._evaluateRegressionModel(currentPoint)[0][0]
     self.raiseADebug('*' * 80)
     if acceptable in ['accepted', 'first']:
       # record history
@@ -675,13 +676,13 @@ class BayesianOptimizer(RavenSampled):
       # If the last recommended solution point is the same, update the expected function value
       if all(old[var] == xStar[var] for var in list(self.toBeSampled)):
         newEstimate = copy.copy(old)
-        newEstimate[self._objectiveVar] = muStar
+        newEstimate[self._objectiveVar[0]] = muStar
         self._optPointHistory[traj].append((newEstimate, info))
       else:
         newRealization = copy.copy(old)
         for var in list(self.toBeSampled):
           newRealization[var] = xStar[var]
-        newRealization[self._objectiveVar] = muStar
+        newRealization[self._objectiveVar[0]] = muStar
     else:
       self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
 

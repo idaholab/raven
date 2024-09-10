@@ -94,9 +94,12 @@ popFitness = [7.2,1.3,9.5,2.0]
 popFitness = xr.DataArray(popFitness,
                           dims=['chromosome'],
                           coords={'chromosome': np.arange(np.shape(popFitness)[0])})
+popFitness = popFitness.to_dataset(name = 'test_TournamentSelection')
 nParents = 2
-parents = tournamentSelection(population, variables=optVars, fitness=popFitness, nParents=nParents)
-print('Roulette Wheel Parent Selection')
+objVal = [10]
+kSelection = 2
+parents = tournamentSelection(population, variables=optVars, fitness=popFitness, nParents=nParents, objVal=objVal, kSelection=kSelection)
+print('Parent Selection with TournamentSelection algorithm')
 print('*'*19)
 print('selected parents are: {}'.format(parents))
 expectedParents = xr.DataArray([[1,2,3,4,5,6],
