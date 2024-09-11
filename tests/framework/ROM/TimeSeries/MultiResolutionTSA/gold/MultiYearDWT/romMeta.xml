@@ -50,6 +50,7 @@
       </DecompStepROM>
     </MacroStepROM>
     <MacroStepROM macro="2" type="Static">
+<<<<<<< HEAD
       <Fourier>
         <signal>
           <fit_intercept>4.730485908e+00</fit_intercept>
@@ -84,6 +85,54 @@
             <variance>1.050620541e+00</variance>
             <order>2,0,3</order>
           </signal>
+=======
+      <FilterBankDWT>
+        <signal0>
+          <N_approx_levels>1</N_approx_levels>
+          <N_detail_levels>3</N_detail_levels>
+        </signal0>
+      </FilterBankDWT>
+      <DecompStepROM detail_level="0" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-2.007533604e-03</constant>
+            <AR_0>5.477200913e-01</AR_0>
+            <AR_1>-1.776652906e-01</AR_1>
+            <MA_0>9.059678394e-01</MA_0>
+            <MA_1>9.060010166e-01</MA_1>
+            <MA_2>9.999696266e-01</MA_2>
+            <variance>9.395131913e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+      <DecompStepROM detail_level="1" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-2.470720544e-05</constant>
+            <AR_0>1.303100240e+00</AR_0>
+            <AR_1>-7.216840523e-01</AR_1>
+            <MA_0>-9.745108132e-01</MA_0>
+            <MA_1>-9.990488840e-01</MA_1>
+            <MA_2>9.754062835e-01</MA_2>
+            <variance>5.656817923e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+      <DecompStepROM detail_level="2" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-8.744662762e-04</constant>
+            <AR_0>-5.482244404e-01</AR_0>
+            <AR_1>3.878420774e-01</AR_1>
+            <MA_0>-8.841872851e-01</MA_0>
+            <MA_1>-9.381941028e-01</MA_1>
+            <MA_2>8.712503276e-01</MA_2>
+            <variance>7.113185334e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+>>>>>>> 038c71ce2 (fixing test files and regolding romMeta)
         </ARMA>
       </DecompStepROM>
     </MacroStepROM>
