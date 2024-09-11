@@ -2,11 +2,13 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/MultiResolutionTSA</name>
-    <author>talbpaul</author>
-    <created>2021-01-08</created>
+    <author>sotogj</author>
+    <created>2024-07-29</created>
     <classesTested>SupervisedLearning.MultiResolutionTSA,TSA.FilterBankDWT</classesTested>
     <description>
-      Tests the SyntheticHistory ROM using only the Fourier TimeSeriesAnalyzer algorithm.
+      Tests the MultiResolutionTSA ROM using a singular macroStep and the FilterBankDWT algorithm.
+      An ARMA model is trained on each detail level. Requested number of levels in FilterBankDWT
+      should exceed the theoretical maximum, so the result should have only 1 detail level.
     </description>
   </TestInfo>
 
