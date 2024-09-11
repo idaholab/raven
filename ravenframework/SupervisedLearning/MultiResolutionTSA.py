@@ -48,10 +48,30 @@ class MultiResolutionTSA(SupervisedLearning):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'Multiresolution Synthetic History'
+    self.printTag = 'Multi-Resolution Synthetic History'
+    # _globalROM is an instance of the SyntheticHistoryROM:
+    #     It handles all TSA algorithms up to and including one that splits signal (or creates decompositions).
+    #     In other words, it handles all TSA training and evaluation on the "global" signal before decomposition.
+    #     A decomposition TSA algorithms is specified with _multiResolution=True within its class in the TSA module.
     self._globalROM = SyntheticHistory()
-    self._decompParams = {}
     self.decompositionAlgorithm = None
+    self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
+
+  def getGlobalROM(self):
+    """
+      Getter for the globalROM (i.e., SyntheticHistory ROM)
+      @ In, None
+      @ Out, _globalROM, SyntheticHistory ROM, instance of a SyntheticHistory ROM
+    """
+    return self._globalROM
+
+  def setGlobalROM(self, globalROM):
+    """
+      Setter for the globalROM (i.e., SyntheticHistory ROM)
+      @ In, _globalROM, SyntheticHistory ROM, instance of a SyntheticHistory ROM
+      @ Out, None
+    """
+    self._globalROM = globalROM
 
   def _handleInput(self, paramInput):
     """
@@ -60,12 +80,12 @@ class MultiResolutionTSA(SupervisedLearning):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    self._globalROM._handleInput(paramInput)
-    self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
+    globalROM = self.getGlobalROM()
+    globalROM._handleInput(paramInput)
 
     # check that there is a multiresolution algorithm
-    allAlgorithms = self._globalROM._tsaAlgorithms
-    allAlgorithms.extend(self._globalROM._tsaGlobalAlgorithms)
+    allAlgorithms = globalROM.getTsaAlgorithms()               # get non-global algorithms
+    allAlgorithms.extend(globalROM.getGlobalTsaAlgorithms())   # add all global algorithms
     foundMRAalgorithm = False
     for algo in allAlgorithms:
       if algo.canTransform():
@@ -95,16 +115,22 @@ class MultiResolutionTSA(SupervisedLearning):
       @ Out, numLevels, int, number of decomposition levels
       @ Out, sortedTrainedParams, dict, dictionary of trained parameters
     """
-    # get all trained parameters from final algorithm (should be multiresolution transformer)
-    trainedParams = list(self._globalROM._tsaTrainedParams.items())
+    globalROM = self.getGlobalROM()
+
+    # get all trained parameters from final algorithm so far (should be multiresolution transformer)
+    trainedParams = list(globalROM.getTsaTrainedParams().items())
     mrAlgo, mrTrainedParams = trainedParams[-1]
+    if mrAlgo.name != self.decompositionAlgorithm:
+      msg = f'TSA Algorithm {self.decompositionAlgorithm} for multiresolution time series analysis must be '
+      msg += 'the *last* algorithm applied before the <Segment> node.'
+      self.raiseAnError(IOError, msg)
 
     # eh, maybe this should live in TSAUser in the future...
     # extract settings used for that last algorithm (should have some sort of "levels")
-    numLevels = mrAlgo._getDecompositionLevels()
+    numLevels = mrAlgo.getDecompositionLevels()
 
     # reformat the trained params
-    sortedTrainedParams = mrAlgo._sortTrainedParamsByLevels(mrTrainedParams)
+    sortedTrainedParams = mrAlgo.sortTrainedParamsByLevels(mrTrainedParams)
     return numLevels, sortedTrainedParams
 
   def _updateMRTrainedParams(self, params):
@@ -115,10 +141,10 @@ class MultiResolutionTSA(SupervisedLearning):
       @ Out, None
     """
     # get all trained parameters from final algorithm (should be multiresolution transformer)
-    trainedParams = list(self._globalROM._tsaTrainedParams.items())
+    trainedParams = list(self._globalROM.getTsaTrainedParams().items())
     mrAlgo, mrTrainedParams = trainedParams[-1]
 
-    mrAlgo._combineTrainedParamsByLevels(mrTrainedParams, params)
+    mrAlgo.combineTrainedParamsByLevels(mrTrainedParams, params)
 
 
   def writeXML(self, writeTo, targets=None, skip=None):
@@ -130,11 +156,11 @@ class MultiResolutionTSA(SupervisedLearning):
       @ In, skip, list, optional, unused (kept for compatability)
       @ Out, None
     """
-    return
+    self._globalROM.writeTSAtoXML(writeTo)
 
   def __evaluateLocal__(self, featureVals):
     """
-    Evaluate algorithms for ROM generation
+      Evaluate algorithms for ROM generation
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, rlz, dict, realization dictionary of values for each target
     """
@@ -142,20 +168,7 @@ class MultiResolutionTSA(SupervisedLearning):
     return rlz
 
 
-
-
-
   ### ESSENTIALLY UNUSED ###
-  def _localNormalizeData(self,values,names,feat):
-    """
-      Overwrites default normalization procedure, since we do not desire normalization in this implementation.
-      @ In, values, unused
-      @ In, names, unused
-      @ In, feat, feature to normalize
-      @ Out, None
-    """
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
-
   def __confidenceLocal__(self,featureVals):
     """
       This method is currently not needed for ARMA

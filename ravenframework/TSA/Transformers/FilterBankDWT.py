@@ -47,6 +47,9 @@ class FilterBankDWT(TimeSeriesTransformer):
     """
     # general infrastructure
     super().__init__(*args, **kwargs)
+    # total number of decomposition levels, including approximation level and detail levels.
+    # NOTE: the number of levels will start with user input but may be modified to lower level
+    #       if algorithm determines it cannot decompose the signal further.
     self._levels = 1
 
   @classmethod
@@ -98,8 +101,11 @@ class FilterBankDWT(TimeSeriesTransformer):
       \item \textbf{cmor family}: cmor
     \end{itemize}"""))
     specs.addSub(InputData.parameterInputFactory('levels', contentType=InputTypes.IntegerType,
-              descr=r"""the number of wavelet decomposition levels for our signal. If level is 0,
-                    it doesn't """))
+              descr=r"""the number of wavelet decomposition levels for our signal. This includes approximation level
+                    which is used as the trend of the signal and the detail level(s) for which further algorithms will
+                    be applied. Note that there is a maximum decomposition level depending on signal length and the chosen
+                    wavelet family: if desired level is larger than the maximum decomposition level, the latter will be used.
+                    If provided level is 0, no decomposition is conducted. """))
     return specs
 
   def handleInput(self, spec):
@@ -206,10 +212,13 @@ class FilterBankDWT(TimeSeriesTransformer):
     for target, info in params.items():
       base = xmlUtils.newNode(target)
       writeTo.append(base)
-      base.append(xmlUtils.newNode('order', text=info['order']))
+      if 'coeff_a' in info['results']:
+        base.append(xmlUtils.newNode('N_approx_levels', text=1)) # number of approximation levels (should be 1)
+      if 'coeff_d' in info['results']:
+        coeff_d = info['results']['coeff_d']
+        base.append(xmlUtils.newNode('N_detail_levels', text=len(coeff_d))) # number of detail levels (>1)
 
-
-  def _getDecompositionLevels(self):
+  def getDecompositionLevels(self):
     """
       Returns number of decomposition levels requested from user (overwritten by max. allowed
       per wavelet family as a function of signal length).
@@ -218,7 +227,7 @@ class FilterBankDWT(TimeSeriesTransformer):
     """
     return self._levels
 
-  def _sortTrainedParamsByLevels(self, params):
+  def sortTrainedParamsByLevels(self, params):
     """
       Sorts or reformats the training parameters dictionary in a manner specific to each
       multi resolution algorithm.
@@ -235,7 +244,7 @@ class FilterBankDWT(TimeSeriesTransformer):
         sortedParams[target][lvl] = contents['results']['coeff_d'][lvl,:]
     return sortedParams
 
-  def _combineTrainedParamsByLevels(self, params, newParams):
+  def combineTrainedParamsByLevels(self, params, newParams):
     """
       Updates training parameter dictionary with trained parameters from previous
       decomposition levels.

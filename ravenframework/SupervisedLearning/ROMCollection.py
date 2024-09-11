@@ -1967,10 +1967,10 @@ class Decomposition(SupervisedLearning):
     """
     super().__init__()
     self._macroTemplate = SyntheticHistory() # empty SyntheticHistory object, deepcopy'd later to train multiple instances per decomposition level
-    self._macroParameter = None
-    self._macroSteps = {}                                   # collection of macro steps (e.g. each year)
-    self._decompSteps = {}
-    self.name = 'Decomposition'
+    self._macroParameter = None              # macroParameter name (str), e.g. 'YEAR'
+    self._macroSteps = {}                    # collection of macro steps (e.g. each year)
+    self._decompSteps = {}                   # collection of decomposition steps, indexed per macroID and then per level
+    self.name = 'Decomposition'              # ROM Collection subtype
 
   def setTemplateROM(self, romInfo):
     """
@@ -1983,7 +1983,7 @@ class Decomposition(SupervisedLearning):
     if self._templateROM is None:
       self.raiseAnError(IOError, 'A rom instance is required by', self.name, 'please check your implementation')
     # only allowing Decomposition ROMCollection to be used with MultiResolutionTSA ROM subtype
-    if self._templateROM.printTag != 'Multiresolution Synthetic History':
+    if self._templateROM.printTag != 'Multi-Resolution Synthetic History':
       self.raiseAnError(IOError, 'The Decomposition ROMCollection segment class requires a ROM subtype of MultiResolutionTSA.')
 
   def _handleInput(self, paramInput):
@@ -2126,13 +2126,31 @@ class Decomposition(SupervisedLearning):
 
   def writeXML(self, writeTo, targets=None, skip=None):
     """
-      Write out ARMA information
+      Write out Decomposition information
       @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
       @ In, targets, list, optional, unused
       @ In, skip, list, optional, unused
       @ Out, None
     """
-
+    # write global information
+    newNode = xmlUtils.StaticXmlElement('DecompositionMultiyearROM')
+    ## macro steps information
+    newNode.getRoot().append(xmlUtils.newNode('MacroParameterID', text=self._macroParameter))
+    newNode.getRoot().append(xmlUtils.newNode('MacroSteps', text=len(self._macroSteps)))
+    newNode.getRoot().append(xmlUtils.newNode('MacroFirstStep', text=min(self._macroSteps)))
+    newNode.getRoot().append(xmlUtils.newNode('MacroLastStep', text=max(self._macroSteps)))
+    writeTo.getRoot().append(newNode.getRoot())
+    # write info about EACH macro step
+    main = writeTo.getRoot()
+    for macroID, step in self._macroSteps.items():
+      newNode = xmlUtils.StaticXmlElement('MacroStepROM', attrib={self._macroParameter: str(macroID)})
+      step.writeXML(newNode, targets, skip)
+      # write info about EACH decomposition step
+      for decompID, dStep in self._decompSteps[macroID].items():
+        newSubNode = xmlUtils.StaticXmlElement('DecompStepROM', attrib={'detail_level': str(decompID)})
+        dStep.writeXML(newSubNode, targets, skip)
+        newNode.getRoot().append(newSubNode.getRoot())
+      main.append(newNode.getRoot())
 
   ############### DUMMY ####################
   # dummy methods that are required by SVL and not generally used
