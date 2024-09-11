@@ -45,7 +45,6 @@ class BOPDMD(DMDBase):
       @ Out, None
     """
     super().__init__()
-
     # local model
     self.fitArguments = {'t': 1}
 
