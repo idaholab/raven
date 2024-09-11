@@ -5,6 +5,48 @@
       <Features>scaling</Features>
       <Targets>signal0,signal1,pivot</Targets>
     </ROM>
+    <DecompositionMultiyearROM type="Static">
+      <MacroParameterID>macro</MacroParameterID>
+      <MacroSteps>1</MacroSteps>
+      <MacroFirstStep>1</MacroFirstStep>
+      <MacroLastStep>1</MacroLastStep>
+    </DecompositionMultiyearROM>
+    <MacroStepROM macro="1" type="Static">
+      <FilterBankDWT>
+        <signal0>
+          <N_approx_levels>1</N_approx_levels>
+          <N_detail_levels>1</N_detail_levels>
+        </signal0>
+        <signal1>
+          <N_approx_levels>1</N_approx_levels>
+          <N_detail_levels>1</N_detail_levels>
+        </signal1>
+      </FilterBankDWT>
+      <DecompStepROM detail_level="0" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>2.114254284e-05</constant>
+            <AR_0>-1.134903740e+00</AR_0>
+            <AR_1>-2.630983873e-01</AR_1>
+            <MA_0>-9.932710697e-01</MA_0>
+            <MA_1>-8.366523797e-01</MA_1>
+            <MA_2>8.840743465e-01</MA_2>
+            <variance>2.945535390e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+          <signal1>
+            <constant>-1.872842056e-05</constant>
+            <AR_0>-1.347367989e+00</AR_0>
+            <AR_1>-4.082267741e-01</AR_1>
+            <MA_0>-9.881227307e-01</MA_0>
+            <MA_1>-9.381630843e-01</MA_1>
+            <MA_2>9.686163148e-01</MA_2>
+            <variance>2.694538532e-02</variance>
+            <order>2,0,3</order>
+          </signal1>
+        </ARMA>
+      </DecompStepROM>
+    </MacroStepROM>
   </synth>
-  
+
 </DataObjectMetadata>

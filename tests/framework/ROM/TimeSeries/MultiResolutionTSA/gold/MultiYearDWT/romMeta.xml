@@ -5,6 +5,112 @@
       <Features>scaling</Features>
       <Targets>signal0,seconds</Targets>
     </ROM>
+    <DecompositionMultiyearROM type="Static">
+      <MacroParameterID>macro</MacroParameterID>
+      <MacroSteps>2</MacroSteps>
+      <MacroFirstStep>1</MacroFirstStep>
+      <MacroLastStep>2</MacroLastStep>
+    </DecompositionMultiyearROM>
+    <MacroStepROM macro="1" type="Static">
+      <FilterBankDWT>
+        <signal0>
+          <N_approx_levels>1</N_approx_levels>
+          <N_detail_levels>3</N_detail_levels>
+        </signal0>
+      </FilterBankDWT>
+      <DecompStepROM detail_level="0" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-1.418533300e-02</constant>
+            <AR_0>5.657565539e-01</AR_0>
+            <AR_1>-2.016899601e-01</AR_1>
+            <MA_0>8.876686906e-01</MA_0>
+            <MA_1>8.877409636e-01</MA_1>
+            <MA_2>9.999347861e-01</MA_2>
+            <variance>1.262257641e-01</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+      <DecompStepROM detail_level="1" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-9.723375158e-05</constant>
+            <AR_0>1.303824395e+00</AR_0>
+            <AR_1>-8.023112427e-01</AR_1>
+            <MA_0>-8.608740430e-01</MA_0>
+            <MA_1>-9.942496311e-01</MA_1>
+            <MA_2>8.665437137e-01</MA_2>
+            <variance>7.065351710e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+      <DecompStepROM detail_level="2" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-4.988595934e-05</constant>
+            <AR_0>-1.226963709e+00</AR_0>
+            <AR_1>-6.496999724e-01</AR_1>
+            <MA_0>-7.693561036e-02</MA_0>
+            <MA_1>-5.886814381e-01</MA_1>
+            <MA_2>-2.653647705e-01</MA_2>
+            <variance>1.131946969e-01</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+    </MacroStepROM>
+    <MacroStepROM macro="2" type="Static">
+      <FilterBankDWT>
+        <signal0>
+          <N_approx_levels>1</N_approx_levels>
+          <N_detail_levels>3</N_detail_levels>
+        </signal0>
+      </FilterBankDWT>
+      <DecompStepROM detail_level="0" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-2.007533604e-03</constant>
+            <AR_0>5.477200913e-01</AR_0>
+            <AR_1>-1.776652906e-01</AR_1>
+            <MA_0>9.059678394e-01</MA_0>
+            <MA_1>9.060010166e-01</MA_1>
+            <MA_2>9.999696266e-01</MA_2>
+            <variance>9.395131913e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+      <DecompStepROM detail_level="1" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-2.470720544e-05</constant>
+            <AR_0>1.303100240e+00</AR_0>
+            <AR_1>-7.216840523e-01</AR_1>
+            <MA_0>-9.745108132e-01</MA_0>
+            <MA_1>-9.990488840e-01</MA_1>
+            <MA_2>9.754062835e-01</MA_2>
+            <variance>5.656817923e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+      <DecompStepROM detail_level="2" type="Static">
+        <ARMA>
+          <signal0>
+            <constant>-8.744662762e-04</constant>
+            <AR_0>-5.482244404e-01</AR_0>
+            <AR_1>3.878420774e-01</AR_1>
+            <MA_0>-8.841872851e-01</MA_0>
+            <MA_1>-9.381941028e-01</MA_1>
+            <MA_2>8.712503276e-01</MA_2>
+            <variance>7.113185334e-02</variance>
+            <order>2,0,3</order>
+          </signal0>
+        </ARMA>
+      </DecompStepROM>
+    </MacroStepROM>
   </synth>
   
 </DataObjectMetadata>
