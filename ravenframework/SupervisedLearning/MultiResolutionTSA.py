@@ -114,8 +114,8 @@ class MultiResolutionTSA(SupervisedLearning):
       self.raiseAnError(IOError, msg)
 
     # check that there is a multiresolution algorithm
-    allAlgorithms = self._globalROM._tsaAlgorithms
-    allAlgorithms.extend(self._globalROM._tsaGlobalAlgorithms)
+    allAlgorithms = globalROM.getTsaAlgorithms()               # get non-global algorithms
+    allAlgorithms.extend(globalROM.getGlobalTsaAlgorithms())   # add all global algorithms
     foundMRAalgorithm = False
     for algo in allAlgorithms:
       if algo.canTransform():
@@ -198,7 +198,7 @@ class MultiResolutionTSA(SupervisedLearning):
       @ In, skip, list, optional, unused (kept for compatability)
       @ Out, None
     """
-    return
+    self._globalROM.writeTSAtoXML(writeTo)
 
   def __evaluateLocal__(self, featureVals):
     """
