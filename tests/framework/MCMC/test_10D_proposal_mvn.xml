@@ -62,7 +62,7 @@
   <Samplers>
     <AdaptiveMetropolis name="Metropolis">
       <samplerInit>
-        <limit>8000</limit>
+        <limit>10000</limit>
         <initialSeed>070419</initialSeed>
         <burnIn>1000</burnIn>
         <adaptiveInterval>20</adaptiveInterval>
