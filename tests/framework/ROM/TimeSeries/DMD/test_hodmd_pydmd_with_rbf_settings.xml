@@ -72,10 +72,7 @@
       <approximationMethod>RBF</approximationMethod>
       <approximationSettings>
         <kernel>thin_plate_spline</kernel>
-        <smooth>0.1</smooth>
-        <neighbors>6</neighbors>
-        <epsilon>1</epsilon>
-        <degree>2</degree>
+        <smooth>0</smooth>
       </approximationSettings>
     </ROM>
   </Models>
