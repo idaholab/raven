@@ -122,8 +122,8 @@ class RDMD(DMDBase):
                                                  """, default=False))
     specs.addSub(InputData.parameterInputFactory("tikhonov_regularization", contentType=InputTypes.FloatType,
                                                  descr=r"""Tikhonov parameter for the regularization.
-                                                 If `None`, no regularization is applied, if `float`, it is used as the
-                                                 :math:`\lambda` tikhonov parameter.""", default=None))
+                                                 If ``None'', no regularization is applied, if ``float'', it is used as the
+                                                 ``$\lambda''$ tikhonov parameter.""", default=None))
     specs.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
                                                  descr=r"""Seed used to initialize the random generator when computing random test matrices.""", default=None))
     specs.addSub(InputData.parameterInputFactory("oversampling", contentType=InputTypes.IntegerType,

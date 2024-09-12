@@ -4896,7 +4896,7 @@ Example to export the coefficients of trained DMDC ROM:
   \default{False}
 
     \item \xmlNode{rescale\_mode}: \xmlDesc{[auto, None]}, 
-      Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its
+      Scale Atilde as shown in \url{10.1016/j.jneumeth.2015.10.010} (section 2.4) before computing its
       eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular
       values.
   \default{None}
@@ -5701,7 +5701,7 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{approximationMethod}: \xmlDesc{[RBF, GPR]}, 
       the type of method used for the interpolation of the parameter space.Available are:
       \begin{itemize}                                                     \item \textit{RBF},
-      Radial-basis functions                                                     \item \textit{GPR},
+      Radial basis functions                                                     \item \textit{GPR},
       Gaussian Process Regression                                                   \end{itemize}
   \default{RBF}
 
@@ -8398,9 +8398,9 @@ Example to export the coefficients of trained DMD ROM:
   \default{False}
 
     \item \xmlNode{tikhonov\_regularization}: \xmlDesc{float}, 
-      Tikhonov parameter for the regularization.                                                  If
-      `None`, no regularization is applied, if `float`, it is used as the
-      :math:`\lambda` tikhonov parameter.
+      Tikhonov parameter for the regularization.
+      If ``None'', no regularization is applied, if ``float'', it is used as the
+      ``$\lambda''$ tikhonov parameter.
   \default{None}
 
     \item \xmlNode{seed}: \xmlDesc{integer}, 
@@ -9753,4 +9753,4 @@ Example to export the coefficients of trained DMD ROM:
 </Simulation>
 \end{lstlisting}
 
-  \end{itemize}
+
