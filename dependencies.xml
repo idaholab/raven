@@ -89,6 +89,8 @@ Note all install methods after "main" take
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source="mamba" skip_check='True'/>
     <serpentTools optional='True' source="pip"/>
+    <pydmd source="pip"/>
+    <ezyrb source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
