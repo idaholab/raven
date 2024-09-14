@@ -1,22 +1,17 @@
 <?xml version="1.0"?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/DMD.HighOrderDMD</name>
+    <name>framework/ROM/TimeSeries/DMD.HODMD</name>
     <author>alfoa</author>
-    <created>2018-04-25</created>
-    <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
+    <created>2024-07-26</created>
+    <classesTested>SupervisedLearning.DMD.HODMD</classesTested>
     <description>
-       This test is aimed to check the mechanics of the High Order DMD ROM using the standard SVD-based
-       algorithm
+       This test is aimed to check the mechanics of the DMD ROM using the High Order DMD.
     </description>
-    <revisions>
-      <revision author="talbpaul" date="2019-01-09">moving from ROM-file to ROM-dataobject</revision>
-      <revision author="alfoa" date="2018-04-25">Adding this test description.</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>HighOrderDMD</WorkingDir>
+    <WorkingDir>HODMD</WorkingDir>
     <Sequence>
              readIn,
              DMDTrain,
@@ -61,13 +56,18 @@
   </Samplers>
 
   <Models>
-    <ROM name="DMDrom" subType="DMD">
+    <ROM name="DMDrom" subType="HODMD">
       <Target>t,decay_heat,decay_heat_pu</Target>
       <Features>enrichment,burnup</Features>
       <pivotParameter>t</pivotParameter>
-      <rankSVD>0</rankSVD>
-      <rankTLSQ>7</rankTLSQ>
-      <dmdType>hodmd</dmdType>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>0</tlsq_rank>
+      <opt>False</opt>
+      <d>1</d>
+      <forward_backward>False</forward_backward>
+      <reconstruction_method>mean</reconstruction_method>
     </ROM>
   </Models>
 
@@ -97,13 +97,13 @@
     <IOStep name="writeOut" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">synDataDMD</Input>
       <Input class="DataObjects" type="DataSet">rom_stats</Input>
-      <Output class="OutStreams" type="Print">outputDMDHighOrder</Output>
+      <Output class="OutStreams" type="Print">outputDMD</Output>
       <Output class="OutStreams" type="Print">ROMCoefficientsXML</Output>
     </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="outputDMDHighOrder" dir="outputDMD">
+    <Print name="outputDMD" dir="outputHODMD">
       <type>csv</type>
       <source>synDataDMD</source>
     </Print>
@@ -134,5 +134,6 @@
     </HistorySet>
     <DataSet name="rom_stats"/>
   </DataObjects>
+  
 
 </Simulation>
