@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
+    <author>Junyung Kim</author>
+    <created>2022-12-21</created>
+    <classesTested/>
+    <description>NSGA-II min-min test </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Multi_MinwoReplacement</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">myLocalSum</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/myLocalSum_multi.py" name="myLocalSum" subType="">
+      <variables>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3</variables>
+    </ExternalModel>
+  </Models>
+
+  <Functions>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="expConstr3">
+      <variables>x1,x2,x3,x4,x5,x6</variables>
+    </External>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr2">
+      <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
+    </External>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr3">
+      <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <UniformDiscrete name='woRep_dist'>
+      <lowerBound>2</lowerBound>
+      <upperBound>7</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min, max, min</type>
+      </samplerInit>
+      <GAparams>
+        <populationSize>50</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="twoPointsCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator"> <!--swapMutator, scrambleMutator, bitFlipMutator, inversionMutator-->
+            <mutationProb>0.8</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
+          <!--<b>50, 50, 100, 100, 100, 150</b> <!~~the number of wegith needs to same with the number of objectives multiplied by the number of constraints~~>-->
+        </fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
+      </GAparams>
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <objective>obj1, obj2, obj3</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Constraint class='Functions' type='External'>expConstr3</Constraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>050877</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x1,x2,x3,x4,x5,x6</Input>
+      <Output>obj1, obj2, obj3</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+</Simulation>

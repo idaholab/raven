@@ -92,9 +92,14 @@ popFitness = [7.2,1.3,9.5,2.0]
 popFitness = xr.DataArray(popFitness,
                           dims=['chromosome'],
                           coords={'chromosome': np.arange(np.shape(popFitness)[0])})
+popFitnessSet = popFitness.to_dataset(name = "test_popFitness")
 popAge = [3,1,7,1]
 offSprings = [[2,3,4,5,6,1],[1,3,5,2,4,6],[1,2,4,3,6,5]]
 offSpringsFitness = [1.1,2.0,3.2]
+offSpringsFitness = xr.DataArray(offSpringsFitness,
+                                 dims=['chromosome'],
+                                 coords={'chromosome': np.arange(np.shape(offSpringsFitness)[0])})
+offSpringsFitnessSet = offSpringsFitness.to_dataset(name = "test_offFitness")
 rlz =[]
 for i in range(np.shape(offSprings)[0]):
   d = {}
@@ -104,10 +109,11 @@ for i in range(np.shape(offSprings)[0]):
     d[var] = {'dims':() ,'data': val}
   rlz.append(xr.Dataset.from_dict(d))
 rlz = xr.concat(rlz,dim='data')
-newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, population=population, fitness=popFitness, offSpringsFitness=offSpringsFitness, popObjectiveVal=popFitness)
+newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, population=population, fitness=popFitnessSet, offSpringsFitness=offSpringsFitnessSet, popObjectiveVal=popFitness)
+print('*'*39)
 print('Fitness Based Selection')
-print('*'*19)
-print('new population: {}, \n new Fitness {}, \n new age'.format(newPop2,newFit2,newAge2))
+print('*'*39)
+print('1. New population:\n {}, \n2. New Fitness:\n {}, \n3. New age:\n'.format(newPop2.data,newFit2.to_dataarray(dim = 'variable', name = None)[0],newAge2))
 print('Note that the second and forth chromosome had the same age, but for the age based mechanism it omitted the one with the lowest fitness')
 expectedPop = xr.DataArray([[6,5,4,3,2,1],
                             [1,2,3,4,5,6],
@@ -119,13 +125,16 @@ expectedPop = xr.DataArray([[6,5,4,3,2,1],
 expectedFit = xr.DataArray([9.5,7.2,3.2,2.0],
                            dims=['chromosome'],
                            coords={'chromosome':np.arange(np.shape(population)[0])})
+
+expectedFit = expectedFit.to_dataset(name = 'x1')
+
 expectedAge = [8,4,0,0]
 
 ## TESTING
 # Test survivor population
 checkSameDataArrays('Check survived population data array',newPop2,expectedPop)
 # Test survivor fitnesses
-checkSameDataArrays('Check fitness for survived population data array',newFit2,expectedFit)
+checkSameDataArrays('Check fitness for survived population data array',newFit2, expectedFit)
 # Test survivor Ages
 checkSameListOfInt('Check fitness for survived individuals',np.array(newAge2),np.array(expectedAge))
 #

@@ -319,9 +319,11 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, None
     """
     traj = info['traj']
-    info['optVal'] = rlz[self._objectiveVar]
+    if len(self._objectiveVar) > 1 and type(self._objectiveVar)==str:
+      self.raiseAnError(IOError, 'Simulated Annealing does not support multiObjective yet! objective variable must be a single variable for now!')
+    info['optVal'] = rlz[self._objectiveVar[0]]
     self.incrementIteration(traj)
-    self._resolveNewOptPoint(traj, rlz, rlz[self._objectiveVar], info)
+    self._resolveNewOptPoint(traj, rlz, rlz[self._objectiveVar[0]], info)
     if self._stepTracker[traj]['opt'] is None:
       # revert to the last accepted point
       rlz = self._optPointHistory[traj][-1][0]
@@ -340,7 +342,7 @@ class SimulatedAnnealing(RavenSampled):
       except NoConstraintResolutionFound:
         # we've tried everything, but we just can't hack it
         self.raiseAMessage(f'Optimizer "{self.name}" trajectory {traj} was unable to continue due to functional or boundary constraints.')
-        self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar])
+        self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar[0]])
         return
 
       suggested = self.denormalizeData(suggested)
@@ -420,7 +422,7 @@ class SimulatedAnnealing(RavenSampled):
       return False
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
-    delta = o2[self._objectiveVar]-o1[self._objectiveVar]
+    delta = o2[self._objectiveVar[0]]-o1[self._objectiveVar[0]]
     converged = abs(delta) < self._convergenceCriteria['objective']
     self.raiseADebug(self.convFormat.format(name='objective',
                                             conv=str(converged),
@@ -469,9 +471,9 @@ class SimulatedAnnealing(RavenSampled):
     # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
     try:
       old, _ = self._optPointHistory[traj][-1]
-      oldVal = old[self._objectiveVar]
+      oldVal = old[self._objectiveVar[0]]
       # check if same point
-      self.raiseADebug(f' ... change: {opt[self._objectiveVar]-oldVal:1.3e} new objective: {opt[self._objectiveVar]:1.6e} old objective: {oldVal:1.6e}')
+      self.raiseADebug(f' ... change: {opt[self._objectiveVar[0]]-oldVal:1.3e} new objective: {opt[self._objectiveVar[0]]:1.6e} old objective: {oldVal:1.6e}')
       # if this is an opt point rerun, accept it without checking.
       if self._acceptRerun[traj]:
         acceptable = 'rerun'
@@ -480,7 +482,7 @@ class SimulatedAnnealing(RavenSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
-        if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar])>randomUtils.random(dim=1, samples=1): # TODO replace it back
+        if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar[0]])>randomUtils.random(dim=1, samples=1): # TODO replace it back
           acceptable = 'accepted'
         else:
           acceptable = 'rejected'
