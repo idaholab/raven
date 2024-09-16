@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
+    <author>Mohammad Abdo</author>
+    <created>2024-02-18</created>
+    <classesTested/>
+    <description>NSGA-II min-max test </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Multi_beale_bealeFlipped</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/beale_flipped2.py" name="beale" subType="">
+      <variables>x,y,obj1,obj2</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name='woRep_dist'>
+      <lowerBound>0</lowerBound>
+      <upperBound>5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
+        <type>min, max</type>
+      </samplerInit>
+      <GAparams>
+        <populationSize>50</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator"> <!--swapMutator, scrambleMutator, bitFlipMutator, inversionMutator-->
+            <mutationProb>0.8</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
+          <!-- <b>50, 50, 100, 100, 100, 150</b>  -->
+        </fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
+      </GAparams>
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+      <variable name="x">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <objective>obj1, obj2</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <!-- <Constraint class='Functions' type='External'>expConstr3</Constraint> -->
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>050877</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>woRep_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>obj1, obj2</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output><!--ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3-->
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name = "opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x, y , obj1, obj2</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source> opt_export</source>
+      <vars>x, y , obj1, obj2</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+  </OutStreams>
+</Simulation>
