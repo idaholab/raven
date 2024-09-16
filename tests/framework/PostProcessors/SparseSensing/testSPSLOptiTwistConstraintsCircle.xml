@@ -18,8 +18,8 @@
   </RunInfo>
 
   <Files>
-    <Input name="twistFile" type="">../reconstructionData/Perturbations2.csv</Input>
-    <Input name="refDO" type="">../reconstructionData/350_330.csv</Input>
+    <Input name="twistFile" type="">./Perturbations2.csv</Input>
+    <Input name="refDO" type="">./350_330.csv</Input>
   </Files>
 
   <Steps>

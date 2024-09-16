@@ -344,7 +344,7 @@ class SparseSensing(PostProcessorReadyInterface):
           circle = ps.utils._constraints.Circle(center_x = self.centerX, center_y = self.centerY, radius = self.radius, loc = self.loc, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
           idxConstrained, rank = circle.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         elif self._ConstrainedRegionsType == 'Ellipse':
-          ellipse = ps.utils._constraints.Ellipse(center_x = self.centerX, center_y = self.centerY, width = self.width, height = self.height, angle = self.angle, loc = self.loc, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
+          ellipse = ps.utils._constraints.Ellipse(center_x = self.centerX, center_y = self.centerY, width = self.width, height = self.height, angle = self.angle, loc = self.loc, half_horizontal_axis = self.width / 2, half_vertical_axis = self.height / 2, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
           idxConstrained, rank = ellipse.get_constraint_indices(all_sensors = allSensors, info=dataframe)
         elif self._ConstrainedRegionsType == 'Line':
           line = ps.utils._constraints.Line( x1 = self.x1, x2 = self.x2, y1 = self.y1, y2 = self.y2, data = dataframe, Y_axis = self.sensingFeatures[1] , X_axis = self.sensingFeatures[0] , Field = self.sensingStateVariable)
