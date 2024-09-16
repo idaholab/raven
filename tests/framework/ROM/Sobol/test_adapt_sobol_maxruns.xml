@@ -105,7 +105,7 @@
     <Print name="maxruns_dump">
       <type>csv</type>
       <source>solns</source>
-      <what>input,output</what>
+      <what>output</what>
     </Print>
     <Print name="maxruns_dumprom">
       <type>csv</type>
