@@ -2117,9 +2117,8 @@ class Decomposition(SupervisedLearning):
             results[k] = np.zeros([numMacro] + list((macroResults[noPivotTargets[0]].shape)), dtype=object)
 
       # storing results from a single macroStep (includes all decomp levels)
-      for target, contents in results.items():
-        if target not in [self.pivotID, '_indexMap']:
-          contents = macroResults[target]
+      for target in noPivotTargets:
+        results[target][m] = macroResults[target]
 
     results[self._macroParameter] = macroIndexValues
     return results

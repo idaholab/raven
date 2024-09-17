@@ -16,7 +16,7 @@
 Created on November 13, 2023
 @author: sotogj
 
-Discrete Wavelet Transform
+Filter Bank Discrete Wavelet Transform
 """
 
 import numpy as np
@@ -34,7 +34,6 @@ class FilterBankDWT(TimeSeriesTransformer):
   """ Applies a Discrete Wavelet Transform algorithm as a filter bank to decompose signal into
       multiple time resolution signals.
   """
-
   _acceptsMissingValues = True
   _multiResolution = True
 
@@ -61,51 +60,72 @@ class FilterBankDWT(TimeSeriesTransformer):
     """
     specs = super().getInputSpecification()
     specs.name = 'filterbankdwt'
-    specs.description = r"""Discrete Wavelet TimeSeriesAnalysis algorithm. Performs a discrete wavelet transform
-        on time-dependent data as a filter bank to decompose the signal to multiple frequency levels.
-        Note: This TSA module requires pywavelets to be installed within your
-        python environment."""
+    specs.description = r"""Filter Bank Discrete Wavelet Transform, a multi-resolution-capable TimeSeriesAnalysis
+        algorithm. Performs a discrete wavelet transform (DWT) on time-dependent data as a filter bank to decompose the
+        signal to multiple frequency levels. Given a wavelet family and the original signal, the signal is projected
+        onto modifications of the original "mother" wavelet $\Psi$ to produce wavelet coefficients. The modifications
+        $\psi_{a,b}$ happen in two ways:
+        \begin{itemize}
+          \item the wavelet is scaled by factor $a$ to capture features at different time scales (e.g., if the wavelet
+          is "thinner" it better captures faster frequency features)
+          \item the wavelet is shifted in time by factor $b$ across the entire time domain of the signal for each
+          scale $a$
+        \end{itemize}
+        After all projections, there is a 2-D array of coefficients regarding the scale $a$ and shift $b$. The modified
+        wavelets are given by:
+        \begin{equation*}
+           \psi_{a,b} = \frac{1}{\sqrt{a}} \Psi(\frac{t-b}{a})
+        \end{equation*}
+        The Filter Bank DWT works in a cascading sequence of low- and high-pass filters for all requested decomposition
+        levels to create the wavelet coefficients. The low- and high-pass filters create a set of approximation and
+        detail coefficients, respectively, for each scale. Approximation coefficients correspond to lower
+        frequency/large wavelength features; detail cofficients, to higher frequency/smaller wavelength features.
+        Subsequent decompositions apply the filters to the previous approximation coefficients. For N levels of
+        decomposition, N sets of detail coefficients and 1 set of approximation coefficients are produced. Currently,
+        the approximation coefficients are treated as a trend in the signal and subtracted from the signal.
+        Note: This TSA module requires pywavelets to be installed within your python environment."""
     specs.addSub(InputData.parameterInputFactory(
-      'family',
-      contentType=InputTypes.StringType,
-      descr=r"""The type of wavelet to use for the transformation.
-    There are several possible families to choose from, and most families contain
-    more than one variation. For more information regarding the wavelet families,
-    refer to the Pywavelets documentation located at:
-    https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html (wavelet-families)
-    \\
-    Possible values are:
-    \begin{itemize}
-      \item \textbf{haar family}: haar
-      \item \textbf{db family}: db1, db2, db3, db4, db5, db6, db7, db8, db9, db10, db11,
-        db12, db13, db14, db15, db16, db17, db18, db19, db20, db21, db22, db23,
-        db24, db25, db26, db27, db28, db29, db30, db31, db32, db33, db34, db35,
-        db36, db37, db38
-      \item \textbf{sym family}: sym2, sym3, sym4, sym5, sym6, sym7, sym8, sym9, sym10,
-        sym11, sym12, sym13, sym14, sym15, sym16, sym17, sym18, sym19, sym20
-      \item \textbf{coif family}: coif1, coif2, coif3, coif4, coif5, coif6, coif7, coif8,
-        coif9, coif10, coif11, coif12, coif13, coif14, coif15, coif16, coif17
-      \item \textbf{bior family}: bior1.1, bior1.3, bior1.5, bior2.2, bior2.4, bior2.6,
-        bior2.8, bior3.1, bior3.3, bior3.5, bior3.7, bior3.9, bior4.4, bior5.5,
-        bior6.8
-      \item \textbf{rbio family}: rbio1.1, rbio1.3, rbio1.5, rbio2.2, rbio2.4, rbio2.6,
-        rbio2.8, rbio3.1, rbio3.3, rbio3.5, rbio3.7, rbio3.9, rbio4.4, rbio5.5,
-        rbio6.8
-      \item \textbf{dmey family}: dmey
-      \item \textbf{gaus family}: gaus1, gaus2, gaus3, gaus4, gaus5, gaus6, gaus7, gaus8
-      \item \textbf{mexh family}: mexh
-      \item \textbf{morl family}: morl
-      \item \textbf{cgau family}: cgau1, cgau2, cgau3, cgau4, cgau5, cgau6, cgau7, cgau8
-      \item \textbf{shan family}: shan
-      \item \textbf{fbsp family}: fbsp
-      \item \textbf{cmor family}: cmor
-    \end{itemize}"""))
+              'family',
+              contentType=InputTypes.StringType,
+              descr=r"""The type of wavelet to use for the transformation.
+                    There are several possible families to choose from, and most families contain
+                    more than one variation. For more information regarding the wavelet families,
+                    refer to the Pywavelets documentation located at:
+                    https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html (wavelet-families)
+                    \\
+                    Possible values are:
+                    \begin{itemize}
+                      \item \textbf{haar family}: haar
+                      \item \textbf{db family}: db1, db2, db3, db4, db5, db6, db7, db8, db9, db10, db11,
+                        db12, db13, db14, db15, db16, db17, db18, db19, db20, db21, db22, db23,
+                        db24, db25, db26, db27, db28, db29, db30, db31, db32, db33, db34, db35,
+                        db36, db37, db38
+                      \item \textbf{sym family}: sym2, sym3, sym4, sym5, sym6, sym7, sym8, sym9, sym10,
+                        sym11, sym12, sym13, sym14, sym15, sym16, sym17, sym18, sym19, sym20
+                      \item \textbf{coif family}: coif1, coif2, coif3, coif4, coif5, coif6, coif7, coif8,
+                        coif9, coif10, coif11, coif12, coif13, coif14, coif15, coif16, coif17
+                      \item \textbf{bior family}: bior1.1, bior1.3, bior1.5, bior2.2, bior2.4, bior2.6,
+                        bior2.8, bior3.1, bior3.3, bior3.5, bior3.7, bior3.9, bior4.4, bior5.5,
+                        bior6.8
+                      \item \textbf{rbio family}: rbio1.1, rbio1.3, rbio1.5, rbio2.2, rbio2.4, rbio2.6,
+                        rbio2.8, rbio3.1, rbio3.3, rbio3.5, rbio3.7, rbio3.9, rbio4.4, rbio5.5,
+                        rbio6.8
+                      \item \textbf{dmey family}: dmey
+                      \item \textbf{gaus family}: gaus1, gaus2, gaus3, gaus4, gaus5, gaus6, gaus7, gaus8
+                      \item \textbf{mexh family}: mexh
+                      \item \textbf{morl family}: morl
+                      \item \textbf{cgau family}: cgau1, cgau2, cgau3, cgau4, cgau5, cgau6, cgau7, cgau8
+                      \item \textbf{shan family}: shan
+                      \item \textbf{fbsp family}: fbsp
+                      \item \textbf{cmor family}: cmor
+                    \end{itemize}"""))
     specs.addSub(InputData.parameterInputFactory('levels', contentType=InputTypes.IntegerType,
-              descr=r"""the number of wavelet decomposition levels for our signal. This includes approximation level
-                    which is used as the trend of the signal and the detail level(s) for which further algorithms will
-                    be applied. Note that there is a maximum decomposition level depending on signal length and the chosen
-                    wavelet family: if desired level is larger than the maximum decomposition level, the latter will be used.
-                    If provided level is 0, no decomposition is conducted. """))
+              descr=r"""the number of wavelet decomposition levels for requested for the signal. This is equivalent to
+                    the number of sets of detail coefficients produced. Note that there will always be one set of
+                    approximation cofficients produced, which is treated as a trend in the signal. Note that there is a
+                    maximum decomposition level depending on signal length and the chosen wavelet family: if desired
+                    level is larger than the maximum decomposition level, the latter will be used. Provided level must
+                    be nonzero."""))
     return specs
 
   def handleInput(self, spec):
@@ -118,7 +138,11 @@ class FilterBankDWT(TimeSeriesTransformer):
     settings['family'] = spec.findFirst('family').value
     settings['levels'] = spec.findFirst('levels').value
 
-    self._levels = settings['levels'] - 1
+    if settings['levels'] == 0:
+      raise IOError("Discrete Wavelet Transform requires non-zero number of decomposition levels.")
+
+    self._levels = settings['levels']
+
     return settings
 
   def fit(self, signal, pivot, targets, settings, trainedParams=None):
@@ -146,7 +170,7 @@ class FilterBankDWT(TimeSeriesTransformer):
     max_level = pywt.dwt_max_level(len(pivot), family)
     if self._levels>max_level:
       print(f"Number of levels requested is larger than maximum DWT decomposition level, switching to maximum allowed: {max_level}")
-      self._levels = max_level - 1
+      self._levels = max_level
       settings['levels'] = self._levels
 
     for i, target in enumerate(targets):
@@ -156,7 +180,7 @@ class FilterBankDWT(TimeSeriesTransformer):
       # TODO:this is temporary for zero-filter SOLAR data... should this also look back to find filter results?
 
       results = params[target]['results']
-      coeffs = pywt.mra(history, family, self._levels, transform='dwt' )
+      coeffs = pywt.mra(history, family, self._levels, transform='dwt')
       for coeff in coeffs:
         coeff[mask] = np.nan
 
@@ -175,7 +199,7 @@ class FilterBankDWT(TimeSeriesTransformer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
-    residual = copy.deepcopy(initial)
+    residual = initial.copy()
     for i, target in enumerate(settings['target']):
       residual = initial[:,i] - params[target]['results']['coeff_a']
     return residual
