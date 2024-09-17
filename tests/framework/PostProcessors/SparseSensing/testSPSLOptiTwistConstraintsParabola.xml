@@ -13,7 +13,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>reconstructionConstraintsParabolaOptiTwist</WorkingDir>
+    <WorkingDir>reconstructionOptiTwistConstraintsParabola</WorkingDir>
     <Sequence>LoadCSV, mySPpp, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

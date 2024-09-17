@@ -12,7 +12,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>reconstructionConstraintsPolygonOptiTwist</WorkingDir>
+    <WorkingDir>reconstructionOptiTwistConstraintsPolygon</WorkingDir>
     <Sequence>LoadCSV, mySPpp, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

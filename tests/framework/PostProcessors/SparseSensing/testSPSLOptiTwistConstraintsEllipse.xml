@@ -12,7 +12,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>reconstructionConstraintsEllipseOptiTwist</WorkingDir>
+    <WorkingDir>reconstructionOptiTwistConstraintsEllipse</WorkingDir>
     <Sequence>LoadCSV, mySPpp, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
