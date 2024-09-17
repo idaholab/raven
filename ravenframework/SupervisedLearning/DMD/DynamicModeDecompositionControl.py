@@ -26,9 +26,9 @@ from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from ..utils import mathUtils
-from ..utils import InputData, InputTypes
-from .DynamicModeDecomposition import DMD
+from ...utils import mathUtils
+from ...utils import InputData, InputTypes
+from .DMD import DMD
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DMDC(DMD):
@@ -101,7 +101,27 @@ class DMDC(DMD):
           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
                 (imaginary part, matrix shape, and real part)
         \end{itemize}"""
-    specs.popSub("dmdType")
+    specs.addSub(InputData.parameterInputFactory("rankSVD", contentType=InputTypes.IntegerType,
+                                                 descr=r"""defines the truncation rank to be used for the SVD.
+                                                 Available options are:
+                                                 \begin{itemize}
+                                                 \item \textit{-1}, no truncation is performed
+                                                 \item \textit{0}, optimal rank is internally computed
+                                                 \item \textit{$>1$}, this rank is going to be used for the truncation
+                                                 \end{itemize}""", default=None))
+    specs.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputTypes.FloatType,
+                                                 descr=r"""energy level ($0.0 < float < 1.0$) used to compute the rank such
+                                                   as computed rank is the number of the biggest singular values needed to reach the energy identified by
+                                                   \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}""", default=None))
+    specs.addSub(InputData.parameterInputFactory("rankTLSQ", contentType=InputTypes.IntegerType,
+                                                 descr=r"""$int > 0$ that defines the truncation rank to be used for the total
+                                                  least square problem. If not inputted, no truncation is applied""", default=None))
+    specs.addSub(InputData.parameterInputFactory("exactModes", contentType=InputTypes.BoolType,
+                                                 descr=r"""True if the exact modes need to be computed (eigenvalues and
+                                                 eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).""", default=True))
+    specs.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.FloatType,
+                                                 descr=r"""True if the amplitudes need to be computed minimizing the error
+                                                  between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     specs.addSub(InputData.parameterInputFactory("actuators", contentType=InputTypes.StringListType,
                                                  descr=r"""defines the actuators (i.e. system input parameters)
                                                   of this model. Each actuator variable (u1, u2, etc.) needs to
@@ -145,6 +165,10 @@ class DMDC(DMD):
     self.parametersIDs = None   # Parameter Names
     self.neigh = None           # neighbors
     # variables filled up in the training stages
+    self._amplitudes = {}       # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
+    self._eigs = {}             # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
+    self._modes = {}            # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
+    self.__Atilde = {}          # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
     self.__Btilde = {}          # B matrix
     self.__Ctilde = {}          # C matrix
     self.actuatorVals = None    # Actuator values (e.g. U), the variable names are in self.ActuatorID
@@ -160,10 +184,16 @@ class DMDC(DMD):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['actuators','stateVariables', 'initStateVariables',
+    settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','rankSVD', 'energyRankSVD',
+                                                               'rankTLSQ','exactModes','optimized','actuators','stateVariables', 'initStateVariables',
                                                                'subtractNormUXY','singleValuesTruncationTol'])
     # notFound must be empty
     assert(not notFound)
+    self.dmdParams['rankSVD'       ] = settings.get('rankSVD',None)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+    self.dmdParams['energyRankSVD' ] = settings.get('energyRankSVD',None)     #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
+    self.dmdParams['rankTLSQ'      ] = settings.get('rankTLSQ',None)          # truncation rank for total least square
+    self.dmdParams['exactModes'    ] = settings.get('exactModes',True)        # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
+    self.dmdParams['optimized'     ] = settings.get('optimized',False)        # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
     # Truncation threshold to apply to single values
     self.sTruncationTol = settings.get('singleValuesTruncationTol')
     # Extract the Actuator Variable Names (u)
@@ -184,6 +214,13 @@ class DMDC(DMD):
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     self.dmdParams['centerUXY'] = settings.get('subtractNormUXY')
     # some checks
+    if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
+      self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
+    # check if the pivotParameter is among the targetValues
+    if self.pivotParameterID not in self.target:
+      self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
+    if len(self.target) < 2:
+      self.raiseAnError(IOError,"At least one Target in addition to the pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
     # check if state ids in target
     if not (set(self.stateID) <= set(self.target)):
       self.raiseAnError(IOError,'stateVariables must also be listed among <Target> variables!')
@@ -199,6 +236,43 @@ class DMDC(DMD):
       if str(self.parametersIDs[i]).endswith('_init'):
         self.parametersIDs.remove(self.parametersIDs[i])
 
+  def initializeModel(self, dmdParams):
+    """
+      Method to initialize the surrogate model with a dmdParams dictionary
+      @ In, dmdParams, dict, the dictionary containin the parameters/settings to instanciate the model
+      @ Out, None
+    """
+    pass
+
+  def _getTimeScale(self,dmd=True):
+    """
+      Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
+      @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
+      @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
+    """
+    timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
+    timeScale = np.arange(timeScaleInfo['t0'], (timeScaleInfo['intervals']+1)*timeScaleInfo['dt'], timeScaleInfo['dt'])
+    return timeScale
+
+  def __getTimeEvolution(self, target):
+    """
+      Get the time evolution of each mode
+      @ In, target, str, the target for which mode evolution needs to be retrieved for
+      @ Out, timeEvol, numpy.ndarray, the matrix that contains all the time evolution (by row)
+    """
+    omega = np.log(self._eigs[target]) / self.timeScales['training']['dt']
+    van = np.exp(np.multiply(*np.meshgrid(omega, self._getTimeScale())))
+    timeEvol = (van * self._amplitudes[target]).T
+    return timeEvol
+
+  def _reconstructData(self, target):
+    """
+      Retrieve the reconstructed data
+      @ In, target, str, the target for which the data needs to be reconstructed
+      @ Out, data, numpy.ndarray, the matrix (nsamples,n_time_steps) containing the reconstructed data
+    """
+    data = self._modes[target].dot(self.__getTimeEvolution(target))
+    return data
   def __setstate__(self,state):
     """
       Initializes the DMD with the data contained in state
@@ -403,7 +477,7 @@ class DMDC(DMD):
     if skip is None: # skip =  None
       skip = []
 
-    what = ['dmdType','rankSVD','acturators',
+    what = ['rankSVD','acturators',
             'stateVariables','outputs','initStateVariables',
             'Atilde','Btilde','Ctilde','UNorm','XNorm','YNorm',
             'XLast','dmdTimeScale']
@@ -424,7 +498,7 @@ class DMDC(DMD):
 
     target = 'DMDcModel'
 
-    toAdd = ['dmdType','rankSVD']
+    toAdd = ['rankSVD']
     self.dmdParams['rankSVD'] = self.dmdParams['rankSVD'] if self.dmdParams['rankSVD'] is not None else -1
 
     for add in toAdd: # toAdd = ['dmdType','rankSVD']

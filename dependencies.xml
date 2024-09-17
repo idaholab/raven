@@ -38,7 +38,7 @@ Note all install methods after "main" take
 <dependencies>
   <main>
     <h5py/>
-    <numpy>1.22</numpy>
+    <numpy>1.24</numpy>
     <scipy>1.9</scipy>
     <scikit-learn>1.0</scikit-learn>
     <pandas/>
@@ -47,7 +47,7 @@ Note all install methods after "main" take
     <netcdf4 source="pip">1.6</netcdf4>
     <matplotlib>3.5</matplotlib>
     <statsmodels>0.13</statsmodels>
-    <cloudpickle>2.2</cloudpickle>
+    <cloudpickle/>
     <tensorflow source="pip">2.13</tensorflow>
     <grpcio source="pip" />
     <!-- conda is really slow on windows if the version is not specified.-->
@@ -70,7 +70,6 @@ Note all install methods after "main" take
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
-    <smt machine='x86_64'/> <!-- not available on macos arm64 -->
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <statsforecast/>
@@ -90,6 +89,8 @@ Note all install methods after "main" take
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source="mamba" skip_check='True'/>
     <serpentTools optional='True' source="pip"/>
+    <pydmd source="pip"/>
+    <ezyrb source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
