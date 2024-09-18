@@ -202,7 +202,7 @@ class GradientDescent(RavenSampled):
     # history trackers, by traj, are deques (-1 is most recent)
     self._gradHistory = {}         # gradients
     self._stepHistory = {}         # {'magnitude': size, 'versor': direction, 'info': dict} for step
-    self._acceptHistory = {}       # acceptability
+    self._acceptHistory = {}       # acceptabilitys
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
     self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
@@ -212,7 +212,6 @@ class GradientDescent(RavenSampled):
     self._followerProximity = 1e-2   # distance at which annihilation can start occurring, in ?normalized? space
     self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
     self._functionalConstraintExplorationLimit = 500 # number of input-space explorations allowable for functional constraints
-    
     # __private
     # additional methods
     # register adaptive sample identification criteria
