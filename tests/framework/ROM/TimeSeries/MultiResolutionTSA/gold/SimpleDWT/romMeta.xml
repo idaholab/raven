@@ -12,41 +12,76 @@
       <MacroLastStep>1</MacroLastStep>
     </DecompositionMultiyearROM>
     <MacroStepROM macro="1" type="Static">
+      <Fourier>
+        <signal0>
+          <fit_intercept>9.850650578e+00</fit_intercept>
+          <waveform period="1.000000000e+01" frequency="1.000000000e-01">
+            <amplitude>1.248158468e+00</amplitude>
+            <phase>2.414567577e+00</phase>
+          </waveform>
+          <waveform period="2.000000000e+01" frequency="5.000000000e-02">
+            <amplitude>4.693581564e+00</amplitude>
+            <phase>9.573561573e-01</phase>
+          </waveform>
+        </signal0>
+      </Fourier>
       <FilterBankDWT>
         <signal0>
           <N_approx_levels>1</N_approx_levels>
-          <N_detail_levels>1</N_detail_levels>
+          <N_detail_levels>2</N_detail_levels>
         </signal0>
         <signal1>
           <N_approx_levels>1</N_approx_levels>
-          <N_detail_levels>1</N_detail_levels>
+          <N_detail_levels>2</N_detail_levels>
         </signal1>
       </FilterBankDWT>
       <DecompStepROM detail_level="0" type="Static">
+        <Gaussianize>
+          <signal0 />
+          <signal1 />
+        </Gaussianize>
         <ARMA>
           <signal0>
-            <constant>2.114254284e-05</constant>
-            <AR_0>-1.134903740e+00</AR_0>
-            <AR_1>-2.630983873e-01</AR_1>
-            <MA_0>-9.932710697e-01</MA_0>
-            <MA_1>-8.366523797e-01</MA_1>
-            <MA_2>8.840743465e-01</MA_2>
-            <variance>2.945535390e-02</variance>
-            <order>2,0,3</order>
+            <constant>-1.085841499e-02</constant>
+            <AR_0>1.613550804e-01</AR_0>
+            <MA_0>7.653636687e-01</MA_0>
+            <variance>6.251511988e-01</variance>
+            <order>1,0,1</order>
           </signal0>
           <signal1>
-            <constant>-1.872842056e-05</constant>
-            <AR_0>-1.347367989e+00</AR_0>
-            <AR_1>-4.082267741e-01</AR_1>
-            <MA_0>-9.881227307e-01</MA_0>
-            <MA_1>-9.381630843e-01</MA_1>
-            <MA_2>9.686163148e-01</MA_2>
-            <variance>2.694538532e-02</variance>
-            <order>2,0,3</order>
+            <constant>8.219835952e-04</constant>
+            <AR_0>4.261816231e-01</AR_0>
+            <MA_0>-2.570199447e-01</MA_0>
+            <MA_1>-7.428152214e-01</MA_1>
+            <variance>4.935974461e-01</variance>
+            <order>1,0,2</order>
+          </signal1>
+        </ARMA>
+      </DecompStepROM>
+      <DecompStepROM detail_level="1" type="Static">
+        <Gaussianize>
+          <signal0 />
+          <signal1 />
+        </Gaussianize>
+        <ARMA>
+          <signal0>
+            <constant>7.701406117e-03</constant>
+            <AR_0>-3.509449860e-01</AR_0>
+            <MA_0>-9.996688337e-01</MA_0>
+            <variance>4.375341161e-01</variance>
+            <order>1,0,1</order>
+          </signal0>
+          <signal1>
+            <constant>-4.132470160e-03</constant>
+            <AR_0>-7.084257030e-02</AR_0>
+            <MA_0>-4.263429897e-01</MA_0>
+            <MA_1>-5.699905321e-01</MA_1>
+            <variance>8.685697435e-01</variance>
+            <order>1,0,2</order>
           </signal1>
         </ARMA>
       </DecompStepROM>
     </MacroStepROM>
   </synth>
-
+  
 </DataObjectMetadata>
