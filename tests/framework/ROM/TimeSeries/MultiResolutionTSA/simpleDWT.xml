@@ -63,11 +63,10 @@
       <Target>signal0,signal1, pivot</Target>
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
-      s
       <fourier target="signal0">
         <periods>10, 20</periods>
       </fourier>
-      <filterbankdwt target="signal0,signal1" seed="42">
+      <filterbankdwt target="signal0,signal1" seed='42'>
         <family>coif10</family>
         <levels>4</levels>
       </filterbankdwt>
