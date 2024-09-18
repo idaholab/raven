@@ -7,8 +7,7 @@
     <classesTested>SupervisedLearning.MultiResolutionTSA,TSA.FilterBankDWT</classesTested>
     <description>
       Tests the MultiResolutionTSA ROM using a singular macroStep and the FilterBankDWT algorithm.
-      An ARMA model is trained on each detail level. Requested number of levels in FilterBankDWT
-      should exceed the theoretical maximum, so the result should have only 1 detail level.
+      An ARMA model is trained on each detail level. Two signals trained.
     </description>
   </TestInfo>
 
@@ -48,7 +47,7 @@
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>2</limit>
+        <limit>1</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
@@ -57,21 +56,25 @@
 
   <Models>
     <ROM name="synth" subType="MultiResolutionTSA">
-      <Target>signal0, signal1, pivot</Target>
+      <Target>signal0,signal1, pivot</Target>
       <Features>scaling</Features>
-      <pivotParameter>pivot</pivotParameter>
-      <filterbankdwt target="signal0, signal1" seed='42'>
-        <family>db8</family>
+      <pivotParameter>pivot</pivotParameter>s
+      <fourier target="signal0">
+        <periods>10, 20</periods>
+      </fourier>
+      <filterbankdwt target="signal0,signal1" seed='42'>
+        <family>coif10</family>
         <levels>4</levels>
       </filterbankdwt>
       <Segment grouping="decomposition">
-        <Target>signal0, signal1, pivot</Target>
+        <Target>signal0,signal1, pivot</Target>
         <Features>scaling</Features>
         <macroParameter>macro</macroParameter>
         <pivotParameter>pivot</pivotParameter>
-        <arma target="signal0, signal1" seed='42'>
-          <P>2</P>
-          <Q>3</Q>
+        <gaussianize target="signal0,signal1"/>
+        <arma target="signal0,signal1" seed='42'>
+          <P>1,1</P>
+          <Q>1,2</Q>
         </arma>
       </Segment>
     </ROM>
@@ -92,16 +95,16 @@
     <PointSet name="placeholder"/>
     <HistorySet name="indata">
       <Input>scaling, macro</Input>
-      <Output>pivot, signal0, signal1</Output>
+      <Output>pivot, signal0,signal1</Output>
       <options>
         <pivotParameter>pivot</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="samples">
       <Input>scaling</Input>
-      <Output>pivot, signal0, signal1</Output>
-      <Index var="pivot">signal0, signal1</Index>
-      <Index var="macro">signal0, signal1</Index>
+      <Output>pivot, signal0,signal1</Output>
+      <Index var="pivot">signal0,signal1</Index>
+      <Index var="macro">signal0,signal1</Index>
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
