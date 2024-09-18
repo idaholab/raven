@@ -50,7 +50,6 @@
       </DecompStepROM>
     </MacroStepROM>
     <MacroStepROM macro="2" type="Static">
-<<<<<<< HEAD
       <Fourier>
         <signal>
           <fit_intercept>4.730485908e+00</fit_intercept>
@@ -85,23 +84,25 @@
             <variance>1.050620541e+00</variance>
             <order>2,0,3</order>
           </signal>
-=======
       <FilterBankDWT>
-        <signal0>
+        <signal>
           <N_approx_levels>1</N_approx_levels>
-          <N_detail_levels>3</N_detail_levels>
-        </signal0>
+          <N_detail_levels>1</N_detail_levels>
+        </signal>
       </FilterBankDWT>
       <DecompStepROM detail_level="0" type="Static">
+        <Gaussianize>
+          <signal />
+        </Gaussianize>
         <ARMA>
-          <signal0>
-            <constant>-2.007533604e-03</constant>
-            <AR_0>5.477200913e-01</AR_0>
-            <AR_1>-1.776652906e-01</AR_1>
-            <MA_0>9.059678394e-01</MA_0>
-            <MA_1>9.060010166e-01</MA_1>
-            <MA_2>9.999696266e-01</MA_2>
-            <variance>9.395131913e-02</variance>
+          <signal>
+            <constant>-2.194729136e-03</constant>
+            <AR_0>-3.962321760e-01</AR_0>
+            <AR_1>-4.832490406e-01</AR_1>
+            <MA_0>-2.662806536e-01</MA_0>
+            <MA_1>1.078173681e-01</MA_1>
+            <MA_2>9.383190024e-02</MA_2>
+            <variance>1.050620541e+00</variance>
             <order>2,0,3</order>
           </signal0>
         </ARMA>
@@ -132,10 +133,8 @@
             <variance>7.113185334e-02</variance>
             <order>2,0,3</order>
           </signal0>
->>>>>>> 038c71ce2 (fixing test files and regolding romMeta)
         </ARMA>
       </DecompStepROM>
     </MacroStepROM>
   </synth>
-  
 </DataObjectMetadata>
