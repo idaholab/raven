@@ -7,8 +7,7 @@
     <classesTested>SupervisedLearning.SyntheticHistory,TSA.Fourier</classesTested>
     <description>
       Tests the MultiResolutionTSA ROM using multiple macroSteps/years and the FilterBankDWT algorithm.
-      An ARMA model is trained on each detail level. Requested number of levels in FilterBankDWT
-      should exceed the theoretical maximum, so the result should have only 3 detail levels per year.
+      An ARMA model is trained on each detail level.
     </description>
   </TestInfo>
 
@@ -48,7 +47,7 @@
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>2</limit>
+        <limit>1</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
@@ -57,19 +56,23 @@
 
   <Models>
     <ROM name="synth" subType="MultiResolutionTSA">
-      <Target>signal0, seconds</Target>
+      <Target>signal, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <filterbankdwt target="signal0" seed='42'>
-        <family>db2</family>
-        <levels>4</levels>
+      <fourier target="signal">
+        <periods>4, 15</periods>
+      </fourier>
+      <filterbankdwt target="signal" seed='42'>
+        <family>db10</family>
+        <levels>2</levels>
       </filterbankdwt>
       <Segment grouping="decomposition">
-        <Target>signal0, seconds</Target>
+        <Target>signal, seconds</Target>
         <macroParameter>macro</macroParameter>
         <Features>scaling</Features>
         <pivotParameter>seconds</pivotParameter>
-        <arma target="signal0" seed='42'>
+        <gaussianize target="signal"/>
+        <arma target="signal" seed='42'>
           <P>2</P>
           <Q>3</Q>
         </arma>
@@ -92,16 +95,16 @@
     <PointSet name="placeholder"/>
     <HistorySet name="indata">
       <Input>scaling, macro</Input>
-      <Output>signal0, seconds</Output>
+      <Output>signal, seconds</Output>
       <options>
         <pivotParameter>seconds</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="samples">
       <Input>scaling</Input>
-      <Output>seconds, signal0</Output>
-      <Index var="seconds">signal0</Index>
-      <Index var="macro">signal0</Index>
+      <Output>seconds, signal</Output>
+      <Index var="seconds">signal</Index>
+      <Index var="macro">signal</Index>
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>

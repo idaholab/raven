@@ -12,64 +12,91 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Generates training data in the form of Fourier signals.
+  Generates training data for a FilterBank multiresolution test, applying Fourier signals and
+  ARMA-style signals at different resolutions. Additionally generates multiyear signals.
 """
 import numpy as np
 import pandas as pd
+import os.path as path
 from generators import fourier, arma
 
 plot = False
 
-pivot = np.arange(1000)
+dirname = path.dirname(path.abspath(__file__))
 
+# YEAR 0 signal
+pivot  = np.arange(0,2**6)
+year0 = np.zeros(len(pivot))
+year1 = np.zeros(len(pivot))
 
-# macroStep 0
-amps = [16, 8, 10, 12]
-periods = [75, 125, 250, 500]
-phases = [0, np.pi/4, np.pi/2, np.pi]
-intercept = 42
-f0 = fourier(amps, periods, phases, pivot, mean=intercept)
+amps      = [      8,  20]
+periods   = [      4,  15]
+phases    = [np.pi/6,  np.pi/2]
+intercept = 3
+f = fourier(amps, periods, phases, pivot, mean=intercept)
 
-slags = [0.4, 0.2]
-nlags = [0.3, 0.2, 0.1]
-a0, _ = arma(slags, nlags, pivot, plot=False)
+l = 1
+slags = [-0.05, 0.1]
+nlags = [0.05, 0.25, -0.12]
+a0, _ = arma(slags, nlags, pivot[::l], plot=False)
+a0 = np.repeat(a0,l)
 
-s0 = f0 + a0
+l = 2
+slags = [0.2, -0.03]
+nlags = [-0.15, -0.2, 0.1]
+a1, _ = arma(slags, nlags, pivot[::l], plot=False)
+a1    = np.repeat(a1,l)
 
-# macroStep 1
-amps = [4, 21, 7, 35]
-periods = [75, 125, 250, 500]
-phases = [0, np.pi/4, np.pi/2, np.pi]
-intercept = 42
-f1 = fourier(amps, periods, phases, pivot, mean=intercept)
+year0 += f
+year0 += a0
+year0 += a1
 
-slags = [0.4, 0.2]
-nlags = [0.3, 0.2, 0.1]
-a1, _ = arma(slags, nlags, pivot, plot=False)
+# YEAR 0 signal
+year1 = np.zeros(len(pivot))
+phases    = [np.pi/3,  np.pi/4]
+intercept = 5
+f = fourier(amps, periods, phases, pivot, mean=intercept)
 
-s1 = f1 + a1
+l = 1
+slags = [0.15, 0.03]
+nlags = [-0.15, -0.2, 0.1]
+a0, _ = arma(slags, nlags, pivot[::l], plot=False)
+a0 = np.repeat(a0,l)
+
+l = 2
+slags = [-0.05, 0.2]
+nlags = [0.05, 0.25, -0.12]
+a1, _ = arma(slags, nlags, pivot[::l], plot=False)
+a1    = np.repeat(a1,l)
+
+year1 += f
+year1 += a0
+year1 += a1
 
 if plot:
   import matplotlib.pyplot as plt
   fig, ax = plt.subplots()
-  ax.plot(pivot, s0, '.-', label='0')
-  ax.plot(pivot, s1, '.-', label='1')
+  ax.plot(pivot, year0, '.-', label='0')
+  ax.plot(pivot, year1, '.-', label='1')
   ax.legend()
   plt.show()
 
 
 # Write signals to file using pandas DataFrames
-df0 = pd.DataFrame({'seconds': pivot, 'signal0': s0})
-df0.to_csv('multiYear_A.csv', index=False)
+df0 = pd.DataFrame({'seconds': pivot, 'signal': year0})
+df_filepath = path.join(dirname, 'multiYear_A.csv')
+df0.to_csv(df_filepath, index=False)
 
 # Write signals to file using pandas DataFrames
-df1 = pd.DataFrame({'seconds': pivot, 'signal0': s1})
-df1.to_csv('multiYear_B.csv', index=False)
+df1 = pd.DataFrame({'seconds': pivot, 'signal': year1})
+df_filepath = path.join(dirname, 'multiYear_B.csv')
+df1.to_csv(df_filepath, index=False)
 
 # Create pointer CSV file
 pointer = pd.DataFrame({
     'scaling': [1, 1],
-    'macro': [1, 2], # interpolation still needed... ?
+    'macro':   [1, 2], # interpolation still needed... ?
     'filename': ['multiYear_A.csv', 'multiYear_B.csv']
 })
-pointer.to_csv('multiYear.csv', index=False)
+pointer_filepath = path.join(dirname, 'multiYear.csv')
+pointer.to_csv(pointer_filepath, index=False)
