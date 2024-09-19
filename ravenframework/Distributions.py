@@ -28,6 +28,7 @@ from numpy import linalg as LA
 import copy
 import math as math
 import bisect
+from collections import namedtuple
 
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
@@ -76,6 +77,12 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'UniformDiscrete' : 'UniformDiscreteDistribution'
 }
 
+
+# Declaring namedtuple(DistributionTypes)
+DistributionTypes = namedtuple('DistributionType', ['discrete', 'continuous'])
+# Adding values
+distType = DistributionTypes('Discrete', 'Continuous')
+
 class DistributionsCollection(InputData.ParameterInput):
   """
     Class for reading in a collection of distributions
@@ -99,8 +106,20 @@ class Distribution(BaseEntity, InputDataUser):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType))
+    inputSpecification.addSub(
+      InputData.parameterInputFactory(
+        'upperBound',
+        descr=r"""the maximum value allowable by this distribution. For distributions that do not traditionally
+          include an upper bound, including this node will truncate (and rebalance the probability) of the distribution,
+          with this value as the maximum value.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(
+      InputData.parameterInputFactory(
+        'lowerBound',
+        descr=r"""the minimum value allowable by this distribution. For distributions that do not traditionally
+          include a lower bound, including this node will truncate (and rebalance the probability) of the distribution,
+          with this value as the minimum value.""",
+        contentType=InputTypes.FloatType))
     return inputSpecification
 
   def __init__(self):
@@ -393,7 +412,7 @@ class BoostDistribution(Distribution):
     """
     super().__init__()
     self.dimensionality  = 1
-    self.distType        = 'Continuous'
+    self.distType        = distType.continuous
 
   def cdf(self,x):
     """
@@ -506,6 +525,22 @@ class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Uniform, cls).getInputSpecification()
+    inputSpecification.description = r"""Classical uniform distribution. The probability density function for the uniform
+      distribution is given by $f(x)=\frac{1}{b-a}$ for $a \le x \le b$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.uniform.html} for more details.
+      """
+    return inputSpecification
 
   def __init__(self, lowerBound=None, upperBound=None):
     """
@@ -629,8 +664,18 @@ class Normal(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Normal, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Classical Gaussian normal distribution. The probability density function for the normal
+      distribution is given by $f(x)=\frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$ for $-\infty\leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("mean",
+        descr=r"""the distribution mean or expected value. For a standard normal distribution,
+          this is zero. """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma",
+        descr=r"""the standard deviation (stdv) of this distribution. For a standard normal distribution,
+          this is one. The variance of this distribution is the square of this value, $\sigma^2$.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -779,9 +824,24 @@ class Gamma(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Gamma, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Classical gamma distribution. The probability density function for the gamma
+      distribution is given by $f(x,\alpha)=\frac{\beta^{\alpha}x^{\alpha-1}e^{-\beta x}}{\Gamma(\alpha)}$
+      for $x\geq 0,\alpha>0$, and where $\Gamma(\alpha)$ refers to the gamma function.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""the lower domain value of this distribution. Setting this to a nonzero value will shift the
+          distribution to the left or right. \default{0.0} """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha",
+        descr=r"""first shape parameter.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html} for more details.  """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta",
+        descr=r"""rate parameter, also inverse scale parameter.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html} for more details. \default{1.0}
+          """,
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -798,7 +858,7 @@ class Gamma(BoostDistribution):
     self.alpha = alpha
     self.beta = beta
     self.type = 'Gamma'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Laguerre')
     self.compatibleQuadrature.append('CDF')
@@ -935,11 +995,34 @@ class Beta(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Beta, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("high", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("peakFactor", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Classical beta distribution. The probability density function for the beta
+      distribution is given by $f(x;\alpha,\beta)=\frac{1}{B(\alpha,\beta)}x^{\alpha-1}(1-x)^{\beta-1}$
+      for $\alpha>0, \beta>0$ and $0 \leq x \leq 1$
+      and $B(\alpha,\beta)=\frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.beta.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""the lower domain value of this distribution. Setting this to a nonzero value will shift the
+          distribution to the left or right. \default{0.0} """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("high",
+        descr=r"""the upper domain value of this distribution. Setting this to a nonzero value will shift the right side
+          of the distribution to the left or right. \default{0.0} """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha",
+        descr=r"""first shape parameter. If specified, \xmlNode{beta} must also be provided, and
+          \xmlNode{peakFactor} cannot be specified.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.beta.html} for more details. """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta",
+        descr=r"""second shape parameter. If specified, \xmlNode{alpha} must also be provided, and
+          \xmlNode{peakFactor} cannot be specified.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.beta.html} for more details. """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("peakFactor",
+        descr=r"""alternate shape parameter. If specified, neither \xmlNode{alpha} nor \xmlNode{beta} may be specified.
+          """,
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -955,7 +1038,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('CDF')
@@ -1112,9 +1195,20 @@ class Triangular(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Triangular, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("apex", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("min", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical triangular distribution. The probability density function for the
+      triangular distribution is given by
+      $f(x)=\frac{2(x-a)}{(b-a)(c-a))}$ for $a \le x < c$, and $\frac{2(b-x)}{(b-a)(b-c)}$ for $c< x \le b$, and 0 otherwise.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.triang.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("min",
+        descr=r"""lower domain boundary of this distribution, referred to as $a$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max",
+        descr=r"""upper domain boundary of this distribution, referred to as $b$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("apex",
+        descr=r"""location of the peak of the distribution, referred to as $c$ in equation form.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1129,7 +1223,7 @@ class Triangular(BoostDistribution):
     self.min  = None  # domain lower boundary
     self.max  = None  # domain upper boundary
     self.type = 'Triangular'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1230,7 +1324,14 @@ class Poisson(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Poisson, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mu", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical Poisson discrete distribution. The probability mass function for the
+      Poisson distribution is given by
+      $f(k)=\frac{\mu^k e^{-\mu}}{k!}$ where $k$ is the number of occurances and $\mu$ is the mean.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.poisson.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("mu",
+        descr=r"""mean rate of events/time""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1244,7 +1345,7 @@ class Poisson(BoostDistribution):
     self.mu  = 0.0
     self.type = 'Poisson'
     self.hasInfiniteBound = True
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1324,8 +1425,18 @@ class Binomial(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Binomial, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("n", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical binomial discrete distribution. The probability mass function for the
+      binomial distribution is given by
+      $f(k;n,p)=\binom{n}{k}p^k (1-p)^{n-k}$ where $k$ is the number of occurances, $p$ is the probabilty of occurance,
+      and $n$ is the number of experiments.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.binom.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("n",
+        descr=r"""number of experiments or trials.""",
+        contentType=InputTypes.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""probability of occurance, often probability of a success.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1340,7 +1451,7 @@ class Binomial(BoostDistribution):
     self.p       = 0.0
     self.type     = 'Binomial'
     self.hasInfiniteBound = True
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1426,7 +1537,14 @@ class Bernoulli(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Bernoulli, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical Bernoulli discrete distribution. The probability mass function for the
+      Bernoulli distribution is given by
+      $f(k;p)=p$ if $k=1$ and $f(k;p)=1-p$ if $k=0$, where $k$ is the possible outcomes and $p$ is the probabilty of occurance.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.Bernoulli.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""probability of occurrance, or success.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1439,7 +1557,7 @@ class Bernoulli(BoostDistribution):
     super().__init__()
     self.p        = 0.0
     self.type     = 'Bernoulli'
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1519,7 +1637,14 @@ class Geometric(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Geometric, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical geometric discrete distribution. The probability mass function for the
+      geometric distribution is given by
+      $f(k;p)=(1-p)^{k}p$, where $k$ is the possible outcomes and $p$ is the probabilty of occurance.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.geom.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""probability of occurrance, or success.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1532,7 +1657,7 @@ class Geometric(BoostDistribution):
     super().__init__()
     self.p        = 0.0
     self.type     = 'Geometric'
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1610,14 +1735,29 @@ class Categorical(Distribution):
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
-
-    StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
-    StatePartInput.addParam("outcome", InputTypes.FloatOrStringType, True)
+    inputSpecification.description = r"""classical categorical discrete distribution, sometimes also referred to
+      as a multinomial distribution. The categorical distribution
+      describes the result of a random variable that can have $K$ possible outcome states, with each outcome potentially
+      having a distinct probability. These states can be numbers as well as strings.
+      """
+    StatePartInput = InputData.parameterInputFactory("state",
+        descr=r"""probability of this state's outcome""",
+        contentType=InputTypes.FloatType)
+    StatePartInput.addParam("outcome",
+        InputTypes.FloatOrStringType,
+        True,
+        descr=r"""value of this state's outcome""")
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    inputSpecification.addSub(InputData.parameterInputFactory("rtol",
+        contentType=InputTypes.FloatType,
+        descr=r"""Relative tolerance used to identify close states in case of
+          float/int states. Not used for string states!""",
+        default=1e-6))
 
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
-    inputSpecification.addParam("name", InputTypes.StringType, True)
+    inputSpecification.addParam("name", InputTypes.StringType, True,
+        descr=r"""User-defined name to designate this entity in the RAVEN input file.""")
 
     return inputSpecification
 
@@ -1632,8 +1772,9 @@ class Categorical(Distribution):
     self.values         = set()
     self.type           = 'Categorical'
     self.dimensionality = 1
-    self.distType       = 'Discrete'
-    self.isFloat        = False
+    self.distType       = distType.discrete
+    self.isFloat        = True
+    self.rtol = 1e-6
 
   def _handleInput(self, paramInput):
     """
@@ -1642,22 +1783,23 @@ class Categorical(Distribution):
       @ Out, None
     """
     super()._handleInput(paramInput)
+    isFloats = []
     for child in paramInput.subparts:
       if child.getName() == "state":
         outcome = child.parameterValues["outcome"]
         value = child.value
         self.mapping[outcome] = value
-        try:
-          float(outcome)
-          self.isFloat = True
-        except:
-          self.isFloat = False
+        isFloats.append(utils.floatConversion(outcome) is not None)
         if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome) if self.isFloat else outcome)
+          self.values.add(float(outcome) if isFloats[-1] else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
+    if False in isFloats:
+      self.isFloat = False
+    else:
+      self.rtol = paramInput.findNodesAndExtractValues(['rtol'])[0]['rtol']
     self.initializeDistribution()
     self.upperBoundUsed = True
     self.lowerBoundUsed = True
@@ -1690,10 +1832,13 @@ class Categorical(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
+    isFloats = []
     for idx, val in enumerate(inputDict['outcome']):
       self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
-
+      isFloats.append(utils.floatConversion(val) is not None)
+    if False in isFloats:
+      self.isFloat = False
     self.checkDistParams()
 
   def initializeDistribution(self):
@@ -1721,9 +1866,9 @@ class Categorical(Distribution):
         self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1')
 
     localSum = sum(self.mapping.values())
-    if not mathUtils.compareFloats(localSum,1.0):
-      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!')
+    if not mathUtils.compareFloats(localSum,1., self.rtol):
+      self.raiseAnError(f'Categorical distribution cannot be initialized: sum of probabilities is {localSum},'
+                        ' not 1.0! Please re-normalize it to 1!')
 
     # Probability values normalization
     for key in self.mapping.keys():
@@ -1740,10 +1885,19 @@ class Categorical(Distribution):
     else:
       if self.isFloat:
         vals = sorted(list(self.values))
-        idx = bisect.bisect(vals, x)
-        pdfValue = self.mapping[list(vals)[idx]]
+        idx = [idx for idx in range(len(vals)) if utils.isClose(vals[idx], x, relTolerance=self.rtol)]
+        if not len(idx):
+          self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the closest '
+                            f'state {list(vals)[bisect.bisect(vals, x)]} is outside the acceptance interval given by the provided relative tolerance {self.rtol}!')
+        idx = idx[0]
+        val =  list(vals)[idx]
+        pdfValue = self.mapping[val]
+        if not utils.isClose(val, x, relTolerance=self.rtol):
+          self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the closest '
+                            f'state {val} is outside the acceptance interval given by the provided relative tolerance {self.rtol}!')
       else:
-        self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
+        self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the states are not floats/integers and the'
+                            f'value {x} is not present in the list of states!!')
     return pdfValue
 
   def cdf(self,x):
@@ -1755,6 +1909,7 @@ class Categorical(Distribution):
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == sortedMapping[-1][0]:
       return 1.0
+
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
@@ -1764,12 +1919,12 @@ class Categorical(Distribution):
     else:
       if self.isFloat:
         cumulative=0.0
-        for element in sortedMapping:
-          cumulative += element[1]
-          if x >= element[0]:
+        for idx in range(len(sortedMapping)-1):
+          cumulative += sortedMapping[idx][1]
+          if x >= sortedMapping[idx][0] and x <= sortedMapping[idx+1][0]:
             return cumulative
       # if we reach this point we must error out
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
+      self.raiseAnError(IOError,f'{self.type} distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
     """
@@ -1777,8 +1932,8 @@ class Categorical(Distribution):
       @ In, x, float, value to get the ppf at
       @ Out, element[0], float/string, requested inverse cdf
     """
-    if x > 1.0 or x < 0:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
+    if x > 1. or x < 0.:
+      self.raiseAnError(IOError,f'{self.type} distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == 1.0:
       return float(sortedMapping[-1][0]) if self.isFloat else sortedMapping[-1][0]
@@ -1844,8 +1999,9 @@ class UniformDiscrete(Distribution):
     super().__init__()
     self.type           = 'UniformDiscrete'
     self.dimensionality = 1
-    self.distType       = 'Discrete'
+    self.distType       = distType.discrete
     self.memory         = True
+    self.nPoints = None
 
   def _handleInput(self, paramInput):
     """
@@ -1861,16 +2017,14 @@ class UniformDiscrete(Distribution):
       self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
 
     strategy = paramInput.findFirst('strategy')
-    if strategy != None:
+    if strategy is not None:
       self.strategy = strategy.value
     else:
       self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
 
     nPoints = paramInput.findFirst('nPoints')
-    if nPoints != None:
+    if nPoints is not None:
       self.nPoints = nPoints.value
-    else:
-      self.nPoints = None
 
     self.initializeDistribution()
 
@@ -2014,14 +2168,29 @@ class MarkovCategorical(Categorical):
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
+    inputSpecification.description = r"""Markov categorical discrete distribution. Describes a random variable
+      that can have $K$ possible outcomes, based on the steady state probilities provided by a Markov model.
+      """
 
-    StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.StringType)
-    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
-    StatePartInput.addParam("index", InputTypes.IntegerType, True)
-    TransitionInput = InputData.parameterInputFactory("transition", contentType=InputTypes.StringType)
+    StatePartInput = InputData.parameterInputFactory("state",
+        descr=r"""probability of occurrance, or outcome 1.""",
+        contentType=InputTypes.StringType)
+    StatePartInput.addParam("outcome",
+        InputTypes.FloatType,
+        True,
+        descr=r"""value of this outcome""")
+    StatePartInput.addParam("index",
+        InputTypes.IntegerType,
+        True,
+        descr=r"""indexes steady state probabilities corresponding to the transition matrix""")
+    TransitionInput = InputData.parameterInputFactory("transition",
+        descr=r"""transition matrix of the desired Markov model""",
+        contentType=InputTypes.StringType)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
     inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir",
+        descr=r"""filesystem referential path""",
+        contentType=InputTypes.StringType))
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
     inputSpecification.addParam("name", InputTypes.StringType, True)
@@ -2036,7 +2205,7 @@ class MarkovCategorical(Categorical):
     """
     super().__init__()
     self.dimensionality = 1
-    self.distType       = 'Discrete'
+    self.distType       = distType.discrete
     self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
     self.transition     = None # transition matrix of a continuous time Markov Model
@@ -2148,8 +2317,17 @@ class Logistic(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Logistic, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical logistic distribution. The probability density function for the
+      logistic distribution is given by
+      $f(x)=\frac{1}{1+e^{-\frac{x-\lambda}{\sigma}}}$ for $-\infty \leq x < \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.logistic.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("location",
+        descr=r"""location parameter, referred to as $\lambda$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale",
+        descr=r"""scale parameter, referred to as $\sigma$ in equation form.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2163,7 +2341,7 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2258,8 +2436,17 @@ class Laplace(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Laplace, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical Laplace distribution. The probability density function for the
+      Laplace distribution is given by
+      $f(x)=\frac{1}{2b}e^{-\frac{\left| x-\mu\right| }{b}}$ for $-\infty \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.laplace.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("location",
+        descr=r"""location parameter, referred to as $\mu$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale",
+        descr=r"""scale parameter, referred to as $b$ in equation form.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2273,7 +2460,7 @@ class Laplace(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Laplace'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2361,8 +2548,17 @@ class Exponential(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Exponential, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical exponential distribution. The probability density function for the
+      exponential distribution is given by
+      $f(x)=\lambda e^{-\lambda x}$ for $0 \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.expon.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""lower domain boundary for this distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda",
+        descr=r"""rate parameter for this distribution, shown as $\lambda$ in equation form""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2376,7 +2572,7 @@ class Exponential(BoostDistribution):
     self.lambdaVar = 1.0
     self.low        = 0.0
     self.type = 'Exponential'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2499,9 +2695,20 @@ class LogNormal(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(LogNormal, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""log-normal distribution. The probability density function for the
+      log-normal distribution is given by
+      $f(x)=\frac{1}{x\sigma\sqrt{2\pi}}e^{-\frac{(\ln{x}-\mu)^2}{2\sigma^2}}$ for $0 \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.lognorm.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("mean",
+        descr=r"""mean of log of the distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma",
+        descr=r"""standard deviation of the log of the distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""distribution lower domain boundary""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2516,7 +2723,7 @@ class LogNormal(BoostDistribution):
     self.sigma = 1.0
     self.low = 0.0
     self.type = 'LogNormal'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2616,9 +2823,20 @@ class Weibull(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Weibull, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("k", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Weibull distribution. The probability density function for the
+      Weibull distribution is given by
+      $f(x)=\frac{k}{\lambda}\left(\frac{x}{\lambda}\right)^{k-1} e^{-(x/\lambda)^k}$ for $0 \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.weibull_min.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""distribution lower domain boundary""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("k",
+        descr=r"""shape parameter""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda",
+        descr=r"""scale parameter""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2632,7 +2850,7 @@ class Weibull(BoostDistribution):
     self.lambdaVar = 1.0
     self.k = 1.0
     self.type = 'Weibull'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
@@ -2733,11 +2951,24 @@ class Custom1D(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(Custom1D, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("functionType", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("functionID", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("variableID", contentType=InputTypes.StringType))
+    inputSpecification.description = r"""Custom user-defined distribution. This allows empirically-defined
+        functions that are not currently defined in RAVEN to be used for probability weighting and sampling.
+        The distribution is defined through empirical distribution in a CSV file."""
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir",
+        descr=r"""relative working directory that contains the input file""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionType",
+        descr=r"""type of initialization values specifid in the input file (pdf or cdf)""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dataFilename",
+        descr=r"""name of file to be used to initialize the distribution""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionID",
+        descr=r"""ID of the function associated to the variableID in the input file""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("variableID",
+        descr=r"""ID of the variable in the input file""",
+        contentType=InputTypes.StringType))
 
     return inputSpecification
 
@@ -2754,7 +2985,7 @@ class Custom1D(Distribution):
     self.functionID      = None
     self.variableID      = None
     self.dimensionality  = 1
-    self.distType        = 'Continuous'
+    self.distType        = distType.continuous
     # Scipy.interpolate.UnivariateSpline is used
     self.k               = 4 # Degree of the smoothing spline, Must be <=5
     self.s               = 0 # Positive smoothing factor used to choose the number of knots
@@ -2916,9 +3147,16 @@ class LogUniform(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(LogUniform, cls).getInputSpecification()
+    inputSpecification.description = r"""Log-Uniform distribution. This distribution is associated
+        to a variable $x'$ such that $x = e^{x'}$. Sometimes known as the Reciprocal distribution. The
+        probability density function of this distribution is
+        $f(x)=\frac{1}{x(\ln{b}-\ln{a})}$ for $a \le x \le b$."""
 
     BaseInputType = InputTypes.makeEnumType("base", "baseType", ["natural","decimal"])
-    inputSpecification.addSub(InputData.parameterInputFactory("base"      , BaseInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory("base",
+        BaseInputType,
+        descr=r"""exponent base for scaling the underlying uniform distribution, either "decimal" (base 10) or
+        "natural" base ($e$)."""))
 
     return inputSpecification
 
@@ -3033,7 +3271,9 @@ class NDimensionalDistributions(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(NDimensionalDistributions, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir",
+        descr=r"""relative working directory that contains data files""",
+        contentType=InputTypes.StringType))
 
     return inputSpecification
 
@@ -3157,13 +3397,22 @@ class NDInverseWeight(NDimensionalDistributions):
         specifying input of cls.
     """
     inputSpecification = super(NDInverseWeight, cls).getInputSpecification()
-
-
-    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType)
-    DataFilenameParameterInput.addParam("type", InputTypes.StringType, True)
+    inputSpecification.description = r"""Custom user-defined N-dimensional distribution. This allows empirically-defined
+        custom distributions that are not currently defined in RAVEN to be used for probability weighting and sampling.
+        The combined distribution is defined through empirical distribution in a CSV file."""
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename",
+        descr=r"""name of file to be used to initialize the distribution""",
+        contentType=InputTypes.StringType)
+    DataFilenameParameterInput.addParam("type",
+        InputTypes.StringType,
+        True,
+        descr=r"""type of initialization values specifid in the input file (PDF or CDF)""")
     inputSpecification.addSub(DataFilenameParameterInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""power parameter. Greater values of p assign greater influence to values closest to
+          interpolation points.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -3359,9 +3608,17 @@ class NDCartesianSpline(NDimensionalDistributions):
         specifying input of cls.
     """
     inputSpecification = super(NDCartesianSpline, cls).getInputSpecification()
+    inputSpecification.description = r"""describes a N-dimensional distribution given a set of points regularly
+        distributed on a Cartesian grid. These points sample the PDF of the original distribution. Distributed
+        values (PDF or CDF) are calculated using the ND Spline interpolation scheme."""
 
-    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType)
-    DataFilenameParameterInput.addParam("type", InputTypes.StringType, True)
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename",
+        descr=r"""name of file to be used to initialize the distribution""",
+        contentType=InputTypes.StringType)
+    DataFilenameParameterInput.addParam("type",
+        InputTypes.StringType,
+        True,
+        descr=r"""type of initialization values specifid in the input file (PDF or CDF)""")
     inputSpecification.addSub(DataFilenameParameterInput)
 
     return inputSpecification
@@ -3529,14 +3786,33 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for input data.
     """
     inputSpecification = super(MultivariateNormal, cls).getInputSpecification()
+    inputSpecification.description = r"""describes a N-dimensional multivariate Gaussian normal distribution.
+        This generalizes the univariate normal distribution to higher dimensions. The multivariate normal
+        distribution is defined by an N-dimensional random vector $\widehat{x}$ and is defined by a multidimensional
+        mean $\widehat{\mu}$ and standard deviation $\Sigma$. The probability density function for this distribution is
+        $f(\widehat{x})=\frac{1}{\sqrt{(2\pi)^k}\left|\Sigma\right| } e^{-\frac{1}{2}(\widehat{x}-\widehat{\mu})^T \Sigma^{-1}(\widehat{x}-\widehat{\mu})}$."""
 
-    MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputTypes.StringType)
+    MuListParameterInput = InputData.parameterInputFactory("mu",
+        descr=r"""list of mean values for each dimension of the distribution""",
+        contentType=InputTypes.StringType)
 
-    CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputTypes.StringType)
-    CovarianceListParameterInput.addParam("type", InputTypes.StringType, False)
+    CovarianceListParameterInput = InputData.parameterInputFactory("covariance",
+        descr=r"""list of covariance values in the covariance matrix. These are specified based on the \xmlAttr{type} parameter""",
+        contentType=InputTypes.StringType)
+    CovarianceListParameterInput.addParam("type",
+        InputTypes.StringType,
+        False,
+        descr=r"""type of covariance. \xmlString{abs} indicates a normal covariance matrix, while \xmlString{rel}
+        indicates a relative covarience matrics.
+        For \xmlNode{transformation}, \xmlString{pca} can be combined with both types, and
+        \xmlString{spline} only accepts \xmlString{abs}\default{abs}""")
 
-    TransformationParameterInput = InputData.parameterInputFactory("transformation")
-    RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputTypes.IntegerType)
+    TransformationParameterInput = InputData.parameterInputFactory("transformation",
+        descr=r"""enables input parameter transformation using principle component analysis (PCA). If enabled,
+        PCA is used on the input covariance matrix with truncation to the specified rank.""")
+    RankParameterInput = InputData.parameterInputFactory("rank",
+        descr=r"""desired dimensionality reduction for covariance matrix""",
+        contentType=InputTypes.IntegerType)
     TransformationParameterInput.addSub(RankParameterInput)
 
     inputSpecification.addSub(MuListParameterInput)
@@ -3544,7 +3820,9 @@ class MultivariateNormal(NDimensionalDistributions):
     inputSpecification.addSub(TransformationParameterInput)
 
     MultivariateMethodType = InputTypes.makeEnumType("multivariateMethod","multivariateMethodType",["pca","spline"])
-    inputSpecification.addParam("method", MultivariateMethodType, True)
+    inputSpecification.addParam("method",
+        MultivariateMethodType,
+        True)
 
     return inputSpecification
 
@@ -3556,7 +3834,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     super().__init__()
     self.type = 'MultivariateNormal'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.mu  = None
     self.covariance = None
     self.covarianceType = 'abs'  # abs: absolute covariance, rel: relative covariance matrix

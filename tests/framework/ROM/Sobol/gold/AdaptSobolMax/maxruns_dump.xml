@@ -1,7 +1,7 @@
 <DataObjectMetadata name="solns">
   <DataSet type="Static">
     <general>
-      <inputs>x1,x2,x3,x4</inputs>
+      <datasetName>solns</datasetName>
       <outputs>ans,ans2</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>

@@ -702,7 +702,7 @@ class JobHandler(BaseType):
         runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun, identifier, metadata=None, uniqueHandler="any"):
+  def addClientJob(self, args, functionToRun, identifier, metadata=None, uniqueHandler="any", groupInfo = None):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -719,11 +719,19 @@ class JobHandler(BaseType):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner.
+      @ In, groupInfo, dict, optional, {id:string, size:int}.
+        - "id": it is a special keyword attached to
+          this runner to identify that this runner belongs to a special set of runs that need to be
+          grouped together (all will be retrievable only when all the runs ended).
+        - "size", number of runs in this group self.__batching
+        NOTE: If the "size" of the group is only set the first time a job of this group is added.
+              Consequentially the size is immutable
       @ Out, None
     """
     self.addJob(args, functionToRun, identifier, metadata,
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
-                clientQueue = True)
+                clientQueue = True, groupInfo = groupInfo)
+
 
   def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
     """

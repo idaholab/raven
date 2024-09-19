@@ -27,6 +27,7 @@ from collections import namedtuple
 from ..BaseClasses.InputDataUser import InputDataUser
 
 from ..utils import utils,randomUtils,InputData, InputTypes
+from ..utils.graphStructure import evaluateModelsOrder
 from ..BaseClasses import BaseEntity, Assembler
 
 class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputDataUser):
@@ -204,11 +205,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.distDict                      = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.funcDict                      = {}          # Mapping between variable name and the a 2-element namedtuple namedtuple('func', ['methodName', 'instance']) containing:
                                                      # element 0 (methodName): name of the method in the function to be be invoked. Either the default "evaluate", or the function name
+    self.variableFunctionExecutionList = []          # This is an ordered sequence of functional variable
+                                                     # (linked to functions) that need to be performed (in case of
+                                                     # interdependency). This list is always created. If no interdependence
+                                                     # is detected, the order is just random, otherwise the order is
+                                                     # determined through graph theory.
                                                      # element 1 (instance): instance of the function to be used, it is created every time the sampler is initialized.
     self.values                        = {}          # for each variable the current value {'var name':value}
     self.variableShapes                = {}          # stores the dimensionality of each variable by name, as tuple e.g. (2,3) for [[#,#,#],[#,#,#]]
     self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
-    self.initSeed                      = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
+    self.initSeed                      = None        # if not provided the seed is randomly generated at the initialization of the sampler, the step can override the seed by sending in another one
     self.inputInfo['SampledVars'     ] = self.values # this is the location where to get the values of the sampled variables
     self.inputInfo['SampledVarsPb'   ] = {}          # this is the location where to get the probability of the sampled variables
     self.inputInfo['crowDist']         = {}          # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
@@ -276,6 +282,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       else:
         mName = val
       self.funcDict[key] = fPointer(mName, availableFunc[val])
+
+    # evaluate function execution order
+    self._evaluateFunctionsOrder()
 
   def _localGenerateAssembler(self, initDict):
     """
@@ -844,6 +853,33 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         baseVal = self.inputInfo['SampledVars'][var]
         self.inputInfo['SampledVars'][var] = np.ones(shape)*baseVal
 
+  def _evaluateFunctionsOrder(self):
+    """
+      Method to evaluate the function execution order using graph theory
+      The order is stored in self.variableFunctionExecutionList
+      @ In, None
+      @ Out, None
+    """
+    functionsToVariables = {}
+    for var in  self.funcDict:
+      outputMatch = []
+      functionInputs = self.funcDict[var].instance.parameterNames()
+      for inpVar in functionInputs:
+        # find functions that are linked to this inpVar
+        if inpVar in self.funcDict:
+          outputMatch.append(inpVar)
+      outputMatch = list(set(outputMatch))
+      functionsToVariables[var] =  outputMatch
+    executionList, variableFunctionsGraph, errMsg = evaluateModelsOrder(functionsToVariables, acceptLoop=False, reverse=True)
+    if errMsg is not None:
+      self.raiseAnError(*errMsg)
+    if  executionList:
+      self.variableFunctionExecutionList = executionList
+      self.raiseAMessage("Function Variables are interdependent")
+      self.raiseAMessage("Variable Evaluation and Function Execution list: "+
+                         ' -> '.join([f"variable:{var} | function: {self.funcDict[var].instance.name}"
+                                      for var in self.variableFunctionExecutionList]))
+
   def _functionalVariables(self):
     """
       Evaluates variables that are functions of other input variables.
@@ -851,7 +887,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, None
     """
     # generate the function variable values
-    for var in self.dependentSample:
+    for var in self.variableFunctionExecutionList:
       if self.inputInfo.get('batchMode',False):
         for b in range(self.inputInfo['batchInfo']['nRuns']):
           values = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars']
@@ -1164,3 +1200,4 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.auxcnt = 0
     self.distDict = {}
     self.funcDict = {}
+    self.variableFunctionExecutionList = []
