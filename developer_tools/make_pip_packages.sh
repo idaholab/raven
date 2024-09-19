@@ -18,24 +18,24 @@ source $RAVEN_DIR/scripts/read_ravenrc.sh
 CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
 source ${CONDA_DEFS}
 
-conda env remove --name python38_pip
-conda create -y --name python38_pip python=3.8 swig
-
 conda env remove --name python39_pip
 conda create -y --name python39_pip python=3.9 swig
+
+conda env remove --name python310_pip
+conda create -y --name python310_pip python=3.10 swig
 
 cd $RAVEN_DIR
 
 rm -f setup.cfg
 python ./scripts/library_handler.py pip --action=setup.cfg > setup.cfg
 
-conda activate python38_pip
+conda activate python39_pip
 command -v python
 python -m ensurepip
 python -m pip install --upgrade build
 python -m build
 
-conda activate python39_pip
+conda activate python310_pip
 command -v python
 python -m ensurepip
 python -m pip install --upgrade build

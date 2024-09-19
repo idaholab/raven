@@ -221,8 +221,8 @@ Example:
         <periods>12, 24</periods>
       </fourier>
       <arma target="signal1, signal2" seed='42'>
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
+        <P>2</P>
+        <Q>3</Q>
       </arma>
     </ROM>
     ...
@@ -321,16 +321,644 @@ Example:
   ...
   <Models>
     ...
-   <ROM name='DMD' subType='DMD'>
-      <Target>time,totals_watts, xe135_dens</Target>
-      <Features>enrichment,bu</Features>
-      <dmdType>dmd</dmdType>
-      <pivotParameter>time</pivotParameter>
-      <rankSVD>0</rankSVD>
-      <rankTLSQ>5</rankTLSQ>
-      <exactModes>False</exactModes>
-      <optimized>True</optimized>
-    </ROM
+    <ROM name="DMDrom" subType="DMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+BOPDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="BOPDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <compute_A>False</compute_A>
+      <use_proj>True</use_proj>
+      <num_trials>0</num_trials>
+      <trial_size>0.6</trial_size>
+      <eig_sort>auto</eig_sort>
+      <eig_constraints>stable</eig_constraints>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+CDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="CDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>0</tlsq_rank>
+      <compression_matrix>sample</compression_matrix>
+      <seed>20201986</seed>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+FbDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="FbDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <exact>True</exact>
+      <opt>True</opt>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+HankelDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="HankelDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <opt>False</opt>
+      <d>1</d>
+      <forward_backward>False</forward_backward>
+      <reconstruction_method>first</reconstruction_method>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+HAVOK = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="HAVOK">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <delays>3</delays>
+      <lag>1</lag>
+      <num_chaos>1</num_chaos>
+      <structured>False</structured>
+      <lstsq>True</lstsq>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+HODMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="HODMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>0</tlsq_rank>
+      <opt>False</opt>
+      <d>1</d>
+      <forward_backward>False</forward_backward>
+      <reconstruction_method>mean</reconstruction_method>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+EDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="EDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>3</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <kernel_metric>linear</kernel_metric>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+PiDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="PiDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <opt>False</opt>
+      <manifold>BCCB</manifold>
+      <manifold_opt>1,9</manifold_opt>
+      <compute_A>True</compute_A>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+RDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="RDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+      <seed>20021986</seed>
+      <oversampling>5</oversampling>
+      <power_iters>2</power_iters>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+SpDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="SpDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+      <tlsq_rank>7</tlsq_rank>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+SubspaceDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="SubspaceDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>-1</svd_rank>
+      <rescale_mode>None</rescale_mode>
+      <sorted_eigs>False</sorted_eigs>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Example to export the coefficients of trained DMD ROM:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>DMD</source>
+      <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
+VarProDMD = r"""
+\hspace{24pt}
+Example:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="DMDrom" subType="VarProDMD">
+      <Target>t,decay_heat,decay_heat_pu</Target>
+      <Features>enrichment,burnup</Features>
+      <pivotParameter>t</pivotParameter>
+      <reductionMethod>svd</reductionMethod>
+      <reductionRank>0</reductionRank>
+      <svd_rank>0</svd_rank>
+    </ROM>
     ...
   </Models>
   ...
@@ -638,6 +1266,18 @@ exampleFactory = {
                   'ARMA': armaExp,
                   'PolyExponential': poly,
                   'DMD': dmd,
+                  'BOPDMD': BOPDMD,
+                  'CDMD': CDMD,
+                  'FbDMD': FbDMD,
+                  'HankelDMD': HankelDMD,
+                  'HAVOK': HAVOK,
+                  'HODMD': HODMD,
+                  'EDMD': EDMD,
+                  'PiDMD': PiDMD,
+                  'RDMD': RDMD,
+                  'SpDMD': SpDMD,
+                  'SubspaceDMD': SubspaceDMD,
+                  'VarProDMD': VarProDMD,
                   'DMDC': dmdc,
                   'KerasMLPClassifier': kmlpc,
                   'KerasConvNetClassifier': kconv,
@@ -767,9 +1407,24 @@ validInternalRom = ['NDspline',
             'PolyExponential',
             'DMD',
             'DMDC']
+
+vaildInternalDMDRom = ['DMD',
+            'HODMD',
+            'BOPDMD',
+            'CDMD',
+            'EDMD',
+            'FbDMD',
+            'HankelDMD',
+            'HAVOK',
+            'PiDMD',
+            'RDMD',
+            'SpDMD',
+            'SubspaceDMD',
+            'VarProDMD',
+            'DMDC']
 validRom = list(SupervisedLearning.factory.knownTypes())
 orderedValidRom = []
-for rom in validInternalRom + validRom:
+for rom in validInternalRom + vaildInternalDMDRom + validRom:
   if rom not in orderedValidRom:
     orderedValidRom.append(rom)
 ### Internal ROM file generation

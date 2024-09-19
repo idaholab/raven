@@ -18,6 +18,12 @@ sys.path.append(os.path.join(raven_dir,"crow","install"))
 #Check for editable install
 if os.path.exists(os.path.join(raven_dir, "src", "crow_modules", "randomENG.py")):
     sys.path.append(os.path.join(raven_dir, "src"))
+# Also check for crow_modules installed as a pip package. Just because there's an editable install
+# doesn't mean that's what should be tested. If we find an appropriate pip package, that's what
+# should be tested.
+for path in [p for p in sys.path if p.endswith("site-packages")]:
+    sys.path.remove(path)
+    sys.path.insert(0, path)
 
 import crow_modules.distribution1D
 import crow_modules.interpolationND

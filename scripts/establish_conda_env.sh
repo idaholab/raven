@@ -107,7 +107,7 @@ function install_libraries()
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`echo conda install -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD`
+        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset mamba`" $SET_PYTHON"
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: ${PRECOMMAND}; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -178,7 +178,7 @@ function create_libraries()
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`echo conda create -n ${RAVEN_LIBS_NAME} -y -c conda-forge $MAMBA_ECE_ADD`
+        local PRECOMMAND=`$WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: $PRECOMMAND; fi
         ${PRECOMMAND}
         local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
@@ -277,6 +277,9 @@ function display_usage()
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
+	echo '    --set-python'
+	echo '      Set python version in mamba setup (only used if use mamba flag is true)'
+	echo ''
 }
 
 function activate_env()
@@ -331,13 +334,6 @@ fi
 PROXY_COMM="" # proxy is none
 USE_MAMBA=TRUE # Use Mamba for installation
 
-if command -v mamba;
-then
-    #This is used to skip installing mamba
-    MAMBA_ECE_ADD=""
-else
-    MAMBA_ECE_ADD="mamba"
-fi
 
 # parse command-line arguments
 while test $# -gt 0
@@ -390,6 +386,10 @@ do
       ;;
     --no-clean)
       ECE_CLEAN=1
+      ;;
+    --set-python)
+      shift
+      SET_PYTHON=$1
       ;;
   esac
   shift
@@ -514,7 +514,7 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   # debug output conda version
   if [[ $ECE_VERBOSE == 0 ]]; then echo `conda -V`; fi
   # find RAVEN libraries environment
-  if conda env list | grep ${RAVEN_LIBS_NAME};
+  if conda env list | grep "^${RAVEN_LIBS_NAME} ";
   then
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found library environment ...; fi
     LIBS_EXIST=0

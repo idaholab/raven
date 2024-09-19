@@ -16,13 +16,14 @@
       <ClusterROM type="Static" cluster="0">
         <ARMA>
           <signal0>
-            <constant>-3.405762107e-02</constant>
-            <AR_0>-3.800997642e-01</AR_0>
-            <AR_1>4.633854069e-01</AR_1>
-            <MA_0>1.067776517e+00</MA_0>
-            <MA_1>3.878969804e-01</MA_1>
-            <MA_2>3.198774407e-01</MA_2>
-            <variance>9.566733107e-01</variance>
+            <constant>-3.404606100e-02</constant>
+            <AR_0>-3.800884139e-01</AR_0>
+            <AR_1>4.633974912e-01</AR_1>
+            <MA_0>1.067769629e+00</MA_0>
+            <MA_1>3.878824930e-01</MA_1>
+            <MA_2>3.198708707e-01</MA_2>
+            <variance>9.566706516e-01</variance>
+            <order>2,0,3</order>
           </signal0>
         </ARMA>
         <segments_represented>0</segments_represented>
@@ -34,13 +35,14 @@
       <ClusterROM type="Static" cluster="0">
         <ARMA>
           <signal0>
-            <constant>2.331304717e-01</constant>
-            <AR_0>3.193866976e-01</AR_0>
-            <AR_1>2.986141579e-01</AR_1>
-            <MA_0>2.177388904e-01</MA_0>
-            <MA_1>1.773139327e-01</MA_1>
-            <MA_2>-1.022136980e-01</MA_2>
-            <variance>8.389602626e-01</variance>
+            <constant>2.331304669e-01</constant>
+            <AR_0>3.193866942e-01</AR_0>
+            <AR_1>2.986141638e-01</AR_1>
+            <MA_0>2.177388985e-01</MA_0>
+            <MA_1>1.773139333e-01</MA_1>
+            <MA_2>-1.022136939e-01</MA_2>
+            <variance>8.389602662e-01</variance>
+            <order>2,0,3</order>
           </signal0>
         </ARMA>
         <segments_represented>0</segments_represented>
@@ -52,13 +54,14 @@
       <ClusterROM type="Static" cluster="0">
         <ARMA>
           <signal0>
-            <constant>9.953642532e-02</constant>
-            <AR_0>-3.035653331e-02</AR_0>
-            <AR_1>3.809997824e-01</AR_1>
-            <MA_0>6.427577039e-01</MA_0>
-            <MA_1>2.826054566e-01</MA_1>
-            <MA_2>1.088318713e-01</MA_2>
-            <variance>8.978167866e-01</variance>
+            <constant>9.954220293e-02</constant>
+            <AR_0>-3.035085983e-02</AR_0>
+            <AR_1>3.810058275e-01</AR_1>
+            <MA_0>6.427542636e-01</MA_0>
+            <MA_1>2.825982131e-01</MA_1>
+            <MA_2>1.088285884e-01</MA_2>
+            <variance>8.978154589e-01</variance>
+            <order>2,0,3</order>
           </signal0>
         </ARMA>
         <segments_represented>0</segments_represented>

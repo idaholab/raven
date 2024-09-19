@@ -33,7 +33,6 @@
 #include <boost/math/special_functions/erf.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/math/distributions/normal.hpp>
-#include "distribution_1D.h"
 using boost::math::normal;
 
 #include <ctime>

@@ -87,7 +87,7 @@
  [./PopulationPlot]
   type = 'RavenFramework'
   input = 'ga_population_plot.xml'
-  image = 'GApopulation/plotter.png'
+  image = 'GApopulation/OptimizationPlots/plotter.png'
   rel_err = 0.1
  [../]
 

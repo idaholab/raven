@@ -29,7 +29,6 @@ if not display:
   matplotlib.use('Agg')
 
 
-
 class Plot(OutStreamEntity):
   """
     Handler for Plot implementations
@@ -99,6 +98,7 @@ class Plot(OutStreamEntity):
       @ In, None
       @ Out, None
     """
+    self._plotter.increaseCounter()
     self._plotter.run()
 
   ################

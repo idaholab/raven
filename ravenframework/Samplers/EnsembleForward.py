@@ -26,6 +26,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import copy
 from operator import mul
 from functools import reduce
+from collections import namedtuple
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
@@ -167,10 +168,19 @@ class EnsembleForward(Sampler):
     for key, val in self.dependentSample.items():
       if val not in availableFunc:
         self.raiseAnError(IOError, f'Function {val} was not found among the available functions: {availableFunc.keys()}')
-      self.funcDict[key] = availableFunc[val]
+      fPointer = namedtuple("func", ['methodName', 'instance'])
+      mName = 'evaluate'
       # check if the correct method is present
-      if "evaluate" not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError, f'Function {self.funcDict[key].name} does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
+      if val not in availableFunc[val].availableMethods():
+        if "evaluate" not in availableFunc[val].availableMethods():
+          self.raiseAnError(IOError, f'Function {availableFunc[val].name} does contain neither a method named "{val}" nor "evaluate". '
+                            'It must be present if this needs to be used in a Sampler!')
+      else:
+        mName = val
+      self.funcDict[key] = fPointer(mName, availableFunc[val])
+
+    # evaluate function order in custom sampler
+    self._evaluateFunctionsOrder()
 
   def localInitialize(self):
     """
@@ -240,11 +250,7 @@ class EnsembleForward(Sampler):
     self.inputInfo['SamplerType'] = 'EnsembleForward'
 
     # Update dependent variables
-    for var in self.dependentSample:
-      test = self.funcDict[var].evaluate("evaluate", self.inputInfo['SampledVars'])
-      for corrVar in var.split(","):
-        self.values[corrVar.strip()] = test
-        self.inputInfo['SampledVars'][corrVar.strip()] = test
+    self._functionalVariables()
 
   def flush(self):
     """

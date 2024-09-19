@@ -67,10 +67,10 @@
       <fourier target="signal0,signal1" global="True">
         <periods>2, 5, 10, 20, 50</periods>
       </fourier>
-      <gaussianize target="signal0, signal1" />
-      <arma target="signal0, signal1" seed='42'>
-        <SignalLag>1</SignalLag>
-        <NoiseLag>0</NoiseLag>
+      <gaussianize target="signal0, signal1"/>
+      <arma target="signal0, signal1" seed="42">
+        <P>1</P>
+        <Q>0</Q>
       </arma>
       <Segment grouping="cluster">
         <Classifier class="Models" type="PostProcessor">classifier</Classifier>

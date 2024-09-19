@@ -19,7 +19,7 @@
 
 # External Modules
 import scipy.optimize as sciopt
-from smt.sampling_methods import LHS
+from pyDOE3 import lhs
 import numpy as np
 import numdifftools as nd
 import copy
@@ -55,7 +55,9 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
                                                  \item Differential Evolution: A style of evolutionary algorithm, which specializes in floating point
                                                  representations of decision variables. Works similar to its parent algorithm Genetic Algorithm
                                                  \item SLSQP: A Sequential Least Squares algorithm, which uses an BFGS update and
-                                                 Lawson and Hanson’s NNLS nonlinear least-squares solver.""", default='differentialEvolution'))
+                                                 Lawson and Hanson’s NNLS nonlinear least-squares solver.
+                                                 \end{itemize}
+                                                 """, default='differentialEvolution'))
     specs.addSub(InputData.parameterInputFactory('seedingCount', contentType=InputTypes.IntegerType,
                                                  descr=r"""If the method is gradient based or typically handled with singular
                                                  decisions (ex. slsqp approximates a quadratic program using the gradient), this number
@@ -148,10 +150,11 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       # NOTE one of our seeds will always come from the current recommended solution (best point)
       samplingCount = self._seedingCount - 1
       if samplingCount <= 1:
-        sampler = LHS(xlimits=limits, criterion='center', random_state=bayesianOptimizer._seed)
+        initSamples = lhs(limits.shape[0], samples=samplingCount, criterion='center', random_state=bayesianOptimizer._seed)
+        initSamples = limits[:,0] + (limits[:,1] - limits[:,0]) * initSamples
       else:
-        sampler = LHS(xlimits=limits, criterion='cm', random_state=bayesianOptimizer._seed)
-      initSamples = sampler(samplingCount)
+        initSamples = lhs(limits.shape[0], samples=samplingCount, criterion='cm', random_state=bayesianOptimizer._seed)
+        initSamples = limits[:,0] + (limits[:,1] - limits[:,0]) * initSamples
       best = bayesianOptimizer._optPointHistory[0][-1][0]
       # Need to convert 'best point' and add to init array
       tempArray = np.empty((1,self._dim))
@@ -189,8 +192,8 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     funGrad = nd.Gradient(evalMethod, step=0.0001, order=4)
     diffVector = np.empty(nSamples)
     limits = np.array(self._bounds)
-    sampler = LHS(xlimits=limits, criterion='cm', random_state=42)
-    initSamples = sampler(nSamples)
+    initSamples = lhs(limits.shape[0], samples=nSamples, criterion='cm', random_state=42)
+    initSamples = limits[:,0] + (limits[:,1] - limits[:,0]) * initSamples
     for i in range(nSamples):
       xI = initSamples[i,:]
       analytic = self.gradient(xI, bayesianOptimizer)[0]
@@ -330,6 +333,37 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
     for varName in list(trainingInputs):
       xStar[varName] = trainingInputs[varName][minDex]
     return muStar, xStar, stdStar
+
+  def _recommendSolutionForPretrainedRom(self, bayesianOptimizer):
+    """
+      Identify a best solution point in the existing training data from pre-trained ROM
+      @ In, bayesianOptimizer, BayesianOptimizer object, instance of BayesianOptimizer class
+      @ Out, xStar, dict, point associated with best solution for the current data
+      @ Out, minDex, int, the index of best solution for the current data
+    """
+    # Pulling input data from BO instance
+    trainingInputs = copy.copy(bayesianOptimizer._trainingInputs[0])
+    for varName, array in trainingInputs.items():
+      trainingInputs[varName] = np.asarray(array)
+    # Evaluating constraints at all training points
+    invalidIndices = []
+    if self._constraints is not None:
+      arrayTrainingInputs = bayesianOptimizer.featurePointToArray(trainingInputs)
+      for constraint in self._constraints:
+        constraintArray = constraint.fun(arrayTrainingInputs)
+        invalidArray = np.less(constraintArray, np.zeros(constraintArray.shape))
+        invalidWhere = np.where(invalidArray[0])
+        for index in invalidWhere[0]:
+          invalidIndices.append(index)
+    fopt = np.asarray(bayesianOptimizer._trainingTargets[0])
+    # Removing values at locations where constraint violation has occurred
+    np.put(fopt, invalidIndices, np.inf)
+    minDex = np.argmin(fopt)
+    # Retrieving location of recommended solution
+    xStar = {}
+    for varName in list(trainingInputs):
+      xStar[varName] = trainingInputs[varName][minDex]
+    return xStar, minDex
 
   ###################
   # Utility Methods #

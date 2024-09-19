@@ -6,12 +6,15 @@
     <created>2016-11-28</created>
     <classesTested>Models.Code.RELAP5</classesTested>
     <description>
-       An example of using the RELAP5 code interface. This test is aimed to test the mechanics of the interface (no executable),
-       when the RAVEN alias system is used.
+       An example of using the RELAP5 code interface. This test is aimed to test the mechanics of the interface (no 
+       executable), when the RAVEN alias system is used.
+       In addition, it also shows the usage of the datatypes XML node to ''specify`` integers values.
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
+      <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing 
+          how to use it.</revision>
+      <revision author="alfoa" date="2023-11-23">Added the datatypes block</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -38,6 +41,10 @@
       <alias variable="heat_capacity_154_variable"    type="input">20100154:2</alias>
       <alias variable="massFlowRateAliasOutput" type="output">mflowj_505000000</alias>
       <alias variable="pressureAliasOutput"     type="output">p_280010000</alias>
+      <datatypes>
+          <integers>201:4</integers>
+      </datatypes>
+      
     </Code>
   </Models>
 
@@ -94,6 +101,9 @@
       <variable name="13550801:6">
         <distribution>testMultiLine</distribution>
       </variable>
+      <constant name="201:4">6</constant>
+      <constant name="501:6">1860.1</constant>
+
     </MonteCarlo>
   </Samplers>
 

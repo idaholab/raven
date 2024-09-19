@@ -16,7 +16,9 @@
 """
 
 import os, sys
+import shutil
 import matplotlib.pyplot as plt
+import xml.etree.ElementTree as ET
 
 # note: we use this complicated way to find RAVEN because we don't know how RAVEN
 # is installed on specific machines; it can be simplified greatly for specific applications
@@ -29,6 +31,25 @@ raven = Raven()
 
 # load workflow XML file
 raven.loadWorkflowFromFile('basic.xml')
+
+# Edit the inner workflow executable to specify the raven_framework driver to use based on how the
+# framework is installed on the machine. This covers the cases of a traditional source install and a
+# pip install. If "raven_framework" is found on the path, assume a pip install is being used and use
+# that. Otherwise, assume a source install and use a path relative to the framework directory.
+# FIXME: If we see more tests needing to be split for different RAVEN installation types, we should
+# consider adding the ability to restrict tests to certain installation types. However, the python-
+# raven-running-raven setup of the current test is a bit of a special case and similar situations are
+# unlikely to arise in more typical workflows.
+ravenInnerModel = raven.getEntity('Models', 'raven')
+pipPath = shutil.which('raven_framework')
+sourcePath = os.path.join(frameworkDir, 'raven_framework')
+if pipPath is not None:
+  ravenInnerModel.executable = pipPath
+elif os.path.exists(sourcePath):
+  ravenInnerModel.executable = sourcePath
+else:
+  raise RuntimeError('Could not find the RAVEN executable. Tried source path: ' + sourcePath +
+                     ' and pip path: ' + pipPath)
 
 # run the workflow
 returnCode = raven.runWorkflow()

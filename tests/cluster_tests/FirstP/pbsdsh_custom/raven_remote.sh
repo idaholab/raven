@@ -18,7 +18,7 @@ else
      if [ `echo $MODULEPATH | grep -c '/apps/projects/moose/modulefiles'` -eq 0 ]; then   export MODULEPATH=$MODULEPATH:/apps/projects/moose/modulefiles; fi
 
      echo "$MODULEPATH"
-     module load moose-dev-gcc pbs python/3.2
+     module load python/3
 
      which python3
 fi

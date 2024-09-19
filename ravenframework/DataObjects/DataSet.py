@@ -664,7 +664,7 @@ class DataSet(DataObject):
     noColl = self._collector is None or len(self._collector) == 0
     # remove from self._data
     if not noData:
-      self._data = self._data.drop(variable)
+      self._data = self._data.drop_vars(variable)
     # remove from self._collector
     if not noColl:
       varIndex = self._orderedVars.index(variable)
@@ -1755,7 +1755,7 @@ class DataSet(DataObject):
       @ Out, rlz, dict, realization as {var:value} where value is a DataArray with only coordinate dimensions
     """
     assert(self._data is not None)
-    rlz = self._data[{self.sampleTag:index}].drop(self.sampleTag).data_vars
+    rlz = self._data[{self.sampleTag:index}].drop_vars(self.sampleTag).data_vars
     rlz = self._convertFinalizedDataRealizationToDict(rlz, unpackXArray)
     return rlz
 
@@ -2101,7 +2101,7 @@ class DataSet(DataObject):
       mode = 'w'
 
     #Errors when dropping don't matter since it means they were removed before
-    data = data.drop(toDrop, errors='ignore')
+    data = data.drop_vars(toDrop, errors='ignore')
     self.raiseADebug(f'Printing data from "{self.name}" to CSV: "{filenameLocal}.csv"')
     # get the list of elements the user requested to write
     # order data according to user specs # TODO might be time-inefficient, allow user to skip?
@@ -2132,7 +2132,7 @@ class DataSet(DataObject):
     # write sub files as point sets
     ordered = list(var for var in itertools.chain(self._inputs,self._outputs,self._metavars) if (var != clusterLabel and var in keep))
     for ID in clusterIDs:
-      data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop(clusterLabel)
+      data = self._data.where(self._data[clusterLabel] == ID, drop = True).drop_vars(clusterLabel)
       subName = f'{fileName}_{ID}'
       self._usePandasWriteCSV(subName, data, ordered, keepSampleTag=self.sampleTag in keep, mode='w') # TODO append mode
       self.raiseADebug(f'Wrote sub-cluster file to "{subName}.csv"')

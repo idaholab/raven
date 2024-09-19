@@ -18,12 +18,7 @@ Created on November 20th, 2021
 """
 
 # External Imports
-from collections import defaultdict
-import matplotlib.pyplot as plt
-from matplotlib.path import Path
-import matplotlib.patches as patches
 import numpy as np
-import pandas as pd
 import imageio
 
 # Internal Imports
@@ -59,12 +54,11 @@ class OptParallelCoordinatePlot(PlotInterface):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'OptParallelCoordinate Plot'
+    self.printTag = 'OptParallelCoordinatePlot'
     self.source = None      # reference to DataObject source
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
     self.index = None       # index ID for each batch
-
 
   def handleInput(self, spec):
     """
@@ -91,6 +85,7 @@ class OptParallelCoordinatePlot(PlotInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
+    super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
@@ -129,8 +124,10 @@ class OptParallelCoordinatePlot(PlotInterface):
       plotUtils.generateParallelPlot(ys,genID,yMin,yMax,self.vars,fileID)
       filesID.append(fileID)
 
-    fig = plt.figure()
-    with imageio.get_writer(f'{self.name}.gif', mode='I') as writer:
+    # create filename
+    giffilename = self._createFilename(defaultName=f'{self.name}.gif')
+
+    with imageio.get_writer(giffilename, mode='I') as writer:
       for filename in filesID:
         image = imageio.imread(filename)
         writer.append_data(image)

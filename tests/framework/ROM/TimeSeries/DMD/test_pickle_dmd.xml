@@ -4,14 +4,15 @@
  <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.PickleDMD</name>
     <author>alfoa</author>
-    <created>2018-06-04</created>
-    <classesTested>SupervisedLearning.DynamicModeDecomposition</classesTested>
+    <created>2024-07-26</created>
+    <classesTested>SupervisedLearning.DMD.HODMD</classesTested>
     <description>
        This test is aimed to check that the DMD-based surrogate models can be
        serialized and used in a working calculation flow.
     </description>
     <revisions>
       <revision author="alfoa" date="2018-06-04">Adding this test description.</revision>
+      <revision author="alfoa" date="2024-07-26">Modified test to link to new implementation of DMD.</revision>
     </revisions>
   </TestInfo>
  
@@ -26,7 +27,7 @@
     <Files>
         <!--  we load the data from the PolyExponential database -->
         <Input name="rawDataFile">../../PolyExponential/data/decay_heat.csv</Input>
-        <Input name="ROMpk" type="">../HighOrderDMD/ROMpk</Input>
+        <Input name="ROMpk" type="">../HODMD/ROMpk</Input>
     </Files>
     <Distributions>
 		<Uniform name="enrichmentDist">

@@ -35,13 +35,11 @@ class DistributionContainer;
 
 DistributionContainer::DistributionContainer()
 {
-  _random = new RandomClass();
   _at_least_a_dist_triggered = false;
   _last_dist_triggered = "";
 }
 DistributionContainer::~DistributionContainer()
 {
-  delete _random;
 }
 
 
@@ -111,22 +109,6 @@ DistributionContainer::getType(const std::string dist_alias){
     }
 }
 
-void
-DistributionContainer::seedRandom(unsigned int seed){
-  //std::cout << "seedRandom " << seed << std::endl;
-  //srand( seed );
-  //_random.seed(seed);
-  //MooseRandom::seed(seed);
-  _random->seed(seed);
-
-}
-double
-DistributionContainer::random(){
-  //return (static_cast<double>(rand())/static_cast<double>(RAND_MAX));
-  //return _random.rand();
-  //return MooseRandom::rand();
-  return _random->random();
-}
 
 bool
 DistributionContainer::checkCdf(const std::string dist_alias, double value){
@@ -341,25 +323,6 @@ DistributionContainer::inverseCdf(const std::string dist_alias, double rng) {
       return dist->inverseCdf(rng);
      }
      throwError("inverseCdf: Distribution " + dist_alias + " was not found in distribution container.");
-     return -1.0;
-
-}
-
-double
-DistributionContainer::getDistributionRandom(const char * dist_alias)
-{
-  return getDistributionRandom(std::string(dist_alias));
-}
-
-double
-DistributionContainer::getDistributionRandom(const std::string dist_alias){
-
-    if(_dist_by_name.find(dist_alias) != _dist_by_name.end()){
-      MooseSharedPointer<BasicDistribution> dist = _dist_by_name.find(dist_alias)->second;
-        //return dist->inverseCdf(rng);
-      return dist->getRandom(random());
-     }
-     throwError("getDistributionRandom: Distribution " + dist_alias + " was not found in distribution container.");
      return -1.0;
 
 }

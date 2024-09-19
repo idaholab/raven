@@ -48,7 +48,7 @@
   </Samplers>
 
   <OutStreams>
-    <Plot  name="contour" overwrite="false">
+    <Plot  name="contour" overwrite="True">
       <filename>contour</filename>
       <plotSettings>
         <plot>
@@ -62,7 +62,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="surface" overwrite="false">
+    <Plot  name="surface" overwrite="True">
       <filename>surface</filename>
       <plotSettings>
         <plot>
@@ -76,7 +76,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="trisurface" overwrite="false">
+    <Plot  name="trisurface" overwrite="True">
       <filename>trisurface</filename>
       <plotSettings>
         <plot>
@@ -90,7 +90,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="wireframe" overwrite="false">
+    <Plot  name="wireframe" overwrite="True">
       <filename>wireframe</filename>
       <plotSettings>
         <plot>
@@ -104,7 +104,7 @@
         <how>png</how>
       </actions>
     </Plot>
-    <Plot  name="pseudocolor" overwrite="false">
+    <Plot  name="pseudocolor" overwrite="True">
       <filename>pseudocolor</filename>
       <plotSettings>
         <plot>

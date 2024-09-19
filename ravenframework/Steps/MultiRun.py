@@ -214,7 +214,7 @@ class MultiRun(SingleRun):
           for idx in currentFailures:
             finishedJobList.pop(idx)
 
-        if type(finishedJobObjs).__name__ in 'list': # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
+        if isinstance(finishedJobObjs, list): # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
           # if sampler claims it's batching, then only collect once, since it will collect the batch
           # together, not one-at-a-time
           # FIXME: IN HERE WE SEND IN THE INSTANCE OF THE FIRST JOB OF A BATCH

@@ -1050,7 +1050,10 @@ class BasicStatistics(PostProcessorReadyInterface):
       self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
       norm = stats.norm
       factor = np.sqrt(np.asarray(percent)*(1.0 - np.asarray(percent)))/norm.pdf(norm.ppf(percent))
-      sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(calculations['equivalentSamples'][list(needed[metric]['targets'])])
+      try:
+        sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(calculations['equivalentSamples'][list(needed[metric]['targets'])])
+      except KeyError:
+        sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(self.sampleSize)
       sigmaAdjusted = sigmaAdjusted.expand_dims(dim={'percent': percent})
       factor = xr.DataArray(data=factor, dims='percent', coords={'percent': percent})
       calculations[metric + '_ste'] = sigmaAdjusted*factor

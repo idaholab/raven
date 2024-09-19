@@ -21,12 +21,20 @@ import numpy as np
 import os
 import importlib
 
-ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print("ravenDir",ravenDir)
-ravenFrameworkDir = os.path.join(ravenDir,"framework")
-sys.path.append(ravenDir)
+try:
+  # If a straight import of ravenframework works, ravenframework has likely been installed as a pip
+  # package. In that case, we need to find the crow_modules module in the python environment instead
+  # of the local copy of crow.
+  import ravenframework
+  ravenFrameworkDir = os.path.dirname(os.path.dirname(ravenframework.__file__))
+except:
+  ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+  ravenFrameworkDir = os.path.join(ravenDir,"framework")
+  sys.path.append(ravenDir)
+
 from ravenframework.utils import utils
 #Get crow path loaded
+print('ravenFrameworkDir:',ravenFrameworkDir)
 utils.find_crow(ravenFrameworkDir)
 
 findCrowModule = utils.findCrowModule

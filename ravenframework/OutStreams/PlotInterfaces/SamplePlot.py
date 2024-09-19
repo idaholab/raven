@@ -46,7 +46,7 @@ class SamplePlot(PlotInterface):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'PlotInterface'
+    self.printTag = 'SamplePlot'
     self.source = None      # reference to DataObject source
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
@@ -102,7 +102,10 @@ class SamplePlot(PlotInterface):
       ax.set_ylabel(var)
     axes[-1].set_xlabel('RAVEN Sample Number')
     fig.align_ylabels(axes[:])
-    plt.savefig(f'{self.name}.png')
+
+    # create filename
+    filename = self._createFilename(defaultName=f'{self.name}.png')
+    plt.savefig(filename)
 
   def plotScalar(self, ax, ids, vals):
     """

@@ -119,19 +119,22 @@
     </Gaussianize>
     <ARMA>
       <TOTALLOAD>
-        <constant>-4.158865848e-02</constant>
+        <constant>-4.158865841e-02</constant>
         <AR_0>8.702202491e-01</AR_0>
         <variance>2.973272651e-01</variance>
+        <order>1,0,0</order>
       </TOTALLOAD>
       <WIND>
-        <constant>-2.220072382e-02</constant>
+        <constant>-2.220072394e-02</constant>
         <AR_0>9.040423880e-01</AR_0>
         <variance>2.258342079e-01</variance>
+        <order>1,0,0</order>
       </WIND>
       <SOLAR>
-        <constant>-1.304799638e-02</constant>
+        <constant>-1.304799671e-02</constant>
         <AR_0>7.022137015e-01</AR_0>
         <variance>7.048554959e-01</variance>
+        <order>1,0,0</order>
       </SOLAR>
     </ARMA>
   </arma>

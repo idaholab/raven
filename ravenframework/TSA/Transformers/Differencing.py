@@ -51,7 +51,7 @@ class Differencing(TimeSeriesTransformer):
     settings['order'] = spec.findFirst('order').value
     return settings
 
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Fits the algorithm/model using the provided time series ("signal") using methods specific to
       the algorithm.
@@ -59,6 +59,7 @@ class Differencing(TimeSeriesTransformer):
       @ In, pivot, np.array, time-like parameter
       @ In, targets, list(str), names of targets
       @ In, settings, dict, additional settings specific to algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characterization of signal; structure as:
                            params[target variable][characteristic] = value
     """

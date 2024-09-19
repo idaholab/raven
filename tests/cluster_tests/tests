@@ -34,7 +34,7 @@
    output_wait_time = 60
    #Note that the output includes the time the test is running
    # which is why the relative error is very high
-   rel_err = 0.2
+   rel_err = 0.4
    type = RavenFramework
    max_time = 3600
  [../]
@@ -67,6 +67,14 @@
    input='test_mpiqsub_forced.xml cluster_runinfo_legacy.xml'
    run_types = 'qsub'
    output = 'FirstMForced/FirstMForcedRun/1/out~simple_gp_test.csv FirstMForced/FirstMForcedRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_mpi_noprecommand]
+   input='test_mpiqsub_noprecommand.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMPre/FirstMPreRun/1/out~simple_gp_test.csv FirstMPre/FirstMPreRun/6/out~simple_gp_test.csv'
    output_wait_time = 60
    type = RavenFramework
    max_time = 3600

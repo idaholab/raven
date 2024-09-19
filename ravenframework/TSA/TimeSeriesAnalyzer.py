@@ -30,6 +30,10 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   # class attribute
   ## defines if missing values are accepted by the characterization algorithm
   _acceptsMissingValues = False
+  ## defines if usage of algorithm requires output from a prior algorithm
+  _needsPriorAlgoFeatures = False
+  ## defines if algorithm can be applied per cluster (otherwise it can only be used on global signal)
+  _canBeAppliedPerCluster = True
 
   @classmethod
   def getInputSpecification(cls):
@@ -82,6 +86,25 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     return issubclass(cls, TimeSeriesTransformer)
 
+  @classmethod
+  def needsPriorAlgoFeatures(cls):
+    """
+      Determines if the algorithm requires trained params from prior algorithms.
+      @ In, None
+      @ Out, needsPriorAlgoFeatures, bool, True if this algorithm requires prior trained params
+    """
+    return cls._needsPriorAlgoFeatures
+
+  @classmethod
+  def canBeAppliedPerCluster(cls):
+    """
+      Determines if algorithm can be applied per cluster. Otherwise it can only be used
+      on the global signal.
+      @ In, None
+      @ Out, canBeAppliedPerCluster, bool, True if this algorithm can be applied per cluster
+    """
+    return cls._canBeAppliedPerCluster
+
   ### INHERITED METHODS ###
   def __init__(self, *args, **kwargs):
     """
@@ -93,7 +116,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     self.name = self.__class__.__name__ # the name the class shall be known by during its RAVEN life
 
   @abc.abstractmethod
-  def fit(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       Fits the algorithm/model using the provided time series ("signal") using methods specific to
       the algorithm.
@@ -101,6 +124,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, pivot, np.array, time-like parameter
       @ In, targets, list(str), names of targets
       @ In, settings, dict, additional settings specific to algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characterization of signal; structure as:
                            params[target variable][characteristic] = value
     """
@@ -150,6 +174,14 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, None
     """
 
+  @abc.abstractmethod
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+
 
 class TimeSeriesGenerator(TimeSeriesAnalyzer):
   """
@@ -192,6 +224,13 @@ class TimeSeriesGenerator(TimeSeriesAnalyzer):
       @ Out, synthetic, np.array(float), synthetic signal
     """
 
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    return {}
 
 class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
   """
@@ -265,6 +304,13 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
       params[target][identifier] = value
     return params
 
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    return {}
 
 class TimeSeriesTransformer(TimeSeriesAnalyzer):
   """
@@ -306,3 +352,11 @@ class TimeSeriesTransformer(TimeSeriesAnalyzer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, composite, np.array, resulting composite signal
     """
+
+  def getNonClusterFeatures(self, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    return {}
