@@ -60,7 +60,7 @@ Note all install methods after "main" take
     <lxml/>
     <psutil/>
     <pip/>
-    <pyDOE3/>
+    <pyDOE3 source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
