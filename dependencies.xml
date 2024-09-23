@@ -91,6 +91,7 @@ Note all install methods after "main" take
     <serpentTools optional='True' source="pip"/>
     <pydmd source="pip"/>
     <ezyrb source="pip"/>
+    <torch source="pip">2.1.2</torch>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
