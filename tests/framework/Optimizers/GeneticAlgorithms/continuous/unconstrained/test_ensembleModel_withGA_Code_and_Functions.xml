@@ -11,7 +11,7 @@
          #2304 (see \\url{https://github.com/idaholab/raven/issues/2304}).
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>metaModelWithCodeAndFunctionsAndGenetic</JobName>
     <Sequence>
@@ -107,13 +107,13 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
-  
+
   <Functions>
       <External file="decayConstantB.py" name="decayConstantB">
         <variables>decay_A</variables>
       </External>
   </Functions>
-  
+
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
