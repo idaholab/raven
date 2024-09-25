@@ -60,7 +60,7 @@ Note all install methods after "main" take
     <lxml/>
     <psutil/>
     <pip/>
-    <pyDOE3/>
+    <pyDOE3 source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
@@ -90,7 +90,6 @@ Note all install methods after "main" take
     <mamba source="mamba" skip_check='True'/>
     <serpentTools optional='True' source="pip"/>
     <pydmd source="pip"/>
-    <ezyrb source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
