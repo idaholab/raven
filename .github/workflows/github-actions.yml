@@ -1,0 +1,106 @@
+name: GitHub RAVEN test
+run-name: ${{ github.actor }} is testing out RAVEN
+on: [push, pull_request]
+
+concurrency:
+  # Here the group is defined by the head_ref of the PR
+  group: ${{ github.head_ref }}
+  # Here we specify that we'll cancel any "in progress" workflow of the same group. Thus if we push, ammend a commit and push
+  # again the previous workflow will be cancelled, thus saving us github action build minutes and avoid any conflicts
+  cancel-in-progress: true
+
+jobs:
+  Test-RAVEN-Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniconda-version: "latest"
+          channels: conda-forge, defaults
+          activate-environment: raven_libraries
+          use-only-tar-bz2: true  # IMPORTANT: This needs to be set for caching to work properly!
+          auto-update-conda: true
+          auto-activate-base: true
+
+      - name: Job Information
+        run: |
+          echo " The job was automatically triggered by a ${{ github.event_name }} event."
+          echo " This job is now running on a ${{ runner.os }} server"
+          echo " The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
+      - name: Fetch and Branch
+        uses: actions/checkout@v3
+
+      - name: Install Plugins
+        run: |
+          pwd
+          python3 ./scripts/install_plugins.py -a
+
+      - name: Set Python Environment and Build Raven
+        run: |
+          python3 ./scripts/establish_conda_env.sh --install
+          ./build_raven
+
+      - name: Test RAVEN
+        run: |
+          ../raven/run_tests --library-report
+          ../raven/run_tests -j4 --raven
+
+      - name: Test Plugins
+        run: |
+          ../raven/run_tests -j4 --plugins
+
+  # Test-RAVEN-Macos:
+  #   runs-on: macos-latest
+  #   # runs-on: macos-14
+  #   steps:
+  #     - uses: conda-incubator/setup-miniconda@v3
+  #       with:
+  #         miniconda-version: "latest"
+  #         channels: conda-forge, defaults
+  #         activate-environment: raven_libraries
+  #         use-only-tar-bz2: False  # IMPORTANT: This needs to be set to True for caching to work properly!
+  #         auto-update-conda: true
+  #         auto-activate-base: true
+  #     - run: echo " The job was automatically triggered by a ${{ github.event_name }} event."
+  #     - run: echo " This job is now running on a ${{ runner.os }} server"
+  #     - run: echo " The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+  #     - name: Check out repository code
+  #       uses: actions/checkout@v3
+  #     - run: pwd
+  #     - run: cd .. && rm -Rf raven && git clone https://github.com/idaholab/raven.git
+  #     - run: python3 ../raven/scripts/install_plugins.py -s ${{ github.workspace }}
+  #     - run: WD=`(cd ../../.. && pwd)` && export RAVEN_LIBS_NAME="raven_libs_"`basename $WD` && ../raven/scripts/establish_conda_env.sh --install
+  #     - run: cd ../raven && ./build_raven
+  #     - run: ../raven/run_tests --library-report
+  #     - run: ../raven/run_tests -j4
+
+
+  # Test-RAVEN-Windows:
+  #   runs-on: windows-latest
+  #   # runs-on: windows-2019
+  #   continue-on-error: true
+  #   strategy:
+  #     fail-fast: false
+  #   steps:
+  #     - uses: conda-incubator/setup-miniconda@v3
+  #       with:
+  #         miniconda-version: "latest"
+  #         channels: conda-forge, defaults
+  #         activate-environment: raven_libraries
+  #         use-only-tar-bz2: true  # IMPORTANT: This needs to be set for caching to work properly!
+  #         auto-update-conda: true
+  #         auto-activate-base: true
+  #     - run: echo " The job was automatically triggered by a ${{ github.event_name }} event."
+  #     - run: echo " This job is now running on a ${{ runner.os }} server"
+  #     - run: echo " The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+  #     - name: Check out repository code
+  #       uses: actions/checkout@v3
+  #     - run: pwd
+  #     - run: cd ..; if (Test-Path raven) {Remove-Item -Recurse -Force raven}; git clone https://github.com/idaholab/raven.git
+  #     - run: python ../raven/scripts/install_plugins.py -s ${{ github.workspace }}
+  #     - run: $Env:RAVEN_LIBS_NAME =  "raven_libraries_"+(Get-Location).Path.Split("\")[-1]; bash ../raven/scripts/establish_conda_env.sh --install --conda-defs $HOME/Miniconda3/etc/profile.d/conda.sh
+  #     - run: cd ../raven; bash ./build_raven
+  #     - run: bash ../raven/run_tests --library-report
+  #     - run: bash ../raven/run_tests -j4
