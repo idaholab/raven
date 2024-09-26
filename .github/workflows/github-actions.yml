@@ -39,7 +39,7 @@ jobs:
 
       - name: Set Python Environment and Build Raven
         run: |
-          python3 ./scripts/establish_conda_env.sh --install
+          ./scripts/establish_conda_env.sh --install
           ./build_raven
 
       - name: Test RAVEN
