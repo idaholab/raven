@@ -43,7 +43,7 @@ jobs:
           ./build_raven
 
       - name: Test RAVEN
-        if: always()
+        # if: always()
         run: |
           ./run_tests --library-report
           ./run_tests -j4 --raven
@@ -86,7 +86,7 @@ jobs:
           ./build_raven
 
       - name: Test RAVEN
-        if: always()
+        # if: always()
         run: |
           ./run_tests --library-report
           ./run_tests -j4 --raven
@@ -129,7 +129,7 @@ jobs:
           bash ./build_raven
 
       - name: Test RAVEN
-        if: always()
+        # if: always()
         run: |
           bash ./run_tests --library-report
           bash ./run_tests -j4 --raven
