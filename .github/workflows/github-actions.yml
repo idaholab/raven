@@ -46,7 +46,7 @@ jobs:
         if: always()
         run: |
           ./run_tests --library-report
-          .run_tests -j4 --raven
+          ./run_tests -j4 --raven
 
       - name: Test Plugins
         continue-on-error: true
