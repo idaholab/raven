@@ -45,13 +45,13 @@ jobs:
       - name: Test RAVEN
         if: always()
         run: |
-          ../raven/run_tests --library-report
-          ../raven/run_tests -j4 --raven
+          ./run_tests --library-report
+          .run_tests -j4 --raven
 
       - name: Test Plugins
         continue-on-error: true
         run: |
-          ../raven/run_tests -j4 --plugins
+          ./run_tests -j4 --plugins
 
   Test-RAVEN-macOS:
     runs-on: macos-latest
@@ -88,13 +88,13 @@ jobs:
       - name: Test RAVEN
         if: always()
         run: |
-          ../raven/run_tests --library-report
-          ../raven/run_tests -j4 --raven
+          ./run_tests --library-report
+          ./run_tests -j4 --raven
 
       - name: Test Plugins
         continue-on-error: true
         run: |
-          ../raven/run_tests -j4 --plugins
+          ./run_tests -j4 --plugins
 
   Test-RAVEN-Windows:
     runs-on: windows-latest
@@ -132,9 +132,9 @@ jobs:
         if: always()
         run: |
           bash ./run_tests --library-report
-          ../raven/run_tests -j4 --raven
+          bash ./run_tests -j4 --raven
 
       - name: Test Plugins
         continue-on-error: true
         run: |
-          ../raven/run_tests -j4 --plugins
+          bash ./run_tests -j4 --plugins
