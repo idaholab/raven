@@ -73,7 +73,6 @@ Note all install methods after "main" take
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <statsforecast/>
-    <numba>0.60</numba>
     <pywavelets optional='True'>1.2</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
