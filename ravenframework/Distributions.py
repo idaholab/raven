@@ -1748,6 +1748,11 @@ class Categorical(Distribution):
         True,
         descr=r"""value of this state's outcome""")
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    inputSpecification.addSub(InputData.parameterInputFactory("rtol",
+        contentType=InputTypes.FloatType,
+        descr=r"""Relative tolerance used to identify close states in case of
+            float/int states. Not used for string states!""",
+        default=1e-6))
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
     inputSpecification.addParam("name", InputTypes.StringType, True,
