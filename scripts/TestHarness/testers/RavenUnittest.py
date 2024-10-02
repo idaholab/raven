@@ -26,7 +26,7 @@ class Unittest(RavenPython):
     # 'input' param can be test case or test suite; unittest will handle either when called
     params.add_param('unittest_args', '', "Arguments to the unittest module")
     return params
-  
+
   def __init__(self, name, params):
     """
       Initializer for the class. Takes a String name and a dictionary params
@@ -35,7 +35,7 @@ class Unittest(RavenPython):
       @ Out, None.
     """
     RavenPython.__init__(self, name, params)
-    
+
   def check_runnable(self):
     """
       Checks if this test can be run.
@@ -45,9 +45,9 @@ class Unittest(RavenPython):
     if not unittest_found:
       self.set_skip('skipped (required unittest module is not found)')
       return False
-    
+
     return RavenPython.check_runnable(self)
-  
+
   def get_command(self):
     """
       returns the command used by this tester.
