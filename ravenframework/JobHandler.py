@@ -22,7 +22,6 @@ import os
 import copy
 import sys
 import threading
-from random import randint
 import socket
 import re
 
@@ -46,6 +45,70 @@ if _rayAvail:
 
 # FIXME: Finished jobs can bog down the queue waiting for other objects to take
 # them away. Can we shove them onto a different list and free up the job queue?
+
+#class IdentifiersFactory(BaseType):
+  #"""
+    #Identifier Factory. This class contains the memory of identifiers used to execute
+    #JOBS in the job handler. The identifiers are removed from the Factory once out of
+    #scope (i.e. once the job is collected)
+  #"""
+  #def __init__(self, **kwargs):
+    #"""
+      #Constructor
+      #@ In, None
+      #@ Out, None
+    #"""
+    #super().__init__(**kwargs)
+    #self.__IDENTIFIERS_FACTORY = {} # {identifier:uniqueHandler}
+    #self.__counter = 0
+
+  #def __len__(self):
+    #"""
+      #length (number of identifiers)
+    #"""
+    #return len(self.__IDENTIFIERS_FACTORY)
+
+  #def addIdentifier(self, identifier: str, uniqueHandler: str | None) -> None:
+    #"""
+      #Add identifier in factory
+      #@ In, identifier, str, new identifier to add
+      #@ In, uniqueHandler, str, optional, the `uniqueHandler` if associated with this identifier
+      #@ Out, None
+    #"""
+    #if identifier in self.__IDENTIFIERS_FACTORY:
+      #self.raiseAnError(RuntimeError, f"Identifier {identifier} is still in use and cannot be re-used yet!")
+
+    #self.__IDENTIFIERS_FACTORY[identifier] = uniqueHandler
+    #self.__counter += 1
+
+  #def removeIdentifier(self, identifier: str) -> None:
+    #"""
+      #Remove identifier in factory
+      #@ In, identifier, str, new identifier to add
+      #@ Out, None
+    #"""
+    #if identifier not in self.__IDENTIFIERS_FACTORY:
+      #self.raiseAnError(RuntimeError, f"Identifier {identifier} is not present in identifier factory. It cannot be removed!")
+
+    #self.__IDENTIFIERS_FACTORY.pop(identifier)
+
+  #def checkIfIdentifierIsInUse(self, identifier: str) -> bool:
+    #"""
+      #This method is a utility method used to check if an identifier is in use.
+      #@ In, identifier, str, the  identifier to check
+      #@ Out, checkIfIdentifierIsInUse, bool, is the Identifier in use?
+    #"""
+    #return identifier in list(self.__IDENTIFIERS_FACTORY.keys())
+
+  #def clear(self) -> None:
+    #"""
+      #Clear
+      #@ In, None
+      #@ Out, None
+    #"""
+    #self.__IDENTIFIERS_FACTORY = {}
+
+#IDENTIFIERS_COLLECTOR = IdentifiersFactory()
 
 class JobHandler(BaseType):
   """
@@ -133,6 +196,17 @@ class JobHandler(BaseType):
     """
     self.__dict__.update(d)
     self.__queueLock = threading.RLock()
+
+  def createCloneJobHandler(self):
+    """
+      Method to create a clone of this JobHandler.
+      The clone is a copy of the jobhandler (initialized)
+      @ In, None
+      @ Out, clone, JobHandler, a clone of the curreny JobHandler
+    """
+    clone = copy.deepcopy(self)
+    clone.terminateAll()
+    return clone
 
   def applyRunInfo(self, runInfo):
     """

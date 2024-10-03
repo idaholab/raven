@@ -28,7 +28,7 @@ import abc
 
 # Internal Modules----------------------------------------------------------------------------------
 from ..BaseClasses import BaseEntity, InputDataUser
-from ..utils import InputData, InputTypes
+from ..utils import InputData, InputTypes, utils
 # Internal Modules End------------------------------------------------------------------------------
 
 class DataBase(BaseEntity, InputDataUser):
@@ -109,7 +109,7 @@ class DataBase(BaseEntity, InputDataUser):
     if self.readMode == 'overwrite':
       # check if self.databaseDir exists or create in case not
       if not os.path.isdir(self.databaseDir):
-        os.makedirs(self.databaseDir, exist_ok=True)
+        utils.makeDir(self.databaseDir)
     # get full path
     fullpath = self.get_fullpath()
     if os.path.isfile(fullpath):
