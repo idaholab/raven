@@ -39,7 +39,7 @@ Note all install methods after "main" take
   <main>
     <h5py/>
     <numpy>1.24</numpy>
-    <scipy>1.9</scipy>
+    <scipy/>
     <scikit-learn>1.0</scikit-learn>
     <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
@@ -72,7 +72,7 @@ Note all install methods after "main" take
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
-    <statsforecast>1.7</statsforecast>
+    <statsforecast source="pip"/>
     <pywavelets optional='True'>1.2</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
