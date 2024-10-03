@@ -37,7 +37,22 @@ class MultiResolutionTSA(SupervisedLearning):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.description = r"""Class to specifically handle multi-resolution time series analysis training and evaluation."""
+    spec.description = r"""A ROM for characterizing and generating synthetic histories using multi-resolution time
+      series analysis. This ROM, like the SyntheticHistory ROM, makes use of the algorithms within the TimeSeriesAnalysis (TSA)
+      module here in RAVEN. The available algorithms are discussed in more detail below. They can be classified as
+      characterizing, transforming, or generating algorithms. Given three algorithms in order $A_1$, $A_2$, and $A_3$, the
+      algorithms are applied to given signals as $A_1 \rightarrow A_2 \rightarrow A_3$ during the training step if the
+      algorithms are capable of characterizing or transforming the signal. In the generating step, so long as an inverse
+      operation for each algorithm exists, the algorithms are applied in reverse: $A_3^{-1} \rightarrow A_2^{-1} \rightarrow A_1^{-1}$.
+      This is the same process that the SyntheticHistory ROM performs. Where this ROM differs is that it can handle
+      multi-resolution decompositions of a signal. That is, some algorithms are capable of characterizing and splitting
+      a signal at different timescales to better learn the signal dynamics at those timescales. See the `filterbankdwt`
+      below for an example of such an algorithm. The MultiResolutionTSA particularly handles the combination of learned
+      characteristics and signal generation from the different decomposition levels. This ROM also requires a SegmentROM
+      node of the "decomposition" type (an example is given below for the XML input structure).
+      //
+      In order to use this Reduced Order Model, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to be
+      \xmlString{MultiResolutionTSA}. It must also have a SegmentROM node of \xmlAttr{subType} \xmlString{decomposition}"""
     spec = SyntheticHistory.addTSASpecs(spec)
     return spec
 
