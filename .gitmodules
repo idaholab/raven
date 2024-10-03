@@ -19,3 +19,9 @@
 [submodule "plugins/BayCal"]
 	path = plugins/BayCal
 	url = https://github.com/idaholab/BayCal.git
+[submodule "plugins/POEM"]
+	path = plugins/POEM
+	url = https://github.com/idaholab/POEM.git
+[submodule "plugins/DOVE"]
+	path = plugins/DOVE
+	url = https://github.com/idaholab/DOVE.git
