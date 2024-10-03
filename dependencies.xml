@@ -74,7 +74,7 @@ Note all install methods after "main" take
     <!-- <ete3 optional='True'/> -->
     <statsforecast/>
     <pywavelets optional='True'>1.2</pywavelets>
-    <python-sensors source="pip"/>
+    <python-sensors source="pip" repo='https://github.com/Jimmy-INL/pysensors.git@niharika2999-Ni_converting_functional-constraints_class'></python-sensors>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
