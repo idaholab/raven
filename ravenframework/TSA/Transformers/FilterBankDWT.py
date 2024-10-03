@@ -65,6 +65,7 @@ class FilterBankDWT(TimeSeriesTransformer):
         signal to multiple frequency levels. Given a wavelet family and the original signal, the signal is projected
         onto modifications of the original "mother" wavelet $\Psi$ to produce wavelet coefficients. The modifications
         $\psi_{a,b}$ happen in two ways:
+        \\
         \begin{itemize}
           \item the wavelet is scaled by factor $a$ to capture features at different time scales (e.g., if the wavelet
           is "thinner" it better captures faster frequency features)
@@ -73,6 +74,7 @@ class FilterBankDWT(TimeSeriesTransformer):
         \end{itemize}
         After all projections, there is a 2-D array of coefficients regarding the scale $a$ and shift $b$. The modified
         wavelets are given by:
+        \\
         \begin{equation*}
            \psi_{a,b} = \frac{1}{\sqrt{a}} \Psi(\frac{t-b}{a})
         \end{equation*}
