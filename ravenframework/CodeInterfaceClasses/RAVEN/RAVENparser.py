@@ -208,7 +208,7 @@ class RAVENparser():
       slaveDir = os.path.join(currentDirName, self.workingDir)
       # if not exist then make the directory
       try:
-        utils.makedirs(slaveDir)
+        os.makedirs(slaveDir)
       # if exist, print message, since no access to message handler
       except FileExistsError:
         print('current working dir {}'.format(slaveDir))
