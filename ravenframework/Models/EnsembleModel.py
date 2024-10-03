@@ -35,6 +35,7 @@ from .Dummy import Dummy
 from ..utils import utils, InputData
 from ..utils.graphStructure import evaluateModelsOrder
 from ..Runners import Error as rerror
+from ..Runners.SharedMemoryRunner import InterruptibleThread
 #Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleModel(Dummy):
@@ -73,6 +74,8 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     super().__init__()
+    self.localJobHandler = None                         # local jobhandler used in case of parallelStrategy == 2
+    self.localPollingThread = None                      # local jobhandler thread used in case of parallelStrategy == 2
     self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
                                                         # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.modelsInputDictionary  = {}                    # to allow reusability of ensemble modes (similar in construction to self.modelsDictionary)
@@ -136,8 +139,6 @@ class EnsembleModel(Dummy):
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
         if len(self.modelsInputDictionary[modelName].values()) > allowedEntriesLen:
           self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
-        if child.attrib['type'].strip() == "Code":
-          self.createWorkingDir = True
       if child.tag == 'settings':
         self.__readSettings(child)
     if len(self.modelsInputDictionary.keys()) < 2:
@@ -244,8 +245,6 @@ class EnsembleModel(Dummy):
     # collect the models
     self.allOutputs = set()
     for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
-      if not isThereACode:
-        isThereACode = modelType == 'Code'
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
       for inputName in self.modelsInputDictionary[modelName]['Input']:
@@ -267,6 +266,9 @@ class EnsembleModel(Dummy):
 
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
+      if not isThereACode:
+        isThereACode = self.modelsDictionary[modelName]['Instance'].containsACode
+
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
       # assert acceptable TargetEvaluation types are used
@@ -292,6 +294,7 @@ class EnsembleModel(Dummy):
     # END loop to collect models
     self.allOutputs = list(self.allOutputs)
     if isThereACode:
+      self.createWorkingDir = True
       # FIXME: LEAVE IT HERE...WE NEED TO MODIFY HOW THE CODE GET RUN INFO...IT NEEDS TO BE ENCAPSULATED
       ## collect some run info
       ## self.runInfoDict = runInfo
@@ -456,7 +459,14 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    outcomes, targetEvaluations, optionalOutputs = evaluation[1]
+
+    isPassthroughRunner = type(finishedJob).__name__ == 'PassthroughRunner'
+    if not isPassthroughRunner:
+      outcomes, targetEvaluations, optionalOutputs = evaluation[1]
+    else:
+      outcomes =  evaluation
+      optionalOutputs = {}
+
     joinedResponse = {}
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
@@ -464,19 +474,24 @@ class EnsembleModel(Dummy):
     joinedIndexMap = {} # collect all the index maps, then we can keep the ones we want?
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
-      # collect data
-      newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
-      if newIndexMap:
-        joinedIndexMap.update(newIndexMap[0])
-      joinedResponse.update(outcomes[modelIn]['response'])
-      joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
+      if not isPassthroughRunner:
+        # collect data
+        newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
+        if newIndexMap:
+          joinedIndexMap.update(newIndexMap[0])
+        joinedResponse.update(outcomes[modelIn]['response'])
+        joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
       optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
+      if isPassthroughRunner:
+        optionalOutputs[modelIn] = outcomes
     # the prefix is re-set here
-    joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
-    if joinedIndexMap:
-      joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
-
+    if not isPassthroughRunner:
+      joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
+      if joinedIndexMap:
+        joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
+    else:
+      joinedResponse = outcomes
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
@@ -545,7 +560,13 @@ class EnsembleModel(Dummy):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-
+    if  self.localJobHandler is None and self.parallelStrategy == 2:
+      # create local clone of jobhandler
+      self.localJobHandler = jobHandler.createCloneJobHandler()
+      # start the job handler
+      self.localPollingThread = InterruptibleThread(target=self.localJobHandler.startLoop)
+      self.localPollingThread.daemon = True
+      self.localPollingThread.start()
     nRuns = 1
     batchMode =  kwargs.get("batchMode", False)
     if batchMode:
@@ -571,12 +592,14 @@ class EnsembleModel(Dummy):
       else:
         # for parallel strategy 2, the ensemble model works as a step => it needs the jobHandler
         kw['jobHandler'] = jobHandler
+        kw['jobHandler'] = self.localJobHandler
         # for parallel strategy 2, we need to make sure that the batchMode is set to False in the inner runs since only the
         # ensemble model evaluation should be batched (THIS IS REQUIRED because the CODE does not submit runs like the other models)
         kw['batchMode'] = False
         jobHandler.addClientJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
                   uniqueHandler=uniqueHandler,
                   groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
+
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
@@ -829,3 +852,13 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
+
+  def endStepActions(self):
+    """
+      This method is intended for performing actions (within the EnsembleModel) at the end of a step
+      @ In, None
+      @ Out, None
+    """
+    super().endStepActions()
+    if self.localPollingThread is not None:
+      self.localPollingThread.kill()
