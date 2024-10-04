@@ -44,6 +44,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
 
     Reference: the following code has been adapted from https://stackoverflow.com/questions/32791911/fast-calculation-of-pareto-front-in-python
   """
+
   if minMask is None:
     pass
   elif minMask is not None and minMask.shape[0] != data.shape[1]:
@@ -56,8 +57,8 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
   isEfficient = np.arange(data.shape[0])
   nPoints = data.shape[0]
   nextPointIndex = 0
-  while nextPointIndex<len(data):
-    nondominatedPointMask = np.any(data<data[nextPointIndex], axis=1)
+  while nextPointIndex < len(data):
+    nondominatedPointMask = np.any(data<data[nextPointIndex], axis=1) # points that indexPoint is dominating
     nondominatedPointMask[nextPointIndex] = True
     isEfficient = isEfficient[nondominatedPointMask]
     data = data[nondominatedPointMask]
@@ -71,7 +72,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
 
 def rankNonDominatedFrontiers(data):
   """
-    This method ranks the non dominated fronts by omitting thr first front from the data
+    This method ranks the non dominated fronts by omitting the first front from the data
     and searching the remaining data for a new one recursively.
     @ In, data, np.array, data matrix (nPoints, nObjectives) containing the multi-objective
                           evaluations of each point/individual, element (i,j)
@@ -117,4 +118,5 @@ def crowdingDistance(rank, popSize, objectives):
       crowdDist[front[sortedRank[0]]] = crowdDist[front[sortedRank[-1]]] = np.inf
       for i in range(1, len(front)-1):
         crowdDist[front[sortedRank[i]]] = crowdDist[front[sortedRank[i]]] + (objectives[front[sortedRank[i+1]], obj] - objectives[front[sortedRank[i-1]], obj]) / (fMax[obj]-fMin[obj])
+
   return crowdDist
