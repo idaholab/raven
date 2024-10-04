@@ -1751,9 +1751,8 @@ class Categorical(Distribution):
     inputSpecification.addSub(InputData.parameterInputFactory("rtol",
         contentType=InputTypes.FloatType,
         descr=r"""Relative tolerance used to identify close states in case of
-          float/int states. Not used for string states!""",
+            float/int states. Not used for string states!""",
         default=1e-6))
-
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
     inputSpecification.addParam("name", InputTypes.StringType, True,
@@ -1859,16 +1858,14 @@ class Categorical(Distribution):
       @ Out, None
     """
     # check all probability values are between 0.0 and 1.0
-    for element in self.mapping:
-      if self.mapping[element] < 0.0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
-      if self.mapping[element] > 1.0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1')
+    for element, value in self.mapping.items():
+      if value < 0.0:
+        self.raiseAnError(IOError,f'Categorical distribution entry {element} cannot be negative; received: {value}')
 
     localSum = sum(self.mapping.values())
-    if not mathUtils.compareFloats(localSum,1., self.rtol):
-      self.raiseAnError(f'Categorical distribution cannot be initialized: sum of probabilities is {localSum},'
-                        ' not 1.0! Please re-normalize it to 1!')
+    if not mathUtils.compareFloats(localSum, 1., self.rtol):
+      # courtesy warning
+      self.raiseAWarning(f'Provided weights for Categorical distribution summed to {localSum}; normalizing to 1.')
 
     # Probability values normalization
     for key in self.mapping.keys():

@@ -1169,9 +1169,18 @@ class GeneticAlgorithm(RavenSampled):
     selVars = [var for var in varList if var in rlz.data_vars]
     population = datasetToDataArray(rlz, selVars)
     if self._fitnessType == 'hardConstraint':
-      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1],-x[2]))])
+      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),
+                                                                              datasetToDataArray(fitness, self._objectiveVar).data,
+                                                                              objectiveVal,
+                                                                              np.atleast_2d(g.data)),
+                                                                          reverse=True,
+                                                                          key=lambda x: (x[1],-x[2]))])
     else:
-      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),datasetToDataArray(fitness, self._objectiveVar).data,objectiveVal,np.atleast_2d(g.data)),reverse=True,key=lambda x: (x[1]))])
+      optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),
+                                                                              datasetToDataArray(fitness, self._objectiveVar).data,
+                                                                              objectiveVal,np.atleast_2d(g.data)),
+                                                                          reverse=True,
+                                                                          key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
     if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:

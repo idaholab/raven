@@ -236,7 +236,7 @@ class DMDBase(SupervisedLearning):
       @ Out, None
     """
     from pydmd import ParametricDMD
-    from ezyrb import POD, RBF, GPR
+    from ...contrib.ezyrb import POD, RBF, GPR
 
     assert(self._dmdBase is not None)
     self.dmdParams = dmdParams
