@@ -63,3 +63,12 @@ The following table shows which base classes each currently implemented TSA algo
 | `Gaussianize`          |   &check;   |           |               |
 | `Differencing`         |   &check;   |           |               |
 | `PreserveCDF`          |   &check;   |           |               |
+| `FilterBankDWT`        |             |           |    &check;    |
+
+
+### Note on Wavelet Algorithms:
+There are currently two ways to apply a wavelet transform on a signal:
+ 1) the `Wavelet` algorithm, which is a Characterizer, Transformer, and Generator
+ 2) the `FilterBankDWT` algorithm, which is just a Transformer
+Using the `Wavelet` algorithm uses the `dwt` and `idwt` methods of `PyWavelets` for characterization and generation, respectively.
+The `FilterBankDWT` instead uses the `mra` and `imra` methods to create decomposition levels and communicate them to the `ROMCollection:Decomposition` class in RAVEN.

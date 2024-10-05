@@ -205,6 +205,41 @@ Example:
 \end{lstlisting}
 """
 
+mra = r"""
+\hspace{24pt}
+Example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="synth" subType="MultiResolutionTSA">
+      <Target>signal1, signal2, hour</Target>
+      <Features>scaling</Features>
+      <pivotParameter>hour</pivotParameter>
+      <filterbankdwt target="signal0,signal1" seed='42'>
+        <family>db8</family>
+        <levels>3</levels>
+      </filterbankdwt>
+      <Segment grouping="decomposition">
+        <Target>signal0,signal1, pivot</Target>
+        <Features>scaling</Features>
+        <macroParameter>macro</macroParameter>
+        <pivotParameter>pivot</pivotParameter>
+        <gaussianize target="signal0,signal1"/>
+        <arma target="signal0,signal1" seed='42'>
+          <P>1,1</P>
+          <Q>1,2</Q>
+        </arma>
+      </Segment>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+"""
+
 synthetic = r"""
 \hspace{24pt}
 Example:
@@ -1263,6 +1298,7 @@ exampleFactory = {
                   'MSR': msr,
                   'NDinvDistWeight':invDist,
                   'SyntheticHistory': synthetic,
+                  'MultiResolutionTSA': mra,
                   'ARMA': armaExp,
                   'PolyExponential': poly,
                   'DMD': dmd,
@@ -1389,7 +1425,8 @@ excludeObj = ['SupervisedLearning',
               'Collection',
               'Segments',
               'Clusters',
-              'Interpolated']
+              'Interpolated',
+              'Decomposition']
 validDNNRom = ['KerasMLPClassifier',
               'KerasMLPRegression',
               'KerasConvNetClassifier',
@@ -1403,6 +1440,7 @@ validInternalRom = ['NDspline',
             'MSR',
             'NDinvDistWeight',
             'SyntheticHistory',
+            'MultiResolutionTSA',
             'ARMA',
             'PolyExponential',
             'DMD',
@@ -1451,7 +1489,7 @@ for name in orderedValidRom:
         internalRom += segmentTex
       internalRom += exampleTex
   except:
-    print('Can not generate latex file for ' + name)
+    print(f'Can not generate latex file for {name}')
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'internalRom.tex'))
 with open(fName, 'w') as f:

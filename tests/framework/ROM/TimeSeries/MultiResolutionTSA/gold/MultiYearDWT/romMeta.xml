@@ -1,0 +1,92 @@
+<DataObjectMetadata name="romMeta">
+  <synth type="Static">
+    <ROM>
+      <type>Decomposition</type>
+      <Features>scaling</Features>
+      <Targets>signal,seconds</Targets>
+    </ROM>
+    <DecompositionMultiyearROM type="Static">
+      <MacroParameterID>macro</MacroParameterID>
+      <MacroSteps>2</MacroSteps>
+      <MacroFirstStep>1</MacroFirstStep>
+      <MacroLastStep>2</MacroLastStep>
+    </DecompositionMultiyearROM>
+    <MacroStepROM macro="1" type="Static">
+      <Fourier>
+        <signal>
+          <fit_intercept>3.287798977e+00</fit_intercept>
+          <waveform period="4.000000000e+00" frequency="2.500000000e-01">
+            <amplitude>7.781916578e+00</amplitude>
+            <phase>5.161264404e-01</phase>
+          </waveform>
+          <waveform period="1.500000000e+01" frequency="6.666666667e-02">
+            <amplitude>2.038282750e+01</amplitude>
+            <phase>1.561131395e+00</phase>
+          </waveform>
+        </signal>
+      </Fourier>
+      <FilterBankDWT>
+        <signal>
+          <N_approx_levels>1</N_approx_levels>
+          <N_detail_levels>1</N_detail_levels>
+        </signal>
+      </FilterBankDWT>
+      <DecompStepROM detail_level="0" type="Static">
+        <Gaussianize>
+          <signal />
+        </Gaussianize>
+        <ARMA>
+          <signal>
+            <constant>-6.217113902e-03</constant>
+            <AR_0>-1.185912541e+00</AR_0>
+            <AR_1>-2.907717255e-01</AR_1>
+            <MA_0>-2.613457988e-01</MA_0>
+            <MA_1>-8.213112973e-01</MA_1>
+            <MA_2>8.615640653e-02</MA_2>
+            <variance>4.761564202e-01</variance>
+            <order>2,0,3</order>
+          </signal>
+        </ARMA>
+      </DecompStepROM>
+    </MacroStepROM>
+    <MacroStepROM macro="2" type="Static">
+      <Fourier>
+        <signal>
+          <fit_intercept>4.730485908e+00</fit_intercept>
+          <waveform period="4.000000000e+00" frequency="2.500000000e-01">
+            <amplitude>7.926389026e+00</amplitude>
+            <phase>1.045351921e+00</phase>
+          </waveform>
+          <waveform period="1.500000000e+01" frequency="6.666666667e-02">
+            <amplitude>2.058569355e+01</amplitude>
+            <phase>8.081683268e-01</phase>
+          </waveform>
+        </signal>
+      </Fourier>
+      <FilterBankDWT>
+        <signal>
+          <N_approx_levels>1</N_approx_levels>
+          <N_detail_levels>1</N_detail_levels>
+        </signal>
+      </FilterBankDWT>
+      <DecompStepROM detail_level="0" type="Static">
+        <Gaussianize>
+          <signal />
+        </Gaussianize>
+        <ARMA>
+          <signal>
+            <constant>-2.194729136e-03</constant>
+            <AR_0>-3.962321760e-01</AR_0>
+            <AR_1>-4.832490406e-01</AR_1>
+            <MA_0>-2.662806536e-01</MA_0>
+            <MA_1>1.078173681e-01</MA_1>
+            <MA_2>9.383190024e-02</MA_2>
+            <variance>1.050620541e+00</variance>
+            <order>2,0,3</order>
+          </signal>
+        </ARMA>
+      </DecompStepROM>
+    </MacroStepROM>
+  </synth>
+  
+</DataObjectMetadata>

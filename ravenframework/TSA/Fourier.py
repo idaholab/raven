@@ -90,6 +90,7 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, additional settings specific to this algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ In, simultFit, bool, optional, if False then fit Fourier individually
       @ Out, params, dict, characteristic parameters
     """
