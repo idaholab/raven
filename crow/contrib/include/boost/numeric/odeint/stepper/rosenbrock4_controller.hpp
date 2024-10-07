@@ -6,8 +6,9 @@
  Controller for the Rosenbrock4 method.
  [end_description]
 
- Copyright 2009-2011 Karsten Ahnert
- Copyright 2009-2011 Mario Mulansky
+ Copyright 2011-2012 Karsten Ahnert
+ Copyright 2011-2012 Mario Mulansky
+ Copyright 2012 Christoph Koke
 
  Distributed under the Boost Software License, Version 1.0.
  (See accompanying file LICENSE_1_0.txt or
@@ -26,6 +27,7 @@
 
 #include <boost/numeric/odeint/util/copy.hpp>
 #include <boost/numeric/odeint/util/is_resizeable.hpp>
+#include <boost/numeric/odeint/util/detail/less_with_sign.hpp>
 
 #include <boost/numeric/odeint/stepper/rosenbrock4.hpp>
 
@@ -54,17 +56,26 @@ public:
     typedef rosenbrock4_controller< Stepper > controller_type;
 
 
-    rosenbrock4_controller( value_type atol = 1.0e-6 , value_type rtol = 1.0e-6 , const stepper_type &stepper = stepper_type() )
-    : m_stepper( stepper ) , m_atol( atol ) , m_rtol( rtol ) ,
-      m_first_step( true ) , m_err_old( 0.0 ) , m_dt_old( 0.0 ) ,
-      m_last_rejected( false )
+    rosenbrock4_controller( value_type atol = 1.0e-6 , value_type rtol = 1.0e-6 ,
+                            const stepper_type &stepper = stepper_type() )
+        : m_stepper( stepper ) , m_atol( atol ) , m_rtol( rtol ) ,
+          m_max_dt( static_cast<time_type>(0) ) ,
+          m_first_step( true ) , m_err_old( 0.0 ) , m_dt_old( 0.0 ) ,
+          m_last_rejected( false )
     { }
 
+    rosenbrock4_controller( value_type atol, value_type rtol, time_type max_dt,
+                            const stepper_type &stepper = stepper_type() )
+            : m_stepper( stepper ) , m_atol( atol ) , m_rtol( rtol ) , m_max_dt( max_dt ) ,
+              m_first_step( true ) , m_err_old( 0.0 ) , m_dt_old( 0.0 ) ,
+              m_last_rejected( false )
+    { }
 
     value_type error( const state_type &x , const state_type &xold , const state_type &xerr )
     {
         BOOST_USING_STD_MAX();
         using std::abs;
+        using std::sqrt;
         
         const size_t n = x.size();
         value_type err = 0.0 , sk = 0.0;
@@ -102,6 +113,14 @@ public:
     boost::numeric::odeint::controlled_step_result
     try_step( System sys , const state_type &x , time_type &t , state_type &xout , time_type &dt )
     {
+        if( m_max_dt != static_cast<time_type>(0) && detail::less_with_sign(m_max_dt, dt, dt) )
+        {
+            // given step size is bigger then max_dt
+            // set limit and return fail
+            dt = m_max_dt;
+            return fail;
+        }
+
         BOOST_USING_STD_MIN();
         BOOST_USING_STD_MAX();
         using std::pow;
@@ -113,7 +132,10 @@ public:
         m_stepper.do_step( sys , x , t , xout , dt , m_xerr.m_v );
         value_type err = error( xout , x , m_xerr.m_v );
 
-        value_type fac = max BOOST_PREVENT_MACRO_SUBSTITUTION ( fac2 , min BOOST_PREVENT_MACRO_SUBSTITUTION ( fac1 , pow( err , 0.25 ) / safe ) );
+        value_type fac = max BOOST_PREVENT_MACRO_SUBSTITUTION (
+            fac2 , min BOOST_PREVENT_MACRO_SUBSTITUTION (
+                fac1 ,
+                static_cast< value_type >( pow( err , 0.25 ) / safe ) ) );
         value_type dt_new = dt / fac;
         if ( err <= 1.0 )
         {
@@ -124,17 +146,26 @@ public:
             else
             {
                 value_type fac_pred = ( m_dt_old / dt ) * pow( err * err / m_err_old , 0.25 ) / safe;
-                fac_pred = max BOOST_PREVENT_MACRO_SUBSTITUTION ( fac2 , min BOOST_PREVENT_MACRO_SUBSTITUTION ( fac1 , fac_pred ) );
+                fac_pred = max BOOST_PREVENT_MACRO_SUBSTITUTION (
+                    fac2 , min BOOST_PREVENT_MACRO_SUBSTITUTION ( fac1 , fac_pred ) );
                 fac = max BOOST_PREVENT_MACRO_SUBSTITUTION ( fac , fac_pred );
                 dt_new = dt / fac;
             }
 
             m_dt_old = dt;
-            m_err_old = max BOOST_PREVENT_MACRO_SUBSTITUTION ( 0.01 , err );
+            m_err_old = max BOOST_PREVENT_MACRO_SUBSTITUTION ( static_cast< value_type >( 0.01 ) , err );
             if( m_last_rejected )
-                dt_new = ( dt >= 0.0 ? min BOOST_PREVENT_MACRO_SUBSTITUTION ( dt_new , dt ) : max BOOST_PREVENT_MACRO_SUBSTITUTION ( dt_new , dt ) );
+                dt_new = ( dt >= 0.0 ?
+                min BOOST_PREVENT_MACRO_SUBSTITUTION ( dt_new , dt ) :
+                max BOOST_PREVENT_MACRO_SUBSTITUTION ( dt_new , dt ) );
             t += dt;
-            dt = dt_new;
+            // limit step size to max_dt
+            if( m_max_dt != static_cast<time_type>(0) )
+            {
+                dt = detail::min_abs(m_max_dt, dt_new);
+            } else {
+                dt = dt_new;
+            }
             m_last_rejected = false;
             return success;
         }
@@ -169,7 +200,7 @@ public:
 
 
 
-private:
+protected:
 
     template< class StateIn >
     bool resize_m_xerr( const StateIn &x )
@@ -190,6 +221,7 @@ private:
     wrapped_state_type m_xerr;
     wrapped_state_type m_xnew;
     value_type m_atol , m_rtol;
+    time_type m_max_dt;
     bool m_first_step;
     value_type m_err_old , m_dt_old;
     bool m_last_rejected;
