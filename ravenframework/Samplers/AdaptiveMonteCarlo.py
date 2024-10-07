@@ -187,7 +187,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       @ Out, None
     """
     if self.counter > 1:
-      output = self.basicStatPP.run(self._targetEvaluation)
+      output = self.basicStatPP._runLegacy(self._targetEvaluation)
       output['solutionUpdate'] = np.asarray([self.counter - 1])
       self._solutionExport.addRealization(output)
       self.checkConvergence(output)

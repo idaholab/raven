@@ -96,8 +96,8 @@ class PPDSS(ValidationBase):
     self.name = 'PPDSS' # Postprocessor name
     self.dynamic               = True  # Must be time-dependent?
     self.dynamicType = ['dynamic'] # Specification of dynamic type
-    self.features              = None  # list of feature variables
-    self.targets               = None  # list of target variables
+    self.prototypeOutputs              = None  # list of feature variables
+    self.targetOutputs               = None  # list of target variables
     self.multiOutput           = 'raw_values' # defines aggregating of multiple outputs for HistorySet
                                 # currently allow raw_values
     self.pivotParameterFeature = None # Feature pivot parameter variable
@@ -124,10 +124,10 @@ class PPDSS(ValidationBase):
       if child.getName() == 'Metric':
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
           self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
-      elif child.getName() == 'Features':
-        self.features = child.value
-      elif child.getName() == 'Targets':
-        self.targets = child.value
+      elif child.getName() == 'prototypeOutputs':
+        self.prototypeOutputs = child.value
+      elif child.getName() == 'targetOutputs':
+        self.targetOutputs = child.value
       elif child.getName() == 'multiOutput':
         self.multiOutput = child.value
       elif child.getName() == 'pivotParameterFeature':
@@ -192,10 +192,10 @@ class PPDSS(ValidationBase):
     """
     realizations = []
     realizationArray = []
-    if len(self.features) > 1 or len(self.targets) > 1:
+    if len(self.prototypeOutputs) > 1 or len(self.targetOutputs) > 1:
       self.raiseAnError(IOError, "The number of inputs for features or targets is greater than 1. Please restrict to one set per step.")
-    feat = self.features[0]
-    targ = self.targets[0]
+    feat = self.prototypeOutputs[0]
+    targ = self.targetOutputs[0]
     scaleRatioBeta = self.scaleRatioBeta
     scaleRatioOmega = self.scaleRatioOmega
     nameFeat = feat.split("|")
