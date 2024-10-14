@@ -1492,11 +1492,11 @@ for name in orderedValidRom:
     print(f'Can not generate latex file for {name}')
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'internalRom.tex'))
-with open(fName, 'w') as f:
+with open(fName, 'w', encoding='utf-8') as f:
   f.writelines(internalRom)
 print(f'\nSuccessfully wrote "{fName}"')
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'sklRom.tex'))
-with open(fName, 'w') as f:
+with open(fName, 'w', encoding='utf-8') as f:
   f.writelines(sklROM)
 print(f'\nSuccessfully wrote "{fName}"')
