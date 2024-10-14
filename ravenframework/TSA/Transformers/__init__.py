@@ -26,3 +26,4 @@ from .FunctionTransformers import LogTransformer, ArcsinhTransformer, TanhTransf
 from .Normalizers import MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler
 from .Distributions import Gaussianize, QuantileTransformer, PreserveCDF
 from .Differencing import Differencing
+from .FilterBankDWT import FilterBankDWT

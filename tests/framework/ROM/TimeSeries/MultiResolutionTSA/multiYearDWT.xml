@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/MultiResolutionTSA</name>
+    <author>sotogj</author>
+    <created>2024-07-29</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.Fourier</classesTested>
+    <description>
+      Tests the MultiResolutionTSA ROM using multiple macroSteps/years and the FilterBankDWT algorithm.
+      An ARMA model is trained on each detail level.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MultiYearDWT</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">infile</Input>
+      <Output class="DataObjects" type="HistorySet">indata</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">indata</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">synth</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="infile">../TrainingData/multiYear.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="synth" subType="MultiResolutionTSA">
+      <Target>signal, seconds</Target>
+      <Features>scaling</Features>
+      <pivotParameter>seconds</pivotParameter>
+      <fourier target="signal">
+        <periods>4, 15</periods>
+      </fourier>
+      <filterbankdwt target="signal" seed='42'>
+        <family>db10</family>
+        <levels>2</levels>
+      </filterbankdwt>
+      <Segment grouping="decomposition">
+        <Target>signal, seconds</Target>
+        <macroParameter>macro</macroParameter>
+        <Features>scaling</Features>
+        <pivotParameter>seconds</pivotParameter>
+        <gaussianize target="signal"/>
+        <arma target="signal" seed='42'>
+          <P>2</P>
+          <Q>3</Q>
+        </arma>
+      </Segment>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="indata">
+      <Input>scaling, macro</Input>
+      <Output>signal, seconds</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="samples">
+      <Input>scaling</Input>
+      <Output>seconds, signal</Output>
+      <Index var="seconds">signal</Index>
+      <Index var="macro">signal</Index>
+    </DataSet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>
