@@ -46,10 +46,10 @@ class MultiResolutionTSA(SupervisedLearning):
       operator for each algorithm exists, the algorithms are applied in reverse: $A_3^{-1} \rightarrow A_2^{-1} \rightarrow A_1^{-1}$.
       This is the same process that the SyntheticHistory ROM performs. Where this ROM differs is that it can handle
       multi-resolution decompositions of a signal. That is, some algorithms are capable of characterizing and splitting
-      a signal at different timescales to better learn the signal dynamics at those timescales. See the `filterbankdwt`
+      a signal at different timescales to better learn the signal dynamics at those timescales. See the $\texttt{filterbankdwt}$
       below for an example of such an algorithm. The MultiResolutionTSA particularly handles the combination of learned
       characteristics and signal generation from the different decomposition levels. This ROM also requires a SegmentROM
-      node of the "decomposition" type (an example is given below for the XML input structure).
+      node of the decomposition type (an example is given below for the XML input structure).
       //
       In order to use this Reduced Order Model, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to be
       \xmlString{MultiResolutionTSA}. It must also have a SegmentROM node of \xmlAttr{subType} \xmlString{decomposition}"""

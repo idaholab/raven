@@ -63,12 +63,12 @@ class FilterBankDWT(TimeSeriesTransformer):
     specs.description = r"""Filter Bank Discrete Wavelet Transform, a multi-resolution-capable TimeSeriesAnalysis
         algorithm. Performs a discrete wavelet transform (DWT) on time-dependent data as a filter bank to decompose the
         signal to multiple frequency levels. Given a wavelet family and the original signal, the signal is projected
-        onto modifications of the original "mother" wavelet $\Psi$ to produce wavelet coefficients. The modifications
+        onto modifications of the original mother wavelet $\Psi$ to produce wavelet coefficients. The modifications
         $\psi_{a,b}$ happen in two ways:
         \\
         \begin{itemize}
           \item the wavelet is scaled by factor $a$ to capture features at different time scales (e.g., if the wavelet
-          is "thinner" it better captures faster frequency features)
+          is thinner it better captures faster frequency features)
           \item the wavelet is shifted in time by factor $b$ across the entire time domain of the signal for each
           scale $a$
         \end{itemize}
