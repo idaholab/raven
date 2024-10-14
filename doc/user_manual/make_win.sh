@@ -31,7 +31,6 @@ gen_files () {
         bibtex $file
 	pdflatex -interaction=nonstopmode $file.tex
 	pdflatex -interaction=nonstopmode $file.tex
-  echo 'File generated'
 
 	done
 }
