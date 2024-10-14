@@ -2566,11 +2566,11 @@ Example:
       environment.
       The \xmlNode{filterbankdwt} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required}, 
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required},
             indicates the variables for which this algorithm will be used for characterization.
-          \item \xmlAttr{seed}: \xmlDesc{integer, optional}, 
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional},
             sets a seed for the underlying random number generator, if present.
-          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional},
             designates this algorithm to be used on full signal instead of per
             segment. NOTE: because this is intended to be used when some algorithms are
             applied segment-wise and others are applied globally, this is meant to be an
@@ -2582,7 +2582,7 @@ Example:
 
       The \xmlNode{filterbankdwt} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{family}: \xmlDesc{string}, 
+        \item \xmlNode{family}: \xmlDesc{string},
           The type of wavelet to use for the transformation.                     There are several
           possible families to choose from, and most families contain                     more than
           one variation. For more information regarding the wavelet families,
@@ -2610,7 +2610,7 @@ Example:
           \item \textbf{shan family}: shan                       \item \textbf{fbsp family}: fbsp
           \item \textbf{cmor family}: cmor                     \end{itemize}
 
-        \item \xmlNode{levels}: \xmlDesc{integer}, 
+        \item \xmlNode{levels}: \xmlDesc{integer},
           the number of wavelet decomposition levels for requested for the signal. This is
           equivalent to                     the number of sets of detail coefficients produced. Note
           that there will always be one set of                     approximation cofficients
@@ -5139,7 +5139,7 @@ Example to export the coefficients of trained PolyExponential ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -5148,10 +5148,10 @@ Example to export the coefficients of trained PolyExponential ROM:
           the minimum degree for kernel or 0 if there is no minimum degree.
   \default{None}
 
-        \item \xmlNode{optimization\_restart}: \xmlDesc{integer}, 
+        \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -5568,7 +5568,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -5580,7 +5580,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -6067,7 +6067,7 @@ Example to export the coefficients of trained DMDC ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -6079,7 +6079,7 @@ Example to export the coefficients of trained DMDC ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -6521,7 +6521,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -6533,7 +6533,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -6965,7 +6965,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -6977,7 +6977,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -7035,7 +7035,7 @@ Example to export the coefficients of trained DMD ROM:
 
     \item \xmlNode{rescale\_mode}: \xmlDesc{[auto, None]},
       Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its
-      eigendecomposition. None means no rescaling, �auto� means automatic rescaling using singular
+      eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular
       values.
   \default{None}
 
@@ -7404,7 +7404,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -7416,7 +7416,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -7818,7 +7818,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -7830,7 +7830,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -7876,7 +7876,7 @@ Example to export the coefficients of trained DMD ROM:
 
     \item \xmlNode{rescale\_mode}: \xmlDesc{[auto, None]},
       Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its
-      eigendecomposition. None means no rescaling, �auto� means automatic rescaling using singular
+      eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular
       values.
   \default{None}
 
@@ -8239,7 +8239,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -8251,7 +8251,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -8297,7 +8297,7 @@ Example to export the coefficients of trained DMD ROM:
 
     \item \xmlNode{rescale\_mode}: \xmlDesc{[auto, None]},
       Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its
-      eigendecomposition. None means no rescaling, �auto� means automatic rescaling using singular
+      eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular
       values.
   \default{None}
 
@@ -8677,7 +8677,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -8689,7 +8689,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -9096,7 +9096,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -9108,7 +9108,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -9548,7 +9548,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -9560,7 +9560,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -9608,7 +9608,7 @@ Example to export the coefficients of trained DMD ROM:
 
     \item \xmlNode{rescale\_mode}: \xmlDesc{[auto, None]},
       Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its
-      eigendecomposition. None means no rescaling, �auto� means automatic rescaling using singular
+      eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular
       values.
   \default{None}
 
@@ -9999,7 +9999,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -10011,7 +10011,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -10059,7 +10059,7 @@ Example to export the coefficients of trained DMD ROM:
 
     \item \xmlNode{rescale\_mode}: \xmlDesc{[auto, None]},
       Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before computing its
-      eigendecomposition. None means no rescaling, �auto� means automatic rescaling using singular
+      eigendecomposition. None means no rescaling, ‘auto’ means automatic rescaling using singular
       values.
   \default{None}
 
@@ -10458,7 +10458,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -10470,7 +10470,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
@@ -10495,7 +10495,7 @@ Example to export the coefficients of trained DMD ROM:
 
     \item \xmlNode{rescale\_mode}: \xmlDesc{[auto, None]},
       Scale Atilde as shown in 10.1016/j.jneumeth.2015.10.010 (section 2.4) before
-      computing its eigendecomposition. None means no rescaling, �auto� means automatic
+      computing its eigendecomposition. None means no rescaling, ‘auto’ means automatic
       rescaling using singular values.
   \default{None}
 
@@ -10854,7 +10854,7 @@ Example to export the coefficients of trained DMD ROM:
 
         \item \xmlNode{epsilon}: \xmlDesc{float},
           RBF Shape parameter that scales the input to the RBF.
-          If kernel is ``linear'', �thin\_plate\_spline'', ``cubic'', or ``quintic'', this
+          If kernel is ``linear'', ‘thin\_plate\_spline'', ``cubic'', or ``quintic'', this
           defaults to 1 and can be ignored. Otherwise, this must be specified.
   \default{1.0}
 
@@ -10866,7 +10866,7 @@ Example to export the coefficients of trained DMD ROM:
         \item \xmlNode{optimization\_restart}: \xmlDesc{integer},
           GPR restart parameter. The number of restarts of the optimizer for finding the
           kernel parameters which maximize the log-marginal likelihood. The first run of the
-          optimizer                                                  is performed from the kernel�s
+          optimizer                                                  is performed from the kernel’s
           initial parameters, the remaining ones (if any) from thetas
           sampled log-uniform randomly from the space of allowed theta-values. If greater than 0,
           all bounds must be finite. Note that $n\_restarts\_optimizer == 0$ implies that one run is
