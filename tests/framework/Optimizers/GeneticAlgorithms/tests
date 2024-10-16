@@ -375,15 +375,6 @@
     [../]
   [../]
 
-  [./GAwithEnsembleModelHDSMconvergence]
-    type = 'RavenFramework'
-    input = 'continuous/unconstrained/test_ensemble_withGA_HDSM.xml'
-    [./csv]
-     type = OrderedCSV
-     output = 'continuous/unconstrained/ensemble_withGA_HDSM/opt_export.csv'
-     rel_err = 0.001
-    [../]
-  [../]
 
   [./GAwithEnsembleModelIncludingCode]
     type = 'RavenFramework'
@@ -392,6 +383,52 @@
      type = UnorderedCSV
      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/opt_export.csv'
      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-II_MinwoRepMultiObjective]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/MinwoRepMultiObjective.xml'
+    [./csv]
+      type = UnorderedCSV
+      output = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-II_MinwoRepFeasibleFirst]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst.xml'
+    image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.25
+    [./csv]
+      type = UnorderedCSV
+      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-II_ZDT1]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1.xml'
+    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png'
+    required_libraries = 'imageio'
+    rel_err = 0.25
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-II_Beale]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
+      rel_err = 0.001
     [../]
   [../]
 []
