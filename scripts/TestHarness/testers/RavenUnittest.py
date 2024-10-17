@@ -1,3 +1,7 @@
+"""
+This runs tests written in python that use the unittest module.
+"""
+
 import os
 import sys
 
