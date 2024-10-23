@@ -267,6 +267,11 @@ class MultiRun(SingleRun):
     # END while loop that runs the step iterations (collection and submission-for-DET)
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
+    for myLambda, outIndex in self._outputCollectionLambda:
+      if isinstance(outputs[outIndex], OutStreamEntity):
+        myLambda([None,outputs[outIndex]])
+        self.raiseAMessage(f'Finalized output "{inDictionary["Output"][outIndex].name}"')
+
 
   def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=True):
     """
