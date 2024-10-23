@@ -270,7 +270,7 @@ class MultiRun(SingleRun):
     for myLambda, outIndex in self._outputCollectionLambda:
       if isinstance(outputs[outIndex], OutStreamEntity):
         myLambda([None,outputs[outIndex]])
-        self.raiseAMessage(f'Just collected job {finishedJob.identifier} and sent to output "{inDictionary["Output"][outIndex].name}"')
+        self.raiseAMessage(f'Finalized output "{inDictionary["Output"][outIndex].name}"')
 
 
 
