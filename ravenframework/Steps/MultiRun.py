@@ -273,7 +273,6 @@ class MultiRun(SingleRun):
         self.raiseAMessage(f'Finalized output "{inDictionary["Output"][outIndex].name}"')
 
 
-
   def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=True):
     """
       Checks for open spaces and adds new runs to jobHandler queue (via model.submit currently)
