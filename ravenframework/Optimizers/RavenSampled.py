@@ -151,6 +151,15 @@ class RavenSampled(Optimizer):
     if self.limit is None:
       self.raiseAnError(IOError, 'A <limit> is required for any RavenSampled Optimizer!')
 
+  def _checkNDVariables(self):
+    """
+      Checks properties of ND variables for compatibility. RavenSampled ND variables
+      work as expected with the default Sampler implementation.
+      @ In, None
+      @ Out, None
+    """
+    # nothing to check at this point, just overriding the base Sampler definition that errors out by default.
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>

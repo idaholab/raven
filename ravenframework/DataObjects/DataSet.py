@@ -218,7 +218,8 @@ class DataSet(DataObject):
     #         rlz = {'H': [[0.1, 0.2, 0.3], [0.2, 0.3, 0.4]],
     #                'X': [0, 1, 2],
     #                'Y': [0.5, 1.5],
-    #                '_indexMap': ['Y', 'X']}
+    #                '_indexMap': [{'H': ['Y', 'X']}]
+    #         }
     #         Note the order, H has shape (2, 3) so the first index is Y and the second is X.
     #         A sanity check is that H.shape == tuple(var.size for var in rlz['_indexMap'])
     #
@@ -637,8 +638,16 @@ class DataSet(DataObject):
           rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
           rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
           dims = self.getDimensions()
+          print('*'*80)
+          print('DEBUGG whoami:', self.name)
+          print('DEBUGG dims:', dims)
           for index, rl in enumerate(rlzs):
-            d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
+            d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items() if k not in ['_indexMap']}
+            print('*'*80)
+            print('DEBUGG d:')
+            for k, v in d.items():
+              print(k, v)
+            print('*'*80)
             rlz[index] =  xr.Dataset.from_dict(d)
           if len(rlzs) > 1:
             # concatenate just in case there are multiple realizations

@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+  Realizations carry sampled information between entities in RAVEN
+"""
 
-import numpy as np
+# These lines ensure that we do not have to do something like:
+# 'from Samplers.Sampler import Sampler' outside of this submodule
+from .Realization import Realization
 
-def run(self,Input):
-  for key,val in Input.items():
-    print(key,val)
-  self.scalarOut = self.scalarIn**2
-  self.vectorOut = self.vectorIn**2
-  self.t = np.arange(len(self.vectorIn))
+# from .Batches import BatchRealization
+
+#TODO do we need this? from .Factory import factory
