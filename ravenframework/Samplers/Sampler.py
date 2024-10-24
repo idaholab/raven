@@ -30,6 +30,8 @@ from ..utils import utils,randomUtils,InputData, InputTypes
 from ..utils.graphStructure import evaluateModelsOrder
 from ..BaseClasses import BaseEntity, Assembler
 
+_vectorPostfixFormat = '__RVEC__{ID}'
+
 class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputDataUser):
   """
     This is the base class for samplers
@@ -65,6 +67,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
               matrix of values, while \xmlAttr{shape}=``10'' will produce a vector of 10 values.
               Omitting this optional attribute will result in a single scalar value instead.
               Each of the values in the matrix or vector will be the same as the single sampled value.
+              \nb A model interface must be prepared to handle non-scalar inputs to use this option.""")
+    variableInput.addParam("dims", InputTypes.StringListType, required=False,
+        descr=r"""names the indexes that correspond to the shape of this variable. Required when \xmlAttr{shape}
+              is provided. For example, with \xmlAttr{shape}=``2,3'', if the dimensions of the variable
+              are ``years'' and ``hours'', then \xmlAttr{dims}=``year,hour'' tells RAVEN that the first
+              dimension (with length 2) is called ``year'' and the second dimension (with length 3) is called
+              ``hour``. Order must be the same as provided for \xmlAttr{shape}.
               \nb A model interface must be prepared to handle non-scalar inputs to use this option.""")
     distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType,
         descr=r"""name of the distribution that is associated to this variable.
@@ -212,7 +221,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
                                                      # determined through graph theory.
                                                      # element 1 (instance): instance of the function to be used, it is created every time the sampler is initialized.
     self.values                        = {}          # for each variable the current value {'var name':value}
-    self.variableShapes                = {}          # stores the dimensionality of each variable by name, as tuple e.g. (2,3) for [[#,#,#],[#,#,#]]
+    self.ndVariables                   = {}          # stores the dimensionality (names and shapes) of each variable by name, as tuple e.g. shape = (2,3) for [[#,#,#],[#,#,#]]
     self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
     self.initSeed                      = None        # if not provided the seed is randomly generated at the initialization of the sampler, the step can override the seed by sending in another one
     self.inputInfo['SampledVars'     ] = self.values # this is the location where to get the values of the sampled variables
@@ -330,6 +339,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     if self.type not in ['MonteCarlo', 'Metropolis']:
       if not self.toBeSampled:
         self.raiseAnError(IOError, f'<{self.type}> sampler named "{self.name}" requires at least one sampled <variable>!')
+    self._checkNDVariables()
 
   def _readMoreXMLbase(self, xmlNode):
     """
@@ -471,8 +481,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # store variable name for re-use
     varName = child.parameterValues['name']
     # set shape if present
-    if 'shape' in child.parameterValues:
-      self.variableShapes[varName] = child.parameterValues['shape']
+    shape = child.parameterValues.get('shape', None)
+    if shape is not None:
+      dims = child.parameterValues.get('dims', None)
+      # TODO move this check to an input check
+      # -> if "shape" is present, "dims" must be present as well!
+      if dims is None:
+        self.raiseAnError(IOError, f'For variable "{varName}" the "shape" parameter was provided without the "dims" parameter!')
+      if len(shape) != len(dims):
+        self.raiseAnError(IOError, f'For variable "{varName}" the number of entries in "shape" and "dims" does not match!')
+      self.ndVariables[varName] = {'shape': shape,
+                                   'dims': dims}
     # read subnodes
     for childChild in child.subparts:
       if childChild.getName() == 'distribution':
@@ -481,20 +500,43 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
           self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function, or more than one of either!')
         else:
           foundDistOrFunc = True
-        # name of the distribution to sample
-        toBeSampled = childChild.value
+        distName = childChild.value
         varData = {}
-        varData['name'] = childChild.value
+        varData['name'] = distName
         # variable dimensionality
-        if 'dim' not in childChild.parameterValues:
-          dim = 1
-        else:
-          dim = childChild.parameterValues['dim']
+        dim = childChild.parameterValues.get('dim', 1)
         varData['dim'] = dim
-        # set up mapping for variable to distribution
-        self.variables2distributionsMapping[varName] = varData
         # flag distribution as needing to be sampled
-        self.toBeSampled[prefix + varName] = toBeSampled
+        # if a ND variable, loop over elements and set them each
+        # to be sampled as if they were independent variables.
+        # If not a ND variable, treat it like a length-1 array.
+        if varName in self.ndVariables:
+          shape = self.ndVariables.get(varName)['shape']
+        else:
+          shape = 1
+        totalIndices = np.zeros(shape).size
+        for i in range(totalIndices):
+          name = varName
+          if totalIndices > 1:
+            name += _vectorPostfixFormat.format(ID=str(i))
+          self.toBeSampled[prefix + name] = distName
+          # set up mapping for variable to distribution
+          self.variables2distributionsMapping[name] = varData
+          # ##### OLD #####
+          # # name of the distribution to sample
+          # toBeSampled = childChild.value
+          # varData = {}
+          # varData['name'] = childChild.value
+          # # variable dimensionality
+          # if 'dim' not in childChild.parameterValues:
+          #   dim = 1
+          # else:
+          #   dim = childChild.parameterValues['dim']
+          # varData['dim'] = dim
+          # # set up mapping for variable to distribution
+          # self.variables2distributionsMapping[varName] = varData
+          # # flag distribution as needing to be sampled
+          # self.toBeSampled[prefix + varName] = toBeSampled
       elif childChild.getName() == 'function':
         # can only have a function if doesn't already have a distribution or function
         if not foundDistOrFunc:
@@ -713,6 +755,19 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
                   self.raiseAnError(IOError, f'Unknown tag {childChildChildChild.getName()}. Available are: initialGridDisc and tolerance!')
               self.NDSamplingParams[childChildChild.parameterValues['name']] = NDdistData
 
+  def _checkNDVariables(self):
+    """
+      Provides an opportunity to check compatibility with and usage of N-dimensional variables.
+      By default, errors and provides notification to users.
+      @ In, None
+      @ Out, None
+    """
+    # NOTE the base class Sampler will handle moving ND variables into individual variables
+    #      using the self.toBeSampled dictionary mapping, so no specific action needs to be taken
+    #      to enable ND variables for a sampler, aside from overriding this method in the sampler.
+    if self.ndVariables:
+      self.raiseAnError(IOError, f'"{self.type}" sampler named "{self.name}" is not compatible with ND-variables (using the "shape" parameter!)')
+
   #### GETTERS AND SETTERS ####
   def endJobRunnable(self):
     """
@@ -822,9 +877,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     if len(self.constants) > 0:
       # we inject the constant variables into the SampledVars
-      self.inputInfo['SampledVars'  ].update(self.constants)
+      self.inputInfo['SampledVars'].update(self.constants)
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
-      self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
+      self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(), 1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants]
       self.addMetaKeys(pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants], 1.0))
@@ -837,21 +892,73 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
           self.inputInfo['batchInfo']['batchRealizations'][b].update(
             dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants], 1.0))
 
-  def _expandVectorVariables(self):
+  def _formNDVariables(self):
     """
-      Expands vector variables to fit the requested shape.
+      Formats ND variables to fit the requested shape.
       @ In, None
       @ Out, None
     """
-    # by default, just repeat this value into the desired shape.  May be overloaded by other samplers.
-    for var,shape in self.variableShapes.items():
-      if self.inputInfo.get('batchMode',False):
-        for b in range(self.inputInfo['batchInfo']['nRuns']):
-          baseVal = self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'][var]
-          self.inputInfo['batchInfo']['batchRealizations'][b]['SampledVars'][var] = np.ones(shape)*baseVal
-      else:
-        baseVal = self.inputInfo['SampledVars'][var]
-        self.inputInfo['SampledVars'][var] = np.ones(shape)*baseVal
+    if not self.inputInfo.get('batchMode', False):
+      rlzList = [self.inputInfo]
+      # for baseName, info in self.ndVariables.items():
+      #   shape = info['shape']
+      #   # collect all the values from the split variables
+      #   values = []
+      #   entries = np.zeros(shape).size
+      #   for i in range(entries):
+      #     var = baseName
+      #     if entries > 1:
+      #       var += _vectorPostfixFormat.format(ID=str(i))
+      #     values.append(self.inputInfo['SampledVars'].pop(var))
+      #   # shape values into the requested format
+      #   self.inputInfo['SampledVars'][baseName] = np.asarray(values).reshape(shape)
+      #   # TODO does other data need extracting, like probability weights and etc?
+    else:
+      rlzList = self.inputInfo['batchInfo']['batchRealizations']
+    for r, rlz in enumerate(rlzList):
+      for baseName, info in self.ndVariables.items():
+        shape = info['shape']
+        dims = info['dims']
+        # collect all the values from the split variables
+        values = []
+        entries = np.zeros(shape).size
+        for i in range(entries):
+          var = baseName
+          if entries > 1:
+            var += _vectorPostfixFormat.format(ID=str(i))
+          value = self.values.pop(var)
+          values.append(value)
+        # shape values into the requested format
+        rlz['SampledVars'][baseName] = np.asarray(values).reshape(shape)
+        # update indexMap
+        if entries > 1:
+          # TODO do we need to add both to self.values and to rlz (inputInfo.sampledvars)?
+          if r==0 and '_indexMap' not in self.values:
+            self.values['_indexMap'] = {}
+          if '_indexMap' not in rlz:
+            rlz['SampledVars']['_indexMap'] = {}
+          rlz['SampledVars']['_indexMap'][baseName] = dims
+          # check for missing index vars and add default values if needed
+          for d,dim in enumerate(dims):
+            if dim not in rlz['SampledVars']:
+              rlz['SampledVars'][dim] = np.arange(shape[d])
+              self.raiseAWarning(f'Values for index "{dim}" not provided in Sampler; ' +\
+                                 f'using default values (0 to {rlz["SampledVars"][dim][-1]}).')
+
+  def _expandNDVariable(self, ndName, ndVals):
+    """
+      Turns a name-NDarray pair into individual name-value pairs
+      @ In, ndName, name of (full ND array) variable
+      @ In, ndVals, np.ndarray, ND array of values
+      @ Out, expanded, dict, mapping of individual names to values
+    """
+    # defined above, but for reference:
+    # _vectorPostfixFormat = '__RVEC__{ID}'
+    expanded = {}
+    for ID, val in enumerate(ndVals.flat):
+      name = ndName + _vectorPostfixFormat.format(ID=ID)
+      expanded[name] = val
+    return expanded
 
   def _evaluateFunctionsOrder(self):
     """
@@ -906,8 +1013,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, None
     """
     #since we are creating the input for the next run we increase the counter and global counter
-    self.counter +=1
-    self.auxcnt  +=1
+    self.counter += 1
+    self.auxcnt += 1
     # prep to exit if over the limit
     if self.counter >= self.limit:
       self.raiseADebug('Sampling limit reached!')
@@ -915,11 +1022,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # FIXME, the following condition check is make sure that the require info is only printed once
     # when dump metadata to xml, this should be removed in the future when we have a better way to
     # dump the metadata
-    if self.counter >1:
+    if self.counter > 1:
       for key in self.entitiesToRemove:
         self.inputInfo.pop(key,None)
     if self.reseedAtEachIteration:
-      randomUtils.randomSeed(self.auxcnt-1)
+      randomUtils.randomSeed(self.auxcnt - 1)
     self.inputInfo['prefix'] = str(self.counter)
 
   def _performVariableTransform(self):
@@ -984,7 +1091,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       only the code interface possesses the dictionary for reading the variable definition syntax
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, generateInput, tuple(0,list), list contains the new inputs -in reality it is the model that returns this; the Sampler generates the value to be placed in the input of the model.
+      @ Out, generateInput, tuple(0,list), list contains the new inputs
+          -in reality it is the model that returns this; the Sampler generates the value to be placed in the input of the model.
       The Out parameter depends on the results of generateInput
         If a new point is found, the default Out above is correct.
         If a restart point is found:
@@ -993,28 +1101,21 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self._incrementCounter()
     if model is not None:
       model.getAdditionalInputEdits(self.inputInfo)
-    self.localGenerateInput(model, oldInput)
+    ##### GENERATE SAMPLE #####
+    self.localGenerateInput(model, oldInput) #NOTE oldInput is input to the Step, not a model input
     # split the sampled vars Pb among the different correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self._reassignPbWeightToCorrelatedVars()
-    ##### TRANSFORMATION #####
     self._performVariableTransform()
-    ##### CONSTANT VALUES ######
     self._constantVariables()
-    ##### REDUNDANT FUNCTIONALS #####
     self._functionalVariables()
-    ##### VECTOR VARS #####
-    self._expandVectorVariables()
-    ##### RESET DISTRIBUTIONS WITH MEMORY #####
+    self._formNDVariables()
+    # reset distribution memory
     for key in self.distDict:
       if self.distDict[key].getMemory():
         self.distDict[key].reset()
-    ##### RESTART #####
+    ##### CHECK RESTART #####
     _, inExisting = self._checkRestartForEvaluation()
-    # reformat metadata into acceptable format for dataojbect
-    # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
-    # self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
-    # self.inputInfo['prefix'] = np.atleast_1d(self.inputInfo['prefix'])
     #if not found or not restarting, we have a new point!
     if inExisting is None:
       # we have a new evaluation, so check its contents for consistency
@@ -1039,7 +1140,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
-
       return 1, rlz
 
   def generateInputBatch(self, myInput, model, batchSize, projector=None):

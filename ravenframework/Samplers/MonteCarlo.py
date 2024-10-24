@@ -100,6 +100,15 @@ class MonteCarlo(Sampler):
     else:
       self.raiseAnError(IOError, self, f'Monte Carlo sampler {self.name} needs the samplerInit block')
 
+  def _checkNDVariables(self):
+    """
+      Provides an opportunity to check compatibility with and usage of N-dimensional variables.
+      By default, errors and provides notification to users.
+      @ In, None
+      @ Out, None
+    """
+    # MonteCarlo supports ND variables, and doesn't need to check anything to operate as expected.
+
   def localGenerateInput(self, model, myInput):
     """
       Provides the next sample to take.
