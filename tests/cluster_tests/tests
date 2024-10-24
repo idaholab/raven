@@ -26,6 +26,14 @@
    type = RavenFramework
    max_time = 3600
  [../]
+ [./test_mpislurm]
+   input='test_mpiqsub_local.xml slurm_block.xml cluster_runinfo_slurm.xml'
+   run_types = 'slurm'
+   output = 'FirstMQ/FirstMQRun/1/out~simple_gp_test.csv FirstMQ/FirstMQRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
  [./test_mpiqsub_long]
    input='test_mpiqsub_long.xml cluster_runinfo_legacy.xml mpi_mode_include.xml'
    run_types = 'qsub'

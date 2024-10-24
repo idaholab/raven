@@ -389,7 +389,7 @@ if __name__ == "__main__":
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")
   if args.add_non_default_run_types is not None:
-    non_default_run_types = args.add_non_default_run_types.split(",")
+    non_default_run_types = [x.strip() for x in args.add_non_default_run_types.split(",")]
     for ndrt in non_default_run_types:
       Tester.add_non_default_run_type(ndrt)
 
