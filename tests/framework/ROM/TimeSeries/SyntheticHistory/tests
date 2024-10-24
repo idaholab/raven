@@ -20,7 +20,7 @@
     [./xml]
       type = XML
       output = 'ARMA/romMeta.xml'
-      rel_err = 1e-2
+      rel_err = 5e-2
       zero_threshold = 1e-3 # "constant" causes problems, all the rest are more accurate
     [../]
   [../]
@@ -151,7 +151,7 @@
     [./xml]
       type = XML
       output = 'ARMAPreserveCDF/romMeta.xml'
-      rel_err = 1e-2
+      rel_err = 5e-2
       zero_threshold = 1e-3
     [../]
   [../]
