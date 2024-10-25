@@ -17,6 +17,7 @@ InternalParallel/InternalParallelMSR/outDataParallel.xml
 InternalParallel/InternalParallelPostProcessorLS/*_dump.xml
 InternalParallel/InternalParallelScikit/PrintDataData*.xml
 *.png
+slurmNodeFile_*
 InternalParallel/metaModel*LinearParallel/*Dump.xml
 run_mpi_test.sh.e*
 run_mpi_test.sh.o*

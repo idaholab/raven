@@ -35,7 +35,7 @@
    max_time = 3600
  [../]
  [./test_mpiqsub_long]
-   input='test_mpiqsub_long.xml cluster_runinfo_legacy.xml mpi_mode_include.xml'
+   input='test_mpiqsub_long.xml qsub_block.xml cluster_runinfo_legacy.xml mpi_mode_include.xml'
    run_types = 'qsub'
    output = 'FirstMQL/FirstMQRun/1/out~simple_gp_test.csv FirstMQL/FirstMQRun/6/out~simple_gp_test.csv'
    csv = 'FirstMQL/samples.csv'
@@ -43,6 +43,23 @@
    #Note that the output includes the time the test is running
    # which is why the relative error is very high
    rel_err = 0.4
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_mpislurm_long]
+   input='test_mpiqsub_long.xml cluster_runinfo_slurm.xml slurm_block.xml mpi_mode_include_slurm.xml'
+   run_types = 'slurm'
+   output = 'FirstMQL/FirstMQRun/1/out~simple_gp_test.csv FirstMQL/FirstMQRun/6/out~simple_gp_test.csv'
+   [./csv]
+    type = OrderedCSV
+    output = 'FirstMQL/samples.csv'
+    gold_files = 'FirstMQL/samples_bitterroot.csv'
+    #Note that the output includes the time the test is running
+    # which is why the relative error is very high. Also, this
+    # will have to be adjusted for different clusters
+    rel_err = 0.4
+   [../]
+   output_wait_time = 60
    type = RavenFramework
    max_time = 3600
  [../]
