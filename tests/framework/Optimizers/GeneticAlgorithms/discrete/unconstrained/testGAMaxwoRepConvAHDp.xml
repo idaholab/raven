@@ -12,7 +12,7 @@
       The convergence criterion used is the (p-Average Hausdorff Distance between populations) AHDp.
     </description>
     <revisions>
-      <revision author="alfoa" date="2024-10-21">Modified writeSteps to ``final'' to makes sure the Outstream is executed and the final solution is always written. Closes #2386</revision>
+      <revision author="alfoa" date="2024-10-21">Modified writeSteps to ``final'' to make sure the Outstream is executed and the final solution is always written. Closes #2386</revision>
     </revisions>
     <analytic>
       This test uses myLocalSum's analytic objective function.
