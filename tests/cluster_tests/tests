@@ -57,7 +57,7 @@
     #Note that the output includes the time the test is running
     # which is why the relative error is very high. Also, this
     # will have to be adjusted for different clusters
-    rel_err = 0.4
+    rel_err = 0.9
    [../]
    output_wait_time = 60
    type = RavenFramework
