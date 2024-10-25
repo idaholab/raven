@@ -277,8 +277,10 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     for algo in self._tsaAlgorithms:
       settings = byAlgo.get(algo.name, None)
       if settings:
-        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
-        self._tsaTrainedParams[algo] = params
+        # there might be multiple instances of same algo w/ different targets, need to filter by targets
+        # Note: params[0] gives the target name
+        filtered_settings = [params for params in settings if params[0] in self._tsaTrainedParams[algo]]
+        self._tsaTrainedParams[algo] = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
 
   def findAlgoByName(self, name):
     """
@@ -362,13 +364,13 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     for feature, values in params.items():
       target, algoName, ident = feature.split('|', maxsplit=2)
       byAlgo[algoName].append((target, ident, values))
-    for algo in self._tsaAlgorithms:
+    for algo in self._tsaGlobalAlgorithms:
       settings = byAlgo.get(algo.name, None)
       if settings:
         # there might be multiple instances of same algo w/ different targets, need to filter by targets
-        # filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
-        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
-        self._tsaTrainedParams[algo] = params
+        # Note: tParams[0] gives the target name
+        filtered_settings = [tParams for tParams in settings if tParams[0] in self._tsaTrainedParams[algo]]
+        self._tsaTrainedParams[algo] = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
     return self._tsaTrainedParams
 
   def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
