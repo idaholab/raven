@@ -68,7 +68,7 @@ Note all install methods after "main" take
     <dask source="pip" pip_extra="[complete]"/>
     <ray source="pip" pip_extra="[default]">2.6</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
-    <redis source="pip" os='windows'>5.1</redis>
+    <redis source="pip" os='windows'>5.1.0</redis>
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
