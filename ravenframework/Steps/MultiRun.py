@@ -329,16 +329,16 @@ class MultiRun(SingleRun):
     # The value of "found" determines what the Sampler is ready to provide.
     #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
     #  case 1: found the input in restart, and newInp is a realization dictionary of data to use
-    found, newInp = sampler.generateInput(model,inputs)
+    found, rlz, modelInp = sampler.generateInput(model, inputs)
     if found == 1:
-      kwargs = copy.deepcopy(sampler.inputInfo)
+      # TODO REMOVE kwargs = rlz.inputInfo # TODO deeper copy needed? shouldn't be ...
       # "submit" the finished run
-      jobHandler.addFinishedJob(newInp, metadata=kwargs)
+      jobHandler.addFinishedJob(rlz, metadata=rlz.inputInfo)
       return None
       # NOTE: we return None here only because the Sampler's "counter" is not correctly passed
       # through if we add several samples at once through the restart. If we actually returned
       # a Realization object from the Sampler, this would not be a problem. - talbpaul
-    return newInp
+    return rlz, modelInp
 
   def flushStep(self):
     """

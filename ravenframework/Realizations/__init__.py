@@ -18,7 +18,4 @@
 # These lines ensure that we do not have to do something like:
 # 'from Samplers.Sampler import Sampler' outside of this submodule
 from .Realization import Realization
-
-# from .Batches import BatchRealization
-
-#TODO do we need this? from .Factory import factory
+from .BatchRealization import BatchRealization

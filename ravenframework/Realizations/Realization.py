@@ -28,9 +28,18 @@ class Realization:
       @ Out, None
     """
     self._values = {}    # mapping of variables to their values
-    self.inputInfo = {}  # additional information about this realization
+    self.inputInfo = {'SampledVars': {},  # additional information about this realization
+                      'SampledVarsPb': {},
+                      'crowDist': {}
+    }
     self.indexMap = {}   # information about dimensionality of variables
     self.labels = {}     # custom labels for tracking, set externally
+    self.batchSize = 0   # not a batch, easy way to check
+
+  ########
+  #
+  # other useful methods
+  #
 
   ########
   #
@@ -69,10 +78,6 @@ class Realization:
     """
     # TODO also remove from inputInfo and indexMap?
     del self._values[key]
-
-  # TODO needed? Used when getitem is called and it's not present
-  #def __missing__(self, key):
-  #  return self._values.__missing__(key)
 
   def __iter__(self):
     """
@@ -131,5 +136,16 @@ class Realization:
     """
     # TODO extend to other info dicts?
     return self._values.pop(*args)
+
+  def get(self, key, default=None):
+    """
+      Accessor for acquiring values.
+      @ In, key, str, variable name
+      @ Out, item, any, contents of realization corresponding to variable
+    """
+    if default is None:
+      return self._values.get(key)
+    else:
+      return self._values.get(key, default)
 
 
