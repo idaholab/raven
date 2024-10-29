@@ -79,10 +79,6 @@ def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, 
     self.fitness = offSpringFitness
     self.constraintsV = g
     # offspringObjsVals for Rank and CD calculation
-    offObjVal = []
-    for i in range(len(self._objectiveVar)):
-      offObjVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
-    # offspringFitVals for Rank and CD calculation
     fitVal           = datasetToDataArray(self.fitness, self._objectiveVar).data
     offspringFitVals = fitVal.tolist()
     offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals))

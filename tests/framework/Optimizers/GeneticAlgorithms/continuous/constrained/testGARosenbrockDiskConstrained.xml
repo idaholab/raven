@@ -55,13 +55,13 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>20</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
-        <populationSize>30</populationSize>
+        <populationSize>60</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction>
           <crossover type="onePointCrossover">
@@ -96,8 +96,8 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>30</limit>
-        <initialSeed>20021986</initialSeed>
+        <limit>60</limit>
+        <initialSeed>12052004</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>rosenbrock_dist_x</distribution>

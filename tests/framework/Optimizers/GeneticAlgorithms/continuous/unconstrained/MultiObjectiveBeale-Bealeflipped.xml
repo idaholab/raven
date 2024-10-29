@@ -49,9 +49,9 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>5</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
+        <writeSteps>every</writeSteps>
         <type>min, max</type>
       </samplerInit>
       <GAparams>
@@ -90,7 +90,7 @@
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>50</limit>
-        <initialSeed>050877</initialSeed>
+        <initialSeed>120504</initialSeed>
       </samplerInit>
       <variable name="x">
         <distribution>woRep_dist</distribution>
