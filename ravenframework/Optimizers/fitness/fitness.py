@@ -105,23 +105,22 @@ def feasibleFirst(rlz, **kwargs):
   constraintNum = kwargs['constraintNum']
   g = kwargs['constraintFunction'] if constraintNum > 0 else None  # Constraint evaluations
   fitnessSet = xr.Dataset()
+  # For each objective
   for i, obj in enumerate(objVar):
       data = np.atleast_1d(rlz[obj].data)
-      worstObj = max(data)  # Worst objective value for penalizing violating solutions
+      worstObj = max(data) # Worst objective value for penalizing violating solutions
       fitness = np.zeros(data.shape)
       for ind in range(data.size):
+          # If no contraints or all constraints are satisfied
           if constraintNum == 0 or np.all(g.data[ind, :] >= 0):  # Feasible solutions
-              fit = a[i] * data[ind]
+              fit = -a[i] * data[ind]
+          # if constraints are violated
           else:  # Penalize constraint violations
-              fit = a[i] * worstObj  # Start with the worst objective value
+              fit = -a[i] * worstObj  # Start with the worst objective value
               for constInd in range(g.data.shape[1]):
                   violation = max(0, -g.data[ind, constInd])
-                  fit = b[i] * violation
-          # Adjust fitness for maximization problems
-          if kwargs['type'][i] == 'max':
-              fitness[ind] = -fit
-          else:
-              fitness[ind] = fit
+                  fit -= b[i] * violation
+          fitness[ind] = fit
       # Add the fitness for the current objective to the dataset
       fitnessSet[obj] = xr.DataArray(fitness, dims=['chromosome'], coords={'chromosome': np.arange(len(data))})
   return fitnessSet

@@ -15,10 +15,18 @@
 # @author: Mohammad Abdo (@Jimmy-INL)
 
 def evaluate(Inputs):
+  """
+  This function evaluates the sum of weighted inputs and calculates two local sums based on the indices.
+
+  @ In, Inputs, dict, dictionary of variables
+  @ Out, Sum, float, the sum of weighted inputs.
+  @ Out, LocalSum1, float, the sum of weighted inputs for indices 0 and 1.
+  @ Out, LocalSum2, float, the sum of weighted inputs for indices 2 and 3.
+  """
   Sum = 0
   LocalSum1 = 0
   LocalSum2 = 0
-  for ind,var in enumerate(Inputs.keys()):
+  for ind, var in enumerate(Inputs.keys()):
     # write the objective function here
     Sum += (ind + 1) * Inputs[var]
     if (ind == 0) or (ind == 1):

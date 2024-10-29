@@ -62,13 +62,13 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>10</limit>
+        <limit>5</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min, max</type>
       </samplerInit>
       <GAparams>
-        <populationSize>5</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -107,7 +107,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>5</limit>
+        <limit>10</limit>
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">

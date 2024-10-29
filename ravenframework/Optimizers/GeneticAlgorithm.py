@@ -679,7 +679,9 @@ class GeneticAlgorithm(RavenSampled):
     if self._fitnessType == 'logistic':
       self._scale = fitnessNode.findFirst('scale').value
       self._shift = fitnessNode.findFirst('shift').value
-
+    else:
+      self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') else None
+      self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') else None
     ####################################################################################
     # constraint node                                                                  #
     ####################################################################################
@@ -701,23 +703,6 @@ class GeneticAlgorithm(RavenSampled):
         self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
     else:
       pass
-    self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
-    #NOTE the code lines below are for 'feasibleFirst' temperarily. It will be generalized for invLinear as well.
-    if self._fitnessType == 'feasibleFirst':
-      if self._numOfConst != 0 and fitnessNode.findFirst('b') is not None:
-        self._penaltyCoeff = fitnessNode.findFirst('b').value
-        self._objCoeff = fitnessNode.findFirst('a').value
-      elif self._numOfConst == 0 and fitnessNode.findFirst('b') is not None:
-        self.raiseAnError(IOError, f'The number of constraints used are 0 but there are penalty coefficieints')
-      elif self._numOfConst != 0 and fitnessNode.findFirst('b') is None:
-        self._penaltyCoeff = [1] * self._numOfConst * len(self._objectiveVar) #list(np.repeat(1, self._numOfConst * len(self._objectiveVar))) #NOTE if penaltyCoeff is not provided, then assume they are all 1.
-        self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else [1] * len(self._objectiveVar) #list(np.repeat(
-      else:
-        self._penaltyCoeff = [0] * len(self._objectiveVar) #list(np.repeat(0, len(self._objectiveVar)))
-        self._objCoeff = [1] * len(self._objectiveVar)
-    else:
-      self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
-      self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
@@ -1122,8 +1107,7 @@ class GeneticAlgorithm(RavenSampled):
     self.multiBestConstraint = optConstNew
     self.multiBestRank = optRank
     self.multiBestCD = optCD
-
-    return #optPointsDic
+    return optPointsDic
 
 
   def _checkAcceptability(self, traj):

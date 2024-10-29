@@ -5,7 +5,52 @@
     <author>Junyung Kim</author>
     <created>2023-02-21</created>
     <classesTested/>
-    <description>ZDT1 test using NSGA-II</description>
+    <description>ZDT1 test using NSGA-II. This is the first of the ZDT test suite mathematical benchmark for two objective optimization.
+      design (desicion) variable $\vec{x} = [x1,x2,...x_n]; n here is equal to 3$
+
+      $obj_1(x) = x_1$
+
+      $g(x) = 1 + \frac{9}{n-1} \sum_{2}^{n} x_i = 1 + 4.5 * (x_2 + x_3)$
+
+      $h(obj1,g(x)) = 1 - \sqrt{\frac{obj_1}{g(x)}} = 1 - \sqrt(\frac{x_1}{1 + 4.5 * (x_2 + x_3)})$
+
+      $obj_2 = g(x) * h(obj_1,g(x))$ = [1 + 4.5 * (x_2 + x_3)] * \sqrt(x_1) * \sqrt(1 + 4.5 * (x_2 + x_3))
+
+      The analytic solution of this problem is as follows:
+      Pareto front:
+      $\vec{x}$:
+      $0 \leq x_1 \leq 1, x_2 = 0, x_3 = 0,$
+      $obj_1$:
+      $0 \leq obj_1 \leq 1$
+      $obj_2$
+      $1 \geq obj_1 \geq 0$
+
+     1.0  *
+          *
+          *
+          *
+     0.8  *
+          *     o
+          *       o
+          *         o
+     0.6  *            o
+          *               o
+obj_2     *                  o
+          *                     o
+      0.4 *                         o
+          *                             o
+          *                                  o
+          *                                       o
+      0.2 *                                            o
+          *                                                  o
+          *                                                       o
+          *                                                              o
+        0 *                                                                    o
+          /.......................................................................
+            0            0.2          0.4          0.6          0.8            1.0
+                                          obj_1 = x_1
+
+    </description>
   </TestInfo>
 
   <RunInfo>
