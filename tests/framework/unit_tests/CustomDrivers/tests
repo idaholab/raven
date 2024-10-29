@@ -4,6 +4,11 @@
     input = 'TestPythonRaven.py'
   [../]
 
+  [./test_unittest_tester]
+    type = 'Unittest'
+    input = 'TestPythonRaven.TestPythonRaven'
+  [../]
+
   [./demo_python_raven]
     type = 'RavenPython'
     input = 'DemoPythonRaven.py'
