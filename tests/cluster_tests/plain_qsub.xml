@@ -1,0 +1,8 @@
+<Simulation>
+  <RunInfo>
+    <mode>
+      mpi
+      <runQSUB/>
+    </mode>
+  </RunInfo>
+</Simulation>
