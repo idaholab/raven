@@ -79,7 +79,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     SupervisedLearning._handleInput(self, paramInput)
     self.readTSAInput(paramInput, self.hasClusters())
-    if len(self._tsaAlgorithms)==0:
+    if len(self.getTsaAlgorithms())==0:
       self.raiseAWarning("No Segmenting algorithms were requested.")
 
   def _train(self, featureVals, targetVals):
@@ -143,7 +143,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, slicer, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    if len(self._tsaGlobalAlgorithms)>0:
+    if len(self.getGlobalTsaAlgorithms())>0:
       rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation, slicer=slicer)
       for key,val in rlz.items():
         evaluation[key] = val
@@ -237,7 +237,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     """
     features = {}
     # check: is it possible tsaAlgorithms isn't populated by now?
-    algorithms = self._tsaGlobalAlgorithms if trainGlobal else self._tsaAlgorithms
+    algorithms = self.getGlobalTsaAlgorithms() if trainGlobal else self.getTsaAlgorithms()
     for algo in algorithms:
       if algo.canCharacterize():
         features[algo.name] = algo._features
@@ -256,11 +256,11 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
     """
     features = {}
-    for algo in self._tsaAlgorithms:
+    for algo in self.getTsaAlgorithms():
       if algo.name not in request or not algo.canCharacterize():
         continue
       algoReq = request[algo.name] if request is not None else None
-      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self._tsaTrainedParams[algo])
+      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self.getTsaTrainedParams()[algo])
       features.update(algoFeatures)
     return features
 
@@ -274,11 +274,11 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     for feature, values in settings.items():
       target, algoName, ident = feature.split('|', maxsplit=2)
       byAlgo[algoName].append((target, ident, values))
-    for algo in self._tsaAlgorithms:
+    for algo in self.getTsaAlgorithms():
       settings = byAlgo.get(algo.name, None)
       if settings:
-        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
-        self._tsaTrainedParams[algo] = params
+        params = algo.setClusteringValues(settings, self.getTsaTrainedParams()[algo])
+        self.getTsaTrainedParams()[algo] = params
 
   def findAlgoByName(self, name):
     """
@@ -286,7 +286,7 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, name, str, name of algorithm
       @ Out, algo, TSA.TimeSeriesAnalyzer, algorithm
     """
-    for algo in self._tsaAlgorithms:
+    for algo in self.getTsaAlgorithms():
       if algo.name == name:
         return algo
     return None
@@ -342,11 +342,11 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     params = {}
     requests = self._getClusterableFeatures(trainGlobal=True)
 
-    for algo in self._tsaGlobalAlgorithms:
+    for algo in self.getGlobalTsaAlgorithms():
       if algo.name not in requests or not algo.canCharacterize():
         continue
       algoReq = requests[algo.name] if requests is not None else None
-      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self._tsaTrainedParams[algo])
+      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self.getTsaTrainedParams()[algo])
       params.update(algoFeatures)
     return params
 
@@ -362,14 +362,15 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     for feature, values in params.items():
       target, algoName, ident = feature.split('|', maxsplit=2)
       byAlgo[algoName].append((target, ident, values))
-    for algo in self._tsaAlgorithms:
+    trainedParams = self.getTsaTrainedParams()
+    for algo in self.getTsaAlgorithms():
       settings = byAlgo.get(algo.name, None)
       if settings:
         # there might be multiple instances of same algo w/ different targets, need to filter by targets
-        # filtered_settings = [feat for feat in settings if feat[0] in self._tsaTrainedParams[algo]]
-        params = algo.setClusteringValues(settings, self._tsaTrainedParams[algo])
-        self._tsaTrainedParams[algo] = params
-    return self._tsaTrainedParams
+        # filtered_settings = [feat for feat in settings if feat[0] in self.getTsaTrainedParams()[algo]]
+        params = algo.setClusteringValues(settings, trainedParams[algo])
+        trainedParams[algo] = params
+    return trainedParams
 
   def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
     """
