@@ -271,15 +271,26 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, settings, dict, parameters to set
     """
     byAlgo = collections.defaultdict(list)
+    # Here we take the interpolated features and reorganize them to a dict
+    #   the original entry names are 'target|algorithmName|featureName'
+    #   the new structure is {algorithmName:(target,featureName,value)}
     for feature, values in settings.items():
       target, algoName, ident = feature.split('|', maxsplit=2)
       byAlgo[algoName].append((target, ident, values))
+
     for algo in self._tsaAlgorithms:
       settings = byAlgo.get(algo.name, None)
+      # The incoming features are organized by algorithmName, but the trainedParams are indexed
+      #    by the algorithm objects themselves. so there could be two objects with the same algo name.
+      # Need to make sure that we send the right target information over (algorithms are agnostic)
       if settings:
-        # there might be multiple instances of same algo w/ different targets, need to filter by targets
-        # Note: params[0] gives the target name
-        filtered_settings = [params for params in settings if params[0] in self._tsaTrainedParams[algo]]
+        trainedTargets = list(self._tsaTrainedParams[algo]) # list of targets used in the specific algorithm
+        if algo.name in trainedTargets:
+          # most algorithm trainedParam dictionaries are indexed by target except for VARMA since it
+          #  uses targets together. The syntax for those types of algorithms is to index by the algo Name
+          trainedTargets = list(self._tsaTrainedParams[algo][algo.name]['targets'])
+        # keep settings with targets that are present in the trainedParams for the specific algorithm
+        filtered_settings = [paramSet for paramSet in settings if paramSet[0] in trainedTargets]
         self._tsaTrainedParams[algo] = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
 
   def findAlgoByName(self, name):
@@ -366,10 +377,17 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       byAlgo[algoName].append((target, ident, values))
     for algo in self._tsaGlobalAlgorithms:
       settings = byAlgo.get(algo.name, None)
+      # The incoming features are organized by algorithmName, but the trainedParams are indexed
+      #    by the algorithm objects themselves. so there could be two objects with the same algo name.
+      # Need to make sure that we send the right target information over (algorithms are agnostic)
       if settings:
-        # there might be multiple instances of same algo w/ different targets, need to filter by targets
-        # Note: tParams[0] gives the target name
-        filtered_settings = [tParams for tParams in settings if tParams[0] in self._tsaTrainedParams[algo]]
+        trainedTargets = list(self._tsaTrainedParams[algo]) # list of targets used in the specific algorithm
+        if algo.name in trainedTargets:
+          # most algorithm trainedParam dictionaries are indexed by target except for VARMA since it
+          #  uses targets together. The syntax for those types of algorithms is to index by the algo Name
+          trainedTargets = list(self._tsaTrainedParams[algo][algo.name]['targets'])
+        # keep settings with targets that are present in the trainedParams for the specific algorithm
+        filtered_settings = [paramSet for paramSet in settings if paramSet[0] in trainedTargets]
         self._tsaTrainedParams[algo] = algo.setClusteringValues(filtered_settings, self._tsaTrainedParams[algo])
     return self._tsaTrainedParams
 
