@@ -25,3 +25,6 @@
 [submodule "plugins/DOVE"]
 	path = plugins/DOVE
 	url = https://github.com/idaholab/DOVE.git
+[submodule "plugins/PRLO"]
+	path = plugins/PRLO
+	url = https://github.inl.gov/congjian-wang/PRLO.git
