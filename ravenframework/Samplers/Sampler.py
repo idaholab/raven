@@ -29,7 +29,7 @@ from ..BaseClasses.InputDataUser import InputDataUser
 from ..utils import utils,randomUtils,InputData, InputTypes
 from ..utils.graphStructure import evaluateModelsOrder
 from ..BaseClasses import BaseEntity, Assembler
-from ..Realizations import BatchRealization
+from ..Realizations import RealizationBatch
 
 _vectorPostfixFormat = '__RVEC__{ID}'
 
@@ -1079,7 +1079,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     ##### GENERATE SAMPLE #####
     # instantiate a batch of data carrier realizations
     batchSize = self.getBatchSize()
-    rlzBatch = BatchRealization(batchSize)
+    rlzBatch = RealizationBatch(batchSize)
     if batchSize == 0:
       # this means the current sampler does not know how to handle batching, so do it one at a time
       for rlz in rlzBatch:
@@ -1100,33 +1100,41 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # ND variables
     self._formNDVariables(rlzBatch)
     # merge sampler metadata
-    rlz.inputInfo.update(self.samplerInfo)
+    for rlz in rlzBatch:
+      rlz.inputInfo.update(self.samplerInfo)
     # reset distribution memory
     for key in self.distDict:
       if self.distDict[key].getMemory():
         self.distDict[key].reset()
     ##### CHECK RESTART #####
-    _, inExisting = self._checkRestartForEvaluation(rlz)
-    #if not found or not restarting, we have a new point!
-    if inExisting is None:
-      # we have a new evaluation, so check its contents for consistency
-      self._checkSample()
-      self.raiseADebug(f' ... Sample point {rlz.inputInfo["prefix"]}: {rlz.values}')
-      for var, val in rlz.items():
-        self.raiseADebug(f' ... - "{var}": "{val}"')
-      return 0, rlz, modelInput
-    #otherwise, return the restart point
-    else:
-      # TODO use realization format as per new data object (no subspaces)
-      # TODO use Realization object?
-      self.raiseADebug('Point found in restart!')
-      rlz = {}
-      # we've fixed it so the input and output space don't really matter, so use restartData's own definition
-      # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
-      rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
-      rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
-      rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
-      return 1, rlz, None
+    # check each rlz for restart, and if so, fill its values and submit it as complete
+    for r, rlz in enumerate(rlzBatch):
+      _, inExisting = self._checkRestartForEvaluation(rlz)
+      if inExisting is None:
+        # we have a new evaluation, so check its contents for consistency
+        self._checkSample()
+        self.raiseADebug(f' ... Batch Sample point {r}, prefix {rlz.inputInfo["prefix"]}, (var, val):')
+        for var, val in rlz.items():
+          self.raiseADebug(f' ... - "{var}": "{val}"')
+      else:
+        self.raiseADebug(f'Batch Point {r} found in restart!')
+        # we've fixed it so the input and output space don't really matter, so use restartData's own definition
+        # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
+        # TODO OLD:
+        # rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
+        # rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
+        # rlz['metadata'] = rlz.inputInfo # NOTE soft link
+        # TODO new:
+        # TODO can we combine these?
+        # inputs = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
+        # outputs = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
+        # TODO method for getting Realization object out of DataObjects?
+        varvals = dict((var, np.atleast_1d(inExisting[var])) for var in self.restartData.getVars())
+        rlz.update(varvals)
+        rlz.isRestart = True
+      # END if restart
+    # END loop over rlz for restart checking
+    return rlzBatch, None
 
   def generateInputBatch(self, myInput, model, batchSize, projector=None):
     """

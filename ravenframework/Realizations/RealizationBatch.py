@@ -16,7 +16,7 @@
 """
 from . import Realization
 
-class BatchRealization:
+class RealizationBatch:
   """
     A container for groups of Realization objects, that should mostly invisibly work like a realization
   """

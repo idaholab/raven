@@ -324,21 +324,14 @@ class MultiRun(SingleRun):
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, jobHandler, object, the raven object used to handle jobs
-      @ Out, newInp, list, list containing the new inputs (or None if a restart)
+      @ Out, newInp, RealizationBatch, list containing the new inputs (or None if a restart)
     """
-    # The value of "found" determines what the Sampler is ready to provide.
-    #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
-    #  case 1: found the input in restart, and newInp is a realization dictionary of data to use
-    found, rlz, modelInp = sampler.generateInput(model, inputs)
-    if found == 1:
-      # TODO REMOVE kwargs = rlz.inputInfo # TODO deeper copy needed? shouldn't be ...
-      # "submit" the finished run
-      jobHandler.addFinishedJob(rlz, metadata=rlz.inputInfo)
-      return None
-      # NOTE: we return None here only because the Sampler's "counter" is not correctly passed
-      # through if we add several samples at once through the restart. If we actually returned
-      # a Realization object from the Sampler, this would not be a problem. - talbpaul
-    return rlz, modelInp
+    batch, modelInp = sampler.generateInput(model, inputs)
+    for rlz in batch:
+      if rlz.isRestart:
+        # "submit" the finished run
+        jobHandler.addFinishedJob(rlz, metadata=rlz.inputInfo)
+    return batch, modelInp
 
   def flushStep(self):
     """

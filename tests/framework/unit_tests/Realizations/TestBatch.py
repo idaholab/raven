@@ -37,7 +37,7 @@ class TestBatchRealization(unittest.TestCase):
       @ In, None
       @ Out, None
     """
-    self.batch = Realizations.BatchRealization(2)
+    self.batch = Realizations.RealizationBatch(2)
     self.batch[0]['a'] = 2
     self.batch[0]['b'] = 41
     self.batch[0]['pi'] = 2.14159

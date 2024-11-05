@@ -27,14 +27,15 @@ class Realization:
       @ In, None
       @ Out, None
     """
-    self._values = {}    # mapping of variables to their values
+    self._values = {}      # mapping of variables to their values
+    self.indexMap = {}     # information about dimensionality of variables
+    self.labels = {}       # custom labels for tracking, set externally
+    self.batchSize = 0     # not a batch, easy way to check
+    self.isRestart = False # True if model was not run, but data was taken from restart
     self.inputInfo = {'SampledVars': {},  # additional information about this realization
                       'SampledVarsPb': {},
                       'crowDist': {}
     }
-    self.indexMap = {}   # information about dimensionality of variables
-    self.labels = {}     # custom labels for tracking, set externally
-    self.batchSize = 0   # not a batch, easy way to check
 
   ########
   #
