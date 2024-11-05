@@ -119,38 +119,35 @@ class ExternalModel(Dummy):
       self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
 
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self,myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, sample point
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
 
     modelVariableValues = {}
     if 'createNewInput' in dir(self.sim):
-      if 'SampledVars' in kwargs.keys():
-        sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
-      extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
-      if extCreateNewInput is None:
-        self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      if type(extCreateNewInput).__name__ != "dict":
-        self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+ ' the method createNewInput must return a dictionary. Got type: ' +type(extCreateNewInput).__name__)
-      if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
-        kwargs['SampledVars'] = sampledVars
+      if len(rlz): #'SampledVars' in kwargs.keys():
+        sampledVars = self._replaceVariablesNamesWithAliasSystem(rlz, 'input', False)
+      extCreateNewInput = self.sim.createNewInput(self.initExtSelf, myInput, samplerType, rlz)
+      if not isinstance(extCreateNewInput, dict):
+        self.raiseAnError(AttributeError, f'in external Model {self.ModuleToLoad} the method createNewInput ' +
+                          f'must return a dictionary. Got "{type(extCreateNewInput)}".')
+      if len(rlz) and len(self.alias['input']):
+        rlz.update(sampledVars)
       # add sampled vars
-      if 'SampledVars' in kwargs:
-        for key in kwargs['SampledVars']:
-          if key not in extCreateNewInput:
-            extCreateNewInput[key] =   kwargs['SampledVars'][key]
-
-      newInput = ([(extCreateNewInput)],copy.deepcopy(kwargs))
+      if len(rlz):
+        for var, val in rlz:
+          if var not in extCreateNewInput:
+            extCreateNewInput[var] = val
+      newInput = ([(extCreateNewInput)], copy.deepcopy(rlz))
     else:
-      newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
-    if 'SampledVars' in kwargs:
-      modelVariableValues.update(kwargs['SampledVars'])
+      newInput =  Dummy.createNewInput(self, myInput, samplerType, rlz)
+    if len(rlz):
+      modelVariableValues.update(rlz)
     return newInput, copy.copy(modelVariableValues)
 
   def localInputAndChecks(self,xmlNode):
@@ -306,37 +303,37 @@ class ExternalModel(Dummy):
     return outcomes, self
 
   @Parallel()
-  def evaluateSample(self, myInput, samplerType, kwargs):
+  def evaluateSample(self, myInput, samplerType, rlz):
     """
         This will evaluate an individual sample on this model. Note, parameters
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the 'SampledVars' that contains a dictionary {'name variable':value}
+        @ In, rlz, Realization, realization from sampling
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
           the second item will be the output of this model given the specified
           inputs
     """
-    Input = self.createNewInput(myInput, samplerType, **kwargs)
+    Input = self.createNewInput(myInput, samplerType, rlz)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
-    result,instSelf = self._externalRun(inRun,)
+    result, instSelf = self._externalRun(inRun,)
     evalIndexMap = result.get('_indexMap', [{}])[0]
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
     ## first inRun, which has everything from self.* and Input[*]
-    rlz = dict((var, np.atleast_1d(val)) for var, val in inRun.items())
+    # FIXME should this be a proper Realization object? Should we update the one we already have?
+    res = dict((var, np.atleast_1d(val)) for var, val in inRun.items())
     ## then result, which has the expected outputs and possibly changed inputs
-    rlz.update(dict((var, np.atleast_1d(val)) for var, val in result.items()))
+    res.update(dict((var, np.atleast_1d(val)) for var, val in result.items()))
     ## then get the metadata from kwargs
-    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs.items()))
+    res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.inputInfo.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
-    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs['SampledVars'].items()))
-    if '_indexMap' in rlz:
-      rlz['_indexMap'][0].update(evalIndexMap)
-    return rlz
+    res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.items()))
+    if '_indexMap' in res:
+      res['_indexMap'].update(evalIndexMap)
+    return res
 
   def collectOutput(self,finishedJob,output,options=None):
     """

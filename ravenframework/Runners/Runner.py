@@ -14,21 +14,14 @@
 """
 Created on September 12, 2016
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
-import sys
-import abc
 import copy
 import time
 import datetime
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from ..utils import utils
-from ..BaseClasses import BaseType, MessageUser
+from ..BaseClasses import MessageUser
 from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------
 

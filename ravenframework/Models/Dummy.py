@@ -135,7 +135,7 @@ class Dummy(Model):
       localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
 
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
@@ -143,17 +143,21 @@ class Dummy(Model):
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    inputDict   = self._inputToInternal(myInput[0])
-    self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
+    inputDict = self._inputToInternal(myInput[0])
+    self._replaceVariablesNamesWithAliasSystem(inputDict, 'input', False)
 
-    if 'SampledVars' in kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
-      for key in kwargs['SampledVars'].keys():
-        inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
+    if len(rlz):
+      self._replaceVariablesNamesWithAliasSystem(rlz, 'input', False)
+      for var, val in rlz.items():
+        inputDict[var] = np.atleast_1d(val)
+    ### OLD ###
+    # if 'SampledVars' in kwargs.keys():
+    #   sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+    #   for key in kwargs['SampledVars'].keys():
+    #     inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
 
     missing = list(var for var,val in inputDict.items() if val is None)
     if len(missing) != 0:
@@ -169,23 +173,22 @@ class Dummy(Model):
         kwargs['SampledVars'] = sampledVars
     except KeyError:
       pass
-    return [(inputDict)],copy.deepcopy(kwargs)
+    return [(inputDict)],copy.deepcopy(rlz)
 
   @Parallel()
-  def evaluateSample(self, myInput, samplerType, kwargs):
+  def evaluateSample(self, myInput, samplerType, rlz):
     """
         This will evaluate an individual sample on this model. Note, parameters
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ In, rlz, Realization, Realization from whiech to build input
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
           the second item will be the output of this model given the specified
           inputs
     """
-    Input = self.createNewInput(myInput, samplerType, **kwargs)
+    Input = self.createNewInput(myInput, samplerType, rlz)
     inRun = self._manipulateInput(Input[0])
     # alias system
     self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)

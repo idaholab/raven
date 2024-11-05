@@ -26,15 +26,9 @@ class RealizationBatch:
       @ In, None
       @ Out, None
     """
-    # TODO are any of these shared across realizations?
-    # self._values = {}    # mapping of variables to their values
-    # self.inputInfo = {'SampledVars': {},  # additional information about this realization
-    #                   'SampledVarsPb': {},
-    #                   'crowDist': {}
-    # }
-    # self.indexMap = {}   # information about dimensionality of variables
     self.batchSize = batchSize # number of realizations that are part of this object
     self._realizations = [Realization() for _ in range(max(batchSize, 1))]
+    self.ID = None
 
 
   ########

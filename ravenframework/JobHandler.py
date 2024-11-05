@@ -686,7 +686,34 @@ class JobHandler(BaseType):
       # probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False, groupInfo = None):
+  def addJobBatch(self, batch, model, modelInput, samplerType, evalFunc):
+    """
+      Adds a batch of jobs to the internal queue.
+      @ In, batch, RealizationBatch, set of realizations to add
+      @ In, model, Model, model instance to run
+      @ In, modelInput, list, inputs for the Model
+      @ In, samplerType, str, sampler that generated this request
+      @ In, evalFunc, callable, method to be executed
+      @ Out, None
+    """
+    # TODO register batch to fill later?
+    for rlz in batch:
+      if rlz.isRestart:
+        self.addFinishedJob(rlz, metadata=rlz.inputInfo)
+      else:
+        self.addJob(
+            (model, modelInput, samplerType, rlz),
+            evalFunc,
+            rlz.inputInfo['prefix'],
+            metadata = rlz.inputInfo,
+            uniqueHandler=rlz.inputInfo.get('uniqueHandler', 'any'),
+            forceUseThreads=rlz.inputInfo.get('forceThreads', False),
+            groupInfo={'id': batch.ID, 'size': len(batch)}
+        )
+
+  def addJob(self, args, functionToRun, identifier, metadata=None,
+             forceUseThreads=False, uniqueHandler="any", clientQueue=False,
+             groupInfo=None):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as

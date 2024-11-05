@@ -32,15 +32,22 @@ class Realization:
     self.labels = {}       # custom labels for tracking, set externally
     self.batchSize = 0     # not a batch, easy way to check
     self.isRestart = False # True if model was not run, but data was taken from restart
-    self.inputInfo = {'SampledVars': {},  # additional information about this realization
-                      'SampledVarsPb': {},
-                      'crowDist': {}
+    self.inputInfo = {'SampledVars': {},   # additional information about this realization
+                      'SampledVarsPb': {}, # point probability information for this realization
     }
 
   ########
   #
   # other useful methods
   #
+  def setRestart(self, varVals):
+    """
+      Sets this Realization to have values coming from a restart point.
+      @ In, varVals, dict, new var-value mapping
+      @ Out, None
+    """
+    self.update(varVals)
+    self.isRestart = True
 
   ########
   #
