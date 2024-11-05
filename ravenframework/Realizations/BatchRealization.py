@@ -34,7 +34,7 @@ class BatchRealization:
     # }
     # self.indexMap = {}   # information about dimensionality of variables
     self.batchSize = batchSize # number of realizations that are part of this object
-    self._realizations = [Realization() for _ in range(min(batchSize, 1))]
+    self._realizations = [Realization() for _ in range(max(batchSize, 1))]
 
 
   ########
@@ -69,6 +69,7 @@ class BatchRealization:
       @ In, value, any, corresponding value
       @ Out, None
     """
+    # TODO should we allow providing a Realization object?
     raise IndexError('Tried to overwrite a Realization object in a Batch!')
 
   def pop(self, *args):
