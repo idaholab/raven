@@ -320,39 +320,39 @@ system are reported.
 \item \xmlNode{mode}, \xmlDesc{string, optional field}, can specify which kind
 of protocol the parallel enviroment should use.
 %
-RAVEN currently supports one pre-defined ``mode'':
+RAVEN currently supports two pre-defined ``mode''s:
   \begin{itemize}
-    \item \textbf{mpi}: this ``mode'' uses \xmlNode{MPIExec}  command (default: \texttt{mpiexec})
+    \item \textbf{pbs}: this ``mode'' uses PBS and the \xmlNode{MPIExec}  command (default: \texttt{mpiexec})
       to distribute the running program; more information regarding this protocol can be found
-      in~\cite{MPI}.
+      in~\cite{MPI}.  (Note that this ``mode'' used to be called \textbf{mpi}, but was renamed to be more specific since the \textbf{slurm} ``mode'' also uses MPI.)
 
-      Mode ``MPI''  can either generate a \texttt{qsub} command or can execute
+      Mode ``PBS''  can either generate a \texttt{qsub} command or can execute
       on selected nodes.
       Parameters to be given to the mpi command can be specified with the \xmlNode{MPIParam} node.  These will be given after the \xmlNode{MPIExec}  command so that needed mpi parameters can be specified (such as \texttt{--nooversubscribe}).
 
-      In order to make the ``mpi'' mode generate a \texttt{qsub} command, an
+      In order to make the ``pbs'' mode generate a \texttt{qsub} command, an
       additional keyword (xml sub-node) needs to be specified:
          \begin{itemize}
          \item If RAVEN is executed in the HEAD node of an HPC system using
            \cite{PBS}, the user needs to input a sub-node, \xmlNode{runQSUB},
-           right after the specification of the mpi mode (i.e.,\\
-             \xmlNode{mode}\texttt{mpi}\xmlNode{runQSUB/}\xmlNode{/mode}).
+           right after the specification of the pbs mode (i.e.,\\
+             \xmlNode{mode}\texttt{pbs}\xmlNode{runQSUB/}\xmlNode{/mode}).
              If the keyword is provided, RAVEN generates a \texttt{qsub}
              command, instantiates itself, and submits itself to the queue
              system.
            \item If the user decides to execute RAVEN from an ``interactive
              node'' (a certain number of nodes that have been reserved in
-             interactive PBS mode), RAVEN, using the ``mpi'' system, is going to
+             interactive PBS mode), RAVEN, using the ``pbs'' system, is going to
              utilize the reserved resources (CPUs and nodes) to distribute the
              jobs, but, will not generate a \texttt{qsub} command.
          \end{itemize}
-     When the user decides to run in ``mpi'' mode without making RAVEN generate
+     When the user decides to run in ``pbs'' mode without making RAVEN generate
      a \texttt{qsub} command, different options are available:
       \begin{itemize}
            \item If the user decides to run on the local machine (either in
              local desktop/workstation or a remote machine), no additional
              keywords are needed (i.e.\\
-             \xmlNode{mode}\texttt{mpi}\xmlNode{/mode}).
+             \xmlNode{mode}\texttt{pbs}\xmlNode{/mode}).
            \item If the user is running on multiple nodes, the node ids have
              to be specified:
            \begin{itemize}
@@ -360,12 +360,12 @@ RAVEN currently supports one pre-defined ``mode'':
                 (node ids separated by blank space).
                 This file needs to be provided in the XML node \xmlNode{mode},
                 introducing a sub-node named \xmlNode{nodefile} (e.g.\\
-\xmlNode{mode}\texttt{mpi}\xmlNode{nodefile}\texttt{/tmp/nodes}\xmlNode{/nodefile}\xmlNode{/mode}).
+\xmlNode{mode}\texttt{pbs}\xmlNode{nodefile}\texttt{/tmp/nodes}\xmlNode{/nodefile}\xmlNode{/mode}).
               \item the node ids can be contained in an enviromental variable
                 (node ids separated by blank space).
                 This variable needs to be provided in the \xmlNode{mode} XML
                 node, introducing a sub-node named \xmlNode{nodefileenv} (e.g.\\
-\xmlNode{mode}\texttt{mpi}\xmlNode{nodefileenv}\texttt{NODEFILE}\xmlNode{/nodefileenv}\xmlNode{/mode>}).
+\xmlNode{mode}\texttt{pbs}\xmlNode{nodefileenv}\texttt{NODEFILE}\xmlNode{/nodefileenv}\xmlNode{/mode>}).
                 \item If none of the above options are used, RAVEN will attempt
                   to find the nodes' information in the enviroment variable
                   \texttt{PBS\_NODEFILE}.
@@ -389,7 +389,68 @@ RAVEN currently supports one pre-defined ``mode'':
          \end{itemize}
          In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
          ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
-           are run using a multi-threading approach (i.e., master processor, multiple parallel threads)
+         are run using a multi-threading approach (i.e., master processor, multiple parallel threads)
+           \item \textbf{slurm}: this ``mode'' uses Slurm and the \xmlNode{MPIExec}  command (default: \texttt{mpiexec})
+      to distribute the running program; more information regarding this protocol can be found
+      in~\cite{SLURM}.
+
+      Mode ``Slurm''  can either generate a \texttt{sbatch} command or can execute
+      on selected nodes.
+      Parameters to be given to the mpi command can be specified with the \xmlNode{MPIParam} node.  These will be given after the \xmlNode{MPIExec}  command so that needed mpi parameters can be specified (such as \texttt{--nooversubscribe}).
+
+      In order to make the ``slurm'' mode generate a \texttt{sbatch} command, an
+      additional keyword (xml sub-node) needs to be specified:
+         \begin{itemize}
+         \item If RAVEN is executed in the HEAD node of an HPC system using
+           \cite{SLURM}, the user needs to input a sub-node, \xmlNode{runSbatch},
+           right after the specification of the slurm mode (i.e.,\\
+             \xmlNode{mode}\texttt{slurm}\xmlNode{runSbatch/}\xmlNode{/mode}).
+             If the keyword is provided, RAVEN generates a \texttt{sbatch}
+             command, instantiates itself, and submits itself to the queue
+             system.
+           \item If the user decides to execute RAVEN from an ``interactive
+             node'' (a certain number of nodes that have been reserved in
+             interactive Slurm mode), RAVEN, using the ``slurm'' system, is going to
+             utilize the reserved resources (CPUs and nodes) to distribute the
+             jobs, but, will not generate a \texttt{sbatch} command.
+         \end{itemize}
+     When the user decides to run in ``slurm'' mode without making RAVEN generate
+     a \texttt{sbatch} command, different options are available:
+      \begin{itemize}
+           \item If the user decides to run on the local machine (either in
+             local desktop/workstation or a remote machine), no additional
+             keywords are needed (i.e.\\
+             \xmlNode{mode}\texttt{slurm}\xmlNode{/mode}).
+           \item If the user is running on multiple nodes, the node ids have
+             to be specified:
+           \begin{itemize}
+              \item the node ids can be specified in an external text file
+                (node ids separated by blank space).
+                This file needs to be provided in the XML node \xmlNode{mode},
+                introducing a sub-node named \xmlNode{nodefile} (e.g.\\
+\xmlNode{mode}\texttt{slurm}\xmlNode{nodefile}\texttt{/tmp/nodes}\xmlNode{/nodefile}\xmlNode{/mode}).
+                \item If none of the above options are used, RAVEN will attempt
+                  to find the nodes' information by using: \texttt{srun --overlap -- hostname} 
+           \end{itemize}
+         \item The cores needed can be specified manually with the
+           \xmlNode{coresneeded}.  This is used in the
+           \texttt{sbatch} command \texttt{--ntasks} parameter.
+         \item The max memory needed can be specified with the
+           \xmlNode{memory} XML node.  This will be used in the
+           \texttt{sbatch} command \texttt{--mem} parameter.
+         \item If the automaticly generated mpi command is not needed,
+           \xmlNode{noPrecommand} can be used to completely disable
+           generating a precommand. This can be useful if calling a
+           script that will call \texttt{mpiexec} itself.  Note that
+           the machine host file is located at
+           \texttt{\%BASE\_WORKING\_DIR\%/node\_\%INDEX\%}
+         \item The placement can be specified with the \xmlNode{partition}
+           XML node.  This will be used in the \texttt{sbatch} partition
+           statement.
+         \end{itemize}
+         In addition, this flag activates the remote (Slurm) execution of \xmlNode{parallelMethod}  for internal Models (e.g. ROMs,
+         ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
+           are run on the same computer (for example: master processor, multiple parallel threads)
    \end{itemize}
 
 %Both methods can submit a qsub command or can be run from an already submitted interactive qsub command:
