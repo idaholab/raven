@@ -24,13 +24,13 @@ import string
 from ravenframework import Simulation
 
 #For the mode information
-modeName = "mpi"
-modeClassName = "MPISimulationMode"
+modeName = ["mpi","pbs"]
+modeClassName = "PBSSimulationMode"
 
-class MPISimulationMode(Simulation.SimulationMode):
+class PBSSimulationMode(Simulation.SimulationMode):
   """
-    MPISimulationMode is a specialized class of SimulationMode.
-    It is aimed to distribute the runs using the MPI protocol
+    PBSSimulationMode is a specialized class of SimulationMode.
+    It is aimed to distribute the runs using the MPI protocol on PBS
   """
   def __init__(self, *args):
     """

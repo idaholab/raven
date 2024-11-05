@@ -17,9 +17,12 @@ The CustomModes implements various methods for running on clusters.
 Each CustomMode should have in the module modeName and modeClassName.  These
 are used to find all the classes and there mode names.
 
+Note that modeName can be a list in which case any of the names in the
+mode name are allowed.
+
 For example:
-modeName = "mpi"
-modeClassName = "MPISimulationMode"
+modeName = "pbs"
+modeClassName = "PBSSimulationMode"
 
 @author: cogljj
 """
@@ -44,7 +47,12 @@ def __getModeHandlers():
             module = __import__(filename[:-3]) #[:-3] to remove .py
             if "modeName" in module.__dict__ and "modeClassName" in module.__dict__:
                 modeClassName = module.__dict__["modeClassName"]
-                modeHandlers[module.__dict__["modeName"]] = module.__dict__[modeClassName]
+                modeName = module.__dict__["modeName"]
+                if type(modeName) == list:
+                    for singleModeName in modeName:
+                        modeHandlers[singleModeName] = module.__dict__[modeClassName]
+                else:
+                    modeHandlers[modeName] = module.__dict__[modeClassName]
     return modeHandlers
 
 modeHandlers = __getModeHandlers()
