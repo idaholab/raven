@@ -470,12 +470,14 @@ xml node where ``advanced'' users can implement newer ``modes.''
 Please refer to sub-section~\ref{subsec:runinfoadvanced} for advanced users.
 
 %%%%%% QUEUE SOFTWARE
-\item \xmlNode{queueingSoftware}, \xmlDesc{string, optional field}.
-RAVEN has support for the PBS queueing system. If the platform provides a
-different queueing system, the user can specify its name here (e.g., PBS
-PROFESSIONAL, etc.).
+%%%%%% Note, this is not supported by any of the standard modes, so currently
+%%%%%% commented out.
+%\item \xmlNode{queueingSoftware}, \xmlDesc{string, optional field}.
+%RAVEN has support for the PBS queueing system. If the platform provides a
+%different queueing system, the user can specify its name here (e.g., PBS
+%PROFESSIONAL, etc.).
 %
-\default{PBS PROFESSIONAL}
+%\default{PBS PROFESSIONAL}
 
 %%%%%% EXPECTED TIME
 \item \xmlNode{expectedTime}, \xmlDesc{colum separated string, optional field
