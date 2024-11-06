@@ -44,9 +44,10 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     super().__init__()
-    self._samplerInitDict = {}          # dictionary that gets sent to the initialization of the sampler
-    self.counter = 0                    # counter of the runs already performed
-    self._outputCollectionLambda = None # lambda function list to collect the output without checking the type
+    self._samplerInitDict = {}             # dict that gets sent to the initialization of the sampler
+    self.counter = 0                       # counter of the runs already performed
+    self._outputCollectionLambda = None    # lambda function list to collect the output (Dataobjects/Databases) without checking the type
+    self._outStreamCollectionLambda = None # lambda function list to collect the outstreams
     self.printTag = 'STEP MULTIRUN'
 
   def _localInputAndCheckParam(self, paramInput):
@@ -100,6 +101,7 @@ class MultiRun(SingleRun):
     self._initializeSampler(inDictionary)
     #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda = []
+    self._outStreamCollectionLambda = []
     # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
       if not isinstance(output, OutStreamEntity):
@@ -108,7 +110,7 @@ class MultiRun(SingleRun):
         else:
           self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
       else:
-        self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+        self._outStreamCollectionLambda.append((lambda x: x.addOutput(), outIndex))
     self._registerMetadata(inDictionary)
     self.raiseADebug(f'Generating input batch of size {inDictionary["jobHandler"].runInfoDict["batchSize"]}')
     # set up and run the first batch of samples
@@ -227,6 +229,11 @@ class MultiRun(SingleRun):
           for finishedJob in finishedJobList:
             # finalize actual sampler
             sampler.finalizeActualSampling(finishedJob,model,inputs)
+        # collect all the outstreams.
+        for myLambda, outIndex in self._outStreamCollectionLambda:
+          myLambda(outputs[outIndex])
+          self.raiseAMessage(f'Just collected OutStream "{inDictionary["Output"][outIndex].name}"')
+        
         for finishedJob in finishedJobList:
           finishedJob.trackTime('step_finished')
 
@@ -267,10 +274,7 @@ class MultiRun(SingleRun):
     # END while loop that runs the step iterations (collection and submission-for-DET)
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
-    for myLambda, outIndex in self._outputCollectionLambda:
-      if isinstance(outputs[outIndex], OutStreamEntity):
-        myLambda([None,outputs[outIndex]])
-        self.raiseAMessage(f'Finalized output "{inDictionary["Output"][outIndex].name}"')
+
 
 
   def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=True):
@@ -355,3 +359,4 @@ class MultiRun(SingleRun):
     self._samplerInitDict = {}
     self.counter = 0
     self._outputCollectionLambda = None
+    self._outStreamCollectionLambda = None

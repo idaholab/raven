@@ -148,8 +148,6 @@ class FilePrint(PrintInterface):
       if self.options['type'] == 'csv':
         filename = dictOptions['filenameroot']
         rlzIndex = self.indexPrinted.get(filename,0)
-        if rlzIndex and rlzIndex >= len(self.sourceData[index]):
-          continue
         dictOptions['firstIndex'] = rlzIndex
         # clusterLabel lets the user print a point set as if it were a history, with input decided by clusterLabel
         if 'clusterLabel' in self.options:
