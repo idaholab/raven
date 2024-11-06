@@ -40,7 +40,7 @@
    max_time = 3600
  [../]
  [./CodeRay_slurm]
-   input = 'code_ray.xml ../slurm_block.xml ../cluster_runinfo_slurm.xml'
+   input = 'code_ray.xml ../slurm_block.xml slurm_extra.xml'
    output = 'CodeRay/outer_out.csv CodeRay/outer_out.xml'
    run_types = 'slurm'
    output_wait_time = 60
