@@ -66,9 +66,9 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
-    <ray source="pip" pip_extra="[default]">2.6.3</ray>
+    <ray source="pip" pip_extra="[default]">2.6</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
-    <redis source="pip" os='windows'>5.2.0</redis>
+    <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
