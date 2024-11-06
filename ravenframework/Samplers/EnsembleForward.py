@@ -221,14 +221,15 @@ class EnsembleForward(Sampler):
     # add meta data keys
     self.addMetaKeys(metadataKeys, params=metaParams)
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlz, model, modelInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
@@ -237,20 +238,20 @@ class EnsembleForward(Sampler):
       coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
     for combination in coordinate:
       for key in combination:
-        if key not in self.inputInfo:
-          self.inputInfo[key] = combination[key]
+        if key not in rlz.inputInfo:
+          rlz.inputInfo[key] = combination[key]
         else:
-          if type(self.inputInfo[key]).__name__ == 'dict':
-            self.inputInfo[key].update(combination[key])
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = 1.0
-    for key in self.inputInfo:
+          if type(rlz.inputInfo[key]).__name__ == 'dict':
+            rlz.inputInfo[key].update(combination[key])
+    rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['ProbabilityWeight' ] = 1.0
+    for key in rlz.inputInfo:
       if key.startswith('ProbabilityWeight-'):
-        self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
-    self.inputInfo['SamplerType'] = 'EnsembleForward'
+        rlz.inputInfo['ProbabilityWeight' ] *= rlz.inputInfo[key]
+    rlz.inputInfo['SamplerType'] = 'EnsembleForward'
 
     # Update dependent variables
-    self._functionalVariables()
+    self._functionalVariables(rlz) # FIXME does this want batch or single?
 
   def flush(self):
     """

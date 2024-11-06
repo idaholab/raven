@@ -14,7 +14,7 @@
 """
   Realizations carry sampled information between entities in RAVEN
 """
-
+import numpy as np
 class Realization:
   """
     A mapping container specifically for carrying data between entities in RAVEN, such
@@ -30,7 +30,6 @@ class Realization:
     self._values = {}      # mapping of variables to their values
     self.indexMap = {}     # information about dimensionality of variables
     self.labels = {}       # custom labels for tracking, set externally
-    self.batchSize = 0     # not a batch, easy way to check
     self.isRestart = False # True if model was not run, but data was taken from restart
     self.inputInfo = {'SampledVars': {},   # additional information about this realization
                       'SampledVarsPb': {}, # point probability information for this realization
@@ -48,6 +47,21 @@ class Realization:
     """
     self.update(varVals)
     self.isRestart = True
+
+  def asDict(self):
+    """
+      Collects all the information this Realization knows about and returns it
+      Also assures that all entries are at least 1d np arrays
+      @ In, None
+      @ Out, info, dict, all the things
+    """
+    # TODO this is one-way, no easy way to unpack labels and input info back into rlz form
+    # TODO any deep copies needed? Let's assume no.
+    info = dict((var, np.atleast_1d(val)) for var, val in self._values.items())
+    info['_indexMap'] = np.atleast_1d(self.indexMap)
+    info.update(dict((key, np.atleast_1d(val)) for key, val in self.inputInfo.items()))
+    info.update(dict((label, np.atleast_1d(val)) for label, val in self.labels.items()))
+    return info
 
   ########
   #

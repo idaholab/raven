@@ -40,10 +40,6 @@ class InternalRunner(Runner):
     super().__init__(**kwargs)
 
     ## Other parameters passed at initialization
-    print('DEBUGG internalRunner functionArgs:')
-    print('DEBUGG ...', type(functionArgs))
-    for x in functionArgs:
-      print('DEBUGG ... ...', x)
     self.args = copy.copy(functionArgs)
     self.functionToRun = functionToRun
 

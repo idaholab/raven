@@ -231,23 +231,26 @@ class CustomSampler(Sampler):
     if self.batch > 1:
       self.addMetaKeys(["batchId"])
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlzBatch,  model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlzBatch, RealizationBatch, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     if self.batch > 1:
-      self.inputInfo['batchMode'] = True
+      # OLD rlz.inputInfo['batchMode'] = True
+      batchMode = True
       batchData = []
       self.batchId += 1
     else:
-      self.inputInfo['batchMode'] = False
-    for _ in range(self.batch):
+      # OLD rlz.inputInfo['batchMode'] = False
+      batchMode = False
+    for rlz in rlzBatch:
       if self.indexes is None:
         index = self.counter - 1
       else:
@@ -256,23 +259,23 @@ class CustomSampler(Sampler):
         break
       if self.readingFrom == 'DataObject':
         # data is stored as slices of a data object, so take from that
-        rlz = self.pointsToSample[index]
+        rlzData = self.pointsToSample[index]
         for var in self.toBeSampled:
           for subVar in var.split(','):
             subVar = subVar.strip()
             sourceName = self.nameInSource[subVar]
             # get the value(s) for the variable for this realization
-            self.values[subVar] = mathUtils.npZeroDToEntry(rlz[sourceName].values)
+            rlz[subVar] = mathUtils.npZeroDToEntry(rlzData[sourceName].values)
             # get supporting indices (e.g. 'time')
-            for dim in rlz.dims:
-              if dim not in self.values:
-                self.values[dim] = rlz[self.nameInSource.get(dim, dim)]
+            for dim in rlzData.dims:
+              if dim not in rlz:
+                rlz[dim] = rlzData[self.nameInSource.get(dim, dim)]
             # set the probability weight due to this variable (default to 1)
             pbWtName = 'ProbabilityWeight-'
-            self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
+            rlz.inputInfo[pbWtName+subVar] = rlzData.get(pbWtName+sourceName,1.0)
         # get realization-level required meta information, or default to 1
         for meta in ['PointProbability', 'ProbabilityWeight']:
-          self.inputInfo[meta] = rlz.get(meta, 1.0)
+          rlz.inputInfo[meta] = rlzData.get(meta, 1.0)
       elif self.readingFrom == 'File':
         # data is stored in file, so we already parsed the values
         # create values dictionary
@@ -280,21 +283,24 @@ class CustomSampler(Sampler):
           for subVar in var.split(','):
             subVar = subVar.strip()
             # assign the custom sampled variables values to the sampled variables
-            self.values[subVar] = self.pointsToSample[subVar][index]
+            rlz[subVar] = self.pointsToSample[subVar][index]
             # This is the custom sampler, assign the ProbabilityWeights based on the provided values
-            self.inputInfo[f'ProbabilityWeight-{subVar}'] = self.infoFromCustom[f'ProbabilityWeight-{subVar}'][index]
+            rlz.inputInfo[f'ProbabilityWeight-{subVar}'] = self.infoFromCustom[f'ProbabilityWeight-{subVar}'][index]
         # Construct probabilities based on the user provided information
-        self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
-        self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
-      self.values['_indexMap'] = self.sourceIndexMap
-      self.inputInfo['SamplerType'] = 'Custom'
-      if self.inputInfo['batchMode']:
-        self.inputInfo['SampledVars'] = self.values
-        self.inputInfo['batchId'] = self.name + str(self.batchId)
-        batchData.append(copy.deepcopy(self.inputInfo))
+        rlz.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
+        rlz.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
+      rlz.indexMap = self.sourceIndexMap
+      rlz.inputInfo['SamplerType'] = 'Custom'
+      # if rlz.inputInfo['batchMode']:
+      #   rlz.inputInfo['SampledVars'] = rlz
+      #   rlz.inputInfo['batchId'] = self.name + str(self.batchId)
+      #   batchData.append(copy.deepcopy(rlz.inputInfo))
+      if batchMode:
         self._incrementCounter()
-    if self.inputInfo['batchMode']:
-      self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}
+    if batchMode:
+      rlzBatch.ID = self.name + str(self.batchId)
+      FIXME # where does this data go? Fix along with GA
+      #rlzBatch.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}
 
   def flush(self):
     """

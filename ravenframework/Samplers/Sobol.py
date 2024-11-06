@@ -148,8 +148,8 @@ class Sobol(SparseGridCollocation):
       # just for each combo
       SG = rom.sparseGrid #they all should have the same sparseGrid
       SG._remap(combo)
-      for l in range(len(SG)):
-        pt, _ = SG[l]
+      for gridpt in SG:
+        pt, _ = gridpt
         newpt = np.zeros(len(self.features))
         for v, var in enumerate(self.features):
           if var in combo:
@@ -172,25 +172,26 @@ class Sobol(SparseGridCollocation):
     #for target in self.targets:
     self.ROM.supervisedContainer[0].initialize(initdict)
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlz, model, myInput):
     """
       Function to select the next most informative point
+      @ In, rlz, Realization, dict-like mapping of vars to vals
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     try:
       pt = self.pointsToRun[self.counter-1]
-    except IndexError:
+    except IndexError as ie:
       self.raiseADebug('All sparse grids are complete!  Moving on...')
-      raise utils.NoMoreSamplesNeeded
+      raise utils.NoMoreSamplesNeeded from ie
     for v, varName in enumerate(self.features):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
-          self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
+          rlz[key] = pt[v]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        rlz.inputInfo['ProbabilityWeight-'+varName] = rlz.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
@@ -209,12 +210,12 @@ class Sobol(SparseGridCollocation):
           else:
             self.raiseAnError(IOError, f'The variables {var} listed in sobol sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
-            self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
-    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
-    self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
+            rlz[key] = pt[location]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        rlz.inputInfo['ProbabilityWeight-'+dist] = rlz.inputInfo['SampledVarsPb'][varName]
+    rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
+    rlz.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
 
   def flush(self):
     """

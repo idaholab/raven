@@ -205,7 +205,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     super().__init__()
     ### COUNTERS AND FLAGS ###
-    self.batch = 1            # determines the size of each sampling batch to run
+    self.batch = 0            # determines the size of each sampling batch to run
     self.counter = 0          # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt = 0           # Aux counter of samples performed (for its usage check initialize method)
     self.limit = sys.maxsize  # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
@@ -267,7 +267,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     ### ASSEMBLING ###
     self.addAssemblerObject('Restart', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('ConstantSource', InputData.Quantity.zero_to_infinity)
-
 
   def _generateDistributions(self, availableDist, availableFunc):
     """
@@ -702,7 +701,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, size, int, 0
     """
-    return 0
+    return self.batch
 
   def localGetInitParams(self):
     """
@@ -1074,8 +1073,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       only the code interface possesses the dictionary for reading the variable definition syntax
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, modelInput, list, a list of the original Step inputs for the model (e.g. files)
-      @ Out, found, int, number indicating the result of sampling this variable (e.g., 0 new sample, 1 from restart)
-      @ Out, rlz, Realization, mapping from variables to values for sample
+      @ Out, rlzBatch, RealizationBatch, list of mappings from variables to values for sample
       @ Out, modelInput, potentially perturbed? original inputs for model, or None if taken from restart
     """
     if model is not None:
@@ -1117,7 +1115,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       _, inExisting = self._checkRestartForEvaluation(rlz)
       if inExisting is None:
         # we have a new evaluation, so check its contents for consistency
-        self._checkSample()
+        self._checkSample(rlz)
         self.raiseADebug(f' ... Batch Sample point {r}, prefix {rlz.inputInfo["prefix"]}, (var, val):')
         for var, val in rlz.items():
           self.raiseADebug(f' ... - "{var}": "{val}"')
@@ -1202,9 +1200,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     rlz.update(manifestVariablesDict)
     # TODO REMOVE_applyTransformation(rlz)
 
-  def _checkSample(self):
+  def _checkSample(self, rlz):
     """
       Checks the current sample for consistency with expected contents.
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, None
       @ Out, None
     """

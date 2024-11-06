@@ -103,8 +103,8 @@ class Stratified(Grid):
     else:
       # correct dimensionality given
       self.pointByVar = pointByVar[0]
-    self.inputInfo['upper'] = {}
-    self.inputInfo['lower'] = {}
+    rlz.inputInfo['upper'] = {}
+    rlz.inputInfo['lower'] = {}
 
   def localInitialize(self):
     """
@@ -155,19 +155,20 @@ class Stratified(Grid):
     for nPoint in range(self.pointByVar-1):
       self.sampledCoordinate[nPoint] = [tempFillingCheck[mappingIdVarName[varName]][nPoint] for varName in self.axisName]
 
-  def localGenerateInput(self, model, oldInput):
+  def localGenerateInput(self, rlz, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     varCount = 0
-    self.inputInfo['distributionName'] = {} # Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} # Used to determine which distribution type is used
+    rlz.inputInfo['distributionName'] = {} # Used to determine which distribution to change if needed.
+    rlz.inputInfo['distributionType'] = {} # Used to determine which distribution type is used
     weight = 1.0
     for varName in self.axisName:
       # new implementation for ND LHS
@@ -178,8 +179,8 @@ class Stratified(Grid):
           if self.variablesTransformationDict:
             for distVarName in self.distributions2variablesMapping[distName]:
               for subVar in utils.first(distVarName.keys()).strip().split(','):
-                self.inputInfo['distributionName'][subVar] = self.toBeSampled[varName]
-                self.inputInfo['distributionType'][subVar] = self.distDict[varName].type
+                rlz.inputInfo['distributionName'][subVar] = self.toBeSampled[varName]
+                rlz.inputInfo['distributionType'][subVar] = self.distDict[varName].type
             ndCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
             centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
@@ -199,9 +200,9 @@ class Stratified(Grid):
                 dxs[positionList.index(position)] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)-self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
                 centerCoordinate[positionList.index(position)] = (self.distDict[variable].inverseMarginalDistribution(upper,variable)+self.distDict[variable].inverseMarginalDistribution(lower,variable))/2.0
                 for subVar in variable.strip().split(','):
-                  self.values[subVar] = ndCoordinate[positionList.index(position)]
-                  self.inputInfo['upper'][subVar] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
-                  self.inputInfo['lower'][subVar] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
+                  rlz[subVar] = ndCoordinate[positionList.index(position)]
+                  rlz.inputInfo['upper'][subVar] = self.distDict[variable].inverseMarginalDistribution(max(upper,lower),variable)
+                  rlz.inputInfo['lower'][subVar] = self.distDict[variable].inverseMarginalDistribution(min(upper,lower),variable)
               elif self.gridInfo[variable] == 'value':
                 dxs[positionList.index(position)] = max(upper,lower) - min(upper,lower)
                 centerCoordinate[positionList.index(position)] = (upper + lower)/2.0
@@ -209,11 +210,11 @@ class Stratified(Grid):
                 coordinate = self.distDict[variable].inverseMarginalDistribution(coordinateCdf,variable)
                 ndCoordinate[positionList.index(position)] = coordinate
                 for subVar in variable.strip().split(','):
-                  self.values[subVar] = coordinate
-                  self.inputInfo['upper'][subVar] = max(upper,lower)
-                  self.inputInfo['lower'][subVar] = min(upper,lower)
+                  rlz[subVar] = coordinate
+                  rlz.inputInfo['upper'][subVar] = max(upper,lower)
+                  rlz.inputInfo['lower'][subVar] = min(upper,lower)
             gridsWeight = self.distDict[varName].cellIntegral(centerCoordinate,dxs)
-            self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
+            rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
           else:
             if self.gridInfo[varName] == 'CDF':
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
@@ -223,14 +224,14 @@ class Stratified(Grid):
               gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
               for distVarName in self.distributions2variablesMapping[distName]:
                 for subVar in utils.first(distVarName.keys()).strip().split(','):
-                  self.inputInfo['distributionName'][subVar], self.inputInfo['distributionType'][subVar], self.values[subVar] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[utils.first(distVarName.values())-1]
+                  rlz.inputInfo['distributionName'][subVar], rlz.inputInfo['distributionType'][subVar], rlz[subVar] = self.toBeSampled[varName], self.distDict[varName].type, np.atleast_1d(gridCoordinate)[utils.first(distVarName.values())-1]
               # coordinate stores the cdf values, we need to compute the pdf for SampledVarsPb
-              self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
+              rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(np.atleast_1d(gridCoordinate).tolist())
               gridsWeight = max(upper,lower) - min(upper,lower)
             else:
               self.raiseAnError(IOError,"Since the globalGrid is defined, the Stratified Sampler is only working when the sampling is performed on a grid on a CDF. However, the user specifies the grid on " + self.gridInfo[varName])
           weight *= gridsWeight
-          self.inputInfo['ProbabilityWeight-'+distName] = gridsWeight
+          rlz.inputInfo['ProbabilityWeight-'+distName] = gridsWeight
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:
         # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
@@ -243,32 +244,32 @@ class Stratified(Grid):
           ppfLower = self.distDict[varName].ppf(min(upper,lower))
           ppfUpper = self.distDict[varName].ppf(max(upper,lower))
           gridWeight = self.distDict[varName].cdf(ppfUpper) - self.distDict[varName].cdf(ppfLower)
-          self.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
+          rlz.inputInfo['SampledVarsPb'][varName]  = self.distDict[varName].pdf(ppfValue)
         elif self.gridInfo[varName] == 'value':
           coordinateCdf = self.distDict[varName].cdf(min(upper,lower)) + (self.distDict[varName].cdf(max(upper,lower))-self.distDict[varName].cdf(min(upper,lower)))*randomUtils.random()
           if coordinateCdf == 0.0:
             self.raiseAWarning(IOError, "The grid lower bound and upper bound in value will generate ZERO cdf value!!!")
           coordinate = self.distDict[varName].ppf(coordinateCdf)
           gridWeight = self.distDict[varName].cdf(max(upper,lower)) - self.distDict[varName].cdf(min(upper,lower))
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
+          rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(coordinate)
         # compute the weight and ProbabilityWeight-varName
         weight *= gridWeight
-        self.inputInfo['ProbabilityWeight-'+varName] = gridWeight
+        rlz.inputInfo['ProbabilityWeight-'+varName] = gridWeight
         for subVar in varName.strip().split(','):
-          self.inputInfo['distributionName'][subVar] = self.toBeSampled[varName]
-          self.inputInfo['distributionType'][subVar] = self.distDict[varName].type
+          rlz.inputInfo['distributionName'][subVar] = self.toBeSampled[varName]
+          rlz.inputInfo['distributionType'][subVar] = self.distDict[varName].type
           if self.gridInfo[varName] =='CDF':
-            self.values[subVar] = ppfValue
-            self.inputInfo['upper'][subVar] = ppfUpper
-            self.inputInfo['lower'][subVar] = ppfLower
+            rlz[subVar] = ppfValue
+            rlz.inputInfo['upper'][subVar] = ppfUpper
+            rlz.inputInfo['lower'][subVar] = ppfLower
           elif self.gridInfo[varName] =='value':
-            self.values[subVar] = coordinate
-            self.inputInfo['upper'][subVar] = max(upper,lower)
-            self.inputInfo['lower'][subVar] = min(upper,lower)
+            rlz[subVar] = coordinate
+            rlz.inputInfo['upper'][subVar] = max(upper,lower)
+            rlz.inputInfo['lower'][subVar] = min(upper,lower)
 
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = weight
-    self.inputInfo['SamplerType'] = 'Stratified'
+    rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['ProbabilityWeight' ] = weight
+    rlz.inputInfo['SamplerType'] = 'Stratified'
 
   def flush(self):
     """

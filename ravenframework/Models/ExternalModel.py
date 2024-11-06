@@ -324,10 +324,13 @@ class ExternalModel(Dummy):
     ## do it in this order to make sure only the right variables are overwritten
     ## first inRun, which has everything from self.* and Input[*]
     # FIXME should this be a proper Realization object? Should we update the one we already have?
+    # -> NOTE that RAVEN dataobjects currently expect all the inputInfo keys in the sample space,
+    #         so that's a big difference from a Realization object
     res = dict((var, np.atleast_1d(val)) for var, val in inRun.items())
     ## then result, which has the expected outputs and possibly changed inputs
     res.update(dict((var, np.atleast_1d(val)) for var, val in result.items()))
-    ## then get the metadata from kwargs
+    ## then get the metadata, values from the input realization
+    rlzData = rlz.asDict()
     res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.inputInfo.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
     res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.items()))

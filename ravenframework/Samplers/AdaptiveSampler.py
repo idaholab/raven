@@ -91,17 +91,17 @@ class AdaptiveSampler(Sampler):
     self.checkIdentifiersPresent(info)
     self._prefixToIdentifiers[prefix] = info
 
-  def _checkSample(self):
+  def _checkSample(self, rlz):
     """
       Check sample consistency.
-      @ In, None
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ Out, None
     """
-    Sampler._checkSample(self)
+    Sampler._checkSample(self, rlz)
     # make sure the prefix is registered for tracking
     # but if there's no identifying information, skip this check
     if self._registeredIdentifiers:
-      prefix = self.inputInfo['prefix']
+      prefix = rlz.inputInfo['prefix']
       if not prefix in self._prefixToIdentifiers:
         self.raiseAnError(RuntimeError, f'Prefix "{prefix}" has not been tracked in adaptive sampling!')
 

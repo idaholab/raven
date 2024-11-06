@@ -18,19 +18,9 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
-import sys
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 import pyDOE3 as doe
 from ..utils import InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
 
 class FactorialDesign(Grid):
   """
@@ -159,20 +149,21 @@ class FactorialDesign(Grid):
       self.designMatrix[self.designMatrix == -1] = 0 # convert all -1 in 0 => we can access to the grid info directly
       self.limit = self.designMatrix.shape[0]        # the limit is the number of rows
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, rlz, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     if self.factOpt['algorithmType'] == 'full':
-      Grid.localGenerateInput(self,model, myInput)
+      Grid.localGenerateInput(self, rlz, model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
-      Grid.localGenerateInput(self,model, myInput)
+      Grid.localGenerateInput(self, rlz, model, myInput)
 #
 #
