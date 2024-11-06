@@ -103,8 +103,8 @@ class Stratified(Grid):
     else:
       # correct dimensionality given
       self.pointByVar = pointByVar[0]
-    rlz.inputInfo['upper'] = {}
-    rlz.inputInfo['lower'] = {}
+    self.samplerInfo['upper'] = {}
+    self.samplerInfo['lower'] = {}
 
   def localInitialize(self):
     """

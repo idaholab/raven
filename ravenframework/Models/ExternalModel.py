@@ -119,7 +119,7 @@ class ExternalModel(Dummy):
       self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
 
-  def createNewInput(self,myInput, samplerType, rlz):
+  def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
@@ -330,7 +330,7 @@ class ExternalModel(Dummy):
     ## then result, which has the expected outputs and possibly changed inputs
     res.update(dict((var, np.atleast_1d(val)) for var, val in result.items()))
     ## then get the metadata, values from the input realization
-    rlzData = rlz.asDict()
+    #rlzData = rlz.asDict()
     res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.inputInfo.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
     res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.items()))

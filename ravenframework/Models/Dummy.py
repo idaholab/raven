@@ -173,7 +173,7 @@ class Dummy(Model):
         kwargs['SampledVars'] = sampledVars
     except KeyError:
       pass
-    return [(inputDict)],copy.deepcopy(rlz)
+    return [(inputDict)], copy.deepcopy(rlz)
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, rlz):
@@ -192,9 +192,9 @@ class Dummy(Model):
     inRun = self._manipulateInput(Input[0])
     # alias system
     self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
-    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',True)
+    self._replaceVariablesNamesWithAliasSystem(rlz,'input',True)
     # build realization using input space from inRun and metadata from kwargs
-    rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(itertools.chain(kwargs.keys(),inRun.keys())))
+    rlz = dict((var,np.atleast_1d(inRun[var] if var in rlz else rlz.inputInfo)) for var in set(itertools.chain(rlz.keys(),inRun.keys())))
     # add dummy output space
     rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))
     return rlz

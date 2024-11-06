@@ -755,7 +755,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     rlz.inputInfo['ProbabilityWeight'] = rlz.inputInfo['PointProbability']
     self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([rlz[axis] for axis in self.axisName]))))
-    self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
+    self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(rlz))
     rlz.inputInfo['SamplerType'] = 'LimitSurfaceSearch'
     rlz.inputInfo['subGridTol' ] = self.subGridTol
 
