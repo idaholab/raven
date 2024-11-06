@@ -314,9 +314,12 @@ class JobHandler(BaseType):
         uniqueN = list(set(availableNodes))
         # identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
+        shortLocalHostName = localHostName.split(".")[0]
         self.raiseADebug("Head host name is   : ", localHostName)
         # number of processors
         nProcsHead = availableNodes.count(localHostName)
+        if nProcsHead == 0:
+          nProcsHead = availableNodes.count(shortLocalHostName)
         if not nProcsHead:
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           self.raiseAWarning(f'Head host name "{localHostName}" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
