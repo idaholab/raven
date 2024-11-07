@@ -133,7 +133,7 @@ class SlurmSimulationMode(Simulation.SimulationMode):
 
     # get the requested memory, if any
     if self.__memNeeded is not None:
-      memString = " --mem="+self.__memNeeded
+      memString = "--mem="+self.__memNeeded
     else:
       memString = None
 

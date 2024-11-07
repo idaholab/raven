@@ -431,6 +431,8 @@ class JobHandler(BaseType):
       @ Out, None
     """
     if self._parallelLib == ParallelLibEnum.ray and self._server is not None and not self.rayInstanciatedOutside:
+      # shutdown ray API (object storage, plasma, etc.)
+      ray.shutdown()
       # we need to ssh and stop each remote node cluster (ray)
       servers = []
       if 'remoteNodes' in self.runInfoDict:
@@ -440,15 +442,16 @@ class JobHandler(BaseType):
       # get local enviroment
       localEnv = os.environ.copy()
       localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
+      rayTerminateList = []
       for nodeAddress in servers:
         self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
-        command="ray stop"
+        command="ray stop -v"
         rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localEnv)
+        rayTerminateList.append((nodeAddress,rayTerminate))
+      for nodeAddress, rayTerminate in rayTerminateList:
         rayTerminate.wait()
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
-      # shutdown ray API (object storage, plasma, etc.)
-      ray.shutdown()
     elif self._parallelLib == ParallelLibEnum.dask and self._server is not None and not self.rayInstanciatedOutside:
       self._server.close()
       if self._daskScheduler is not None:
