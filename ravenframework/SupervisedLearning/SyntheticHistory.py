@@ -271,14 +271,27 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, settings, dict, parameters to set
     """
     byAlgo = collections.defaultdict(list)
+    # Here we take the interpolated features and reorganize them to a dict
+    #   the original entry names are 'target|algorithmName|featureName'
+    #   the new structure is {algorithmName:(target,featureName,value)}
     for feature, values in settings.items():
       target, algoName, ident = feature.split('|', maxsplit=2)
       byAlgo[algoName].append((target, ident, values))
+    trainedParams = self.getTsaTrainedParams()
     for algo in self.getTsaAlgorithms():
       settings = byAlgo.get(algo.name, None)
+      # The incoming features are organized by algorithmName, but the trainedParams are indexed
+      #    by the algorithm objects themselves. so there could be two objects with the same algo name.
+      # Need to make sure that we send the right target information over (algorithms are agnostic)
       if settings:
-        params = algo.setClusteringValues(settings, self.getTsaTrainedParams()[algo])
-        self.getTsaTrainedParams()[algo] = params
+        trainedTargets = list(trainedParams[algo]) # list of targets used in the specific algorithm
+        if algo.name in trainedTargets:
+          # most algorithm trainedParam dictionaries are indexed by target except for VARMA since it
+          #  uses targets together. The syntax for those types of algorithms is to index by the algo Name
+          trainedTargets = list(trainedParams[algo][algo.name]['targets'])
+        # keep settings with targets that are present in the trainedParams for the specific algorithm
+        filtered_settings = [paramSet for paramSet in settings if paramSet[0] in trainedTargets]
+        trainedParams[algo] = algo.setClusteringValues(filtered_settings, trainedParams[algo])
 
   def findAlgoByName(self, name):
     """
@@ -359,17 +372,27 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, results, dict, global ROM feature set
     """
     byAlgo = collections.defaultdict(list)
+    # Here we take the interpolated features and reorganize them to a dict
+    #   the original entry names are 'target|algorithmName|featureName'
+    #   the new structure is {algorithmName:(target,featureName,value)}
     for feature, values in params.items():
       target, algoName, ident = feature.split('|', maxsplit=2)
       byAlgo[algoName].append((target, ident, values))
     trainedParams = self.getTsaTrainedParams()
-    for algo in self.getTsaAlgorithms():
+    for algo in self.getGlobalTsaAlgorithms():
       settings = byAlgo.get(algo.name, None)
+      # The incoming features are organized by algorithmName, but the trainedParams are indexed
+      #    by the algorithm objects themselves. so there could be two objects with the same algo name.
+      # Need to make sure that we send the right target information over (algorithms are agnostic)
       if settings:
-        # there might be multiple instances of same algo w/ different targets, need to filter by targets
-        # filtered_settings = [feat for feat in settings if feat[0] in self.getTsaTrainedParams()[algo]]
-        params = algo.setClusteringValues(settings, trainedParams[algo])
-        trainedParams[algo] = params
+        trainedTargets = list(trainedParams[algo]) # list of targets used in the specific algorithm
+        if algo.name in trainedTargets:
+          # most algorithm trainedParam dictionaries are indexed by target except for VARMA since it
+          #  uses targets together. The syntax for those types of algorithms is to index by the algo Name
+          trainedTargets = list(trainedParams[algo][algo.name]['targets'])
+        # keep settings with targets that are present in the trainedParams for the specific algorithm
+        filtered_settings = [paramSet for paramSet in settings if paramSet[0] in trainedTargets]
+        trainedParams[algo] = algo.setClusteringValues(filtered_settings, trainedParams[algo])
     return trainedParams
 
   def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
