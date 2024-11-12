@@ -35,7 +35,7 @@
    max_time = 3600
  [../]
  [./test_mpiqsub_long]
-   input='test_mpiqsub_long.xml qsub_block.xml cluster_runinfo_legacy.xml mpi_mode_include.xml'
+   input='test_mpiqsub_long.xml qsub_block.xml cluster_runinfo_legacy.xml mpi_mode_include_pbs.xml'
    run_types = 'qsub'
    output = 'FirstMQL/FirstMQRun/1/out~simple_gp_test.csv FirstMQL/FirstMQRun/6/out~simple_gp_test.csv'
    csv = 'FirstMQL/samples.csv'

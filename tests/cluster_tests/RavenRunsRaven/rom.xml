@@ -16,9 +16,6 @@
   <RunInfo>
     <WorkingDir>Rom</WorkingDir>
     <Sequence>FirstMRun</Sequence>
-    <!--
-      <mode>mpi</mode>
-    -->
     <batchSize>5</batchSize>
     <expectedTime>0:10:0</expectedTime>
   </RunInfo>
