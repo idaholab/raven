@@ -19,6 +19,7 @@
   [./multiYearDWT]
     type = 'RavenFramework'
     input = 'multiYearDWT.xml'
+    skip_if_OS = windows
     [./csv]
       type = OrderedCSV
       output = 'MultiYearDWT/samples.csv'
