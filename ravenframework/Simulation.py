@@ -216,6 +216,7 @@ class Simulation(MessageUser):
                                     'suppressErrs': suppressErrs})
     # ensure messageHandler time has been reset (important if re-running simulation)
     self.messageHandler.starttime = time.time()
+    self.raiseAMessage('Initializing '+str(time.ctime()))
     sys.path.append(os.getcwd())
     # flag for checking if simulation has been run before
     self.ranPreviously = False
