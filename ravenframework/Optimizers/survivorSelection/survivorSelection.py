@@ -73,21 +73,24 @@ def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, 
                                                                          popFit = self.fitness,
                                                                          offFit = offSpringFitness,
                                                                          popConstV = self.constraintsV,
+                                                                         direction=self._minMax,
                                                                          offConstV = g)
   else:
     self.population = offSprings
     self.fitness = offSpringFitness
     self.constraintsV = g
     # offspringObjsVals for Rank and CD calculation
-    fitVal           = datasetToDataArray(self.fitness, self._objectiveVar).data
+    fitVal = datasetToDataArray(self.fitness, self._objectiveVar).data
     offspringFitVals = fitVal.tolist()
     offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals))
+    # reverse the ranking because we want highest fitness
+    offSpringRank = list(max(offSpringRank) - np.asarray(offSpringRank) +1)
     self.rank     = xr.DataArray(offSpringRank,
                                  dims=['rank'],
                                  coords={'rank': np.arange(np.shape(offSpringRank)[0])})
     offSpringCD           = frontUtils.crowdingDistance(rank=offSpringRank,
                                                         popSize=len(offSpringRank),
-                                                        objectives=np.array(offspringFitVals))
+                                                        fitness=np.array(offspringFitVals))
     self.crowdingDistance = xr.DataArray(offSpringCD,
                                          dims=['CrowdingDistance'],
                                          coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})

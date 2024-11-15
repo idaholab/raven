@@ -11,10 +11,6 @@ def constraintHandling(self, info, rlz, multiObjective=False):
     @ Out, None
     """
     traj = info['traj']
-    for t in self._activeTraj[1:]:
-        self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
-    self.incrementIteration(traj)
-
     offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
 
     # Handle objective values differently for single and multi-objective cases
@@ -79,4 +75,4 @@ def constraintHandling(self, info, rlz, multiObjective=False):
         self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
         self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
-    return traj, g, objectiveVal, offSprings, offSpringFitness
+    return g, objectiveVal, offSprings, offSpringFitness
