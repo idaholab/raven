@@ -98,9 +98,6 @@
       <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-      <!-- <Constraint class='Functions' type='External'>expConstr1</Constraint>
-      <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
-      <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint> -->
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -119,15 +116,6 @@
       <variable name="x3">
         <distribution>woRep_dist</distribution>
       </variable>
-      <!-- <variable name="x4">
-        <distribution>woRep_dist</distribution>
-      </variable>
-      <variable name="x5">
-        <distribution>woRep_dist</distribution>
-      </variable>
-      <variable name="x6">
-        <distribution>woRep_dist</distribution>
-      </variable> -->
     </MonteCarlo>
   </Samplers>
 

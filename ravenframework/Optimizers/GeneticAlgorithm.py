@@ -785,12 +785,16 @@ class GeneticAlgorithm(RavenSampled):
     """
 
     info['step'] = self.counter
+    traj = info['traj']
+    for t in self._activeTraj[1:]:
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
+    self.incrementIteration(traj)
 
     # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
     # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
 
     objInd = int(len(self._objectiveVar)>1) + 1
-    traj, g, objectiveVal, offSprings, offSpringFitness = constraintHandling(self, info, rlz,multiObjective=len(self._objectiveVar)>1)
+    g, objectiveVal, offSprings, offSpringFitness = constraintHandling(self, info, rlz,multiObjective=len(self._objectiveVar)>1)
 
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
@@ -982,6 +986,9 @@ class GeneticAlgorithm(RavenSampled):
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new state ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
+    # if self.counter == 1:
+    #   acceptable = 'first'
+    # elif self.constraintsV.data[i,ind]
     acceptable = 'accepted' if self.counter > 1 else 'first'
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
@@ -1078,6 +1085,9 @@ class GeneticAlgorithm(RavenSampled):
     rankOneIDX = [i for i, rankValue in enumerate(rank.data) if rankValue == 1]
     optPoints = population[rankOneIDX]
     optObjVal = np.array([list(ele) for ele in list(zip(*objVal))])[rankOneIDX]
+    # for idx,type in enumerate(self._minMax):
+    #   if type == 'max':
+    #     optObjVal[:,idx] = -1 * optObjVal[:,idx]
     count = 0
     for i in list(fitness.keys()):
       data = fitness[i][rankOneIDX]

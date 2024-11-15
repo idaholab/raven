@@ -178,11 +178,12 @@ def rankNcrowdingBased(offsprings, **kwargs):
   newObjectivesMerged_pair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
 
   newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newFitMerged_pair))
+  newPopRank = list(max(newPopRank) - np.asarray(newPopRank) +1)
   newPopRank = xr.DataArray(newPopRank,
                             dims=['rank'],
                             coords={'rank': np.arange(np.shape(newPopRank)[0])})
 
-  newPopCD = frontUtils.crowdingDistance(rank=newPopRank, popSize=len(newPopRank), objectives=np.array(newFitMerged_pair))
+  newPopCD = frontUtils.crowdingDistance(rank=newPopRank, popSize=len(newPopRank), fitness=np.array(newFitMerged_pair))
   newPopCD = xr.DataArray(newPopCD,
                           dims=['CrowdingDistance'],
                           coords={'CrowdingDistance': np.arange(np.shape(newPopCD)[0])})
@@ -201,13 +202,14 @@ def rankNcrowdingBased(offsprings, **kwargs):
   newObjectives = sortedObjectivesT[:-len(offSprings)]
   newFit        = sortedFitT[:-len(offSprings)]
 
-  newRank = frontUtils.rankNonDominatedFrontiers(newObjectives)
+  newRank = frontUtils.rankNonDominatedFrontiers(newFit)
+  newRank = list(max(newRank) - np.asarray(newRank) +1)
   newRank = xr.DataArray(newRank,
                          dims=['rank'],
                          coords={'rank': np.arange(np.shape(newRank)[0])})
 
   newObjectivesP = [list(ele) for ele in list(zip(*newObjectives))]
-  newCD = frontUtils.crowdingDistance(rank=newRank, popSize=len(newRank), objectives=newObjectives)
+  newCD = frontUtils.crowdingDistance(rank=newRank, popSize=len(newRank), fitness=newFit)
   newCD = xr.DataArray(newCD,
                        dims=['CrowdingDistance'],
                        coords={'CrowdingDistance': np.arange(np.shape(newCD)[0])})
