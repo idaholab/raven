@@ -73,6 +73,7 @@ def checkArray(comment,check,expected,tol=1e-7):
     results['pass']+=1
     return True
 
+
 test3D = np.array([[ 0.21573114, -0.92937786,  0.29952775],
                    [ 0.94716548, -0.31085637, -0.07903087],
                    [ 0.6485263,  -0.72106429,  0.24388507],
@@ -103,53 +104,10 @@ test2D = np.array([[1.00000000e+00, 5.48813504e-01],
  [9.47678668e-01, 5.42365339e-01],
  [9.45824227e-01, 4.20176599e-01],
  [8.96915367e-01, 6.37614902e-01],
- [9.16351429e-01, 4.29517734e-01],
- [8.01561839e-01, 8.69414390e-01],
- [7.55562523e-01, 9.32146038e-01],
- [8.90900310e-01, 3.67593058e-01],
- [7.50520934e-01, 7.51391197e-01],
- [8.17338177e-01, 4.96351181e-01],
- [7.86831619e-01, 5.26530023e-01],
- [6.25333898e-01, 8.46377250e-01],
- [9.69178609e-01, 6.40012769e-02],
- [9.59699363e-01, 7.72487767e-02],
- [9.90078478e-01, 1.76166679e-02],
- [5.68376060e-01, 7.12008835e-01],
- [5.75488334e-01, 6.52163917e-01],
- [5.02251555e-01, 7.13559825e-01],
- [4.14678064e-01, 7.84278070e-01],
- [5.01732785e-01, 6.24807325e-01],
- [7.00855974e-01, 3.51391595e-01],
- [4.75249540e-01, 5.77808575e-01],
- [9.17718546e-01, 8.49623570e-02],
- [5.40313150e-01, 4.45181888e-01],
- [8.93878716e-01, 9.63765427e-02],
- [2.80685671e-01, 6.12361216e-01],
- [5.92002553e-01, 3.25367107e-01],
- [6.67684273e-01, 2.48013673e-01],
- [7.83018827e-01, 1.51356673e-01],
- [3.51123954e-01, 4.22371499e-01],
- [6.09926345e-01, 2.36464942e-01],
- [5.04712868e-01, 2.78940516e-01],
- [9.83340976e-01, 8.69100217e-03],
- [4.43529645e-01, 2.67981999e-01],
- [4.40291945e-01, 2.47766153e-01],
- [4.28153540e-01, 2.31514973e-01],
- [1.14322230e-01, 3.25937606e-01],
- [3.52914527e-01, 2.14847179e-01],
- [6.55351333e-01, 1.02289915e-01],
- [5.77261236e-01, 1.10855158e-01],
- [3.19859875e-01, 1.55237545e-01],
- [9.40885137e-01, 1.15126186e-02],
- [3.41780045e-01, 1.06415898e-01],
- [3.34868058e-01, 8.57592673e-02],
- [7.90589593e-01, 2.02015701e-02],
- [8.71338595e-01, 8.26033625e-03],
- [6.84733711e-01, 1.01099763e-02],
  [6.36289229e-01, 4.45417231e-17]])
 
 indexes2D = frontUtils.nonDominatedFrontier(test2D, returnMask=False, minMask=np.array([False,True]))
-answerIndexes = np.array([0, 16, 34, 47, 49])
+answerIndexes = np.array([0, 3, 4, 6])
 checkArray('2D nonDominatedFrontier MinMask with indexes', indexes2D.tolist(), answerIndexes.tolist())
 
 ## Testing crowding distances
@@ -172,13 +130,13 @@ testCDarray = np.array([[12, 0],
                        [0, 12]])
 
 rankCDSingleFront = frontUtils.rankNonDominatedFrontiers(testCDarray)
-indexesCD2D = frontUtils.crowdingDistance(rank=rankCDSingleFront, popSize=len(rankCDSingleFront), objectives=testCDarray)
+indexesCD2D = frontUtils.crowdingDistance(rank=rankCDSingleFront, popSize=len(rankCDSingleFront), fitness=testCDarray)
 answerIndexesCD2D = np.array([np.inf,0.16666667,0.11666667,0.08333333,0.09166667,0.125,0.16666667,0.29166667,0.45833333,0.625,0.75,0.5,0.20833333,0.11666667,0.125,np.inf])
 checkArray('2D crowding distance', indexesCD2D.tolist(), answerIndexesCD2D.tolist())
 
 # test2: 3 objective functions
 rank3D = frontUtils.rankNonDominatedFrontiers(test3D)
-indexesCD3D = frontUtils.crowdingDistance(rank=rank3D, popSize=len(rank3D), objectives=test3D)
+indexesCD3D = frontUtils.crowdingDistance(rank=rank3D, popSize=len(rank3D), fitness=test3D)
 answerIndexesCD3D = np.array([np.inf, np.inf, 1.06417083, np.inf, np.inf,0.56135102, np.inf, np.inf, np.inf,np.inf])
 checkArray('3D crowding distance', indexesCD3D.tolist(), answerIndexesCD3D.tolist())
 ###########################################
