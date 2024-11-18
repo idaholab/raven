@@ -24,40 +24,42 @@ import numpy as np
 
 def nonDominatedFrontier(data, returnMask, minMask=None):
   """
-    This method is designed to identify the set of non-dominated points (nEfficientPoints)
+    This method identifies the set of non-dominated points (nEfficientPoints).
 
-    If returnMask=True, then a True/False mask (isEfficientMask) is returned
+    If returnMask=True, a True/False mask (isEfficientMask) is returned.
     Non-dominated points pFront can be obtained as follows:
-      mask = nonDominatedFrontier(data,True)
+      mask = nonDominatedFrontier(data, True)
       pFront = data[np.array(mask)]
 
-    If returnMask=False, then an array of integer values containing the indexes of the non-dominated points is returned
+    If returnMask=False, an array of integer values containing the indexes of the non-dominated points is returned.
     Non-dominated points pFront can be obtained as follows:
-      mask = nonDominatedFrontier(data,False)
+      mask = nonDominatedFrontier(data, False)
       pFront = data[np.array(mask)]
 
     @ In, data, np.array, data matrix (nPoints, nCosts) containing the data points
     @ In, returnMask, bool, type of data to be returned: indices (False) or True/False mask (True)
-    @ Out, minMask, np.array, array (nCosts,1) of boolean values: True (dimension need to be minimized), False (dimension need to be maximized)
-    @ Out, isEfficientMask , np.array, data matrix (nPoints,1), array  of boolean values if returnMask=True
-    @ Out, isEfficient, np.array, data matrix (nEfficientPoints,1), integer array of indexes if returnMask=False
+    @ In, minMask, np.array, array (nCosts,) of boolean values: True (dimension needs to be minimized), False (dimension needs to be maximized)
+    @ Out, isEfficientMask, np.array, data matrix (nPoints,), array of boolean values if returnMask=True
+    @ Out, isEfficient, np.array, data matrix (nEfficientPoints,), integer array of indexes if returnMask=False
 
-    Reference: the following code has been adapted from https://stackoverflow.com/questions/32791911/fast-calculation-of-pareto-front-in-python
+    Reference: Adapted from https://stackoverflow.com/questions/32791911/fast-calculation-of-pareto-front-in-python
   """
+
   if minMask is None:
     pass
-  elif minMask is not None and minMask.shape[0] != data.shape[1]:
+  elif minMask is not None and len(minMask) != data.shape[1]:
     raise IOError("nonDominatedFrontier method: Data features do not match minMask dimensions: data has shape " + str(data.shape) + " while minMask has shape " + str(minMask.shape))
   else:
-    for index,elem in np.ndenumerate(minMask):
+    for index,elem in enumerate(minMask):
       if not elem:
         data[:,index] = -1. * data[:,index]
 
-  isEfficient = np.arange(data.shape[0])
   nPoints = data.shape[0]
+  isEfficient = np.arange(nPoints)
   nextPointIndex = 0
-  while nextPointIndex<len(data):
-    nondominatedPointMask = np.any(data<data[nextPointIndex], axis=1)
+
+  while nextPointIndex < len(data):
+    nondominatedPointMask = np.any(data < data[nextPointIndex], axis=1) | np.all(data == data[nextPointIndex], axis=1) # points that indexPoint is dominating
     nondominatedPointMask[nextPointIndex] = True
     isEfficient = isEfficient[nondominatedPointMask]
     data = data[nondominatedPointMask]
@@ -71,7 +73,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
 
 def rankNonDominatedFrontiers(data):
   """
-    This method ranks the non dominated fronts by omitting thr first front from the data
+    This method ranks the non-dominated fronts by omitting the first front from the data
     and searching the remaining data for a new one recursively.
     @ In, data, np.array, data matrix (nPoints, nObjectives) containing the multi-objective
                           evaluations of each point/individual, element (i,j)
@@ -79,42 +81,59 @@ def rankNonDominatedFrontiers(data):
     @ out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
-  nonDominatedRank = np.zeros(data.shape[0],dtype=int)
+  nonDominatedRank = np.zeros(data.shape[0], dtype=int)
+  mask = np.ones(data.shape[0], dtype=bool)
   rank = 0
-  indicesDominated = list(np.arange(data.shape[0]))
-  indicesNonDominated = []
-  rawData = data
-  while np.shape(data)[0] > 0:
-    rank += 1
-    indicesNonDominated = list(nonDominatedFrontier(data, False))
-    if rank > 1:
-      for i in range(len(indicesNonDominated)):
-        indicesNonDominated[i] = indicesDominated[indicesNonDominated[i]]
-    indicesDominated = list(set(indicesDominated)-set(indicesNonDominated))
-    data = rawData[indicesDominated]
-    nonDominatedRank[indicesNonDominated] = rank
-  nonDominatedRank = list(nonDominatedRank)
-  return nonDominatedRank
 
-def crowdingDistance(rank, popSize, objectives):
+  while np.any(mask):
+    rank += 1
+    # Get non-dominated points from remaining data
+    currentFront = nonDominatedFrontier(data[mask], False)
+    # Convert indices back to original data space
+    originalIndices = np.where(mask)[0][currentFront]
+    # Assign rank
+    nonDominatedRank[originalIndices] = rank
+    # Update mask to remove current front
+    mask[originalIndices] = False
+
+  return nonDominatedRank.tolist()
+def crowdingDistance(rank, popSize, fitness):
   """
-    Method designed to calculate the crowding distance for each front
+    Method designed to calculate the crowding distance for each front.
     @ In, rank, np.array, array which contains the front ID for each element of the population
     @ In, popSize, int, size of population
-    @ In, objectives, np.array, matrix contains objective values for each element of the population
+    @ In, fitness, np.array, matrix contains fitness values for each element of the population
     @ Out, crowdDist, np.array, array of crowding distances
   """
   crowdDist = np.zeros(popSize)
   fronts = np.unique(rank)
-  fronts = fronts[fronts!=np.inf]
+  fronts = fronts[fronts != np.inf]
 
-  for f in range(len(fronts)):
-    front = np.where(np.asarray(rank)==f+1)[0]
-    fMax = np.max(objectives[front, :], axis=0)
-    fMin = np.min(objectives[front, :], axis=0)
-    for obj in range(np.shape(objectives)[1]):
-      sortedRank = np.argsort(objectives[front, obj])
-      crowdDist[front[sortedRank[0]]] = crowdDist[front[sortedRank[-1]]] = np.inf
-      for i in range(1, len(front)-1):
-        crowdDist[front[sortedRank[i]]] = crowdDist[front[sortedRank[i]]] + (objectives[front[sortedRank[i+1]], obj] - objectives[front[sortedRank[i-1]], obj]) / (fMax[obj]-fMin[obj])
+  for f in fronts:
+    front = np.where(rank == f)[0]  # Get indices of current front
+    numObjectives = fitness.shape[1]
+    numPoints = len(front)
+    if numPoints <= 2:  # If front has 2 or fewer points, set to infinity
+      crowdDist[front] = np.inf
+      continue
+    for obj in range(numObjectives):
+      # Sort points in current front by current objective
+      sortedIndices = np.argsort(fitness[front, obj])
+      sortedFront = front[sortedIndices]
+      fMax = fitness[front, obj].max()
+      fMin = fitness[front, obj].min()
+
+      # Set boundary points to infinity
+      crowdDist[sortedFront[0]] = np.inf
+      crowdDist[sortedFront[-1]] = np.inf
+
+      # Skip normalization if all values are identical
+      if fMax == fMin:
+        continue
+
+      # Calculate normalized distances with epsilon protection
+      for i in range(1, numPoints - 1):
+        nextObjValue = fitness[sortedFront[i + 1], obj]
+        prevObjValue = fitness[sortedFront[i - 1], obj]
+        crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (fMax - fMin)
   return crowdDist
