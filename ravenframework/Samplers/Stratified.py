@@ -81,7 +81,7 @@ class Stratified(Grid):
     self.globalGrid = {}    # Dictionary for the globalGrid. These grids are used only for Stratified for ND distributions.
     self.pointByVar = None
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
       @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
@@ -103,8 +103,6 @@ class Stratified(Grid):
     else:
       # correct dimensionality given
       self.pointByVar = pointByVar[0]
-    self.samplerInfo['upper'] = {}
-    self.samplerInfo['lower'] = {}
 
   def localInitialize(self):
     """
@@ -169,6 +167,8 @@ class Stratified(Grid):
     varCount = 0
     rlz.inputInfo['distributionName'] = {} # Used to determine which distribution to change if needed.
     rlz.inputInfo['distributionType'] = {} # Used to determine which distribution type is used
+    rlz.inputInfo['upper'] = {}
+    rlz.inputInfo['lower'] = {}
     weight = 1.0
     for varName in self.axisName:
       # new implementation for ND LHS

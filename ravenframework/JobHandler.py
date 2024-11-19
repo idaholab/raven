@@ -701,7 +701,9 @@ class JobHandler(BaseType):
       if rlz.isRestart:
         self.addFinishedJob(rlz, metadata=rlz.inputInfo)
       else:
-        self.addJob(
+        # assure the realization knows about the batch it belongs to
+        rlz.inputInfo['batchID'] = batch.ID
+        self.addSingleJob(
             (model, modelInput, samplerType, rlz),
             evalFunc,
             rlz.inputInfo['prefix'],
@@ -711,7 +713,7 @@ class JobHandler(BaseType):
             groupInfo={'id': batch.ID, 'size': len(batch)}
         )
 
-  def addJob(self, args, functionToRun, identifier, metadata=None,
+  def addSingleJob(self, args, functionToRun, identifier, metadata=None,
              forceUseThreads=False, uniqueHandler="any", clientQueue=False,
              groupInfo=None):
     """
@@ -832,7 +834,6 @@ class JobHandler(BaseType):
     self.addJob(args, functionToRun, identifier, metadata,
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True, groupInfo = groupInfo)
-
 
   def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
     """

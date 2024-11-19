@@ -1116,23 +1116,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       if inExisting is None:
         # we have a new evaluation, so check its contents for consistency
         self._checkSample(rlz)
-        self.raiseADebug(f' ... Batch Sample point {r}, prefix {rlz.inputInfo["prefix"]}, (var, val):')
+        self.raiseADebug(f' ... Batch Sample point {r}, prefix {rlz.inputInfo["prefix"]}:')
         for var, val in rlz.items():
           self.raiseADebug(f' ... - "{var}": "{val}"')
       else:
         self.raiseADebug(f'Batch Point {r} found in restart!')
-        # we've fixed it so the input and output space don't really matter, so use restartData's own definition
-        # DO format the data as atleast_1d so it's consistent in the ExternalModel for users (right?)
-        # TODO OLD:
-        # rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
-        # rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
-        # rlz['metadata'] = rlz.inputInfo # NOTE soft link
-        # TODO new:
-        # TODO can we combine these?
-        # inputs = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
-        # outputs = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
         # TODO method for getting Realization object out of DataObjects?
-        restartRlz = dict((var, np.atleast_1d(inExisting[var])) for var in self.restartData.getVars())
+        restartRlz = dict((var, np.atleast_1d(inExisting[var])) for var in self.restartData.getVars() + self.restartData.getVars('indexes'))
         rlz.setRestart(restartRlz)
       # END if restart
     # END loop over rlz for restart checking

@@ -194,12 +194,13 @@ class Dummy(Model):
     self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
     self._replaceVariablesNamesWithAliasSystem(rlz,'input',True)
     # build realization using input space from inRun and metadata from kwargs
-    rlz = dict((var,np.atleast_1d(inRun[var] if var in rlz else rlz.inputInfo)) for var in set(itertools.chain(rlz.keys(),inRun.keys())))
+    out = dict((var,np.atleast_1d(val)) for var, val in inRun.items())
+    out.update((var, np.atleast_1d(val)) for var, val in rlz.asDict().items())
     # add dummy output space
-    rlz['OutputPlaceHolder'] = np.atleast_1d(float(Input[1]['prefix']))
-    return rlz
+    out['OutputPlaceHolder'] = np.atleast_1d(float(Input[1].inputInfo['prefix']))
+    return out
 
-  def collectOutput(self,finishedJob,output,options=None):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished
@@ -217,7 +218,7 @@ class Dummy(Model):
     output.addRealization(result)
     # END can be abstracted to base class
 
-  def collectOutputFromDict(self,exportDict,output,options=None):
+  def collectOutputFromDict(self, exportDict, output, options=None):
     """
       Collect results from a dictionary
       @ In, exportDict, dict, contains 'inputSpaceParams','outputSpaceParams','metadata'

@@ -288,7 +288,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
-      @ In, sampledVars, dict or list, dictionary or list that are going to be modified
+      @ In, sampledVars, dict/list/Realization, dictionary or list that are going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
       @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
                                                   (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
@@ -304,20 +304,21 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     else:
       listAliasType = [aliasType]
     originalVariables = copy.deepcopy(sampledVars)
+    notFound = 2**62 # ??? Magic var?
     for aliasTyp in listAliasType:
       for varFramework,varModel in self.alias[aliasTyp].items():
         whichVar =  varModel if fromModelToFramework else varFramework
-        notFound = 2**62
-        if type(originalVariables).__name__ != 'list':
+        if isinstance(originalVariables, list):
+          if whichVar in sampledVars:
+            sampledVars[sampledVars.index(whichVar)] = varFramework if fromModelToFramework else varModel
+        else:
+          # rlz behaves like a dict, so same algo works for both
           found = sampledVars.pop(whichVar,[notFound])
           if not np.array_equal(np.asarray(found), [notFound]):
             if fromModelToFramework:
               sampledVars[varFramework] = originalVariables[varModel]
             else:
-              sampledVars[varModel]     = originalVariables[varFramework]
-        else:
-          if whichVar in sampledVars:
-            sampledVars[sampledVars.index(whichVar)] = varFramework if fromModelToFramework else varModel
+              sampledVars[varModel] = originalVariables[varFramework]
     return originalVariables
 
   def _handleInput(self, paramInput):
@@ -409,16 +410,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     fileObj.close()
 
   @abc.abstractmethod
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, point in sample space to evaluate
       @ Out, [(kwargs)], list, return the new input in a list form
     """
-    return [(copy.copy(kwargs))]
 
   def submit(self, batch, myInput, samplerType, jobHandler):
     """

@@ -869,6 +869,7 @@ class DataSet(DataObject):
       @ In, None
       @ Out, vars, list(str), variable names list
     """
+    # TODO should this include indexes as well??
     return self._inputs + self._outputs + self._metavars
 
   @property

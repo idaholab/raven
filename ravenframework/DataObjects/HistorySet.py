@@ -15,23 +15,12 @@
   Specialized implementation of DataSet to accomodate outputs that share a pivot parameter (e.g. time)
 """
 import os
-import sys
-import copy
-import functools
 import itertools
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
 import xml.etree.ElementTree as ET
 
-import abc
 import numpy as np
-import pandas as pd
-import xarray as xr
 
-from ..BaseClasses import BaseType
-from ..utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
+from ..utils import mathUtils
 try:
   from .DataSet import DataSet
 except ValueError: #attempted relative import in non-package

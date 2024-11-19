@@ -18,18 +18,11 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import copy
 from operator import mul
 from functools import reduce
 from collections import namedtuple
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
 from ..utils import InputData, InputTypes
 from .Sampler               import Sampler
 from .MonteCarlo            import MonteCarlo
@@ -39,7 +32,7 @@ from .FactorialDesign       import FactorialDesign
 from .ResponseSurfaceDesign import ResponseSurfaceDesign
 from .CustomSampler         import CustomSampler
 from .. import GridEntities
-# Internal Modules End------------------------------------------------------------------------------
+from ..Realizations import Realization
 
 class EnsembleForward(Sampler):
   """
@@ -190,20 +183,24 @@ class EnsembleForward(Sampler):
     """
     self.limit = 1
     cnt = 0
-    lowerBounds, upperBounds = {}, {}
-    metadataKeys, metaParams = [], {}
-    for samplingStrategy in self.instantiatedSamplers:
-      self.instantiatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed, solutionExport=None)
+    lowerBounds = {}
+    upperBounds = {}
+    metadataKeys = []
+    metaParams = {}
+    for samplingStrategy, sampler in self.instantiatedSamplers.items():
+      sampler.initialize(externalSeeding=self.initSeed, solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
-      self.limit *= self.instantiatedSamplers[samplingStrategy].limit
-      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instantiatedSamplers[samplingStrategy].limit
-      while self.instantiatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
-        self.instantiatedSamplers[samplingStrategy].counter += 1
-        self.instantiatedSamplers[samplingStrategy].localGenerateInput(None,None)
-        self.instantiatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instantiatedSamplers[samplingStrategy].counter
-        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instantiatedSamplers[samplingStrategy].inputInfo))
+      self.limit *= sampler.limit
+      lowerBounds[samplingStrategy] = 0
+      upperBounds[samplingStrategy] = sampler.limit
+      while sampler.amIreadyToProvideAnInput():
+        rlz = Realization()
+        sampler.counter += 1
+        sampler.localGenerateInput(rlz, None, None)
+        rlz.inputInfo['prefix'] = sampler.counter
+        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(rlz.asDict()))
       cnt += 1
-      mKeys, mParams = self.instantiatedSamplers[samplingStrategy].provideExpectedMetaKeys()
+      mKeys, mParams = sampler.provideExpectedMetaKeys()
       metadataKeys.extend(mKeys)
       metaParams.update(mParams)
     metadataKeys = list(set(metadataKeys))
@@ -232,17 +229,31 @@ class EnsembleForward(Sampler):
       @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
+    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict=True)
+    print('')
+    print('')
+    print('')
+    print('DEBUGG rlz:', [rlz.keys()])
+    print('DEBUGG index:', index)
     coordinate = []
     for samplingStrategy in self.instantiatedSamplers:
       coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
     for combination in coordinate:
-      for key in combination:
-        if key not in rlz.inputInfo:
-          rlz.inputInfo[key] = combination[key]
+      print('')
+      print('DEBUGG ... combo:', combination)
+      for key, value in combination.items():
+        print('DEBUGG ... ... key:', key, type(value))
+        # FIXME we don't know what's inputInfo and what's sampled vars!
+        if key in self.toBeSampled:
+          rlz[key] = value
+        elif key not in rlz.inputInfo:
+          rlz.inputInfo[key] = value
         else:
-          if type(rlz.inputInfo[key]).__name__ == 'dict':
-            rlz.inputInfo[key].update(combination[key])
+          if isinstance(rlz.inputInfo[key], dict) and len(value):
+            print('DEBUG ... ... val:', len(value), value)
+            rlz.inputInfo[key].update(value)
+          else:
+            raise RuntimeError # can we get here?
     rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
     rlz.inputInfo['ProbabilityWeight' ] = 1.0
     for key in rlz.inputInfo:
