@@ -344,7 +344,7 @@ class JobHandler(BaseType):
             self.raiseADebug('scheduler file     :', self.daskSchedulerFile)
           ## Get servers and run ray or dask remote listener
           if self.rayInstanciatedOutside or self.daskInstanciatedOutside:
-            servers = self.runInfoDict['remoteNodes']
+            servers = self.runInfoDict.get('remoteNodes', [])
           else:
             servers = self.__runRemoteListeningSockets(address, localHostName)
           # add names in runInfo
@@ -367,7 +367,9 @@ class JobHandler(BaseType):
         else:
           if self._parallelLib == ParallelLibEnum.ray:
             self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-            self._server = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
+            address = self.__runHeadNode(nProcsHead, 0)
+            self.runInfoDict['headNode'] = address
+            self._server = ray.init(log_to_driver=False,include_dashboard=db)
           elif self._parallelLib == ParallelLibEnum.dask:
             self.raiseADebug("Executing DASK in the cluster but with a single node configuration")
             #Start locally
