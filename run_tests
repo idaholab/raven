@@ -143,7 +143,7 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  EXTRA="--test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub"
+  EXTRA="--test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub,slurm"
   $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py $EXTRA "${ARGS[@]}"
   # $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
   rc=$?
