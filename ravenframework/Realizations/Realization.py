@@ -63,6 +63,38 @@ class Realization:
     info.update(dict((label, np.atleast_1d(val)) for label, val in self.labels.items()))
     return info
 
+  def createSubsetRlz(self, targetVars, ignoreMissing=True):
+    """
+      Creates a realization, retaining the data in this realization but with only a subset
+      of variables. Ignores any targetVars that aren't part of this rlz.
+      @ In, targetVars, list(str), list of variable names to retain
+      @ In, ignoreMissing, bool, if True then don't error if some entries missing
+      @ Out, new, Realization, new realization instance
+    """
+    new = Realization()
+    varKeyedEntries = []
+    oneVar = next(iter(self._values))
+    for key, entry in self.inputInfo.items():
+      # assuming the only entries relevant to variables are first-layer dicts in inputInfo ...
+      if isinstance(entry, dict) and oneVar in entry:
+        new[key] = {}
+        varKeyedEntries.append(key)
+      # TODO other exceptions to handle?
+      else:
+        new.inputInfo[key] = entry
+    # fill values from this rlz into the new one
+    for tvar in targetVars:
+      #if tvar in self._values:
+        new[tvar] = self._values[tvar]
+        for key in varKeyedEntries:
+          if key in self.inputInfo[key]:
+            new.inputInfo[key][tvar] = self.inputInfo[key][tvar]
+      # elif not ignoreMissing:
+      #   raise KeyError(f'Desired variable "{tvar}" missing from source Realization!')
+    return new
+
+
+
   ########
   #
   # dict-like members

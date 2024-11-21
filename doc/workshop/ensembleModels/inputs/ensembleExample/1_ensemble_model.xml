@@ -52,6 +52,7 @@
       </variable>
       <constant name="x0">0</constant>
       <constant name="y0">0</constant>
+      <constant name="v0">1</constant>
     </MonteCarlo>
   </Samplers>
 

@@ -805,7 +805,8 @@ class JobHandler(BaseType):
         runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun, identifier, metadata=None, uniqueHandler="any", groupInfo = None):
+  def addClientJob(self, args, functionToRun, identifier,
+                   metadata=None, uniqueHandler="any", groupInfo=None):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -831,9 +832,9 @@ class JobHandler(BaseType):
               Consequentially the size is immutable
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata,
-                forceUseThreads = True, uniqueHandler = uniqueHandler,
-                clientQueue = True, groupInfo = groupInfo)
+    self.addSingleJob(args, functionToRun, identifier, metadata,
+                forceUseThreads=True, uniqueHandler=uniqueHandler,
+                clientQueue=True, groupInfo=groupInfo)
 
   def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
     """

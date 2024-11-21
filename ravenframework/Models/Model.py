@@ -421,14 +421,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
 
   def submit(self, batch, myInput, samplerType, jobHandler):
     """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler. Note, some parameters are needed by createNewInput
-        and thus descriptions are copied from there.
-        @ In, batch, RealizationBatch, list of realizations to submit as jobs
-        @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ Out, None
+      This will submit an individual sample to be evaluated by this model to a
+      specified jobHandler. Note, some parameters are needed by createNewInput
+      and thus descriptions are copied from there.
+      @ In, batch, RealizationBatch, list of realizations to submit as jobs
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In,  jobHandler, JobHandler instance, the global job handler instance
+      @ Out, None
     """
     jobHandler.addJobBatch(batch, self, myInput, samplerType, self.__class__.evaluateSample)
     ### OLD ###
