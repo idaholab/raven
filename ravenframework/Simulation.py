@@ -403,7 +403,9 @@ class Simulation(MessageUser):
       for element in unknownAttribs:
         errorMsg += ' ' + element
       self.raiseAnError(IOError, errorMsg)
-    self.verbosity = xmlNode.attrib.get('verbosity', 'all').lower()
+    if  'verbosity' in xmlNode.attrib.keys():
+      #Note: verbosity default set at __init__
+      self.verbosity = xmlNode.attrib['verbosity'].lower()
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug(f'Setting "printTimeStamps" to {xmlNode.attrib["printTimeStamps"]}')
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
