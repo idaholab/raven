@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
-def run(self,Input):
-  for key,val in Input.items():
-    print(key,val)
-  self.scalarOut = self.scalarIn**2
-  self.vectorOut = self.vectorIn**2
-  self.t = np.arange(len(self.vectorIn))
+def run(raven,inputDict):
+  """
+    Simple mechanical operations to test inputting and outputting ND values.
+  """
+  raven.scalarOut = raven.scalarIn**2
+  raven.vectorOut = []
+  print('DEBUGG extmod input:')
+  for k, v in inputDict.items():
+    print(k)
+  for _, value in enumerate(raven.y):
+    raven.vectorOut.append(raven.ND_in[value,:].sum())

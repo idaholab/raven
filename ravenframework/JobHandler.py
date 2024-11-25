@@ -686,7 +686,36 @@ class JobHandler(BaseType):
       # probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False, groupInfo = None):
+  def addJobBatch(self, batch, model, modelInput, samplerType, evalFunc):
+    """
+      Adds a batch of jobs to the internal queue.
+      @ In, batch, RealizationBatch, set of realizations to add
+      @ In, model, Model, model instance to run
+      @ In, modelInput, list, inputs for the Model
+      @ In, samplerType, str, sampler that generated this request
+      @ In, evalFunc, callable, method to be executed
+      @ Out, None
+    """
+    # TODO register batch to fill later?
+    for rlz in batch:
+      if rlz.isRestart:
+        self.addFinishedJob(rlz, metadata=rlz.inputInfo)
+      else:
+        # assure the realization knows about the batch it belongs to
+        rlz.inputInfo['batchID'] = batch.ID
+        self.addSingleJob(
+            (model, modelInput, samplerType, rlz),
+            evalFunc,
+            rlz.inputInfo['prefix'],
+            metadata = rlz.inputInfo,
+            uniqueHandler=rlz.inputInfo.get('uniqueHandler', 'any'),
+            forceUseThreads=rlz.inputInfo.get('forceThreads', False),
+            groupInfo={'id': batch.ID, 'size': len(batch)}
+        )
+
+  def addSingleJob(self, args, functionToRun, identifier, metadata=None,
+             forceUseThreads=False, uniqueHandler="any", clientQueue=False,
+             groupInfo=None):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -776,7 +805,8 @@ class JobHandler(BaseType):
         runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun, identifier, metadata=None, uniqueHandler="any", groupInfo = None):
+  def addClientJob(self, args, functionToRun, identifier,
+                   metadata=None, uniqueHandler="any", groupInfo=None):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -802,10 +832,9 @@ class JobHandler(BaseType):
               Consequentially the size is immutable
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata,
-                forceUseThreads = True, uniqueHandler = uniqueHandler,
-                clientQueue = True, groupInfo = groupInfo)
-
+    self.addSingleJob(args, functionToRun, identifier, metadata,
+                forceUseThreads=True, uniqueHandler=uniqueHandler,
+                clientQueue=True, groupInfo=groupInfo)
 
   def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
     """

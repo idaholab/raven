@@ -32,6 +32,7 @@ from .Step import Step
 from ..utils import utils
 from ..OutStreams import OutStreamEntity
 from ..Databases import Database
+from ..Realizations import RealizationBatch
 # Internal Modules End------------------------------------------------------------------------------
 
 class SingleRun(Step):
@@ -173,11 +174,6 @@ class SingleRun(Step):
     outputs    = inDictionary['Output'    ]
 
     # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
-    # get an input to run -> different between SingleRun and PostProcessor runs
-    # if self.type == 'SingleRun':
-    #   newInput = model.createNewInput(inputs,'None',**{'SampledVars':{},'additionalEdits':{}})
-    # else:
-    #   newInput = inputs
 
     # The single run should still collect its SampledVars for the output maybe?
     # The problem here is when we call Code.collectOutput(), the sampledVars
@@ -187,35 +183,51 @@ class SingleRun(Step):
     # this should default to all of the ones in the input? Is it possible to
     # get an input field in the outputs variable that is not in the inputs
     # variable defined above? - DPM 4/6/2017
-    # empty dictionary corresponds to sampling data in MultiRun
-    model.submit(inputs, None, jobHandler, **{'SampledVars': {'prefix':'None'}, 'additionalEdits': {}})
+    #
+    # since we don't generate a RealizationBatch from the Sampler, we have to generate one here
+    batch = RealizationBatch(0)
+    rlz = batch[0]
+    rlz.inputInfo.update({
+        'prefix': 'None',
+        'additionalEdits': {},
+    })
+    model.submit(batch, inputs, None, jobHandler)
+    # OLD model.submit(inputs, None, jobHandler, **{'SampledVars': {'prefix':'None'}, 'additionalEdits': {}})
+    # FIXME make this match multirun, and maybe share the code?
     while True:
       finishedJobs = jobHandler.getFinished()
-      for finishedJob in finishedJobs:
-        if finishedJob.getReturnCode() == 0:
-          # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-          for output in outputs:
-            if not isinstance(output, OutStreamEntity):
-              model.collectOutput(finishedJob, output)
-            else:
-              output.addOutput()
+      for finishedJobObjs in finishedJobs:
+        # for batching, the finished job object is a list
+        if isinstance(finishedJobObjs, list):
+          finishedRunList = finishedJobObjs
         else:
-          self.raiseADebug(f'the job "{finishedJob.identifier}" has failed.')
-          if self.failureHandling['fail']:
-            #add run to a pool that can be sent to the sampler later
-            self.failedRuns.append(copy.copy(finishedJob))
+          SHOULDNOTGETHERE
+          finishedRunList = [finishedJobObjs]
+        for finishedJob in finishedRunList:
+          if finishedJob.getReturnCode() == 0:
+            # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+            for output in outputs:
+              if not isinstance(output, OutStreamEntity):
+                model.collectOutput(finishedJob, output)
+              else:
+                output.addOutput()
           else:
-            if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
-            if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
-              # we re-add the failed job
-              jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning(f'As prescribed in the input, trying to re-submit the job "{finishedJob.identifier}". Trial {self.failureHandling["jobRepetitionPerformed"][finishedJob.identifier]}/{self.failureHandling["repetitions"]}')
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
-            else:
+            self.raiseADebug(f'the job "{finishedJob.identifier}" has failed.')
+            if self.failureHandling['fail']:
               #add run to a pool that can be sent to the sampler later
               self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning(f'The job "{finishedJob.identifier}" has been submitted {self.failureHandling["repetitions"]} times, failing every time!!!')
+            else:
+              if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
+                self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
+              if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
+                # we re-add the failed job
+                jobHandler.reAddJob(finishedJob)
+                self.raiseAWarning(f'As prescribed in the input, trying to re-submit the job "{finishedJob.identifier}". Trial {self.failureHandling["jobRepetitionPerformed"][finishedJob.identifier]}/{self.failureHandling["repetitions"]}')
+                self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
+              else:
+                #add run to a pool that can be sent to the sampler later
+                self.failedRuns.append(copy.copy(finishedJob))
+                self.raiseAWarning(f'The job "{finishedJob.identifier}" has been submitted {self.failureHandling["repetitions"]} times, failing every time!!!')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(self.sleepTime)

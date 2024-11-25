@@ -40,6 +40,7 @@ from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from ..utils import TreeStructure as ETS
+from ..Realizations import RealizationBatch
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):
@@ -325,7 +326,7 @@ class DynamicEventTree(Grid):
 
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue:
-      self._createRunningQueue(model,myInput)
+      self._createRunningQueue(rlz, model, myInput)
       self._endJobRunnable = len(self.RunQueue['identifiers'])
     return True
 
@@ -436,11 +437,12 @@ class DynamicEventTree(Grid):
     branchPresent = True
     return branchPresent
 
-  def _createRunningQueueBeginOne(self,rootTree,branchedLevel, model,myInput):
+  def _createRunningQueueBeginOne(self, rlz, rootTree, branchedLevel, model, myInput):
     """
       Method to generate the running internal queue for one point in the epistemic
       space. It generates the initial information to instantiate the root of a
       Deterministic Dynamic Event Tree.
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, rootTree, Node object, the rootTree of the single coordinate in the epistemic space.
       @ In, branchedLevel, dict, dictionary of the levels reached by the rootTree mapped in the internal grid dictionary (self.branchProbabilities)
       @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
@@ -448,76 +450,77 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     # add additional edits if needed
-    model.getAdditionalInputEdits(self.inputInfo)
+    model.getAdditionalInputEdits(rlz.inputInfo)
     precSampled = rootTree.getrootnode().get('hybridsamplerCoordinate')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
     rootnode.add('completedHistory', False)
     # Fill th values dictionary in
     if precSampled:
-      self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
-    self.inputInfo['prefix'                    ] = rname
-    self.inputInfo['standardDETvariables'      ] = self.standardDETvariables
-    self.inputInfo['initiatorDistribution'     ] = []
-    self.inputInfo['triggeredVariable'         ] = 'None'
-    self.inputInfo['happenedEventVarHistory'   ] = []
-    self.inputInfo['PbThreshold'               ] = []
-    self.inputInfo['ValueThreshold'            ] = []
-    self.inputInfo['branchChangedParam'        ] = ['None']
-    self.inputInfo['branchChangedParamValue'   ] = ['None']
-    self.inputInfo['startTime'                 ] = -sys.float_info.max
-    self.inputInfo['endTimeStep'               ] = 0
-    self.inputInfo['RAVEN_parentID'            ] = "None"
-    self.inputInfo['RAVEN_isEnding'            ] = True
-    self.inputInfo['conditionalPb'            ] = 1.0
-    self.inputInfo['happenedEvent'             ] = False
+      rlz.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
+    rlz.inputInfo['prefix'                    ] = rname
+    rlz.inputInfo['standardDETvariables'      ] = self.standardDETvariables
+    rlz.inputInfo['initiatorDistribution'     ] = []
+    rlz.inputInfo['triggeredVariable'         ] = 'None'
+    rlz.inputInfo['happenedEventVarHistory'   ] = []
+    rlz.inputInfo['PbThreshold'               ] = []
+    rlz.inputInfo['ValueThreshold'            ] = []
+    rlz.inputInfo['branchChangedParam'        ] = ['None']
+    rlz.inputInfo['branchChangedParamValue'   ] = ['None']
+    rlz.inputInfo['startTime'                 ] = -sys.float_info.max
+    rlz.inputInfo['endTimeStep'               ] = 0
+    rlz.inputInfo['RAVEN_parentID'            ] = "None"
+    rlz.inputInfo['RAVEN_isEnding'            ] = True
+    rlz.inputInfo['conditionalPb'            ] = 1.0
+    rlz.inputInfo['happenedEvent'             ] = False
     for key in self.branchProbabilities.keys():
-      self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
+      rlz.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
     for key in self.branchProbabilities.keys():
-      self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
+      rlz.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
     for key in self.branchProbabilities.keys():
-      self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
+      rlz.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
     for varname in self.standardDETvariables:
-      self.inputInfo['SampledVars'  ][varname] = self.branchValues[varname][branchedLevel[varname]]
-      self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
+      rlz.inputInfo['SampledVars'  ][varname] = self.branchValues[varname][branchedLevel[varname]]
+      rlz.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
     # constant variables
     self._constantVariables()
 
     if precSampled:
       for precSample in precSampled:
-        self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
-        self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
+        rlz.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
+        rlz.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
-    self.inputInfo['PointProbability' ] = pointPb
-    self.inputInfo['ProbabilityWeight'] = pointPb
-    self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
+    rlz.inputInfo['PointProbability' ] = pointPb
+    rlz.inputInfo['ProbabilityWeight'] = pointPb
+    rlz.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
 
     ##### REDUNDANT FUNCTIONALS #####
-    self._functionalVariables()
+    self._functionalVariables(rlz) # TODO batch or single?
 
     if(self.maxSimulTime):
-      self.inputInfo['endTime'] = self.maxSimulTime
+      rlz.inputInfo['endTime'] = self.maxSimulTime
 
     # Add some useful variable naming in the input
-    self.inputInfo.update(self.__createVariablesInfoForKwargs(model))
+    rlz.inputInfo.update(self.__createVariablesInfoForKwargs(model))
 
     # Add the new input path into the RunQueue system
-    newInputs = {'args':[str(self.type)], 'kwargs':dict(self.inputInfo)}
-    for key,value in self.inputInfo.items():
+    newInputs = {'args':[str(self.type)], 'kwargs':dict(rlz.inputInfo)}
+    for key,value in rlz.inputInfo.items():
       rootnode.add(key,copy.copy(value))
     self.RunQueue['queue'].append(newInputs)
 
-    self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
-    self.rootToJob[self.inputInfo['prefix']] = rname
+    self.RunQueue['identifiers'].append(rlz.inputInfo['prefix'])
+    self.rootToJob[rlz.inputInfo['prefix']] = rname
     del newInputs
     self.counter += 1
 
-  def _createRunningQueueBegin(self,model,myInput):
+  def _createRunningQueueBegin(self, rlz, model, myInput):
     """
       Method to generate the running internal queue for all the points in
       the epistemic space. It generates the initial information to
       instantiate the roots of all the N-D coordinates to construct multiple
       Deterministic Dynamic Event Trees.
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
       @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
       @ Out, None
@@ -529,12 +532,13 @@ class DynamicEventTree(Grid):
     # Get the initial branchedLevel dictionary (=> the list gets empty)
     branchedLevel = self.branchedLevel.pop(0)
     for rootTree in self.TreeInfo.values():
-      self._createRunningQueueBeginOne(rootTree,branchedLevel, model,myInput)
+      self._createRunningQueueBeginOne(rlz,rootTree,branchedLevel, model,myInput)
 
-  def _createRunningQueueBranch(self,model,myInput,forceEvent=False):
+  def _createRunningQueueBranch(self, rlz, model, myInput, forceEvent=False):
     """
       Method to generate the running internal queue right after a branch occurred
       It generates the the information to insatiate the branches' continuation of the Deterministic Dynamic Event Tree
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
       @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
       @ In, forceEvent, bool, if True the events are forced to happen (basically, the "unchanged event" is not created at all)
@@ -629,83 +633,83 @@ class DynamicEventTree(Grid):
       endInfo['parentNode'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
-      self.inputInfo['prefix'] = rname
-      self.inputInfo['standardDETvariables'] = self.standardDETvariables
-      self.inputInfo['endTimeStep'] = endInfo['endTimeStep']
-      self.inputInfo['branchChangedParam'] = subGroup.get('branchChangedParam')
-      self.inputInfo['branchChangedParamValue'] = subGroup.get('branchChangedParamValue')
-      self.inputInfo['conditionalPb'] = subGroup.get('conditionalPb')
-      self.inputInfo['startTime'] = endInfo['parentNode'].get('endTime')
-      self.inputInfo['RAVEN_parentID'] = subGroup.get('parent')
-      self.inputInfo['RAVEN_isEnding'] = True
+      rlz.inputInfo['prefix'] = rname
+      rlz.inputInfo['standardDETvariables'] = self.standardDETvariables
+      rlz.inputInfo['endTimeStep'] = endInfo['endTimeStep']
+      rlz.inputInfo['branchChangedParam'] = subGroup.get('branchChangedParam')
+      rlz.inputInfo['branchChangedParamValue'] = subGroup.get('branchChangedParamValue')
+      rlz.inputInfo['conditionalPb'] = subGroup.get('conditionalPb')
+      rlz.inputInfo['startTime'] = endInfo['parentNode'].get('endTime')
+      rlz.inputInfo['RAVEN_parentID'] = subGroup.get('parent')
+      rlz.inputInfo['RAVEN_isEnding'] = True
 
       #'RAVEN_parentID','RAVEN_isEnding'
-      self.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')
-      self.inputInfo['happenedEventVarHistory'] = subGroup.get('happenedEventVarHistory')
+      rlz.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')
+      rlz.inputInfo['happenedEventVarHistory'] = subGroup.get('happenedEventVarHistory')
       # add additional edits if needed
-      model.getAdditionalInputEdits(self.inputInfo)
+      model.getAdditionalInputEdits(rlz.inputInfo)
       # add the newer branch name to the map
       self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
       # check if it is a preconditioned DET sampling, if so add the relative information
       precSampled = endInfo['parentNode'].get('hybridsamplerCoordinate')
       if precSampled:
-        self.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
+        rlz.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
         subGroup.add('hybridsamplerCoordinate', precSampled)
       # Check if the distribution that just triggered hitted the last probability threshold .
       #  In this case there is not a probability threshold that needs to be added in the input
       #  for this particular distribution
       if not (branchedLevel[endInfo['branchDist']] >= len(self.branchProbabilities[endInfo['branchDist']])):
-        self.inputInfo['initiatorDistribution' ] = [self.toBeSampled[endInfo['branchDist']]]
-        self.inputInfo['triggeredVariable'     ] = endInfo['branchDist']
-        self.inputInfo['PbThreshold'           ] = [self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
-        self.inputInfo['ValueThreshold'        ] = [self.branchValues[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
+        rlz.inputInfo['initiatorDistribution' ] = [self.toBeSampled[endInfo['branchDist']]]
+        rlz.inputInfo['triggeredVariable'     ] = endInfo['branchDist']
+        rlz.inputInfo['PbThreshold'           ] = [self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
+        rlz.inputInfo['ValueThreshold'        ] = [self.branchValues[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
       #  For the other distributions, we put the unbranched thresholds
       #  Before adding these thresholds, check if the keyword 'initiatorDistribution' is present...
       #  (In the case the previous if statement is true, this keyword is not present yet
       #  Add it otherwise
-      if not ('initiatorDistribution' in self.inputInfo.keys()):
-        self.inputInfo['initiatorDistribution' ] = []
-        self.inputInfo['PbThreshold'           ] = []
-        self.inputInfo['ValueThreshold'        ] = []
-        self.inputInfo['triggeredVariable'     ] = 'None'
+      if not ('initiatorDistribution' in rlz.inputInfo.keys()):
+        rlz.inputInfo['initiatorDistribution' ] = []
+        rlz.inputInfo['PbThreshold'           ] = []
+        rlz.inputInfo['ValueThreshold'        ] = []
+        rlz.inputInfo['triggeredVariable'     ] = 'None'
       # Add the unbranched thresholds
       for key in self.branchProbabilities.keys():
         if not (key in self.toBeSampled[endInfo['branchDist']]) and (branchedLevel[key] < len(self.branchProbabilities[key])):
-          self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
+          rlz.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
       for key in self.branchProbabilities.keys():
         if not (key in self.toBeSampled[endInfo['branchDist']]) and (branchedLevel[key] < len(self.branchProbabilities[key])):
-          self.inputInfo['PbThreshold'   ].append(self.branchProbabilities[key][branchedLevel[key]])
-          self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
-      self.inputInfo['SampledVars']   = {}
-      self.inputInfo['SampledVarsPb'] = {}
+          rlz.inputInfo['PbThreshold'   ].append(self.branchProbabilities[key][branchedLevel[key]])
+          rlz.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
+      rlz.inputInfo['SampledVars']   = {}
+      rlz.inputInfo['SampledVarsPb'] = {}
       for varname in self.standardDETvariables:
-        self.inputInfo['SampledVars'][varname]   = self.branchValues[varname][branchedLevel[varname]]
-        self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
-      self._constantVariables()
+        rlz.inputInfo['SampledVars'][varname]   = self.branchValues[varname][branchedLevel[varname]]
+        rlz.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
+      self._constantVariables(rlz)
       if precSampled:
         for precSample in precSampled:
-          self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
-          self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
+          rlz.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
+          rlz.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
       pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
-      self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
-      self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-      self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
+      rlz.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
+      rlz.inputInfo['ProbabilityWeight'] = rlz.inputInfo['PointProbability' ]
+      rlz.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
       ##### REDUNDANT FUNCTIONALS #####
-      self._functionalVariables()
+      self._functionalVariables(rlz)
       # Add some useful variable naming in the input
-      self.inputInfo.update(self.__createVariablesInfoForKwargs(model))
+      rlz.inputInfo.update(self.__createVariablesInfoForKwargs(model))
       # Add the new input path into the RunQueue system
-      newInputs = {'args': [str(self.type)], 'kwargs':dict(self.inputInfo)}
+      newInputs = {'args': [str(self.type)], 'kwargs':dict(rlz.inputInfo)}
       self.RunQueue['queue'].append(newInputs)
-      self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
-      for key,value in self.inputInfo.items():
+      self.RunQueue['identifiers'].append(rlz.inputInfo['prefix'])
+      for key,value in rlz.inputInfo.items():
         subGroup.add(key,copy.copy(value))
       popped = endInfo.pop('parentNode')
       subGroup.add('endInfo',copy.deepcopy(endInfo))
       endInfo['parentNode'] = popped
       del branchedLevel
 
-  def _createRunningQueue(self, model, myInput, forceEvent=False):
+  def _createRunningQueue(self, rlz, model, myInput, forceEvent=False):
     """
       Function to create and append new inputs to the queue. It uses all the containers have been updated by the previous functions
       @ In, model, Model instance, model instance that can be a Code type, ROM, etc.
@@ -720,7 +724,7 @@ class DynamicEventTree(Grid):
       self._createRunningQueueBranch(model, myInput, forceEvent)
     else:
       # We construct the input for the first DET branch calculation'
-      self._createRunningQueueBegin(model, myInput)
+      self._createRunningQueueBegin(rlz, model, myInput)
     return
 
   def __createVariablesInfoForKwargs(self, model):
@@ -743,8 +747,8 @@ class DynamicEventTree(Grid):
     model._replaceVariablesNamesWithAliasSystem(consts)
     varInfo['DETVariables'] = list(standardDet)
     hvars = {}
-    if 'hybridsamplerCoordinate' in self.inputInfo:
-      for precSample in self.inputInfo['hybridsamplerCoordinate']:
+    if 'hybridsamplerCoordinate' in rlz.inputInfo:
+      for precSample in rlz.inputInfo['hybridsamplerCoordinate']:
         hvars.update(precSample['SampledVars'])
       model._replaceVariablesNamesWithAliasSystem(hvars)
       varInfo['HDETVariables'] = list(hvars.keys())
@@ -782,7 +786,7 @@ class DynamicEventTree(Grid):
 
     return jobInput
 
-  def generateInput(self,model,oldInput):
+  def generateInput(self, model, modelInput):
     """
       This method has to be overwritten to provide the specialization for the specific sampler
       The model instance in might be needed since, especially for external codes,
@@ -791,24 +795,27 @@ class DynamicEventTree(Grid):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, generateInput, (0,list), list containing the new inputs -in reality it is the model that returns this; the Sampler generates the value to be placed in the input of the model.
     """
-    #NB: if someday the DET handles restarts as other samplers do in generateInput, the return code 1 indicates the result
-    #  is stored in a restart data object, while 0 indicates a new run has been found.
-    #model.getAdditionalInputEdits(self.inputInfo)
-    return 0, self.localGenerateInput(model, oldInput)
+    rlzBatch = RealizationBatch(self.getBatchSize())
+    # for now, we take one realization at a time, until such time as DET is reworked to
+    # provide batches of realizations.
+    rlz = rlzBatch[0]
+    modelInput = self.localGenerateInput(rlz, model, modelInput)
+    return rlz
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, rlz, model, modelInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, newerInput, list, list of new inputs
     """
     if self.counter <= 1:
       # If first branch input, create the queue
-      self._createRunningQueue(model, myInput)
+      self._createRunningQueue(rlz, model, modelInput)
     # retrieve the input from the queue
     newerInput = self.__getQueueElement()
     # If no inputs are present in the queue => a branch is finished
@@ -816,10 +823,9 @@ class DynamicEventTree(Grid):
       self.raiseADebug('A Branch ended!')
 
     ## It turns out the "newerInput" contains all of the information that should
-    ## be in inputInfo (which should actually be returned and not stored in the
-    ## sampler object, but all samplers do this for now) -- DPM 4/26/17
-    self.inputInfo = newerInput['kwargs']
-    return myInput
+    ## be in inputInfo -- DPM 4/26/17
+    rlz.inputInfo = newerInput['kwargs']
+    return modelInput
 
   def _generateDistributions(self,availableDist,availableFunc):
     """

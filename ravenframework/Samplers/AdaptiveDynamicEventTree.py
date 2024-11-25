@@ -139,10 +139,10 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         if not self.startAdaptive:
           break
 
-  def _checkClosestBranch(self):
+  def _checkClosestBranch(self, rlz):
     """
       Function that checks the closest branch already evaluated
-      @ In, None
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ Out, returnTuple, tuple, closest branch info:
         - if self.hybridDETstrategy and branch found         -> returnTuple = (valBranch,cdfValues,treer)
         - if self.hybridDETstrategy and branch not found     -> returnTuple = (None,cdfValues,treer)
@@ -156,7 +156,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     cdfValues         = {}
     self.raiseADebug("Check for closest branch:")
     self.raiseADebug("_"*50)
-    for key,value in self.values.items():
+    for key,value in rlz.items():
       self.raiseADebug("Variable name   : "+str(key))
       self.raiseADebug("Distribution name: "+str(self.toBeSampled[key]))
       if key not in self.epistemicVariables.keys():
@@ -176,7 +176,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       for tree in self.TreeInfo.values():
         epistemicVars = tree.getrootnode().get("hybridsamplerCoordinate")[0]['SampledVars']
         for key in self.epistemicVariables.keys():
-          compareDict[key] = utils.compare(epistemicVars[key],self.values[key])
+          compareDict[key] = utils.compare(epistemicVars[key],rlz[key])
         if all(compareDict.values()):
           # we found the right epistemic tree
           self.foundEpistemicTree, treer = True, tree
@@ -259,9 +259,10 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     info['parentNode']         = branch
     return info
 
-  def _constructEndInfoFromBranch(self,model, myInput, info, cdfValues):
+  def _constructEndInfoFromBranch(self, rlz, model, myInput, info, cdfValues):
     """
       Method to construct the end information from the 'info' inputted
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
       @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
       @ In, info, dict, dictionary of information at the end of a branch (information collected by the method _retrieveBranchInfo)
@@ -269,7 +270,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, None
     """
     endInfo = info['parentNode'].get('endInfo')
-    #del self.inputInfo
     self.counter           += 1
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
@@ -318,7 +318,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     info['parentNode'].appendBranch(subGroup)
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored
-    self.inputInfo.update({'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
+    rlz.inputInfo.update({'prefix':rname,'endTimeStep':info['parentNode'].get('actualEndTimeStep'),
               'branchChangedParam':subGroup.get('branchChangedParam'),
               'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
               'conditionalPb':subGroup.get('conditionalPb'),
@@ -333,35 +333,35 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # it exists only in case an hybridDET strategy is activated
     precSampled = info['parentNode'].get('hybridsamplerCoordinate')
     if precSampled:
-      self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
+      rlz.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
       subGroup.add('hybridsamplerCoordinate', copy.copy(precSampled))
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
-    self.inputInfo['initiatorDistribution' ] = [self.toBeSampled[key] for key in cdfValues.keys()]
-    self.inputInfo['PbThreshold'           ] = list(cdfValues.values())
-    self.inputInfo['ValueThreshold'        ] = [self.distDict[key].ppf(value) for key,value in cdfValues.items()]
-    self.inputInfo['SampledVars'           ] = {}
-    self.inputInfo['SampledVarsPb'         ] = {}
+    rlz.inputInfo['initiatorDistribution' ] = [self.toBeSampled[key] for key in cdfValues.keys()]
+    rlz.inputInfo['PbThreshold'           ] = list(cdfValues.values())
+    rlz.inputInfo['ValueThreshold'        ] = [self.distDict[key].ppf(value) for key,value in cdfValues.items()]
+    rlz.inputInfo['SampledVars'           ] = {}
+    rlz.inputInfo['SampledVarsPb'         ] = {}
     for varname in self.standardDETvariables:
-      self.inputInfo['SampledVars'  ][varname] = self.distDict[varname].ppf(cdfValues[varname])
-      self.inputInfo['SampledVarsPb'][varname] = cdfValues[varname]
+      rlz.inputInfo['SampledVars'  ][varname] = self.distDict[varname].ppf(cdfValues[varname])
+      rlz.inputInfo['SampledVarsPb'][varname] = cdfValues[varname]
     # constant variables
-    self._constantVariables()
+    self._constantVariables(rlz)
     if precSampled:
       for precSample in precSampled:
-        self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
-        self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
+        rlz.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
+        rlz.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
     pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
-    self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
-    self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-    self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
+    rlz.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
+    rlz.inputInfo['ProbabilityWeight'] = rlz.inputInfo['PointProbability' ]
+    rlz.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
     # add additional edits if needed
-    model.getAdditionalInputEdits(self.inputInfo)
+    model.getAdditionalInputEdits(rlz.inputInfo)
     # Add the new input path into the RunQueue system
-    newInputs = {'args':[str(self.type)], 'kwargs': dict(self.inputInfo)}
+    newInputs = {'args':[str(self.type)], 'kwargs': dict(rlz.inputInfo)}
     self.RunQueue['queue'].append(newInputs)
-    self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
-    for key,value in self.inputInfo.items():
+    self.RunQueue['identifiers'].append(rlz.inputInfo['prefix'])
+    for key,value in rlz.inputInfo.items():
       subGroup.add(key,copy.copy(value))
     if endInfo:
       subGroup.add('endInfo',copy.deepcopy(endInfo))
@@ -403,24 +403,25 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         return False
     return detReady
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, rlz, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.startAdaptive == True and self.adaptiveReady == True:
-      LimitSurfaceSearch.localGenerateInput(self,model,myInput)
+    if self.startAdaptive and self.adaptiveReady:
+      LimitSurfaceSearch.localGenerateInput(self, rlz, model, myInput)
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
       if self.hybridDETstrategy is not None:
-        closestBranch, cdfValues, treer = self._checkClosestBranch()
+        closestBranch, cdfValues, treer = self._checkClosestBranch(rlz)
       else:
-        closestBranch, cdfValues = self._checkClosestBranch()
+        closestBranch, cdfValues = self._checkClosestBranch(rlz)
       if closestBranch is None:
         self.raiseADebug('An usable branch for next candidate has not been found => create a parallel branch!')
       # add pbthresholds in the grid
@@ -438,7 +439,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       self.investigatedPoints.append(investigatedPoint)
       if closestBranch:
         info = self._retrieveBranchInfo(closestBranch)
-        self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
+        self._constructEndInfoFromBranch(rlz, model, myInput, info, cdfValues)
       else:
         # create a new tree, since there are no branches that are close enough to the adaptive request
         elm = ETS.HierarchicalNode(self.name + '_' + str(len(self.TreeInfo.keys())+1))
@@ -464,15 +465,15 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
           for hybridStrategy in hybridSampled:
             for key in self.epistemicVariables.keys():
               if key in hybridStrategy['SampledVars'].keys():
-                self.raiseADebug("epistemic var " + str(key)+" value = "+str(self.values[key]))
-                hybridStrategy['SampledVars'][key]   = copy.copy(self.values[key])
-                hybridStrategy['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])
+                self.raiseADebug("epistemic var " + str(key)+" value = "+str(rlz[key]))
+                hybridStrategy['SampledVars'][key]   = copy.copy(rlz[key])
+                hybridStrategy['SampledVarsPb'][key] = self.distDict[key].pdf(rlz[key])
                 hybridStrategy['prefix'] = len(self.TreeInfo.values())+1
             # TODO: find a strategy to recompute the probability weight here (for now == PointProbability)
-            hybridStrategy['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-            hybridStrategy['ProbabilityWeight'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+            hybridStrategy['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+            hybridStrategy['ProbabilityWeight'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
           elm.add('hybridsamplerCoordinate', hybridSampled)
-        self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
+        rlz.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
         self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(elm)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)

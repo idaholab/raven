@@ -316,25 +316,26 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
 
     return True
 
-  def localGenerateInput(self, model, oldInput):
+  def localGenerateInput(self, rlz, model, oldInput):
     """
       Function to select the next most informative point
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    self.inputInfo['ProbabilityWeight'] = 1.0
+    rlz.inputInfo['ProbabilityWeight'] = 1.0
     pt = self.neededPoints.pop()
     self.submittedNotCollected.append(pt)
     for v, varName in enumerate(self.sparseGrid.varNames):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
-          self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
+          rlz[key] = pt[v]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        rlz.inputInfo['ProbabilityWeight-'+varName] = rlz.inputInfo['SampledVarsPb'][varName]
         # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
@@ -353,12 +354,12 @@ class AdaptiveSparseGrid(SparseGridCollocation, AdaptiveSampler):
           else:
             self.raiseAnError(IOError,'The variables ' + var + ' listed in sparse grid collocation sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
-            self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo[f'ProbabilityWeight-{dist}'] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['ProbabilityWeight'] *= self.inputInfo[f'ProbabilityWeight-{dist}']
-    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = self.type
+            rlz[key] = pt[location]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        rlz.inputInfo[f'ProbabilityWeight-{dist}'] = rlz.inputInfo['SampledVarsPb'][varName]
+        rlz.inputInfo['ProbabilityWeight'] *= rlz.inputInfo[f'ProbabilityWeight-{dist}']
+    rlz.inputInfo['PointProbability'] = reduce(mul,rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['SamplerType'] = self.type
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """

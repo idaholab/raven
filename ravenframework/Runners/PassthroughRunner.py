@@ -15,7 +15,6 @@
   Module for Passthrough Runner class, which skips evaluation. Used particularly
   for restarting Samplers from existing data currently.
 """
-import numpy as np
 from .Runner import Runner
 
 class PassthroughRunner(Runner):
@@ -56,10 +55,7 @@ class PassthroughRunner(Runner):
       @ In, None
       @ Out, result, dict, results
     """
-    result = {}
-    result.update(dict((key, np.atleast_1d(value)) for key, value in self._data['inputs'].items()))
-    result.update(dict((key, np.atleast_1d(value)) for key, value in self._data['outputs'].items()))
-    result.update(dict((key, np.atleast_1d(value)) for key, value in self._data['metadata'].items()))
+    result = self._data.asDict()
     return result
 
   def start(self):

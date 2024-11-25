@@ -20,10 +20,10 @@
 #External Modules--------------------------------------------------------------------------------
 import copy
 import gc
-import numpy as np
 import itertools
 import time
 from collections import defaultdict
+import numpy as np
 from scipy.stats import spearmanr
 from scipy.cluster import hierarchy
 from scipy.spatial.distance import squareform
@@ -323,13 +323,22 @@ class RFE(FeatureSelectionBase):
       groupRanking_ = copy.deepcopy(ranking_)
       groupSupportOfSupport_ = copy.deepcopy(supportOfSupport_)
 
-    supportDataRFE = {'featuresForRanking':featuresForRanking,'mask':mask,'nFeatures':nFeatures,
-                   'nTargets':nTargets,'nParams':nParams,'targetsIds':targetsIds,
-                   'originalParams':originalParams,'supportOfSupport_':supportOfSupport_,
-                   'ranking_':ranking_,'nFeaturesToSelect':nFeaturesToSelect,'firstStep':step,
-                   'setStep':setStep,'subGroups':self.subGroups,
-                   'originalSupport':support_, 'parametersToInclude':self.parametersToInclude,
-                   'whichSpace':self.whichSpace}
+    supportDataRFE = {'featuresForRanking': featuresForRanking,
+                      'mask': mask,
+                      'nFeatures': nFeatures,
+                      'nTargets': nTargets,
+                      'nParams': nParams,
+                      'targetsIds': targetsIds,
+                      'originalParams': originalParams,
+                      'supportOfSupport_': supportOfSupport_,
+                      'ranking_': ranking_,
+                      'nFeaturesToSelect': nFeaturesToSelect,
+                      'firstStep': step,
+                      'setStep': setStep,
+                      'subGroups': self.subGroups,
+                      'originalSupport': support_,
+                      'parametersToInclude': self.parametersToInclude,
+                      'whichSpace': self.whichSpace}
 
     if useParallel:
       # send some data to workers
@@ -350,7 +359,7 @@ class RFE(FeatureSelectionBase):
           prefix = f'subgroup_{g}'
           if g > 0:
             supportDataRFE['firstStep'] = setStep
-          jhandler.addJob((estimatorRef, XRef, yRef, g, outputSpace, supportDataRFE,),
+          jhandler.addSingleJob((estimatorRef, XRef, yRef, g, outputSpace, supportDataRFE,),
                           self._rfe, prefix, uniqueHandler='RFE_subgroup')
           g += 1
 
@@ -477,7 +486,7 @@ class RFE(FeatureSelectionBase):
             # train and get score
             if jhandler.availability() > 0:
               prefix = f'{k}_{it+1}'
-              jhandler.addJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),
+              jhandler.addSingleJob((estimatorRef, XRef, yRef, combinations[it], supportDataRef,),
                               self._scoring, prefix, uniqueHandler='RFE_scoring')
               it += 1
             finishedJobs = jhandler.getFinished(uniqueHandler='RFE_scoring')
