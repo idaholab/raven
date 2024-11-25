@@ -116,7 +116,7 @@ class HybridModel(HybridModelBase):
     self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
@@ -149,7 +149,7 @@ class HybridModel(HybridModelBase):
         if name != 'CrowdingDistance':
           self.raiseAnError(IOError, "Validation method ", name, " is not implemented yet!")
 
-  def initialize(self,runInfo,inputs,initDict=None):
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       Method to initialize this model class
       @ In, runInfo, dict, is the run info from the jobHandler
@@ -224,7 +224,7 @@ class HybridModel(HybridModelBase):
     tempDict['ROMs contained in HybridModel are '] = self.romsDictionary.keys()
     return tempDict
 
-  def getAdditionalInputEdits(self,inputInfo):
+  def getAdditionalInputEdits(self, inputInfo):
     """
       Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
       of the sub-models
@@ -233,43 +233,47 @@ class HybridModel(HybridModelBase):
     """
     HybridModelBase.getAdditionalInputEdits(self,inputInfo)
 
-  def __selectInputSubset(self,romName, kwargs):
-    """
-      Method aimed to select the input subset for a certain model
-      @ In, romName, string, the rom name
-      @ In, kwargs , dict, the kwarded dictionary where the sampled vars are stored
-      @ Out, selectedKwargs , dict, the subset of variables (in a swallow copy of the kwargs dict)
-    """
-    selectedKwargs = copy.copy(kwargs)
-    selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
-    featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
-    selectedKwargs['SampledVars'] = {key: kwargs['SampledVars'][key] for key in featsList}
-    if 'SampledVarsPb' in kwargs.keys():
-      selectedKwargs['SampledVarsPb'] = {key: kwargs['SampledVarsPb'][key] for key in featsList}
-    else:
-      selectedKwargs['SampledVarsPb'] = {key: 1.0 for key in featsList}
-    return selectedKwargs
+  # OLD #
+  # def __selectInputSubset(self, romName, kwargs):
+  #   """
+  #     Method aimed to select the input subset for a certain model
+  #     @ In, romName, string, the rom name
+  #     @ In, kwargs , dict, the kwarded dictionary where the sampled vars are stored
+  #     @ Out, selectedKwargs , dict, the subset of variables (in a swallow copy of the kwargs dict)
+  #   """
+  #   selectedKwargs = copy.copy(kwargs)
+  #   selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
+  #   featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
+  #   selectedKwargs['SampledVars'] = {key: kwargs['SampledVars'][key] for key in featsList}
+  #   if 'SampledVarsPb' in kwargs.keys():
+  #     selectedKwargs['SampledVarsPb'] = {key: kwargs['SampledVarsPb'][key] for key in featsList}
+  #   else:
+  #     selectedKwargs['SampledVarsPb'] = {key: 1.0 for key in featsList}
+  #   return selectedKwargs
 
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, Realization to evaluate
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
     self.raiseADebug("Create New Input")
-    useROM = kwargs['useROM']
+    info = rlz.inputInfo
+    useROM = info['useROM']
     if useROM:
-      identifier = kwargs['prefix']
-      newKwargs = {'prefix':identifier, 'useROM':useROM}
+      identifier = info['prefix']
+      subRlzs = {}
+      # OLD newKwargs = {'prefix':identifier, 'useROM':useROM}
       for romName in self.romsDictionary.keys():
-        newKwargs[romName] = self.__selectInputSubset(romName, kwargs)
-        newKwargs[romName]['prefix'] = romName+utils.returnIdSeparator()+identifier
-        newKwargs[romName]['uniqueHandler'] = self.name+identifier
+        featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
+        subRlz = rlz.createSubsetRlz(featsList)
+        subRlzs[romName] = subRlz
+        subRlz.inputInfo['prefix'] = romName+utils.returnIdSeparator()+identifier
+        subRlz.inputInfo['uniqueHandler'] = self.name+identifier
     else:
-      newKwargs = copy.deepcopy(kwargs)
+      subRlzs = rlz # this feels implicit and strange
     if self.modelInstance.type == 'Code':
       codeInput = []
       romInput = []
@@ -281,17 +285,17 @@ class HybridModel(HybridModelBase):
         else:
           self.raiseAnError(IOError, "The type of input ", elem.name, " can not be accepted!")
       if useROM:
-        return (romInput, samplerType, newKwargs)
+        return (romInput, samplerType, subRlzs)
       else:
-        return (codeInput, samplerType, newKwargs)
-    return (myInput, samplerType, newKwargs)
+        return (codeInput, samplerType, subRlzs)
+    else:
+      return (myInput, samplerType, subRlzs)
 
-  def trainRom(self, samplerType, kwargs):
+  def trainRom(self):
     """
       This function will train all ROMs if they are not converged
       @ In, samplerType, string, the type of sampler
-      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, point in sample space to evaluate
       @ Out, None
     """
     self.raiseADebug("Start to train roms")
@@ -374,29 +378,27 @@ class HybridModel(HybridModelBase):
       self.raiseADebug("All ROMs are converged")
     return converged
 
-  def checkRomValidity(self, kwargs):
+  def checkRomValidity(self, rlz):
     """
       This function will check the validity of all roms
-      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, point in sample space to evaluate
       @ Out, None
     """
     allValid = False
     for selectionMethod, params in self.validationMethod.items():
       if selectionMethod == 'CrowdingDistance':
-        allValid = self.__crowdingDistanceMethod(params, kwargs['SampledVars'])
+        allValid = self.__crowdingDistanceMethod(params, rlz)
       else:
         self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod, " is given!")
     if allValid:
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
     return allValid
 
-  def __crowdingDistanceMethod(self, settingDict, varDict):
+  def __crowdingDistanceMethod(self, settingDict, rlz):
     """
       This function will check the validity of all roms based on the crowding distance method
       @ In, settingDict, dict, stores the setting information for the crowding distance method
-      @ In, varDict, dict,  is a dictionary that contains the information coming from the sampler,
-        i.e. {'name variable':value}
+      @ In, rlz, Realization, point in sample space to evaluate
       @ Out, allValid, bool, True if the  given sampled point is valid for all roms, otherwise False
     """
     allValid = True
@@ -405,7 +407,7 @@ class HybridModel(HybridModelBase):
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
       trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
-      currentInput = self._extractInputs(varDict, paramsList)
+      currentInput = self._extractInputs(rlz, paramsList)
       if self.__crowdingDistance is None or self.__crowdingDistance.size != trainInput.shape[1]:
         #XXX Note that if self.__crowdingDistance.size != trainInput.shape[1]
         # occurs, this is technically a bug.
@@ -472,11 +474,12 @@ class HybridModel(HybridModelBase):
       ready = True
     return ready
 
-  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+  def submit(self, batch, myInput, samplerType, jobHandler):
     """
       This will submit an individual sample to be evaluated by this model to a
       specified jobHandler as a client job. Note, some parameters are needed
       by createNewInput and thus descriptions are copied from there.
+      @ In, batch, RealizationBatch, list of realizations to submit as jobs
       @ In, myInput, list, the inputs (list) to start from to generate the new
         one
       @ In, samplerType, string, is the type of sampler that is calling to
@@ -487,38 +490,43 @@ class HybridModel(HybridModelBase):
         contains a dictionary {'name variable':value}
       @ Out, None
     """
-    prefix = kwargs['prefix']
-    self.tempOutputs['uncollectedJobIds'].append(prefix)
-    if self.amIReadyToTrainROM():
-      self.trainRom(samplerType, kwargs)
-      self.romConverged = self.checkRomConvergence()
-    if self.romConverged:
-      self.romValid = self.checkRomValidity(kwargs)
-    else:
-      self.romValid = False
-    if self.romValid:
-      self.modelIndicator[prefix] = 1
-    else:
-      self.modelIndicator[prefix] = 0
-    kwargs['useROM'] = self.romValid
-    self.raiseADebug(f"Submit job with job identifier: {kwargs['prefix']},  Running ROM: {self.romValid} ")
-    HybridModelBase.submit(self,myInput,samplerType,jobHandler,**kwargs)
+    # TODO does this ever receive a batch longer than 1?
+    for r, rlz in enumerate(batch):
+      prefix = rlz['prefix']
+      self.tempOutputs['uncollectedJobIds'].append(prefix)
+      if self.amIReadyToTrainROM():
+        self.trainRom()
+        self.romConverged = self.checkRomConvergence()
+      if self.romConverged:
+        self.romValid = self.checkRomValidity(rlz)
+      else:
+        self.romValid = False
+      if self.romValid:
+        self.modelIndicator[prefix] = 1
+      else:
+        self.modelIndicator[prefix] = 0
+      rlz.inputInfo['useROM'] = self.romValid
+      self.raiseADebug(f"Submit job with job identifier: {prefix},  Running ROM: {self.romValid} ")
+    HybridModelBase.submit(self, batch, myInput, samplerType, jobHandler)
 
-  def _externalRun(self,inRun, jobHandler):
+  def _externalRun(self, inRun, jobHandler):
     """
       Method that performs the actual run of the hybrid model (separated from run method for parallelization purposes)
-      @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] type of sampler,
-        inRun[2] dictionary that contains information coming from sampler)
+      @ In, inRun, tuple, tuple of Inputs:
+        - inRun[0] actual input,
+        - inRun[1] type of sampler,
+        - inRun[2] realization(s) coming from sampler
       @ In, jobHandler, instance, instance of jobHandler
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
     self.raiseADebug("External Run")
     originalInput = inRun[0]
     samplerType = inRun[1]
-    inputKwargs = inRun[2]
-    identifier = inputKwargs.pop('prefix')
+    rlzs = inRun[2] # OLD was inputKwargs
+    FIXMEWORKINGHERE
+    # identifier = inputKwargs.pop('prefix')
     useROM = inputKwargs.pop('useROM')
-    uniqueHandler = self.name + identifier
+    # uniqueHandler = self.name + identifier
     if useROM:
       # run roms
       exportDict = {}
@@ -583,7 +591,7 @@ class HybridModel(HybridModelBase):
     exportDict['useROM'] = useROM
     return exportDict
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self, finishedJob, output):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, ClientRunner object, instance of the run just finished

@@ -78,7 +78,7 @@ class HybridModelBase(Dummy):
     # assembler objects to be requested
     self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
@@ -94,7 +94,7 @@ class HybridModelBase(Dummy):
         self.createWorkingDir = True
         self._isThereACode = True    # there is a code
 
-  def initialize(self,runInfo,inputs,initDict=None):
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       Method to initialize this model class
       @ In, runInfo, dict, is the run info from the jobHandler
@@ -123,7 +123,7 @@ class HybridModelBase(Dummy):
     tempDict = OrderedDict()
     return tempDict
 
-  def getAdditionalInputEdits(self,inputInfo):
+  def getAdditionalInputEdits(self, inputInfo):
     """
       Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
       of the sub-models
@@ -134,90 +134,77 @@ class HybridModelBase(Dummy):
       modelInstance.getAdditionalInputEdits(inputInfo)
 
   @abc.abstractmethod
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, rlz, myInput, samplerType):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
+      @ In, rlz, Realization, Realization to evaluate
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
 
-  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+  def submit(self, batch, myInput, samplerType, jobHandler):
     """
      This will submit an individual sample to be evaluated by this model to a
      specified jobHandler as a client job. Note, some parameters are needed
      by createNewInput and thus descriptions are copied from there.
+      @ In, batch, RealizationBatch, list of realizations to submit as jobs
      @ In, myInput, list, the inputs (list) to start from to generate the new
        one
      @ In, samplerType, string, is the type of sampler that is calling to
        generate a new input
      @ In,  jobHandler, JobHandler instance, the global job handler instance
-     @ In, **kwargs, dict,  is a dictionary that contains the information
-       coming from the sampler, a mandatory key is the sampledVars' that
-       contains a dictionary {'name variable':value}
      @ Out, None
     """
     ## Hybrid models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
     ## will suffice until we can better redesign this whole process.
 
-    nRuns = 1
-    batchMode =  kwargs.get("batchMode", False)
-    if batchMode:
-      nRuns = kwargs["batchInfo"]['nRuns']
+    for rlz in batch:
+      info = rlz.inputInfo
+      info['jobHandler'] = jobHandler
 
-    for index in range(nRuns):
-      if batchMode:
-        kw =  kwargs['batchInfo']['batchRealizations'][index]
-        kw['batchMode'] = False
-      else:
-        kw = kwargs
+      prefix = info.get("prefix")
+      uniqueHandler = info.get("uniqueHandler",'any')
 
-      kw['jobHandler'] = jobHandler
-
-      prefix = kw.get("prefix")
-      uniqueHandler = kw.get("uniqueHandler",'any')
-      ## These kw are updated by createNewInput, so the job either should not
-      ## have access to the metadata, or it needs to be updated from within the
-      ## evaluateSample function, which currently is not possible since that
-      ## function does not know about the job instance.
-      metadata = kw
-
-      jobHandler.addClientJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
-                  uniqueHandler=uniqueHandler,
-                  groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
+      # TODO submit as batch?
+      jobHandler.addClientJob(
+          (self, myInput, samplerType, rlz),
+          self.__class__.evaluateSample,
+          prefix,
+          metadata=info,
+          uniqueHandler=uniqueHandler,
+          groupInfo={'id': batch.ID, 'size': len(batch)})
 
   @Parallel()
-  def evaluateSample(self, myInput, samplerType, kwargs):
+  def evaluateSample(self, myInput, samplerType, rlz):
     """
       This will evaluate an individual sample on this model. Note, parameters
       are needed by createNewInput and thus descriptions are copied from there.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, rlz, dict, This holds the output information of the evaluated sample.
+      @ In, rlz, Realization, Realization to evaluate
+      @ Out, out, dict, This holds the output information of the evaluated sample.
     """
     self.raiseADebug("Evaluate Sample")
-    kwargsKeys = list(kwargs.keys())
-    kwargsKeys.pop(kwargsKeys.index("jobHandler"))
-    kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
-    jobHandler = kwargs['jobHandler']
-    newInput = self.createNewInput(myInput, samplerType, **kwargsToKeep)
+    excludeKeys = ['jobHandler']
+    kwargsKeys = list(x for x in rlz.inputInfo.keys() if x not in excludeKeys)
+    # FIXME what all needs to go in this? rlz.asDict?
+    # OLD kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
+    jobHandler = rlz.inputInfo['jobHandler']
+    newInput = self.createNewInput(myInput, samplerType, rlz)
     ## Unpack the specifics for this class, namely just the jobHandler
-    result = self._externalRun(newInput,jobHandler)
-    # assure rlz has all metadata
-    rlz = dict((var,np.atleast_1d(kwargsToKeep[var])) for var in kwargsToKeep.keys())
-    # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(kwargsToKeep['SampledVars'][var]
-                                       if var in kwargs['SampledVars'] else result[var]))
-                    for var in set(itertools.chain(result.keys(),kwargsToKeep['SampledVars'].keys()))))
-    return rlz
+    result = self._externalRun(newInput, jobHandler)
+    # assure out has all metadata
+    out = dict((var,np.atleast_1d(val)) for var, val in rlz.inputInfo.items() if var not in excludeKeys)
+    # update out with input space from inRun and output space from result
+    # TODO there's gotta be an easier way to say this ...
+    out.update(dict((var, np.atleast_1d(rlz[var] if var in rlz else result[var]))
+                    for var in set(itertools.chain(result.keys(),rlz.keys()))))
+    return out
 
   @abc.abstractmethod
-  def _externalRun(self,inRun, jobHandler):
+  def _externalRun(self, inRun, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] type of sampler,
@@ -226,7 +213,7 @@ class HybridModelBase(Dummy):
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self, finishedJob, output):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, ClientRunner object, instance of the run just finished
@@ -235,25 +222,22 @@ class HybridModelBase(Dummy):
     """
     Dummy.collectOutput(self, finishedJob, output)
 
-  def _extractInputs(self,dataIn, paramsList):
+  def _extractInputs(self, dataIn, rlz):
     """
-      Extract the the parameters in the paramsList from the given data object dataIn
+      Extract the the parameters in the realization from the given data object dataIn
       @ dataIn, Instance or Dict, data object or dictionary contains the input and output parameters
-      @ paramsList, List, List of parameter names
+      @ In, rlz, Realization, point in sample space to evaluate
       @ localInput, numpy.array, array contains the values of selected input and output parameters
     """
     localInput = []
-    if type(dataIn) == dict:
-      for elem in paramsList:
-        if elem in dataIn.keys():
-          localInput.append(np.atleast_1d(dataIn[elem]))
-        else:
-          self.raiseAnError(IOError, "Parameter ", elem, " is not found!")
-    else:
-      self.raiseAnError(IOError, "The input type '", inputType, "' can not be accepted!")
+    for elem in rlz:
+      if elem in dataIn.keys():
+        localInput.append(np.atleast_1d(dataIn[elem]))
+      else:
+        self.raiseAnError(IOError, "Parameter ", elem, " is not found!")
     return np.asarray(localInput)
 
-  def _mergeDict(self,exportDict, tempExportDict):
+  def _mergeDict(self, exportDict, tempExportDict):
     """
       This function will combine two dicts into one
       @ In, exportDict, dict, dictionary stores the input, output and metadata

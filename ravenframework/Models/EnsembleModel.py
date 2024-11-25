@@ -497,7 +497,7 @@ class EnsembleModel(Dummy):
       are needed by createNewInput and thus descriptions are copied from there.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, subRlzs, dict(Realization), Realizations keyed by the models they belong to
+      @ In, rlz, Realization, Realization to evaluate
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
     # FIXME do I need to add inputInfo, or use rlz.asDict, for this?
