@@ -20,7 +20,6 @@
   4.  TwoPoints Partially Mapped Crossover (PMX)
 
   Created June,16,2020
-  Last update July,8,2024
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Juan Luque-Gutierrez
 """
 
@@ -205,7 +204,7 @@ __crossovers = {}
 __crossovers['onePointCrossover']  = onePointCrossover
 __crossovers['twoPointsCrossover'] = twoPointsCrossover
 __crossovers['uniformCrossover']   = uniformCrossover
-__crossovers['partiallyMappedCrossover'] = partiallyMappedCrossover 
+__crossovers['partiallyMappedCrossover'] = partiallyMappedCrossover
 
 def returnInstance(cls, name):
   """
@@ -276,21 +275,21 @@ def twoPointsPMXMethod(parent1, parent2, locL, locU):
     Then:
     children1 = X B2 X
     children2 = X B1 X
-    We verify if the values in A and C are found in B for each children. If so, we 
+    We verify if the values in A and C are found in B for each children. If so, we
     replace such values for the ones in the map.
     children1 = A1* B2 C1*
     children2 = A2* B1 C2*
-    Children should have the same elements as their parents, but in different order. 
-    @ In, parent1, first array
-    @ In, parent2, second array
-    @ In, locL: first location
-    @ In, LocU: second location
-    @ Out, children1: first generated array
-    @ Out, children2: second generated array
+    Children should have the same elements as their parents, but in different order.
+    @ In, parent1, xr.DataArray, first array
+    @ In, parent2, xr.DataArray, second array
+    @ In, locL, integer, first location
+    @ In, LocU, integer, second location
+    @ Out, children1, xr.DataArray, first generated array
+    @ Out, children2, xr.DataArray, second generated array
   """
-  
+
   size = len(parent1)
-  
+
   children1 = parent1.copy(deep=True)
   children2 = parent2.copy(deep=True)
 
