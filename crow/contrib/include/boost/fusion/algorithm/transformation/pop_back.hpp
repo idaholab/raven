@@ -7,6 +7,7 @@
 #if !defined(FUSION_POP_BACK_09172005_1038)
 #define FUSION_POP_BACK_09172005_1038
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/view/iterator_range/iterator_range.hpp>
 #include <boost/fusion/sequence/intrinsic/begin.hpp>
 #include <boost/fusion/sequence/intrinsic/end.hpp>
@@ -16,6 +17,11 @@
 #include <boost/mpl/minus.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/if.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -32,6 +38,7 @@ namespace boost { namespace fusion
 
         static bool const is_last = IsLast;
 
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         pop_back_iterator(Iterator_ const& iterator_base)
             : base_type(iterator_base) {}
 
@@ -40,6 +47,7 @@ namespace boost { namespace fusion
         {
             typedef pop_back_iterator<BaseIterator, is_last> type;
 
+            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static type
             call(BaseIterator const& i)
             {
@@ -91,6 +99,7 @@ namespace boost { namespace fusion
 
             typedef pop_back_iterator<base_prior, false> type;
 
+            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static type
             call(Iterator const& i)
             {
@@ -112,6 +121,7 @@ namespace boost { namespace fusion
 
             typedef pop_back_iterator<base_prior, false> type;
 
+            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static type
             call(Iterator const& i)
             {
@@ -147,6 +157,7 @@ namespace boost { namespace fusion
     }
 
     template <typename Sequence>
+    BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
     inline typename result_of::pop_back<Sequence const>::type
     pop_back(Sequence const& seq)
     {
@@ -161,6 +172,10 @@ namespace boost { namespace fusion
         );
     }
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #endif
 

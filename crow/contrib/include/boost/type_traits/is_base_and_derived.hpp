@@ -10,25 +10,23 @@
 #define BOOST_TT_IS_BASE_AND_DERIVED_HPP_INCLUDED
 
 #include <boost/type_traits/intrinsics.hpp>
+#include <boost/type_traits/integral_constant.hpp>
 #ifndef BOOST_IS_BASE_OF
 #include <boost/type_traits/is_class.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/is_convertible.hpp>
-#include <boost/type_traits/detail/ice_and.hpp>
 #include <boost/config.hpp>
 #include <boost/static_assert.hpp>
 #endif
 #include <boost/type_traits/remove_cv.hpp>
-
-// should be the last #include
-#include <boost/type_traits/detail/bool_trait_def.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 namespace boost {
 
 namespace detail {
 
 #ifndef BOOST_IS_BASE_OF
-#if !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x581)) \
+#if !BOOST_WORKAROUND(BOOST_BORLANDC, BOOST_TESTED_AT(0x581)) \
  && !BOOST_WORKAROUND(__SUNPRO_CC , <= 0x540) \
  && !BOOST_WORKAROUND(__EDG_VERSION__, <= 243) \
  && !BOOST_WORKAROUND(__DMC__, BOOST_TESTED_AT(0x840))
@@ -230,25 +228,17 @@ struct is_base_and_derived_impl
 #endif
 } // namespace detail
 
-BOOST_TT_AUX_BOOL_TRAIT_DEF2(
-      is_base_and_derived
-    , Base
-    , Derived
-    , (::boost::detail::is_base_and_derived_impl<Base,Derived>::value)
-    )
+template <class Base, class Derived> struct is_base_and_derived
+   : public integral_constant<bool, (::boost::detail::is_base_and_derived_impl<Base, Derived>::value)> {};
 
-#ifndef BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION
-BOOST_TT_AUX_BOOL_TRAIT_PARTIAL_SPEC2_2(typename Base,typename Derived,is_base_and_derived,Base&,Derived,false)
-BOOST_TT_AUX_BOOL_TRAIT_PARTIAL_SPEC2_2(typename Base,typename Derived,is_base_and_derived,Base,Derived&,false)
-BOOST_TT_AUX_BOOL_TRAIT_PARTIAL_SPEC2_2(typename Base,typename Derived,is_base_and_derived,Base&,Derived&,false)
-#endif
+template <class Base, class Derived> struct is_base_and_derived<Base&, Derived> : public false_type{};
+template <class Base, class Derived> struct is_base_and_derived<Base, Derived&> : public false_type{};
+template <class Base, class Derived> struct is_base_and_derived<Base&, Derived&> : public false_type{};
 
-#if BOOST_WORKAROUND(__CODEGEARC__, BOOST_TESTED_AT(0x610))
-BOOST_TT_AUX_BOOL_TRAIT_PARTIAL_SPEC2_1(typename Base,is_base_and_derived,Base,Base,false)
+#if BOOST_WORKAROUND(BOOST_CODEGEARC, BOOST_TESTED_AT(0x610))
+template <class Base> struct is_base_and_derived<Base, Base> : public true_type{};
 #endif
 
 } // namespace boost
-
-#include <boost/type_traits/detail/bool_trait_undef.hpp>
 
 #endif // BOOST_TT_IS_BASE_AND_DERIVED_HPP_INCLUDED
