@@ -49,6 +49,10 @@ class CrowPython(Tester):
       @ In, None
       @ Out, get_command, string, string command to use.
     """
+    # If the test command has been specified, use it
+    if (command := self._get_test_command()) is not None:
+      return ' '.join([command, self.specs['input']])
+
     if len(self.specs["python_command"]) == 0:
       pythonCommand = self._get_python_command()
     else:

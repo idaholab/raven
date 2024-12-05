@@ -20,14 +20,49 @@ Created on Oct 27, 2016
 from __future__ import division, print_function, absolute_import
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
-import sys
 import itertools
 import copy
+from typing import Optional
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 from . import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
+
+def evaluateModelsOrder(modelDict: dict, acceptLoop: Optional[bool] = True, reverse:  Optional[bool] = False,initialStartingModels: Optional[list] = []):
+  """
+    Utility method to evaluate the model/node execution order (From First(s) nodes till to the last
+    node(s) in the dictionary). The method uses graph theory for such evaluation.
+    The order, the graph object and (eventually) the error messages are returned in a tuple.
+    @ In, modelDict, dict, dictionary of models to outputs (e.g. {modelName1:[modelName2,modelName3],modelName2:[modelName4],..})
+    @ In, acceptLoop, bool, optional, should loops be accepted? Default: True
+    @ In, reverse, bool, optional, should the execution list be reversed? (Ie. First to Last or Last to First)
+    @ In, initialStartingModels, list, optional, initial starting models in case of "non-linear" connections
+    @ Out, executionList, list, model execution (ordered) list
+    @ Out, modelsGraph, graphObject, graph object
+    @ Out, errMsg, tuple or None, if tuple: el[0] -> Exception, el[1] -> error msg
+  """
+  errMsg = None # element 1 is Exception, element 2 is the error msg
+  if not len(modelDict):
+    return None, None, errMsg
+  modelsGraph = graphObject(modelDict)
+  # check for isolated models:
+  # isolated models are models that are not connected to other models
+  # consequentially thse models can be executed first (since no interdependency exists)
+  isolatedModels = modelsGraph.findIsolatedVertices()
+  executionList = isolatedModels
+  if len(isolatedModels) != len(modelDict):
+    if not acceptLoop and modelsGraph.isALoop():
+      errMsg = (IOError, "Models are interdependent but connections determined a loop of dependencies that "
+                        "is not supported in the system. Use EnsembleModel to solve such dependencies.")
+      return
+    allPath = modelsGraph.findAllUniquePaths(initialStartingModels)
+    executionList = modelsGraph.createSingleListOfVertices(allPath)
+    if reverse:
+      # the execution list is reversed becuase the created a graph above in reversed order (output to input)
+      executionList.reverse()
+    executionList = isolatedModels + executionList
+  return executionList, modelsGraph, errMsg
 
 class graphObject(object):
   """

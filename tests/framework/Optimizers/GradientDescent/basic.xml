@@ -118,7 +118,7 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Plot name="opt_path" subType="OptPath">
+    <Plot name="opt_path" subType="OptPath" overwrite="True">
       <source>opt_export</source>
       <vars>x,y,func,const,ans</vars>
     </Plot>

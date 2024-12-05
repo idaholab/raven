@@ -737,7 +737,7 @@ class DynamicEventTree(Grid):
     depVars = copy.deepcopy(self.dependentSample)
     consts = copy.deepcopy(self.constants)
     for var in depVars:
-      depVars[var] = self.funcDict[var].parameterNames()
+      depVars[var] = self.funcDict[var].instance.parameterNames()
     model._replaceVariablesNamesWithAliasSystem(depVars)
     model._replaceVariablesNamesWithAliasSystem(standardDet)
     model._replaceVariablesNamesWithAliasSystem(consts)

@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/SimulatedAnnealing/discrete.FuncionallyConstrainedSA</name>
+    <author>alfoa</author>
+    <created>2024-05-15</created>
+    <classesTested>Optimizer.SimulatedAnnealing</classesTested>
+    <description>
+     This test assesses the usage of Simulated Annealing with discrete variables and functional constraints. 
+     The test is an adaptation of the test ``framework.Optimizers.SimulatedAnnealing.continuous.FuncionallyConstrainedSA'' using discrete distributions.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">goal</Model>
+      <Optimizer class="Optimizers" type="SimulatedAnnealing">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <UniformDiscrete name='distx'>
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+      <nPoints>1000</nPoints>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+    <Uniform name='disty'>
+      <lowerBound>-0.5</lowerBound>
+      <upperBound>0.5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <SimulatedAnnealing name="opter">
+      <samplerInit>
+        <limit>500</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+      <convergence>
+        <objective>1e-4</objective>
+        <temperature>1e-16</temperature>
+        <persistence>1</persistence>
+      </convergence>
+      <coolingSchedule>
+        <veryfast>
+          <c>0.75</c>
+        </veryfast>
+      </coolingSchedule>
+      <variable name="x">
+        <distribution>distx</distribution>
+        <initial>0.9</initial>
+      </variable>
+      <variable name="y">
+        <distribution>disty</distribution>
+        <initial>0.7</initial>
+      </variable>
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+            <Constraint class='Functions' type='External'>goal</Constraint>
+    </SimulatedAnnealing>
+  </Optimizers>
+
+  <Functions>
+    <External file="../../../../AnalyticModels/optimizing/offset_parabola" name="goal">
+      <variables>x,y</variables>
+    </External>
+  </Functions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/offset_parabola" name="goal" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x,delta_y,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>

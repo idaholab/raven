@@ -63,6 +63,14 @@ class TestPythonRaven(unittest.TestCase):
 
   def test_findFileFramework(self):
     """ Find file given path relative to RAVEN framework """
+    # If ravenframework is installed in any way other than the git installation, such as
+    # a pip installation or using an executable, looking for a file from the framework
+    # directory doesn't make sense because those installations don't ship with the
+    # ravenframework tests. We'll skip this test in those cases.
+    if os.path.abspath(os.path.join('..', '..', '..', '..', 'tests', 'framework')) != frameworkTestDir:
+      self.skipTest('Skipping test_findFileFramework because the framework tests directory is not where' + \
+                    ' we expect it to be based on the location of the current file. Perhaps the installation' + \
+                    ' of ravenframework is not the git installation?')
     fname = os.path.join('..', 'tests', 'framework', 'basic.xml')
     target = self.raven._findFile(fname)
     self.assertEqual(targetWorkflow, target)
@@ -80,7 +88,7 @@ class TestPythonRaven(unittest.TestCase):
     code = self.raven.runWorkflow()
     self.assertEqual(code, 0)
 
-if __name__ == '__main__':
+if __name__ == '__main__': # Not run when unittest called from command line or Unittest tester is used
   unittest.main()
   # note: return code is 1 if any tests fail/crash
 

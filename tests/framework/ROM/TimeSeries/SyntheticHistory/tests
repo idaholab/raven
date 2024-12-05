@@ -25,6 +25,23 @@
     [../]
   [../]
 
+  [./AutoARMA]
+    type = 'RavenFramework'
+    input = 'auto_arma.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'AutoARMA/samples_0.csv AutoARMA/samples_1.csv'
+      rel_err = 4.7e-1
+      zero_threshold = 1e-12
+    [../]
+    [./xml]
+      type = XML
+      output = 'AutoARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
   [./ARMASample]
     prereq = ARMA
     type = 'RavenFramework'
@@ -96,6 +113,7 @@
       type = OrderedCSV
       output = 'DiffARMA/samples_0.csv DiffARMA/samples_1.csv'
       rel_err = 2.5e-1 # thank you, Windows
+      zero_threshold = 5e-1
     [../]
     [./xml]
       type = XML
@@ -127,6 +145,7 @@
     [./csv]
       type = OrderedCSV
       output = 'ARMAPreserveCDF/samples_0.csv ARMAPreserveCDF/samples_1.csv'
+      zero_threshold = 1e-3
       rel_err = 2e-1
     [../]
     [./xml]
@@ -225,6 +244,26 @@
       output = 'VARMA/romMeta.xml'
       rel_err = 1e-2
       zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./VARMASample]
+    prereq = VARMA
+    type = 'RavenFramework'
+    input = 'varma_sample.xml'
+    [./csv0]
+      type = OrderedCSV
+      output = 'VARMA/pk_samples_0.csv'
+      gold_files = '../VARMA/samples_0.csv'
+      rel_err = 8.8e-1 # thank you, Windows and Linux diffs
+      zero_threshold = 1e-12
+    [../]
+    [./csv1]
+      type = OrderedCSV
+      output = 'VARMA/pk_samples_1.csv'
+      gold_files = '../VARMA/samples_1.csv'
+      rel_err = 8.8e-1 # thank you, Windows and Linux diffs
+      zero_threshold = 1e-12
     [../]
   [../]
 

@@ -4,8 +4,7 @@
     <WorkingDir>workdir</WorkingDir>
     <Sequence>make,train,print</Sequence>
     <batchSize>3</batchSize>
-    <internalParallel>True</internalParallel>
-    <expectedTime>00:10:00</expectedTime>
+    <expectedTime>00:20:00</expectedTime>
     <JobName>test_qsub</JobName>
     <mode>
       mpi
@@ -14,8 +13,8 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="make" pauseAtEnd="False">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <MultiRun name="make">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">poly</Model>
       <Sampler class="Samplers" type="AdaptiveSobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">solns</Output>
@@ -65,7 +64,6 @@
   </Samplers>
 
   <Models>
-    <Dummy name="MyDummy" print="True" subType=""/>
     <ExternalModel ModuleToLoad="../multi" name="poly" subType="">
       <inputs>x1,x2,x3,x4</inputs>
       <outputs>ans,ans2</outputs>
@@ -80,10 +78,7 @@
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIN">
-      <Input>x1,x2,x3,x4</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
+    <PointSet name="placeholder"/>
     <PointSet name="solns">
       <Input>x1,x2,x3,x4</Input>
       <Output>ans,ans2</Output>

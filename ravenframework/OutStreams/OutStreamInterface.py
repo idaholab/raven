@@ -21,7 +21,7 @@ import os
 from .. import DataObjects
 from .. import Models
 from ..BaseClasses import BaseInterface
-from ..utils import InputTypes, InputData
+from ..utils import InputTypes, InputData, utils
 
 class OutStreamInterface(BaseInterface):
   """
@@ -54,7 +54,7 @@ class OutStreamInterface(BaseInterface):
     self.printTag = 'OutStreamInterface'
     self.overwrite = True       # overwrite existing creations?
     self.subDirectory = None    # directory to save generated files to
-    self.filename = ''          # target file name
+    self.filename = None        # target file name
     self.numberAggregatedOS = 1 # number of aggregated outstreams # no addl info from original OutStream
 
   def handleInput(self, spec):
@@ -79,7 +79,7 @@ class OutStreamInterface(BaseInterface):
     super().initialize()
     if self.subDirectory is not None:
       if not os.path.exists(self.subDirectory):
-        os.makedirs(self.subDirectory)
+        utils.makeDir(self.subDirectory)
 
   def getInitParams(self):
     """

@@ -170,6 +170,9 @@ def checkSingleLibrary(lib, version=None, useImportCheck=False):
   ## this avoids actually importing the modules
   if usePackageMeta and not useImportCheck:
     found, msg, foundVersion = findLibAndVersion(lib, version=version)
+    if not found:
+      # try slower approach
+      found, msg, foundVersion = findLibAndVersionSubprocess(lib, version=version)
   # otherwise, use the slower subprocess method
   else:
     found, msg, foundVersion = findLibAndVersionSubprocess(lib, version=version)
@@ -469,6 +472,12 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
     libSource = 'forge' # DEFAULT
   if limitSources is not None and libSource not in limitSources:
     return # nothing to do
+  # check if repository (git) is specified
+  libRepo = libNode.attrib.get('repo', None)
+  if libRepo is not None:
+    # check if the source is pip
+    if libSource != 'pip':
+       raise KeyError('The "repo" ('+str(libRepo)+') attribute can be used in conjunction with source="pip" only! Got '+str(libSource)+'!')
   # otherwise, we have a valid request to handle
   text = libNode.text
   if text is not None:
@@ -481,6 +490,8 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
   libVersion = text
   libSkipCheck = libNode.attrib.get('skip_check', None)
   request = {'skip_check': libSkipCheck, 'version': libVersion, 'requestor': requestor}
+  if libRepo is not None:
+    request['repository'] = libRepo
   pipExtra = libNode.attrib.get('pip_extra', None)
   if pipExtra is not None:
     request['pip_extra'] = pipExtra
@@ -596,8 +607,13 @@ if __name__ == '__main__':
     msg = '\\begin{itemize}\n'
     for lib, request in libs.items():
       version = request['version']
-      msg += '  \\item {}{}\n'.format(
-             lib.replace('_', '\\_'), ('' if version is None else '-'+version))
+      repo = request.get('repository',None)
+      msg += '  \\item {}{}'.format(
+             lib.replace('_', '\\_'), ('' if version is None else '-'+version.replace('_', '\\_')))
+      if repo is not None:
+        msg += '(Repository: \\url{' + str(repo) + '})'
+      msg += '\n'
+
     msg += '\\end{itemize}'
     print(msg)
   else:
@@ -623,7 +639,7 @@ if __name__ == '__main__':
         equals = '=='
         equalsTail = '.*'
         actionArgs = ''
-        addOptional = False
+        addOptional = args.addOptional
         limit = ['pip']
       elif args.subset == 'pyomo':
         src = ''
@@ -678,9 +694,9 @@ install_requires =
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
     libTexts = itemSeperator.join(['{lib}{extra}{ver}'
-                         .format(lib=lib,
-                                 extra=request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '',
-                                 ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))
+                         .format(lib=(lib if 'repository' not in request else 'git+'+str(request["repository"])),
+                                 extra=((request['pip_extra'] if  installer.startswith('pip') and 'pip_extra' in request else '') if 'repository' not in request else ''),
+                                 ver=(('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else '') if 'repository' not in request else ''))
                          for lib, request in libs.items()])
     if len(libTexts) > 0:
       print(preamble + libTexts)

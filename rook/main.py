@@ -68,6 +68,8 @@ class NoColors:
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
                     help='Specifies number of tests to run simultaneously (default: 1)')
+parser.add_argument('--longest-jobs',dest='longest_jobs', type=int, default=0,
+                    help='Only for compatibility')
 parser.add_argument('--re', dest='test_re_raw', default='.*',
                     help='Only tests with this regular expression inside will be run')
 parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
@@ -94,6 +96,14 @@ parser.add_argument('--only-run-types', dest='only_run_types',
 parser.add_argument('--add-non-default-run-types',
                     dest='add_non_default_run_types',
                     help='add a run type that is not run by default')
+
+parser.add_argument('--only-testers', dest='only_testers',
+                    help='only run tests associated with the listed testers')
+
+parser.add_argument('--tester-command', nargs='*', dest='tester_commands',
+                    help='Command to run. The first argument is the tester name, the second is the '
+                         'command to run for that tester. Any number of (tester, command) pairs '
+                         'may be specified. The tester name must be the name of a tester class.')
 
 parser.add_argument('--command-prefix', dest='command_prefix',
                     help='prefix for the test commands')
@@ -385,6 +395,12 @@ if __name__ == "__main__":
     for ndrt in non_default_run_types:
       Tester.add_non_default_run_type(ndrt)
 
+  # Remove testers that are not in the list of testers we want to run
+  if args.only_testers is None:
+    allowed_testers = testers.keys()
+  else:
+    allowed_testers = [x.strip() for x in args.only_testers.split(',')]
+
   if args.list_testers:
     print("Testers:")
     for tester_name, tester in testers.items():
@@ -422,6 +438,8 @@ if __name__ == "__main__":
     for node in tree:
       #print(node.tag)
       #print(node.attrib)
+      if node.attrib['type'] not in allowed_testers:
+        continue
       param_handler = tester_params[node.attrib['type']]
       if not param_handler.check_for_required(node.attrib):
         raise IOError("Missing Parameters in: " + node.tag + " for Tester: " + node.attrib['type'])
@@ -442,6 +460,10 @@ if __name__ == "__main__":
         params = dict(node.attrib)
         params['test_dir'] = test_dir
         tester = testers[node.attrib['type']](test_name, params)
+        if args.tester_commands is not None:
+          for i in range(0, len(args.tester_commands), 2):
+            if args.tester_commands[i] == node.attrib['type']:
+              tester.set_test_command(args.tester_commands[i+1])
         if args.command_prefix is not None:
           tester.set_command_prefix(args.command_prefix)
         if args.python_command is not None:
@@ -451,6 +473,9 @@ if __name__ == "__main__":
         for child in node.children:
           #print(test_name,"child",child)
           child_type = child.attrib['type']
+          if child_type not in differs:
+            raise IOError("Differ type '" +  child_type + "' unknown! Available are: " +
+                          ', '.join(list(differs.keys())) +  ". Test file: "+ test_file)
           child_param_handler = differs[child_type].get_valid_params()
           if not child_param_handler.check_for_required(child.attrib):
             raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag +

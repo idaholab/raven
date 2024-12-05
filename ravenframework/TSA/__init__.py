@@ -23,6 +23,7 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 from .Fourier import Fourier
 from .ARMA import ARMA
 from .VARMA import VARMA
+from .AutoARMA import AutoARMA
 from .MarkovAR import MarkovAR
 from .RWD import RWD
 from .STL import STL
@@ -30,7 +31,7 @@ from .STL import STL
 from .Transformers import MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
                           LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
                           QuantileTransformer, OutTruncation, ZeroFilter, PreserveCDF, Gaussianize, \
-                          Differencing
+                          Differencing, FilterBankDWT
 
 from .Factory import factory
 

@@ -10,9 +10,15 @@
 [submodule "plugins/LOGOS"]
 	path = plugins/LOGOS
 	url = https://github.com/idaholab/LOGOS.git
-[submodule "plugins/SRAW"]
-	path = plugins/SRAW
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
 [submodule "plugins/FARM"]
 	path = plugins/FARM
 	url = https://github.com/Argonne-National-Laboratory/FARM.git
+[submodule "plugins/BayCal"]
+	path = plugins/BayCal
+	url = https://github.com/idaholab/BayCal.git
+[submodule "plugins/POEM"]
+	path = plugins/POEM
+	url = https://github.com/idaholab/POEM.git
+[submodule "plugins/DOVE"]
+	path = plugins/DOVE
+	url = https://github.com/idaholab/DOVE.git

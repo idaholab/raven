@@ -43,7 +43,7 @@
 
   <Models>
     <Code name="raven" subType="RAVEN">
-        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <executable>%RAVENEXECUTABLE%</executable>
         <outputExportOutStreams>inner_out</outputExportOutStreams>
         <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
         <alias variable="innerUpperBound" type="input">
