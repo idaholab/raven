@@ -5,7 +5,13 @@ if test -n "$SLURM_SUBMIT_DIR"; then
     cd $SLURM_SUBMIT_DIR
 fi
 
-source /etc/profile.d/modules.sh
+if test -f /etc/profile.d/modules.sh;
+then
+    source /etc/profile.d/modules.sh
+elif test -f /apps/local/lmod/modules.sh;
+then
+    source /apps/local/lmod/modules.sh;
+fi
 echo RAVEN_FRAMEWORK_DIR $RAVEN_FRAMEWORK_DIR
 
 if test -e $RAVEN_FRAMEWORK_DIR/../scripts/establish_conda_env.sh; then

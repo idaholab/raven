@@ -59,13 +59,11 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     workingDir = runInfoDict['WorkingDir']
     if self.__nodeFile or self.__inSlurm:
       if not self.__nodeFile:
-        nodeFile = os.path.join(workingDir,"slurmNodeFile_"+str(os.getpid()))
+        self.__nodeFile = os.path.join(workingDir,"slurmNodeFile_"+str(os.getpid()))
         #generate nodeFile
-        os.system("srun --overlap -- hostname > "+nodeFile)
-      else:
-        nodeFile = self.__nodeFile
-      self.raiseADebug('Setting up remote nodes based on "{}"'.format(nodeFile))
-      lines = open(nodeFile,"r").readlines()
+        os.system("srun --overlap -- hostname > "+self.__nodeFile)
+      self.raiseADebug('Setting up remote nodes based on "{}"'.format(self.__nodeFile))
+      lines = open(self.__nodeFile,"r").readlines()
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
       numMPI = runInfoDict['NumMPI']
@@ -84,15 +82,15 @@ class SlurmSimulationMode(Simulation.SimulationMode):
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
         for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir, f"node_{i}"), "w")
+          subNodeFile = open(os.path.join(workingDir, f"node_{i}"), "w")
           for line in lines[i*numMPI : (i+1) * numMPI]:
-            nodeFile.write(line)
-          nodeFile.close()
+            subNodeFile.write(line)
+          subNodeFile.close()
         #then give each index a separate file.
         nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = runInfoDict["NodeParameter"]+" "+nodeFile
+        nodeCommand = runInfoDict["NodeParameter"]+" "+self.__nodeFile
 
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
@@ -125,7 +123,8 @@ class SlurmSimulationMode(Simulation.SimulationMode):
       @ In, runInfoDict, dict, dictionary of run info.
       @ Out, remoteRunCommand, dict, dictionary of command.
     """
-    # determine the cores needed for the job
+    # determine the cores needed for the job. Note that these can be distributed
+    #  that is they may not be able to share memory.
     if self.__coresNeeded is not None:
       coresNeeded = self.__coresNeeded
     else:
@@ -139,7 +138,8 @@ class SlurmSimulationMode(Simulation.SimulationMode):
 
     # raven/framework location
     frameworkDir = runInfoDict["FrameworkDir"]
-    # number of "threads"
+    # number of "threads" (unlike cores, these will run on a single computer
+    #  and so can share memory)
     ncpus = runInfoDict['NumThreads']
     # job title
     jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
