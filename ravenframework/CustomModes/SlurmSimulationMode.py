@@ -19,6 +19,7 @@ import os
 import math
 import string
 from ravenframework import Simulation
+from ravenframework.utils import InputData, InputTypes
 
 #For the mode information
 modeName = "slurm"
@@ -190,27 +191,43 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     assert self.__runSbatch and not self.__inSlurm
     return self.__createAndRunSbatch(runInfoDict)
 
-  def XMLread(self, xmlNode):
+
+  @classmethod
+  def getInputSpecification(cls):
     """
-      XMLread is called with the mode node, and is used here to
-      get extra parameters needed for the simulation mode MPI.
-      @ In, xmlNode, xml.etree.ElementTree.Element, the xml node that belongs to this class instance
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory("mode", ordered=False, contentType=InputTypes.StringType)
+    inputSpecification.addSub(InputData.parameterInputFactory("runSbatch"))
+    inputSpecification.addSub(InputData.parameterInputFactory("memory", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("coresneeded", contentType=InputTypes.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("partition", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("MPIParam", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("noprecommand"))
+    return inputSpecification
+
+  def handleInput(self, paramInput):
+    """
+      Function to handle the slurm mode parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == "nodefile":
-        self.__nodeFile = child.text.strip()
-      elif child.tag == "memory":
-        self.__memNeeded = child.text.strip()
-      elif child.tag == "coresneeded":
-        self.__coresNeeded = int(child.text.strip())
-      elif child.tag == "partition":
-        self.__partition = child.text.strip()
-      elif child.tag.lower() == "runsbatch":
+    for child in paramInput.subparts:
+      if child.getName() == "nodefile":
+        self.__nodeFile = child.value.strip()
+      elif child.getName() == "memory":
+        self.__memNeeded = child.value.strip()
+      elif child.getName() == "coresneeded":
+        self.__coresNeeded = child.value
+      elif child.getName() == "partition":
+        self.__partition = child.value.strip()
+      elif child.getName() == "runSbatch":
         self.__runSbatch = True
-      elif child.tag.lower() == "mpiparam":
-        self.__mpiparams.append(child.text.strip())
-      elif child.tag.lower() == "noprecommand":
+      elif child.getName() == "MPIParam":
+        self.__mpiparams.append(child.value.strip())
+      elif child.getName() == "noprecommand":
         self.__createPrecommand = False
-      else:
-        self.raiseADebug("We should do something with child "+str(child))

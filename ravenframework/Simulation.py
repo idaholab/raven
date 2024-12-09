@@ -702,7 +702,12 @@ class Simulation(MessageUser):
         # parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
           self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
-          self.__modeHandler.XMLread(element)
+          if hasattr(self.__modeHandler,"handleInput"):
+            paramInput = self.__modeHandler.getInputSpecification()()
+            paramInput.parseNode(element)
+            self.__modeHandler.handleInput(paramInput)
+          else:
+            self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError, f"Unknown mode {self.runInfoDict['mode']}")
       elif element.tag == 'expectedTime':
