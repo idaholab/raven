@@ -21,7 +21,6 @@
     <NumThreads>1</NumThreads>
     <NumMPI>1</NumMPI>
     <expectedTime>0:10:00</expectedTime>
-    <clusterParameters>-W block=true</clusterParameters>
     <JobName>test_mpilong</JobName>
   </RunInfo>
 

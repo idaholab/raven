@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>cluster_tests/test_mpiqsub</name>
     <author>cogljj</author>
