@@ -360,7 +360,7 @@ class PPDSS(ValidationBase):
           else:
             featureD[cnt2][i] = 0
       #
-      featureProcessAction = simpson(featureIntNew, interpGridNew)
+      featureProcessAction = simpson(featureIntNew, x=interpGridNew)
       featureProcessTimeNorm[cnt2] = featureProcessTime/featureProcessAction
       featureOmegaNorm[cnt2] = featureProcessAction*featureOmega
     #
@@ -406,7 +406,7 @@ class PPDSS(ValidationBase):
           else:
             targetD[cnt2][i] = 0
       #
-      targetProcessAction = simpson(targetIntNew, interpGridNew)
+      targetProcessAction = simpson(targetIntNew, x=interpGridNew)
       targetProcessTimeNorm[cnt2] = targetProcessTime/targetProcessAction
       targetOmegaNorm[cnt2] = targetProcessAction*targetOmega
     #
