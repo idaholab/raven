@@ -68,7 +68,7 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
-        <limit>50</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -80,7 +80,7 @@
       </ModelSelection>
       <convergence>
         <acquisition>1e-8</acquisition>
-        <persistence>5</persistence>
+        <persistence>10</persistence>
       </convergence>
       <Acquisition>
         <ProbabilityOfImprovement>
