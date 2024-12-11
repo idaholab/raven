@@ -143,6 +143,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                         \item onePointCrossover.
                                                                         \item twoPointsCrossover.
                                                                         \item uniformCrossover
+                                                                        \item partiallyMappedCrossover
                                                                       \end{itemize}
                                                                     \item mutators:
                                                                       \begin{itemize}
@@ -191,11 +192,15 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented crossover mechanisms.
-                  This includes: a.    onePointCrossover,
-                                 b.    twoPointsCrossover,
-                                 c.    uniformCrossover.""")
-    crossover.addParam("type", InputTypes.StringType, True,
-                       descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
+            \begin{itemize}
+              \item \textit{onePointCrossover} - It selects a random crossover point along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
+              \item \textit{twoPointsCrossover} - It selects two random crossover points along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
+              \item \textit{uniformCrossover} - It randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
+              \item \textit{partiallyMappedCrossover} - Method designed to perform a two point partially mapped crossover (MPX) on two parents to create offspring.
+            \end{itemize}""")
+    crossoverType = InputTypes.makeEnumType("crossover", "crossoverType", ["onePointCrossover","twoPointsCrossover", "uniformCrossover", "partiallyMappedCrossover"])
+    crossover.addParam("type", crossoverType, required=True,
+                       descr="type of crossover operation to be used (e.g., onePointCrossover, twoPointsCrossover, uniformCrossover, or partiallyMappedCrossover)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
