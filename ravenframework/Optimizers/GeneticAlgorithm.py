@@ -517,7 +517,7 @@ class GeneticAlgorithm(RavenSampled):
                         \item \textit{feasibleFirst} - It prioritizes solutions that meet constraints by assigning higher fitness scores to feasible solutions,
 
                         encouraging the evolution of individuals that satisfy the problem's constraints.  It suppoort single-and multi-objective optimization problem.\\\\
-                        $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right$\\
+                        $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right\}$\\
                   \end{itemize} """)
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
         contentType=InputTypes.FloatListType,
