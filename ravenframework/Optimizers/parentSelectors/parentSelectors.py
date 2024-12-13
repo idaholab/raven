@@ -21,10 +21,15 @@
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
 """
-
+# External Modules----------------------------------------------------------------------------------
 import numpy as np
 import xarray as xr
 from ...utils import randomUtils
+# External Modules----------------------------------------------------------------------------------
+
+# Internal Modules----------------------------------------------------------------------------------
+from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
+# Internal Modules End------------------------------------------------------------------------------
 
 # For mandd: to be updated with RAVEN official tools
 from itertools import combinations
@@ -42,7 +47,7 @@ def rouletteWheel(population,**kwargs):
   """
   # Arguments
   pop = population
-  fitness = kwargs['fitness']
+  fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -62,21 +67,30 @@ def rouletteWheel(population,**kwargs):
     roulettePointer = randomUtils.random(dim=1, samples=1)
     # initialize Probability
     counter = 0
-    if np.all(fitness.data>=0) or np.all(fitness.data<=0):
-      selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
+    if np.all(fitness>=0) or np.all(fitness<=0):
+      selectionProb = fitness/np.sum(fitness) # Share of the pie (rouletteWheel)
     else:
       # shift the fitness to be all positive
-      shiftedFitness = fitness.data + abs(min(fitness.data))
+      shiftedFitness = fitness + abs(min(fitness))
       selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
     sumProb = selectionProb[counter]
 
-    while sumProb < roulettePointer :
+    while sumProb <= roulettePointer :
       counter += 1
       sumProb += selectionProb[counter]
     selectedParent[i,:] = pop.values[counter,:]
     pop = np.delete(pop, counter, axis=0)
     fitness = np.delete(fitness,counter,axis=0)
   return selectedParent
+
+def countConstViolation(const):
+  """
+    Counts the number of constraints that are violated
+    @ In, const, list, list of constraints
+    @ Out, count, int, number of constraints that are violated
+  """
+  count = sum(1 for i in const if i < 0)
+  return count
 
 def tournamentSelection(population,**kwargs):
   """
@@ -88,64 +102,49 @@ def tournamentSelection(population,**kwargs):
           variables, list, variable names
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs['fitness']
-  nParents= kwargs['nParents']
+
+  nParents = kwargs['nParents']
+  nObjVal  = len(kwargs['objVal'])
+  kSelect = kwargs['kSelection']
   pop = population
   popSize = population.values.shape[0]
 
-  if 'rank' in kwargs:
-    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
-    rank = kwargs['rank']
-    multiObjectiveRanking = True
-    matrixOperationRaw = np.zeros((popSize,3))
-    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
-    matrixOperationRaw[:,1] = np.transpose(fitness.data)
-    matrixOperationRaw[:,2] = np.transpose(rank.data)
-    matrixOperation = np.zeros((popSize,3))
-  else:
-    multiObjectiveRanking = False
-    matrixOperationRaw = np.zeros((popSize,2))
-    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
-    matrixOperationRaw[:,1] = np.transpose(fitness.data)
-    matrixOperation = np.zeros((popSize,2))
+  selectedParent = xr.DataArray(np.zeros((nParents,np.shape(pop)[1])),
+                                dims=['chromosome','Gene'],
+                                coords={'chromosome':np.arange(nParents),
+                                        'Gene': kwargs['variables']})
 
-  indexes = list(np.arange(popSize))
-  indexesShuffled = randomUtils.randomChoice(indexes, size=popSize, replace=False, engine=None)
-
-  if popSize<2*nParents:
-    raise ValueError('In tournamentSelection the number of parents cannot be larger than half of the population size.')
-
-  for idx, val in enumerate(indexesShuffled):
-    matrixOperation[idx,:] = matrixOperationRaw[val,:]
-
-  selectedParent = xr.DataArray(
-    np.zeros((nParents,np.shape(pop)[1])),
-    dims=['chromosome','Gene'],
-    coords={'chromosome':np.arange(nParents),
-            'Gene': kwargs['variables']})
-
-  if not multiObjectiveRanking: # single-objective implementation of tournamentSelection
+  if nObjVal == 1: # single-objective Case
+    fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
     for i in range(nParents):
-      if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
-        index = int(matrixOperation[2*i,0])
+      matrixOperationRaw = np.zeros((kSelect,2))
+      selectChromoIndexes = list(np.arange(len(pop)))  #NOTE: JYK - selectChromoIndexes should cover all chromosomes in population.
+      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None) #NOTE: JYK - randomly select several indices with size of kSelect.
+      matrixOperationRaw[:,0] = selectedChromo
+      matrixOperationRaw[:,1] = np.transpose(fitness[selectedChromo])
+      tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:,1]),0])
+      selectedParent[i,:] = pop.values[tournamentWinnerIndex,:]
+
+  else: # multi-objective Case
+    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to.
+    rank = kwargs['rank']
+    crowdDistance = kwargs['crowdDistance']
+    for i in range(nParents):
+      matrixOperationRaw = np.zeros((kSelect,3))
+      selectChromoIndexes = list(np.arange(kSelect))
+      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None)
+      matrixOperationRaw[:,0] = selectedChromo
+      matrixOperationRaw[:,1] = np.transpose(rank.data[selectedChromo])
+      matrixOperationRaw[:,2] = np.transpose(crowdDistance.data[selectedChromo])
+      minRankIndex = list(np.where(matrixOperationRaw[:,1] == matrixOperationRaw[:,1].min())[0])
+      if len(minRankIndex) != 1: # More than one chrosome having same rank.
+        minRankNmaxCDIndex = list(np.where(matrixOperationRaw[minRankIndex,2] == matrixOperationRaw[minRankIndex,2].max())[0])
       else:
-        index = int(matrixOperation[2*i+1,0])
-      selectedParent[i,:] = pop.values[index,:]
-  else: # multi-objective implementation of tournamentSelection
-    for i in range(nParents-1):
-      if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
-        index = int(matrixOperation[i,0])
-      elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
-        index = int(matrixOperation[i+1,0])
-      else: # same rank case
-        if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
-          index = int(matrixOperation[i,0])
-        else:
-          index = int(matrixOperation[i+1,0])
-      selectedParent[i,:] = pop.values[index,:]
+        minRankNmaxCDIndex = minRankIndex
+      tournamentWinnerIndex = minRankNmaxCDIndex[0]
+      selectedParent[i,:] = pop.values[tournamentWinnerIndex,:]
 
   return selectedParent
-
 
 def rankSelection(population,**kwargs):
   """
@@ -163,7 +162,7 @@ def rankSelection(population,**kwargs):
   index = np.arange(0,pop.shape[0])
   rank = np.arange(0,pop.shape[0])
 
-  data = np.vstack((fitness,index))
+  data = np.vstack((np.array(fitness.variables['test_RankSelection']),index))
   dataOrderedByDecreasingFitness = data[:,(-data[0]).argsort()]
   dataOrderedByDecreasingFitness[0,:] = rank
   dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
@@ -173,6 +172,7 @@ def rankSelection(population,**kwargs):
                       dims=['chromosome'],
                       coords={'chromosome': np.arange(np.shape(orderedRank)[0])})
 
+  rank = rank.to_dataset(name = 'test_RankSelection')
   selectedParent = rouletteWheel(population, fitness=rank , nParents=kwargs['nParents'],variables=kwargs['variables'])
 
   return selectedParent
