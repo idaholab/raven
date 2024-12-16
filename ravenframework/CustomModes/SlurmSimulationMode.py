@@ -229,5 +229,5 @@ class SlurmSimulationMode(Simulation.SimulationMode):
         self.__runSbatch = True
       elif child.getName() == "MPIParam":
         self.__mpiparams.append(child.value.strip())
-      elif child.getName() == "noprecommand":
+      elif child.getName() == "noPrecommand":
         self.__createPrecommand = False
