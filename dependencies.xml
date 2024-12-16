@@ -83,7 +83,7 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
-    <setuptools>69</setuptools> <!-- ray 2.6 can't be installed with setuptools 70 -->
+    <setuptools /> <!-- ray 2.6 can't be installed with setuptools 70 -->
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <!-- mamba version 2.0.0 causes failures on mac: critical libmamba filesystem error: in permissions: Operation not permitted-->
     <mamba source="mamba" skip_check='True' os='mac'>1.5</mamba>
