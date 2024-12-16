@@ -184,7 +184,9 @@ class OrderedCSVDiffer:
         test_row = test_rows[idx]
         if len(gold_row) != len(test_row):
           same = False
-          msg.append(f"Different row lengths {len(gold_row)} != {len(test_row)}   in {gold_row} and {test_row}")
+          msg.append("Different row lengths"+
+                     f" {len(gold_row)} != {len(test_row)} "+
+                     f" in {gold_row} and {test_row}")
           continue
         for column in range(len(gold_row)):
           gold_value = to_float(gold_row[column])
