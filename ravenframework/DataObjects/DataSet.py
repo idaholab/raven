@@ -638,16 +638,16 @@ class DataSet(DataObject):
           rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
           rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
           dims = self.getDimensions()
-          print('*'*80)
-          print('DEBUGG whoami:', self.name)
-          print('DEBUGG dims:', dims)
+          # print('*'*80)
+          # print('DEBUGG whoami:', self.name)
+          # print('DEBUGG dims:', dims)
           for index, rl in enumerate(rlzs):
             d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items() if k not in ['_indexMap']}
-            print('*'*80)
-            print('DEBUGG d:')
-            for k, v in d.items():
-              print(k, v)
-            print('*'*80)
+          #   print('*'*80)
+          #   print('DEBUGG d:')
+          #   for k, v in d.items():
+          #     print(k, v)
+          #   print('*'*80)
             rlz[index] =  xr.Dataset.from_dict(d)
           if len(rlzs) > 1:
             # concatenate just in case there are multiple realizations

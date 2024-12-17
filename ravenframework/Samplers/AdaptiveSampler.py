@@ -18,13 +18,7 @@
   @author: alfoa
   supercedes Samplers.py from alfoa (2/16/2013)
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# Internal Modules
 from ..utils import utils, mathUtils, InputData, InputTypes
-
 from .Sampler import Sampler
 
 

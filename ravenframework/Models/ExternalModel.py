@@ -336,14 +336,9 @@ class ExternalModel(Dummy):
     res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.items()))
     if '_indexMap' in res:
       res['_indexMap'].update(evalIndexMap)
-    print('DEBUGG what is here?')
-    print('DEBUGG indexMap:', res.get('_indexMap', None))
-    print('DEBUGG res:')
-    for k, v in res.items():
-      print('DEBUGG ... ', k, v)
     return res
 
-  def collectOutput(self,finishedJob,output,options=None):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, InternalRunner object, instance of the run just finished

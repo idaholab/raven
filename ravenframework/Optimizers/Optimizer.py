@@ -18,16 +18,12 @@
   Reworked 2020-01
   @author: talbpaul
 """
-# External Modules----------------------------------------------------------------------------------
 import copy
 import abc
 import numpy as np
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
 from ..utils import randomUtils, InputData, InputTypes
 from ..Samplers import AdaptiveSampler, Sampler
-# Internal Modules End------------------------------------------------------------------------------
 
 class Optimizer(AdaptiveSampler):
   """
@@ -293,7 +289,10 @@ class Optimizer(AdaptiveSampler):
 
     for entry in self.assemblerDict.get('ImplicitConstraint', []):
       self._impConstraintFunctions.append(entry[3])
+
+    # FIXME can this superclass call be at the top of this method?
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+
     # sampler
     self._initializeInitSampler(externalSeeding)
     # seed

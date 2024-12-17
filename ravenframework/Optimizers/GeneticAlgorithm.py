@@ -72,7 +72,7 @@ class GeneticAlgorithm(RavenSampled):
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
     self.needDenormalized() # the default in all optimizers is to normalize the data which is not the case here
-    self.batchId = 0
+    # self.batchId = 0
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None     # population age
     self.fitness = None    # population fitness
@@ -395,8 +395,9 @@ class GeneticAlgorithm(RavenSampled):
     """
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
 
-    meta = ['batchId']
-    self.addMetaKeys(meta)
+    # TODO remove, moved to Sampler.initialize
+    # meta = ['batchId']
+    # self.addMetaKeys(meta)
     self.batch = self._populationSize
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, f'Number of initial values provided for each variable is {len(self._initialValues)}, while the population size is {self._populationSize}')
@@ -431,11 +432,11 @@ class GeneticAlgorithm(RavenSampled):
   # Run Methods #
   ###############
 
-  def _useRealization(self, info, rlz):
+  def _useRealizationBatch(self, meta, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
-      @ In, info, dict, identifying information about the realization
+      @ In, meta, dict, job information from the collected realizations
       @ In, rlz, xr.Dataset, new batched realizations
       @ Out, None
     """

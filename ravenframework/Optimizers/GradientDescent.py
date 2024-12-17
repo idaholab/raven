@@ -17,18 +17,11 @@
   Created 2020-01
   @author: talbpaul
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import copy
+from pprint import pprint
 from collections import deque, defaultdict
 import numpy as np
 
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules------------------------------------------------------------------------------------
 from ..utils import InputData, InputTypes, mathUtils
 from .RavenSampled import RavenSampled
 
@@ -37,8 +30,6 @@ from .stepManipulators import factory as stepFactory
 from .acceptanceConditions import factory as acceptFactory
 
 from .stepManipulators import NoConstraintResolutionFound, NoMoreStepsNeeded
-
-#Internal Modules End--------------------------------------------------------------------------------
 
 class GradientDescent(RavenSampled):
   """
@@ -172,8 +163,10 @@ class GradientDescent(RavenSampled):
     """
     # cannot be determined before run-time due to variables and prefixes.
     ok = super(GradientDescent, cls).getSolutionExportVariableNames()
-    new = {'stepSize': 'the size of step taken in the normalized input space to arrive at each optimal point'}
-    new['conv_{CONV}'] = 'status of each given convergence criteria'
+    new = {
+        'stepSize': 'the size of step taken in the normalized input space to arrive at each optimal point',
+        'conv_{CONV}': 'status of each given convergence criteria',
+    }
     # TODO need to include StepManipulators and GradientApproximators solution export entries as well!
     # -> but really should only include active ones, not all of them. This seems like it should work
     #    when the InputData can scan forward to determine which entities are actually used.
@@ -290,6 +283,8 @@ class GradientDescent(RavenSampled):
     self._gradientInstance.initialize(self.toBeSampled)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
+    # set the batch size
+    self.batch = 1 + self._gradientInstance.numGradPoints()
     # if single trajectory, turn off follower termination
     if len(self._initialValues) < 2:
       self.raiseADebug('Setting terminateFollowers to False since only 1 trajectory exists.')
@@ -333,8 +328,8 @@ class GradientDescent(RavenSampled):
   def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
-      @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
+      @ In, meta, dict, meta information from job run
+      @ In, data, xr.Dataset, batch of realization data (not actual RealizationBatch)
       @ Out, None
     """
     traj = info['traj']
@@ -737,12 +732,16 @@ class GradientDescent(RavenSampled):
       @ Out, none
     """
     # cancel grad runs
+    # FIXME temp disable, can we actually cancel these still in batching?
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
     # what do do if a point is rejected?
     # for now, rerun the opt point and gradients, AND cut step
     # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
     self._initializeStep(traj)
+    # update prefix, batch IDs? or is that something that should happen ... somewhere else?
+
+    # FIXME do we also need to register these differently?
     # track that the next recommended step size for this traj should be "cut"
     self._stepRecommendations[traj] = 'shrink'
     # get new grads around new point

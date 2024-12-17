@@ -233,24 +233,6 @@ class HybridModel(HybridModelBase):
     """
     HybridModelBase.getAdditionalInputEdits(self,inputInfo)
 
-  # OLD #
-  # def __selectInputSubset(self, romName, kwargs):
-  #   """
-  #     Method aimed to select the input subset for a certain model
-  #     @ In, romName, string, the rom name
-  #     @ In, kwargs , dict, the kwarded dictionary where the sampled vars are stored
-  #     @ Out, selectedKwargs , dict, the subset of variables (in a swallow copy of the kwargs dict)
-  #   """
-  #   selectedKwargs = copy.copy(kwargs)
-  #   selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
-  #   featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
-  #   selectedKwargs['SampledVars'] = {key: kwargs['SampledVars'][key] for key in featsList}
-  #   if 'SampledVarsPb' in kwargs.keys():
-  #     selectedKwargs['SampledVarsPb'] = {key: kwargs['SampledVarsPb'][key] for key in featsList}
-  #   else:
-  #     selectedKwargs['SampledVarsPb'] = {key: 1.0 for key in featsList}
-  #   return selectedKwargs
-
   def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
@@ -520,75 +502,107 @@ class HybridModel(HybridModelBase):
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
     self.raiseADebug("External Run")
-    originalInput = inRun[0]
-    samplerType = inRun[1]
-    rlzs = inRun[2] # OLD was inputKwargs
-    FIXMEWORKINGHERE
-    # identifier = inputKwargs.pop('prefix')
-    useROM = inputKwargs.pop('useROM')
-    # uniqueHandler = self.name + identifier
+    subRlzs = inRun[2] # OLD was inputKwargs, comes from createNewInput
+    oneRlz = next(iter(subRlzs))
+    identifier = oneRlz.inputInfo['prefix'] # FIXME should be batch ID, not sample ID
+    # TODO attach this to the batch, instead of the single realizations?
+    useROM = oneRlz.inputInfo['useROM'] # TODO need pop? inputKwargs.pop('useROM')
+    uniqueHandler = self.name + identifier
     if useROM:
-      # run roms
-      exportDict = {}
-      self.raiseADebug("Switch to ROMs")
-      # submit all the roms
-      for romName, romInfo in self.romsDictionary.items():
-        inputKwargs[romName]['prefix'] = romName+utils.returnIdSeparator()+identifier
-        nextRom = False
-        while not nextRom:
-          if jobHandler.availability() > 0:
-            with self.__busyDictLock:
-              busySet = romInfo['Busy']
-              romInfo['Instance'].submit(originalInput, samplerType, jobHandler, **inputKwargs[romName])
-              busySet.add(inputKwargs[romName]['prefix'])
-              self.__busyDict[inputKwargs[romName]['prefix']] = romName
-              self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted, busySet", busySet)
-              nextRom = True
-          else:
-            time.sleep(self.sleepTime)
-      # collect the outputs from the runs of ROMs
-      while True:
-        finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
-        for finishedRun in finishedJobs:
-          with self.__busyDictLock:
-            jobRom = self.__busyDict[finishedRun.identifier]
-            self.raiseADebug("collect job with identifier ", identifier, ' internal identifier ',finishedRun.identifier, ' rom ', jobRom, ' busy ', self.romsDictionary[jobRom]['Busy'])
-            self.romsDictionary[jobRom]['Busy'].remove(finishedRun.identifier)
-          evaluation = finishedRun.getEvaluation()
-          if isinstance(evaluation, rerror):
-            self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
-          # collect output in temporary data object
-          tempExportDict = evaluation
-          exportDict = self._mergeDict(exportDict, tempExportDict)
-        if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
-          self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
-          break
-        time.sleep(self.sleepTime)
-      exportDict['prefix'] = identifier
-    else:
-      # run model
-      inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
-      inputKwargs['uniqueHandler'] = self.name + identifier
-      moveOn = False
-      while not moveOn:
-        if jobHandler.availability() > 0:
-          self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
-          self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
-          moveOn = True
-        else:
-          time.sleep(self.sleepTime)
-      while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
-        time.sleep(self.sleepTime)
-      self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
-      finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
-      evaluation = finishedRun[0].getEvaluation()
-      if isinstance(evaluation, rerror):
-        self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
-      # collect output in temporary data object
-      exportDict = evaluation
-      self.raiseADebug("Create exportDict")
+      exportDict = self._runROMs(inRun, jobHandler, identifier, uniqueHandler)
+    else: # useCode, I guess?
+      exportDict = self._runCode(inRun, jobHandler, identifier, uniqueHandler)
     # used in the collectOutput
     exportDict['useROM'] = useROM
+    return exportDict
+
+  def _runROMs(self, inRun, jobHandler, identifier, uniqueHandler):
+    """
+      Submit ROMs for evaluation, and collect results
+      @ In, inRun, tuple, run input data (see _externalRun)
+      @ In, jobHandler, JobHandler, entity to whom jobs are submitted
+      @ In, identifier, str, identifier for this set of job submissions
+      @ In, uniqueHandler, str, tag for finding jobs submitted by this request
+      @ Out, exportDict, dict, results of runs
+    """
+    originalInput = inRun[0]
+    samplerType = inRun[1]
+    subRlzs = inRun[2]
+    exportDict = {}
+    self.raiseADebug("Switch to ROMs")
+    # submit all the roms
+    for romName, romInfo in self.romsDictionary.items():
+      rlz = subRlzs[romName]
+      info = rlz.inputInfo
+      rlz['prefix'] = romName+utils.returnIdSeparator()+identifier
+      nextRom = False
+      while not nextRom:
+        # FIXME why is jobHandler not handling its own availability?
+        if jobHandler.availability() > 0:
+          with self.__busyDictLock:
+            busySet = romInfo['Busy']
+            # FIXME submit is expecting a batch as the first member, submit the batch?
+            romInfo['Instance'].submit(rlz, originalInput, samplerType, jobHandler)
+            busySet.add(info['prefix'])
+            self.__busyDict[info['prefix']] = romName
+            self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted, busySet", busySet)
+            nextRom = True
+        else:
+          time.sleep(self.sleepTime)
+    exportDict['prefix'] = identifier
+    # collect the outputs from the runs of ROMs
+    while True:
+      finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
+      for finishedRun in finishedJobs:
+        with self.__busyDictLock:
+          jobRom = self.__busyDict[finishedRun.identifier]
+          self.raiseADebug("collect job with identifier ", identifier, ' internal identifier ',finishedRun.identifier, ' rom ', jobRom, ' busy ', self.romsDictionary[jobRom]['Busy'])
+          self.romsDictionary[jobRom]['Busy'].remove(finishedRun.identifier)
+        evaluation = finishedRun.getEvaluation()
+        if isinstance(evaluation, rerror):
+          self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
+        # collect output in temporary data object
+        tempExportDict = evaluation
+        exportDict = self._mergeDict(exportDict, tempExportDict)
+      if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
+        self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
+        break
+      time.sleep(self.sleepTime)
+    exportDict['prefix'] = identifier
+    return exportDict
+
+  def _runCode(self, inRun, jobHandler, identifier, uniqueHandler):
+    """
+      Submit code for evaluation, and collect results
+      @ In, inRun, tuple, run input data (see _externalRun)
+      @ In, jobHandler, JobHandler, entity to whom jobs are submitted
+      @ In, identifier, str, identifier for this set of job submissions
+      @ In, uniqueHandler, str, tag for finding jobs submitted by this request
+      @ Out, exportDict, dict, results of runs
+    """
+    originalInput = inRun[0]
+    samplerType = inRun[1]
+    rlz = inRun[2] # this is the result of the weird implicitness from createNewInput
+    # run model
+    rlz.inputInfo['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
+    rlz.inputInfo['uniqueHandler'] = self.name + identifier
+    moveOn = False
+    while not moveOn:
+      if jobHandler.availability() > 0:
+        self.modelInstance.submit(rlz, originalInput, samplerType, jobHandler)
+        self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
+        moveOn = True
+      else:
+        time.sleep(self.sleepTime)
+    while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
+      time.sleep(self.sleepTime)
+    self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
+    finishedRun = jobHandler.getFinished(jobIdentifier=rlz.inputInfo['prefix'], uniqueHandler=uniqueHandler)
+    evaluation = finishedRun[0].getEvaluation()
+    if isinstance(evaluation, rerror):
+      self.raiseAnError(RuntimeError, f'The model "{self.modelInstance.name}" identified by "{finishedRun[0].identifier}" failed!')
+    # collect output in temporary data object
+    exportDict = evaluation
     return exportDict
 
   def collectOutput(self, finishedJob, output):

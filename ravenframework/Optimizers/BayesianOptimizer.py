@@ -16,18 +16,15 @@
   auth: Anthoney Griffith (@grifaa)
   date: May, 2023
 """
-#External Modules------------------------------------------------------------------------------------
 import copy
+
 import numpy as np
 from pyDOE3 import lhs
 import scipy.optimize as sciopt
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from ..utils import InputData, InputTypes, mathUtils
+from ..utils import InputData, InputTypes
 from .RavenSampled import RavenSampled
 from .acquisitionFunctions import factory as acqFactory
-#Internal Modules End--------------------------------------------------------------------------------
 
 
 class BayesianOptimizer(RavenSampled):
@@ -210,8 +207,8 @@ class BayesianOptimizer(RavenSampled):
     # FIXME currently BO assumes only one optimization 'trajectory'
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._convergenceInfo = {0:{'persistence':0, 'converged':False}}
-    meta = ['batchId']
-    self.addMetaKeys(meta)
+    # OLD should be handled elsewhere meta = ['batchId']
+    # self.addMetaKeys(meta)
     self._initialSampleSize = len(self._initialValues)
     self.batch = self._initialSampleSize
 
@@ -227,8 +224,8 @@ class BayesianOptimizer(RavenSampled):
       self.raiseAnError(RuntimeError, f'Invalid model type was provided: {self._model.subType}. Bayesian Optimizer'
                         f'currently only accepts the following: {["GaussianProcessRegressor"]}')
     elif self._model.supervisedContainer[0].multioutputWrapper:
-      self.raiseAnError(RuntimeError, f'When using GPR ROM for Bayesian Optimization, must set <multioutput>'
-                        f'node to False')
+      self.raiseAnError(RuntimeError, 'When using GPR ROM for Bayesian Optimization, must set <multioutput> ' +
+                        'node to False')
     elif len(self._model.supervisedContainer[0].target) != 1:
       self.raiseAnError(RuntimeError, f'Only one target allowed when using GPR ROM for Bayesian Optimizer! '
                         f'Received {len(self._model.supervisedContainer[0].target)}')

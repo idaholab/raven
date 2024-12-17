@@ -18,12 +18,13 @@ Created on Feb 16, 2013
 """
 
 import sys
-import copy
 import abc
 import json
 import itertools
-import numpy as np
 from collections import namedtuple
+
+import numpy as np
+
 from ..BaseClasses.InputDataUser import InputDataUser
 
 from ..utils import utils,randomUtils,InputData, InputTypes
@@ -196,6 +197,21 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
 
     return inputSpecification
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, dict, {varName: manual description} for each solution export option
+    """
+    ok = super(Sampler, cls).getSolutionExportVariableNames()
+    new = {
+        'batchID': 'identifier for the sampling batch. If not batching, same as sample identifier.'
+    }
+    ok.update(new)
+    return ok
+
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -205,10 +221,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     super().__init__()
     ### COUNTERS AND FLAGS ###
-    self.batch = 0            # determines the size of each sampling batch to run
-    self.counter = 0          # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.auxcnt = 0           # Aux counter of samples performed (for its usage check initialize method)
-    self.limit = sys.maxsize  # maximum number of Samples (for example, Monte Carlo = Number of HistorySet to run, DET = Unlimited)
+    self.batch = 0            # determines the size of each sampling batch to run, 0 means none
+    self.counters = {
+                     'batches': 0, # Counter of number of batches submitted. Same as "samples" if not batching.
+                     'samples': 0, # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
+                     'seeding': 0, # Used to control consecutive seeding, was "auxcnt"
+    }
+    self.limits = {
+                   'samples': sys.maxsize # limits the number of samples that can be taken. Other samples can add additional keywords.
+    }
     self.initSeed = None      # if not provided the seed is randomly generated at the initialization of the sampler, the step can override the seed by sending in another one
     self.printTag = self.type # prefix for all prints (sampler type)
     self.reseedAtEachIteration = False # Logical flag. True if every newer evaluation is performed after a new reseeding
@@ -603,7 +624,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     paramDict = {}
     for variable in self.toBeSampled.items():
       paramDict["sampled variable: "+variable[0]] = 'is sampled using the distribution ' +variable[1]
-    paramDict['limit' ]        = self.limit
+    paramDict['limit' ] = self.limits['samples']
     paramDict['initial seed' ] = self.initSeed
     paramDict.update(self.localGetInitParams())
 
@@ -618,15 +639,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     if self.initSeed is None:
       self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-    self.counter = 0
+    self.counters['samples'] = 0
+    self.counters['batches'] = 0
     if not externalSeeding:
       randomUtils.randomSeed(self.initSeed) # use the sampler initialization seed
-      self.auxcnt = self.initSeed
+      self.counters['seeding'] = self.initSeed
     elif externalSeeding=='continue':
       pass # in this case the random sequence needs to be preserved
     else:
       randomUtils.randomSeed(externalSeeding) # the external seeding is used
-      self.auxcnt = externalSeeding
+      self.counters['seeding'] = externalSeeding
     # grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
     if 'Restart' in self.assemblerDict:
       self.raiseADebug('Restart object: '+str(self.assemblerDict['Restart']))
@@ -693,6 +715,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled:
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
+    if self.batch > 0:
+      meta.append('batchID')
     self.addMetaKeys(meta)
 
   def getBatchSize(self):
@@ -745,7 +769,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         for childChild in child.subparts:
           if childChild.getName() == "limit":
             try:
-              self.limit = int(childChild.value)
+              self.limits['samples'] = int(childChild.value)
             except ValueError:
               self.raiseAnError(IOError, f'reading the attribute for the sampler {self.name} it was not possible to perform the conversion to integer for the attribute limit with value {childChild.value}')
           if childChild.getName() == "initialSeed":
@@ -801,7 +825,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    paramDict['counter'] = self.counter
+    paramDict['counter'] = self.counters['samples']
     paramDict['initial seed'] = self.initSeed
     for key in self.samplerInfo:
       paramDict[key] = self.samplerInfo[key]
@@ -839,7 +863,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    if self.counter < self.limit: # can use < since counter is 0-based
+    if self.counters['samples'] < self.limits['samples']: # can use < since counter is 0-based
       ready = True
     else:
       ready = False
@@ -855,8 +879,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    # TODO is this an okay check for ALL samplers?
-    if self.counter > self.limit:
+    if self.counters['samples'] > self.limits['samples']:
       ready = False
 
     return ready
@@ -993,28 +1016,31 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         for corrVar in var.split(","):
           rlz[corrVar.strip()] = funcEval
 
-  def _incrementCounter(self):
+  def _incrementCounter(self, numAdded=1):
     """
       Increments counter and sets up prefix.
       @ In, None
       @ Out, None
     """
     #since we are creating the input for the next run we increase the counter and global counter
-    self.counter += 1
-    self.auxcnt += 1
+    self.counters['samples'] += numAdded
+    self.counters['batches'] += 1
+    self.counters['seeding'] += numAdded # TODO could be 1, but kept for consistency
     # prep to exit if over the limit
-    if self.counter >= self.limit:
-      self.raiseADebug('Sampling limit reached!')
+    if self.counters['samples'] >= self.limits['samples']:
+      self.raiseADebug(f'Sampling limit reached! ({self.counters["samples"]} samples > {self.limits["sampling"]} limit)')
       # TODO this is disjointed from readiness check!
     # FIXME, the following condition check is make sure that the require info is only printed once
     # when dump metadata to xml, this should be removed in the future when we have a better way to
     # dump the metadata
-    if self.counter > 1:
+    if self.counters['samples'] > 1:
       for key in self.entitiesToRemove:
         self.samplerInfo.pop(key,None)
     if self.reseedAtEachIteration:
-      randomUtils.randomSeed(self.auxcnt - 1)
-    self.samplerInfo['prefix'] = str(self.counter)
+      randomUtils.randomSeed(self.counters['seeding'] - 1)
+    # FIXME this may be setting the BATCH prefix, not the SAMPLE prefix
+    # -> so let's move it out of this method
+    # self.samplerInfo['prefix'] = str(self.counters['batches']) #FIXME is this useful, or should we be using the counters?
 
   def _performVariableTransform(self, rlzBatch):
     """
@@ -1083,13 +1109,20 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # instantiate a batch of data carrier realizations
     batchSize = self.getBatchSize()
     rlzBatch = RealizationBatch(batchSize)
+    rlzBatch.ID = self.counters['batches']
     if batchSize == 0:
-      # this means the current sampler does not know how to handle batching, so do it one at a time
+      # this means the current sampler does not know how to handle batching, so fill the batch one-at-a-time
       for rlz in rlzBatch:
         self._incrementCounter()
+        rlz.inputInfo['prefix'] = str(self.counters['samples'])
         self.localGenerateInput(rlz, model, modelInput)
     else:
-      self._incrementCounter() # TODO FIXME for GA, need a batch counter
+      # since the counter incrementer adds the whole batch at once, grab the initial counter value
+      # so we can use it to number the samples correctly
+      startPrefix = self.counters['samples']
+      self._incrementCounter(numAdded=batchSize)
+      for r, rlz in enumerate(rlzBatch):
+        rlz.inputInfo['prefix'] = str(startPrefix + r + 1)
       self.localGenerateInput(rlzBatch, model, modelInput)
       # this sampler knows how to handle batching, so we do it all at once
     # correlated variables
@@ -1138,9 +1171,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, projector, object, optional, used for adaptive sampling to provide the projection of the solution on the success metric
       @ Out, newInputs, list of list, list of the list of input sets
     """
-    FIXME # used?
+    FIXME # used? -> should be moved to using batch system!
     newInputs = []
-    while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
+    while self.amIreadyToProvideAnInput() and (self.counters['samples'] < batchSize):
       if projector is None:
         newInputs.append(self.generateInput(model, myInput))
       else:
@@ -1149,11 +1182,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     return newInputs
 
   @abc.abstractmethod
-  def localGenerateInput(self, rlz, model, modelInput):
+  def localGenerateInput(self, batch, model, modelInput):
     """
       This class need to be overwritten since it is here that the magic of the sampler happens.
       After this method call the self.inputInfo should be ready to be sent to the model
-      @ In, rlz, Realization, mapping of variables to values
+      @ In, batch, RealizationBatch (or Realization if not compatible), mapping of variables to values
       @ In, model, model instance, Model instance
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, None
@@ -1277,8 +1310,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     self.metadataKeys = set()
     self.assemblerDict = {}
-    self.counter = 0
-    self.auxcnt = 0
+    for key in self.counters:
+      self.counters[key] = 0
     self.distDict = {}
     self.funcDict = {}
     self.variableFunctionExecutionList = []

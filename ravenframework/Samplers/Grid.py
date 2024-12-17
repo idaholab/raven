@@ -18,24 +18,17 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import sys
 import copy
 from operator import mul
 from functools import reduce
-import numpy as np
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
+import numpy as np
+
 from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from .. import GridEntities
-# Internal Modules End------------------------------------------------------------------------------
 
 class Grid(Sampler):
   """

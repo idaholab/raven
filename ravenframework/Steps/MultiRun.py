@@ -173,7 +173,6 @@ class MultiRun(SingleRun):
           finishedJobList = finishedJobObjs
           self.raiseADebug(f'BATCHING: Collecting JOB batch named "{finishedJobList[0].groupId}".')
         else:
-          CANTGETHERE
           finishedJobList = [finishedJobObjs]
         currentFailures = []
         for finishedJob in finishedJobList:
