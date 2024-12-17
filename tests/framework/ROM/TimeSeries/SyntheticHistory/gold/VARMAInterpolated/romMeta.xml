@@ -14,21 +14,47 @@
     <MacroStepROM macro="1" type="Static">
       <GlobalROM segment="all" type="Static" />
       <ClusterROM type="Static" cluster="0">
+        <Fourier>
+          <signal0>
+            <fit_intercept>2.478133927e-01</fit_intercept>
+            <waveform period="2.000000000e+00" frequency="5.000000000e-01">
+              <amplitude>3.482941857e+12</amplitude>
+              <phase>-3.141592654e+00</phase>
+            </waveform>
+            <waveform period="5.000000000e+00" frequency="2.000000000e-01">
+              <amplitude>9.735837542e-01</amplitude>
+              <phase>8.480923792e-01</phase>
+            </waveform>
+            <waveform period="1.000000000e+01" frequency="1.000000000e-01">
+              <amplitude>2.140011993e+00</amplitude>
+              <phase>3.085145614e+00</phase>
+            </waveform>
+          </signal0>
+        </Fourier>
+        <Fourier>
+          <signal1>
+            <fit_intercept>-9.966730318e+00</fit_intercept>
+            <waveform period="3.000000000e+00" frequency="3.333333333e-01">
+              <amplitude>1.010808601e-01</amplitude>
+              <phase>-1.625863582e+00</phase>
+            </waveform>
+          </signal1>
+        </Fourier>
         <VARMA>
           <constant>
-            <signal0>1.844658000013965</signal0>
-            <signal1>-2.218519736660209</signal1>
+            <signal0>-0.005331352165448076</signal0>
+            <signal1>-0.010956081373217944</signal1>
           </constant>
           <covariance>
-            <var_signal0>1.0050224347569632</var_signal0>
-            <cov_signal0_signal1>0.6432040008207575</cov_signal0_signal1>
-            <var_signal1>0.983384898471489</var_signal1>
+            <var_signal0>1.0306586513583267</var_signal0>
+            <cov_signal0_signal1>0.6103065713297797</cov_signal0_signal1>
+            <var_signal1>5.782659183276665</var_signal1>
           </covariance>
           <AR>
-            <Lag1_signal0_signal0>0.7637971666378175</Lag1_signal0_signal0>
-            <Lag1_signal1_signal0>0.178618232899247</Lag1_signal1_signal0>
-            <Lag1_signal0_signal1>-0.2184892669573321</Lag1_signal0_signal1>
-            <Lag1_signal1_signal1>0.7716752182788661</Lag1_signal1_signal1>
+            <Lag1_signal0_signal0>0.8077630520098662</Lag1_signal0_signal0>
+            <Lag1_signal1_signal0>0.059133650409373746</Lag1_signal1_signal0>
+            <Lag1_signal0_signal1>-0.20438904892327175</Lag1_signal0_signal1>
+            <Lag1_signal1_signal1>0.7449830366803039</Lag1_signal1_signal1>
           </AR>
         </VARMA>
         <segments_represented>0</segments_represented>
@@ -38,21 +64,47 @@
     <MacroStepROM macro="3" type="Static">
       <GlobalROM segment="all" type="Static" />
       <ClusterROM type="Static" cluster="0">
+        <Fourier>
+          <signal0>
+            <fit_intercept>-8.161470373e-01</fit_intercept>
+            <waveform period="2.000000000e+00" frequency="5.000000000e-01">
+              <amplitude>9.077190211e+11</amplitude>
+              <phase>3.141592654e+00</phase>
+            </waveform>
+            <waveform period="5.000000000e+00" frequency="2.000000000e-01">
+              <amplitude>1.055414929e-01</amplitude>
+              <phase>-4.060089925e-01</phase>
+            </waveform>
+            <waveform period="1.000000000e+01" frequency="1.000000000e-01">
+              <amplitude>6.588140645e-02</amplitude>
+              <phase>-6.081678738e-01</phase>
+            </waveform>
+          </signal0>
+        </Fourier>
+        <Fourier>
+          <signal1>
+            <fit_intercept>2.778714103e+00</fit_intercept>
+            <waveform period="3.000000000e+00" frequency="3.333333333e-01">
+              <amplitude>1.976023703e+00</amplitude>
+              <phase>-1.074400951e+00</phase>
+            </waveform>
+          </signal1>
+        </Fourier>
         <VARMA>
           <constant>
-            <signal0>-2.016065691185001</signal0>
-            <signal1>1.44275913592743</signal1>
+            <signal0>0.001541319841508561</signal0>
+            <signal1>-0.0003346645561325233</signal1>
           </constant>
           <covariance>
-            <var_signal0>0.2270870554141479</var_signal0>
-            <cov_signal0_signal1>0.168717521033826</cov_signal0_signal1>
-            <var_signal1>3.2731676486634265</var_signal1>
+            <var_signal0>4.081674497025313</var_signal0>
+            <cov_signal0_signal1>0.12610879169756534</cov_signal0_signal1>
+            <var_signal1>3.3314967214207543</var_signal1>
           </covariance>
           <AR>
-            <Lag1_signal0_signal0>-0.7994196897487845</Lag1_signal0_signal0>
-            <Lag1_signal1_signal0>0.19849312450272474</Lag1_signal1_signal0>
-            <Lag1_signal0_signal1>0.16346097999499723</Lag1_signal0_signal1>
-            <Lag1_signal1_signal1>0.5282192672361572</Lag1_signal1_signal1>
+            <Lag1_signal0_signal0>-0.612363283942795</Lag1_signal0_signal0>
+            <Lag1_signal1_signal0>0.16166633837270497</Lag1_signal1_signal0>
+            <Lag1_signal0_signal1>0.06442509705697844</Lag1_signal0_signal1>
+            <Lag1_signal1_signal1>0.544282883646694</Lag1_signal1_signal1>
           </AR>
         </VARMA>
         <segments_represented>0</segments_represented>
@@ -62,21 +114,47 @@
     <MacroStepROM macro="2" type="Static">
       <GlobalROM segment="all" type="Static" />
       <ClusterROM type="Static" cluster="0">
+        <Fourier>
+          <signal0>
+            <fit_intercept>-2.841668223e-01</fit_intercept>
+            <waveform period="2.000000000e+00" frequency="5.000000000e-01">
+              <amplitude>2.195330439e+12</amplitude>
+              <phase>3.141592654e+00</phase>
+            </waveform>
+            <waveform period="5.000000000e+00" frequency="2.000000000e-01">
+              <amplitude>5.057185162e-01</amplitude>
+              <phase>7.487703399e-01</phase>
+            </waveform>
+            <waveform period="1.000000000e+01" frequency="1.000000000e-01">
+              <amplitude>1.042095955e+00</amplitude>
+              <phase>3.101714890e+00</phase>
+            </waveform>
+          </signal0>
+        </Fourier>
+        <Fourier>
+          <signal1>
+            <fit_intercept>-3.594008107e+00</fit_intercept>
+            <waveform period="3.000000000e+00" frequency="3.333333333e-01">
+              <amplitude>1.031400096e+00</amplitude>
+              <phase>-1.100077446e+00</phase>
+            </waveform>
+          </signal1>
+        </Fourier>
         <VARMA>
           <constant>
-            <signal0>-0.08570384558551791</signal0>
-            <signal1>-0.38788030036638954</signal1>
+            <signal0>-0.0018950161619697577</signal0>
+            <signal1>-0.005645372964675234</signal1>
           </constant>
           <covariance>
-            <var_signal0>0.564432815423267</var_signal0>
-            <cov_signal0_signal1>0.20623297005954752</cov_signal0_signal1>
-            <var_signal1>0.5500080816360237</var_signal1>
+            <var_signal0>0.7801987562013799</var_signal0>
+            <cov_signal0_signal1>0.13427570297816951</cov_signal0_signal1>
+            <var_signal1>4.950385218299469</var_signal1>
           </covariance>
           <AR>
-            <Lag1_signal0_signal0>-0.017811261555483515</Lag1_signal0_signal0>
-            <Lag1_signal1_signal0>0.18855567870098588</Lag1_signal1_signal0>
-            <Lag1_signal0_signal1>-0.02751414348116743</Lag1_signal0_signal1>
-            <Lag1_signal1_signal1>0.6499472427575117</Lag1_signal1_signal1>
+            <Lag1_signal0_signal0>0.09769988403353558</Lag1_signal0_signal0>
+            <Lag1_signal1_signal0>0.11039999439103937</Lag1_signal1_signal0>
+            <Lag1_signal0_signal1>-0.06998197593314665</Lag1_signal0_signal1>
+            <Lag1_signal1_signal1>0.6446329601634989</Lag1_signal1_signal1>
           </AR>
         </VARMA>
         <segments_represented>0</segments_represented>

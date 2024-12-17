@@ -58,7 +58,7 @@
       <Target>signal0, signal1, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <fourier target="signal0" global="True">
+      <fourier target="signal0">
         <periods>2,5,10</periods>
       </fourier>
       <fourier target="signal1">

@@ -3,7 +3,7 @@ import pandas as pd
 from generators import fourier
 
 np.random.seed(12345)
-
+burnin = 100
 def generateSignalArray(mean, nObs, burnin=100):
   """
     Generate a VARMA time series
@@ -43,10 +43,10 @@ periods1 = [2, 5, 10]
 amps1 = [0.5, 1, 2]
 phases1 = [0, np.pi/4, np.pi]
 
-signal1 = generateSignalArray(mean1, nObs=200)
+signal1 = generateSignalArray(mean1, nObs=200, burnin=burnin)
 fourier1 = fourier(amps1, periods1, phases1, np.arange(len(signal1)))
-signal1 = np.array([s+fourier1 for s in signal1.T]).T
-signal1 = generateVARMA(mean1, cov1, ar1, ma1, signal1, nObs=200)
+signal1 = generateVARMA(mean1, cov1, ar1, ma1, signal1, nObs=200, burnin=burnin)
+signal1 = np.array([s+fourier1[burnin:] for s in signal1.T]).T
 
 mean2 = np.array([-2, 2])
 cov2 = np.array([[0.5, 0.3],
@@ -57,10 +57,11 @@ ma2 = np.array([])
 periods2 = [3]
 amps2 = [2]
 phases2 = [np.pi]
-signal2 = generateSignalArray(mean1, nObs=200)
+
+signal2 = generateSignalArray(mean1, nObs=200, burnin=burnin)
 fourier2 = fourier(amps2, periods2, phases2, np.arange(len(signal2)))
-signal2 = np.array([s+fourier2 for s in signal2.T]).T
-signal2 = generateVARMA(mean2, cov2, ar2, ma2, signal2, nObs=200)
+signal2 = generateVARMA(mean2, cov2, ar2, ma2, signal2, nObs=200, burnin=burnin)
+signal2 = np.array([s+fourier2[burnin:] for s in signal2.T]).T
 
 # Write signals to file using pandas DataFrames
 pivot = np.arange(len(signal1))
