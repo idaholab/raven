@@ -1,0 +1,11 @@
+<Simulation>
+  <RunInfo>
+    <NodeParameter> --hostfile</NodeParameter>
+    <clusterParameters>--wckey=neams</clusterParameters>
+    <RemoteRunCommand>raven_ec_slurm_command.sh</RemoteRunCommand>
+    <mode>
+      slurm
+      <runSbatch />
+    </mode>
+  </RunInfo>
+</Simulation>
