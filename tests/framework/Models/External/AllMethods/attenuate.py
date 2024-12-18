@@ -39,13 +39,20 @@ def initialize(self,runInfo,inputs):
   # check readMoreXML value is available
   self.fromInit = np.sqrt(self.fromReadMoreXML)
 
-def createNewInput(self,inputs,samplerType,**kwargs):
+def createNewInput(self, inputs, samplerType, rlz):
+  """
+    This function will return a new input to be submitted to the model
+    @ In, inputs, list, the inputs (list) to start from to generate the new one
+    @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+    @ In, rlz, Realization, Realization from whiech to build input
+    @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
+  """
   # check sampler type
   if samplerType != 'Grid':
     raise IOError('Received wrong sampler type in external model createNewInput!  Expected "Grid" but got '+samplerType)
   # set a variable through "self"
   self.fromCNISelf = self.fromReadMoreXML / 2.0
-  toReturn = dict(kwargs['SampledVars'])
+  toReturn = dict(rlz)
   toReturn['fromCNIDict'] = self.fromInit * 2.0
   toReturn['unwanted'] = 42
   return toReturn

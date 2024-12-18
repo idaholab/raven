@@ -32,8 +32,6 @@ def initialize(self,runInfoDict,inputFiles):
   self.cnt             = 0.0
   return
 
-def createNewInput(self,myInput,samplerType,**Kwargs): return Kwargs['SampledVars']
-
 def run(self,Input):
   self.cnt = 1.0
   self.x0 = 1.0
