@@ -501,7 +501,7 @@ class GeneticAlgorithm(RavenSampled):
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
-      if self.counter > 1:
+      if self.counters['samples'] > 1:
         self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
                                                                                              variables=list(self.toBeSampled),
                                                                                              population=self.population,
@@ -644,7 +644,7 @@ class GeneticAlgorithm(RavenSampled):
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new state ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
-    acceptable = 'accepted' if self.counter > 1 else 'first'
+    acceptable = 'accepted' if self.counters['samples'] > 1 else 'first'
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
@@ -688,7 +688,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                         key=lambda x: (x[1]))])
     point = dict((var,optPoints[0][i]) for i, var in enumerate(selVars) if var in rlz.data_vars)
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
-    if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
+    if (self.counters['samples'] > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counters['samples'] == 1:
       point.update(gOfBest)
       self.bestPoint = point
       self.bestFitness = fit[0]

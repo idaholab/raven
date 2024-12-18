@@ -321,7 +321,7 @@ class BayesianOptimizer(RavenSampled):
     if not isinstance(rlz, dict):
       if step == 1:
         self.batch = 1 # FIXME when implementing parallel expected improvement, fix this
-        self.counter -= 1 #FIXME hacky way to make sure iterations are correctly counted
+        self.counters['samples'] -= 1 #FIXME hacky way to make sure iterations are correctly counted
         self.raiseAMessage(f'Initialization data of dimension {self._initialSampleSize} received... '
                            f'Setting sample batch size to {self.batch}')
       else:
@@ -746,7 +746,7 @@ class BayesianOptimizer(RavenSampled):
     # No point in checking convergence if no feasible point has been found
     if len(self._optPointHistory[0]) == 0:
       converged = False
-    elif self.getIteration(traj) < self.limit:
+    elif self.getIteration(traj) < self.limits['samples']:
       converged = self.checkConvergence(traj, new, old)
     else:
       converged = True

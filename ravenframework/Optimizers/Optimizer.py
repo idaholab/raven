@@ -413,8 +413,10 @@ class Optimizer(AdaptiveSampler):
     numTraj = len(self._initialValues) if self._initialValues else None
     # if there are already-initialized variables (i.e. not sampled, but given), then check num samples
     if numTraj:
-      if numTraj != self._initSampler.limit:
-        self.raiseAnError(IOError, f'{numTraj} initial points have been given, but Initialization Sampler "{self._initSampler.name}" provides {self._initSampler.limit} samples!')
+      if numTraj != self._initSampler.limits['samples']:
+        self.raiseAnError(IOError,
+            f'{numTraj} initial points have been given, but Initialization Sampler ' +\
+            f'"{self._initSampler.name}" provides {self._initSampler.limits["samples"]} samples!')
     else:
       numTraj = self._initSampler.limit
       self._initialValues = [{} for _ in range(numTraj)]
