@@ -1,10 +1,8 @@
 #!/bin/bash
 
-date
-
-if test -n "$PBS_O_WORKDIR"; then
-    echo Moving to working dir: ${PBS_O_WORKDIR}
-    cd $PBS_O_WORKDIR
+if test -n "$SLURM_SUBMIT_DIR"; then
+    echo Moving to working dir: ${SLURM_SUBMIT_DIR}
+    cd $SLURM_SUBMIT_DIR
 fi
 
 if test -f /etc/profile.d/modules.sh;
