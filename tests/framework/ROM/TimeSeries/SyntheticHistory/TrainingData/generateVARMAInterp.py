@@ -39,9 +39,9 @@ cov1 = np.array([[1.0, 0.8],
 ar1 = np.array([[[0.4, 0.1],
                  [-0.1, 0.4]]])
 ma1 = np.array([])
-periods1 = [2, 5, 10]
-amps1 = [0.5, 1, 2]
-phases1 = [0, np.pi/4, np.pi]
+periods1 = [2, 5]
+amps1 = [0.5, 1]
+phases1 = [0, np.pi/4]
 
 signal1 = generateSignalArray(mean1, nObs=200, burnin=burnin)
 fourier1 = fourier(amps1, periods1, phases1, np.arange(len(signal1)))
@@ -58,7 +58,7 @@ periods2 = [3]
 amps2 = [2]
 phases2 = [np.pi]
 
-signal2 = generateSignalArray(mean1, nObs=200, burnin=burnin)
+signal2 = generateSignalArray(mean2, nObs=200, burnin=burnin)
 fourier2 = fourier(amps2, periods2, phases2, np.arange(len(signal2)))
 signal2 = generateVARMA(mean2, cov2, ar2, ma2, signal2, nObs=200, burnin=burnin)
 signal2 = np.array([s+fourier2[burnin:] for s in signal2.T]).T

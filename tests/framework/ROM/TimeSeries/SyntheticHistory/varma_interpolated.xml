@@ -8,6 +8,12 @@
     <description>
       Tests clustering and interpolation for SyntheticHistory ROMs using TSA.VARMA
     </description>
+    <revisions>
+      <revision author="sotogj" date="2024-12-18">
+        Adding two separate Fourier nodes, one for each signal, to test resolved issue within
+        Interpolated ROMCollection Segment type.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -59,7 +65,7 @@
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
       <fourier target="signal0">
-        <periods>2,5,10</periods>
+        <periods>2,5</periods>
       </fourier>
       <fourier target="signal1">
         <periods>3</periods>
