@@ -230,19 +230,11 @@ class EnsembleForward(Sampler):
       @ Out, None
     """
     index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict=True)
-    print('')
-    print('')
-    print('')
-    print('DEBUGG rlz:', [rlz.keys()])
-    print('DEBUGG index:', index)
     coordinate = []
     for samplingStrategy in self.instantiatedSamplers:
       coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
     for combination in coordinate:
-      print('')
-      print('DEBUGG ... combo:', combination)
       for key, value in combination.items():
-        print('DEBUGG ... ... key:', key, type(value))
         # FIXME we don't know what's inputInfo and what's sampled vars!
         if key in self.toBeSampled:
           rlz[key] = value
@@ -250,7 +242,6 @@ class EnsembleForward(Sampler):
           rlz.inputInfo[key] = value
         else:
           if isinstance(rlz.inputInfo[key], dict) and len(value):
-            print('DEBUG ... ... val:', len(value), value)
             rlz.inputInfo[key].update(value)
           else:
             raise RuntimeError # can we get here?

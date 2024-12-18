@@ -547,21 +547,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
           self.toBeSampled[prefix + name] = distName
           # set up mapping for variable to distribution
           self.variables2distributionsMapping[name] = varData
-          # ##### OLD #####
-          # # name of the distribution to sample
-          # toBeSampled = childChild.value
-          # varData = {}
-          # varData['name'] = childChild.value
-          # # variable dimensionality
-          # if 'dim' not in childChild.parameterValues:
-          #   dim = 1
-          # else:
-          #   dim = childChild.parameterValues['dim']
-          # varData['dim'] = dim
-          # # set up mapping for variable to distribution
-          # self.variables2distributionsMapping[varName] = varData
-          # # flag distribution as needing to be sampled
-          # self.toBeSampled[prefix + varName] = toBeSampled
       elif childChild.getName() == 'function':
         # can only have a function if doesn't already have a distribution or function
         if not foundDistOrFunc:
@@ -683,9 +668,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     else:
       self.localInitialize()
 
-    for distrib in self.NDSamplingParams:
+    for distrib, params in self.NDSamplingParams.items():
       if distrib in self.distributions2variablesMapping:
-        params = self.NDSamplingParams[distrib]
         temp = utils.first(self.distributions2variablesMapping[distrib][0].keys())
         try:
           self.distDict[temp].updateRNGParam(params)
@@ -699,15 +683,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # Store the transformation matrix in the metadata
     if self.variablesTransformationDict:
       self.entitiesToRemove = []
-      for variable in self.variables2distributionsMapping:
-        distName = self.variables2distributionsMapping[variable]['name']
-        dim      = self.variables2distributionsMapping[variable]['dim']
-        totDim   = self.variables2distributionsMapping[variable]['totDim']
+      for variable, data in self.variables2distributionsMapping.items():
+        distName = data['name']
+        dim      = data['dim']
+        totDim   = data['totDim']
         if totDim > 1 and dim  == 1:
           transformDict = {}
           transformDict['type'] = self.distDict[variable.strip()].type
           transformDict['transformationMatrix'] = self.distDict[variable.strip()].transformationMatrix()
-          # FIXME not inputInfo, where should this go?
           self.samplerInfo[f'transformation-{distName}'] = transformDict
           self.entitiesToRemove.append(f'transformation-{distName}')
 
@@ -923,20 +906,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, None
     """
     for rlz in rlzBatch:
-      # TODO REMOVE
-      # for baseName, info in self.ndVariables.items():
-      #   shape = info['shape']
-      #   # collect all the values from the split variables
-      #   values = []
-      #   entries = np.zeros(shape).size
-      #   for i in range(entries):
-      #     var = baseName
-      #     if entries > 1:
-      #       var += _vectorPostfixFormat.format(ID=str(i))
-      #     values.append(self.inputInfo['SampledVars'].pop(var))
-      #   # shape values into the requested format
-      #   self.inputInfo['SampledVars'][baseName] = np.asarray(values).reshape(shape)
-      #   # TODO does other data need extracting, like probability weights and etc?
       for baseName, info in self.ndVariables.items():
         shape = info['shape']
         dims = info['dims']
@@ -985,9 +954,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, None
     """
     functionsToVariables = {}
-    for var in  self.funcDict:
+    for var, inst in  self.funcDict.items():
       outputMatch = []
-      functionInputs = self.funcDict[var].instance.parameterNames()
+      functionInputs = inst.instance.parameterNames()
       for inpVar in functionInputs:
         # find functions that are linked to this inpVar
         if inpVar in self.funcDict:
@@ -1039,7 +1008,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     if self.reseedAtEachIteration:
       randomUtils.randomSeed(self.counters['seeding'] - 1)
     # FIXME this may be setting the BATCH prefix, not the SAMPLE prefix
-    # -> so let's move it out of this method
+    # -> so let's move it out of this method -> TODO REMOVE
     # self.samplerInfo['prefix'] = str(self.counters['batches']) #FIXME is this useful, or should we be using the counters?
 
   def _performVariableTransform(self, rlzBatch):
@@ -1103,7 +1072,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ Out, modelInput, potentially perturbed? original inputs for model, or None if taken from restart
     """
     if model is not None:
-      # FIXME does samplerInfo have all the information? It should ...
       model.getAdditionalInputEdits(self.samplerInfo)
     ##### GENERATE SAMPLE #####
     # instantiate a batch of data carrier realizations
@@ -1171,7 +1139,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, projector, object, optional, used for adaptive sampling to provide the projection of the solution on the success metric
       @ Out, newInputs, list of list, list of the list of input sets
     """
-    FIXME # used? -> should be moved to using batch system!
+    DEPRECATE # used? -> should be moved to using batch system!
     newInputs = []
     while self.amIreadyToProvideAnInput() and (self.counters['samples'] < batchSize):
       if projector is None:
@@ -1200,13 +1168,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In, dist, string, the distribution name associated with given variable set
       @ Out, None
     """
-    # def _applyTransformation(values):
-    #   """
-    #     TODO can this just be collapsed down to a single call now without a wrapper??
-    #     Wrapper to apply the pca transformation
-    #     @ In, values, dict, dictionary of sampled vars
-    #     @ Out, None # TODO REMOVE values, dict, the updated set of values
-    #   """
     latentVariablesValues = []
     listIndex = []
     manifestVariablesValues = [None] * len(varsDict['manifestVariables'])
@@ -1221,7 +1182,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       manifestVariablesValues[index2] = varsValues[index1]
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     rlz.update(manifestVariablesDict)
-    # TODO REMOVE_applyTransformation(rlz)
 
   def _checkSample(self, rlz):
     """

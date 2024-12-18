@@ -291,16 +291,10 @@ class CustomSampler(Sampler):
         rlz.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
       rlz.indexMap = self.sourceIndexMap
       rlz.inputInfo['SamplerType'] = 'Custom'
-      # if rlz.inputInfo['batchMode']:
-      #   rlz.inputInfo['SampledVars'] = rlz
-      #   rlz.inputInfo['batchId'] = self.name + str(self.batchId)
-      #   batchData.append(copy.deepcopy(rlz.inputInfo))
       if batchMode:
         self._incrementCounter()
     if batchMode:
       rlzBatch.ID = self.name + str(self.batchId)
-      FIXME # where does this data go? Fix along with GA
-      #rlzBatch.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}
 
   def flush(self):
     """

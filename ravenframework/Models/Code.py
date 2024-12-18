@@ -364,16 +364,7 @@ class Code(Model):
     batchID = rlz.inputInfo['batchID']
     rlzID = rlz.inputInfo['prefix']
     dirName = f'b{batchID}_r{rlzID}'
-    # FIXME we're always in batch!
     subDir = os.path.join(self.workingDir, dirName)
-    # OLD #
-    # brun = kwargs.get('batchRun')
-    # if brun is not None:
-    #   # if batch, the subDir are a combination of prefix (batch id) and batch run id
-    #   bid = kwargs['prefix'] if 'prefix' in kwargs.keys() else '1'
-    #   subDirectory = os.path.join(self.workingDir,'b{}_r{}'.format(bid,brun))
-    # else:
-    #   subDirectory = os.path.join(self.workingDir, kwargs['prefix'] if 'prefix' in kwargs.keys() else '1')
 
     if not os.path.exists(subDir):
       os.mkdir(subDir)
@@ -395,16 +386,10 @@ class Code(Model):
     rlz.inputInfo['alias'] = self.alias
 
     self._replaceVariablesNamesWithAliasSystem(rlz, 'input', False)
-    # OLD #
-    # if 'SampledVars' in kwargs.keys():
-    #   sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
 
     # FIXME do we force all Codes to update to this new format, or do we grandfather in somehow?
     # OLD newInput = self.code.createNewInput(newInputSet, self.oriInputFiles, samplerType, **copy.deepcopy(kwargs))
     newInput = self.code.createNewInput(newInputSet, self.oriInputFiles, samplerType, rlz)
-
-    # if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
-    #   kwargs['SampledVars'] = sampledVars
 
     return (newInput, rlz)
 
@@ -498,7 +483,6 @@ class Code(Model):
           the second item will be the output of this model given the specified
           inputs
     """
-    print('DEBUGG rlz type:', type(rlz))
     inputFiles = self.createNewInput(myInput, samplerType, rlz)
     if isinstance(inputFiles, tuple):
       # FIXME why is this a class variable? Should it be only within this method scope instead?
@@ -507,20 +491,12 @@ class Code(Model):
     else:
       self.currentInputFiles = inputFiles
       metaData = None
-    # OLD #
-    # self.currentInputFiles, metaData = (copy.deepcopy(inputFiles[0]),inputFiles[1]) if type(inputFiles).__name__ == 'tuple' else (inputFiles, None)
     returnedCommand = self.code.genCommand(self.currentInputFiles,
                                            self.executable,
                                            flags=self.clargs,
                                            fileArgs=self.fargs,
                                            preExec=self.preExec)
 
-    ## Given that createNewInput can only return a tuple, I don't think these
-    ## checks are necessary (keeping commented out until someone else can verify):
-    # if type(returnedCommand).__name__ != 'tuple':
-    #   self.raiseAnError(IOError, "the generateCommand method in code interface must return a tuple")
-    # if type(returnedCommand[0]).__name__ != 'list':
-    #   self.raiseAnError(IOError, "the first entry in tuple returned by generateCommand method needs to be a list of tuples!")
     executeCommand, self.outFileRoot = returnedCommand
 
     info = rlz.inputInfo
@@ -582,7 +558,6 @@ class Code(Model):
       returnCode = process.returncode
       self.raiseADebug(" Process "+str(process.pid)+" finished "+time.ctime()+
                       " with returncode "+str(process.returncode))
-      # procOutput = process.communicate()[0]
 
       ## If the returnCode is already non-zero, we should maintain our current
       ## value as it may have some meaning that can be parsed at some point, so
@@ -592,8 +567,6 @@ class Code(Model):
         codeFailed = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
         if codeFailed:
           returnCode = -1
-      # close the log file
-      # OLD outFileObject.close()
     ## END "with open outFileObject" context
 
     ## We should try and use the output the code interface gives us first, but
@@ -634,9 +607,6 @@ class Code(Model):
         loadUtility = self.code.getCsvLoadUtil()
         csvData = csvLoader.loadCsvFile(outFile.getAbsFile(), nullOK=False, utility=loadUtility)
         returnDict = csvLoader.toRealization(csvData)
-      #else:
-      #  # FIXME returnDict is not defined if we get here!
-      #  self.raiseAnError(RuntimeError, 'This should not be reached.')
 
       if not ravenCase:
         # check if the csv needs to be printed
@@ -964,24 +934,9 @@ class Code(Model):
         @ In,  jobHandler, JobHandler instance, the global job handler instance
         @ Out, None
     """
-
-    # OLD
-    # nRuns = len(batch)
-    # batchMode =  kwargs.get("batchMode", False)
-    # if batchMode:
-    #   nRuns = kwargs["batchInfo"]['nRuns']
-
     for r, rlz in enumerate(batch):
       #shortcut for convenience
       info = rlz.inputInfo
-      # UNUSED prefix = info['prefix']
-      # FIXME find out who uses this and update where that info gets stored
-      # -> looks like SupervisedLearning/FeatureSelection/RFE might be the only one
-      # -> but it also looks like Samplers/StochasticCollocation should be using it?
-      # -> Should uniqueHandler actually be "requester" and formalized?
-      # -> Should uniqueHandler be part of the Model at all, or just jobHandler?
-      # UNUSED uniqueHandler = rlz.inputInfo.get('uniqueHandler', 'any')
-
       ## These two are part of the current metadata, so they will be added before
       ## the job is started, so that they will be captured in the metadata and match
       ## the current behavior of the system. If these are not desired, then this
@@ -1018,13 +973,6 @@ class Code(Model):
       info['numberNodes'       ] = len(nodesList)
 
       self.raiseAMessage(f'batch "{batch.ID}" job {r} "{info["prefix"]}" submitted!')
-      # OLD #
-      # jobHandler.addJob((self, myInput, samplerType, rlz),
-      #                   self.__class__.evaluateSample,
-      #                   prefix,
-      #                   metadata=metadata,
-      #                   uniqueHandler=uniqueHandler,
-      #                   groupInfo=groupInfo)
     # submit batch of jobs together
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the

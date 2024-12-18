@@ -734,16 +734,13 @@ class GradientDescent(RavenSampled):
       @ Out, none
     """
     # cancel grad runs
-    # FIXME temp disable, can we actually cancel these still in batching?
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
     # what do do if a point is rejected?
     # for now, rerun the opt point and gradients, AND cut step
     # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
     self._initializeStep(traj)
-    # update prefix, batch IDs? or is that something that should happen ... somewhere else?
 
-    # FIXME do we also need to register these differently?
     # track that the next recommended step size for this traj should be "cut"
     self._stepRecommendations[traj] = 'shrink'
     # get new grads around new point

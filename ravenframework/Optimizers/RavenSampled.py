@@ -273,28 +273,16 @@ class RavenSampled(Optimizer):
     if self._targetEvaluation.isEmpty:
       self.raiseAnError(RuntimeError, f'Expected to find batch "{batchID}" in TargetEvaluation "{self._targetEvaluation.name}", but it is empty!')
     # get information and realization, and update trajectories
-    # OLD info = self.getIdentifierFromPrefix(prefix, pop=True)
-    if self.batch == 0: # FIXME should never be true
-      DEPRECATE
-      # _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
-      # if rlz is None:
-      #   self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("prefix")}')
-    else:
-      # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
-      _, data = self._targetEvaluation.realization(matchDict={'batchID': batchID}, asDataSet=False, first=False)
-      if data is None:
-        self.raiseAnError(RuntimeError, f'Expected to find batch with ID "{batchID}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("batchID")}')
-      # NOTE in this case "rlz" is ACTUALLY a xr.Dataset with multiple realizations in it!
-    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
-    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
-    # if full is None:
-      # self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("prefix")}')
+    # TODO FIXME receive as a dataset instead of dicts? Might be faster. Might be a lot faster.
+    _, data = self._targetEvaluation.realization(matchDict={'batchID': batchID}, asDataSet=False, first=False)
+    if data is None:
+      self.raiseAnError(RuntimeError, f'Expected to find batch with ID "{batchID}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("batchID")}')
+    # NOTE in this case "rlz" is ACTUALLY a xr.Dataset with multiple realizations in it!
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     # # testing suggests no big deal on smaller problem
-    # TODO FIXME receive as a dataset instead of dicts? Might be faster. Might be a lot faster.
     self.raiseADebug('Processing new batch results ...')
-    for r, rlz in enumerate(data):
+    for rlz in data:
       prefix = rlz['prefix']
       if not self.stillLookingForPrefix(prefix):
         # should we be skipping all of them if any aren't being looked for?

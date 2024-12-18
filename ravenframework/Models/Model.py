@@ -431,27 +431,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       @ Out, None
     """
     jobHandler.addJobBatch(batch, self, myInput, samplerType, self.__class__.evaluateSample)
-    ### OLD ###
-    # for rlz in batch:
-    #   if rlz.isRestart:
-    #     jobHandler.addFinishedJob(rlz, metadata=rlz.inputInfo)
-    #   else:
-    #     prefix = rlz.get('prefix')
-    #     uniqueHandler = rlz.inputInfo.get('uniqueHandler', 'any')
-    #     forceThreads = rlz.inputInfo.get('forceThreads', False)
-    #     groupInfo = {
-    #         'id': rlz.inputInfo['batchId'],
-    #         'size': len(batch),
-    #     }
-    #     jobHandler.addJob(
-    #         (self, myInput, samplerType, rlz.inputInfo),
-    #         self.__class__.evaluateSample,
-    #         prefix,
-    #         metadata = rlz.inputInfo,
-    #         uniqueHandler=uniqueHandler,
-    #         forceUseThreads=forceThreads,
-    #         groupInfo=groupInfo
-    #     )
 
   def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
     """

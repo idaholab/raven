@@ -129,7 +129,6 @@ class MultiRun(SingleRun):
       if sampler.amIreadyToProvideAnInput():
         try:
           batch, modelInp = sampler.generateInput(model, inputs)
-          # OLD batch, modelInp = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'], inDictionary['jobHandler'])
           model.submit(batch, modelInp, sampler.type, jobHandler)
           self.raiseAMessage(f'Submitted input batch {inputIndex+1}')
         except utils.NoMoreSamplesNeeded:

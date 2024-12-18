@@ -15,25 +15,21 @@
   EnsembleModel module, containing the class and methods to create a comunication 'pipeline' among
   different models in terms of Input/Output relation
 """
-#External Modules----------------------------------------------------------------------------------
 import io
 import sys
 import copy
 import time
 import itertools
 from collections import OrderedDict
-import numpy as np
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+import numpy as np
+
 from ..Decorators.Parallelization import Parallel
 from .Dummy import Dummy
 from ..utils import utils, InputData
 from ..utils.graphStructure import evaluateModelsOrder
 from ..Runners import Error as rerror
 from ..Runners.SharedMemoryRunner import InterruptibleThread
-from ..Realizations import Realization
-#Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleModel(Dummy):
   """
@@ -538,13 +534,7 @@ class EnsembleModel(Dummy):
       self.localPollingThread.daemon = True
       self.localPollingThread.start()
 
-    for r, rlz in enumerate(batch):
-      # OLD #
-      # if batchMode:
-      #   kw =  kwargs['batchInfo']['batchRealizations'][index]
-      #   kw['batchRun'] = index + 1
-      # else:
-      #   kw = kwargs
+    for rlz in batch:
       info = rlz.inputInfo
       prefix = info.get("prefix")
       info['jobHandler'] = jh # NOTE gets overwritten below for parallel strat 2
@@ -559,8 +549,6 @@ class EnsembleModel(Dummy):
         info['jobHandler'] = self.localJobHandler
         # make sure that the batchMode is set to False in the inner runs since only the
         # ensemble model evaluation should be batched (THIS IS REQUIRED because the CODE does not submit runs like the other models)
-        # TODO FIXME how does this work now with batches?
-        # kw['batchMode'] = False
         jobHandler.addClientJob(
             (self, myInput, samplerType, rlz),
             self.__class__.evaluateSample,
@@ -595,7 +583,7 @@ class EnsembleModel(Dummy):
               dependentOutputs['_indexMap'][inKey] = indices
     return dependentOutputs
 
-  def _externalRun(self, inRun, jobHandler=None):#, jobHandler):
+  def _externalRun(self, inRun, jobHandler=None):
     """
       Method that performs the actual run of the ensemble model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs, e.g.
@@ -610,9 +598,7 @@ class EnsembleModel(Dummy):
     """
     originalInput = inRun[0]
     samplerType = inRun[1]
-    subRlzs = inRun[2] # OLD inputRlz = inRun[2]
-    # OLD inputInfo = inputRlz.inputInfo
-    # OLD identifier = inputInfo.pop('prefix')
+    subRlzs = inRun[2]
     identifier = subRlzs['__setIdentifier']
     tempOutputs = {}
     inRunTargetEvaluations = {}
@@ -676,28 +662,20 @@ class EnsembleModel(Dummy):
               self.raiseAnError(IOError,"No initial conditions provided for variable "+ initialConditionToSet)
         # set new identifiers
         suffix = ''
-        # TODO how do I need to modify this for new batch run?
-        # if 'batchRun' in  inputKwargs[modelIn]:
-        #   suffix = f"{utils.returnIdSeparator()}{inputKwargs[modelIn]['batchRun']}"
         # FIXME this was already set in the createNewInput method!
         # -> the Suffix is added. Should this be something the Batch takes care of?
         inputInfo['prefix'] += f"{suffix}"
-        # OLD inputInfo['prefix'] = f"{modelIn}{utils.returnIdSeparator()}{identifier}{suffix}"
         inputInfo['uniqueHandler'] = f"{self.name}{identifier}{suffix}"
         if metadataToTransfer is not None:
           inputInfo['metadataToTransfer'] = metadataToTransfer
 
         for var in dependentOutput:
-          #inputInfo[modelIn]["SampledVars"  ][key] =  dependentOutput[key]
           ## FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transferred from outside
           ## Who has this information? -- DPM 4/11/17
           inputInfo["SampledVarsPb"][var] =  1.
         self._replaceVariablesNamesWithAliasSystem(inputRlz, 'input', False)
         self._replaceVariablesNamesWithAliasSystem(inputInfo["SampledVarsPb"], 'input', False)
         ## FIXME: this will come after we rework the "runInfo" collection in the code
-        ## if run info is present, we need to pass to to kwargs
-        ##if self.runInfoDict and 'Code' == self.modelsDictionary[modelIn]['Instance'].type:
-        ##  inputKwargs[modelIn].update(self.runInfoDict)
 
         retDict, gotOuts, evaluation = self.__advanceModel(identifier,
                             self.modelsDictionary[modelIn],

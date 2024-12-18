@@ -393,12 +393,9 @@ class GeneticAlgorithm(RavenSampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-
-    # TODO remove, moved to Sampler.initialize
-    # meta = ['batchId']
-    # self.addMetaKeys(meta)
     self.batch = self._populationSize
+    # initialize must be called afer setting the batch size
+    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, f'Number of initial values provided for each variable is {len(self._initialValues)}, while the population size is {self._populationSize}')
     for _, init in enumerate(self._initialValues):

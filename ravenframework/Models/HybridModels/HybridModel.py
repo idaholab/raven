@@ -247,7 +247,6 @@ class HybridModel(HybridModelBase):
     if useROM:
       identifier = info['prefix']
       subRlzs = {}
-      # OLD newKwargs = {'prefix':identifier, 'useROM':useROM}
       for romName in self.romsDictionary.keys():
         featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
         subRlz = rlz.createSubsetRlz(featsList)
@@ -502,9 +501,9 @@ class HybridModel(HybridModelBase):
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
     self.raiseADebug("External Run")
-    subRlzs = inRun[2] # OLD was inputKwargs, comes from createNewInput
+    subRlzs = inRun[2]
     oneRlz = next(iter(subRlzs))
-    identifier = oneRlz.inputInfo['prefix'] # FIXME should be batch ID, not sample ID
+    identifier = oneRlz.inputInfo['prefix'] # FIXME should be batch ID, not sample ID?
     # TODO attach this to the batch, instead of the single realizations?
     useROM = oneRlz.inputInfo['useROM'] # TODO need pop? inputKwargs.pop('useROM')
     uniqueHandler = self.name + identifier

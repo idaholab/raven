@@ -189,8 +189,6 @@ class HybridModelBase(Dummy):
     self.raiseADebug("Evaluate Sample")
     excludeKeys = ['jobHandler']
     kwargsKeys = list(x for x in rlz.inputInfo.keys() if x not in excludeKeys)
-    # FIXME what all needs to go in this? rlz.asDict?
-    # OLD kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
     jobHandler = rlz.inputInfo['jobHandler']
     newInput = self.createNewInput(myInput, samplerType, rlz)
     ## Unpack the specifics for this class, namely just the jobHandler

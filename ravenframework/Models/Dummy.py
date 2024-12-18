@@ -153,11 +153,6 @@ class Dummy(Model):
       self._replaceVariablesNamesWithAliasSystem(rlz, 'input', False)
       for var, val in rlz.items():
         inputDict[var] = np.atleast_1d(val)
-    ### OLD ###
-    # if 'SampledVars' in kwargs.keys():
-    #   sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
-    #   for key in kwargs['SampledVars'].keys():
-    #     inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
 
     missing = list(var for var,val in inputDict.items() if val is None)
     if len(missing) != 0:

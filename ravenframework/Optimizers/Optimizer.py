@@ -290,7 +290,6 @@ class Optimizer(AdaptiveSampler):
     for entry in self.assemblerDict.get('ImplicitConstraint', []):
       self._impConstraintFunctions.append(entry[3])
 
-    # FIXME can this superclass call be at the top of this method?
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
 
     # sampler
@@ -436,14 +435,6 @@ class Optimizer(AdaptiveSampler):
             self._initialValues[n][var] = val
       # TODO this doesn't technically guarantee that each var in toBeSampled has a value.
       # Can we check against this, or will it error in an intelligent way?
-
-      #### OLD ####
-      # # NOTE by looping over self.toBeSampled, we could potentially not error out when extra vars are sampled
-      # for var in self.toBeSampled:
-      #   # TODO is var ever not in rlz? Should this be an error out?
-      #   if var in rlz:
-      #     self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
-      #### END OLD ####
 
   def initializeTrajectory(self, traj=None):
     """

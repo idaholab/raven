@@ -131,10 +131,6 @@ class Grid(Sampler):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    # for var, value in self.values.items():
-    #   paramDict[f'coordinate {var} has value'] = value
-    # FIXME we don't have rlz yet
-
     return paramDict
 
   def localInitialize(self):

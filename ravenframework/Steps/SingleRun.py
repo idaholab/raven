@@ -192,7 +192,6 @@ class SingleRun(Step):
         'additionalEdits': {},
     })
     model.submit(batch, inputs, None, jobHandler)
-    # OLD model.submit(inputs, None, jobHandler, **{'SampledVars': {'prefix':'None'}, 'additionalEdits': {}})
     # FIXME make this match multirun, and maybe share the code?
     while True:
       finishedJobs = jobHandler.getFinished()
