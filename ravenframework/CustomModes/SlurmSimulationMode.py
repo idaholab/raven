@@ -12,26 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module that contains a SimulationMode for PBSPro and mpiexec
+Module that contains a SimulationMode for Slurm and mpiexec
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 import os
 import math
 import string
 from ravenframework import Simulation
+from ravenframework.utils import InputData, InputTypes
 
 #For the mode information
-modeName = "mpi"
-modeClassName = "MPISimulationMode"
+modeName = "slurm"
+modeClassName = "SlurmSimulationMode"
 
-class MPISimulationMode(Simulation.SimulationMode):
+class SlurmSimulationMode(Simulation.SimulationMode):
   """
-    MPISimulationMode is a specialized class of SimulationMode.
-    It is aimed to distribute the runs using the MPI protocol
+    SlurmSimulationMode is a specialized class of SimulationMode.
+    It is aimed to distribute the runs on a Slurm cluster
   """
+
   def __init__(self, *args):
     """
       Constructor
@@ -39,40 +38,39 @@ class MPISimulationMode(Simulation.SimulationMode):
       @ Out, None
     """
     super().__init__(*args)
-    #Figure out if we are in PBS
-    self.__inPbs = "PBS_NODEFILE" in os.environ
-    self.__nodefile = False
-    self.__runQsub = False
+    #figure out if we are in Slurm
+    self.__inSlurm = "SLURM_JOB_ID" in os.environ
+    self.__nodeFile = False
     self.__coresNeeded = None #If not none, use this instead of calculating it
     self.__memNeeded = None #If not none, use this for mem=
-    self.__place = "free" #use this for place=
+    self.__partition = None #If not none, use this for partition=
     self.__mpiparams = [] #Paramaters to give to mpi
     self.__createPrecommand = True #If true, do create precommand.
-    self.printTag = 'MPI SIMULATION MODE'
+    self.printTag = 'SLURM SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
     """
       This method is aimed to modify the Simulation instance in
-      order to distribute the jobs using the MPI protocol
+      order to distribute the jobs using slurm
       @ In, runInfoDict, dict, the original runInfo
       @ Out, newRunInfo, dict, of modified values
     """
     newRunInfo = {}
     newRunInfo['batchSize'] = runInfoDict['batchSize']
-    if self.__nodefile or self.__inPbs:
-      if not self.__nodefile:
-        #Figure out number of nodes and use for batchsize
-        nodefile = os.environ["PBS_NODEFILE"]
-      else:
-        nodefile = self.__nodefile
-      self.raiseADebug('Setting up remote nodes based on "{}"'.format(nodefile))
-      lines = open(nodefile,"r").readlines()
+    workingDir = runInfoDict['WorkingDir']
+    if self.__nodeFile or self.__inSlurm:
+      if not self.__nodeFile:
+        self.__nodeFile = os.path.join(workingDir,"slurmNodeFile_"+str(os.getpid()))
+        #generate nodeFile
+        os.system("srun --overlap -- hostname > "+self.__nodeFile)
+      self.raiseADebug('Setting up remote nodes based on "{}"'.format(self.__nodeFile))
+      lines = open(self.__nodeFile,"r").readlines()
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
       numMPI = runInfoDict['NumMPI']
       oldBatchsize = runInfoDict['batchSize']
       #the batchsize is just the number of nodes of which there is one
-      # per line in the nodefile divided by the numMPI (which is per run)
+      # per line in the nodeFile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
       maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
 
@@ -85,15 +83,15 @@ class MPISimulationMode(Simulation.SimulationMode):
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
         for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir, f"node_{i}"), "w")
+          subNodeFile = open(os.path.join(workingDir, f"node_{i}"), "w")
           for line in lines[i*numMPI : (i+1) * numMPI]:
-            nodeFile.write(line)
-          nodeFile.close()
+            subNodeFile.write(line)
+          subNodeFile.close()
         #then give each index a separate file.
         nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
+        nodeCommand = runInfoDict["NodeParameter"]+" "+self.__nodeFile
 
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
@@ -102,10 +100,6 @@ class MPISimulationMode(Simulation.SimulationMode):
       #TODO, we don't have a way to know which machines it can run on
       # when not in PBS so just distribute it over the local machine:
       nodeCommand = " "
-
-    #Disable MPI processor affinity, which causes multiple processes
-    # to be forced to the same thread.
-    os.environ["MV2_ENABLE_AFFINITY"] = "0"
 
     if len(self.__mpiparams) > 0:
       mpiParams = " ".join(self.__mpiparams)+" "
@@ -124,14 +118,14 @@ class MPISimulationMode(Simulation.SimulationMode):
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
 
-  def __createAndRunQSUB(self, runInfoDict):
+  def __createAndRunSbatch(self, runInfoDict):
     """
-      Generates a PBS qsub command to run the simulation
+      Generates a SLURM sbatch command to run the simulation
       @ In, runInfoDict, dict, dictionary of run info.
       @ Out, remoteRunCommand, dict, dictionary of command.
     """
-    # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-    # determine the cores needed for the job
+    # determine the cores needed for the job. Note that these can be distributed
+    #  that is they may not be able to share memory.
     if self.__coresNeeded is not None:
       coresNeeded = self.__coresNeeded
     else:
@@ -139,36 +133,38 @@ class MPISimulationMode(Simulation.SimulationMode):
 
     # get the requested memory, if any
     if self.__memNeeded is not None:
-      memString = ":mem="+self.__memNeeded
+      memString = "--mem="+self.__memNeeded
     else:
-      memString = ""
+      memString = None
+
     # raven/framework location
     frameworkDir = runInfoDict["FrameworkDir"]
-    # number of "threads"
+    # number of "threads" (unlike cores, these will run on a single computer
+    #  and so can share memory)
     ncpus = runInfoDict['NumThreads']
     # job title
     jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
     ## fix up job title
-    validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+    validChars = set(string.ascii_letters).union(set(string.digits)).union(set('_'))
     if any(char not in validChars for char in jobName):
-      raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
-    #check jobName for length
-    if len(jobName) > 15:
-      jobName = jobName[:10]+'-'+jobName[-4:]
-      print('JobName is limited to 15 characters; truncating to '+jobName)
-    # Generate the qsub command needed to run input
+      raise IOError('JobName can only contain alphanumeric and "_" characters! Received'+jobName)
+    #--job-name=
+    # Generate the sbatch command needed to run input
     ## raven_framework location
     raven = os.path.abspath(os.path.join(frameworkDir,'..','raven_framework'))
+    command_env = {}
+    command_env.update(os.environ)
+    command_env["COMMAND"] = raven + " " + " ".join(runInfoDict["SimulationFiles"])
+    command_env["RAVEN_FRAMEWORK_DIR"] = frameworkDir
     ## generate the command, which will be passed into "args" of subprocess.call
-    command = ["qsub","-N",jobName]+\
+    command = ["sbatch","--job-name="+jobName]+\
               runInfoDict["clusterParameters"]+\
-              ["-l",
-                  "select={}:ncpus={}:mpiprocs=1{}".format(coresNeeded,ncpus,memString),
-               "-l","walltime="+runInfoDict["expectedTime"],
-               "-l","place="+self.__place,"-v",
-               'COMMAND="{} '.format(raven)+
-               " ".join(runInfoDict["SimulationFiles"])+'",'+
-               'RAVEN_FRAMEWORK_DIR="{}"'.format(frameworkDir),
+              ["--ntasks="+str(coresNeeded),
+               "--cpus-per-task="+str(ncpus)]+\
+               ([memString] if memString is not None else [])+\
+               (["--partition="+self.__partition] if self.__partition is not None else [])+\
+              ["--time="+runInfoDict["expectedTime"],
+               '--export=ALL,COMMAND,RAVEN_FRAMEWORK_DIR',
                runInfoDict['RemoteRunCommand']]
     # Set parameters for the run command
     remoteRunCommand = {}
@@ -176,8 +172,11 @@ class MPISimulationMode(Simulation.SimulationMode):
     remoteRunCommand["cwd"] = runInfoDict['InputDir']
     ## command to run in that directory
     remoteRunCommand["args"] = command
-    ## print out for debugging
     print("remoteRunCommand",remoteRunCommand)
+    print("COMMAND", command_env["COMMAND"])
+    print("RAVEN_FRAMEWORK_DIR", command_env["RAVEN_FRAMEWORK_DIR"])
+    remoteRunCommand["env"] = command_env
+    ## print out for debugging
     return remoteRunCommand
 
   def remoteRunCommand(self, runInfoDict):
@@ -187,34 +186,48 @@ class MPISimulationMode(Simulation.SimulationMode):
       @ In, runInfoDict, dict, the run info dictionary
       @ Out, remoteRunCommand, dict, a dictionary with information for running.
     """
-    if not self.__runQsub or self.__inPbs:
+    if not self.__runSbatch or self.__inSlurm:
       return None
-    assert self.__runQsub and not self.__inPbs
-    return self.__createAndRunQSUB(runInfoDict)
+    assert self.__runSbatch and not self.__inSlurm
+    return self.__createAndRunSbatch(runInfoDict)
 
-  def XMLread(self, xmlNode):
+
+  @classmethod
+  def getInputSpecification(cls):
     """
-      XMLread is called with the mode node, and is used here to
-      get extra parameters needed for the simulation mode MPI.
-      @ In, xmlNode, xml.etree.ElementTree.Element, the xml node that belongs to this class instance
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory("mode", ordered=False, contentType=InputTypes.StringType)
+    inputSpecification.addSub(InputData.parameterInputFactory("runSbatch"))
+    inputSpecification.addSub(InputData.parameterInputFactory("memory", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("coresneeded", contentType=InputTypes.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("partition", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("MPIParam", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("noprecommand"))
+    return inputSpecification
+
+  def handleInput(self, paramInput):
+    """
+      Function to handle the slurm mode parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == "nodefileenv":
-        self.__nodefile = os.environ[child.text.strip()]
-      elif child.tag == "nodefile":
-        self.__nodefile = child.text.strip()
-      elif child.tag == "memory":
-        self.__memNeeded = child.text.strip()
-      elif child.tag == "coresneeded":
-        self.__coresNeeded = int(child.text.strip())
-      elif child.tag == "place":
-        self.__place = child.text.strip()
-      elif child.tag.lower() == "runqsub":
-        self.__runQsub = True
-      elif child.tag.lower() == "mpiparam":
-        self.__mpiparams.append(child.text.strip())
-      elif child.tag.lower() == "noprecommand":
+    for child in paramInput.subparts:
+      if child.getName() == "nodefile":
+        self.__nodeFile = child.value.strip()
+      elif child.getName() == "memory":
+        self.__memNeeded = child.value.strip()
+      elif child.getName() == "coresneeded":
+        self.__coresNeeded = child.value
+      elif child.getName() == "partition":
+        self.__partition = child.value.strip()
+      elif child.getName() == "runSbatch":
+        self.__runSbatch = True
+      elif child.getName() == "MPIParam":
+        self.__mpiparams.append(child.value.strip())
+      elif child.getName() == "noPrecommand":
         self.__createPrecommand = False
-      else:
-        self.raiseADebug("We should do something with child "+str(child))
