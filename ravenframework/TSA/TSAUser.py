@@ -369,3 +369,11 @@ class TSAUser:
       @ Out, tsaTrainedParams, dict, trained parameters for all TSA algorithms
     """
     return self._tsaTrainedParams
+
+  def setTsaTrainedParams(self, newTrainedParams):
+    """
+      Get dict of TSA trained parameters
+      @ In, None
+      @ Out, tsaTrainedParams, dict, trained parameters for all TSA algorithms
+    """
+    self._tsaTrainedParams= newTrainedParams
