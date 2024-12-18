@@ -279,12 +279,14 @@ class GradientDescent(RavenSampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._gradientInstance.initialize(self.toBeSampled)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
     # set the batch size
     self.batch = 1 + self._gradientInstance.numGradPoints()
+    # we need to set the batch size before calling base class initialize
+    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+
     # if single trajectory, turn off follower termination
     if len(self._initialValues) < 2:
       self.raiseADebug('Setting terminateFollowers to False since only 1 trajectory exists.')

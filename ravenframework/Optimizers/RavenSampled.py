@@ -160,9 +160,6 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    # TODO remove
-    # self.batch = 1
-    # self.batchId = 0
 
   ###############
   # Run Methods #
@@ -231,7 +228,6 @@ class RavenSampled(Optimizer):
     # TODO shouldn't this check be in the Ready check?
     if self.counters['samples'] + self.batch > self.limits['samples'] + 1:
       raise utils.NoMoreSamplesNeeded
-      return None # TODO raise an error? something?
     for rlz in batch:
       inputInfo = rlz.inputInfo
       # get point from stack
