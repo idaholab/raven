@@ -182,7 +182,7 @@ class DynamicEventTree(Grid):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     self._endJobRunnable = max((len(self.RunQueue['queue']),1))
-    if(len(self.RunQueue['queue']) != 0 or self.counter == 0):
+    if(len(self.RunQueue['queue']) != 0 or self.counters['samples'] == 0):
       ready = True
     else:
       if self.printEndXmlSummary:
@@ -512,7 +512,7 @@ class DynamicEventTree(Grid):
     self.RunQueue['identifiers'].append(rlz.inputInfo['prefix'])
     self.rootToJob[rlz.inputInfo['prefix']] = rname
     del newInputs
-    self.counter += 1
+    self.counters['samples'] += 1
 
   def _createRunningQueueBegin(self, rlz, model, myInput):
     """
@@ -567,7 +567,7 @@ class DynamicEventTree(Grid):
         nBranches -= 1
     # Loop over the branches for which the inputs must be created
     for _ in range(nBranches):
-      self.counter += 1
+      self.counters['samples'] += 1
       self.branchCountOnLevel += 1
       branchedLevel = copy.deepcopy(branchedLevelParent)
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
@@ -717,7 +717,7 @@ class DynamicEventTree(Grid):
       @ In, forceEvent, bool, True if a branching needs to be forced
       @ Out, None
     """
-    if self.counter >= 1:
+    if self.counters['samples'] >= 1:
       # The first DET calculation branch has already been run
       # Start the manipulation:
       #  Pop out the last endInfo information and the branchedLevel
@@ -813,7 +813,7 @@ class DynamicEventTree(Grid):
       @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, newerInput, list, list of new inputs
     """
-    if self.counter <= 1:
+    if self.counters['samples'] <= 1:
       # If first branch input, create the queue
       self._createRunningQueue(rlz, model, modelInput)
     # retrieve the input from the queue
@@ -984,7 +984,7 @@ class DynamicEventTree(Grid):
       hybridsampler.initialize()
       self.hybridNumberSamplers *= hybridsampler.limit
       while hybridsampler.amIreadyToProvideAnInput():
-        hybridsampler.counter +=1
+        hybridsampler.counters['samples'] +=1
         hybridsampler.localGenerateInput(None,None)
         hybridsampler._constantVariables()
         ##### REDUNDANT FUNCTIONALS #####
@@ -1060,6 +1060,6 @@ class DynamicEventTree(Grid):
         else:
           self.branchValues[key] = np.append(self.branchValues[key],self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1))
           #self.branchValues[key].append(self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1) )
-    self.limit = sys.maxsize
+    self.limits['samples'] = sys.maxsize # ??? why?
     # add expected metadata
     self.addMetaKeys(['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])

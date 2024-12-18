@@ -91,7 +91,7 @@ class Grid(Sampler):
     #TODO remove using xmlNode
     if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
-    self.limit = 1
+    self.limits['samples'] = 1
     self.gridEntity._handleInput(paramInput, dimensionTags=["variable", "Distribution"], dimTagsPrefix={"Distribution": "<distribution>"})
 
     grdInfo = self.gridEntity.returnParameter("gridInfo")
@@ -143,7 +143,7 @@ class Grid(Sampler):
       @ Out, None
     """
     self.gridEntity.initialize()
-    self.limit = self.gridEntity.len()
+    self.limits['samples'] = self.gridEntity.len()
 
   def localGenerateInput(self, rlz, model, oldInput):
     """

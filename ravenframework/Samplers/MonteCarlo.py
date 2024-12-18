@@ -77,7 +77,6 @@ class MonteCarlo(Sampler):
     super().__init__()
     self.printTag = 'SAMPLER MONTECARLO'
     self.samplingType = None
-    self.limit = None
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
@@ -89,7 +88,7 @@ class MonteCarlo(Sampler):
     # TODO remove using xmlNode
     Sampler.readSamplerInit(self, xmlNode)
     if paramInput.findFirst('samplerInit') is not None:
-      if self.limit is None:
+      if self.limits['samples'] is None:
         self.raiseAnError(IOError,self, f'Monte Carlo sampler {self.name} needs the limit block (number of samples) in the samplerInit block')
       if paramInput.findFirst('samplerInit').findFirst('samplingType') is not None:
         self.samplingType = paramInput.findFirst('samplerInit').findFirst('samplingType').value
@@ -137,8 +136,8 @@ class MonteCarlo(Sampler):
           upper = distData['xMax']
           rvsnum = lower + (upper - lower) * randomUtils.random()
           # TODO (wangc): I think the calculation for epsilon need to be updated as following
-          # epsilon = (upper-lower)/(self.limit+1) * 0.5
-          epsilon = (upper-lower)/self.limit
+          # epsilon = (upper-lower)/(self.limits['samples']+1) * 0.5
+          epsilon = (upper-lower)/self.limits['samples']
           midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
           midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
           weight *= midPlusCDF - midMinusCDF

@@ -194,8 +194,8 @@ class SparseGridCollocation(Grid):
       outFile.writelines(msg)
       outFile.close()
 
-    self.limit=len(self.sparseGrid)
-    self.raiseADebug(f'Size of Sparse Grid: {self.limit}')
+    self.limits['samples'] = len(self.sparseGrid)
+    self.raiseADebug(f'Size of Sparse Grid: {self.limits['samples']}')
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
@@ -279,7 +279,7 @@ class SparseGridCollocation(Grid):
       @ Out, None
     """
     try:
-      pt, weight = self.sparseGrid[self.counter-1]
+      pt, weight = self.sparseGrid[self.counters['samples'] - 1]
     except IndexError as ie:
       raise utils.NoMoreSamplesNeeded from ie
 

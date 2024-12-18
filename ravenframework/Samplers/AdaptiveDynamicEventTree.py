@@ -117,7 +117,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ In, None
       @ Out, needDict, dict, dictionary listing needed objects
     """
-    #adaptNeedInst = self.limitSurfaceInstances.values()[-1]._localWhatDoINeed()
     needDict = dict(itertools.chain(LimitSurfaceSearch._localWhatDoINeed(self).items(),DynamicEventTree._localWhatDoINeed(self).items()))
     return needDict
 
@@ -270,7 +269,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, None
     """
     endInfo = info['parentNode'].get('endInfo')
-    self.counter           += 1
+    self.counters['samples'] += 1
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
     rname = info['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
@@ -373,7 +372,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    if self.counter == 0:
+    if self.counters['samples'] == 0:
       return True
     if len(self.RunQueue['queue']) != 0:
       detReady = True

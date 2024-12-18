@@ -205,7 +205,7 @@ class CustomSampler(Sampler):
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
 
-      self.limit = len(utils.first(self.pointsToSample.values()))
+      self.limits['samples'] = len(utils.first(self.pointsToSample.values()))
     else:
       self.readingFrom = 'DataObject'
       dataObj = self.assemblerDict['Source'][0][3]
@@ -217,11 +217,11 @@ class CustomSampler(Sampler):
           sourceName = self.nameInSource[subVar]
           if sourceName not in dataObj.getVars() + dataObj.getVars('indexes'):
             self.raiseAnError(IOError, f"the variable {sourceName} not found in {dataObj.type} {dataObj.name}")
-      self.limit = len(self.pointsToSample)
+      self.limits['samples'] = len(self.pointsToSample)
       self.sourceIndexMap = dataObj.getDimensions()
     # if "index" provided, limit sampling to those points
     if self.indexes is not None:
-      self.limit = len(self.indexes)
+      self.limits['samples'] = len(self.indexes)
       maxIndex = max(self.indexes)
       if maxIndex > len(self.pointsToSample) - 1:
         self.raiseAnError(IndexError, f'Requested index "{maxIndex}" from custom sampler, but highest index sample is "{len(self.pointsToSample) - 1}"!')
@@ -252,10 +252,10 @@ class CustomSampler(Sampler):
       batchMode = False
     for rlz in rlzBatch:
       if self.indexes is None:
-        index = self.counter - 1
+        index = self.counters['samples'] - 1
       else:
-        index = self.indexes[self.counter-1]
-      if self.counter == self.limit + 1:
+        index = self.indexes[self.counters['samples']-1]
+      if self.counters['samples'] == self.limits['samples'] + 1:
         break
       if self.readingFrom == 'DataObject':
         # data is stored as slices of a data object, so take from that

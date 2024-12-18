@@ -147,7 +147,7 @@ class FactorialDesign(Grid):
       self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix is not None:
       self.designMatrix[self.designMatrix == -1] = 0 # convert all -1 in 0 => we can access to the grid info directly
-      self.limit = self.designMatrix.shape[0]        # the limit is the number of rows
+      self.limits['samples'] = self.designMatrix.shape[0]        # the limit is the number of rows
 
   def localGenerateInput(self, rlz, model, myInput):
     """
@@ -163,7 +163,7 @@ class FactorialDesign(Grid):
     if self.factOpt['algorithmType'] == 'full':
       Grid.localGenerateInput(self, rlz, model, myInput)
     else:
-      self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
+      self.gridCoordinate = self.designMatrix[self.counters['samples'] - 1][:].tolist()
       Grid.localGenerateInput(self, rlz, model, myInput)
 #
 #

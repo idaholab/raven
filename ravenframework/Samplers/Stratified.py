@@ -114,7 +114,7 @@ class Stratified(Grid):
       @ Out, None
     """
     Grid.localInitialize(self)
-    self.limit = (self.pointByVar-1)
+    self.limits['samples'] = (self.pointByVar-1)
     # For the multivariate normal distribtuion, if the user generates the grids on the transformed space, the user needs to provide the grid for each variables, no globalGrid is needed
     if self.variablesTransformationDict:
       tempFillingCheck = [[None]*(self.pointByVar-1)]*len(self.gridEntity.returnParameter("dimensionNames")) #for all variables
@@ -191,8 +191,14 @@ class Stratified(Grid):
             for var in sorted_mapping:
               # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
               variable, position = var
-              upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]+1})[variable]
-              lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]})[variable]
+              upper = self.gridEntity.returnShiftedCoordinate(
+                  self.gridEntity.returnIteratorIndexes(),
+                  {variable:self.sampledCoordinate[self.counters['samples']-1][varCount]+1}
+                  )[variable]
+              lower = self.gridEntity.returnShiftedCoordinate(
+                  self.gridEntity.returnIteratorIndexes(),
+                  {variable:self.sampledCoordinate[self.counters['samples']-1][varCount]}
+                  )[variable]
               varCount += 1
               if self.gridInfo[variable] == 'CDF':
                 coordinate = lower + (upper-lower)*randomUtils.random()
@@ -217,8 +223,14 @@ class Stratified(Grid):
             rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
           else:
             if self.gridInfo[varName] == 'CDF':
-              upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
-              lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+              upper = self.gridEntity.returnShiftedCoordinate(
+                  self.gridEntity.returnIteratorIndexes(),
+                  {varName:self.sampledCoordinate[self.counters['samples']-1][varCount]+1}
+                  )[varName]
+              lower = self.gridEntity.returnShiftedCoordinate(
+                  self.gridEntity.returnIteratorIndexes(),
+                  {varName:self.sampledCoordinate[self.counters['samples']-1][varCount]}
+                  )[varName]
               varCount += 1
               coordinate = lower + (upper-lower)*randomUtils.random()
               gridCoordinate, distName =  self.distDict[varName].ppf(coordinate), self.variables2distributionsMapping[varName]['name']
@@ -235,8 +247,14 @@ class Stratified(Grid):
       if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:
         # 1D variable
         # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-        upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]+1})[varName]
-        lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{varName:self.sampledCoordinate[self.counter-1][varCount]})[varName]
+        upper = self.gridEntity.returnShiftedCoordinate(
+            self.gridEntity.returnIteratorIndexes(),
+            {varName:self.sampledCoordinate[self.counters['samples']-1][varCount]+1}
+            )[varName]
+        lower = self.gridEntity.returnShiftedCoordinate(
+            self.gridEntity.returnIteratorIndexes(),
+            {varName:self.sampledCoordinate[self.counters['samples']-1][varCount]}
+            )[varName]
         varCount += 1
         if self.gridInfo[varName] =='CDF':
           coordinate = lower + (upper-lower)*randomUtils.random()

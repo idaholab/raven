@@ -181,7 +181,7 @@ class EnsembleForward(Sampler):
       @ In, None
       @ Out, None
     """
-    self.limit = 1
+    self.limits['samples'] = 1
     cnt = 0
     lowerBounds = {}
     upperBounds = {}
@@ -190,12 +190,12 @@ class EnsembleForward(Sampler):
     for samplingStrategy, sampler in self.instantiatedSamplers.items():
       sampler.initialize(externalSeeding=self.initSeed, solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
-      self.limit *= sampler.limit
+      self.limits['samples'] *= sampler.limits['samples']
       lowerBounds[samplingStrategy] = 0
-      upperBounds[samplingStrategy] = sampler.limit
+      upperBounds[samplingStrategy] = sampler.limits['samples']
       while sampler.amIreadyToProvideAnInput():
         rlz = Realization()
-        sampler.counter += 1
+        sampler.counters['samples'] += 1
         sampler.localGenerateInput(rlz, None, None)
         rlz.inputInfo['prefix'] = sampler.counter
         self.samplersCombinations[samplingStrategy].append(copy.deepcopy(rlz.asDict()))
@@ -204,7 +204,7 @@ class EnsembleForward(Sampler):
       metadataKeys.extend(mKeys)
       metaParams.update(mParams)
     metadataKeys = list(set(metadataKeys))
-    self.raiseAMessage(f'Number of Combined Samples are {self.limit}!')
+    self.raiseAMessage(f'Total Number of Combined Samples is {self.limits["samples"]}!')
     # create a grid of combinations (no tensor)
     self.gridEnsemble = GridEntities.factory.returnInstance('GridEntity')
     initDict = {'dimensionNames': self.instantiatedSamplers.keys(),

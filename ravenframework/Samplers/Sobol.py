@@ -160,8 +160,8 @@ class Sobol(SparseGridCollocation):
         self.distinctPoints.add(newpt)
         if newpt not in self.pointsToRun:
           self.pointsToRun.append(newpt)
-    self.limit = len(self.pointsToRun)
-    self.raiseADebug(f'Needed points: {self.limit}')
+    self.limits['samples'] = len(self.pointsToRun)
+    self.raiseADebug(f'Needed points: {self.limits['samples']}')
     initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.dists,
@@ -181,7 +181,7 @@ class Sobol(SparseGridCollocation):
       @ Out, None
     """
     try:
-      pt = self.pointsToRun[self.counter-1]
+      pt = self.pointsToRun[self.counters['samples']-1]
     except IndexError as ie:
       self.raiseADebug('All sparse grids are complete!  Moving on...')
       raise utils.NoMoreSamplesNeeded from ie

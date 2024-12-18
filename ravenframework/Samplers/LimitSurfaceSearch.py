@@ -212,7 +212,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #TODO remove using xmlNode
     if 'limit' in xmlNode.attrib.keys():
       try:
-        self.limit = int(xmlNode.attrib['limit'])
+        self.limits['samples'] = int(xmlNode.attrib['limit'])
       except ValueError:
         self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     # convergence Node
@@ -228,7 +228,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if 'limit'          in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('limit'))
       try:
-        self.limit = int (convergenceNode.attrib['limit'])
+        self.limits['samples'] = int (convergenceNode.attrib['limit'])
       except:
         self.raiseAnError(IOError,'Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
     if 'persistence'    in convergenceNode.attrib.keys():
@@ -506,7 +506,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.converged = True
         if not self.limitSurfacePP.crossedLimitSurf:
           self.raiseAWarning("THE LIMIT SURFACE has NOT been crossed. The search FAILED!!!")
-    self.raiseAMessage('counter: '+str(self.counter)+'       Error: {:9.6E} Repetition: {:5d}'.format(testError,self.repetition) )
+    self.raiseAMessage(f'counter: {self.counters["samples"]}       Error: {testError:9.6E} Repetition: {self.repetition:5d}')
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
     if self.solutionExport is not None:
@@ -755,7 +755,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     rlz.inputInfo['ProbabilityWeight'] = rlz.inputInfo['PointProbability']
     self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([rlz[axis] for axis in self.axisName]))))
-    self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(rlz))
+    self.raiseADebug(f'At counter {self.counters["samples"]} the generated sampled variables are: {rlz}')
     rlz.inputInfo['SamplerType'] = 'LimitSurfaceSearch'
     rlz.inputInfo['subGridTol' ] = self.subGridTol
 
