@@ -207,11 +207,12 @@ class PostProcessor(Model):
     returnValue = (ppInput, self._pp.run(ppInput))
     return returnValue
 
-  def submit(self, myInput, samplerType, jobHandler, **kwargs):
+  def submit(self, batch, myInput, samplerType, jobHandler):
     """
         This will submit an individual sample to be evaluated by this model to a
         specified jobHandler. Note, some parameters are needed by createNewInput
         and thus descriptions are copied from there.
+        @ In, batch, RealizationBatch, list of realizations to submit as jobs
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, passing through (consistent with base class but not used)
         @ In,  jobHandler, JobHandler instance, the global job handler instance
@@ -220,8 +221,9 @@ class PostProcessor(Model):
             and output of the PostProcessor, as well as other control options for the PostProcessor
         @ Out, None
     """
-    kwargs['forceThreads'] = True
-    super().submit(myInput, samplerType, jobHandler, **kwargs)
+    for rlz in batch:
+      rlz.inputInfo['forceThreads'] = True
+    super().submit(batch, myInput, samplerType, jobHandler)
 
   def collectOutput(self, finishedJob, output):
     """

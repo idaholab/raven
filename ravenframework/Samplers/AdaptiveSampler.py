@@ -18,13 +18,7 @@
   @author: alfoa
   supercedes Samplers.py from alfoa (2/16/2013)
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# Internal Modules
 from ..utils import utils, mathUtils, InputData, InputTypes
-
 from .Sampler import Sampler
 
 
@@ -91,17 +85,17 @@ class AdaptiveSampler(Sampler):
     self.checkIdentifiersPresent(info)
     self._prefixToIdentifiers[prefix] = info
 
-  def _checkSample(self):
+  def _checkSample(self, rlz):
     """
       Check sample consistency.
-      @ In, None
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ Out, None
     """
-    Sampler._checkSample(self)
+    Sampler._checkSample(self, rlz)
     # make sure the prefix is registered for tracking
     # but if there's no identifying information, skip this check
     if self._registeredIdentifiers:
-      prefix = self.inputInfo['prefix']
+      prefix = rlz.inputInfo['prefix']
       if not prefix in self._prefixToIdentifiers:
         self.raiseAnError(RuntimeError, f'Prefix "{prefix}" has not been tracked in adaptive sampling!')
 

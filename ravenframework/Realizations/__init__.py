@@ -11,18 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+  Realizations carry sampled information between entities in RAVEN
+"""
 
-import numpy
-import copy
-#import pylab as pyl
-#import random
-#import mpl_toolkits.mplot3d.axes3d as p3
-
-def initialize(self,runInfoDict,inputFiles):
-  print('There is snow in my memories ...there is always snow...and my brian becomes white if I do not stop remembering...')
-  self.z               = 0
-  return
-
-def run(self,Input):
-  #self.z = Input['x0']+Input['y0']
-  self.z = self.x0 + self.y0
+# These lines ensure that we do not have to do something like:
+# 'from Samplers.Sampler import Sampler' outside of this submodule
+from .Realization import Realization
+from .RealizationBatch import RealizationBatch

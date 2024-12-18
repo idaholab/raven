@@ -25,10 +25,10 @@ class InternalRunner(Runner):
   """
     Generic base Class for running internal objects
   """
-  def __init__(self, args, functionToRun, **kwargs):
+  def __init__(self, functionArgs, functionToRun, **kwargs):
     """
       Init method
-      @ In, args, dict, this is a list of arguments that will be passed as
+      @ In, functionArgs, tuple, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
@@ -40,7 +40,7 @@ class InternalRunner(Runner):
     super().__init__(**kwargs)
 
     ## Other parameters passed at initialization
-    self.args = copy.copy(args)
+    self.args = copy.copy(functionArgs)
     self.functionToRun = functionToRun
 
     ## Other parameters manipulated internally

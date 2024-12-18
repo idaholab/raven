@@ -193,7 +193,7 @@ class ROM(Dummy):
     """
     self.numThreads = runInfo.get('NumThreads', 1)
 
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       here only a PointSet is accepted a local copy of the values is performed.
@@ -201,14 +201,13 @@ class ROM(Dummy):
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
+      @ In, rlz, Realization, sample point
+      @ Out, ([(inputDict)],copy.deepcopy(rlz)), tuple, return the new input in a tuple form
     """
     if len(myInput)>1:
       self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
-    [(inputDict)],kwargs = super().createNewInput(myInput,samplerType,**kwargs)
-    return ([(inputDict)],kwargs)
+    [(inputDict)], rlz = super().createNewInput(myInput, samplerType, rlz)
+    return ([(inputDict)], rlz)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -504,30 +503,32 @@ class ROM(Dummy):
     return returnDict
 
   @Parallel()
-  def evaluateSample(self, myInput, samplerType, kwargs):
+  def evaluateSample(self, myInput, samplerType, rlz):
     """
         This will evaluate an individual sample on this model. Note, parameters
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, rlz, dict, This will hold two pieces of information,
+        @ In, rlz, Realization, Realization from whiech to build input
+        @ Out, out, dict, This will hold two pieces of information,
           the first will be the input data used to generate this sample,
           the second will be the output of this model given the specified
           inputs
     """
-    Input = self.createNewInput(myInput, samplerType, **kwargs)
+    Input = self.createNewInput(myInput, samplerType, rlz)
     inRun = self._manipulateInput(Input[0])
     # collect results from model run
     result = self._externalRun(inRun)
     # build realization
     # assure rlz has all metadata
-    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'] ,'input',True)
-    rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
+    self._replaceVariablesNamesWithAliasSystem(rlz ,'input',True)
+    # sampled values
+    out = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
+    # other sampler info
+    out.update(dict((var, np.atleast_1d(val)) for var, val in rlz.inputInfo.items()))
     # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
-    return rlz
+    out.update(dict((var,np.atleast_1d(inRun[var] if var in rlz else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
+    return out
 
   def setAdditionalParams(self, params):
     """

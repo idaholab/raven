@@ -18,20 +18,12 @@
   Reworked 2020-01
   @author: talbpaul
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import copy
 import abc
 import numpy as np
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
 from ..utils import randomUtils, InputData, InputTypes
 from ..Samplers import AdaptiveSampler, Sampler
-# Internal Modules End------------------------------------------------------------------------------
 
 class Optimizer(AdaptiveSampler):
   """
@@ -297,7 +289,9 @@ class Optimizer(AdaptiveSampler):
 
     for entry in self.assemblerDict.get('ImplicitConstraint', []):
       self._impConstraintFunctions.append(entry[3])
+
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+
     # sampler
     self._initializeInitSampler(externalSeeding)
     # seed
@@ -419,8 +413,10 @@ class Optimizer(AdaptiveSampler):
     numTraj = len(self._initialValues) if self._initialValues else None
     # if there are already-initialized variables (i.e. not sampled, but given), then check num samples
     if numTraj:
-      if numTraj != self._initSampler.limit:
-        self.raiseAnError(IOError, f'{numTraj} initial points have been given, but Initialization Sampler "{self._initSampler.name}" provides {self._initSampler.limit} samples!')
+      if numTraj != self._initSampler.limits['samples']:
+        self.raiseAnError(IOError,
+            f'{numTraj} initial points have been given, but Initialization Sampler ' +\
+            f'"{self._initSampler.name}" provides {self._initSampler.limits["samples"]} samples!')
     else:
       numTraj = self._initSampler.limit
       self._initialValues = [{} for _ in range(numTraj)]
@@ -430,10 +426,17 @@ class Optimizer(AdaptiveSampler):
       # get the sample
       self._initSampler.generateInput(None, None)
       rlz = self._initSampler.inputInfo['SampledVars']
-      # NOTE by looping over self.toBeSampled, we could potentially not error out when extra vars are sampled
-      for var in self.toBeSampled:
-        if var in rlz:
-          self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
+      for var, val in rlz.items():
+        if var in self.ndVariables:
+          expanded = self._expandNDVariable(var, val)
+          for expVar, expVal in expanded.items():
+            if expVar in self.toBeSampled:
+              self._initialValues[n][expVar] = expVal
+        else:
+          if var in self.toBeSampled:
+            self._initialValues[n][var] = val
+      # TODO this doesn't technically guarantee that each var in toBeSampled has a value.
+      # Can we check against this, or will it error in an intelligent way?
 
   def initializeTrajectory(self, traj=None):
     """
@@ -516,7 +519,6 @@ class Optimizer(AdaptiveSampler):
     for var in self.toBeSampled:
       denormed[var] = self.denormalizeVariable(normalized[var], var)
     return denormed
-
 
   def needDenormalized(self):
     """

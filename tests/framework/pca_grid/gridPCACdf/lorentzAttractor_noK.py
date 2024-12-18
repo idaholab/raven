@@ -24,10 +24,6 @@ def initialize(self,runInfoDict,inputFiles):
   self.beta  = 8.0/3.0
   return
 
-
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
-
 def run(self,Input):
   max_time = 0.03
   t_step = 0.01
