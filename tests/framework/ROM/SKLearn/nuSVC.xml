@@ -42,7 +42,7 @@
     <ROM name="modelUnderTest" subType="NuSVC">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <nu>0.5</nu>
+      <nu>0.1</nu>
       <kernel>rbf</kernel>
       <degree>3</degree>
       <!-- This does not work with 0.15.2 of sklearn -->

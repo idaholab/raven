@@ -2348,7 +2348,10 @@ class KerasBase(SupervisedLearning):
       @ In, None
       @ Out, params, dict,  dictionary of parameter names and initial values
     """
-    params = copy.deepcopy(self.__dict__)
+    selfDict = copy.copy(self.__dict__)
+    # labelEncoder can't be deepcopied so remove if it exists
+    selfDict.pop("labelEncoder", None)
+    params = copy.deepcopy(selfDict)
     return params
 
   def __returnCurrentSettingLocal__(self):
