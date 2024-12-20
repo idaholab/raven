@@ -80,7 +80,7 @@
       </ModelSelection>
       <convergence>
         <acquisition>1e-8</acquisition>
-        <persistence>5</persistence>
+        <persistence>10</persistence>
       </convergence>
       <Acquisition>
         <ProbabilityOfImprovement>
