@@ -424,16 +424,20 @@ class Optimizer(AdaptiveSampler):
     else:
       numTraj = self._initSampler.limit
       self._initialValues = [{} for _ in range(numTraj)]
-    for n, _ in enumerate(self._initialValues):
+    for n, init in enumerate(self._initialValues):
       # prep the sampler, in case it needs it #TODO can we get rid of this for forward sampler?
       self._initSampler.amIreadyToProvideAnInput()
       # get the sample
-      self._initSampler.generateInput(None, None)
+      self._initSampler.generateInput(None, None) # @JunyungKim - This is the point wher Sample point is printed in the prompt
       rlz = self._initSampler.inputInfo['SampledVars']
-      # NOTE by looping over self.toBeSampled, we could potentially not error out when extra vars are sampled
-      for var in self.toBeSampled:
-        if var in rlz:
-          self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
+      if len(rlz) != len(init):
+        for var in list(rlz.items()):
+          if var[0] in list(init.keys()):
+            pass
+          else:
+            self._initialValues[n].update({var[0]: var[1]})
+      else: 
+        pass
 
   def initializeTrajectory(self, traj=None):
     """
