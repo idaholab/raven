@@ -242,6 +242,18 @@
     [../]
   [../]
 
+  [./MinwReplacementConstrainedwInitialPoints]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMinwRepConstrainedwInitialPoints.xml'
+    heavy = true
+    max_time = 2000
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/MinwReplacementConstrainedwInitialPoints/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
   [./MaxwReplacementSphereConstrainedInvLin]
     type = 'RavenFramework'
     input = 'discrete/constrained/testGAMaxwRepSphereConstrainedInvLin.xml'
