@@ -436,7 +436,7 @@ class Optimizer(AdaptiveSampler):
             pass
           else:
             self._initialValues[n].update({var[0]: var[1]})
-      else: 
+      else:
         pass
 
   def initializeTrajectory(self, traj=None):
