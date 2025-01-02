@@ -250,7 +250,7 @@
     [./csv]
      type = OrderedCSV
      output = 'discrete/constrained/MinwReplacementConstrainedwInitialPoints/opt_export_0.csv'
-     rel_err = 0.001
+     rel_err =  0.001
     [../]
   [../]
 
