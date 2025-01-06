@@ -25,6 +25,7 @@
       <Model class="Models" type="PostProcessor">tsa_chz</Model>
       <Output class="DataObjects" type="PointSet">chz</Output>
       <Output class="OutStreams" type="Print">chz</Output>
+      <Output class="OutStreams" type="Print">chz_full</Output>
     </PostProcess>
   </Steps>
 
@@ -47,6 +48,11 @@
 
   <OutStreams>
     <Print name="chz">
+      <type>csv</type>
+      <source>chz</source>
+      <what>metadata|ARMA__signal_fa__AR__0,metadata|ARMA__signal_fa__MA__0,metadata|ARMA__signal_a__variance,metadata|Fourier__signal_f__period2.0__amplitude,metadata|ARMA__signal_a__MA__0,metadata|ARMA__signal_a__MA__2,metadata|Fourier__signal_f__fit_intercept,metadata|Fourier__signal_fa__period10.0__amplitude,metadata|Fourier__signal_f__period5.0__amplitude,metadata|Fourier__signal_fa__period2.0__amplitude,metadata|Fourier__signal_f__period5.0__phase,metadata|ARMA__signal_fa__variance,metadata|Fourier__signal_fa__period10.0__phase,metadata|ARMA__signal_fa__AR__1,metadata|Fourier__signal_fa__period2.0__phase,metadata|ARMA__signal_a__MA__1,metadata|ARMA__signal_fa__constant,metadata|Fourier__signal_f__period2.0__phase,metadata|ARMA__signal_a__constant,metadata|Fourier__signal_fa__period5.0__amplitude,metadata|ARMA__signal_fa__MA__1,metadata|ARMA__signal_a__AR__1,metadata|ARMA__signal_fa__MA__2,metadata|ARMA__signal_a__AR__0,metadata|Fourier__signal_f__period10.0__amplitude,metadata|Fourier__signal_fa__fit_intercept,metadata|Fourier__signal_fa__period5.0__phase</what>
+    </Print>
+    <Print name="chz_full">
       <type>csv</type>
       <source>chz</source>
     </Print>

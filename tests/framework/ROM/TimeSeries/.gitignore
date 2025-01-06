@@ -1,0 +1,14 @@
+DMD/BOPDMD/
+DMD/CompressedDMD/
+DMD/ForwardBackwardDMD/
+DMD/HAVOK/
+DMD/HODMD/
+DMD/HODMDgpr/
+DMD/HODMDrbf/
+DMD/HankelDMD/
+DMD/KernalizedDMD/
+DMD/PiDMD/
+DMD/RDMD/
+DMD/SpDMD/
+DMD/SubspaceDMD/
+DMD/VarProDMD/
