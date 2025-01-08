@@ -14,22 +14,14 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import copy
-import numpy as np
-import inspect
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+import numpy as np
+
 from .Dummy import Dummy
-from .. import CustomCommandExecuter
 from ..utils import utils, InputData, InputTypes, mathUtils
 from ..Decorators.Parallelization import Parallel
-#Internal Modules End--------------------------------------------------------------------------------
+from ..Realizations import Realization
 
 class ExternalModel(Dummy):
   """
@@ -71,7 +63,8 @@ class ExternalModel(Dummy):
       @ Out, None
     """
     super().__init__()
-    self.sim = None
+    self.sim = None                   # instance used to communicate with external python
+    self.ModuleToLoad = None          # python module containing model
     self.modelVariableValues = {}     # dictionary of variable values for the external module imported at runtime
     self.modelVariableType = {}       # dictionary of variable types, used for consistency checks
     self.listOfRavenAwareVars = []    # list of variables RAVEN needs to be aware of
@@ -133,14 +126,14 @@ class ExternalModel(Dummy):
       if len(rlz): #'SampledVars' in kwargs.keys():
         sampledVars = self._replaceVariablesNamesWithAliasSystem(rlz, 'input', False)
       extCreateNewInput = self.sim.createNewInput(self.initExtSelf, myInput, samplerType, rlz)
-      if not isinstance(extCreateNewInput, dict):
+      if not isinstance(extCreateNewInput, (dict, Realization)):
         self.raiseAnError(AttributeError, f'in external Model {self.ModuleToLoad} the method createNewInput ' +
                           f'must return a dictionary. Got "{type(extCreateNewInput)}".')
       if len(rlz) and len(self.alias['input']):
         rlz.update(sampledVars)
       # add sampled vars
       if len(rlz):
-        for var, val in rlz:
+        for var, val in rlz.items():
           if var not in extCreateNewInput:
             extCreateNewInput[var] = val
       newInput = ([(extCreateNewInput)], copy.deepcopy(rlz))

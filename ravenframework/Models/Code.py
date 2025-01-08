@@ -485,12 +485,13 @@ class Code(Model):
     """
     inputFiles = self.createNewInput(myInput, samplerType, rlz)
     if isinstance(inputFiles, tuple):
+      # FIXME when is this not true? Will not have "subDirectory" if meta is None
       # FIXME why is this a class variable? Should it be only within this method scope instead?
       self.currentInputFiles = copy.deepcopy(inputFiles[0])
-      metaData = copy.deepcopy(inputFiles[1])
+      subDir = inputFiles[1].inputInfo['subDirectory']
     else:
       self.currentInputFiles = inputFiles
-      metaData = None
+      subDir = None
     returnedCommand = self.code.genCommand(self.currentInputFiles,
                                            self.executable,
                                            flags=self.clargs,
@@ -508,12 +509,12 @@ class Code(Model):
 
     codeLogFile = self.outFileRoot
     if codeLogFile is None:
-      codeLogFile = os.path.join(metaData['subDirectory'],'generalOut')
+      codeLogFile = os.path.join(subDir,'generalOut')
 
     ## Before we were temporarily changing directories in order to copy the
     ## correct directory to the subprocess. Instead, we can just set the
     ## directory after we copy it over. -- DPM 5/5/2017
-    sampleDirectory = os.path.join(os.getcwd(), metaData['subDirectory'])
+    sampleDirectory = os.path.join(os.getcwd(), subDir)
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
     toOpen = os.path.join(sampleDirectory,codeLogFile)
@@ -547,7 +548,7 @@ class Code(Model):
           time.sleep(0.5)
           process.poll()
           if time.time() > timeout and process.returncode is None:
-            self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+            self.raiseAWarning('walltime exceeded in run in working dir: '+str(subDir)+'. Killing the run...')
             process.kill()
             process.returncode = -1
           if process.returncode is not None or time.time() > timeout:
@@ -564,7 +565,7 @@ class Code(Model):
       ## only set the returnCode to -1 in here if we did not already catch the
       ## failure.
       if returnCode == 0 and 'checkForOutputFailure' in dir(self.code):
-        codeFailed = self.code.checkForOutputFailure(codeLogFile, metaData['subDirectory'])
+        codeFailed = self.code.checkForOutputFailure(codeLogFile, subDir)
         if codeFailed:
           returnCode = -1
     ## END "with open outFileObject" context
@@ -579,7 +580,7 @@ class Code(Model):
     ## not have an extension. - (DPM 4/6/2017)
     outputFile, isStr = codeLogFile, True
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
-      finalCodeOutput = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
+      finalCodeOutput = self.code.finalizeCodeOutput(command, codeLogFile, subDir)
       ## Special case for RAVEN interface --ALFOA 09/17/17
       ravenCase = isinstance(finalCodeOutput, dict) and self.code.__class__.__name__ == 'RAVEN'
       # check return of finalizecode output
@@ -601,7 +602,7 @@ class Code(Model):
       if outputFile and isStr and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile+'.csv', path=metaData['subDirectory'])
+        outFile.initialize(outputFile+'.csv', path=subDir)
 
         csvLoader = CsvLoader.CsvLoader()
         loadUtility = self.code.getCsvLoadUtil()
@@ -611,7 +612,7 @@ class Code(Model):
       if not ravenCase:
         # check if the csv needs to be printed
         if self.code.getIfWriteCsv():
-          csvFileName = os.path.join(metaData['subDirectory'],outputFile+'.csv')
+          csvFileName = os.path.join(subDir,outputFile+'.csv')
           pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(info)
@@ -662,14 +663,14 @@ class Code(Model):
       ## file and any other file the user requests to be cleared
       if deleteSuccessfulLogFiles:
         self.raiseAMessage(f' Run "{info["prefix"]}" ended smoothly, removing log file!')
-        codeLofFileFullPath = os.path.join(metaData['subDirectory'],codeLogFile)
+        codeLofFileFullPath = os.path.join(subDir,codeLogFile)
         if os.path.exists(codeLofFileFullPath):
           os.remove(codeLofFileFullPath)
 
       ## Check if the user specified any file extensions for clean up
       for fileExt in fileExtensionsToDelete:
-        fileList = [os.path.join(metaData['subDirectory'],f)
-                      for f in os.listdir(metaData['subDirectory'])
+        fileList = [os.path.join(subDir, f)
+                      for f in os.listdir(subDir)
                       if f.endswith(fileExt)]
         for f in fileList:
           os.remove(f)

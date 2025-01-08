@@ -195,7 +195,7 @@ class SparseGridCollocation(Grid):
       outFile.close()
 
     self.limits['samples'] = len(self.sparseGrid)
-    self.raiseADebug(f'Size of Sparse Grid: {self.limits['samples']}')
+    self.raiseADebug(f'Size of Sparse Grid: {self.limits["samples"]}')
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)

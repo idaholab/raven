@@ -155,14 +155,13 @@ class GenericCode(CodeInterfaceBase):
     print('Execution Command: '+str(returnCommand[0]))
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,origInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, rlz):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     infiles=[]
@@ -175,6 +174,6 @@ class GenericCode(CodeInterfaceBase):
       if inputFile.getExt() in self.getInputExtension():
         origfiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
-    parser.modifyInternalDictionary(**Kwargs)
+    parser.modifyInternalDictionary(rlz)
     parser.writeNewInput(infiles,origfiles)
     return currentInputFiles

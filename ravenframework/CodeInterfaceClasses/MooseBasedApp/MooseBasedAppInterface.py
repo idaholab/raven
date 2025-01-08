@@ -141,17 +141,16 @@ class MooseBasedApp(CodeInterfaceBase):
       vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
     return vppFiles
 
-  def _expandVarNames(self, **Kwargs):
+  def _expandVarNames(self, rlz):
     """
       This method will assure the full proper variable names are returned in a dictionary.
-      @ In, Kwargs, dict, keyworded dictionary. Arguments include:
-          - SampleVars, short name -> sampled value dictionary
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, requests, list(dict), dictionaries contain:
                'name': [path,to,name],
                short varname: var value
     """
     requests = []
-    for var in Kwargs['SampledVars']:
+    for var in rlz:
       modifDict = {}
       # colon is used when we want to perturb element in the vector of given variable
       elemLoc = None
@@ -162,40 +161,39 @@ class MooseBasedApp(CodeInterfaceBase):
       if '|' not in request:
         # what modifications don't have the path in them?
         # global alias parameters
-        modifDict[var] = Kwargs['SampledVars'][var]
+        modifDict[var] = rlz[var]
         modifDict['name'] = [var]
       else:
         pathedName = request.split('|')
         modifDict['name'] = pathedName
         if elemLoc is not None:
-          modifDict[pathedName[-1]] = (int(elemLoc), Kwargs['SampledVars'][var])
+          modifDict[pathedName[-1]] = (int(elemLoc), rlz[var])
         else:
-          modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
+          modifDict[pathedName[-1]] = rlz[var]
       requests.append(modifDict)
     return requests
 
   # TODO neither of these are used here, but in the RELAP7 interface. Maybe they should be moved?
-  def pointSamplerForMooseBasedApp(self,**Kwargs):
+  def pointSamplerForMooseBasedApp(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for point samplers (Grid, Stratified, etc.)
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
     # the position in, eventually, a vector variable is not available yet...
     # the MOOSEparser needs to be modified in order to accept this variable type
     # for now the position (i.e. ':' at the end of a variable name) is discarded
-    listDict = self._expandVarNames(**Kwargs)
+    listDict = self._expandVarNames(rlz)
     return listDict
 
-  def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
+  def dynamicEventTreeForMooseBasedApp(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for DET samplers (DynamicEventTree, AdaptiveDynamicEventTree, etc.)
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    listDict = []
-    raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
+    raise NotImplementedError('dynamicEventTreeForMooseBasedApp not yet implemented')

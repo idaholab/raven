@@ -429,7 +429,7 @@ class GeneticAlgorithm(RavenSampled):
   # Run Methods #
   ###############
 
-  def _useRealizationBatch(self, meta, rlz):
+  def _useRealization(self, meta, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.

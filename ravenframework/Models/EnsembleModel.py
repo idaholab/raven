@@ -82,6 +82,9 @@ class EnsembleModel(Dummy):
     self.printTag               = 'EnsembleModel MODEL' # print tag
     self.parallelStrategy = 1                           # parallel strategy [1=MPI like (internalParallel), 2=threads]
     self.runInfoDict = None                             # dictionary containing run info in case of parallelStrategy=2
+    self.needToCheckInputs = None
+    self.allOutputs = None
+    self.orderList = None
     # assembler objects to be requested
     self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one_to_infinity)
@@ -238,43 +241,48 @@ class EnsembleModel(Dummy):
     # collect the models
     self.allOutputs = set()
     for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
-      self.modelsDictionary[modelName]['Instance'] = modelInstance
+      # shorthand labels
+      modelDict = self.modelsDictionary[modelName]
+      inputDict = self.modelsInputDictionary[modelName]
+      # end shorthand labels
+      modelDict['Instance'] = modelInstance
       inputInstancesForModel = []
-      for inputName in self.modelsInputDictionary[modelName]['Input']:
-        inputInstancesForModel.append(self.retrieveObjectFromAssemblerDict('Input',inputName))
-        checkDictInputsUsage[inputInstancesForModel[-1]] = True
-      self.modelsDictionary[modelName]['InputObject'] = inputInstancesForModel
+      for inputName in inputDict['Input']:
+        inputInstance = self.retrieveObjectFromAssemblerDict('Input',inputName)
+        inputInstancesForModel.append(inputInstance)
+        checkDictInputsUsage[inputInstance] = True
+      modelDict['InputObject'] = inputInstancesForModel
 
       # retrieve 'Output' objects, such as DataObjects, Databases to check if they are present in the Step
-      if self.modelsInputDictionary[modelName]['Output'] is not None:
+      if inputDict['Output'] is not None:
         outputNamesModel = []
-        for output in self.modelsInputDictionary[modelName]['Output']:
+        for output in inputDict['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output, True)
           if outputObject.name not in outputsNames:
             self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelName+" is not present among the Step outputs!!!")
           outputNamesModel.append(outputObject.name)
-        self.modelsDictionary[modelName]['OutputObject'] = outputNamesModel
+        modelDict['OutputObject'] = outputNamesModel
       else:
-        self.modelsDictionary[modelName]['OutputObject'] = []
+        modelDict['OutputObject'] = []
 
       # initialize model
-      self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
-      if not isThereACode:
-        isThereACode = self.modelsDictionary[modelName]['Instance'].containsACode
+      modelInstance.initialize(runInfo, inputInstancesForModel, initDict)
+      isThereACode = isThereACode or modelInstance.containsACode
 
       # retrieve 'TargetEvaluation' DataObjects
-      targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
-      # assert acceptable TargetEvaluation types are used
-      if targetEvaluation.type not in ['PointSet','HistorySet','DataSet']:
+      targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', inputDict['TargetEvaluation'], True)
+      # assert acceptable TargetEvaluation types are used # FIXME can this actually be hit?
+      if targetEvaluation.type not in ['PointSet', 'HistorySet', 'DataSet']:
         self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(targetEvaluation.type)+"!")
       # localTargetEvaluations are for passing data and then resetting, not keeping data between samples
+      # FIXME do we need a deepcopy?
       self.localTargetEvaluations[modelName] = copy.deepcopy(targetEvaluation)
       # get input variables
-      inps   = targetEvaluation.getVars('input')
+      inps = targetEvaluation.getVars('input')
       # get pivot parameters in input space if any and add it in the 'Input' list
       inDims = set([item for subList in targetEvaluation.getDimensions(var="input").values() for item in subList])
       # assemble the two lists
-      self.modelsDictionary[modelName]['Input'] = inps + list(inDims - set(inps))
+      modelDict['Input'] = inps + list(inDims - set(inps))
       # get output variables
       outs = targetEvaluation.getVars("output")
       # get pivot parameters in output space if any and add it in the 'Output' list
@@ -282,7 +290,7 @@ class EnsembleModel(Dummy):
       ## note, if a dimension is in both the input space AND output space, consider it an input
       outDims = outDims - inDims
       newOuts = outs + list(set(outDims) - set(outs))
-      self.modelsDictionary[modelName]['Output'] = newOuts
+      modelDict['Output'] = newOuts
       self.allOutputs = self.allOutputs.union(newOuts)
     # END loop to collect models
     self.allOutputs = list(self.allOutputs)
@@ -305,12 +313,13 @@ class EnsembleModel(Dummy):
           unusedFiles+= " "+inFile.name
       self.raiseAnError(IOError, "The following inputs specified in the Step are not used in the EnsembleModel: "+unusedFiles)
     # construct chain connections
-    modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(),None)
+    modelsToOutputModels  = dict.fromkeys(self.modelsDictionary.keys(), None)
     # find matching models
-    for modelIn in self.modelsDictionary.keys():
+    # FIXME does this need to be a separate loop from above?
+    for modelIn, modelDict in self.modelsDictionary.items():
       outputMatch = []
-      for i in range(len(self.modelsDictionary[modelIn]['Output'])):
-        match = self.__findMatchingModel('Input',self.modelsDictionary[modelIn]['Output'][i])
+      for output in modelDict['Output']:
+        match = self.__findMatchingModel('Input', output)
         outputMatch.extend(match if match is not None else [])
       outputMatch = list(set(outputMatch))
       modelsToOutputModels[modelIn] = outputMatch
@@ -354,6 +363,10 @@ class EnsembleModel(Dummy):
           if self.orderList.index(source) >= indexModelIn:
             self.raiseAnError(IOError, 'In model "'+modelIn+'" the "metadataToTransfer" named "'+metadataToGet+
                                        '" is linked to the source"'+source+'" that will be executed after this model.')
+    # set a flag to check through the inputs
+    # but we do this at run time, not at initialization, it seems
+    # so set it to True here, then turn it off after the first time through createNewInput
+    # FIXME does this work properly? does createNewInput happen on parallel or serial?
     self.needToCheckInputs = True
     # write debug statements
     self.raiseADebug("Specs of Graph Network represented by EnsembleModel:")
@@ -380,8 +393,7 @@ class EnsembleModel(Dummy):
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
-    paramDict = self.getInitParams()
-    return paramDict
+    return self.getInitParams()
 
   def createNewInput(self, myInput, samplerType, rlz):
     """
@@ -393,7 +405,7 @@ class EnsembleModel(Dummy):
     """
     # check if all the inputs of the submodule are covered by the sampled vars and Outputs of the other sub-models
     if self.needToCheckInputs:
-      allCoveredVariables = list(set(itertools.chain(self.allOutputs,rlz.keys())))
+      allCoveredVariables = list(set(itertools.chain(self.allOutputs, rlz.keys())))
 
     identifier = rlz.inputInfo['prefix']
     # sub realizations
@@ -411,7 +423,7 @@ class EnsembleModel(Dummy):
     ## Now prepare the new inputs for each model
     for modelIn, specs in self.modelsDictionary.items():
       # FIXME this gets overwritten in _externalRun!
-      sub = rlz.createSubsetRlz(self.modelsDictionary[modelIn]['Input'])
+      sub = rlz.createSubsetRlz(self.modelsDictionary[modelIn]['Input'], ignoreMissing=True)
       subRlzs[modelIn] = sub
 
       # local prefix
@@ -442,8 +454,8 @@ class EnsembleModel(Dummy):
     targetEvaluationNames = {}
     optionalOutputNames = {}
     joinedIndexMap = {} # collect all the index maps, then we can keep the ones we want?
-    for modelIn in self.modelsDictionary.keys():
-      targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
+    for modelIn, modelDict in self.modelsDictionary.items():
+      targetEvaluationNames[modelDict['TargetEvaluation']] = modelIn
       if not isPassthroughRunner:
         # collect data
         newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
@@ -452,7 +464,7 @@ class EnsembleModel(Dummy):
         joinedResponse.update(outcomes[modelIn]['response'])
         joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
-      optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
+      optionalOutputNames.update({outName: modelIn for outName in modelDict['OutputObject']})
       if isPassthroughRunner:
         optionalOutputs[modelIn] = outcomes
     # the prefix is re-set here
@@ -476,15 +488,15 @@ class EnsembleModel(Dummy):
       # collect optional output if present and not already collected
       output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
 
-  def getAdditionalInputEdits(self,inputInfo):
+  def getAdditionalInputEdits(self, inputInfo):
     """
       Collects additional edits for the sampler to use when creating a new input. In this case,
       it calls all the getAdditionalInputEdits methods of the sub-models
       @ In, inputInfo, dict, dictionary in which to add edits
       @ Out, None.
     """
-    for modelIn in self.modelsDictionary.keys():
-      self.modelsDictionary[modelIn]['Instance'].getAdditionalInputEdits(inputInfo)
+    for modelIn, modelDict in self.modelsDictionary.items():
+      modelDict['Instance'].getAdditionalInputEdits(inputInfo)
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, rlz):
@@ -497,7 +509,7 @@ class EnsembleModel(Dummy):
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
     # FIXME do I need to add inputInfo, or use rlz.asDict, for this?
-    kwargsToKeep = { keepKey: rlz[keepKey] for keepKey in list(rlz.keys())}
+    # kwargsToKeep = { keepKey: rlz[keepKey] for keepKey in list(rlz.keys())}
     jobHandler = rlz.inputInfo['jobHandler'] if self.parallelStrategy == 2 else None
     Input = self.createNewInput(myInput[0], samplerType, rlz)
     ## Unpack the specifics for this class, namely just the jobHandler
@@ -607,6 +619,7 @@ class EnsembleModel(Dummy):
       # reset the DataObject for the projection
       self.localTargetEvaluations[modelIn].reset()
       # deepcopy assures distinct copies
+      # FIXME is this really necessary?
       inRunTargetEvaluations[modelIn] = copy.deepcopy(self.localTargetEvaluations[modelIn])
     residueContainer = dict.fromkeys(self.modelsDictionary.keys())
     gotOutputs = [{}]*len(self.orderList)
@@ -633,12 +646,14 @@ class EnsembleModel(Dummy):
       for modelCnt, modelIn in enumerate(self.orderList):
         inputRlz = subRlzs[modelIn]
         inputInfo = inputRlz.inputInfo
+        modelDict = self.modelsDictionary[modelIn]
+        inputDict = self.modelsInputDictionary[modelIn]
         # clear the model's Target Evaluation data object
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
-        if self.modelsInputDictionary[modelIn]['metadataToTransfer']:
+        if inputDict['metadataToTransfer']:
           metadataToTransfer = {}
-        for metadataToGet, source, alias in self.modelsInputDictionary[modelIn]['metadataToTransfer']:
+        for metadataToGet, source, alias in inputDict['metadataToTransfer']:
           if metadataToGet in returnDict[source]['general_metadata']:
             metaDataValue = returnDict[source]['general_metadata'][metadataToGet]
             metaDataValue = metaDataValue[0] if len(metaDataValue) == 1 else metaDataValue
@@ -654,9 +669,9 @@ class EnsembleModel(Dummy):
         # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
           sampledVars = inputRlz.keys() # OLD inputKwargs[modelIn]['SampledVars'].keys()
-          conditionsToCheck = set(self.modelsDictionary[modelIn]['Input']) - set(itertools.chain(dependentOutput.keys(),sampledVars))
+          conditionsToCheck = set(modelDict['Input']) - set(itertools.chain(dependentOutput.keys(),sampledVars))
           for initialConditionToSet in conditionsToCheck:
-            if initialConditionToSet in self.initialConditions.keys():
+            if initialConditionToSet in self.initialConditions:
               dependentOutput[initialConditionToSet] = self.initialConditions[initialConditionToSet]
             else:
               self.raiseAnError(IOError,"No initial conditions provided for variable "+ initialConditionToSet)
@@ -669,6 +684,7 @@ class EnsembleModel(Dummy):
         if metadataToTransfer is not None:
           inputInfo['metadataToTransfer'] = metadataToTransfer
 
+        inputRlz.update(dependentOutput)
         for var in dependentOutput:
           ## FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transferred from outside
           ## Who has this information? -- DPM 4/11/17
@@ -678,7 +694,7 @@ class EnsembleModel(Dummy):
         ## FIXME: this will come after we rework the "runInfo" collection in the code
 
         retDict, gotOuts, evaluation = self.__advanceModel(identifier,
-                            self.modelsDictionary[modelIn],
+                            modelDict,
                             originalInput[modelIn],
                             inputRlz,
                             inRunTargetEvaluations[modelIn],
@@ -724,14 +740,14 @@ class EnsembleModel(Dummy):
     returnEvaluation = returnDict, inRunTargetEvaluations, tempOutputs
     return returnEvaluation
 
-  def __advanceModel(self, identifier, modelToExecute, origInputList, inputKwargs, inRunTargetEvaluations, samplerType, iterationCount, jobHandler = None):
+  def __advanceModel(self, identifier, modelDict, origInputList, inputRlz, inRunTargetEvaluations, samplerType, iterationCount, jobHandler=None):
     """
       This method is aimed to advance the execution of a sub-model and to collect the data using
       the realization
       @ In, identifier, str, current job identifier
-      @ In, modelToExecute, super(Model), Model instance than needs to be advanced
+      @ In, modelDict, dict, dictionary of model information that will be run # WAS modelToExecute
       @ In, origInputList, list, list of model input
-      @ In, inputKwargs, dict, dictionary of kwargs for this model
+      @ In, inputRlz, Realization, sample realization to evaluate # WAS inputKwargs
       @ In, inRunTargetEvaluations, DataObject, target evaluation for the model to advance
       @ In, samplerType, str, sampler Type
       @ In, iterationCount, int, iteration counter (1 if not picard)
@@ -740,25 +756,26 @@ class EnsembleModel(Dummy):
       @ Out, gotOutputs, dict, dictionary containing all the data coming out the model
       @ Out, evaluation, dict, the evaluation dictionary with the "unprojected" data
     """
+    inputInfo = inputRlz.inputInfo
     returnDict = {}
     suffix = ''
-    if 'batchRun' in  inputKwargs:
-      suffix = f"{utils.returnIdSeparator()}{inputKwargs['batchRun']}"
-    self.raiseADebug('Submitting model',modelToExecute['Instance'].name)
-    localIdentifier = f"{modelToExecute['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"
+    if 'batchRun' in  inputRlz: # FIXME what is this check now?
+      suffix = f"{utils.returnIdSeparator()}{inputRlz['batchRun']}"
+    self.raiseADebug('Submitting model',modelDict['Instance'].name)
+    localIdentifier = f"{modelDict['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"
     if self.parallelStrategy == 1:
       # we evaluate the model directly
       try:
-        evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
+        evaluation = modelDict['Instance'].evaluateSample.original_function(modelDict['Instance'], origInputList, samplerType, inputRlz)
       except Exception:
         excType, excValue, excTrace = sys.exc_info()
         evaluation = None
     else:
       moveOn = False
-      while not moveOn:
+      while not moveOn: # FIXME what is this while loop doing? It breaks on the first pass every time.
         # run the model
-        inputKwargs.pop("jobHandler", None)
-        modelToExecute['Instance'].submit(origInputList, samplerType, jobHandler, **inputKwargs)
+        inputInfo.pop("jobHandler", None)
+        modelDict['Instance'].submit(inputRlz, origInputList, samplerType, jobHandler)
         ## wait until the model finishes, in order to get ready to run the subsequential one
         while not jobHandler.isThisJobFinished(localIdentifier):
           time.sleep(1.e-3)
@@ -774,13 +791,13 @@ class EnsembleModel(Dummy):
           excType, excValue, excTrace = IOError, IOError("Failure happened at the input creation stage. See trace above"), None
         evaluation = None
         # the model failed
-        for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
+        for modelToRemove in list(set(self.orderList) - set([modelDict['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}",
                                  uniqueHandler = f"{self.name}{identifier}{suffix}")
 
-      else:
+      else: # model did not fail!
         # collect the target evaluation
-        modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
+        modelDict['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
 
     if not evaluation:
       # the model failed
@@ -788,13 +805,13 @@ class EnsembleModel(Dummy):
       msg = io.StringIO()
       traceback.print_exception(excType, excValue, excTrace, limit=10, file=msg)
       msg = msg.getvalue().replace('\n', '\n        ')
-      self.raiseAnError(RuntimeError, f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" '+
+      self.raiseAnError(RuntimeError, f'The Model "{modelDict["Instance"].name}" id "{localIdentifier}" '+
                         f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
     else:
       if self.parallelStrategy == 1:
         inRunTargetEvaluations.addRealization(evaluation)
       else:
-        modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
+        modelDict['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
 
     ## FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
     ## does not return the indexes values (TO FIX)
@@ -803,17 +820,17 @@ class EnsembleModel(Dummy):
     dataSet = inRunTargetEvaluations.realization(index=iterationCount-1,unpackXArray=True)
     ##FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
     dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
-    responseSpace         = dataSet
-    gotOutputs  = {key: dataSet[key] for key in inRunTargetEvaluations.getVars("output") + inRunTargetEvaluations.getVars("indexes")}
+    responseSpace = dataSet
+    gotOutputs = {key: dataSet[key] for key in inRunTargetEvaluations.getVars("output") + inRunTargetEvaluations.getVars("indexes")}
     if '_indexMap' in dataSet.keys():
       gotOutputs['_indexMap'] = dataSet['_indexMap']
 
     #store the results in return dictionary
     # store the metadata
-    returnDict['response'        ] = copy.deepcopy(evaluation) #  this deepcopy must stay! alfoa
+    returnDict['response'] = copy.deepcopy(evaluation) #  this deepcopy must stay! alfoa
     # overwrite with target evaluation filtering
-    returnDict['response'        ].update(responseSpace)
-    returnDict['prefix'          ] = np.atleast_1d(identifier)
+    returnDict['response'].update(responseSpace)
+    returnDict['prefix'] = np.atleast_1d(identifier)
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation

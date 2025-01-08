@@ -418,7 +418,7 @@ class Optimizer(AdaptiveSampler):
             f'{numTraj} initial points have been given, but Initialization Sampler ' +\
             f'"{self._initSampler.name}" provides {self._initSampler.limits["samples"]} samples!')
     else:
-      numTraj = self._initSampler.limit
+      numTraj = self._initSampler.limits['samples']
       self._initialValues = [{} for _ in range(numTraj)]
     for n, _ in enumerate(self._initialValues):
       # prep the sampler, in case it needs it #TODO can we get rid of this for forward sampler?

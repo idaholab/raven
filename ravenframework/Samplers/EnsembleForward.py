@@ -197,7 +197,7 @@ class EnsembleForward(Sampler):
         rlz = Realization()
         sampler.counters['samples'] += 1
         sampler.localGenerateInput(rlz, None, None)
-        rlz.inputInfo['prefix'] = sampler.counter
+        rlz.inputInfo['prefix'] = sampler.counters['samples']
         self.samplersCombinations[samplingStrategy].append(copy.deepcopy(rlz.asDict()))
       cnt += 1
       mKeys, mParams = sampler.provideExpectedMetaKeys()

@@ -18,6 +18,9 @@ Moved from MessageHandler
 
 @author: talbpaul
 """
+
+from pprint import pp
+
 from .. import MessageHandler
 
 class MessageUser(object):
@@ -121,3 +124,18 @@ class MessageUser(object):
     color = kwargs.get('color', None)
     msg = ' '.join(str(a) for a in args)
     self.messageHandler.message(self, msg, str(tag), verbosity, color)
+
+  def raiseWhatsThis(self, member, obj=None, tag="DEBUGG"):
+    """
+      Shortcut for a commonly-used print command for developers.
+      @ In, member, str, name of member to interrogate
+      @ In, obj, object, optional, if provided then this is the thing to print; otherwise it's self.member
+      @ In, tag, str, optional, identifying message to include with print
+    """
+    print('/'+'*'*80)
+    print(f'{tag}:')
+    if obj is None:
+      pp(getattr(self, member))
+    else:
+      pp(obj)
+    print('\\'+'*'*80)

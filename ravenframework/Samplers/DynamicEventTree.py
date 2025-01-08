@@ -982,7 +982,7 @@ class DynamicEventTree(Grid):
       hybridsampler =  self.hybridStrategyToApply[preckey]
       hybridlistoflist.append([])
       hybridsampler.initialize()
-      self.hybridNumberSamplers *= hybridsampler.limit
+      self.hybridNumberSamplers *= hybridsampler.limits['samples']
       while hybridsampler.amIreadyToProvideAnInput():
         hybridsampler.counters['samples'] +=1
         hybridsampler.localGenerateInput(None,None)

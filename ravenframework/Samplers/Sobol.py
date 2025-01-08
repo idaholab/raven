@@ -161,7 +161,7 @@ class Sobol(SparseGridCollocation):
         if newpt not in self.pointsToRun:
           self.pointsToRun.append(newpt)
     self.limits['samples'] = len(self.pointsToRun)
-    self.raiseADebug(f'Needed points: {self.limits['samples']}')
+    self.raiseADebug(f'Needed points: {self.limits["samples"]}')
     initdict={'ROMs':self.ROMs,
               'SG':self.SQs,
               'dists':self.dists,

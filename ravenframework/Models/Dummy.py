@@ -14,18 +14,14 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#External Modules------------------------------------------------------------------------------------
 import copy
-import itertools
-import numpy as np
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from .Model import Model
-from ..utils import utils
-from ..utils.cached_ndarray import c1darray
+import numpy as np
+
 from ..Decorators.Parallelization import Parallel
-#Internal Modules End--------------------------------------------------------------------------------
+from ..Realizations.Realization import Realization
+
+from .Model import Model
 
 class Dummy(Model):
   """
@@ -92,10 +88,9 @@ class Dummy(Model):
       @ Out, localInput, dict, the manipulated input
     """
     # FIXME wondering if a dictionary compatibility should be kept - Dan M.
-    if not isinstance(dataIN, dict):
-      if dataIN.type not in self.admittedData:
-        self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
-    if not isinstance(dataIN, dict):
+    if not isinstance(dataIN, (dict, Realization)) and dataIN.type not in self.admittedData:
+      self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
+    if not isinstance(dataIN, (dict, Realization)):
       localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes,None)
       if not len(dataIN) == 0:
         dataSet = dataIN.asDataset()
@@ -143,7 +138,7 @@ class Dummy(Model):
       The copied values are returned as a dictionary back
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, rlz, Realization, Realization from whiech to build input
+      @ In, rlz, Realization, Realization from which to build input
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
     inputDict = self._inputToInternal(myInput[0])
@@ -155,7 +150,7 @@ class Dummy(Model):
         inputDict[var] = np.atleast_1d(val)
 
     missing = list(var for var,val in inputDict.items() if val is None)
-    if len(missing) != 0:
+    if len(missing):
       self.raiseAnError(IOError,'Input values for variables {} not found while preparing the input for model "{}"!'.format(missing,self.name))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
@@ -163,11 +158,12 @@ class Dummy(Model):
     ## SampledVars should almost always be in the kwargs, but in the off chance
     ## it is not, we want to continue as normal. Rather than use an if, we do
     ## it this way, since the kwargs can have an arbitrary size of keys in it.
-    try:
-      if len(self.alias['input'].keys()) != 0:
-        kwargs['SampledVars'] = sampledVars
-    except KeyError:
-      pass
+    # this doesn't seem to do anything ... TODO remove
+    # try:
+    #   if len(self.alias['input'].keys()) != 0:
+    #     rlz.update(sampledVars)
+    # except KeyError:
+    #   pass
     return [(inputDict)], copy.deepcopy(rlz)
 
   @Parallel()

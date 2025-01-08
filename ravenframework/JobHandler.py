@@ -1154,17 +1154,17 @@ class JobHandler(BaseType):
             # to replace the execution command. Is this fragile? Possibly. We may
             # want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
-              kwargs = {}
+              codeInfo = {}
               if self._server is not None:
                 for infoKey in ['headNode','remoteNodes','schedulerFile']:
                   if infoKey in self.runInfoDict:
-                    kwargs[infoKey] = self.runInfoDict[infoKey]
-              kwargs['INDEX'] = str(i)
-              kwargs['INDEX1'] = str(i+i)
-              kwargs['CURRENT_ID'] = str(self.__nextId)
-              kwargs['CURRENT_ID1'] = str(self.__nextId+1)
-              kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
-              kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
+                    codeInfo[infoKey] = self.runInfoDict[infoKey]
+              codeInfo['INDEX'] = str(i)
+              codeInfo['INDEX1'] = str(i+i)
+              codeInfo['CURRENT_ID'] = str(self.__nextId)
+              codeInfo['CURRENT_ID1'] = str(self.__nextId+1)
+              codeInfo['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
+              codeInfo['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
 
 
               # This will not be used since the Code will create a new
@@ -1173,11 +1173,11 @@ class JobHandler(BaseType):
               # represents the WRONG directory for an instance of a code!
               # It is however the correct directory for a MultiRun step
               # -- DPM 5/4/17
-              kwargs['WORKING_DIR'] = item.args[0].workingDir
-              kwargs['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
-              kwargs['METHOD'] = os.environ.get("METHOD","opt")
-              kwargs['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])
-              item.args[3].update(kwargs)
+              codeInfo['WORKING_DIR'] = item.args[0].workingDir
+              codeInfo['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
+              codeInfo['METHOD'] = os.environ.get("METHOD","opt")
+              codeInfo['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])
+              item.args[3].inputInfo.update(codeInfo)
 
             self.__running[i] = item
             self.__running[i].start()

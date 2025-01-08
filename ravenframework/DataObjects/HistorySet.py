@@ -264,8 +264,7 @@ class HistorySet(DataSet):
       if startIndex > 0:
         data = self._data.isel(**{self.sampleTag:slice(startIndex,None,None)})
 
-    data = data.drop(toDrop)
-    self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
+    data = data.drop_vars(toDrop)
     # specific implementation
     ## write input space CSV with pointers to history CSVs
     ### get list of input variables to keep
@@ -286,22 +285,23 @@ class HistorySet(DataSet):
     ## obtain slices to write subset CSVs
     ordered = list(o for o in itertools.chain(self._outputs,self._outputMetaVars) if o in keep)
 
-    if len(ordered):
+    if ordered:
       # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
       # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
       # In this case, if self.hierarchical is False, the histories are going to be reconstructed
       # (see _constructHierPaths for further explainations)
       if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
-        for i in range(len(fullData)):
+        for i, dat in enumerate(fullData):
+          filename = subFiles[i][:-4]
+          self.raiseADebug(f'Printing data to CSV: "{filename}.csv"')
           # the mode is at the begin 'w' since we want to write the first portion of the history from scratch
           # once the first history portion is written, we change the mode to 'a' (append) since we continue
           # writing the other portions to the same file, in order to reconstruct the "full history" in the same
           # file.
           # FIXME: This approach is drammatically SLOW!
           mode = 'w'
-          filename = subFiles[i][:-4]
-          for subSampleTag in range(len(fullData[i][self.sampleTag].values)):
-            rlz = fullData[i].isel(**{self.sampleTag:subSampleTag}).dropna(self.indexes[0])[ordered]
+          for subSampleTag in range(len(dat[self.sampleTag].values)):
+            rlz = dat.isel(**{self.sampleTag:subSampleTag}).dropna(self.indexes[0])[ordered]
             self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True,mode=mode)
             mode = 'a'
       else:
@@ -309,10 +309,11 @@ class HistorySet(DataSet):
         # all the histories (full histories if not hierarchical or branch-histories otherwise) independently
         for i in range(len(data[self.sampleTag].values)):
           filename = subFiles[i][:-4]
+          self.raiseADebug(f'Printing data to CSV: "{filename}.csv"')
           rlz = data.isel(**{self.sampleTag:i}).dropna(self.indexes[0])[ordered]
           self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
     else:
-      self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))
+      self.raiseAWarning(f'No output space variables have been requested for DataObject "{self.name}"! No history files will be printed!')
 
   def addExpectedMeta(self,keys, params={}, overwrite=False):
     """

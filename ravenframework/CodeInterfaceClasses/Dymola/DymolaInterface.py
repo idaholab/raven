@@ -92,14 +92,11 @@ of this is:
   <executable> -s <dsin file text> <outputfile>
 """
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import math
-import scipy.io
-import csv
 import re
-import copy
+
+import scipy.io
 import numpy
 import pandas as pd
 
@@ -182,7 +179,7 @@ class Dymola(CodeInterfaceBase):
     validExtensions = ('txt', 'TXT')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, rlz):
     """
       Generate a new Dymola input file (txt format) from the original, changing parameters
       as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be
@@ -190,8 +187,7 @@ class Dymola(CodeInterfaceBase):
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, rlz, Realization, Realization from which to build input
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     # Start with the original input file, which we have to find first.
@@ -206,7 +202,7 @@ class Dymola(CodeInterfaceBase):
         foundVect = True
         indexVect = index
     if not foundInit:
-      raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
+      raise IOError('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaInitialisation"!')
     if not foundVect:
       print('Dymola INTERFACE WARNING -> None of the input files has the type "DymolaVectors"! ')
     # Figure out the new file name and put it into the proper place in the return list
@@ -221,7 +217,7 @@ class Dymola(CodeInterfaceBase):
     #   numbers (integer or floating point). *True* and *False* (not 'true' and 'false') are
     #   automatically mapped to 1 and 0. Enumerations must be given explicitly as the unsigned integer
     #   equivalent. Strings, functions, redeclarations, etc. are not supported.
-    varDict = Kwargs['SampledVars']
+    varDict = rlz
 
     vectorsToPass= {}
     for key, value in list(varDict.items()):
@@ -234,7 +230,7 @@ class Dymola(CodeInterfaceBase):
         print("                            'DymolaInitialisation' the array must be split into scalars.")
         print("                            => It is assumed that the array goes into the input file with type 'DymolaVectors'")
         if not foundVect:
-          raise Exception('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
+          raise IOError('Dymola INTERFACE ERROR -> None of the input files has the type "DymolaVectors"! ')
         # extract dict entry
         vectorsToPass[key] = varDict.pop(key)
       assert not type(value).__name__ in ['str','bytes','unicode'], ("Strings cannot be "
@@ -242,7 +238,7 @@ class Dymola(CodeInterfaceBase):
 
     # create aditional input file for vectors if needed
     if bool(vectorsToPass):
-      with open(currentInputFiles[indexVect].getAbsFile(), 'w') as Fvect:
+      with open(currentInputFiles[indexVect].getAbsFile(), 'w', encoding='utf-8') as Fvect:
         Fvect.write("#1\n")
         for key, value in sorted(vectorsToPass.items()) :
           inc = 0
@@ -299,7 +295,7 @@ class Dymola(CodeInterfaceBase):
     #   contains the text after it (minus one space on both sides for clarity).
 
     # Read the file.
-    with open(originalPath, 'r') as src:
+    with open(originalPath, 'r', enoding='utf-8') as src:
       text = src.read()
 
     # Set the parameters.
@@ -319,7 +315,7 @@ class Dymola(CodeInterfaceBase):
           "in %s." % (name, originalPath))
 
     # Re-write the file.
-    with open(currentInputFiles[indexInit].getAbsFile(), 'w') as src:
+    with open(currentInputFiles[indexInit].getAbsFile(), 'w', encoding='utf-8') as src:
       src.write(text)
 
     return currentInputFiles

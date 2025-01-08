@@ -997,7 +997,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     self.counters['seeding'] += numAdded # TODO could be 1, but kept for consistency
     # prep to exit if over the limit
     if self.counters['samples'] >= self.limits['samples']:
-      self.raiseADebug(f'Sampling limit reached! ({self.counters["samples"]} samples > {self.limits["sampling"]} limit)')
+      self.raiseADebug(f'Sampling limit reached! ({self.counters["samples"]} samples > {self.limits["samples"]} limit)')
       # TODO this is disjointed from readiness check!
     # FIXME, the following condition check is make sure that the require info is only printed once
     # when dump metadata to xml, this should be removed in the future when we have a better way to

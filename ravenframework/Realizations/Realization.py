@@ -83,14 +83,15 @@ class Realization:
       else:
         new.inputInfo[key] = entry
     # fill values from this rlz into the new one
+    print('DEBUGG RLZ targetVars:', targetVars)
     for tvar in targetVars:
-      #if tvar in self._values:
+      if tvar in self._values:
         new[tvar] = self._values[tvar]
         for key in varKeyedEntries:
           if key in self.inputInfo[key]:
             new.inputInfo[key][tvar] = self.inputInfo[key][tvar]
-      # elif not ignoreMissing:
-      #   raise KeyError(f'Desired variable "{tvar}" missing from source Realization!')
+      elif not ignoreMissing:
+        raise KeyError(f'Desired variable "{tvar}" missing from source Realization!')
     return new
 
 
