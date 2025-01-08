@@ -51,6 +51,9 @@ class SERPENT(GenericCode):
     # in case of burnup calc, the interface can compute the time at which FOMs (e.g. keff) crosses
     # a target. For example (default), we can compute the time (burnDays) at which absKeff crosses 1.0
     self.eolTarget = {}
+    # volume calculation?
+    self.volumeCalc = False
+    self.nVolumePoints = None
 
   def _findInputFile(self, inputFiles):
     """
@@ -75,6 +78,15 @@ class SERPENT(GenericCode):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
+    preVolumeCalc = xmlNode.find("volumeCalculation")
+    if preVolumeCalc is not None:
+      self.volumeCalc = utils.interpretBoolean(preVolumeCalc.text)
+      nPoints = preVolumeCalc.attrib.get("nPoints")
+      if nPoints is not None:
+        self.nVolumePoints = utils.intConversion(utils.floatConversion(nPoints))
+        if self.nVolumePoints is None:
+          raise ValueError(self.printTag+' ERROR: "nPoints" attribute in <volumeCalculation> must be present (and integer) if <volumeCalculation> node is inputted')
+
     eolNodes = xmlNode.findall("EOL")
     for eolNode in eolNodes:
       if eolNode is not None:
@@ -132,8 +144,9 @@ class SERPENT(GenericCode):
       addflags = clargs['text']
     else:
       addflags = ''
-
     executeCommand = [('parallel',executable+' '+inputFile.getFilename()+' '+addflags)]
+    if self.volumeCalc:
+      executeCommand.insert(0, ('parallel',executable+' '+inputFile.getFilename()+f' -checkvolumes {self.nVolumePoints}') )
     returnCommand = executeCommand, inputFile.getFilename()+"_res"
     return returnCommand
 

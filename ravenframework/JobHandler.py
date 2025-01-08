@@ -22,7 +22,6 @@ import os
 import copy
 import sys
 import threading
-from random import randint
 import socket
 import re
 
@@ -46,6 +45,70 @@ if _rayAvail:
 
 # FIXME: Finished jobs can bog down the queue waiting for other objects to take
 # them away. Can we shove them onto a different list and free up the job queue?
+
+#class IdentifiersFactory(BaseType):
+  #"""
+    #Identifier Factory. This class contains the memory of identifiers used to execute
+    #JOBS in the job handler. The identifiers are removed from the Factory once out of
+    #scope (i.e. once the job is collected)
+  #"""
+  #def __init__(self, **kwargs):
+    #"""
+      #Constructor
+      #@ In, None
+      #@ Out, None
+    #"""
+    #super().__init__(**kwargs)
+    #self.__IDENTIFIERS_FACTORY = {} # {identifier:uniqueHandler}
+    #self.__counter = 0
+
+  #def __len__(self):
+    #"""
+      #length (number of identifiers)
+    #"""
+    #return len(self.__IDENTIFIERS_FACTORY)
+
+  #def addIdentifier(self, identifier: str, uniqueHandler: str | None) -> None:
+    #"""
+      #Add identifier in factory
+      #@ In, identifier, str, new identifier to add
+      #@ In, uniqueHandler, str, optional, the `uniqueHandler` if associated with this identifier
+      #@ Out, None
+    #"""
+    #if identifier in self.__IDENTIFIERS_FACTORY:
+      #self.raiseAnError(RuntimeError, f"Identifier {identifier} is still in use and cannot be re-used yet!")
+
+    #self.__IDENTIFIERS_FACTORY[identifier] = uniqueHandler
+    #self.__counter += 1
+
+  #def removeIdentifier(self, identifier: str) -> None:
+    #"""
+      #Remove identifier in factory
+      #@ In, identifier, str, new identifier to add
+      #@ Out, None
+    #"""
+    #if identifier not in self.__IDENTIFIERS_FACTORY:
+      #self.raiseAnError(RuntimeError, f"Identifier {identifier} is not present in identifier factory. It cannot be removed!")
+
+    #self.__IDENTIFIERS_FACTORY.pop(identifier)
+
+  #def checkIfIdentifierIsInUse(self, identifier: str) -> bool:
+    #"""
+      #This method is a utility method used to check if an identifier is in use.
+      #@ In, identifier, str, the  identifier to check
+      #@ Out, checkIfIdentifierIsInUse, bool, is the Identifier in use?
+    #"""
+    #return identifier in list(self.__IDENTIFIERS_FACTORY.keys())
+
+  #def clear(self) -> None:
+    #"""
+      #Clear
+      #@ In, None
+      #@ Out, None
+    #"""
+    #self.__IDENTIFIERS_FACTORY = {}
+
+#IDENTIFIERS_COLLECTOR = IdentifiersFactory()
 
 class JobHandler(BaseType):
   """
@@ -133,6 +196,17 @@ class JobHandler(BaseType):
     """
     self.__dict__.update(d)
     self.__queueLock = threading.RLock()
+
+  def createCloneJobHandler(self):
+    """
+      Method to create a clone of this JobHandler.
+      The clone is a copy of the jobhandler (initialized)
+      @ In, None
+      @ Out, clone, JobHandler, a clone of the curreny JobHandler
+    """
+    clone = copy.deepcopy(self)
+    clone.terminateAll()
+    return clone
 
   def applyRunInfo(self, runInfo):
     """
@@ -240,9 +314,12 @@ class JobHandler(BaseType):
         uniqueN = list(set(availableNodes))
         # identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
+        shortLocalHostName = localHostName.split(".")[0]
         self.raiseADebug("Head host name is   : ", localHostName)
         # number of processors
         nProcsHead = availableNodes.count(localHostName)
+        if nProcsHead == 0:
+          nProcsHead = availableNodes.count(shortLocalHostName)
         if not nProcsHead:
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           self.raiseAWarning(f'Head host name "{localHostName}" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
@@ -267,7 +344,7 @@ class JobHandler(BaseType):
             self.raiseADebug('scheduler file     :', self.daskSchedulerFile)
           ## Get servers and run ray or dask remote listener
           if self.rayInstanciatedOutside or self.daskInstanciatedOutside:
-            servers = self.runInfoDict['remoteNodes']
+            servers = self.runInfoDict.get('remoteNodes', [])
           else:
             servers = self.__runRemoteListeningSockets(address, localHostName)
           # add names in runInfo
@@ -290,7 +367,9 @@ class JobHandler(BaseType):
         else:
           if self._parallelLib == ParallelLibEnum.ray:
             self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-            self._server = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
+            address = self.__runHeadNode(nProcsHead, 0)
+            self.runInfoDict['headNode'] = address
+            self._server = ray.init(log_to_driver=False,include_dashboard=db)
           elif self._parallelLib == ParallelLibEnum.dask:
             self.raiseADebug("Executing DASK in the cluster but with a single node configuration")
             #Start locally
@@ -354,6 +433,8 @@ class JobHandler(BaseType):
       @ Out, None
     """
     if self._parallelLib == ParallelLibEnum.ray and self._server is not None and not self.rayInstanciatedOutside:
+      # shutdown ray API (object storage, plasma, etc.)
+      ray.shutdown()
       # we need to ssh and stop each remote node cluster (ray)
       servers = []
       if 'remoteNodes' in self.runInfoDict:
@@ -363,15 +444,16 @@ class JobHandler(BaseType):
       # get local enviroment
       localEnv = os.environ.copy()
       localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
+      rayTerminateList = []
       for nodeAddress in servers:
         self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
-        command="ray stop"
+        command="ray stop -v"
         rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localEnv)
+        rayTerminateList.append((nodeAddress,rayTerminate))
+      for nodeAddress, rayTerminate in rayTerminateList:
         rayTerminate.wait()
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
-      # shutdown ray API (object storage, plasma, etc.)
-      ray.shutdown()
     elif self._parallelLib == ParallelLibEnum.dask and self._server is not None and not self.rayInstanciatedOutside:
       self._server.close()
       if self._daskScheduler is not None:
