@@ -395,6 +395,11 @@ def ignore_subnodes_from_tree(a_tree, b_tree, ignored_nodes):
   return a_tree, b_tree, success
 
 def path_from_str(val):
+  """
+    Instantiate a Path-like object from a string based on the path delimiter used.
+    @ In, val, str, the string containing a file path
+    @ Out, path, pathlib.PurePath, the pathlib path object made from val
+  """
   if '/' in val:
     # it's a POSIX path
     path = pathlib.PurePosixPath(val)
@@ -405,15 +410,6 @@ def path_from_str(val):
     # default to using whatever the current OS is
     path = pathlib.Path(val)
   return path
-
-def compare_paths(val1, val2):
-  """
-    Compare two strings as paths
-    @ In, val1, str, the first path
-    @ In, val2, str, the second path
-    @ Out, same, bool, True if the paths are the same
-  """
-  pass
 
 def compare_paths_in_subnodes(a_tree, b_tree, nodes):
   """
@@ -540,19 +536,24 @@ class XMLDiff:
 
       # If there are nodes to ignore, are those nodes present and the same in both trees?
       if self.__options.get('ignored_nodes', None):
-        test_root, gold_root, same_ignore = ignore_subnodes_from_tree(test_root,
-                                                                      gold_root,
-                                                                      self.__options['ignored_nodes'])
+        test_root, gold_root, same_ignore = ignore_subnodes_from_tree(
+          test_root,
+          gold_root,
+          self.__options['ignored_nodes']
+        )
         same = same and same_ignore
         if not same_ignore:
           self.__same = False
           messages = ['Removing subnodes failed.']
 
-      # If there are nodes which have file paths, are those nodes present and the same in both trees?
+      # If there are nodes which have file paths, are those nodes present and the same
+      # in both trees?
       if self.__options.get('path_nodes', None):
-        test_root, gold_root, same_path = compare_paths_in_subnodes(test_root,
-                                                                    gold_root,
-                                                                    self.__options['path_nodes'])
+        test_root, gold_root, same_path = compare_paths_in_subnodes(
+          test_root,
+          gold_root,
+          self.__options['path_nodes']
+        )
         same = same and same_path
         if not same_path:
           self.__same = False
