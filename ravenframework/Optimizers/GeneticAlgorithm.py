@@ -312,7 +312,7 @@ class GeneticAlgorithm(RavenSampled):
     self.ahd  = np.NaN                                           # Hausdorff Distance between populations
     self.hdsm = np.NaN                                           # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
-    self.bestFitness = None                                      # fitness value of the best solution found
+    self.bestFitness = - np.inf                                      # fitness value of the best solution found
     self.bestObjective = None                                    # objective value of the best solution found
     self.multiBestPoint = None                                   # the best solutions (chromosomes) found among population in a specific batchId
     self.multiBestFitness = None                                 # fitness values of the best solutions found
@@ -613,7 +613,7 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
 
-    if len(self._objectiveVar) >=2 and self._parentSelectionType != 'tournamentSelection':
+    if self._isMultiObjective and self._parentSelectionType != 'tournamentSelection':
       self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
 
     ####################################################################################
@@ -667,9 +667,9 @@ class GeneticAlgorithm(RavenSampled):
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     if self._survivorSelectionType not in ['ageBased','fitnessBased','rankNcrowdingBased']:
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support ageBased, fitnessBased, and rankNcrowdingBased as a survivorSelector, whereas provided survivorSelector is {self._survivorSelectionType}')
-    if len(self._objectiveVar) == 1 and self._survivorSelectionType == 'rankNcrowdingBased':
+    if not self._isMultiObjective and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than one (i.e., multiobjective optimization).')
-    if len(self._objectiveVar) > 1 and self._survivorSelectionType != 'rankNcrowdingBased':
+    if self._isMultiObjective and self._survivorSelectionType != 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
 
     ####################################################################################
@@ -795,7 +795,7 @@ class GeneticAlgorithm(RavenSampled):
     # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
 
     objInd = int(len(self._objectiveVar)>1) + 1
-    g, objectiveVal, offSprings, offSpringFitness = constraintHandling(self, info, rlz,multiObjective=len(self._objectiveVar)>1)
+    g, objectiveVal, offSprings, offSpringFitness = constraintHandling(self, info, rlz, multiObjective=self._isMultiObjective)
 
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
@@ -899,7 +899,7 @@ class GeneticAlgorithm(RavenSampled):
     self.ahd = np.NaN
     self.hdsm = np.NaN
     self.bestPoint = None
-    self.bestFitness = None
+    self.bestFitness = - np.inf
     self.bestObjective = None
     self.objectiveVal = None
     self.multiBestPoint = None
@@ -1054,7 +1054,7 @@ class GeneticAlgorithm(RavenSampled):
     selVars = [var for var in varList if var in rlz.data_vars]
     population = datasetToDataArray(rlz, selVars)
     optPoints, fit, obj, gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),
-                                                                            np.atleast_1d(fitness.data),
+                                                                            np.squeeze(np.atleast_1d(fitness.to_dataarray())),
                                                                             objectiveVal,
                                                                             np.atleast_2d(g.data)),
                                                                         reverse=True,
@@ -1132,7 +1132,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, any(convs.values()), bool, True of any of the convergence criteria was reached
       @ Out, convs, dict, on the form convs[conv] = bool, where conv is in self._convergenceCriteria
     """
-    if len(self._objectiveVar) == 1:
+    if not self._isMultiObjective:
       convs = {}
       for conv in self._convergenceCriteria:
         fName = conv[:1].upper() + conv[1:]
@@ -1161,7 +1161,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, kwargs, dict, dictionary of parameters for convergence criteria
       @ Out, converged, bool, convergence state
     """
-    if len(self._objectiveVar) == 1: # This is for a single-objective Optimization case.
+    if not self._isMultiObjective: # This is for a single-objective Optimization case.
       if len(self._optPointHistory[traj]) < 2:
         return False
       o1, _ = self._optPointHistory[traj][-1]
@@ -1349,7 +1349,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, True if converged on ANY criteria
     """
     # NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
-    if len(self._objectiveVar) == 1: # This is for a single-objective Optimization case.
+    if not self._isMultiObjective: # This is for a single-objective Optimization case.
       if acceptable == 'accepted':
         self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
         # check convergence
@@ -1483,8 +1483,8 @@ class GeneticAlgorithm(RavenSampled):
              'batchId': self.batchId,
              'AHDp': self.ahdp,
              'AHD': self.ahd,
-             'rank': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else rlz['rank'],
-             'CD': 0 if ((type(self._objectiveVar) == list and len(self._objectiveVar) == 1) or type(self._objectiveVar) == str) else  rlz['CD'],
+             'rank': 0 if not self._isMultiObjective else rlz['rank'],
+             'CD': 0 if not self._isMultiObjective else rlz['CD'],
              'HDSM': self.hdsm
              }
 

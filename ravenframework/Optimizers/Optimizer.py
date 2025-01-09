@@ -251,7 +251,7 @@ class Optimizer(AdaptiveSampler):
     """
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
     self._objectiveVar = paramInput.findFirst('objective').value
-
+    self._isMultiObjective = len(self._objectiveVar) > 1
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node
     init = paramInput.findFirst('samplerInit')
