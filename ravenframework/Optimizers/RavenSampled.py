@@ -453,8 +453,9 @@ class RavenSampled(Optimizer):
           bestTraj = traj
           bestOpt = self.denormalizeData(optElm)
           bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-
-          self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+          if bestPoint not in self._finals:
+            self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+            self._finals.append(bestPoint)
 
   def flush(self):
     """

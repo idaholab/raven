@@ -344,6 +344,7 @@ class GeneticAlgorithm(RavenSampled):
     self._fitnessInstance = None                                 # instance of fitness
     self._repairInstance = None                                  # instance of repair
     self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
+    self._finals = []                                            # the list of set of final optimal realizations
 
   ##########################
   # Initialization Methods #
@@ -983,7 +984,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
     """
-    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new state ...')
+    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new Generation (population) ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # if self.counter == 1:
@@ -1040,11 +1041,6 @@ class GeneticAlgorithm(RavenSampled):
           bestRlz['FitnessEvaluation_'+ fitName] = self.multiBestFitness[fitName].data
       bestRlz.update(self.multiBestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
-    elif acceptable == 'rejected':
-      self._rejectOptPoint(traj, info, old)
-    else: # e.g. rerun
-      pass # nothing to do, just keep moving
-
   def _collectOptPoint(self, rlz, fitness, objectiveVal, g):
     """
       Collects the point (dict) from a realization
