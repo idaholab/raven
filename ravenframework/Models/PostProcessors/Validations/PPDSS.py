@@ -19,7 +19,7 @@ Created on January XX, 2021
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import simps
+from scipy.integrate import simpson
 import xarray as xr
 import os
 from collections import OrderedDict
@@ -360,7 +360,7 @@ class PPDSS(ValidationBase):
           else:
             featureD[cnt2][i] = 0
       #
-      featureProcessAction = simps(featureIntNew, interpGridNew)
+      featureProcessAction = simpson(featureIntNew, interpGridNew)
       featureProcessTimeNorm[cnt2] = featureProcessTime/featureProcessAction
       featureOmegaNorm[cnt2] = featureProcessAction*featureOmega
     #
@@ -406,7 +406,7 @@ class PPDSS(ValidationBase):
           else:
             targetD[cnt2][i] = 0
       #
-      targetProcessAction = simps(targetIntNew, interpGridNew)
+      targetProcessAction = simpson(targetIntNew, interpGridNew)
       targetProcessTimeNorm[cnt2] = targetProcessTime/targetProcessAction
       targetOmegaNorm[cnt2] = targetProcessAction*targetOmega
     #
