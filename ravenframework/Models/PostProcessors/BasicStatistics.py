@@ -1257,6 +1257,7 @@ class BasicStatistics(PostProcessorInterface):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
+          group = group.squeeze()
           corrMatrix = self.corrCoeff(group.values)
           da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
@@ -1315,6 +1316,7 @@ class BasicStatistics(PostProcessorInterface):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
+          group = group.squeeze()
           da = self.varianceDepSenCalculation(targCoords,group.values)
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords
