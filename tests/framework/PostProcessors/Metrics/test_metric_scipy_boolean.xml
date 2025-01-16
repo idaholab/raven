@@ -31,7 +31,6 @@
       <Metric class="Metrics" type="Metric">dice</Metric>
       <Metric class="Metrics" type="Metric">hamming</Metric>
       <Metric class="Metrics" type="Metric">jaccard</Metric>
-      <Metric class="Metrics" type="Metric">kulsinski</Metric>
       <Metric class="Metrics" type="Metric">russellrao</Metric>
       <Metric class="Metrics" type="Metric">sokalmichener</Metric>
       <Metric class="Metrics" type="Metric">sokalsneath</Metric>
@@ -50,7 +49,6 @@
             dice_ans2_ans,
             hamming_ans2_ans,
             jaccard_ans2_ans,
-            kulsinski_ans2_ans,
             russellrao_ans2_ans,
             sokalmichener_ans2_ans,
             sokalsneath_ans2_ans,
@@ -87,9 +85,6 @@
     </Metric>
     <Metric name="jaccard" subType="ScipyMetric">
       <metricType>boolean|jaccard</metricType>
-    </Metric>
-    <Metric name="kulsinski" subType="ScipyMetric">
-      <metricType>boolean|kulsinski</metricType>
     </Metric>
     <Metric name="russellrao" subType="ScipyMetric">
       <metricType>boolean|russellrao</metricType>

@@ -342,3 +342,38 @@ class TSAUser:
         continue
       algo_rlz = {}
     return algo_rlz
+
+
+## Additional getters
+
+  def getTsaAlgorithms(self):
+    """
+      Get list of TSA Algorithms in order of application
+      @ In, None
+      @ Out, tsaAlgorithms, list, list and order for TSA algorithms to use
+    """
+    return self._tsaAlgorithms
+
+  def getGlobalTsaAlgorithms(self):
+    """
+      Get list of TSA Global Algorithms in order of application
+      @ In, None
+      @ Out, tsaGlobalAlgorithms, list, list and order for Global TSA algorithms to use
+    """
+    return self._tsaGlobalAlgorithms
+
+  def getTsaTrainedParams(self):
+    """
+      Get dict of TSA trained parameters
+      @ In, None
+      @ Out, tsaTrainedParams, dict, trained parameters for all TSA algorithms
+    """
+    return self._tsaTrainedParams
+
+  def setTsaTrainedParams(self, newTrainedParams):
+    """
+      Get dict of TSA trained parameters
+      @ In, None
+      @ Out, tsaTrainedParams, dict, trained parameters for all TSA algorithms
+    """
+    self._tsaTrainedParams= newTrainedParams

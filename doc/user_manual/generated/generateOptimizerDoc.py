@@ -374,7 +374,7 @@ for name in Optimizers.factory.knownTypes():
   msg+= exampleFactory[name]
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
-with open(fName, 'w') as f:
+with open(fName, 'w', encoding='utf-8') as f:
   f.writelines(msg)
 
 print(f'\nSuccessfully wrote "{fName}"')
