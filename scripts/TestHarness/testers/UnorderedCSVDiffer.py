@@ -54,7 +54,7 @@ class UnorderedCSVDiffer:
       @ In, relativeError, float, optional, relative error
       @ In, absoluteCheck, bool, optional, if True then check absolute
          differences in the values instead of relative differences
-      @ In, zeroThreshold, float, optional, if a number is less equal then
+      @ In, zeroThreshold, float, optional, if a number is less than or equal to
                                              abs(zeroThreshold), it will be considered 0
       @ In, ignoreSign, bool, optional, if True then the sign will be ignored during the comparison
       @ Out, None.
