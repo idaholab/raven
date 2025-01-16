@@ -164,7 +164,8 @@ class CustomSampler(Sampler):
       else:
         mName = val
       self.funcDict[key] = fPointer(mName, initDict['Functions'][val])
-
+    # evaluate function order in custom sampler
+    self._evaluateFunctionsOrder()
     if 'Source' not in self.assemblerDict:
       self.raiseAnError(IOError, "No Source object has been found!")
 

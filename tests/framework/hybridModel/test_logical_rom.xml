@@ -8,11 +8,11 @@
     <description>
       Example of usage of the Logical Model capability in RAVEN
       This test is intended to check the functionality of Logical Model
-      with ROMs. A control function &quot;control&quot; is required to select the right
+      with ROMs. A control function ``control'' is required to select the right
       model to run based on the values of input variables leftTemperature and
       rightTemperatureDist.
       If leftTemperature in (860,1340) and rightTemperatureDist in (740, 1460),
-      the ROM &quot;svr&quot; will be selected, else the model &quot;thermalConductivityComputation&quot;
+      the ROM ``svr'' will be selected, else the model ``thermalConductivityComputation''
       will be selected.
     </description>
   </TestInfo>

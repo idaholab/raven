@@ -18,19 +18,66 @@ import sys
 ravenPath = os.path.join(os.path.dirname(__file__), *(['..']*4))
 sys.path.append(ravenPath)
 
-from ravenframework.utils import InputData
+from ravenframework.utils import InputData, TreeStructure
+import xml.etree.ElementTree as ET
 print('Testing:', InputData)
 
 results = {'pass':0, 'fail':0}
 
+
+
 ####################################
-# Test InputData creating LaTeX
+# Test arbitrary XML spec
 #
+# Write the spec
+ASpec = InputData.parameterInputFactory('A', descr='first')
+BSpec = InputData.parameterInputFactory('B', descr='second')
+BSpec.setStrictMode(False)
+ASpec.addSub(BSpec)
+# Write the tree
+# <A>
+#   <B>
+#     <TheQuestion really='True'>unknown</TheQuestion>
+#     <TheAnswer>42</TheAnswer>
+#   </B>
+# </A>
+ANode = TreeStructure.InputNode('A')
+BNode = TreeStructure.InputNode('B')
+TQNode = TreeStructure.InputNode('TheQuestion', attrib={'really': 'True'}, text='unknown')
+BNode.append(TQNode)
+TANode = TreeStructure.InputNode('TheAnswer', text='42')
+BNode.append(TANode)
+ANode.append(BNode)
+# parse and check
+A = ASpec()
+A.parseNode(ANode)
+B = A.findFirst('B')
+
+if B.additionalInput[0].tag == 'TheQuestion' and \
+      B.additionalInput[0].attrib['really'] == 'True' and\
+      B.additionalInput[0].text == 'unknown':
+  results['pass'] += 1
+else:
+  print('InputData Arbitrary Custom XML 0 did not match!')
+  results['fail'] += 1
+
+if B.additionalInput[1].tag == 'TheAnswer' and \
+      B.additionalInput[1].text == '42':
+  results['pass'] += 1
+else:
+  print('InputData Arbitrary Custom XML 1 did not match!')
+  results['fail'] += 1
+
+
+####################################
 # load libraries for all of RAVEN
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
 DriverUtils.setupBuiltins()
 
+####################################
+# Test InputData creating LaTeX
+#
 # test MultiRun Step
 from ravenframework import Steps
 

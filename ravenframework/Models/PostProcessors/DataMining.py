@@ -242,7 +242,9 @@ class DataMining(PostProcessorInterface):
         self.raiseAnError(ValueError, 'KDD Post-processor for time dependent data with metric provided allows only output variables (time-dependent)')
       elif self.initializationOptionDict['KDD']['Features'] == 'output':
         numberOfSample = currentInput.size
-        self.pivotVariable = np.asarray([dataSet.isel(**{currentInput.sampleTag:i}).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))])
+        toArray = [dataSet.isel(**{currentInput.sampleTag:i}).dropna(self.pivotParameter)[self.pivotParameter].values for i in range(len(currentInput))]
+        #TODO: is allowing ragged arrays correct here?
+        self.pivotVariable = np.asarray(toArray, dtype=object)
         for i in range(numberOfSample):
           rlz = currentInput.realization(index=i)
           inputDict['Features'][i] = {}
@@ -335,6 +337,7 @@ class DataMining(PostProcessorInterface):
       featureList = [elem for elem in dataList if elem not in toRemove]
     else:
       featureList = [feature.strip() for feature in self.initializationOptionDict['KDD']['Features'].split(',')]
+
     for key in featureList:
       inputDict['Features'][key] = copy.deepcopy(preProcessedData['data'][key])
 

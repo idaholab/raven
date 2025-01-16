@@ -1,0 +1,147 @@
+<Simulation>
+  <RunInfo>
+    <WorkingDir>dynamic</WorkingDir>
+    <Sequence>generate_data,sync,print,stats</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="generate_data">
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="HistorySet">results</Output>
+    </MultiRun>
+    <PostProcess name="sync">
+      <Input class="DataObjects" type="HistorySet">results</Input>
+      <Model class="Models" type="PostProcessor">syncer</Model>
+      <Output class="DataObjects" type="HistorySet">synced</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Output class="OutStreams" type="Print">synced</Output>
+    </IOStep>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Model class="Models" type="PostProcessor">stats_pp</Model>
+      <Output class="DataObjects" type="HistorySet">stats_data</Output>
+      <Output class="OutStreams" type="Print">stats_file</Output>
+      <Output class="OutStreams" type="Plot">sens_v0_x</Output>
+      <Output class="OutStreams" type="Plot">sens_angle_x</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,y0,angle,x,y,timeOption,t</variables>
+    </ExternalModel>
+    <PostProcessor name="syncer" subType="HistorySetSync">
+      <pivotParameter>t</pivotParameter>
+      <extension>zeroed</extension>
+      <syncMethod>grid</syncMethod>
+      <numberOfSamples>20</numberOfSamples>
+    </PostProcessor>
+    <PostProcessor name="stats_pp" subType="BasicStatistics">
+      <pivotParameter>t</pivotParameter>
+      <expectedValue prefix="mean">x,y</expectedValue>
+      <variance prefix="var">x,y</variance>
+      <sensitivity prefix="sens">
+        <features>x,y</features>
+        <targets>v0,angle</targets>
+      </sensitivity>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="v0_dist">
+      <lowerBound>15</lowerBound>
+      <upperBound>50</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="results">
+      <Input>v0,angle</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synced">
+      <Input>v0,angle</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="stats_data">
+      <Output>mean_x,var_x,mean_y,var_y,sens_angle_x,sens_v0_x,sens_angle_y,sens_v0_y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="synced">
+      <type>csv</type>
+      <source>synced</source>
+    </Print>
+    <Print name="stats_file">
+      <type>csv</type>
+      <source>stats_data</source>
+    </Print>
+    <Plot name="sens_v0_x">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>stats_data|Output|t</x>
+          <y>stats_data|Output|sens_v0_x</y>
+        </plot>
+        <xlabel>t</xlabel>
+        <ylabel>sens_v0_x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+    <Plot name="sens_angle_x">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>stats_data|Output|t</x>
+          <y>stats_data|Output|sens_angle_x</y>
+        </plot>
+        <xlabel>t</xlabel>
+        <ylabel>sens_angle_x</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

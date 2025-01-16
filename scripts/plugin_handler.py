@@ -44,7 +44,7 @@ except impErr:
 
 # globals
 ravenConfigName = '.ravenconfig.xml'
-requiredDirs = ['src', 'doc', 'tests']
+requiredDirs = ['src', 'doc|docs', 'tests']
 pluginTreeFile = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugins', 'plugin_directory.xml'))
 
 def checkValidPlugin(rawLoc):
@@ -67,13 +67,14 @@ def checkValidPlugin(rawLoc):
     # check for source, doc, tests dirs
     missing = []
     for needDir in requiredDirs:
-      fullDir = os.path.join(loc, needDir)
-      if not os.path.isdir(fullDir):
+      needDirList = needDir.split('|')
+      validDirList = [os.path.isdir(os.path.join(loc, testDir)) for testDir in needDirList]
+      if sum(validDirList) == 0:
         missing.append(needDir)
     if missing:
       okay = False
       for m in missing:
-        msgs.append('Required directory missing in {}: {}'.format(fullDir, m))
+        msgs.append('Required directory missing in {}: {}'.format(loc, m))
 
   return okay, msgs, loc
 

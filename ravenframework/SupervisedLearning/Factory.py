@@ -28,12 +28,28 @@ from .MSR                import MSR
 from .NDinvDistWeight    import NDinvDistWeight
 from .NDspline           import NDspline
 from .SyntheticHistory   import SyntheticHistory
+from .MultiResolutionTSA import MultiResolutionTSA
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
-from .DynamicModeDecomposition import DMD
-from .DynamicModeDecompositionControl import DMDC
+
+## Dynamic Mode Decomposition-based methods
+from .DMD.DynamicModeDecompositionControl import DMDC
+from .DMD.DMD import DMD
+from .DMD.CDMD import CDMD
+from .DMD.EDMD import EDMD
+from .DMD.FbDMD import FbDMD
+from .DMD.HankelDMD import HankelDMD
+from .DMD.HAVOK import HAVOK
+from .DMD.HODMD import HODMD
+from .DMD.PiDMD import PiDMD
+from .DMD.RDMD import RDMD
+from .DMD.SpDMD import SpDMD
+from .DMD.BOPDMD import BOPDMD
+from .DMD.SubspaceDMD import SubspaceDMD
+from .DMD.VarProDMD import VarProDMD
+
 from .ARMA               import ARMA
-from .ROMCollection      import Segments, Clusters, Interpolated
+from .ROMCollection      import Segments, Clusters, Interpolated, Decomposition
 
 ## Tensorflow-Keras Neural Network Models
 from .KerasMLPClassifier import KerasMLPClassifier

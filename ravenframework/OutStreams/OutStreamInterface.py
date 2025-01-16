@@ -21,7 +21,7 @@ import os
 from .. import DataObjects
 from .. import Models
 from ..BaseClasses import BaseInterface
-from ..utils import InputTypes, InputData
+from ..utils import InputTypes, InputData, utils
 
 class OutStreamInterface(BaseInterface):
   """
@@ -79,7 +79,7 @@ class OutStreamInterface(BaseInterface):
     super().initialize()
     if self.subDirectory is not None:
       if not os.path.exists(self.subDirectory):
-        os.makedirs(self.subDirectory)
+        utils.makeDir(self.subDirectory)
 
   def getInitParams(self):
     """

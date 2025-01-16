@@ -68,6 +68,8 @@ class NoColors:
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
                     help='Specifies number of tests to run simultaneously (default: 1)')
+parser.add_argument('--longest-jobs',dest='longest_jobs', type=int, default=0,
+                    help='Only for compatibility')
 parser.add_argument('--re', dest='test_re_raw', default='.*',
                     help='Only tests with this regular expression inside will be run')
 parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
@@ -389,7 +391,7 @@ if __name__ == "__main__":
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")
   if args.add_non_default_run_types is not None:
-    non_default_run_types = args.add_non_default_run_types.split(",")
+    non_default_run_types = [x.strip() for x in args.add_non_default_run_types.split(",")]
     for ndrt in non_default_run_types:
       Tester.add_non_default_run_type(ndrt)
 

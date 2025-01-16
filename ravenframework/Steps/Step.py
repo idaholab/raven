@@ -302,6 +302,9 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
       for i in range(len(inDictionary['Output'])):
         if inDictionary['Output'][i].type in ['Plot']:
           inDictionary['Output'][i].endInstructions('interactive')
+    model = inDictionary.get('Model')
+    if model is not None and hasattr(model,'endStepActions'):
+      model.endStepActions()
 
   def takeAstep(self,inDictionary):
     """

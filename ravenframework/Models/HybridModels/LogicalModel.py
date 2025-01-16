@@ -102,12 +102,13 @@ class LogicalModel(HybridModelBase):
       self.raiseAnError(IOError, 'Function', self.controlFunction.name, 'does not contain a method named "evaluate".',
                         f'It must be present if this needs to be used in a {self.name}!')
     # check models inputs and outputs, we require all models under LogicalModel should have
-    # exactly the same inputs and outputs from RAVEN piont of view.
+    # exactly the same inputs and outputs from RAVEN point of view.
     # TODO: currently, the above statement could not fully verified by the following checks.
     # This is mainly because: 1) we do not provide prior check for Codes, 2) we do not have
     # a standardize treatment of variables in ExternalModels and ROMs
     # if DataObjects among the inputs, check input consistency with ExternalModels and ROMs
     inpVars = None
+    inputVars = []
     for inpObj in inputs:
       if inpObj.type in ['PointSet', 'HistorySet']:
         if not inpVars:
@@ -181,6 +182,15 @@ class LogicalModel(HybridModelBase):
         if isinstance(elem, Files.File):
           codeInput.append(copy.deepcopy(elem))
       return (codeInput, samplerType, kwargs)
+    else:
+      # FIXME: The user should be able to indicate which input belongs to which model
+      #        The following works 99% of the time but it might be possible that an external model
+      #        requires an input file that with the following gets discarded
+      otherInputs = []
+      for elem in myInput:
+        if not isinstance(elem, Files.File):
+          otherInputs.append(copy.deepcopy(elem))
+      return (otherInputs, samplerType, kwargs)
 
     return (myInput, samplerType, kwargs)
 
@@ -200,7 +210,7 @@ class LogicalModel(HybridModelBase):
     # TODO: execute control function, move this to createNewInput
     modelToRun = inputKwargs.pop('modelToRun')
     inputKwargs['prefix'] = modelToRun + utils.returnIdSeparator() + identifier
-    inputKwargs['uniqueHandler'] = self.name + identifier
+    inputKwargs['uniqueHandler'] = self.name + utils.returnIdSeparator() +  identifier
 
     moveOn = False
     while not moveOn:

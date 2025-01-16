@@ -47,7 +47,7 @@ def stepper(v0,y0,ang,times):
     vy = vy - 9.8*dt
     # update position
     x = x + vx*dt
-    y = y + vy*dt
+    y = (y + vy*dt)[0]
   return ys
 
 class data:

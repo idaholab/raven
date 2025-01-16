@@ -76,7 +76,7 @@ checkAnswer('getSize bool', Debugging.getSize(True), 28)
 # list-like; tolerances determined mostly by windows test machine
 checkAnswer('getSize tuple', Debugging.getSize(tuple(range(10))), 404)
 checkAnswer('getSize list', Debugging.getSize(list(range(10))), 476,tol=80)
-checkAnswer('getSize deque', Debugging.getSize(deque(range(10))), 908)
+checkAnswer('getSize deque', Debugging.getSize(deque(range(10))), 908, tol=200)
 checkAnswer('getSize set', Debugging.getSize(set(range(10))), 1012)
 checkAnswer('getSize np array int10', Debugging.getSize(np.arange(10, dtype=int)), 176, tol=40)
 checkAnswer('getSize np array int100', Debugging.getSize(np.arange(100, dtype=int)), 896, tol=400)

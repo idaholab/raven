@@ -25,7 +25,7 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="hierarchical" subType="DataMining">
-      <Metric class="Metrics" type="DTW">example</Metric>
+      <Metric class="Metrics" type="Metric">example</Metric>
       <KDD labelFeature="labels" lib="Scipy">
         <Features>output</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
@@ -41,25 +41,21 @@
         <annotatedAbove>10</annotatedAbove>
       </KDD>
     </PostProcessor>
-    <PostProcessor name="filter0" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter0" subType="dataObjectLabelFilter">
       <label>labels</label>
       <clusterIDs>2</clusterIDs>
     </PostProcessor>
-    <PostProcessor name="filter1" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter1" subType="dataObjectLabelFilter">
       <label>labels</label>
       <clusterIDs>1</clusterIDs>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <DTW name="example">
+    <Metric name="example" subType="DTW">
       <order>0</order>
       <localDistance>euclidean</localDistance>
-    </DTW>
+    </Metric>
   </Metrics>
 
   <Steps>

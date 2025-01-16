@@ -170,9 +170,12 @@ class RAVEN(CodeInterfaceBase):
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
     # executable command will either be the direct raven_framework, or
-    # executable command will be: "python <path>/raven_framework.py"
+    # executable command will be: "<python> <path>/raven_framework.py"
     # in which case make sure executable ends with .py
     # Note that for raven_framework to work, it needs to be in the path.
+    if clargs["pre"] != '':
+      self.preCommand = clargs["pre"]
+    # TODO: Add support for other clargs
     if executable == 'raven_framework' or executable == '%RAVENEXECUTABLE%':
       self.preCommand = ''
     elif not executable.endswith(".py"):

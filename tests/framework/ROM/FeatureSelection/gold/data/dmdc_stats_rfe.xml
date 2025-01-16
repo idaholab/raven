@@ -7,7 +7,6 @@
       <description> This XML file contains the main information of the DMDC ROM. The method is explained in: Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz.  "Dynamic mode decomposition with control."  SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.</description>
     </ROM>
     <DMDcModel>
-      <dmdType>None</dmdType>
       <rankSVD>-1</rankSVD>
       <acturators>pulse_SES.y pulse_BOP.y pulse_TES.y</acturators>
       <stateVariables>BOP.HPT.state_a.d TES.hot_tank.der(V)</stateVariables>

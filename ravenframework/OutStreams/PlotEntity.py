@@ -29,7 +29,6 @@ if not display:
   matplotlib.use('Agg')
 
 
-
 class Plot(OutStreamEntity):
   """
     Handler for Plot implementations

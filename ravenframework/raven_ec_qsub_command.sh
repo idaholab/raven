@@ -1,12 +1,19 @@
 #!/bin/bash
 
+date
 
 if test -n "$PBS_O_WORKDIR"; then
     echo Moving to working dir: ${PBS_O_WORKDIR}
     cd $PBS_O_WORKDIR
 fi
 
-source /etc/profile.d/modules.sh
+if test -f /etc/profile.d/modules.sh;
+then
+    source /etc/profile.d/modules.sh
+elif test -f /apps/local/lmod/modules.sh;
+then
+    source /apps/local/lmod/modules.sh;
+fi
 echo RAVEN_FRAMEWORK_DIR $RAVEN_FRAMEWORK_DIR
 
 if test -e $RAVEN_FRAMEWORK_DIR/../scripts/establish_conda_env.sh; then

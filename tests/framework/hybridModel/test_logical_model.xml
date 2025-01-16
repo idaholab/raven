@@ -8,7 +8,7 @@
     <description>
        Example of usage of the Logical Model capability in RAVEN
        This test is intended to check the functionality of Logical Model
-       with three external models "sum", "minus" and "multiply".
+       with three external models ``sum'', ``minus'' and ``multiply''.
        A control function "control" is required to select the external
        model to run based on the values of input variables x and y.
        If x > 0 and y > 1, the model "sum" will be selected. if x > 0

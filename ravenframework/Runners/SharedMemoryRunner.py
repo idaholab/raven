@@ -135,10 +135,7 @@ class SharedMemoryRunner(InternalRunner):
       self.raiseADebug('Terminating job thread "{}" and RAVEN identifier "{}"'.format(self.thread.ident, self.identifier))
       while self.thread is not None and self.thread.is_alive():
         time.sleep(0.1)
-        try:
-          self.thread.raiseException(RuntimeError)
-        except ValueError:
-          self.thread = None
+        self.thread.kill()
     self.trackTime('runner_killed')
 
 ## The following code is extracted from stack overflow with some minor cosmetic
@@ -166,6 +163,17 @@ class InterruptibleThread(threading.Thread):
   """
     A thread class that supports raising exception in the thread from another thread.
   """
+  def kill(self):
+    """
+      Method to kill the thread raising an exception
+      @ In, None
+      @ Out, None
+    """
+    try:
+      self.raiseException(RuntimeError)
+    except ValueError:
+      pass
+
   def raiseException(self, exceptionType):
     """
       Raises the given exception type in the context of this thread.
