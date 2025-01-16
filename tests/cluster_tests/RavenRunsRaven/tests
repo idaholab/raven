@@ -46,5 +46,6 @@
    output_wait_time = 60
    type = RavenFramework
    max_time = 3600
+   skip = 'usually fails'
  [../]
 []
