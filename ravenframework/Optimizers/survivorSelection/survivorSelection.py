@@ -45,6 +45,7 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness,
                                                                     variables=list(self.toBeSampled),
                                                                     population=self.population,
                                                                     fitness=self.fitness,
+                                                                    objVar = self._objectiveVar[0],
                                                                     newRlz=rlz,
                                                                     offSpringsFitness=offSpringFitness,
                                                                     popObjectiveVal=self.objectiveVal)
@@ -55,10 +56,13 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness,
 
 def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
   """
-    process of selecting survivors for multi objective problems
+    process of selecting survivors for multi-objective problems
     @ In, info, dict, dictionary of information
-    @ In, rlz, dict, dictionary of realizations
+    @ In, rlz, dict, dictionary of realizations (including values of all objectives)
     @ In, traj, dict, dictionary of trajectories
+    @ In, offSprings, list, list of offspring individuals
+    @ In, offSpringFitness, list, list of fitness values for offspring individuals
+    @ In, objectiveVal, list, values of the objectives (for ranking and crowding distance calculation)
   """
   if self.counter > 1:
     self.population,self.rank, \
@@ -82,9 +86,7 @@ def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, 
     # offspringObjsVals for Rank and CD calculation
     fitVal = datasetToDataArray(self.fitness, self._objectiveVar).data
     offspringFitVals = fitVal.tolist()
-    offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals))
-    # reverse the ranking because we want highest fitness
-    offSpringRank = list(max(offSpringRank) - np.asarray(offSpringRank) +1)
+    offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals), isFitness=True)
     self.rank     = xr.DataArray(offSpringRank,
                                  dims=['rank'],
                                  coords={'rank': np.arange(np.shape(offSpringRank)[0])})

@@ -126,7 +126,8 @@ def crowdingDistance(rank, popSize, fitness):
     frontIndices[r].append(i)
 
   for f in fronts:
-    front = np.where(rank == f)[0]  # Get indices of current front
+    # front = np.where(rank == f)[0]  # Get indices of current front
+    front = frontIndices[f]  # Get indices of current front
     numObjectives = fitness.shape[1]
     numPoints = len(front)
     if numPoints <= 2:  # If front has 2 or fewer points, set to infinity
