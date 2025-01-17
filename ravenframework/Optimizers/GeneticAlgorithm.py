@@ -689,9 +689,6 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     # constraint node                                                                  #
     ####################################################################################
-    # TODO: @mandd, please explore the possibility to convert the logistic fitness into a constrained optimization fitness.
-    if 'Constraint' in self.assemblerObjects and self._fitnessType not in ['invLinear','logistic', 'feasibleFirst']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support invLinear, logistic, and feasibleFirst as a fitness, whereas provided fitness is {self._fitnessType}')
     self._expConstr = self.assemblerObjects['Constraint'] if 'Constraint' in self.assemblerObjects else None
     self._impConstr = self.assemblerObjects['ImplicitConstraint'] if 'ImplicitConstraint' in self.assemblerObjects else None
     if self._expConstr is not None and self._impConstr is not None:
