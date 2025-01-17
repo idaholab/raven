@@ -617,7 +617,7 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
 
     if self._isMultiObjective and self._parentSelectionType != 'tournamentSelection':
-      self.raiseAnError(IOError, f'tournamentSelection in <parentSelection> is a sole mechanism supportive in multi-objective optimization.')
+      self.raiseAnError(IOError, f'Currently, "tournamentSelection" in the only <parentSelection> mechanism supported by the multi-objective Genetic Algorithms.')
 
     ####################################################################################
     # reproduction node                                                                #
@@ -639,8 +639,6 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
-    if self._crossoverType not in ['onePointCrossover','twoPointsCrossover','uniformCrossover']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support onePointCrossover, twoPointsCrossover and uniformCrossover as a crossover, whereas provided crossover is {self._crossoverType}')
     if crossoverNode.findFirst('points') is None:
       self._crossoverPoints = None
     else:
@@ -653,8 +651,6 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
-    if self._mutationType not in ['swapMutator','scrambleMutator','inversionMutator','bitFlipMutator','randomMutator']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support swapMutator, scrambleMutator, inversionMutator, bitFlipMutator, and randomMutator as a mutator, whereas provided mutator is {self._mutationType}')
     if mutationNode.findFirst('locs') is None:
       self._mutationLocs = None
     else:
@@ -668,8 +664,6 @@ class GeneticAlgorithm(RavenSampled):
     survivorSelectionNode = gaParamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
-    if self._survivorSelectionType not in ['ageBased','fitnessBased','rankNcrowdingBased']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support ageBased, fitnessBased, and rankNcrowdingBased as a survivorSelector, whereas provided survivorSelector is {self._survivorSelectionType}')
     if not self._isMultiObjective and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than one (i.e., multiobjective optimization).')
     if self._isMultiObjective and self._survivorSelectionType != 'rankNcrowdingBased':
