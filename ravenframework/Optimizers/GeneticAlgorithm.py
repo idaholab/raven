@@ -670,9 +670,9 @@ class GeneticAlgorithm(RavenSampled):
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     if self._survivorSelectionType not in ['ageBased','fitnessBased','rankNcrowdingBased']:
       self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support ageBased, fitnessBased, and rankNcrowdingBased as a survivorSelector, whereas provided survivorSelector is {self._survivorSelectionType}')
-    if len(self._objectiveVar) == 1 and self._survivorSelectionType == 'rankNcrowdingBased':
+    if not self._isMultiObjective and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than one (i.e., multiobjective optimization).')
-    if len(self._objectiveVar) > 1 and self._survivorSelectionType != 'rankNcrowdingBased':
+    if self._isMultiObjective and self._survivorSelectionType != 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
 
     ####################################################################################
