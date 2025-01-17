@@ -665,7 +665,7 @@ class GeneticAlgorithm(RavenSampled):
     self._survivorSelectionType = survivorSelectionNode.value
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     if not self._isMultiObjective and self._survivorSelectionType == 'rankNcrowdingBased':
-      self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports when the number of objective in <objective> is bigger than one (i.e., multiobjective optimization).')
+      self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports Multi-objective Optimization (i.e., number of objectives in <objective> is greater than one).')
     if self._isMultiObjective and self._survivorSelectionType != 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
 
@@ -696,8 +696,6 @@ class GeneticAlgorithm(RavenSampled):
     if (self._expConstr is not None) and (self._impConstr is not None) and (self._penaltyCoeff is not None):
       if len(self._penaltyCoeff) is not len(self._objectiveVar) * self._numOfConst:
         self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
-    else:
-      pass
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
