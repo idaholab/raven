@@ -40,6 +40,10 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <operator variables="13550801:6">
+        <expression> %card%+13550801:6</expression>
+        <cards>13550801:7</cards>
+      </operator>
       <!-- The following flag indicates that we will write a CSV with the data (by default we return the data directly to RAVEN) -->
       <csv>True</csv>
     </Code>
