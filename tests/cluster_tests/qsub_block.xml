@@ -1,0 +1,5 @@
+<Simulation>
+  <RunInfo>
+    <clusterParameters>-W block=true</clusterParameters>
+  </RunInfo>
+</Simulation>
