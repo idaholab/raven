@@ -18,17 +18,15 @@ import math
 
 def evaluate(Inputs):
   Sum = 0
-  obj1 = 0
-
-  for ind,var in enumerate(Inputs.keys()):
+  for _,var in enumerate(Inputs.keys()):
     # write the objective function here
-    if (ind == 0) :
-      obj1 += Inputs[var]
-    if (ind != 0):
+    if (var == 'x1') :
+      obj1 = Inputs[var]
+    else:
       Sum += Inputs[var]
-  g = 1 + (9/len(Inputs.keys())*Sum )
+  g = 1 + (9/(len(Inputs.keys())-1)*Sum )
   h = 1 - math.sqrt(obj1/g)
-  obj2 = g*h
+  obj2 = g * h
   return obj1[:], obj2[:]
 
 def run(self,Inputs):

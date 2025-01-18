@@ -28,8 +28,6 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
-      <Output class="OutStreams" type="Plot">opt_path</Output>
-      <Output class="OutStreams" type="Plot">population</Output>
     </IOStep>
   </Steps>
 
@@ -55,20 +53,19 @@
         <type>min, max</type>
       </samplerInit>
       <GAparams>
-        <populationSize>50</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
-          <mutation type="swapMutator"> <!--swapMutator, scrambleMutator, bitFlipMutator, inversionMutator-->
+          <mutation type="swapMutator">
             <mutationProb>0.8</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
-          <!-- <b>50, 50, 100, 100, 100, 150</b>  -->
+        <fitness type="feasibleFirst">
         </fitness>
-        <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
       <convergence>
         <AHDp>0.0</AHDp>
@@ -82,14 +79,13 @@
       <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-      <!-- <Constraint class='Functions' type='External'>expConstr3</Constraint> -->
     </GeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>50</limit>
+        <limit>10</limit>
         <initialSeed>120504</initialSeed>
       </samplerInit>
       <variable name="x">
@@ -109,7 +105,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output><!--ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3-->
+      <Output>x,y,obj1,obj2,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
     </PointSet>
   </DataObjects>
 
@@ -123,15 +119,5 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Plot name = "opt_path" subType="OptPath">
-      <source>opt_export</source>
-      <vars>x, y , obj1, obj2</vars>
-    </Plot>
-    <Plot name="population" subType="PopulationPlot">
-      <source> opt_export</source>
-      <vars>x, y , obj1, obj2</vars>
-      <index>batchId</index>
-      <how>png</how>
-    </Plot>
   </OutStreams>
 </Simulation>

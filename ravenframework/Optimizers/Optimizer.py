@@ -251,7 +251,7 @@ class Optimizer(AdaptiveSampler):
     """
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
     self._objectiveVar = paramInput.findFirst('objective').value
-
+    self._isMultiObjective = len(self._objectiveVar) > 1
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node
     init = paramInput.findFirst('samplerInit')
@@ -267,7 +267,7 @@ class Optimizer(AdaptiveSampler):
         if len(self._minMax) != len(self._objectiveVar):
           self.raiseAnError(IOError, 'The length of <type> and <Objective> in <Optimizers> must be of the same length!')
         if list(set(self._minMax)-set(['min','max'])) != []:
-          self.raiseAnError(IOError, "<type> under <Optimizers> must be a either 'min' and/or 'max'")
+          self.raiseAnError(IOError, "<type> under <Optimizers> must be 'min' and/or 'max'")
 
     # variables additional reading
     for varNode in paramInput.findAll('variable'):

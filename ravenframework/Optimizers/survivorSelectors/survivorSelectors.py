@@ -53,31 +53,34 @@ def ageBased(newRlz,**kwargs):
     popAge = [0]*popSize
   else:
     popAge = kwargs['age']
-  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
+  # offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
+  offSpringsFitness = datasetToDataArray(kwargs['offSpringsFitness'], list(kwargs['offSpringsFitness'].keys())).data
   offSprings = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
                             dims=['chromosome','Gene'],
                             coords={'chromosome':np.arange(np.shape(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()))[0]),
                                     'Gene': kwargs['variables']})
   population = np.atleast_2d(kwargs['population'].data)
-  popFitness = np.atleast_1d(kwargs['fitness'].data)
+  # popFitness = np.atleast_1d(kwargs['fitness'].data)
+  popFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data
   # sort population, popFitness according to age
   sortedAge,sortedPopulation,sortedFitness = zip(*[[x,y,z] for x,y,z in sorted(zip(popAge,population,popFitness),key=lambda x: (x[0], -x[2]))])# if equal age then use descending fitness
   sortedAge,sortedPopulation,sortedFitness = list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFitness))
   newPopulation = sortedPopulation
-  newFitness    = sortedFitness
+  newFitness    = np.squeeze(sortedFitness)
   newAge = list(map(lambda x:x+1, sortedAge))
   newPopulation[-1:-np.shape(offSprings)[0]-1:-1] = offSprings
-  newFitness[-1:-np.shape(offSprings)[0]-1:-1] = offSpringsFitness
+  newFitness[-1:-np.shape(offSprings)[0]-1:-1] = np.squeeze(offSpringsFitness)
   newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0]
   # converting back to DataArrays
   newPopulation = xr.DataArray(newPopulation,
                                dims=['chromosome','Gene'],
                                coords={'chromosome':np.arange(np.shape(newPopulation)[0]),
                                        'Gene': kwargs['variables']})
-  newFitness = xr.DataArray(newFitness,
+  newFitnessDS = xr.Dataset()
+  newFitnessDS[kwargs['objVar']] = xr.DataArray(newFitness,
                                dims=['chromosome'],
                                coords={'chromosome':np.arange(np.shape(newFitness)[0])})
-  return newPopulation,newFitness,newAge,kwargs['popObjectiveVal']
+  return newPopulation,newFitnessDS,newAge,kwargs['popObjectiveVal']
 
 
 # @profile
@@ -99,7 +102,7 @@ def fitnessBased(newRlz,**kwargs):
   """
   popSize = np.shape(kwargs['population'])[0]
   if ('age' not in kwargs.keys() or kwargs['age'] == None):
-    popAge = [0]*popSize
+    popAge = [0] * popSize
   else:
     popAge = kwargs['age']
 
@@ -127,13 +130,11 @@ def fitnessBased(newRlz,**kwargs):
                                     dims=['chromosome','Gene'],
                                     coords={'chromosome':np.arange(np.shape(newPopulationSorted)[0]),
                                             'Gene': kwargs['variables']})
-  newFitness = xr.DataArray(newFitness,
+  newFitnessDS = xr.Dataset()
+  newFitnessDS[kwargs['objVar']] = xr.DataArray(newFitness,
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
-  newFitness = newFitness.to_dataset(name = list(kwargs['variables'])[0])
-
-  #return newPopulationArray,newFitness,newAge
-  return newPopulationArray,newFitness,newAge,kwargs['popObjectiveVal']
+  return newPopulationArray,newFitnessDS,newAge,kwargs['popObjectiveVal']
 
 # @profile
 def rankNcrowdingBased(offsprings, **kwargs):
@@ -151,7 +152,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
   """
   popSize = np.shape(kwargs['population'])[0]
   if ('age' not in kwargs.keys() or kwargs['age'] == None):
-    popAge = [0]*popSize
+    popAge = [0] * popSize
   else:
     popAge = kwargs['age']
 
@@ -177,8 +178,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
   newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offObjectiveVal)])
   newObjectivesMerged_pair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
 
-  newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newFitMerged_pair))
-  newPopRank = list(max(newPopRank) - np.asarray(newPopRank) +1)
+  newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newFitMerged_pair),isFitness=True)
   newPopRank = xr.DataArray(newPopRank,
                             dims=['rank'],
                             coords={'rank': np.arange(np.shape(newPopRank)[0])})
@@ -202,8 +202,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
   newObjectives = sortedObjectivesT[:-len(offSprings)]
   newFit        = sortedFitT[:-len(offSprings)]
 
-  newRank = frontUtils.rankNonDominatedFrontiers(newFit)
-  newRank = list(max(newRank) - np.asarray(newRank) +1)
+  newRank = frontUtils.rankNonDominatedFrontiers(newFit, isFitness=True)
   newRank = xr.DataArray(newRank,
                          dims=['rank'],
                          coords={'rank': np.arange(np.shape(newRank)[0])})

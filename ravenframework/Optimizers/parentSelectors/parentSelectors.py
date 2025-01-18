@@ -92,58 +92,105 @@ def countConstViolation(const):
   count = sum(1 for i in const if i < 0)
   return count
 
-def tournamentSelection(population,**kwargs):
-  """
-    Tournament Selection mechanism for parent selection
-    @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
-          nParents, int, number of required parents
-          variables, list, variable names
-    @ Out, newPopulation, xr.DataArray, selected parents,
-  """
-
+def tournamentSelection(population, **kwargs):
   nParents = kwargs['nParents']
-  nObjVal  = len(kwargs['objVal'])
-  kSelect = kwargs['kSelection']
-  pop = population
-  popSize = population.values.shape[0]
-
-  selectedParent = xr.DataArray(np.zeros((nParents,np.shape(pop)[1])),
-                                dims=['chromosome','Gene'],
-                                coords={'chromosome':np.arange(nParents),
+  nObjVal = len(kwargs['objVar'])
+  fitness_provided = 'fitness' in kwargs
+  selectedParent = xr.DataArray(np.zeros((nParents, np.shape(population.values)[1])),
+                                dims=['chromosome', 'Gene'],
+                                coords={'chromosome': np.arange(nParents),
                                         'Gene': kwargs['variables']})
-
-  if nObjVal == 1: # single-objective Case
-    fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
+  if not kwargs['isMultiObjective']:
+    # Single-objective case
+    fitness = kwargs['fitness']
+    all_selected = set()
     for i in range(nParents):
-      matrixOperationRaw = np.zeros((kSelect,2))
-      selectChromoIndexes = list(np.arange(len(pop)))  #NOTE: JYK - selectChromoIndexes should cover all chromosomes in population.
-      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None) #NOTE: JYK - randomly select several indices with size of kSelect.
-      matrixOperationRaw[:,0] = selectedChromo
-      matrixOperationRaw[:,1] = np.transpose(fitness[selectedChromo])
-      tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:,1]),0])
-      selectedParent[i,:] = pop.values[tournamentWinnerIndex,:]
-
-  else: # multi-objective Case
-    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to.
-    rank = kwargs['rank']
-    crowdDistance = kwargs['crowdDistance']
-    for i in range(nParents):
-      matrixOperationRaw = np.zeros((kSelect,3))
-      selectChromoIndexes = list(np.arange(kSelect))
-      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kSelect, replace=False, engine=None)
-      matrixOperationRaw[:,0] = selectedChromo
-      matrixOperationRaw[:,1] = np.transpose(rank.data[selectedChromo])
-      matrixOperationRaw[:,2] = np.transpose(crowdDistance.data[selectedChromo])
-      minRankIndex = list(np.where(matrixOperationRaw[:,1] == matrixOperationRaw[:,1].min())[0])
-      if len(minRankIndex) != 1: # More than one chrosome having same rank.
-        minRankNmaxCDIndex = list(np.where(matrixOperationRaw[minRankIndex,2] == matrixOperationRaw[minRankIndex,2].max())[0])
+      matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
+      selectChromoIndexes = list(set(range(len(population))) - all_selected)
+      selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
+                                                replace=False, engine=None)
+      # Extract relevant information
+      if fitness_provided:
+        matrixOperationRaw[:, 0] = selectedChromo
+        matrixOperationRaw[:, 1] = np.transpose(fitness[kwargs['objVar'][0]][selectedChromo].values)
       else:
-        minRankNmaxCDIndex = minRankIndex
-      tournamentWinnerIndex = minRankNmaxCDIndex[0]
-      selectedParent[i,:] = pop.values[tournamentWinnerIndex,:]
+        raise ValueError("Fitness must be provided for single-objective selection")
+      tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:, 1]), 0])
+      all_selected.add(tournamentWinnerIndex)
+      selectedParent[i, :] = population.values[tournamentWinnerIndex, :]
+  else:
+    # Multi-objective case
+    if kwargs['isMultiObjective']:
+      rank_provided = 'rank' in kwargs
+      crowd_distance_provided = 'crowdDistance' in kwargs
 
+    if rank_provided and crowd_distance_provided:
+      # If both rank and crowd distance are provided, use them directly as per NSGA-II
+      all_selected = set()
+      for i in range(nParents):
+        matrixOperationRaw = np.zeros((kwargs['kSelection'], 3))
+        selectChromoIndexes = list(set(range(len(population.chromosome))) - all_selected)
+        selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
+                                                  replace=False, engine=None)
+        # Extract relevant information
+        matrixOperationRaw[:, 0] = selectedChromo
+        matrixOperationRaw[:, 1] = np.transpose(kwargs['rank'].data[selectedChromo])
+        matrixOperationRaw[:, 2] = np.transpose(kwargs['crowdDistance'].data[selectedChromo])
+        # Stage 1: Select based on rank and crowding distance
+        minRankIndex = list(np.where(matrixOperationRaw[:, 1] == matrixOperationRaw[:, 1].min())[0])
+        if len(minRankIndex) != 1:
+          # Handle cases where more than one chromosome has the same rank
+          minRankNmaxCDIndex = list(np.where((matrixOperationRaw[minRankIndex, 2] ==
+                                              matrixOperationRaw[minRankIndex, 2].max()) &
+                                             (matrixOperationRaw[minRankIndex, 1] ==
+                                              matrixOperationRaw[minRankIndex, 1].min()))[0])
+        else:
+          minRankNmaxCDIndex = minRankIndex
+        # Stage 2: Select the individual with the highest crowding distance within their rank group
+        tournamentWinnerIndex = int(minRankNmaxCDIndex[0])
+        all_selected.add(selectedChromo[tournamentWinnerIndex])
+        selectedParent[i, :] = population.values[selectedChromo[tournamentWinnerIndex], :]
+    elif rank_provided and not crowd_distance_provided:
+      # If only rank is provided (without crowd distance), calculate a default crowding distance
+      all_selected = set()
+      for i in range(nParents):
+        matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
+        selectChromoIndexes = list(set(range(len(population))) - all_selected)
+        selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
+                                                  replace=False, engine=None)
+        # Extract relevant information
+        matrixOperationRaw[:, 0] = selectedChromo
+        matrixOperationRaw[:, 1] = np.transpose(kwargs['rank'].data[selectedChromo])
+        # Stage 1: Select based on rank
+        minRankIndex = list(np.where(matrixOperationRaw[:, 1] == matrixOperationRaw[:, 1].min())[0])
+        if len(minRankIndex) != 1:
+          # Handle cases where more than one chromosome has the same rank
+          minRankNmaxCDIndex = list(np.where((matrixOperationRaw[minRankIndex, 1] ==
+                                              matrixOperationRaw[minRankIndex, 1].min()))[0])
+        else:
+          minRankNmaxCDIndex = minRankIndex
+        # Stage 2: Select the individual with the highest rank within their group
+        tournamentWinnerIndex = int(minRankNmaxCDIndex[0])
+        all_selected.add(selectedChromo[tournamentWinnerIndex])
+        selectedParent[i, :] = population.values[selectedChromo[tournamentWinnerIndex], :]
+    elif 'fitness' in kwargs and not rank_provided:
+      # If only fitness is provided (without rank), calculate a default rank
+      all_selected = set()
+      for i in range(nParents):
+        matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
+        selectChromoIndexes = list(set(range(len(population))) - all_selected)
+        selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
+                                                  replace=False, engine=None)
+        # Extract relevant information
+        matrixOperationRaw[:, 0] = selectedChromo
+        matrixOperationRaw[:, 1] = np.transpose(kwargs['fitness'][selectedChromo])
+        # Stage 1: Select based on fitness
+        tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:, 1]), 0])
+        all_selected.add(selectedChromo[tournamentWinnerIndex])
+        selectedParent[i, :] = population.values[selectedChromo[tournamentWinnerIndex], :]
+    else:
+      # Handle cases where neither fitness nor rank are provided
+      raise ValueError('At least one of "fitness" or "rank" must be provided for multi-objective selection')
   return selectedParent
 
 def rankSelection(population,**kwargs):
