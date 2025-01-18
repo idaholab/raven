@@ -114,7 +114,7 @@ def crowdingDistance(rank, popSize, fitness):
     @ In, fitness, np.array, matrix contains fitness values for each element of the population
     @ Out, crowdDist, np.array, array of crowding distances
   """
-  if isinstance(rank,xr.DataArray):
+  if isinstance(rank, xr.DataArray):
     rank = rank.data
   crowdDist = np.zeros(popSize)
   fronts = np.unique(rank)
@@ -126,7 +126,6 @@ def crowdingDistance(rank, popSize, fitness):
     frontIndices[r].append(i)
 
   for f in fronts:
-    # front = np.where(rank == f)[0]  # Get indices of current front
     front = frontIndices[f]  # Get indices of current front
     numObjectives = fitness.shape[1]
     numPoints = len(front)
@@ -143,6 +142,16 @@ def crowdingDistance(rank, popSize, fitness):
       crowdDist[sortedFront[0]] = np.inf
       crowdDist[sortedFront[-1]] = np.inf
 
+      # Ensure all repeated boundary points are set to infinity
+      boundaryValueMin = fitness[sortedFront[0], obj]
+      boundaryValueMax = fitness[sortedFront[-1], obj]
+
+      for i in range(1, numPoints - 1):
+        if fitness[sortedFront[i], obj] == boundaryValueMin:
+          crowdDist[sortedFront[i]] = np.inf
+        if fitness[sortedFront[i], obj] == boundaryValueMax:
+          crowdDist[sortedFront[i]] = np.inf
+
       # Skip normalization if all values are identical
       fMax = fitness[sortedFront, obj].max()
       fMin = fitness[sortedFront, obj].min()
@@ -151,7 +160,8 @@ def crowdingDistance(rank, popSize, fitness):
 
       # Calculate normalized distances with epsilon protection
       for i in range(1, numPoints - 1):
-        nextObjValue = fitness[sortedFront[i + 1], obj]
-        prevObjValue = fitness[sortedFront[i - 1], obj]
-        crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (fMax - fMin)
+        if crowdDist[sortedFront[i]] != np.inf:
+          nextObjValue = fitness[sortedFront[i + 1], obj]
+          prevObjValue = fitness[sortedFront[i - 1], obj]
+          crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (fMax - fMin)
   return crowdDist
