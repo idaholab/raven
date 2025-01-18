@@ -93,6 +93,15 @@ def countConstViolation(const):
   return count
 
 def tournamentSelection(population, **kwargs):
+  """
+    Tournament Selection mechanism for parent selection
+    @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          fitness, xr.DataArray, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+          variables, list, variable names.
+          nParents, int, number of required parents.
+    @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
+  """
   nParents = kwargs['nParents']
   nObjVal = len(kwargs['objVar'])
   fitness_provided = 'fitness' in kwargs

@@ -924,24 +924,24 @@ class GeneticAlgorithm(RavenSampled):
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
 
-  def _solutionExportUtilityUpdate(self, traj, rlz, fitness, g, acceptable):
-    """
-      Utility method to update the solution export
-      @ In, traj, int, trajectory for this new point
-      @ In, rlz, dict, realized realization
-      @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
-      @ In, g, xr.DataArray, the constraint evaluation function
-      @ In, acceptable, str, 'accetable' status (i.e. first, accepted, rejected, final)
-      @ Out, None
-    """
-    for i in range(rlz.sizes['RAVEN_sample_ID']):
-      varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-      rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-      rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
-      rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
-      for ind, consName in enumerate(g['Constraint'].values):
-        rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
-      self._updateSolutionExport(traj, rlzDict, acceptable, None)
+  # def _solutionExportUtilityUpdate(self, traj, rlz, fitness, g, acceptable):
+  #   """
+  #     Utility method to update the solution export
+  #     @ In, traj, int, trajectory for this new point
+  #     @ In, rlz, dict, realized realization
+  #     @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
+  #     @ In, g, xr.DataArray, the constraint evaluation function
+  #     @ In, acceptable, str, 'accetable' status (i.e. first, accepted, rejected, final)
+  #     @ Out, None
+  #   """
+  #   for i in range(rlz.sizes['RAVEN_sample_ID']):
+  #     varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+  #     rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+  #     rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
+  #     rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
+  #     for ind, consName in enumerate(g['Constraint'].values):
+  #       rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
+  #     self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
   def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, g, info):
     """
@@ -1020,11 +1020,7 @@ class GeneticAlgorithm(RavenSampled):
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-        # rlzDict = dict((var,self.population.data[i][j]) for j, var in enumerate(self.population.Gene.data))
-        # rlzDict.update(dict((var,objVal.data[i][j]) for j, var in enumerate(objVal.obj.data)))
         rlzDict['batchId'] = rlz['batchId'].data[i]
-        # for j in range(len(self._objectiveVar)):
-        #   rlzDict[self._objectiveVar[j]] = objVal.data[i][j]
         rlzDict['rank'] = np.atleast_1d(self.rank.data)[i]
         rlzDict['CD'] = np.atleast_1d(self.crowdingDistance.data)[i]
         for ind, fitName in enumerate(list(self.fitness.keys())):
@@ -1038,7 +1034,6 @@ class GeneticAlgorithm(RavenSampled):
       # record history
       bestRlz = {}
       varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-      # bestRlz = dict((var,np.atleast_1d(rlz[var].data)) for var in set(varList) if var in rlz.data_vars)
       bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in list(self.toBeSampled.keys()))
       for i in range(len(self._objectiveVar)):
         bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
@@ -1064,14 +1059,6 @@ class GeneticAlgorithm(RavenSampled):
     varList = set(varList)
     selVars = [var for var in varList if var in rlz.data_vars]
     population = datasetToDataArray(rlz, selVars)
-    # if self._fitnessType == 'hardConstraint':
-    #   optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),
-    #                                                                           datasetToDataArray(fitness, self._objectiveVar).data,
-    #                                                                           objectiveVal,
-    #                                                                           np.atleast_2d(g.data)),
-    #                                                                       reverse=True,
-    #                                                                       key=lambda x: (x[1],-x[2]))])
-    # else:
     optPoints,fit,obj,gOfBest = zip(*[[x,y,z,w] for x, y, z,w in sorted(zip(np.atleast_2d(population.data),
                                                                               datasetToDataArray(fitness, self._objectiveVar).data,
                                                                               objectiveVal,np.atleast_2d(g.data)),
@@ -1099,9 +1086,6 @@ class GeneticAlgorithm(RavenSampled):
     rankOneIDX = np.where(rank.data == 1)[0].tolist()
     optPoints = population[rankOneIDX]
     optObjVal = np.array(objVal)[:,rankOneIDX].T
-    # for idx,type in enumerate(self._minMax):
-    #   if type == 'max':
-    #     optObjVal[:,idx] = -1 * optObjVal[:,idx]
     count = 0
     for i in list(fitness.keys()):
       data = fitness[i][rankOneIDX]
@@ -1115,16 +1099,6 @@ class GeneticAlgorithm(RavenSampled):
     optCD = CD.data[rankOneIDX]
 
     optPointsDic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(population.Gene.data))
-    # optConstNew = []
-    # for i in range(len(optConstraintsV)):
-    #   optConstNew.append(optConstraintsV[i])
-    # optConstNew = list(map(list, zip(*optConstNew)))
-    # if (len(optConstNew)) != 0:
-    #   optConstNew = xr.DataArray(optConstNew,
-    #                              dims=['Constraint','Evaluation'],
-    #                              coords={'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)],
-    #                                      'Evaluation':np.arange(np.shape(optConstNew)[1])})
-
     optConstNew = [list(y) for y in zip(*optConstraintsV)]
     if len(optConstNew) > 0:
       optConstNew = xr.DataArray(optConstNew,
@@ -1195,7 +1169,7 @@ class GeneticAlgorithm(RavenSampled):
                                               conv=str(converged),
                                               got=obj,
                                               req=self._convergenceCriteria['objective']))
-    else:                            # This is for a multi-objective Optimization case.
+    else: # This is for a multi-objective Optimization case.
       if len(self._optPointHistory[traj]) < 2:
         return False
       o1, _ = self._optPointHistory[traj][-1]
