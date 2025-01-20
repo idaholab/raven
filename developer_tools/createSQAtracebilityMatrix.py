@@ -61,6 +61,7 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
     fileObject.write(" \\subsubsection{"+group.strip()+"} \n")
     for reqSetName,reqSet in groupDict.items():
       # create table here
+      fileObject.write("\\begin{table}\n")
       fileObject.write("\\begin{tabularx}{\\textwidth}{|s|s|b|} \n")
       fileObject.write("\\hline \n")
       fileObject.write("\\textbf{Requirement ID} & \\textbf{Requirement Description} & \\textbf{Test(s)}  \\\ \hline \n")
@@ -79,6 +80,7 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
         fileObject.write("\\hline \n")
       fileObject.write("\\caption*{"+reqSetName.strip()+"}\n")
       fileObject.write("\\end{tabularx} \n")
+      fileObject.write("\\end{table} \n")
   fileObject.write("\\end{document}")
   fileObject.close()
 
