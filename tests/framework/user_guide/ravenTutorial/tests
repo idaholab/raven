@@ -6,7 +6,7 @@
     rel_err = 0.000001
     python3_only = true
   [../]
-  
+
   [./singleRunPlot]
     type = 'RavenFramework'
     input = 'singleRunPlotAndPrint.xml'
@@ -16,7 +16,7 @@
     python3_only = true
     rel_err = 0.01
   [../]
-  
+
   [./singleRunSubPlot]
     type = 'RavenFramework'
     input = 'singleRunSubPlotsAndSelectivePrint.xml'
@@ -26,7 +26,7 @@
     python3_only = true
     rel_err = 0.01
   [../]
-  
+
   [./MonteCarlo]
     type = 'RavenFramework'
     input = 'MonteCarlo.xml'
@@ -36,7 +36,7 @@
     python3_only = true
     rel_err = 0.01
   [../]
-  
+
   [./RomTrain]
     type = 'RavenFramework'
     input = 'RomTrain.xml'
@@ -44,7 +44,7 @@
     rel_err = 0.000001
     python3_only = true
   [../]
-  
+
   [./RomLoad]
     type = 'RavenFramework'
     input = 'RomLoad.xml'
@@ -54,11 +54,12 @@
     python3_only = true
     rel_err = 0.005
   [../]
-  
+
   [./PostProcess]
     type = 'RavenFramework'
     input = 'PostProcess.xml'
     UnorderedCsv = 'stat/statisticalAnalysis_basicStatPP_dump.csv stat/statisticalAnalysis_basicStatPP_time_dump_0.csv'
+    zero_threshold = 1e-12
     python3_only = true
   [../]
 []

@@ -182,8 +182,7 @@ class JobHandler(BaseType):
     """
     state = copy.copy(self.__dict__)
     state.pop('_JobHandler__queueLock')
-    #XXX we probably need to record how this was init, and store that
-    # such as the scheduler file
+    #This will be reinitialized from a schedulerFile.
     if self._parallelLib == ParallelLibEnum.dask and '_server' in state:
       state.pop('_server')
     return state
@@ -196,6 +195,11 @@ class JobHandler(BaseType):
     """
     self.__dict__.update(d)
     self.__queueLock = threading.RLock()
+    if '_server' not in self.__dict__:
+      if self._parallelLib == ParallelLibEnum.dask and self.daskSchedulerFile is not None:
+        self._server = dask.distributed.Client(scheduler_file=self.daskSchedulerFile)
+      else:
+        self._server = None
 
   def createCloneJobHandler(self):
     """

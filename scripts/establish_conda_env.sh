@@ -84,7 +84,7 @@ function guess_conda_defs ()
 {
 	if [ -z ${CONDA_DEFS} ];
 	then
-      CONDA_DEFS=$(which conda | tail -1)
+      CONDA_DEFS=$(command -v conda | tail -1)
       if [[ "$CONDA_DEFS" != "" ]]; then
         # we found it
         LOCATION_CONDASH="etc/profile.d/conda.sh"
@@ -480,7 +480,7 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
     #The next lines are useful sometimes, but excessivly verbose.
     #if [[ $ECE_VERBOSE == 0 ]]; then
     #  echo ... conda:
-    #  which conda || echo no conda
+    #  command -v conda || echo no conda
     #  conda info || echo conda info failed
     #fi
   else
