@@ -11,97 +11,190 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import print_function, unicode_literals
 import os
-import sys
+import argparse
 
 ravenDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-testDir = os.path.join(ravenDir, 'tests')
 
-def getRegressionTests(whichTests=1, skipExpectedFails=True):
+parser = argparse.ArgumentParser(description="Find tests")
+parser.add_argument('--tests-dir', dest='tests_dir', type=str, default=os.path.join(ravenDir, 'tests'),
+                    help="Test directory in which to search for tests")
+parser.add_argument('--get-test-names', action='store_true', dest='find_test_names',
+                    help='Find all test names')
+parser.add_argument('--get-test-input-filenames', action='store_true', dest='find_input_filenames',
+                    help='Find all test filenames')
+parser.add_argument('--skip-fails', action='store_true', dest='skip_fails',
+                    help='Skip the expected failed tests')
+parser.add_argument('--get-python-tests', action='store_true', dest='get_python_tests',
+                    help='Find python (unit) tests only')
+parser.add_argument('--get-interface-check-tests', action='store_true', dest='get_interface_check_tests',
+                    help='Find interface tests only')
+parser.add_argument('--get-all-tests', action='store_true', dest='get_all_tests',
+                    help='Find all tests')
+args = parser.parse_args()
+
+def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'):
   """
-    Collects all the RAVEN regression tests into a dictionary keyed by directory.
+    Collects all relevant tests into a dictionary keyed as specified.
     Must be run from this directory or another that is two directories below RAVEN.
     @ In, whichTests, integer, optional, the test type:
                                        - 1 => xml test files,
                                        - 2 => python tests,
-                                       - 3 => interfaceCheck tests
+                                       - 3 => interfaceCheck tests,
+                                       - 4 => all tests
                                        default 1 => xml test files
     @ In, skipExpectedFails, optional, bool, if True skips framework/ErrorCheck directory
-    @ Out, dict, dict[dir] = list(filenames)
+    @ In, groupBy, optional, str, how to sort the test info:
+                                       - "directory" => output dict keyed by directories with
+                                                        values of test input files
+                                       - "test_name" => output dict keyed by test names with
+                                                        values of dicts containing test info
+                                       default "directory" => output dict keyed by directories
+    @ Out, dict, dict[dir] = list(filenames) OR dict[test_name] = dict[test_info]
   """
+  if (groupBy != 'directory') and (groupBy != 'test_name'):
+    print("Unrecognized input for groupBy: ", groupBy)
+    print("Allowed values for groupBy input are 'directory' and 'test_name'. Defaulting to 'directory'.")
+    groupBy = 'directory'
   testsFilenames = []
-  #search for all the 'tests' files
-  for root, _, files in os.walk(testDir):
+
+  # Search for all the 'tests' files
+  for root, _, files in os.walk(args.tests_dir):
     if skipExpectedFails and 'ErrorChecks' in root.split(os.sep):
       continue
     if 'tests' in files:
       testsFilenames.append((root, os.path.join(root, 'tests')))
-  suffix = ".xml" if whichTests in [1, 3] else ".py"
-  #read all "input" node files from "tests" files
+
+  # Read all "input" node files from "tests" files
   doTests = {}
   for root, testFilename in testsFilenames:
     testsFile = open(testFilename, 'r')
-    # collect the test specs in a dictionary
-    testFileList = []
+    # Collect the test specs in a dictionary
+    testList = []
     testSpecs = {}
     startReading = False
-    collectSpecs = False
+    collectSpecs = False # Flag to save specs and move to the next test
+    depth = 0 # Current location in hierarchy
     for line in testsFile:
       if line.strip().startswith("#"):
         continue
+
       if line.strip().startswith("[../]"):
-        collectSpecs = True
-        startReading = False
+        depth -= 1 # Going up a level
+        if depth == 0: # That's all for this test
+          startReading = False
+          collectSpecs = True
+        else: # That's all for this differ
+          startReading = True
+          collectSpecs = False
+
+      if line.strip().startswith("[./"):
+        if depth == 0: # This line contains the test name
+          testName = os.path.join(root, line.strip()[3:-1])
+          testSpecs['test_directory'] = root
+          startReading = True
+          collectSpecs = False
+        else: # This line is the start of a differ
+          startReading = False
+          collectSpecs = False
+        depth += 1 # Going down a level
+
       if startReading:
-        splitted = line.strip().split('=')
+        splitted = line.strip().split('=', 1)
         if len(splitted) == 2:
           testSpecs[splitted[0].strip()] = splitted[1].replace("'", "").replace('"', '').strip()
-      if line.strip().startswith("[./"):
-        startReading = True
-        collectSpecs = False
+
       if collectSpecs:
-        # collect specs
-        testFileList.append(testSpecs)
+        # Collect specs
+        testList.append(testSpecs)
         collectSpecs = False
         testSpecs = {}
-    if root not in doTests.keys():
+    # Now we have all the specs collected
+
+    if groupBy == 'directory' and root not in doTests.keys():
       doTests[root] = []
-    # now we have all the specs collected
-    for spec in testFileList:
-      # check if test is skipped or an executable is required
+
+    for spec in testList:
+      # Check if test is skipped or an executable is required
       if "required_executable" in spec or "skip" in spec:
         continue
       if "input" not in spec:
         continue
       testType = spec.get('type', "notfound").strip()
-      newTest = spec['input'].split()[0]
-      testInterfaceOnly = False
-      if 'test_interface_only' in spec:
-        testInterfaceOnly = True if spec['test_interface_only'].lower() == 'true' else False
-      if whichTests in [1, 3]:
-        if newTest.endswith(suffix) and testType.lower() not in 'ravenpython':
-          if whichTests == 3 and testInterfaceOnly:
-            doTests[root].append(newTest)
-          elif whichTests == 1 and not testInterfaceOnly:
-            doTests[root].append(newTest)
+
+      if whichTests == 4:
+        addTest = True
       else:
-        if newTest.endswith(suffix) and testType.lower() in 'ravenpython':
-          doTests[root].append(newTest)
+        addTest = False
+        testInterfaceOnly = False
+        if 'test_interface_only' in spec:
+          testInterfaceOnly = True if spec['test_interface_only'].lower() == 'true' else False
+        if spec['input'].endswith('.xml') and '.py' not in spec['input']:
+          if whichTests == 3 and testInterfaceOnly:
+            addTest = True
+          elif whichTests == 1 and not testInterfaceOnly:
+            addTest = True
+        else:
+          if whichTests == 2 and testType.lower() != 'crowpython':
+            addTest = True
+            
+      if addTest:
+        if groupBy == 'directory':
+          for newTestFile in spec['input'].split(' '):
+            if whichTests == 4 and (newTestFile.endswith('.py') or
+                                    (newTestFile.endswith('.xml') and '.py' not in spec['input'])):
+              doTests[root].append(newTestFile)
+            elif whichTests in [1, 3] and newTestFile.endswith('.xml'):
+              doTests[root].append(newTestFile)
+            elif whichTests == 2 and newTestFile.endswith('.py'):
+              doTests[root].append(newTestFile)
+        else:
+          for newTestFile in spec['input'].split(' '):
+            if whichTests == 4 and (newTestFile.endswith('.py') or
+                                    (newTestFile.endswith('.xml') and '.py' not in spec['input'])):
+              doTests[testName] = spec
+            elif whichTests in [1, 3] and newTestFile.endswith('.xml'):
+              doTests[testName] = spec
+            elif whichTests == 2 and newTestFile.endswith('.py'):
+              doTests[testName] = spec
+
   return doTests
 
 if __name__ == '__main__':
-  # skip the expected failed tests
-  skipFails = True if '--skip-fails' in sys.argv else  False
-  if '--get-python-tests' in sys.argv:
-    # unit tests flag has priority over interface check
-    which = 2
-  elif '--get-interface-check-tests' in sys.argv:
-    which = 3
+  if args.find_test_names:
+    # Test name flag has priority over input filename flag
+    searchTarget = 'test_names'
+  elif args.find_input_filenames:
+    searchTarget = 'input_filenames'
+  else:
+    searchTarget = 'input_filenames'
 
-  tests = getRegressionTests(which, skipExpectedFails=skipFails)
-  #print doTests
-  testFiles = []
+  # Skip the expected failed tests
+  skipFails = True if args.skip_fails else False
+
+  if args.get_python_tests:
+    # Unit tests flag has priority over interface check and all tests
+    which = 2
+  elif args.get_interface_check_tests:
+    which = 3
+  elif args.get_all_tests:
+    which = 4
+  else:
+    which = 1
+  if searchTarget == 'input_filenames':
+    keysType = 'directory'
+  else:
+    keysType = 'test_name'
+
+  tests = getRegressionTests(which, skipExpectedFails=skipFails, groupBy=keysType)
+
+  targetList = []
   for key in tests:
-    testFiles.extend([os.path.join(key, l) for l in tests[key]])
-  print(' '.join(testFiles))
+    if searchTarget == 'input_filenames':
+      # Keys are directories, values are input filenames
+      targetList.extend([os.path.join(key, l) for l in tests[key]])
+    elif searchTarget == 'test_names':
+      # Keys are test names, values are dicts with test specs
+      targetList.append(key)
+
+  print(' '.join(targetList))
