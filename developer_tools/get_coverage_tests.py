@@ -137,7 +137,7 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
         else:
           if whichTests == 2 and testType.lower() != 'crowpython':
             addTest = True
-            
+
       if addTest:
         if groupBy == 'directory':
           for newTestFile in spec['input'].split(' '):
