@@ -1,0 +1,11 @@
+<Simulation>
+  <RunInfo>
+    <clusterParameters>-P ops_gen -j oe</clusterParameters>
+    <mode>
+      pbs
+      <runQSUB/>
+      <!-- note, the 4gb is really only needed for the code but not the rom. -->
+      <memory>4gb</memory>
+    </mode>
+  </RunInfo>
+</Simulation>

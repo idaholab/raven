@@ -385,12 +385,14 @@ class RELAPparser():
                 cnt                       = 1
                 while moveToNextLine:
                   if self.deckLines[deck][lineNum+cnt].strip().startswith("+"):
-                    currentNumberWords = self.countNumberOfWords(self.deckLines[deck][lineNum+cnt])
+                    currentLine = self.deckLines[deck][lineNum+cnt]
+                    currentNumberWords = self.countNumberOfWords(currentLine)
                     if int(word) <= numberOfWords+currentNumberWords:
-                      cardValues[(deck,readCard,word)] = line.split()[word-currentNumberWords]
+                      cardValues[(deck,readCard,word)] = currentLine.split()[word-numberOfWords]
                       foundWord = True
                       moveToNextLine = False
                     numberOfWords+=currentNumberWords
+                    cnt += 1
                   else:
                     moveToNextLine=False
               if not foundWord:

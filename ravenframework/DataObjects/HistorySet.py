@@ -265,6 +265,7 @@ class HistorySet(DataSet):
         data = self._data.isel(**{self.sampleTag:slice(startIndex,None,None)})
 
     data = data.drop_vars(toDrop)
+    self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))
     # specific implementation
     ## write input space CSV with pointers to history CSVs
     ### get list of input variables to keep

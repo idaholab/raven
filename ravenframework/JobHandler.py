@@ -182,8 +182,7 @@ class JobHandler(BaseType):
     """
     state = copy.copy(self.__dict__)
     state.pop('_JobHandler__queueLock')
-    #XXX we probably need to record how this was init, and store that
-    # such as the scheduler file
+    #This will be reinitialized from a schedulerFile.
     if self._parallelLib == ParallelLibEnum.dask and '_server' in state:
       state.pop('_server')
     return state
@@ -196,6 +195,11 @@ class JobHandler(BaseType):
     """
     self.__dict__.update(d)
     self.__queueLock = threading.RLock()
+    if '_server' not in self.__dict__:
+      if self._parallelLib == ParallelLibEnum.dask and self.daskSchedulerFile is not None:
+        self._server = dask.distributed.Client(scheduler_file=self.daskSchedulerFile)
+      else:
+        self._server = None
 
   def createCloneJobHandler(self):
     """
@@ -314,9 +318,12 @@ class JobHandler(BaseType):
         uniqueN = list(set(availableNodes))
         # identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
+        shortLocalHostName = localHostName.split(".")[0]
         self.raiseADebug("Head host name is   : ", localHostName)
         # number of processors
         nProcsHead = availableNodes.count(localHostName)
+        if nProcsHead == 0:
+          nProcsHead = availableNodes.count(shortLocalHostName)
         if not nProcsHead:
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           self.raiseAWarning(f'Head host name "{localHostName}" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
@@ -341,7 +348,7 @@ class JobHandler(BaseType):
             self.raiseADebug('scheduler file     :', self.daskSchedulerFile)
           ## Get servers and run ray or dask remote listener
           if self.rayInstanciatedOutside or self.daskInstanciatedOutside:
-            servers = self.runInfoDict['remoteNodes']
+            servers = self.runInfoDict.get('remoteNodes', [])
           else:
             servers = self.__runRemoteListeningSockets(address, localHostName)
           # add names in runInfo
@@ -364,7 +371,9 @@ class JobHandler(BaseType):
         else:
           if self._parallelLib == ParallelLibEnum.ray:
             self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-            self._server = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
+            address = self.__runHeadNode(nProcsHead, 0)
+            self.runInfoDict['headNode'] = address
+            self._server = ray.init(log_to_driver=False,include_dashboard=db)
           elif self._parallelLib == ParallelLibEnum.dask:
             self.raiseADebug("Executing DASK in the cluster but with a single node configuration")
             #Start locally
@@ -428,6 +437,8 @@ class JobHandler(BaseType):
       @ Out, None
     """
     if self._parallelLib == ParallelLibEnum.ray and self._server is not None and not self.rayInstanciatedOutside:
+      # shutdown ray API (object storage, plasma, etc.)
+      ray.shutdown()
       # we need to ssh and stop each remote node cluster (ray)
       servers = []
       if 'remoteNodes' in self.runInfoDict:
@@ -437,15 +448,16 @@ class JobHandler(BaseType):
       # get local enviroment
       localEnv = os.environ.copy()
       localEnv["PYTHONPATH"] = os.pathsep.join(sys.path)
+      rayTerminateList = []
       for nodeAddress in servers:
         self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
-        command="ray stop"
+        command="ray stop -v"
         rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'","RAVEN_FRAMEWORK_DIR='"+self.runInfoDict["FrameworkDir"]+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localEnv)
+        rayTerminateList.append((nodeAddress,rayTerminate))
+      for nodeAddress, rayTerminate in rayTerminateList:
         rayTerminate.wait()
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
-      # shutdown ray API (object storage, plasma, etc.)
-      ray.shutdown()
     elif self._parallelLib == ParallelLibEnum.dask and self._server is not None and not self.rayInstanciatedOutside:
       self._server.close()
       if self._daskScheduler is not None:

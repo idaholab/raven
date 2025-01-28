@@ -1628,7 +1628,7 @@ class ARMA(SupervisedLearning):
           ## IND
           #most probabble index
           if len(group['Ind']):
-            modeInd = stats.mode(group['Ind'])[0][0]
+            modeInd = stats.mode(group['Ind'],keepdims=True)[0][0]
           else:
             modeInd = 0
           ID = 'gp_{}_modeInd'.format(g)
