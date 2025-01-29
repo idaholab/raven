@@ -18,13 +18,14 @@ Created on April 14, 2014
 """
 import os
 import sys
-import copy
-from ravenframework.utils import utils
 import json
+
+from ravenframework.utils import utils
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ..MooseBasedApp import MOOSEparser
 from ..MooseBasedApp import MooseInputParser
+from ..MooseBasedApp import MooseBasedAppInterface as mooseInterface
 
 class RELAP7(CodeInterfaceBase):
   """
@@ -66,14 +67,13 @@ class RELAP7(CodeInterfaceBase):
     returnCommand = executeCommand,outputfile
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, rlz):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RELAP7 stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self._samplersDictionary                             = {}
@@ -89,45 +89,37 @@ class RELAP7(CodeInterfaceBase):
     self._samplersDictionary['StochasticCollocation'   ] = self.gridForRELAP7
     self._samplersDictionary['CustomSampler'           ] = self.gridForRELAP7
 
-    found = False
     for index, inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
-        found = True
         break
-    if not found:
+    else:
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
-    Kwargs["distributionNode"] = MooseInputParser.findInGetpot(parser.roots, ["Distributions"])
-    # OLD Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
+    rlz.inputInfo["distributionNode"] = MooseInputParser.findInGetpot(parser.roots, ["Distributions"])
+
     if 'None' not in str(samplerType):
-      modifDict = self._samplersDictionary[samplerType](**Kwargs)
+      modifDict = self._samplersDictionary[samplerType](rlz)
       modified = parser.modifyOrAdd(modifDict)
-    #newInputFiles = copy.deepcopy(currentInputFiles)
-    #if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-    #  newInputFiles[index].setBase(Kwargs['prefix']+"~"+newInputFiles[index].getBase())
-    #else:
-    #  newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+'~'+newInputFiles[index].getBase())
-    parser.printInput(currentInputFiles[index].getAbsFile(), modified)
+      parser.printInput(currentInputFiles[index].getAbsFile(), modified)
+
     return currentInputFiles
 
-  def monteCarloForRELAP7(self,**Kwargs):
+  def monteCarloForRELAP7(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for Monte Carlo sampler
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    if 'prefix' in Kwargs:
-      counter = Kwargs['prefix']
-    else:
-      raise IOError('a counter is needed for the Monte Carlo sampler for RELAP7')
-    if 'initialSeed' in Kwargs:
-      initSeed = Kwargs['initialSeed']
-    else:
-      initSeed = 1
-    _,listDict = self.__genBasePointSampler(**Kwargs)
-    #listDict = []
+    info = rlz.inputInfo
+    try:
+      counter = info['prefix']
+    except KeyError as ke:
+      raise IOError('a prefix counter is needed for the Monte Carlo sampler for RELAP7') from ke
+    initSeed = info.get('initialSeed', 1)
+    _,listDict = self.__genBasePointSampler(rlz)
     modifDict = {}
     modifDict['name'] = ['Distributions', 'RNG_seed']
     RNGSeed = int(counter) + int(initSeed) - 1
@@ -135,18 +127,19 @@ class RELAP7(CodeInterfaceBase):
     listDict.append(modifDict)
     return listDict
 
-  def dynamicEventTreeForRELAP7(self,**Kwargs):
+  def dynamicEventTreeForRELAP7(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for DET sampler
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
+    info = rlz.inputInfo
     listDict = []
-    if 'hybridsamplerCoordinate' in Kwargs.keys():
-      for preconditioner in Kwargs['hybridsamplerCoordinate']:
-        preconditioner['executable'] = Kwargs['executable']
+    if 'hybridsamplerCoordinate' in info:
+      for preconditioner in info['hybridsamplerCoordinate']:
+        preconditioner['executable'] = info['executable']
         if 'MonteCarlo' in preconditioner['SamplerType']:
           listDict = self.__genBasePointSampler(**preconditioner)[1]
           listDict.extend(self.monteCarloForRELAP7(**preconditioner))
@@ -155,47 +148,45 @@ class RELAP7(CodeInterfaceBase):
         elif 'Stratified' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']:
           listDict.extend(self.latinHyperCubeForRELAP7(**preconditioner))
     # Check the initiator distributions and add the next threshold
-    if 'initiatorDistribution' in Kwargs.keys():
-      for i in range(len(Kwargs['initiatorDistribution'])):
+    if 'initiatorDistribution' in info:
+      for i in range(len(info['initiatorDistribution'])):
         modifDict = {}
-        varName = Kwargs['initiatorDistribution'][i]
+        varName = info['initiatorDistribution'][i]
         modifDict['name'] = ['Distributions', varName, 'ProbabilityThreshold']
         modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
         listDict.append(modifDict)
         del modifDict
     # add the initial time for this new branch calculation
-    if 'startTime' in Kwargs.keys():
-      if Kwargs['startTime'] != -sys.float_info.max:
+    if 'startTime' in info:
+      if info['startTime'] != -sys.float_info.max:
         modifDict = {}
-        startTime = Kwargs['startTime']
+        startTime = info['startTime']
         modifDict['name'] = ['Executioner', 'start_time']
         modifDict['start_time'] = startTime
         listDict.append(modifDict)
         del modifDict
     # create the restart file name root from the parent branch calculation
     # in order to restart the calc from the last point in time
-    if 'endTimeStep' in Kwargs.keys():
-      #if Kwargs['endTimeStep'] != 0 or Kwargs['endTimeStep'] == 0:
-
-      if Kwargs['startTime'] !=  -sys.float_info.max:
+    if 'endTimeStep' in info:
+      if info['startTime'] != -sys.float_info.max:
         modifDict = {}
-        endTimeStepString = str(Kwargs['endTimeStep'])
-        if(Kwargs['endTimeStep'] <= 9999):
+        endTimeStepString = str(info['endTimeStep'])
+        if(info['endTimeStep'] <= 9999):
           numZeros = 4 - len(endTimeStepString)
           for i in range(numZeros):
             endTimeStepString = "0" + endTimeStepString
-        splitted = Kwargs['outfile'].split('~')
+        splitted = info['outfile'].split('~')
         output_parent = splitted[0] + '~'  + splitted[1]
-        restartFileBase = os.path.join("..",utils.toString(Kwargs['RAVEN_parentID']),output_parent + "_cp",endTimeStepString)
+        restartFileBase = os.path.join("..",utils.toString(info['RAVEN_parentID']),output_parent + "_cp",endTimeStepString)
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restartFileBase
         #print(' Restart file name base is "' + restart_file_base + '"')
         listDict.append(modifDict)
         del modifDict
     # max simulation time (if present)
-    if 'endTime' in Kwargs.keys():
+    if 'endTime' in info:
       modifDict = {}
-      endTime = Kwargs['endTime']
+      endTime = info['endTime']
       modifDict['name'] = ['Executioner']
       modifDict['end_time'] = endTime
       listDict.append(modifDict)
@@ -210,17 +201,17 @@ class RELAP7(CodeInterfaceBase):
     del modifDict
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
-    if 'branchChangedParam' in Kwargs.keys():
-      if Kwargs['branchChangedParam'][0] not in ('None',b'None',None):
-        for i in range(len(Kwargs['branchChangedParam'])):
+    if 'branchChangedParam' in info:
+      if info['branchChangedParam'][0] not in ('None',b'None',None):
+        for i in range(len(info['branchChangedParam'])):
           modifDict = {}
-          modifDict['name'] = ['RestartInitialize',Kwargs['branchChangedParam'][i]]
-          modifDict['value'] = Kwargs['branchChangedParamValue'][i]
+          modifDict['name'] = ['RestartInitialize', info['branchChangedParam'][i]]
+          modifDict['value'] = info['branchChangedParamValue'][i]
           listDict.append(modifDict)
           del modifDict
     return listDict
 
-  def __genBasePointSampler(self,**Kwargs):
+  def __genBasePointSampler(self, rlz):
     """
       Figure out which distributions need to be handled by
       the grid or Stratified samplers by modifying distributions in the .i file.
@@ -235,23 +226,22 @@ class RELAP7(CodeInterfaceBase):
       TODO This should check that the distributions in the .i file (if
       they exist) are consistent with the ones in the .xml file.
       TODO For variables, it should add them to the .csv file.
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, returnTuple, tuple, returnTuple[0] distributions dictionaries returnTuple[0] modified dictionary
     """
-    distributionKeys = [key for key in Kwargs["SampledVars"] if key.startswith("<distribution>")]
+    info = rlz.inputInfo
+    distributionKeys = [key for key in rlz if key.startswith("<distribution>")]
     distributions = {}
     for key in distributionKeys:
-      distributionName = Kwargs['distributionName'][key]
-      distributionType = Kwargs['distributionType'][key]
-      crowDistribution = json.loads(Kwargs['crowDist'][key])
-      distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName, distributionType,crowDistribution]
-    from ..MooseBasedApp import MooseBasedAppInterface as mooseInterface
-    # mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
+      distributionName = info['distributionName'][key]
+      distributionType = info['distributionType'][key]
+      crowDistribution = json.loads(info['crowDist'][key])
+      distributions[key] = [rlz.pop(key),distributionName, distributionType,crowDistribution]
     mooseApp = mooseInterface.MooseBasedApp()
-    returnTuple = distributions, mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
+    returnTuple = distributions, mooseApp.pointSamplerForMooseBasedApp(rlz)
     return returnTuple
 
-  def gridForRELAP7(self,**Kwargs):
+  def gridForRELAP7(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -259,19 +249,19 @@ class RELAP7(CodeInterfaceBase):
       Uses point sampler to generate variable points, and
       modifies distributions to be a zerowidth (constant) distribution
       at the grid point.
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    distributions,listDict = self.__genBasePointSampler(**Kwargs)
-    for key in distributions.keys():
-      distName, distType, crowDist = distributions[key][1:4]
+    distributions,listDict = self.__genBasePointSampler(rlz)
+    for key, dist in distributions.items():
+      distName, distType, crowDist = dist[1:4]
       crowDist['name'] = ['Distributions',distName]
       #The following code would check more, but requires floating compare
       # that currently doesn't work properly
       #assertDict = crowDist.copy()
       #assertDict['special'] = set(['assert_match'])
       #listDict.append(assertDict)
-      for crowDistKey in crowDist.keys():
+      for crowDistKey in crowDist:
         if crowDistKey not in ['type']:
           listDict.append({'name':['Distributions',distName], 'special':set(['assert_match']), crowDistKey:crowDist[crowDistKey]})
 
@@ -281,10 +271,9 @@ class RELAP7(CodeInterfaceBase):
       listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
       listDict.append({'name':['Distributions',distName],'force_value':distributions[key][0]})
       listDict.append(crowDist)
-    #print("listDict",listDict,"distributions",distributions,"Kwargs",Kwargs)
     return listDict
 
-  def latinHyperCubeForRELAP7(self,**Kwargs):
+  def latinHyperCubeForRELAP7(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
@@ -292,27 +281,30 @@ class RELAP7(CodeInterfaceBase):
       Uses point sampler to generate variable points, and truncates
       distribution to be inside of the latin hyper cube upper and lower
       bounds.
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, sampled input that should be entered into code run
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    distributions,listDict = self.__genBasePointSampler(**Kwargs)
-    for key in distributions.keys():
-      distName, distType, crowDist = distributions[key][1:4]
+    info = rlz.inputInfo
+    distributions,listDict = self.__genBasePointSampler(rlz)
+    for key, dist in distributions.items():
+      distName, distType, crowDist = dist[1:4]
       crowDist['name'] = ['Distributions',distName]
       #The following code would check more, but requires floating compare
       # that currently doesn't work properly
       #assertDict = crowDist.copy()
       #assertDict['special'] = set(['assert_match'])
       #listDict.append(assertDict)
-      listDict.append({'name':['Distributions',distName],
-                       'special':set(['assert_match']),
-                       'type':crowDist['type']})
-      listDict.append({'name':['Distributions',distName],
-                       'special':set(['erase_block'])})
-      listDict.append({'name':['Distributions',distName],
-                       'V_window_Up':Kwargs['upper'][key]})
-      listDict.append({'name':['Distributions',distName],
-                       'V_window_Low':Kwargs['lower'][key]})
+      listDict.append({'name': ['Distributions', distName],
+                       'special': set(['assert_match']),
+                       'type': crowDist['type']
+                       })
+      listDict.append({'name': ['Distributions',distName],
+                       'special': set(['erase_block'])
+                       })
+      listDict.append({'name': ['Distributions',distName],
+                       'V_window_Up': info['upper'][key]
+                       })
+      listDict.append({'name': ['Distributions',distName],
+                       'V_window_Low': info['lower'][key]})
       listDict.append(crowDist)
-    #print("listDict",listDict,"distributions",distributions)
     return listDict

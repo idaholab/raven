@@ -18,24 +18,17 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import sys
 import copy
 from operator import mul
 from functools import reduce
-import numpy as np
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
+import numpy as np
+
 from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from .. import GridEntities
-# Internal Modules End------------------------------------------------------------------------------
 
 class Grid(Sampler):
   """
@@ -98,7 +91,7 @@ class Grid(Sampler):
     #TODO remove using xmlNode
     if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
-    self.limit = 1
+    self.limits['samples'] = 1
     self.gridEntity._handleInput(paramInput, dimensionTags=["variable", "Distribution"], dimTagsPrefix={"Distribution": "<distribution>"})
 
     grdInfo = self.gridEntity.returnParameter("gridInfo")
@@ -138,9 +131,6 @@ class Grid(Sampler):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    for var, value in self.values.items():
-      paramDict[f'coordinate {var} has value'] = value
-
     return paramDict
 
   def localInitialize(self):
@@ -153,20 +143,21 @@ class Grid(Sampler):
       @ Out, None
     """
     self.gridEntity.initialize()
-    self.limit = self.gridEntity.len()
+    self.limits['samples'] = self.gridEntity.len()
 
-  def localGenerateInput(self, model, oldInput):
+  def localGenerateInput(self, rlz, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the realization should be ready to be sent
       to the model
+      @ In, rlz, Realization, mapping from variables to values for sample
       @ In, model, model instance, an instance of a model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    self.inputInfo['distributionName'] = {} # Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} # Used to determine which distribution type is used
+    rlz.inputInfo['distributionName'] = {} # Used to determine which distribution to change if needed.
+    rlz.inputInfo['distributionType'] = {} # Used to determine which distribution type is used
     weight = 1.0
     recastDict = {}
     for i in range(len(self.axisName)):
@@ -208,10 +199,10 @@ class Grid(Sampler):
       # compute the SampledVarsPb for 1-D distribution
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim'] == 1):
         for key in varName.strip().split(','):
-          self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
-          self.inputInfo['distributionType'][key] = self.distDict[varName].type
-          self.values[key] = coordinates[varName]
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])
+          rlz.inputInfo['distributionName'][key] = self.toBeSampled[varName]
+          rlz.inputInfo['distributionType'][key] = self.distDict[varName].type
+          rlz[key] = coordinates[varName]
+          rlz.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(rlz[key])
       # compute the SampledVarsPb for N-D distribution
       else:
         if self.variables2distributionsMapping[varName]['reducedDim'] == 1:
@@ -224,11 +215,11 @@ class Grid(Sampler):
             position = utils.first(var.values())
             ndCoordinate[positionList.index(position)] = float(coordinates[variable.strip()])
             for key in variable.strip().split(','):
-              self.inputInfo['distributionName'][key] = self.toBeSampled[variable]
-              self.inputInfo['distributionType'][key] = self.distDict[variable].type
-              self.values[key] = coordinates[variable]
+              rlz.inputInfo['distributionName'][key] = self.toBeSampled[variable]
+              rlz.inputInfo['distributionType'][key] = self.distDict[variable].type
+              rlz[key] = coordinates[variable]
           # Based on the discussion with Diego, we will use the following to compute SampledVarsPb.
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
+          rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinate)
       # Compute the ProbabilityWeight
       if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
         if self.distDict[varName].getDistType() == 'Discrete':
@@ -236,28 +227,28 @@ class Grid(Sampler):
         else:
           if self.gridInfo[varName]=='CDF':
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-              midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
-              midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+              midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(rlz[key]))/2.0
+              midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(rlz[key]))/2.0
             if coordinatesMinusOne[varName] == -sys.maxsize:
-              midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+              midPlusCDF   = (coordinatesPlusOne[varName]+self.distDict[varName].cdf(rlz[key]))/2.0
               midMinusCDF  = 0.0
             if coordinatesPlusOne[varName] == sys.maxsize:
               midPlusCDF   = 1.0
-              midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(self.values[key]))/2.0
+              midMinusCDF  = (coordinatesMinusOne[varName]+self.distDict[varName].cdf(rlz[key]))/2.0
             gridWeight = midPlusCDF - midMinusCDF
           else:
             # Value
             if coordinatesPlusOne[varName] != sys.maxsize and coordinatesMinusOne[varName] != -sys.maxsize:
-              midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
-              midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
+              midPlusValue   = (rlz[key]+coordinatesPlusOne[varName])/2.0
+              midMinusValue  = (rlz[key]+coordinatesMinusOne[varName])/2.0
               gridWeight = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
             if coordinatesMinusOne[varName] == -sys.maxsize:
-              midPlusValue = (self.values[key]+coordinatesPlusOne[varName])/2.0
+              midPlusValue = (rlz[key]+coordinatesPlusOne[varName])/2.0
               gridWeight = self.distDict[varName].cdf(midPlusValue) - 0.0
             if coordinatesPlusOne[varName] == sys.maxsize:
-              midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
+              midMinusValue  = (rlz[key]+coordinatesMinusOne[varName])/2.0
               gridWeight = 1.0 - self.distDict[varName].cdf(midMinusValue)
-        self.inputInfo['ProbabilityWeight-'+varName] = gridWeight
+        rlz.inputInfo['ProbabilityWeight-'+varName] = gridWeight
         weight *= gridWeight
       # ND variable
       else:
@@ -294,11 +285,11 @@ class Grid(Sampler):
               if coordinatesPlusOne[variable] == sys.maxsize:
                 dxs[positionList.index(position)]          =  self.distDict[varName].returnUpperBound(positionList.index(position)) - (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0
                 ndCoordinate[positionList.index(position)] = (self.distDict[varName].returnUpperBound(positionList.index(position)) + (coordinates[variable.strip()]+coordinatesMinusOne[variable])/2.0) /2.0
-          self.inputInfo['ProbabilityWeight-'+distName] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
+          rlz.inputInfo['ProbabilityWeight-'+distName] = self.distDict[varName].cellIntegral(ndCoordinate,dxs)
           weight *= self.distDict[varName].cellIntegral(ndCoordinate,dxs)
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
-    self.inputInfo['SamplerType'] = 'Grid'
+    rlz.inputInfo['PointProbability' ] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
+    rlz.inputInfo['SamplerType'] = 'Grid'
 
   def flush(self):
     """

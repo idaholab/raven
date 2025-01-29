@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
 
 def run(self,Input):
 

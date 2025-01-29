@@ -125,11 +125,11 @@ form of this is: (Where the output file will be of the type originally configure
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import copy
 import shutil
 import tempfile
-from ravenframework.utils import utils
 import xml.etree.ElementTree as ET
+
+from ravenframework.utils import utils
 #from OMPython import OMCSession    # Get the library with Open Modelica Session (needed to run OM stuff)
 
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
@@ -204,27 +204,24 @@ class OpenModelica(CodeInterfaceBase):
     validExtensions = ('xml', 'XML', 'Xml')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, rlz):
     """
       Generate a new OpenModelica input file (XML format) from the original, changing parameters
       as specified in Kwargs['SampledVars']
-      @ In , currentInputFiles, list,  list of current input files (input files from last this method call)
-      @ In , oriInputFiles, list, list of the original input files
-      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, rlz, Realization, Realization from which to build input
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     # Since OpenModelica provides a way to do this (the setInitXmlStartValue described above), we'll
     #   use that.  However, since it can only change one value at a time we'll have to apply it multiple
     #   times.  Start with the original input file, which we have to find first.
-    found = False
     for index, inputFile in enumerate(oriInputFiles):
       if self._isValidInput(inputFile):
-        found = True
         break
-    if not found:
-      raise Exception('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
+    else:
+      raise IOError('OpenModelica INTERFACE ERROR -> An XML file was not found in the input files!')
 
     # Figure out the new file name and put it into the proper place in the return list
     #newInputFiles = copy.deepcopy(currentInputFiles)
@@ -239,7 +236,7 @@ class OpenModelica(CodeInterfaceBase):
 
     # Look at all of the variables in the XML and see if we have changes
     #   in our dictionary.
-    varDict = Kwargs['SampledVars']
+    varDict = rlz
     for elem in tree.findall('.//ScalarVariable'):
       if (elem.attrib['name'] in varDict.keys()):
         # Should contain one sub-element called 'Real' 'Integer' or 'Boolean' (May be others)
@@ -270,7 +267,7 @@ class OpenModelica(CodeInterfaceBase):
     print('sourcefilename:',sourceFileName)
     destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
     sourceFileName += '.csv'
-    with open(sourceFileName) as inputFile:
+    with open(sourceFileName, encoding='utf-8') as inputFile:
       for line in inputFile:
         # Line ends with a comma followed by a newline
         #XXX toBytes seems to be needed here in python3, despite the text = True

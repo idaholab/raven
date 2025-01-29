@@ -18,18 +18,11 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import copy
 from operator import mul
 from functools import reduce
 from collections import namedtuple
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
 from ..utils import InputData, InputTypes
 from .Sampler               import Sampler
 from .MonteCarlo            import MonteCarlo
@@ -39,7 +32,7 @@ from .FactorialDesign       import FactorialDesign
 from .ResponseSurfaceDesign import ResponseSurfaceDesign
 from .CustomSampler         import CustomSampler
 from .. import GridEntities
-# Internal Modules End------------------------------------------------------------------------------
+from ..Realizations import Realization
 
 class EnsembleForward(Sampler):
   """
@@ -188,26 +181,30 @@ class EnsembleForward(Sampler):
       @ In, None
       @ Out, None
     """
-    self.limit = 1
+    self.limits['samples'] = 1
     cnt = 0
-    lowerBounds, upperBounds = {}, {}
-    metadataKeys, metaParams = [], {}
-    for samplingStrategy in self.instantiatedSamplers:
-      self.instantiatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed, solutionExport=None)
+    lowerBounds = {}
+    upperBounds = {}
+    metadataKeys = []
+    metaParams = {}
+    for samplingStrategy, sampler in self.instantiatedSamplers.items():
+      sampler.initialize(externalSeeding=self.initSeed, solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
-      self.limit *= self.instantiatedSamplers[samplingStrategy].limit
-      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instantiatedSamplers[samplingStrategy].limit
-      while self.instantiatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
-        self.instantiatedSamplers[samplingStrategy].counter += 1
-        self.instantiatedSamplers[samplingStrategy].localGenerateInput(None,None)
-        self.instantiatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instantiatedSamplers[samplingStrategy].counter
-        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instantiatedSamplers[samplingStrategy].inputInfo))
+      self.limits['samples'] *= sampler.limits['samples']
+      lowerBounds[samplingStrategy] = 0
+      upperBounds[samplingStrategy] = sampler.limits['samples']
+      while sampler.amIreadyToProvideAnInput():
+        rlz = Realization()
+        sampler.counters['samples'] += 1
+        sampler.localGenerateInput(rlz, None, None)
+        rlz.inputInfo['prefix'] = sampler.counters['samples']
+        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(rlz.asDict()))
       cnt += 1
-      mKeys, mParams = self.instantiatedSamplers[samplingStrategy].provideExpectedMetaKeys()
+      mKeys, mParams = sampler.provideExpectedMetaKeys()
       metadataKeys.extend(mKeys)
       metaParams.update(mParams)
     metadataKeys = list(set(metadataKeys))
-    self.raiseAMessage(f'Number of Combined Samples are {self.limit}!')
+    self.raiseAMessage(f'Total Number of Combined Samples is {self.limits["samples"]}!')
     # create a grid of combinations (no tensor)
     self.gridEnsemble = GridEntities.factory.returnInstance('GridEntity')
     initDict = {'dimensionNames': self.instantiatedSamplers.keys(),
@@ -221,36 +218,43 @@ class EnsembleForward(Sampler):
     # add meta data keys
     self.addMetaKeys(metadataKeys, params=metaParams)
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlz, model, modelInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
+    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict=True)
     coordinate = []
     for samplingStrategy in self.instantiatedSamplers:
       coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
     for combination in coordinate:
-      for key in combination:
-        if key not in self.inputInfo:
-          self.inputInfo[key] = combination[key]
+      for key, value in combination.items():
+        # FIXME we don't know what's inputInfo and what's sampled vars!
+        if key in self.toBeSampled:
+          rlz[key] = value
+        elif key not in rlz.inputInfo:
+          rlz.inputInfo[key] = value
         else:
-          if type(self.inputInfo[key]).__name__ == 'dict':
-            self.inputInfo[key].update(combination[key])
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = 1.0
-    for key in self.inputInfo:
+          if isinstance(rlz.inputInfo[key], dict):
+            self.raiseWhatsThis('value', value)
+            rlz.inputInfo[key].update(value)
+          else:
+            raise RuntimeError # can we get here?
+    rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['ProbabilityWeight' ] = 1.0
+    for key in rlz.inputInfo:
       if key.startswith('ProbabilityWeight-'):
-        self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
-    self.inputInfo['SamplerType'] = 'EnsembleForward'
+        rlz.inputInfo['ProbabilityWeight' ] *= rlz.inputInfo[key]
+    rlz.inputInfo['SamplerType'] = 'EnsembleForward'
 
     # Update dependent variables
-    self._functionalVariables()
+    self._functionalVariables(rlz) # FIXME does this want batch or single?
 
   def flush(self):
     """

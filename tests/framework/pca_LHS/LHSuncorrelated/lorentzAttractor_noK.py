@@ -25,9 +25,6 @@ def initialize(self,runInfoDict,inputFiles):
   return
 
 
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
-
 def run(self,Input):
   max_time = 0.03
   t_step = 0.01

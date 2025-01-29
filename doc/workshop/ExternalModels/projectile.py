@@ -83,12 +83,12 @@ def current_angle(v0, ang, vel):
   return np.arccos(v0 * np.cos(ang) / vel)
 
 def run(raven, inputs):
-  vars = {'x0': get_from_raven('x0', raven, 0),
+  inps = {'x0': get_from_raven('x0', raven, 0),
           'y0': get_from_raven('y0', raven, 0),
           'v0': get_from_raven('v0', raven, 1),
           'angle': get_from_raven('angle', raven, 45),
           'timeOption': get_from_raven('timeOption', raven, 0)}
-  res = main(vars)
+  res = main(inps)
   raven.x = res['x']
   raven.y = res['y']
   raven.t = res['t']

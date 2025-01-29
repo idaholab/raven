@@ -77,7 +77,6 @@ class MonteCarlo(Sampler):
     super().__init__()
     self.printTag = 'SAMPLER MONTECARLO'
     self.samplingType = None
-    self.limit = None
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
@@ -89,7 +88,7 @@ class MonteCarlo(Sampler):
     # TODO remove using xmlNode
     Sampler.readSamplerInit(self, xmlNode)
     if paramInput.findFirst('samplerInit') is not None:
-      if self.limit is None:
+      if self.limits['samples'] is None:
         self.raiseAnError(IOError,self, f'Monte Carlo sampler {self.name} needs the limit block (number of samples) in the samplerInit block')
       if paramInput.findFirst('samplerInit').findFirst('samplingType') is not None:
         self.samplingType = paramInput.findFirst('samplerInit').findFirst('samplingType').value
@@ -100,13 +99,22 @@ class MonteCarlo(Sampler):
     else:
       self.raiseAnError(IOError, self, f'Monte Carlo sampler {self.name} needs the samplerInit block')
 
-  def localGenerateInput(self, model, myInput):
+  def _checkNDVariables(self):
     """
-      Provides the next sample to take.
-      After this method is called, the self.inputInfo should be ready to be sent
-      to the model
+      Provides an opportunity to check compatibility with and usage of N-dimensional variables.
+      By default, errors and provides notification to users.
+      @ In, None
+      @ Out, None
+    """
+    # MonteCarlo supports ND variables, and doesn't need to check anything to operate as expected.
+
+  def localGenerateInput(self, rlz, model, modelInput):
+    """
+      Fills the Realization with values of the next sample
+      After this method is called, rlz should be ready to be sent to the model
+      @ In, rlz, Realization, mapping to populate with sample values
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, modelInput, list, a list of the Step inputs for the model (e.g. files)
       @ Out, None
     """
     # create values dictionary
@@ -128,17 +136,17 @@ class MonteCarlo(Sampler):
           upper = distData['xMax']
           rvsnum = lower + (upper - lower) * randomUtils.random()
           # TODO (wangc): I think the calculation for epsilon need to be updated as following
-          # epsilon = (upper-lower)/(self.limit+1) * 0.5
-          epsilon = (upper-lower)/self.limit
+          # epsilon = (upper-lower)/(self.limits['samples']+1) * 0.5
+          epsilon = (upper-lower)/self.limits['samples']
           midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
           midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
           weight *= midPlusCDF - midMinusCDF
         else:
           rvsnum = self.distDict[key].rvs()
         for kkey in key.split(','):
-          self.values[kkey] = np.atleast_1d(rvsnum)[0]
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
-        self.inputInfo['ProbabilityWeight-' + key] = 1.
+          rlz[kkey] = np.atleast_1d(rvsnum)[0]
+        rlz.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
+        rlz.inputInfo['ProbabilityWeight-' + key] = 1.
       elif totDim > 1:
         if reducedDim == 1:
           if self.samplingType is None:
@@ -153,25 +161,26 @@ class MonteCarlo(Sampler):
           if reducedDim > len(coordinate):
             self.raiseAnError(IOError, "The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
           probabilityValue = self.distDict[key].pdf(coordinate)
-          self.inputInfo['SampledVarsPb'][key] = probabilityValue
+          rlz.inputInfo['SampledVarsPb'][key] = probabilityValue
           for var in self.distributions2variablesMapping[dist]:
             varID  = utils.first(var.keys())
             varDim = var[varID]
             for kkey in varID.strip().split(','):
-              self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-          self.inputInfo[f'ProbabilityWeight-{dist}'] = 1.
+              rlz[kkey] = np.atleast_1d(rvsnum)[varDim-1]
+          rlz.inputInfo[f'ProbabilityWeight-{dist}'] = 1.
       else:
         self.raiseAnError(IOError, "Total dimension for given distribution should be >= 1")
 
-    if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
-      self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    if len(rlz.inputInfo['SampledVarsPb'].keys()) > 0:
+      rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
     else:
-      self.inputInfo['PointProbability'] = 1.0
+      rlz.inputInfo['PointProbability'] = 1.0
     if self.samplingType == 'uniform':
-      self.inputInfo['ProbabilityWeight'  ] = weight
+      rlz.inputInfo['ProbabilityWeight'] = weight
     else:
-      self.inputInfo['ProbabilityWeight' ] = 1.0 # MC weight is 1/N => weight is one
-    self.inputInfo['SamplerType'] = 'MonteCarlo'
+      rlz.inputInfo['ProbabilityWeight'] = 1.0 # MC weight is 1/N => weight is one
+    rlz.inputInfo['SamplerType'] = 'MonteCarlo'
+    return rlz
 
   def _localHandleFailedRuns(self, failedRuns):
     """

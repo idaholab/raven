@@ -96,7 +96,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     AdaptiveSampler.__init__(self)
     self.persistence = 5          # this is the number of times the error needs to fell below the tolerance before considering the sim converged
     self.persistenceCounter = 0   # Counter for the persistence
-    self.forceIteration = False   # flag control if at least a self.limit number of iteration should be done
+    self.forceIteration = False   # flag control if at least a self.limits[samples] number of iteration should be done
     self.solutionExport = None    # data used to export the solution (it could also not be present)
     self.tolerance = {}           # dictionary stores the tolerance for each variables
     self.basicStatPP = None       # post-processor to compute the basic statistics
@@ -117,7 +117,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
         for grandchild in child.subparts:
           tag = grandchild.getName()
           if tag == "limit":
-            self.limit = grandchild.value
+            self.limits['samples'] = grandchild.value
           elif tag == "persistence":
             self.persistence = grandchild.value
             self.raiseADebug(f'Persistence is set at {self.persistence}')
@@ -149,7 +149,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
           for target in info['targets']:
             metaVar = prefix + '_ste_' + target
             self.tolerance[metaVar] = info['tol']
-    if self.limit is None:
+    if self.limits['samples'] is None:
       self.raiseAnError(IOError, f'{self.type} requires a <limit> to be specified!')
 
   def localInitialize(self, solutionExport=None):
@@ -186,9 +186,9 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    if self.counter > 1:
+    if self.counters['samples'] > 1:
       output = self.basicStatPP.run(self._targetEvaluation)
-      output['solutionUpdate'] = np.asarray([self.counter - 1])
+      output['solutionUpdate'] = np.asarray([self.counters['samples'] - 1])
       self._solutionExport.addRealization(output)
       self.checkConvergence(output)
 
