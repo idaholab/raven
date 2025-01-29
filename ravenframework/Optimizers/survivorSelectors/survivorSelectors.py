@@ -194,7 +194,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
 
   sortedRank,sortedCD,sortedAge,sortedPopulation,sortedFit,sortedObjectives,sortedConstV = \
     zip(*[(x,y,z,i,j,k,a) for x,y,z,i,j,k,a in \
-      sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMerged_pair, newObjectivesMerged_pair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1]))])
+      sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMerged_pair, newObjectivesMerged_pair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1], x[4], x[3]))])
   sortedRankT, sortedCDT, sortedAgeT, sortedPopulationT, sortedFitT, sortedObjectivesT, sortedConstVT = \
     np.atleast_1d(list(sortedRank)), list(sortedCD), list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFit)),np.atleast_1d(list(sortedObjectives)),np.atleast_1d(list(sortedConstV))
 

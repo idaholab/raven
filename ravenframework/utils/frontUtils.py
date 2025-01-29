@@ -135,7 +135,7 @@ def crowdingDistance(rank, popSize, fitness):
     for obj in range(numObjectives):
       # Sort points in current front by current objective
       sortedFront = [i for i in front]
-      sortedIndices = np.argsort(fitness[sortedFront, obj])
+      sortedIndices = np.argsort(fitness[sortedFront, obj],kind='stable')
       sortedFront = [sortedFront[i] for i in sortedIndices]
 
       # Set boundary points to infinity
