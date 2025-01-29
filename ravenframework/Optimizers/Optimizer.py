@@ -424,8 +424,7 @@ class Optimizer(AdaptiveSampler):
       # prep the sampler, in case it needs it #TODO can we get rid of this for forward sampler?
       self._initSampler.amIreadyToProvideAnInput()
       # get the sample
-      self._initSampler.generateInput(None, None)
-      rlz = self._initSampler.inputInfo['SampledVars']
+      rlz = self._initSampler.generateInput(None, None)[0][0]
       for var, val in rlz.items():
         if var in self.ndVariables:
           expanded = self._expandNDVariable(var, val)

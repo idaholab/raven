@@ -267,7 +267,7 @@ class OpenModelica(CodeInterfaceBase):
     print('sourcefilename:',sourceFileName)
     destFileName = sourceFileName.replace('rawout~', 'out~')  # When fix the CSV, change rawout~ to out~
     sourceFileName += '.csv'
-    with open(sourceFileName) as inputFile:
+    with open(sourceFileName, encoding='utf-8') as inputFile:
       for line in inputFile:
         # Line ends with a comma followed by a newline
         #XXX toBytes seems to be needed here in python3, despite the text = True

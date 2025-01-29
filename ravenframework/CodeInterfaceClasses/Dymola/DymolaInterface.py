@@ -295,7 +295,7 @@ class Dymola(CodeInterfaceBase):
     #   contains the text after it (minus one space on both sides for clarity).
 
     # Read the file.
-    with open(originalPath, 'r', enoding='utf-8') as src:
+    with open(originalPath, 'r', encoding='utf-8') as src:
       text = src.read()
 
     # Set the parameters.

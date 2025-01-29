@@ -18,17 +18,11 @@
   @author: wangc
 """
 
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
-import copy
-import abc
 from collections import OrderedDict
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+import numpy as np
 from .MCMC import MCMC
 from ...utils import utils,randomUtils,InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveMetropolis(MCMC):
   """
@@ -253,23 +247,24 @@ class AdaptiveMetropolis(MCMC):
     proposal.initializeDistribution()
     return proposal
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlz, model, myInput):
     """
       Provides the next sample to take.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, RealizationBatch (or Realization if not compatible), mapping of variables to values
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    self.values.update(self._updateValues)
-    if self.counter > 1:
+    rlz.update(self._updateValues)
+    if self.counters['samples'] > 1:
       self._localReady = False
       newVal = self._proposal.rvs()
       # update sampled value using proposal distribution
       for i, var in enumerate(self._orderedVarsList):
         ## scaling for the new generated inputs
-        self.values[var] = self._updateValues[var] + newVal[i] * self._scaling
+        rlz[var] = self._updateValues[var] + newVal[i] * self._scaling
         ## check the lowerBound and upperBound
         lowerBound = self.distDict[var].lowerBound
         upperBound = self.distDict[var].upperBound
@@ -279,18 +274,18 @@ class AdaptiveMetropolis(MCMC):
           dim = self.variables2distributionsMapping[var]['dim']
           lowerBound = lowerBound[dim-1]
           upperBound = upperBound[dim-1]
-        if lowerBound is not None and self.values[var] < lowerBound:
-          self.values[var] = lowerBound
-        if upperBound is not None and self.values[var] > upperBound:
-          self.values[var] = upperBound
-    self._setProbabilities()
-    self.inputInfo['LogPosterior'] = self.netLogPosterior
-    self.inputInfo['AcceptRate'] = self._acceptRate
+        if lowerBound is not None and rlz[var] < lowerBound:
+          rlz[var] = lowerBound
+        if upperBound is not None and rlz[var] > upperBound:
+          rlz[var] = upperBound
+    self._setProbabilities(rlz)
+    self.samplerInfo['LogPosterior'] = self.netLogPosterior
+    self.samplerInfo['AcceptRate'] = self._acceptRate
 
-  def _setProbabilities(self):
+  def _setProbabilities(self, rlz):
     """
       Method to compute probability related information
-      @ In, None
+      @ In, rlz, Realization, mapping of variables to values
       @ Out, None
     """
     for distName, orderedVars in self._orderedVars.items():
@@ -299,17 +294,17 @@ class AdaptiveMetropolis(MCMC):
       if totDim == 1:
         for var in orderedVars:
           key = var[0]
-          value = self.values[key]
-          self.inputInfo['SampledVarsPb'][key] = dist.pdf(value)
-          self.inputInfo['ProbabilityWeight-' + key] = 1.
+          value = rlz[key]
+          rlz.inputInfo['SampledVarsPb'][key] = dist.pdf(value)
+          rlz.inputInfo['ProbabilityWeight-' + key] = 1.
       else:
-        value = [self.values[var] for var in orderedVars[0]]
+        value = [rlz[var] for var in orderedVars[0]]
         for var in orderedVars[0]:
-          self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
-        self.inputInfo['ProbabilityWeight-' + distName] = 1.
-    self.inputInfo['PointProbability'] = 1.0
-    self.inputInfo['ProbabilityWeight' ] = 1.0
-    self.inputInfo['SamplerType'] = 'Metropolis'
+          rlz.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
+        rlz.inputInfo['ProbabilityWeight-' + distName] = 1.
+    rlz.inputInfo['PointProbability'] = 1.0
+    rlz.inputInfo['ProbabilityWeight' ] = 1.0
+    self.samplerInfo['SamplerType'] = 'Metropolis'
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -322,7 +317,7 @@ class AdaptiveMetropolis(MCMC):
       @ Out, None
     """
     MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
-    if self.counter > 1:
+    if self.counters['samples'] > 1:
       self._updateAdaptiveParams(self.netLogPosterior, self._currentRlz)
 
   def _useRealization(self, newRlz, currentRlz):
@@ -363,16 +358,17 @@ class AdaptiveMetropolis(MCMC):
     """
     ### first use normal strategy (tuneScalingParam) to update scaling parameter until burnIn
     ### Reset scaling and then start to use adaptive approach to update scaling and cov parameters
-    if self.counter == self._burnIn:
+    nSamp = self.counters['samples']
+    if nSamp == self._burnIn:
       self._lambda = self._scaling**2
       self._scaling = 1.
       self._tune = False
-    elif self.counter > self._burnIn:
+    elif nSamp > self._burnIn:
       orderedVarsVals = np.asarray([rlz[var] for var in self._orderedVarsList])
       ## update _lambda and _gamma
-      self._gamma = 1.0/np.sqrt(self.counter-self._burnIn+1.0)
+      self._gamma = 1.0/np.sqrt(nSamp-self._burnIn+1.0)
       self._lambda = self._lambda * np.exp(self._gamma * (np.exp(alpha) - self._optAlpha))
-      if self.counter % self._adaptiveInterval == 0:
+      if nSamp % self._adaptiveInterval == 0:
         diff = orderedVarsVals - self._ensembleMean
         self._ensembleMean += self._gamma * diff
         self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)

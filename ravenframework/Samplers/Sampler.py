@@ -1201,7 +1201,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       instead, as finalizeActualSampling provides only generic functionality
       shared by all Samplers and will in turn call the localFinalizeActualSampling
       before returning.
-      @ In, jobObject, instance, an instance of a JobHandler
+      @ In, jobObject, instance, an instance of a JobRunner
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, myInput, list, the generating input
     """

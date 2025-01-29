@@ -18,21 +18,19 @@ Restructured on April, 2020
 @author: wangc
 """
 
-#External Modules------------------------------------------------------------------------------------
 import copy
-import numpy as np
-from numpy import linalg
 import time
 import threading
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+import numpy as np
+from numpy import linalg
+
 from .HybridModelBase import HybridModelBase
 from ... import Files
 from ...utils import InputData, InputTypes, mathUtils
 from ...utils import utils
 from ...Runners import Error as rerror
-#Internal Modules End--------------------------------------------------------------------------------
+from ...Realizations import RealizationBatch
 
 class HybridModel(HybridModelBase):
   """
@@ -247,14 +245,14 @@ class HybridModel(HybridModelBase):
     if useROM:
       identifier = info['prefix']
       subRlzs = {}
-      for romName in self.romsDictionary.keys():
-        featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
+      for romName, romDict in self.romsDictionary.items():
+        featsList = romDict['Instance'].getInitParams()['Features']
         subRlz = rlz.createSubsetRlz(featsList)
         subRlzs[romName] = subRlz
         subRlz.inputInfo['prefix'] = romName+utils.returnIdSeparator()+identifier
         subRlz.inputInfo['uniqueHandler'] = self.name+identifier
     else:
-      subRlzs = rlz # this feels implicit and strange
+      subRlzs = rlz # this feels implicit and strange: subRlzs structure depends on if useROM or not.
     if self.modelInstance.type == 'Code':
       codeInput = []
       romInput = []
@@ -473,7 +471,7 @@ class HybridModel(HybridModelBase):
     """
     # TODO does this ever receive a batch longer than 1?
     for r, rlz in enumerate(batch):
-      prefix = rlz['prefix']
+      prefix = rlz.inputInfo['prefix']
       self.tempOutputs['uncollectedJobIds'].append(prefix)
       if self.amIReadyToTrainROM():
         self.trainRom()
@@ -501,11 +499,10 @@ class HybridModel(HybridModelBase):
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
     self.raiseADebug("External Run")
-    subRlzs = inRun[2]
-    oneRlz = next(iter(subRlzs))
-    identifier = oneRlz.inputInfo['prefix'] # FIXME should be batch ID, not sample ID?
+    subRlz = inRun[2]
+    identifier = subRlz.inputInfo['prefix'] # FIXME should be batch ID, not sample ID?
     # TODO attach this to the batch, instead of the single realizations?
-    useROM = oneRlz.inputInfo['useROM'] # TODO need pop? inputKwargs.pop('useROM')
+    useROM = subRlz.inputInfo['useROM'] # TODO need pop? inputKwargs.pop('useROM')
     uniqueHandler = self.name + identifier
     if useROM:
       exportDict = self._runROMs(inRun, jobHandler, identifier, uniqueHandler)
@@ -588,7 +585,10 @@ class HybridModel(HybridModelBase):
     moveOn = False
     while not moveOn:
       if jobHandler.availability() > 0:
-        self.modelInstance.submit(rlz, originalInput, samplerType, jobHandler)
+        # make rlz part of a batch -> FIXME why do I have to do this? -> because of weird choice in createNewInput
+        batch = RealizationBatch(1)
+        batch[0] = rlz
+        self.modelInstance.submit(batch, originalInput, samplerType, jobHandler)
         self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
         moveOn = True
       else:
@@ -597,9 +597,9 @@ class HybridModel(HybridModelBase):
       time.sleep(self.sleepTime)
     self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
     finishedRun = jobHandler.getFinished(jobIdentifier=rlz.inputInfo['prefix'], uniqueHandler=uniqueHandler)
-    evaluation = finishedRun[0].getEvaluation()
+    evaluation = finishedRun[0][0].getEvaluation()
     if isinstance(evaluation, rerror):
-      self.raiseAnError(RuntimeError, f'The model "{self.modelInstance.name}" identified by "{finishedRun[0].identifier}" failed!')
+      self.raiseAnError(RuntimeError, f'The model "{self.modelInstance.name}" identified by "{finishedRun[0][0].identifier}" failed!')
     # collect output in temporary data object
     exportDict = evaluation
     return exportDict

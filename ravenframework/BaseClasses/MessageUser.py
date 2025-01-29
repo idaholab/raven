@@ -133,9 +133,11 @@ class MessageUser(object):
       @ In, tag, str, optional, identifying message to include with print
     """
     print('/'+'*'*80)
-    print(f'{tag}:')
+    print(f'{tag} {self.__class__.__name__}: "{member}"')
     if obj is None:
-      pp(getattr(self, member))
+      toPrint = getattr(self, member)
     else:
-      pp(obj)
+      toPrint = obj
+    pp(toPrint)
+    print('DEBUGG TYPE:', type(obj))
     print('\\'+'*'*80)

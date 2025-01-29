@@ -241,7 +241,8 @@ class EnsembleForward(Sampler):
         elif key not in rlz.inputInfo:
           rlz.inputInfo[key] = value
         else:
-          if isinstance(rlz.inputInfo[key], dict) and len(value):
+          if isinstance(rlz.inputInfo[key], dict):
+            self.raiseWhatsThis('value', value)
             rlz.inputInfo[key].update(value)
           else:
             raise RuntimeError # can we get here?

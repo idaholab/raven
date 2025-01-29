@@ -307,7 +307,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     notFound = 2**62 # ??? Magic var?
     for aliasTyp in listAliasType:
       for varFramework,varModel in self.alias[aliasTyp].items():
-        whichVar =  varModel if fromModelToFramework else varFramework
+        whichVar = varModel if fromModelToFramework else varFramework
         if isinstance(originalVariables, list):
           if whichVar in sampledVars:
             sampledVars[sampledVars.index(whichVar)] = varFramework if fromModelToFramework else varModel

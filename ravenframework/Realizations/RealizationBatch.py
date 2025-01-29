@@ -63,8 +63,8 @@ class RealizationBatch:
       @ In, value, any, corresponding value
       @ Out, None
     """
-    # TODO should we allow providing a Realization object?
-    raise IndexError('Tried to overwrite a Realization object in a Batch!')
+    assert isinstance(value, Realization)
+    self._realizations[index] = value
 
   def pop(self, *args):
     """

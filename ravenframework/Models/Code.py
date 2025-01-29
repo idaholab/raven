@@ -389,6 +389,7 @@ class Code(Model):
 
     # FIXME do we force all Codes to update to this new format, or do we grandfather in somehow?
     # OLD newInput = self.code.createNewInput(newInputSet, self.oriInputFiles, samplerType, **copy.deepcopy(kwargs))
+    print('DEBUGG code:', self.code)
     newInput = self.code.createNewInput(newInputSet, self.oriInputFiles, samplerType, rlz)
 
     return (newInput, rlz)
