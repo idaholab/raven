@@ -1019,8 +1019,10 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseADebug("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-        rlzDict['batchId'] = rlz['batchId'].data[i]
+        rlzDict = self.population.isel(chromosome=i).to_series().to_dict()
+        for j in range(len(self._objectiveVar)):
+           rlzDict[self._objectiveVar[j]] = self.objectiveVal[j][i]
+        rlzDict['batchId'] = self.batchId
         rlzDict['rank'] = np.atleast_1d(self.rank.data)[i]
         rlzDict['CD'] = np.atleast_1d(self.crowdingDistance.data)[i]
         for ind, fitName in enumerate(list(self.fitness.keys())):
