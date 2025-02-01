@@ -90,7 +90,7 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
 
       if line.strip().startswith("[./"):
         if depth == 0: # This line contains the test name
-          testName = os.path.join(root, line.strip()[3:-1])
+          testName = os.path.normpath(os.path.join(root, line.strip()[3:-1]))
           testSpecs['test_directory'] = root
           startReading = True
           collectSpecs = False
