@@ -363,7 +363,7 @@ if __name__ == "__main__":
                                                                               env_var_value))
       os.environ[env_var_name] = env_var_value
 
-  test_re = re.compile(args.test_re_raw)
+  test_re = re.compile((repr(args.test_re_raw)).strip("'"))
 
   this_dir = os.path.abspath(os.path.dirname(__file__))
   up_one_dir = os.path.dirname(this_dir)
@@ -446,7 +446,7 @@ if __name__ == "__main__":
       if not param_handler.check_for_all_known(node.attrib):
         print("Unknown Parameters in:", node.tag, test_file)
       rel_test_dir = test_dir#[len(base_test_dir)+1:]
-      test_name = rel_test_dir+os.sep+node.tag
+      test_name = os.path.normpath(os.path.join(rel_test_dir, node.tag))
       if "prereq" in node.attrib:
         prereq = node.attrib['prereq']
         prereq_name = rel_test_dir+os.sep+prereq
