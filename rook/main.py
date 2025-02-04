@@ -363,7 +363,9 @@ if __name__ == "__main__":
                                                                               env_var_value))
       os.environ[env_var_name] = env_var_value
 
-  test_re = re.compile((repr(args.test_re_raw)).strip("'"))
+  test_re = re.compile(re.escape(args.test_re_raw))
+  import pdb
+  pdb.set_trace()
 
   this_dir = os.path.abspath(os.path.dirname(__file__))
   up_one_dir = os.path.dirname(this_dir)
