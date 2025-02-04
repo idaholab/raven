@@ -58,9 +58,9 @@ class ValidationBase(PostProcessorReadyInterface):
     specs.addSub(preProcessorInput)
     pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     specs.addSub(pivotParameterInput)
-    featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
+    featuresInput = InputData.parameterInputFactory("prototypeOutputs", contentType=InputTypes.StringListType)
     specs.addSub(featuresInput)
-    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
+    targetsInput = InputData.parameterInputFactory("targetOutputs", contentType=InputTypes.StringListType)
     specs.addSub(targetsInput)
     metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
     metricInput.addParam("class", InputTypes.StringType)
@@ -85,8 +85,8 @@ class ValidationBase(PostProcessorReadyInterface):
 
     self.dataType = ['static', 'dynamic'] # the type of data can be passed in (static aka PointSet, dynamic aka HistorySet) (if both are present the validation algorithm can work for both data types)
     self.acceptableMetrics = [] # if not populated all types of metrics are accepted, otherwise list the metrics (see Probablistic.py for an example)
-    self.features = None        # list of feature variables
-    self.targets = None         # list of target variables
+    self.prototypeOutputs = None        # list of feature variables
+    self.targetOutputs = None         # list of target variables
     self.pivotValues = None     # pivot values (present if dynamic == True)
 
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
@@ -126,14 +126,14 @@ class ValidationBase(PostProcessorReadyInterface):
     for child in paramInput.subparts:
       if child.getName() == 'pivotParameter':
         self.pivotParameter = child.value
-      elif child.getName() == 'Features':
-        self.features = child.value
-      elif child.getName() == 'Targets':
-        self.targets = child.value
+      elif child.getName() == 'prototypeOutputs':
+        self.prototypeOutputs = child.value
+      elif child.getName() == 'targetOutputs':
+        self.targetOutputs = child.value
     if 'static' not in self.dataType and self.pivotParameter is None:
       self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
-    if not self.features:
-      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
+    if not self.prototypeOutputs:
+      self.raiseAnError(IOError, "XML node 'prototypeOutputs' is required but not provided")
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -152,20 +152,20 @@ class ValidationBase(PostProcessorReadyInterface):
 
     if len(inputs) > 1:
       # if inputs > 1, check if the | is present to understand where to get the features and target
-      notStandard = [k for k in self.features + self.targets if "|" not in k]
+      notStandard = [k for k in self.prototypeOutputs + self.targetOutputs if "|" not in k]
       if notStandard:
         self.raiseAnError(IOError, "# Input Datasets/DataObjects > 1! features and targets must use the syntax DataObjectName|feature to be usable! Not standard features are: {}!".format(",".join(notStandard)))
     # now lets check that the variables are in the dataobjects
     if isinstance(inputs[0], DataObjects.DataSet):
       do = [inp.name for inp in inputs]
       if len(inputs) > 1:
-        allFound = [feat.split("|")[0].strip() in do for feat in self.features]
-        allFound += [targ.split("|")[0].strip() in do for targ in self.targets]
+        allFound = [feat.split("|")[0].strip() in do for feat in self.prototypeOutputs]
+        allFound += [targ.split("|")[0].strip() in do for targ in self.targetOutputs]
         if not all(allFound):
-          self.raiseAnError(IOError, "Targets and Features are linked to DataObjects that have not been listed as inputs in the Step. Please check input!")
+          self.raiseAnError(IOError, "targetParameters and prototypeParameters are linked to DataObjects that have not been listed as inputs in the Step. Please check input!")
       # check variables
       for indx, dobj in enumerate(do):
-        variables = [var.split("|")[-1].strip() for var in (self.features + self.targets) if dobj in var]
+        variables = [var.split("|")[-1].strip() for var in (self.prototypeOutputs + self.targetOutputs) if dobj in var]
         if not utils.isASubset(variables,inputs[indx].getVars()):
           self.raiseAnError(IOError, "The variables '{}' not found in input DataObjet '{}'!".format(",".join(list(set(list(inputs[indx].getVars())) - set(variables))), dobj))
 
@@ -186,10 +186,12 @@ class ValidationBase(PostProcessorReadyInterface):
     """
     pw = None
     if "|" in var and names is not None:
-      do, feat =  var.split("|")
+      info = var.split("|")
+      do = info[0]
+      feat = info[-1]
       dat = datasets[do][feat]
     else:
-      for doIndex, ds in enumerate(datasets):
+      for _, ds in enumerate(datasets):
         if var in ds:
           dat = ds[var]
           break
