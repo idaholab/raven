@@ -786,13 +786,12 @@ class GeneticAlgorithm(RavenSampled):
     # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
     # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
 
-    objInd = int(len(self._objectiveVar)>1) + 1
     g, objectiveVal, offSprings, offSpringFitness = constraintHandling(self, info, rlz, multiObjective=self._isMultiObjective)
 
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
     if self._activeTraj:
-      survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if objInd == 2 else  survivorSelectionProcess.singleObjSurvivorSelect
+      survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if len(self._objectiveVar) > 1 else  survivorSelectionProcess.singleObjSurvivorSelect
       survivorSelection(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g)
 
       # 1 @ n: Parent selection from population
