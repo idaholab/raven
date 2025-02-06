@@ -788,7 +788,15 @@ class GeneticAlgorithm(RavenSampled):
 
     offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
 
-    g, objectiveVal, offSpringFitness = constraintHandling(self, info, rlz, offSprings, multiObjective=self._isMultiObjective)
+    # Handle objective values differently for single and multi-objective cases
+    if self._isMultiObjective:
+        objectiveVal = []
+        for i in range(len(self._objectiveVar)):
+            objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
+    else:
+        objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
+
+    g, offSpringFitness = constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective=self._isMultiObjective)
 
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
