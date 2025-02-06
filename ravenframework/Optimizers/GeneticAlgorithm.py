@@ -792,8 +792,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
     if self._activeTraj:
-      survivorSelectionFuncs: dict = {1: survivorSelectionProcess.singleObjSurvivorSelect, 2: survivorSelectionProcess.multiObjSurvivorSelect}
-      survivorSelection = survivorSelectionFuncs.get(objInd, survivorSelectionProcess.singleObjSurvivorSelect)
+      survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if objInd == 2 else  survivorSelectionProcess.singleObjSurvivorSelect
       survivorSelection(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g)
 
       # 1 @ n: Parent selection from population
