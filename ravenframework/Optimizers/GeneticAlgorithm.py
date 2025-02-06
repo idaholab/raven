@@ -796,8 +796,22 @@ class GeneticAlgorithm(RavenSampled):
     else:
         objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
 
-    g, offSpringFitness = constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective=self._isMultiObjective)
+    g = constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective=self._isMultiObjective)
 
+    # Compute fitness for the offspring
+    offSpringFitness = self._fitnessInstance(rlz,
+                                             objVar=self._objectiveVar,
+                                             a=self._objCoeff,
+                                             b=self._penaltyCoeff,
+                                             penalty=None,
+                                             constraintFunction=g,
+                                             constraintNum=self._numOfConst,
+                                             type=self._minMax)
+
+    # Single-objective post-processing (if needed)
+    if not self._isMultiObjective:
+        self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
+        self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
     if self._activeTraj:

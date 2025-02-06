@@ -71,19 +71,4 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
             else:
                 g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
 
-    # Compute fitness for the offspring
-    offSpringFitness = self._fitnessInstance(rlz,
-                                             objVar=self._objectiveVar,
-                                             a=self._objCoeff,
-                                             b=self._penaltyCoeff,
-                                             penalty=None,
-                                             constraintFunction=g,
-                                             constraintNum=self._numOfConst,
-                                             type=self._minMax)
-
-    # Single-objective post-processing (if needed)
-    if not multiObjective:
-        self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
-        self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
-
-    return g, offSpringFitness
+    return g
