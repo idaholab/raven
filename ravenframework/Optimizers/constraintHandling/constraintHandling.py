@@ -22,7 +22,7 @@ import xarray as xr
 import numpy as np
 from ..GeneticAlgorithm import datasetToDataArray
 
-def constraintHandling(self, info, rlz, multiObjective=False):
+def constraintHandling(self, info, rlz, offSprings, multiObjective=False):
     """
     This function handles the constraints for both single and multi-objective optimization.
     @ In, info, dict, dictionary containing information about the run
@@ -31,7 +31,6 @@ def constraintHandling(self, info, rlz, multiObjective=False):
     @ Out, None
     """
     traj = info['traj']
-    offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
 
     # Handle objective values differently for single and multi-objective cases
     if multiObjective:
@@ -95,4 +94,4 @@ def constraintHandling(self, info, rlz, multiObjective=False):
         self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
         self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
 
-    return g, objectiveVal, offSprings, offSpringFitness
+    return g, objectiveVal, offSpringFitness

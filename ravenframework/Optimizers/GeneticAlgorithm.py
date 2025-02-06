@@ -786,7 +786,9 @@ class GeneticAlgorithm(RavenSampled):
     # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
     # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
 
-    g, objectiveVal, offSprings, offSpringFitness = constraintHandling(self, info, rlz, multiObjective=self._isMultiObjective)
+    offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
+
+    g, objectiveVal, offSpringFitness = constraintHandling(self, info, rlz, offSprings, multiObjective=self._isMultiObjective)
 
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
