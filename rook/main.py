@@ -68,6 +68,8 @@ class NoColors:
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
                     help='Specifies number of tests to run simultaneously (default: 1)')
+parser.add_argument('--longest-jobs',dest='longest_jobs', type=int, default=0,
+                    help='Only for compatibility')
 parser.add_argument('--re', dest='test_re_raw', default='.*',
                     help='Only tests with this regular expression inside will be run')
 parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
@@ -361,7 +363,7 @@ if __name__ == "__main__":
                                                                               env_var_value))
       os.environ[env_var_name] = env_var_value
 
-  test_re = re.compile(args.test_re_raw)
+  test_re = re.compile((args.test_re_raw).replace('\\', '\\\\'))
 
   this_dir = os.path.abspath(os.path.dirname(__file__))
   up_one_dir = os.path.dirname(this_dir)
@@ -389,7 +391,7 @@ if __name__ == "__main__":
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")
   if args.add_non_default_run_types is not None:
-    non_default_run_types = args.add_non_default_run_types.split(",")
+    non_default_run_types = [x.strip() for x in args.add_non_default_run_types.split(",")]
     for ndrt in non_default_run_types:
       Tester.add_non_default_run_type(ndrt)
 
@@ -444,7 +446,7 @@ if __name__ == "__main__":
       if not param_handler.check_for_all_known(node.attrib):
         print("Unknown Parameters in:", node.tag, test_file)
       rel_test_dir = test_dir#[len(base_test_dir)+1:]
-      test_name = rel_test_dir+os.sep+node.tag
+      test_name = os.path.normpath(os.path.join(rel_test_dir, node.tag))
       if "prereq" in node.attrib:
         prereq = node.attrib['prereq']
         prereq_name = rel_test_dir+os.sep+prereq

@@ -38,20 +38,20 @@ Note all install methods after "main" take
 <dependencies>
   <main>
     <h5py/>
-    <numpy>1.24</numpy>
-    <scipy>1.9</scipy>
-    <scikit-learn>1.0</scikit-learn>
+    <numpy>1.26</numpy>
+    <scipy>1.12</scipy>
+    <scikit-learn>1.1</scikit-learn>
     <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
-    <xarray>2023</xarray>
+    <xarray/>
     <netcdf4 source="pip">1.6</netcdf4>
-    <matplotlib>3.5</matplotlib>
+    <matplotlib>3.6</matplotlib>
     <statsmodels>0.13</statsmodels>
     <cloudpickle/>
-    <tensorflow source="pip">2.13</tensorflow>
+    <tensorflow source="pip">2.14</tensorflow>
     <grpcio source="pip" />
     <!-- conda is really slow on windows if the version is not specified.-->
-    <python skip_check='True' os='windows'>3.10</python>
+    <python skip_check='True' os='windows'>3.11</python>
     <python skip_check='True' os='mac,linux'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -66,14 +66,14 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
-    <ray source="pip" pip_extra="[default]">2.6</ray>
+    <ray source="pip" pip_extra="[default]">2.38</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <statsforecast/>
-    <pywavelets>1.2</pywavelets>
+    <pywavelets>1.4</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
@@ -83,7 +83,7 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
-    <setuptools>69</setuptools> <!-- ray 2.6 can't be installed with setuptools 70 -->
+    <setuptools />
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <!-- mamba version 2.0.0 causes failures on mac: critical libmamba filesystem error: in permissions: Operation not permitted-->
     <mamba source="mamba" skip_check='True' os='mac'>1.5</mamba>

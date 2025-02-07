@@ -90,7 +90,7 @@ class NumericText(Differ):
         same = False
       # if either file did not exist, clean up and go to next outfile
       if not same:
-        self.finalize_message(same, msg, test_filename)
+        self.finalize_message(same, msg, test_filename, gold_filename)
         continue
       cswf = DU.compare_strings_with_floats
       same, message = cswf(test_file.read(),
@@ -100,18 +100,21 @@ class NumericText(Differ):
                            rel_err=self.__text_opts['rel_err'])
       if not same:
         msg.append(message)
-      self.finalize_message(same, msg, test_filename)
+      self.finalize_message(same, msg, test_filename, gold_filename)
     return self.__same, self.__message
 
 
-  def finalize_message(self, same, msg, filename):
+  def finalize_message(self, same, msg, test_filename, gold_filename):
     """
       Compiles useful messages to print, prepending with file paths.
       @ In, same, bool, True if files are the same
       @ In, msg, list(str), messages that explain differences
-      @ In, filename, str, test filename/path
+      @ In, test_filename, str, test filename/path
+      @ In, gold_filename, str, gold filename/path
       @ Out, None
     """
     if not same:
       self.__same = False
-      self.__message += '\nDIFF in {}: \n  {}'.format(filename, '\n  '.join(msg))
+      self.__message += '\nDIFF in {} and\n{}: \n  {}'.format(test_filename,
+                                                              gold_filename,
+                                                              '\n  '.join(msg))
