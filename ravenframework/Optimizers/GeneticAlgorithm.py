@@ -18,7 +18,8 @@
   mutations, cross-overs, etc. are available.
   Created June,3,2020
   Updated Sepember,17,2023
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
+  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim,
+    Joshua Cogliati
   References
     ----------
        [1] Holland, John H. "Genetic algorithms." Scientific American 267.1 (1992): 66-73.
