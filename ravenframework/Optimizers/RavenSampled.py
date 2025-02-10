@@ -303,7 +303,7 @@ class RavenSampled(Optimizer):
     # so get the correct-signed value into the realization
 
     if 'max' in self._minMax:
-      if not self._canHandleMultiObjective and len(self._objectiveVar) == 1:
+      if not self._isMultiObjective:
         rlz[self._objectiveVar[0]] *= -1
       elif type(self._objectiveVar) == list:
         for i in range(len(self._objectiveVar)):
@@ -422,7 +422,7 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
 
-      if len(self._objectiveVar) == 1:
+      if not self._isMultiObjective:
         opt = self._optPointHistory[traj][-1][0]
         val = opt[self._objectiveVar]
         self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
