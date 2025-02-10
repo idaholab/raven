@@ -26,11 +26,8 @@
       <variables>x1,x2,ans,ans2</variables>
     </ExternalModel>
     <PostProcessor name="pp1" subType="Probabilistic">
-      <Features>outputDataMC1|ans</Features>
-      <Targets>outputDataMC2|ans2</Targets>
-      <!--
-        <Metric class="Metrics" type="RACDistance">fz_expected</Metric>
-      -->
+      <prototypeOutputs>outputDataMC1|Output|ans</prototypeOutputs>
+      <targetOutputs>outputDataMC2|Output|ans2</targetOutputs>
       <Metric class="Metrics" type="Metric">cdf_diff</Metric>
       <Metric class="Metrics" type="Metric">pdf_area</Metric>
     </PostProcessor>
