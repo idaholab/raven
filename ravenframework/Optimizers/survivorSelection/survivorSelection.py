@@ -33,11 +33,14 @@ from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
 def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
   """
     process of selecting survivors for single objective problems
+    @ In, self, Instance of GeneticAlgorithm. Also information to return is added to this
     @ In, info, dict, dictionary of information
     @ In, rlz, dict, dictionary of realizations
     @ In, traj, dict, dictionary of trajectories
     @ In, offSprings, list, list of offsprings
     @ In, offSpringFitness, list, list of offspring fitness
+    @ In, objectiveVal, list, floats of objective values
+    @ In, g, xr.DataArray, constraint data
   """
   if self.counter > 1:
     self.population, self.fitness,\
@@ -57,12 +60,14 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness,
 def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
   """
     process of selecting survivors for multi-objective problems
+    @ In, self, instance of GeneticAlgorithm. Also information to return is added to this
     @ In, info, dict, dictionary of information
     @ In, rlz, dict, dictionary of realizations (including values of all objectives)
     @ In, traj, dict, dictionary of trajectories
     @ In, offSprings, list, list of offspring individuals
     @ In, offSpringFitness, list, list of fitness values for offspring individuals
     @ In, objectiveVal, list, values of the objectives (for ranking and crowding distance calculation)
+    @ In, g, xr.DataArray, constraint data
   """
   if self.counter > 1:
     self.population,self.rank, \
