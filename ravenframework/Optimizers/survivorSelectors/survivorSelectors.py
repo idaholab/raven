@@ -111,7 +111,7 @@ def fitnessBased(newRlz,**kwargs):
   offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
   popFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data
-  popFitness = np.array([item for sublist in popFitness for item in sublist])
+  popFitness = popFitness.reshape((popFitness.size,))
   newPopulation = population
   newFitness = popFitness
   newAge = list(map(lambda x:x+1, popAge))
@@ -145,13 +145,24 @@ def rankNcrowdingBased(offsprings, **kwargs):
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
           variables
+          age
           population
+          popObjectiveVal
+          offObjectiveVal
+          popFit
+          offFit
+          popConstV
+          offConstV
     @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
     @ Out, newRank, xr.DataArray, rank of each chromosome in the new population
+    @ Out, newAge, list, integer age of each chromosome
     @ Out, newCD, xr.DataArray, crowding distance of each chromosome in the new population.
+    @ Out, newObjectivesP, list of lists, float value of the objectives
+    @ Out, newFitnessSet, xr.DataSet, objectives of the chromosome
+    @ Out, newConstV, xr.DataArray, includes the ConstEvaluation
   """
   popSize = np.shape(kwargs['population'])[0]
-  if ('age' not in kwargs.keys() or kwargs['age'] == None):
+  if ('age' not in kwargs or kwargs['age'] is None):
     popAge = [0] * popSize
   else:
     popAge = kwargs['age']
@@ -169,21 +180,21 @@ def rankNcrowdingBased(offsprings, **kwargs):
     offFitArray.append(offFit[i].data.tolist())
 
   newFitMerged      = np.array([i + j for i, j in zip(popFitArray, offFitArray)])
-  newFitMerged_pair = [list(ele) for ele in list(zip(*newFitMerged))]
+  newFitMergedPair = [list(ele) for ele in list(zip(*newFitMerged))]
 
   popConstV = kwargs['popConstV'].data
   offConstV = kwargs['offConstV'].data
   newConstVMerged = np.array(popConstV.tolist() + offConstV.tolist())
 
   newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offObjectiveVal)])
-  newObjectivesMerged_pair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
+  newObjectivesMergedPair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
 
-  newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newFitMerged_pair),isFitness=True)
+  newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newFitMergedPair),isFitness=True)
   newPopRank = xr.DataArray(newPopRank,
                             dims=['rank'],
                             coords={'rank': np.arange(np.shape(newPopRank)[0])})
 
-  newPopCD = frontUtils.crowdingDistance(rank=newPopRank, popSize=len(newPopRank), fitness=np.array(newFitMerged_pair))
+  newPopCD = frontUtils.crowdingDistance(rank=newPopRank, popSize=len(newPopRank), fitness=np.array(newFitMergedPair))
   newPopCD = xr.DataArray(newPopCD,
                           dims=['CrowdingDistance'],
                           coords={'CrowdingDistance': np.arange(np.shape(newPopCD)[0])})
@@ -194,7 +205,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
 
   sortedRank,sortedCD,sortedAge,sortedPopulation,sortedFit,sortedObjectives,sortedConstV = \
     zip(*[(x,y,z,i,j,k,a) for x,y,z,i,j,k,a in \
-      sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMerged_pair, newObjectivesMerged_pair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1], x[4], x[3]))])
+      sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMergedPair, newObjectivesMergedPair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1], x[4], x[3]))])
   sortedRankT, sortedCDT, sortedAgeT, sortedPopulationT, sortedFitT, sortedObjectivesT, sortedConstVT = \
     np.atleast_1d(list(sortedRank)), list(sortedCD), list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFit)),np.atleast_1d(list(sortedObjectives)),np.atleast_1d(list(sortedConstV))
 
