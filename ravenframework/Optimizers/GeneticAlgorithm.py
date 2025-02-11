@@ -812,7 +812,7 @@ class GeneticAlgorithm(RavenSampled):
     # Single-objective post-processing (if needed)
     if not self._isMultiObjective:
         self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
-        self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, g, info)
+        self._resolveNewGeneration(traj, rlz, info, objectiveVal, offSpringFitness, g)
 
     # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
     if self._activeTraj:
@@ -842,7 +842,7 @@ class GeneticAlgorithm(RavenSampled):
                                    self.objectiveVal,
                                    self.fitness,
                                    self.constraintsV)
-        self._resolveNewGenerationMulti(traj, rlz, info)
+        self._resolveNewGeneration(traj, rlz, info)
 
 
       # 1 @ n: Parent selection from population
@@ -992,47 +992,7 @@ class GeneticAlgorithm(RavenSampled):
   #       rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
   #     self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
-  def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, g, info):
-    """
-      Store a new Generation after checking convergence
-      @ In, traj, int, trajectory for this new point
-      @ In, rlz, dict, realized realization
-      @ In, objectiveVal, list, objective values at each chromosome of the realization
-      @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
-      @ In, g, xr.DataArray, the constraint evaluation function
-      @ In, info, dict, identifying information about the realization
-    """
-    self.raiseADebug('*'*80)
-    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new state ...')
-    # note the collection of the opt point
-    self._stepTracker[traj]['opt'] = (rlz, info)
-    acceptable = 'accepted' if self.counter > 1 else 'first'
-    old = self.population
-    converged = self._updateConvergence(traj, rlz, old, acceptable)
-    if converged:
-      self._closeTrajectory(traj, 'converge', 'converged', self.bestObjective)
-    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
-    #       point history.
-    if self._writeSteps == 'every':
-      for i in range(rlz.sizes['RAVEN_sample_ID']):
-        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-        rlzDict[self._objectiveVar[0]] = np.atleast_1d(rlz[self._objectiveVar[0]].data)[i]
-        rlzDict['fitness'] = np.atleast_1d(fitness.to_array()[:,i])
-        for ind, consName in enumerate(g['Constraint'].values):
-          rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
-        self._updateSolutionExport(traj, rlzDict, acceptable, None)
-        # self._solutionExportUtilityUpdate(traj, rlzDict, rlzDict['fitness'], g, acceptable)
-    # decide what to do next
-    if acceptable in ['accepted', 'first']:
-      # record history
-      bestRlz = {}
-      bestRlz[self._objectiveVar[0]] = self.bestObjective
-      bestRlz['fitness'] = self.bestFitness
-      bestRlz.update(self.bestPoint)
-      self._optPointHistory[traj].append((bestRlz, info))
-
-  def _resolveNewGenerationMulti(self, traj, rlz, info):
+  def _resolveNewGeneration(self, traj, rlz, info, objectiveVal=None, fitness=None, g=None):
     """
       Store a new Generation after checking convergence
       @ In, traj, int, trajectory for this new point
@@ -1045,57 +1005,65 @@ class GeneticAlgorithm(RavenSampled):
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new Generation (population) ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
-    # if self.counter == 1:
-    #   acceptable = 'first'
-    # elif self.constraintsV.data[i,ind]
     acceptable = 'accepted' if self.counter > 1 else 'first'
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
-      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective)
+      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective if self._isMultiObjective else self.bestObjective)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
-    # objVal = [[] for x in range(len(self.objectiveVal[0]))]
-    # for i in range(len(self.objectiveVal[0])):
-    #   objVal[i] = [item[i] for item in self.objectiveVal]
 
-    objVal = xr.DataArray(np.array(self.objectiveVal).T, #objVal,
-                          dims=['chromosome','obj'],
-                          coords={'chromosome':np.arange(len(self.objectiveVal[0])),
-                                  'obj': self._objectiveVar})
+    if self._isMultiObjective:
+      objVal = xr.DataArray(np.array(self.objectiveVal).T, #objVal,
+                            dims=['chromosome','obj'],
+                            coords={'chromosome':np.arange(len(self.objectiveVal[0])),
+                                    'obj': self._objectiveVar})
     if self._writeSteps == 'every':
       self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
-      self.raiseADebug("### self.population.shape is {}".format(self.population.shape))
+      #self.raiseADebug("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
-        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = self.population.isel(chromosome=i).to_series().to_dict()
-        for j in range(len(self._objectiveVar)):
-           rlzDict[self._objectiveVar[j]] = self.objectiveVal[j][i]
-        rlzDict['batchId'] = self.batchId
-        rlzDict['rank'] = np.atleast_1d(self.rank.data)[i]
-        rlzDict['CD'] = np.atleast_1d(self.crowdingDistance.data)[i]
-        for ind, fitName in enumerate(list(self.fitness.keys())):
-          rlzDict['FitnessEvaluation_'+fitName] = self.fitness[fitName].data[i]
-        for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
-          rlzDict['ConstraintEvaluation_'+consName] = self.constraintsV.data[i,ind]
+        if self._isMultiObjective:
+          rlzDict = self.population.isel(chromosome=i).to_series().to_dict()
+          for j in range(len(self._objectiveVar)):
+             rlzDict[self._objectiveVar[j]] = self.objectiveVal[j][i]
+          rlzDict['batchId'] = self.batchId
+          rlzDict['rank'] = np.atleast_1d(self.rank.data)[i]
+          rlzDict['CD'] = np.atleast_1d(self.crowdingDistance.data)[i]
+          for ind, fitName in enumerate(list(self.fitness.keys())):
+            rlzDict['FitnessEvaluation_'+fitName] = self.fitness[fitName].data[i]
+          for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
+            rlzDict['ConstraintEvaluation_'+consName] = self.constraintsV.data[i,ind]
+        else:
+          varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+          rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+          for j in range(len(self._objectiveVar)):
+            rlzDict[self._objectiveVar[j]] = np.atleast_1d(rlz[self._objectiveVar[j]].data)[i]
+          rlzDict['fitness'] = np.atleast_1d(fitness.to_array()[:,i])
+          for ind, consName in enumerate(g['Constraint'].values):
+            rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
       bestRlz = {}
-      varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-      bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in list(self.toBeSampled.keys()))
-      for i in range(len(self._objectiveVar)):
-        bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
-      bestRlz['rank'] = self.multiBestRank
-      bestRlz['CD'] = self.multiBestCD
-      if len(self.multiBestConstraint) != 0: # No constraints
-        for ind, consName in enumerate(self.multiBestConstraint.Constraint):
-            bestRlz['ConstraintEvaluation_'+consName.values.tolist()] = self.multiBestConstraint[ind].values
-      for ind, fitName in enumerate(list(self.multiBestFitness.keys())):
-          bestRlz['FitnessEvaluation_'+ fitName] = self.multiBestFitness[fitName].data
-      bestRlz.update(self.multiBestPoint)
+      if self._isMultiObjective:
+        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+        bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in list(self.toBeSampled.keys()))
+        for i in range(len(self._objectiveVar)):
+          bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
+        bestRlz['rank'] = self.multiBestRank
+        bestRlz['CD'] = self.multiBestCD
+        if len(self.multiBestConstraint) != 0: # No constraints
+          for ind, consName in enumerate(self.multiBestConstraint.Constraint):
+              bestRlz['ConstraintEvaluation_'+consName.values.tolist()] = self.multiBestConstraint[ind].values
+        for ind, fitName in enumerate(list(self.multiBestFitness.keys())):
+            bestRlz['FitnessEvaluation_'+ fitName] = self.multiBestFitness[fitName].data
+        bestRlz.update(self.multiBestPoint)
+      else:
+        bestRlz[self._objectiveVar[0]] = self.bestObjective
+        bestRlz['fitness'] = self.bestFitness
+        bestRlz.update(self.bestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
 
   def _collectOptPoint(self, rlz, fitness, objectiveVal, g):
