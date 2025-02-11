@@ -321,19 +321,24 @@ class RavenSampled(Optimizer):
       @ In, failedRuns, list, runs that failed as part of this sampling
       @ Out, None
     """
+    # get and print the best trajectory obtained
+    bestValue = None
+    bestTraj = None
+    bestPoint = None
+
+    # check converged trajectories
+    self.raiseAMessage('*' * 80)
+    self.raiseAMessage('Optimizer Final Results:')
+    self.raiseADebug('')
+    self.raiseADebug(' - Trajectory Results:')
+    self.raiseADebug('  TRAJ   STATUS    VALUE')
+    statusTemplate = '   {traj:2d}  {status:^11s}  {val: 1.3e}'
+    templateNoValue = '   {traj:2d}  {status:^11s}'
+    # Define the template for the values
+    valueTemplate = '{val: 1.3e}'
+
     if not self._isMultiObjective:
-      # get and print the best trajectory obtained
-      bestValue = None
-      bestTraj = None
-      bestPoint = None
       s = -1 if 'max' in self._minMax else 1
-      # check converged trajectories
-      self.raiseAMessage('*' * 80)
-      self.raiseAMessage('Optimizer Final Results:')
-      self.raiseADebug('')
-      self.raiseADebug(' - Trajectory Results:')
-      self.raiseADebug('  TRAJ   STATUS    VALUE')
-      statusTemplate = '   {traj:2d}  {status:^11s}  {val: 1.3e}'
       # print cancelled traj
       for traj, info in self._cancelledTraj.items():
         val = info['value']
@@ -373,22 +378,8 @@ class RavenSampled(Optimizer):
       self.raiseAMessage('*' * 80)
       # write final best solution to soln export
       self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
-    else:
-      # get and print the best trajectory obtained
-      bestValue = None
-      bestTraj = None
-      bestPoint = None
-      s = [1 if w == 'min' else -1 for w in self._minMax]
-      # check converged trajectories
-      self.raiseAMessage('*' * 80)
-      self.raiseAMessage('Optimizer Final Results:')
-      self.raiseADebug('')
-      self.raiseADebug(' - Trajectory Results:')
-      self.raiseADebug('  TRAJ   STATUS    VALUE')
-      statusTemplate = '   {traj:2d}  {status:^11s}  {val: 1.3e}'
-      templateNoValue = '   {traj:2d}  {status:^11s}'
-      # Define the template for the values
-      valueTemplate = '{val: 1.3e}'
+    else: #self._isMultiObjective true
+      s = [-1 if w == 'max' else 1 for w in self._minMax]
 
       # print cancelled traj
       for traj, info in self._cancelledTraj.items():
@@ -422,40 +413,19 @@ class RavenSampled(Optimizer):
         self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                           'Perhaps the Model failed?')
 
-      if not self._isMultiObjective:
+      for i in range(len(self._optPointHistory[traj][-1][0][self._objectiveVar[0]])):
         opt = self._optPointHistory[traj][-1][0]
-        val = opt[self._objectiveVar]
-        self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
-        if bestValue is None or val < bestValue:
-          bestValue = val
-          bestTraj = traj
-        bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
-        bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-        self.raiseADebug('')
-        self.raiseAMessage(' - Final Optimal Point:')
-        finalTemplate = '    {name:^20s}  {value: 1.3e}'
-        finalTemplateInt = '    {name:^20s}  {value: 3d}'
-        # self.raiseAMessage(finalTemplate.format(name=self._objectiveVar, value=s * bestValue))
-        self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
-        for var, val in bestPoint.items():
-          self.raiseAMessage(finalTemplate.format(name=var, value=val))
-        self.raiseAMessage('*' * 80)
-        # write final best solution to soln export
-        self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
-      else:
-        for i in range(len(self._optPointHistory[traj][-1][0][self._objectiveVar[0]])):
-          opt = self._optPointHistory[traj][-1][0]
-          key = list(opt.keys())
-          val = [item[i] for item in opt.values()]
-          optElm = {key[a]: val[a] for a in range(len(key))}
-          optVal = [(-1*(self._minMax[b]=='max')+(self._minMax[b]=='min'))*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
+        key = list(opt.keys())
+        val = [item[i] for item in opt.values()]
+        optElm = {key[a]: val[a] for a in range(len(key))}
+        optVal = [(-1*(self._minMax[b]=='max')+(self._minMax[b]=='min'))*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
 
-          bestTraj = traj
-          bestOpt = self.denormalizeData(optElm)
-          bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-          if bestPoint not in self._finals:
-            self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
-            self._finals.append(bestPoint)
+        bestTraj = traj
+        bestOpt = self.denormalizeData(optElm)
+        bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
+        if bestPoint not in self._finals:
+          self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+          self._finals.append(bestPoint)
 
   def flush(self):
     """
