@@ -1178,23 +1178,12 @@ class GeneticAlgorithm(RavenSampled):
       @ In, kwargs, dict, dictionary of parameters for convergence criteria
       @ Out, converged, bool, convergence state
     """
-    if not self._isMultiObjective: # This is for a single-objective Optimization case.
-      if len(self._optPointHistory[traj]) < 2:
-        return False
-      o1, _ = self._optPointHistory[traj][-1]
-      obj = o1[self._objectiveVar[0]] ## TODO: check will this work for multiobjective
-      converged = (obj == self._convergenceCriteria['objective'])
-      self.raiseADebug(self.convFormat.format(name='objective',
-                                              conv=str(converged),
-                                              got=obj,
-                                              req=self._convergenceCriteria['objective']))
-    else: # This is for a multi-objective Optimization case.
-      if len(self._optPointHistory[traj]) < 2:
-        return False
-      o1, _ = self._optPointHistory[traj][-1]
-      obj1 = o1[self._objectiveVar[0]]
-      obj2 = o1[self._objectiveVar[1]]
-      converged = (obj1 == self._convergenceCriteria['objective'] and obj2 == self._convergenceCriteria['objective'])
+    if len(self._optPointHistory[traj]) < 2:
+      return False
+    o1, _ = self._optPointHistory[traj][-1]
+    converged = True
+    for objVar in self._objectiveVar:
+      converged = (o1[objVar] == self._convergenceCriteria['objective']) and converged
     return converged
 
   def _checkConvAHDp(self, traj, **kwargs):
