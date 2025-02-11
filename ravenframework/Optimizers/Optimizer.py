@@ -81,7 +81,8 @@ class Optimizer(AdaptiveSampler):
     specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringListType, strictMode=True,
         printPriority=90, # more important than <variable>
         descr=r"""Name of the objective variable(s) (or ``objective function'') that should be optimized
-        (minimized or maximized). It can be a single string or a list of strings if it is a multi-objective problem. """))
+        (minimized or maximized). It can be a single string or a list of strings if it is a multi-objective problem.
+        Note that only genetic algorithm supports multi-objective."""))
 
     # modify Sampler variable nodes
     variable = specs.getSub('variable')
@@ -106,7 +107,8 @@ class Optimizer(AdaptiveSampler):
     minMaxList = InputTypes.StringListType()
     minMax = InputData.parameterInputFactory('type', contentType=minMaxList,
         descr=r"""the type of optimization to perform. \xmlString{min} will search for the lowest
-              \xmlNode{objective} value, while \xmlString{max} will search for the highest value.""")
+              \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
+        For multi-objective, this can be a list like min, max.""")
     init.addSub(seed)
     init.addSub(minMax)
     specs.addSub(init)
