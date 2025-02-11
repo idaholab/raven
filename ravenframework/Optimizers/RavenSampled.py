@@ -321,7 +321,7 @@ class RavenSampled(Optimizer):
       @ In, failedRuns, list, runs that failed as part of this sampling
       @ Out, None
     """
-    if not self._canHandleMultiObjective or len(self._objectiveVar) == 1:
+    if not self._isMultiObjective:
       # get and print the best trajectory obtained
       bestValue = None
       bestTraj = None
