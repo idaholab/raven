@@ -15,6 +15,10 @@
 # @author: Mohammad Abdo (@Jimmy-INL)
 
 def evaluate(Inputs):
+  """
+    @In, Inputs, dictionary with the input
+    @Out, Sum, LocalSum1, LocalSum2, floating point arrays made from the input
+  """
   Sum = 0
   LocalSum1 = 0
   LocalSum2 = 0

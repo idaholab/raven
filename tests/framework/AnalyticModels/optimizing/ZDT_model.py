@@ -17,6 +17,10 @@
 import math
 
 def evaluate(Inputs):
+  """
+    @In, Inputs, dictionary with the input
+    @Out, obj1, obj2, floating point arrays with the objective function.
+  """
   Sum = 0
   for _,var in enumerate(Inputs.keys()):
     # write the objective function here
