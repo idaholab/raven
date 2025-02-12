@@ -40,13 +40,7 @@ def swapMutator(offSprings, distDict, **kwargs):
           variables, list, variables names.
     @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
-  if kwargs['locs'] is None:
-    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-    loc1 = np.minimum(locs[0], locs[1])
-    loc2 = np.maximum(locs[0], locs[1])
-  else:
-    loc1 = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
-    loc2 = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
+  loc1, loc2 = locationsGenerator(offSprings, kwargs['locs'])
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -80,10 +74,9 @@ def scrambleMutator(offSprings, distDict, **kwargs):
   """
   if kwargs['locs'] is None:
     locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-    locs.sort()
   else:
     locs = [kwargs['locs'][0], kwargs['locs'][1]]
-    locs.sort()
+  locs.sort()
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
@@ -172,13 +165,7 @@ def inversionMutator(offSprings, distDict, **kwargs):
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
   """
   # sample gene locations: i.e., determine locL and locU
-  if kwargs['locs'] is None:
-    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-    locL = np.minimum(locs[0], locs[1])
-    locU = np.maximum(locs[0], locs[1])
-  else:
-    locL = np.minimum(kwargs['locs'][0], kwargs['locs'][1])
-    locU = np.maximum(kwargs['locs'][0], kwargs['locs'][1])
+  locL, locU = locationsGenerator(offSprings, kwargs['locs'])
 
   for child in offSprings:
     # the mutation is performed for each child independently
@@ -197,6 +184,20 @@ def inversionMutator(offSprings, distDict, **kwargs):
       child.values[locL:locU+1]=mirrElems
 
   return offSprings
+
+def locationsGenerator(offSprings,locs):
+  """
+  Methods designed to process the locations for the mutators. These locations can be either user specified or
+  randomly generated.
+  @ In, offSprings, xr.DataArray, children resulting from the crossover process
+  @ In, locs, list, the two locations of the genes to be swapped
+  @ Out, loc1, loc2, int, the two ordered processed locations required by the mutators
+  """
+  if locs == None:
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
+  loc1 = np.minimum(locs[0], locs[1])
+  loc2 = np.maximum(locs[0], locs[1])
+  return loc1, loc2
 
 __mutators = {}
 __mutators['swapMutator']       = swapMutator
