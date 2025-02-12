@@ -47,7 +47,7 @@ def rouletteWheel(population,**kwargs):
   """
   # Arguments
   pop = population
-  fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist])
+  fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist],dtype=np.float64)
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -218,7 +218,7 @@ def rankSelection(population,**kwargs):
   index = np.arange(0,pop.shape[0])
   rank = np.arange(0,pop.shape[0])
 
-  data = np.vstack((np.array(fitness.variables['test_RankSelection']),index))
+  data = np.vstack((np.array(fitness.variables['test_RankSelection'],dtype=np.float64),index))
   dataOrderedByDecreasingFitness = data[:,(-data[0]).argsort()]
   dataOrderedByDecreasingFitness[0,:] = rank
   dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
