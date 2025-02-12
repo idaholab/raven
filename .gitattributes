@@ -2,3 +2,13 @@ include/contrib/* linguist-vendored
 src/contrib/* linguist-vendored
 crow/contrib/* linguist-vendored
 framework/contrib/* linguist-vendored
+
+*.xla diff=exceldiff
+*.xlam diff=exceldiff
+*.xls diff=exceldiff
+*.xlsb diff=exceldiff
+*.xlsm diff=exceldiff
+*.xlsx diff=exceldiff
+*.xlt diff=exceldiff
+*.xltm diff=exceldiff
+*.xltx diff=exceldiff

@@ -1,0 +1,13 @@
+[Inputs]
+Diff_values(row, column, new value, old value, new formula, old formula):(2, 3, Decimal('400000000'), Decimal('100000000'), '400000000', '100000000')
+[Simluation_Tool_Example]
+Diff_values(row, column, new value, old value, new formula, old formula):(2, 2, 400000000.0, 100000000.0, '=Inputs!C2', '=Inputs!C2')
+Diff_values(row, column, new value, old value, new formula, old formula):(2, 5, Decimal('-400000000'), Decimal('-100000000'), '=C2-B2', '=C2-B2')
+Diff_values(row, column, new value, old value, new formula, old formula):(23, 2, Decimal('2230416199.7481'), Decimal('1930416199.7481'), '=B2+NPV(Inputs!$C$8,B3:B22)', '=B2+NPV(Inputs!$C$8,B3:B22)')
+Diff_values(row, column, new value, old value, new formula, old formula):(24, 2, Decimal('1.6615'), Decimal('1.438'), '=B23/D23', '=B23/D23')
+[Outputs]
+Diff_values(row, column, new value, old value, new formula, old formula):(3, 3, Decimal('2230416199.7481'), Decimal('1930416199.7481'), '=Simluation_Tool_Example!B23', '=Simluation_Tool_Example!B23')
+Diff_values(row, column, new value, old value, new formula, old formula):(4, 3, Decimal('1.6615'), Decimal('1.438'), '=Simluation_Tool_Example!B24', '=Simluation_Tool_Example!B24')
+Read time: 4.3417253494262695
+Loop Checking Time:1.5703620910644531
+Save time: 0.2653176784515381
