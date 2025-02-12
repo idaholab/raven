@@ -319,7 +319,7 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, None
     """
     traj = info['traj']
-    if len(self._objectiveVar) > 1 and type(self._objectiveVar)==str:
+    if len(self._objectiveVar) > 1:
       self.raiseAnError(IOError, 'Simulated Annealing does not support multiObjective yet! objective variable must be a single variable for now!')
     info['optVal'] = rlz[self._objectiveVar[0]]
     self.incrementIteration(traj)
