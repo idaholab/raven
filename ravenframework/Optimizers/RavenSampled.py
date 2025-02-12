@@ -326,39 +326,56 @@ class RavenSampled(Optimizer):
     bestTraj = None
     bestPoint = None
 
+    if not self._isMultiObjective:
+      s = np.array(-1 if 'max' in self._minMax else 1)
+    else:
+      s = np.array([-1 if w == 'max' else 1 for w in self._minMax])
+
     # check converged trajectories
     self.raiseAMessage('*' * 80)
     self.raiseAMessage('Optimizer Final Results:')
     self.raiseADebug('')
     self.raiseADebug(' - Trajectory Results:')
     self.raiseADebug('  TRAJ   STATUS    VALUE')
-    statusTemplate = '   {traj:2d}  {status:^11s}  {val: 1.3e}'
+    statusTemplate = '   {traj:2d}  {status:^11s}  {val}'
     templateNoValue = '   {traj:2d}  {status:^11s}'
     # Define the template for the values
     valueTemplate = '{val: 1.3e}'
 
-    if not self._isMultiObjective:
-      s = -1 if 'max' in self._minMax else 1
-      # print cancelled traj
-      for traj, info in self._cancelledTraj.items():
-        val = info['value']
-        status = info['reason']
-        self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=s * val))
-      # check converged traj
-      for traj, info in self._convergedTraj.items():
-        opt = self._optPointHistory[traj][-1][0]
-        val = info['value']
+    # print cancelled traj
+    for traj, info in self._cancelledTraj.items():
+      val = info['value']
+      status = info['reason']
+      self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=s * val))
+    # check converged traj
+    for traj, info in self._convergedTraj.items():
+      opt = self._optPointHistory[traj][-1][0]
+      val = info['value']
+
+      if self._isMultiObjective:
+        # Format the values in the array
+        formatted_values = np.vectorize(lambda v: valueTemplate.format(val=v))(s*val)
+
+        # Combine the formatted values into a single string with appropriate spacing
+        formatted_values_string = '\n'.join(['   '.join(row) for row in formatted_values])
+
+        # Raise debug message for the entire formatted string
+        self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formatted_values_string.format(formatted_values))
+      else:
         self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=s * val))
-        if bestValue is None or val < bestValue:
-          bestTraj = traj
-          bestValue = val
-      # further check active unfinished trajectories
-      # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
-      traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
-      # sanity check: if there's no history (we never got any answers) then report rather than crash
-      if len(self._optPointHistory[traj]) == 0:
-        self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
-                          'Perhaps the Model failed?')
+      if bestValue is None or val < bestValue:
+        bestTraj = traj
+        bestValue = val
+
+    # further check active unfinished trajectories
+    # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
+    traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+    # sanity check: if there's no history (we never got any answers) then report rather than crash
+    if len(self._optPointHistory[traj]) == 0:
+      self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
+                        'Perhaps the Model failed?')
+
+    if not self._isMultiObjective:
       opt = self._optPointHistory[traj][-1][0]
       val = opt[self._objectiveVar[0]]
       self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
@@ -379,40 +396,6 @@ class RavenSampled(Optimizer):
       # write final best solution to soln export
       self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
     else: #self._isMultiObjective true
-      s = [-1 if w == 'max' else 1 for w in self._minMax]
-
-      # print cancelled traj
-      for traj, info in self._cancelledTraj.items():
-        val = info['value']
-        status = info['reason']
-        if isinstance(val,int):
-          self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=val))
-        # TODO: else: maybe error out?
-
-      # check converged traj
-      for traj, info in self._convergedTraj.items():
-        opt = self._optPointHistory[traj][-1][0]
-        val = info['value']
-
-        # Format the values in the array
-        formatted_values = np.vectorize(lambda v: valueTemplate.format(val=v))(s*val)
-
-        # Combine the formatted values into a single string with appropriate spacing
-        formatted_values_string = '\n'.join(['   '.join(row) for row in formatted_values])
-
-        # Raise debug message for the entire formatted string
-        self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formatted_values_string.format(formatted_values))
-        if bestValue is None or val < bestValue:
-          bestTraj = traj
-          bestValue = val
-      # further check active unfinished trajectories
-      # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
-      traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
-      # sanity check: if there's no history (we never got any answers) then report rather than crash
-      if len(self._optPointHistory[traj]) == 0:
-        self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
-                          'Perhaps the Model failed?')
-
       for i in range(len(self._optPointHistory[traj][-1][0][self._objectiveVar[0]])):
         opt = self._optPointHistory[traj][-1][0]
         key = list(opt.keys())
@@ -632,10 +615,7 @@ class RavenSampled(Optimizer):
       # TODO could we ever use old rerun gradients to inform the gradient direction as well?
       self._rerunsSinceAccept[traj] += 1
       N = self._rerunsSinceAccept[traj] + 1
-      if len(self._objectiveVar) == 1:
-        oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
-      else:
-        oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
+      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
       newAvg = ((N-1)*oldVal + optVal) / N
       self._optPointHistory[traj][-1][0][self._objectiveVar[0]] = newAvg
     else:
