@@ -338,7 +338,7 @@ class GradientDescent(RavenSampled):
       @ Out, None
     """
     traj = info['traj']
-    if type(self._objectiveVar)!=list or len(self._objectiveVar) > 1:
+    if self._isMultiObjective:
       self.raiseAnError(IOError, 'Gradient Descent does not support multiObjective optimization yet! objective variable must be a single variable for now!')
     optVal = rlz[self._objectiveVar[0]]
     info['optVal'] = optVal
