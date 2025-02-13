@@ -123,10 +123,6 @@ class NetCDF(DataBase):
                          "val" is either a float or a np.ndarray of values.
       @ Out, None
     """
-    print('DEBUGG netCDFdb addRlz')
-    print('DEBUGG -> rlz:')
-    import pprint
-    pprint.pprint(rlz)
     # apparently we're storing samples!
     # -> do we already have data present?
     path = self.get_fullpath()

@@ -561,6 +561,7 @@ class EnsembleModel(Dummy):
         info['jobHandler'] = self.localJobHandler
         # make sure that the batchMode is set to False in the inner runs since only the
         # ensemble model evaluation should be batched (THIS IS REQUIRED because the CODE does not submit runs like the other models)
+        # FIXME is this still true?
         jobHandler.addClientJob(
             (self, myInput, samplerType, rlz),
             self.__class__.evaluateSample,
@@ -571,7 +572,12 @@ class EnsembleModel(Dummy):
             groupInfo={'id': batch.ID, 'size': len(batch)})
       # else: submit as batch after loop
     if self.parallelStrategy == 1:
-      jobHandler.addJobBatch(batch, self, myInput, samplerType, self.__class__.evaluateSample)
+      jobHandler.addJobBatch(
+        batch,
+        self,
+        myInput,
+        samplerType,
+        self.__class__.evaluateSample)
     # else: submitted client-style within loop above
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
@@ -760,6 +766,7 @@ class EnsembleModel(Dummy):
     returnDict = {}
     suffix = ''
     if 'batchRun' in  inputRlz: # FIXME what is this check now?
+      aaaa
       suffix = f"{utils.returnIdSeparator()}{inputRlz['batchRun']}"
     self.raiseADebug('Submitting model',modelDict['Instance'].name)
     localIdentifier = f"{modelDict['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"

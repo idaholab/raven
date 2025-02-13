@@ -133,7 +133,8 @@ class MessageUser(object):
       @ In, tag, str, optional, identifying message to include with print
     """
     print('/'+'*'*80)
-    print(f'{tag} {self.__class__.__name__}: "{member}"')
+    print('WHAT THIS IS:')
+    print(f'{tag} CLASS: {self.__class__.__name__}: MEMBER: "{member}"')
     if obj is None:
       toPrint = getattr(self, member)
     else:

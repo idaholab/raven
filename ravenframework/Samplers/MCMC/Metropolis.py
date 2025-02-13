@@ -53,6 +53,7 @@ class Metropolis(MCMC):
       @ Out, None
     """
     MCMC.__init__(self)
+    self.samplerInfo['SamplerType'] = 'Metropolis'
 
   def handleInput(self, paramInput):
     """
@@ -143,13 +144,13 @@ class Metropolis(MCMC):
             rlz[key] = upperBound
           rlz.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(newVal)
         else:
-          rlz.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", rlz.values)
+          # TODO do we need to send in asDict or can we send rlz?
+          rlz.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", rlz)
         rlz.inputInfo['ProbabilityWeight-' + key] = 1.
     rlz.inputInfo['PointProbability'] = 1.0
     rlz.inputInfo['ProbabilityWeight' ] = 1.0
-    self.samplerInfo['SamplerType'] = 'Metropolis'
-    self.samplerInfo['LogPosterior'] = self.netLogPosterior
-    self.samplerInfo['AcceptRate'] = self._acceptRate
+    rlz.inputInfo['LogPosterior'] = self.netLogPosterior
+    rlz.inputInfo['AcceptRate'] = self._acceptRate
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """

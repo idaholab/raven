@@ -26,7 +26,6 @@ class RealizationBatch:
       @ In, None
       @ Out, None
     """
-    self.batchSize = batchSize # number of realizations that are part of this object
     self._realizations = [Realization() for _ in range(max(batchSize, 1))]
     self.ID = None
 

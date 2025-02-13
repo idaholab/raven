@@ -35,6 +35,7 @@ from .. import CsvLoader #note: "from CsvLoader import CsvLoader" currently brea
 from .. import Files
 from ..DataObjects import Data
 from ..CodeInterfaceClasses import factory
+from ..Realizations import RealizationBatch, Realization
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
@@ -362,11 +363,18 @@ class Code(Model):
     self._checkForInputFile(self.code.getInputExtension(), newInputSet)
     ## set up run directory
     batchID = rlz.inputInfo['batchID']
+    batchSize = rlz.inputInfo['batchSize']
+    assert batchID is not None # TODO remove me
+    if batchSize > 1: #FIXME is batchID ever None now?
+      batchStr = f'b{batchID}_r'
+    else:
+      batchStr = ''
     rlzID = rlz.inputInfo['prefix']
-    dirName = f'b{batchID}_r{rlzID}'
+    dirName = f'{batchStr}{rlzID}'
     subDir = os.path.join(self.workingDir, dirName)
 
     if not os.path.exists(subDir):
+      self.raiseADebug(f'Creating run directory "{subDir}" ...')
       os.mkdir(subDir)
 
     for n, newInput in enumerate(newInputSet):
@@ -389,7 +397,6 @@ class Code(Model):
 
     # FIXME do we force all Codes to update to this new format, or do we grandfather in somehow?
     # OLD newInput = self.code.createNewInput(newInputSet, self.oriInputFiles, samplerType, **copy.deepcopy(kwargs))
-    print('DEBUGG code:', self.code)
     newInput = self.code.createNewInput(newInputSet, self.oriInputFiles, samplerType, rlz)
 
     return (newInput, rlz)
@@ -936,6 +943,12 @@ class Code(Model):
         @ In,  jobHandler, JobHandler instance, the global job handler instance
         @ Out, None
     """
+    # Note in ClientMode the EnsembleModel is handing individual realizations, not batches
+    # It's not clear if this is desirable behavior, or if it could be sending batches.
+    if isinstance(batch, Realization):
+      rlz = batch
+      batch = RealizationBatch(1)
+      batch[0] = rlz
     for r, rlz in enumerate(batch):
       #shortcut for convenience
       info = rlz.inputInfo

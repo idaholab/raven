@@ -197,7 +197,7 @@ class MCMC(AdaptiveSampler):
       # limit
       limit = init.findFirst('limit')
       if limit is not None:
-        self.limit = limit.value
+        self.limits['samples'] = limit.value
       else:
         self.raiseAnError(IOError, 'MCMC', self.name, 'needs the limit block (number of samples) in the samplerInit block')
       # initialSeed
@@ -217,7 +217,7 @@ class MCMC(AdaptiveSampler):
         self._tuneInterval = tuneInterval.value
     else:
       self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
-    if self._burnIn >= self.limit:
+    if self._burnIn >= self.limits['samples']:
       self.raiseAnError(IOError, 'Provided "burnIn" value must be less than "limit" value!')
     # TargetEvaluation Node (Required)
     targetEval = paramInput.findFirst('TargetEvaluation')
@@ -344,8 +344,9 @@ class MCMC(AdaptiveSampler):
     rlz.inputInfo['PointProbability'] = 1.0
     rlz.inputInfo['ProbabilityWeight'] = 1.0
     # TODO is this a property of the Sampler that should be retained, or of the Realization?
-    self.samplerInfo['LogPosterior'] = self.netLogPosterior
-    self.samplerInfo['AcceptRate'] = self._acceptRate
+    # self.samplerInfo['LogPosterior'] = self.netLogPosterior
+    rlz.inputInfo['LogPosterior'] = self.netLogPosterior
+    rlz.inputInfo['AcceptRate'] = self._acceptRate
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -363,8 +364,8 @@ class MCMC(AdaptiveSampler):
     full = self._targetEvaluation.realization(index=cSamples-1)
     res = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
     res['traceID'] = cSamples
-    res['LogPosterior'] = self.samplerInfo['LogPosterior']
-    res['AcceptRate'] = self.samplerInfo['AcceptRate']
+    res['LogPosterior'] = full['LogPosterior'] # WAS self.inputInfo
+    res['AcceptRate'] = full['AcceptRate']     # WAS self.inputInfo
     if cSamples == 1:
       self._addToSolutionExport(res)
       self._currentRlz = res
@@ -377,7 +378,9 @@ class MCMC(AdaptiveSampler):
         self._addToSolutionExport(res)
         self._updateValues = dict((var, res[var]) for var in self._updateValues)
       else:
-        self._currentRlz.update({'traceID':cSamples, 'LogPosterior': self.samplerInfo['LogPosterior'], 'AcceptRate':self.samplerInfo['AcceptRate']})
+        self._currentRlz.update({'traceID': cSamples,
+                                 'LogPosterior': full['LogPosterior'], # WAS self.inputInfo
+                                 'AcceptRate': full['AcceptRate']})    # WAS self.inputInfo
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
     if self._tune:

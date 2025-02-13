@@ -70,8 +70,22 @@ class BatemanClass:
     #self.IsoData[counter] = (EqTipe,ID,InitialMass,DecayConstant,sigma,AtomicNumber)
     self.IsoData = []
     for nuclideID,options in nuclides.items():
-      self.IsoData.append((nuclideID,options["equationType"],options["initialMass"],options["decayConstant"],options["sigma"],options["ANumber"]))
-
+      self.IsoData.append((
+        nuclideID,               # 0, n
+        options["equationType"], # 1, e
+        options["initialMass"],  # 2, m
+        options["decayConstant"],# 3, d
+        options["sigma"],        # 4, s
+        options["ANumber"]))     # 5, a
+      print('/'*80)
+      print(f'DEBUGG check iso data: "{nuclideID}"')
+      print('DEBUGG  - ID ', self.IsoData[-1][0])
+      print('DEBUGG  - eq ', self.IsoData[-1][1])
+      print('DEBUGG  - ma ', self.IsoData[-1][2])
+      print('DEBUGG  - dc ', self.IsoData[-1][3])
+      print('DEBUGG  - sg ', self.IsoData[-1][4])
+      print('DEBUGG  - an ', self.IsoData[-1][5])
+      print('-'*80)
 #        self.IsoData.append(('A','N1',1,0.00005,90,230.0))
 #        self.IsoData.append(('B','N2',1,0.00000005,100,230.0))
 #        self.IsoData.append(('C','N3',1,0.000000005,45,230.0))
@@ -98,10 +112,18 @@ class BatemanClass:
 #        self.IsoData.append(('V','N4',1,0.05,90,230.0))
 
     for i in range(len(self.IsoData)):
+      #                       iso n
       self.result[self.IsoData[i][0]]=([],[])
       # convert the mass into densities
+      #                      m                                       a
       dens = self.IsoData[i][2]*1000.0*self.avogadro/self.IsoData[i][5]
-      self.IsoData[i] = (self.IsoData[i][0],self.IsoData[i][1],dens,self.IsoData[i][3],self.IsoData[i][4],self.IsoData[i][5])
+      self.IsoData[i] = (
+        self.IsoData[i][0], # n
+        self.IsoData[i][1], # e
+        dens,               # m
+        self.IsoData[i][3], # d
+        self.IsoData[i][4], # s
+        self.IsoData[i][5]) # a
 
     self.IsoGroups = []
     self.IsoGroups.append([self.IsoData[0],self.IsoData[1],self.IsoData[2],self.IsoData[3]])
@@ -133,10 +155,10 @@ class BatemanClass:
     for g in range(len(self.IsoGroups)):
       isogroup = self.IsoGroups[g]
 
-      N1type = isogroup[0]
-      N2type = isogroup[1]
-      N3type = isogroup[2]
-      N4type = isogroup[3]
+      N1type = isogroup[0] # iso 1
+      N2type = isogroup[1] # iso 2
+      N3type = isogroup[2] # iso 3
+      N4type = isogroup[3] # iso 4
       # add intial conditions
       self.result[N1type[0]][1][0] = N1type[2]*N1type[5]/(1000.0*self.avogadro)
       self.result[N2type[0]][1][0] = N2type[2]*N2type[5]/(1000.0*self.avogadro)
@@ -160,6 +182,12 @@ class BatemanClass:
 
 
   def N1solution(self,N01,A1,sigma1,flux,t):
+    print('DEBUGG type check:')
+    print(type(N01), N01)
+    print(type(A1), A1)
+    print(type(sigma1), sigma1)
+    print(type(flux), flux)
+    print(type(t), t)
     flux = flux * self.barn
     N1 = N01*math.exp((-A1-flux*sigma1)*t)
     if N1 <0:

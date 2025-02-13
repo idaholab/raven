@@ -715,6 +715,7 @@ class JobHandler(BaseType):
       else:
         # assure the realization knows about the batch it belongs to
         rlz.inputInfo['batchID'] = batch.ID
+        rlz.inputInfo['batchSize'] = len(batch)
         self.addSingleJob(
             (model, modelInput, samplerType, rlz),
             evalFunc,
@@ -818,7 +819,7 @@ class JobHandler(BaseType):
       self.__submittedJobs.append(runner.identifier)
 
   def addClientJob(self, args, functionToRun, identifier,
-                   metadata=None, uniqueHandler="any", groupInfo=None):
+                   metadata=None, forceUseThreads=True, uniqueHandler="any", groupInfo=None):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -845,7 +846,7 @@ class JobHandler(BaseType):
       @ Out, None
     """
     self.addSingleJob(args, functionToRun, identifier, metadata,
-                forceUseThreads=True, uniqueHandler=uniqueHandler,
+                forceUseThreads=forceUseThreads, uniqueHandler=uniqueHandler,
                 clientQueue=True, groupInfo=groupInfo)
 
   def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):

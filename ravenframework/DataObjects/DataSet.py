@@ -17,8 +17,6 @@
   Contains the general class for DataObjects who may have mixed scalars, vectors, and higher dimensional
   needs, depending on any combination of "index" dimensions (time, space, etc).
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import copy
 import itertools
 

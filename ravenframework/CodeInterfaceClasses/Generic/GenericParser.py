@@ -16,11 +16,12 @@ Created on Mar 10, 2015
 
 @author: talbpaul
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import sys
+
 import numpy as np
+
 from ravenframework.utils import mathUtils
 # numpy with version 1.14.0 and upper will change the floating point type and print
 # https://docs.scipy.org/doc/numpy-1.14.0/release.html
@@ -198,26 +199,24 @@ class GenericParser():
         @ In, ext, string, the string extension that the desired filename ends with.
         @ Out, None
       """
-      found=False
       for index,inputFile in enumerate(fileList):
         if inputFile.getExt() == ext:
-          found=True
           break
-      if not found:
-        raise IOError('No InputFile with extension '+ext+' found!')
+      else:
+        raise IOError(f'No InputFile with extension "{ext}" found!')
       return index,inputFile
 
-    for var in self.varPlaces.keys():
-      for inputFile in self.segments.keys():
-        for place in self.varPlaces[var][inputFile] if inputFile in self.varPlaces[var].keys() else []:
-          for iotype,adlvar in self.adlDict.items():
+    for var, files in self.varPlaces.items():
+      for inputFile, places in self.segments.items():
+        for place in files[inputFile] if inputFile in files else []:
+          for iotype, adlvar in self.adlDict.items():
             if iotype=='output':
               if var==self.adlDict[iotype]:
-                self.segments[inputFile][place] = case
+                places[place] = case
                 break
             elif iotype=='input':
               if var in self.adlDict[iotype].keys():
-                self.segments[inputFile][place] = getFileWithExtension(inFiles,self.adlDict[iotype][var][0].strip('.'))[1].getAbsFile()
+                places[place] = getFileWithExtension(inFiles,self.adlDict[iotype][var][0].strip('.'))[1].getAbsFile()
                 break
     #now just write the files.
     for f,inFile in enumerate(origFiles):

@@ -23,7 +23,7 @@
         sampleMC
     </Sequence>
     <WorkingDir>metaModelWithCode</WorkingDir>
-    <batchSize>2</batchSize>
+    <!-- <batchSize>2</batchSize> -->
   </RunInfo>
 
   <Files>
@@ -69,7 +69,7 @@
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>100</limit>
+        <limit>1</limit>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>

@@ -700,6 +700,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     if self.batch > 0:
       meta.append('batchID')
+      meta.append('batchSize')
     self.addMetaKeys(meta)
 
   def getBatchSize(self):
@@ -810,8 +811,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     paramDict = {}
     paramDict['counter'] = self.counters['samples']
     paramDict['initial seed'] = self.initSeed
-    for key in self.samplerInfo:
-      paramDict[key] = self.samplerInfo[key]
+    paramDict.update(self.samplerInfo)
     paramDict.update(self.localGetCurrentSetting())
     return paramDict
 
@@ -862,6 +862,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
+    print(f'DEBUGG adapsamp LSR counters: {self.counters["samples"]}, limit: {self.limits["samples"]}')
     if self.counters['samples'] > self.limits['samples']:
       ready = False
 
@@ -1085,6 +1086,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
         rlz.inputInfo['prefix'] = str(self.counters['samples'])
         self.localGenerateInput(rlz, model, modelInput)
     else:
+      # this sampler knows how to handle batching, so we do it all at once
       # since the counter incrementer adds the whole batch at once, grab the initial counter value
       # so we can use it to number the samples correctly
       startPrefix = self.counters['samples']
@@ -1092,7 +1094,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       for r, rlz in enumerate(rlzBatch):
         rlz.inputInfo['prefix'] = str(startPrefix + r + 1)
       self.localGenerateInput(rlzBatch, model, modelInput)
-      # this sampler knows how to handle batching, so we do it all at once
     # correlated variables
     self._reassignSampledVarsPbToFullyCorrVars(rlzBatch)
     self._reassignPbWeightToCorrelatedVars(rlzBatch)
@@ -1101,7 +1102,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     # constants and functioned values
     self._constantVariables(rlzBatch)
     self._functionalVariables(rlzBatch)
-    # ND variables127G
+    # ND variables
     self._formNDVariables(rlzBatch)
     # merge sampler metadata
     for rlz in rlzBatch:

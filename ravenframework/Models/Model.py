@@ -334,17 +334,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
 
   @abc.abstractmethod
-  def evaluateSample(self, myInput, samplerType, kwargs):
+  def evaluateSample(self, myInput, samplerType, rlz):
     """
-        This will evaluate an individual sample on this model. Note, parameters
-        are needed by createNewInput and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, returnValue, tuple(input,dict), This holds the output information of the evaluated sample.
+      This will evaluate an individual sample on this model. Note, parameters
+      are needed by createNewInput and thus descriptions are copied from there.
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, rlz, Realization, Realization from whiech to build input
+      @ Out, returnValue, tuple(input,dict), This holds the output information of the evaluated sample.
     """
-    pass
 
   def localInputAndChecks(self,xmlNode):
     """

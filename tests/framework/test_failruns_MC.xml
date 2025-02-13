@@ -34,7 +34,7 @@
     </MultiRun>
     <MultiRun name="csample" repeatFailureRuns="3">
       <Input class="Files" type="">infile.inp</Input>
-      <Model class="Models" type="ExternalModel">codefailer</Model>
+      <Model class="Models" type="Code">codefailer</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">csolns</Output>
     </MultiRun>

@@ -328,7 +328,8 @@ class ExternalModel(Dummy):
     ## then get the inputs from SampledVars (overwriting any other entries)
     res.update(dict((var, np.atleast_1d(val)) for var, val in rlz.items()))
     if '_indexMap' in res:
-      res['_indexMap'].update(evalIndexMap)
+      # FIXME for netCDF tests this requires [0] b/c it's a 1-d ndarray; is it always?
+      res['_indexMap'][0].update(evalIndexMap)
     return res
 
   def collectOutput(self, finishedJob, output, options=None):
