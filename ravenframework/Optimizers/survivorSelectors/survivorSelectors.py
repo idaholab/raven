@@ -184,7 +184,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
 
   popConstV = kwargs['popConstV'].data
   offConstV = kwargs['offConstV'].data
-  newConstVMerged = np.array(popConstV.tolist() + offConstV.tolist())
+  newConstVMerged = np.vstack([popConstV, offConstV])
 
   newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offObjectiveVal)])
   newObjectivesMergedPair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
