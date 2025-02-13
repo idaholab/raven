@@ -179,6 +179,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
     popFitArray.append(popFit[i].data.tolist())
     offFitArray.append(offFit[i].data.tolist())
 
+  #Combine parent and offspring data and population
   newFitMerged      = np.array([i + j for i, j in zip(popFitArray, offFitArray)])
   newFitMergedPair = [list(ele) for ele in list(zip(*newFitMerged))]
 
@@ -189,11 +190,13 @@ def rankNcrowdingBased(offsprings, **kwargs):
   newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offObjectiveVal)])
   newObjectivesMergedPair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
 
+  #calculate nondominated fronts
   newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newFitMergedPair),isFitness=True)
   newPopRank = xr.DataArray(newPopRank,
                             dims=['rank'],
                             coords={'rank': np.arange(np.shape(newPopRank)[0])})
 
+  #calculate crowding distance
   newPopCD = frontUtils.crowdingDistance(rank=newPopRank, popSize=len(newPopRank), fitness=np.array(newFitMergedPair))
   newPopCD = xr.DataArray(newPopCD,
                           dims=['CrowdingDistance'],
@@ -203,12 +206,14 @@ def rankNcrowdingBased(offsprings, **kwargs):
   newPopulationMerged = np.concatenate([population,offSprings])
   newAge.extend([0]*len(offSprings))
 
+  #sort in rank/crowd comparison order
   sortedRank,sortedCD,sortedAge,sortedPopulation,sortedFit,sortedObjectives,sortedConstV = \
     zip(*[(x,y,z,i,j,k,a) for x,y,z,i,j,k,a in \
       sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMergedPair, newObjectivesMergedPair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1], x[4], x[3]))])
   sortedRankT, sortedCDT, sortedAgeT, sortedPopulationT, sortedFitT, sortedObjectivesT, sortedConstVT = \
     np.atleast_1d(list(sortedRank)), list(sortedCD), list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFit)),np.atleast_1d(list(sortedObjectives)),np.atleast_1d(list(sortedConstV))
 
+  #choose the best elements
   newPopulation = sortedPopulationT[:-len(offSprings)]
   newObjectives = sortedObjectivesT[:-len(offSprings)]
   newFit        = sortedFitT[:-len(offSprings)]
