@@ -154,12 +154,12 @@ class GenericParser():
           ioVars.append(v)
       else:
         ioVars.append(value)
-    for var, dat in self.varPlaces.items():
+    for var, locDict in self.varPlaces.items():
       for inputFile, seg in self.segments.items():
-        for place in dat[inputFile] if inputFile in dat else []:
+        for place in locDict[inputFile] if inputFile in locDict else []:
           if var in modDict:
             if var in self.formats:
-              if inputFile in self.formats:
+              if inputFile in self.formats[var]:
                 if any(formVal in self.formats[var][inputFile][0] for formVal in self.acceptFormats):
                   formatstringc = "{:"+self.formats[var][inputFile][0].strip()+"}"
                   seg[place] = formatstringc.format(self.formats[var][inputFile][1](modDict[var]))
