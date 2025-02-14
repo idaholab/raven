@@ -90,7 +90,7 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
 
       if line.strip().startswith("[./"):
         if depth == 0: # This line contains the test name
-          testName = os.path.normpath(os.path.join(root, line.strip()[3:-1]))
+          testSpecs['test_name'] = os.path.normpath(os.path.join(root, line.strip()[3:-1]))
           testSpecs['test_directory'] = root
           startReading = True
           collectSpecs = False
@@ -152,11 +152,11 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
           for newTestFile in spec['input'].split(' '):
             if whichTests == 4 and (newTestFile.endswith('.py') or
                                     (newTestFile.endswith('.xml') and '.py' not in spec['input'])):
-              doTests[testName] = spec
+              doTests[spec['test_name']] = spec
             elif whichTests in [1, 3] and newTestFile.endswith('.xml'):
-              doTests[testName] = spec
+              doTests[spec['test_name']] = spec
             elif whichTests == 2 and newTestFile.endswith('.py'):
-              doTests[testName] = spec
+              doTests[spec['test_name']] = spec
 
   return doTests
 
