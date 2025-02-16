@@ -49,8 +49,8 @@ def ageBased(newRlz,**kwargs):
     @ Out, newAge, list, Ages of each chromosome in the new population.
   """
   popSize = np.shape(kwargs['population'])[0]
-  if ('age' not in kwargs.keys() or kwargs['age']== None):
-    popAge = [0]*popSize
+  if ('age' not in kwargs.keys() or kwargs['age'] is None):
+    popAge = [0] * popSize
   else:
     popAge = kwargs['age']
   # offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
@@ -101,7 +101,7 @@ def fitnessBased(newRlz,**kwargs):
     @ Out, newAge, list, Ages of each chromosome in the new population.
   """
   popSize = np.shape(kwargs['population'])[0]
-  if ('age' not in kwargs.keys() or kwargs['age'] == None):
+  if ('age' not in kwargs.keys() or kwargs['age'] is None):
     popAge = [0] * popSize
   else:
     popAge = kwargs['age']
@@ -210,7 +210,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
   sortedRank,sortedCD,sortedAge,sortedPopulation,sortedFit,sortedObjectives,sortedConstV = \
     zip(*[(x,y,z,i,j,k,a) for x,y,z,i,j,k,a in \
       sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMergedPair, newObjectivesMergedPair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1], x[4], x[3]))])
-  sortedRankT, sortedCDT, sortedAgeT, sortedPopulationT, sortedFitT, sortedObjectivesT, sortedConstVT = \
+  _, _, sortedAgeT, sortedPopulationT, sortedFitT, sortedObjectivesT, sortedConstVT = \
     np.atleast_1d(list(sortedRank)), list(sortedCD), list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFit)),np.atleast_1d(list(sortedObjectives)),np.atleast_1d(list(sortedConstV))
 
   #choose the best elements

@@ -784,10 +784,7 @@ class GeneticAlgorithm(RavenSampled):
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
     self.incrementIteration(traj)
 
-    # 0 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
-    # 0.1 @ n-1: fitnessCalculation(rlz): Perform fitness calculation for newly obtained children (rlz)
-
-    offSprings = datasetToDataArray(rlz, list(self.toBeSampled))
+    population = datasetToDataArray(rlz, list(self.toBeSampled))
 
     # Handle objective values differently for single and multi-objective cases
     if self._isMultiObjective:
@@ -797,10 +794,11 @@ class GeneticAlgorithm(RavenSampled):
     else:
         objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
 
-    g = constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective=self._isMultiObjective)
+    # 1. Check constraint violations and calculate the constraint function g (<0 if the constraint is violated)
+    g = constraintHandling(self, info, rlz, population, objectiveVal, multiObjective=self._isMultiObjective)
 
-    # Compute fitness for the offspring
-    offSpringFitness = self._fitnessInstance(rlz,
+    # 2. Compute fitness for the offspring
+    populationFitness = self._fitnessInstance(rlz,
                                              objVar=self._objectiveVar,
                                              a=self._objCoeff,
                                              b=self._penaltyCoeff,
@@ -811,23 +809,25 @@ class GeneticAlgorithm(RavenSampled):
 
     # Single-objective post-processing (if needed)
     if not self._isMultiObjective:
-        self._collectOptPoint(rlz, offSpringFitness, objectiveVal, g)
-        self._resolveNewGeneration(traj, rlz, info, objectiveVal, offSpringFitness, g)
+        self._collectOptPoint(rlz, populationFitness, objectiveVal, g)
+        self._resolveNewGeneration(traj, rlz, info, objectiveVal, populationFitness, g)
 
-    # 0.2@ n-1: Survivor selection(rlz): Update population container given obtained children
+    # 3. Survivor selection
     if self._activeTraj:
       survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if self._isMultiObjective else  survivorSelectionProcess.singleObjSurvivorSelect
-      survivorSelection(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g)
+      survivorSelection(self, info, rlz, traj, population, populationFitness, objectiveVal, g)
       if self._isMultiObjective:
         if self.counter <= 1:
           # offspringObjsVals for Rank and CD calculation
           fitVal = datasetToDataArray(self.fitness, self._objectiveVar).data
           offspringFitVals = fitVal.tolist()
+          # 4. Compute the rank of offsprings
           offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals), isFitness=True)
-          self.rank     = xr.DataArray(offSpringRank,
+          self.rank = xr.DataArray(offSpringRank,
                                        dims=['rank'],
                                        coords={'rank': np.arange(np.shape(offSpringRank)[0])})
-          offSpringCD           = frontUtils.crowdingDistance(rank=offSpringRank,
+          # 5. Compute the crowding distance of offsprings
+          offSpringCD = frontUtils.crowdingDistance(rank=offSpringRank,
                                                               popSize=len(offSpringRank),
                                                               fitness=np.array(offspringFitVals))
           self.crowdingDistance = xr.DataArray(offSpringCD,
@@ -845,8 +845,7 @@ class GeneticAlgorithm(RavenSampled):
         self._resolveNewGeneration(traj, rlz, info)
 
 
-      # 1 @ n: Parent selection from population
-      # Pair parents together by indexes
+      # 6. Parent selection from population
       parents = self._parentSelectionInstance(self.population,
                                               variables=list(self.toBeSampled),
                                               fitness=self.fitness,
@@ -858,22 +857,21 @@ class GeneticAlgorithm(RavenSampled):
                                               isMultiObjective = self._isMultiObjective,
                                               )
 
-      # 2 @ n: Crossover from set of parents
-      # Create childrenCoordinates (x1,...,xM)
+      # 7. Reproduction
+      # 7.1 Crossover
       childrenXover = self._crossoverInstance(parents=parents,
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints)
 
-      # 3 @ n: Mutation
-      # Perform random directly on childrenCoordinates
+      # 7.2 Mutation
       childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                distDict=self.distDict,
                                                locs=self._mutationLocs,
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled))
 
-      # 4 @ n: repair/replacement
+      # 8. repair/replacement
       # Repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
@@ -916,7 +914,7 @@ class GeneticAlgorithm(RavenSampled):
                                 coords={'chromosome': np.arange(np.shape(children)[0]),
                                         'Gene':list(self.toBeSampled)})
 
-      # 5 @ n: Submit children batch
+      # 9. Submit children batch
       # Submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(self.batch):
         newRlz = {}
