@@ -54,14 +54,12 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
   fileObject.write(" This section contains all of the requirements, requirements' description, and \n")
   fileObject.write(" requirement test cases. The requirement tests are automatically tested for each \n")
   fileObject.write(" CR (Change Request) by the CIS (Continuous Integration System). \n")
-  fileObject.write(" \\newcolumntype{b}{X} \n")
-  fileObject.write(" \\newcolumntype{s}{>{\\hsize=.5\\hsize}X} \n")
 
   for group, groupDict in allGroups.items():
     fileObject.write(" \\subsubsection{"+group.strip()+"} \n")
     for reqSetName,reqSet in groupDict.items():
       # create table here
-      fileObject.write("\\begin{tabularx}{\\textwidth}{|s|s|b|} \n")
+      fileObject.write("\\begin{longtable}{|p{0.2\\textwidth}|p{0.2\\textwidth}|p{0.6\\textwidth}|} \n")
       fileObject.write("\\hline \n")
       fileObject.write("\\textbf{Requirement ID} & \\textbf{Requirement Description} & \\textbf{Test(s)}  \\\ \hline \n")
       fileObject.write("\\hline \n")
@@ -78,7 +76,7 @@ def createLatexFile(reqDictionary,reqDocument,outputLatex):
         fileObject.write(" \\hspace{0pt}"+reqName.strip()+" & \\hspace{0pt}"+req['description']+" & \\hspace{0pt}"+ ' '.join(requirementTests)+" \\\ \hline \n")
         fileObject.write("\\hline \n")
       fileObject.write("\\caption*{"+reqSetName.strip()+"}\n")
-      fileObject.write("\\end{tabularx} \n")
+      fileObject.write("\\end{longtable} \n")
   fileObject.write("\\end{document}")
   fileObject.close()
 
