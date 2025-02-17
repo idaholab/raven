@@ -23,6 +23,8 @@ from operator import mul
 from functools import reduce
 from collections import namedtuple
 
+import numpy as np
+
 from ..utils import InputData, InputTypes
 from .Sampler               import Sampler
 from .MonteCarlo            import MonteCarlo
@@ -193,6 +195,7 @@ class EnsembleForward(Sampler):
       self.limits['samples'] *= sampler.limits['samples']
       lowerBounds[samplingStrategy] = 0
       upperBounds[samplingStrategy] = sampler.limits['samples']
+      self.toBeSampled.update(sampler.toBeSampled)
       while sampler.amIreadyToProvideAnInput():
         rlz = Realization()
         sampler.counters['samples'] += 1
@@ -220,10 +223,7 @@ class EnsembleForward(Sampler):
 
   def localGenerateInput(self, rlz, model, modelInput):
     """
-      Function to select the next most informative point for refining the limit
-      surface search.
-      After this method is called, the rlz.inputInfo should be ready to be sent
-      to the model
+      Fill in a new realization with data to be sampled.
       @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
@@ -236,16 +236,28 @@ class EnsembleForward(Sampler):
     for combination in coordinate:
       for key, value in combination.items():
         # FIXME we don't know what's inputInfo and what's sampled vars!
+        # some keys are sampled variables
         if key in self.toBeSampled:
           rlz[key] = value
+        # some keys are magic variables
+        elif key in ['_indexMap']:
+          rlz.indexMap.update(value[0])
+        # some keys are new metadata (inputInfo)
         elif key not in rlz.inputInfo:
           rlz.inputInfo[key] = value
         else:
+          # some keys are already present, and should be updated
           if isinstance(rlz.inputInfo[key], dict):
-            self.raiseWhatsThis('value', value)
+            # sometimes this comes in as a length-1 array wrapper with only one dict inside
+            if isinstance(value, (list, np.ndarray)):
+              value = value[0]
             rlz.inputInfo[key].update(value)
+          # some other things fall into this category, but are specific to the samplers we combined to
+          #   create our sample point, so we can ignore them. Examples include SamplerType, PointProbability, ProbabiltyWeight, etc.
+          # FIXME a blanket "continue" here could hide future problems. We should probably intentionally
+          #   skip variables that shouldn't be kept.
           else:
-            raise RuntimeError # can we get here?
+            continue
     rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
     rlz.inputInfo['ProbabilityWeight' ] = 1.0
     for key in rlz.inputInfo:
