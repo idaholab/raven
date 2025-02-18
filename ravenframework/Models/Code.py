@@ -623,7 +623,7 @@ class Code(Model):
           csvFileName = os.path.join(subDir,outputFile+'.csv')
           pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
-        returnDict.update(info)
+        returnDict.update(dict((k, v) for k, v in info.items() if k != 'jobHandler'))
         returnValue = (rlz ,returnDict)
         exportDict = self.createExportDictionary(returnValue)
       else:

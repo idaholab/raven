@@ -16,19 +16,15 @@ Created on May 6, 2020
 
 @author: wangc
 """
-
-#External Modules------------------------------------------------------------------------------------
 import copy
 import time
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .HybridModelBase import HybridModelBase
 from ... import Files
 from ...utils import InputData, InputTypes
 from ...utils import utils
 from ...Runners import Error as rerror
-#Internal Modules End--------------------------------------------------------------------------------
+from ...Realizations import RealizationBatch
 
 class LogicalModel(HybridModelBase):
   """
@@ -160,28 +156,27 @@ class LogicalModel(HybridModelBase):
         if len(error) > 0:
           self.raiseAnError(IOError, 'Variable(s) listed under DataObject "{}" could not be find in model "{}"!'.format(','.join(error), modelName))
 
-  def createNewInput(self, myInput, samplerType, **kwargs):
+  def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, Realization to evaluate
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
     self.raiseADebug(f"{self.name}: Create new input.")
     # TODO: standardize the way to handle code/external model/rom inputs
-    modelToRun = self.controlFunction.evaluate("evaluate", kwargs)
+    modelToRun = self.controlFunction.evaluate("evaluate", rlz)
     if modelToRun not in self.modelInstances:
       self.raiseAnError(IOError, f'Model (i.e. {modelToRun}) returned from "ControlFunction" is not valid!',
                         'Available models are: {}'.format(','.join(self.modelInstances.keys())))
-    kwargs['modelToRun'] = modelToRun
+    rlz.inputInfo['modelToRun'] = modelToRun
     if self.modelInstances[modelToRun].type == 'Code':
       codeInput = []
       for elem in myInput:
         if isinstance(elem, Files.File):
           codeInput.append(copy.deepcopy(elem))
-      return (codeInput, samplerType, kwargs)
+      return (codeInput, samplerType, rlz)
     else:
       # FIXME: The user should be able to indicate which input belongs to which model
       #        The following works 99% of the time but it might be possible that an external model
@@ -190,9 +185,8 @@ class LogicalModel(HybridModelBase):
       for elem in myInput:
         if not isinstance(elem, Files.File):
           otherInputs.append(copy.deepcopy(elem))
-      return (otherInputs, samplerType, kwargs)
+      return (otherInputs, samplerType, rlz)
 
-    return (myInput, samplerType, kwargs)
 
   def _externalRun(self, inRun, jobHandler):
     """
@@ -205,31 +199,39 @@ class LogicalModel(HybridModelBase):
     self.raiseADebug(f"{self.name}: External Run")
     originalInput = inRun[0]
     samplerType = inRun[1]
-    inputKwargs = inRun[2]
-    identifier = inputKwargs.pop('prefix')
+    inRlz = inRun[2]
+    inInfo = inRlz.inputInfo
+    identifier = inInfo.pop('prefix')
     # TODO: execute control function, move this to createNewInput
-    modelToRun = inputKwargs.pop('modelToRun')
-    inputKwargs['prefix'] = modelToRun + utils.returnIdSeparator() + identifier
-    inputKwargs['uniqueHandler'] = self.name + utils.returnIdSeparator() +  identifier
+    modelToRun = inInfo.pop('modelToRun')
+    prefix = modelToRun + utils.returnIdSeparator() + identifier
+    handle = self.name + utils.returnIdSeparator() +  identifier
+    inInfo['prefix'] = prefix
+    inInfo['uniqueHandler'] = handle
 
     moveOn = False
     while not moveOn:
       if jobHandler.availability() > 0:
-        self.modelInstances[modelToRun].submit(originalInput, samplerType, jobHandler, **inputKwargs)
+        batch = RealizationBatch(1)
+        batch[0] = inRlz
+        batch.ID = inInfo['prefix']
+        # FIXME this is somehow repeated in EnsembleModel and MultiRun; is there a way
+        #    to simplify and consolidate?
+        self.modelInstances[modelToRun].submit(batch, originalInput, samplerType, jobHandler)
         self.raiseADebug("Job submitted for model", modelToRun, "with identifier", identifier)
         moveOn = True
       else:
         time.sleep(self.sleepTime)
-    while not jobHandler.isThisJobFinished(inputKwargs['prefix']):
+    while not jobHandler.isThisJobFinished(prefix):
       time.sleep(self.sleepTime)
-    self.raiseADebug("Job finished", modelToRun, "with identifier", identifier)
-    finishedRun = jobHandler.getFinished(jobIdentifier=inputKwargs['prefix'], uniqueHandler=inputKwargs['uniqueHandler'])
-    evaluation = finishedRun[0].getEvaluation()
+    self.raiseADebug(f'Job "{modelToRun}" with identifier "{identifier}" finished')
+    finishedBatch = jobHandler.getFinished(jobIdentifier=prefix, uniqueHandler=handle)
+    evaluation = finishedBatch[0][0].getEvaluation()
     if isinstance(evaluation, rerror):
-      self.raiseAnError(RuntimeError, "The model", modelToRun, "identified by", finishedRun[0].identifier, "failed!")
+      self.raiseAnError(RuntimeError, "The model", modelToRun, "identified by", finishedBatch[0][0].identifier, "failed!")
     # collect output in temporary data object
     exportDict = evaluation
-    self.raiseADebug(f"{self.name}: Create exportDict")
+    self.raiseADebug(f"{self.name}: Create exportDict complete")
 
     return exportDict
 

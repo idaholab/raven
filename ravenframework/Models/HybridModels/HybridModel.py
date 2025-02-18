@@ -598,7 +598,7 @@ class HybridModel(HybridModelBase):
     rlz = inRun[2] # this is the result of the weird implicitness from createNewInput
     # run model
     rlz.inputInfo['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
-    rlz.inputInfo['uniqueHandler'] = self.name + identifier
+    rlz.inputInfo['uniqueHandler'] = uniqueHandler #self.name + identifier
     moveOn = False
     while not moveOn:
       if jobHandler.availability() > 0:
