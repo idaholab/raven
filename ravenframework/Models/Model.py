@@ -17,19 +17,16 @@ Module where the base class and the specialization of different type of Model ar
 @author crisrab, alfoa
 
 """
-#External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
 import abc
 import importlib
 import pickle
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from ..BaseClasses import BaseEntity, Assembler, InputDataUser
 from ..utils import utils
 from ..utils import InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
+from ..Realizations import Realization
 
 class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputDataUser)):
   """

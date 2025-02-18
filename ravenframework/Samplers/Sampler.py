@@ -862,7 +862,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    print(f'DEBUGG adapsamp LSR counters: {self.counters["samples"]}, limit: {self.limits["samples"]}')
     if self.counters['samples'] > self.limits['samples']:
       ready = False
 
@@ -1164,7 +1163,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
   def pcaTransform(self, rlz, varsDict, dist):
     """
       This method is used to map latent variables with respect to the model input variables
-      both the latent variables and the model input variables will be stored in the dict: self.inputInfo['SampledVars']
+      both the latent variables and the model input variables will be stored in the realization
       @ In, varsDict, dict, dictionary contains latent and manifest variables {'latentVariables':[latentVar1,latentVar2,...], 'manifestVariables':[var1,var2,...]}
       @ In, dist, string, the distribution name associated with given variable set
       @ Out, None

@@ -500,6 +500,10 @@ class HybridModel(HybridModelBase):
     """
     self.raiseADebug("External Run")
     subRlz = inRun[2]
+    # If subRlz is a dict, then we've used the ROM; otherwise it's a realization
+    # FIXME this is very implicit and subject to significant confusion, in my opinion
+    if isinstance(subRlz, dict):
+      subRlz = next(iter(subRlz.values()))
     identifier = subRlz.inputInfo['prefix'] # FIXME should be batch ID, not sample ID?
     # TODO attach this to the batch, instead of the single realizations?
     useROM = subRlz.inputInfo['useROM'] # TODO need pop? inputKwargs.pop('useROM')
@@ -527,41 +531,54 @@ class HybridModel(HybridModelBase):
     exportDict = {}
     self.raiseADebug("Switch to ROMs")
     # submit all the roms
+    # TODO can we submit these as a batch?
     for romName, romInfo in self.romsDictionary.items():
       rlz = subRlzs[romName]
       info = rlz.inputInfo
       rlz['prefix'] = romName+utils.returnIdSeparator()+identifier
+      info['uniqueHandler'] = uniqueHandler # TODO why do I need to add this?
       nextRom = False
       while not nextRom:
         # FIXME why is jobHandler not handling its own availability?
         if jobHandler.availability() > 0:
           with self.__busyDictLock:
             busySet = romInfo['Busy']
-            # FIXME submit is expecting a batch as the first member, submit the batch?
-            romInfo['Instance'].submit(rlz, originalInput, samplerType, jobHandler)
+            # FIXME this is somehow repeated in EnsembleModel and MultiRun; is there a way
+            #    to simplify and consolidate?
+            batch = RealizationBatch(1)
+            batch[0] = rlz
+            batch.ID = rlz['prefix']
+            romInfo['Instance'].submit(batch, originalInput, samplerType, jobHandler)
             busySet.add(info['prefix'])
             self.__busyDict[info['prefix']] = romName
-            self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted, busySet", busySet)
+            self.raiseADebug(f'Job "{romName}" with identifier "{identifier}" submitted, busySet "{busySet}"')
             nextRom = True
         else:
           time.sleep(self.sleepTime)
     exportDict['prefix'] = identifier
     # collect the outputs from the runs of ROMs
     while True:
-      finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
+      finishedBatch = jobHandler.getFinished(uniqueHandler=uniqueHandler) # [0] b/c batch of 1
+      if finishedBatch:
+        finishedJobs = finishedBatch[0]
+      else:
+        finishedJobs = []
       for finishedRun in finishedJobs:
         with self.__busyDictLock:
           jobRom = self.__busyDict[finishedRun.identifier]
-          self.raiseADebug("collect job with identifier ", identifier, ' internal identifier ',finishedRun.identifier, ' rom ', jobRom, ' busy ', self.romsDictionary[jobRom]['Busy'])
+          self.raiseADebug(f'collecting job with identifier "{identifier}" internal identifier ' +\
+                           f'"{finishedRun.identifier}" rom "{jobRom}" busy "{self.romsDictionary[jobRom]["Busy"]}"')
           self.romsDictionary[jobRom]['Busy'].remove(finishedRun.identifier)
         evaluation = finishedRun.getEvaluation()
         if isinstance(evaluation, rerror):
-          self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
+          self.raiseAnError(RuntimeError, f'Job "{finishedRun.identifier}" failed!')
         # collect output in temporary data object
-        tempExportDict = evaluation
-        exportDict = self._mergeDict(exportDict, tempExportDict)
+        exportDict.update(evaluation)
+        # OLD, TODO remove
+        # tempExportDict = evaluation
+        # exportDict = self._mergeDict(exportDict, tempExportDict)
       if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
-        self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
+        self.raiseADebug(f'Jobs with uniqueHandler "{uniqueHandler}" collected!')
         break
       time.sleep(self.sleepTime)
     exportDict['prefix'] = identifier
@@ -588,6 +605,7 @@ class HybridModel(HybridModelBase):
         # make rlz part of a batch -> FIXME why do I have to do this? -> because of weird choice in createNewInput
         batch = RealizationBatch(1)
         batch[0] = rlz
+        batch.ID = rlz.inputInfo['prefix']
         self.modelInstance.submit(batch, originalInput, samplerType, jobHandler)
         self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
         moveOn = True

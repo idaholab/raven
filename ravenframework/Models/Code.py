@@ -945,7 +945,9 @@ class Code(Model):
     """
     # Note in ClientMode the EnsembleModel is handing individual realizations, not batches
     # It's not clear if this is desirable behavior, or if it could be sending batches.
+    # TODO REMOVE ME, taking care of this in the EnsembleModel instead
     if isinstance(batch, Realization):
+      aaaaa
       rlz = batch
       batch = RealizationBatch(1)
       batch[0] = rlz

@@ -15,6 +15,7 @@
   Realizations carry sampled information between entities in RAVEN
 """
 import numpy as np
+from pprint import pformat
 class Realization:
   """
     A mapping container specifically for carrying data between entities in RAVEN, such
@@ -31,9 +32,10 @@ class Realization:
     self.indexMap = {}     # information about dimensionality of variables
     self.labels = {}       # custom labels for tracking, set externally
     self.isRestart = False # True if model was not run, but data was taken from restart
-    self.inputInfo = {'SampledVars': {},   # additional information about this realization
+    self.inputInfo = {#'SampledVars': {},   # additional information about this realization
                       'SampledVarsPb': {}, # point probability information for this realization
     }
+    self.doNotPickle = ['jobHandler']
 
   ########
   #
@@ -83,7 +85,6 @@ class Realization:
       else:
         new.inputInfo[key] = entry
     # fill values from this rlz into the new one
-    print('DEBUGG RLZ targetVars:', targetVars)
     for tvar in targetVars:
       if tvar in self._values:
         new[tvar] = self._values[tvar]
@@ -149,6 +150,34 @@ class Realization:
       @ Out, in, bool, True if variable name in realization
     """
     return item in self._values
+
+  def __getstate__(self):
+    """
+      Provides the state of this instance.
+      @ In, None
+      @ Out, state, dict, stateful representation
+    """
+    state = {}
+    for key1, val1 in self.__dict__.items():
+      if key1 == 'inputInfo':
+        state[key1] = dict((key2, val2) for key2, val2 in val1.items() if key2 not in self.doNotPickle)
+      else:
+        state[key1] = val1
+    return state
+
+  def __repr__(self):
+    """
+      Provides a string representation of this object.
+      @ In, None
+      @ Out, msg, str, string representation
+    """
+    msg = '<Realization object>'
+    msg += f'\n  VARIABLES: {pformat(self._values, indent=1)}'
+    msg += f'\n  INDEXMAP: {pformat(self.indexMap)}'
+    msg += f'\n  LABELS: {pformat(self.labels)}'
+    msg += f'\n  INPUTINFO: {pformat(self.inputInfo, indent=4)}'
+    msg += '\n</Realization object>'
+    return msg
 
   def update(self, *args, **kwargs):
     """

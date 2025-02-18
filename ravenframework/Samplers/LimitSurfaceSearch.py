@@ -121,7 +121,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.toleranceWeight     = 'cdf'            #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence         = 5                #this is the number of times the error needs to fell below the tolerance before considering the sim converged
     self.repetition          = 0                #the actual number of time the error was below the requested threshold
-    self.forceIteration      = False            #this flag control if at least a self.limit number of iteration should be done
+    self.forceIteration      = False            #this flag control if at minimum a chosen number of iteration should be done
     self.axisName            = None             #this is the ordered list of the variable names (ordering match self.gridStepSize and the ordering in the test matrixes)
     self.oldTestMatrix       = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix   = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position

@@ -30,6 +30,7 @@ from ..utils import utils, InputData
 from ..utils.graphStructure import evaluateModelsOrder
 from ..Runners import Error as rerror
 from ..Runners.SharedMemoryRunner import InterruptibleThread
+from ..Realizations import RealizationBatch
 
 class EnsembleModel(Dummy):
   """
@@ -139,9 +140,9 @@ class EnsembleModel(Dummy):
         self.__readSettings(child)
     if len(self.modelsInputDictionary.keys()) < 2:
       self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
-    for modelName in self.modelsInputDictionary.keys():
-      if len(self.modelsInputDictionary[modelName]['Output']) == 0:
-        self.modelsInputDictionary[modelName]['Output'] = None
+    for modelName, modelInput in self.modelsInputDictionary.items():
+      if len(modelInput['Output']) == 0:
+        modelInput['Output'] = None
 
   def __readSettings(self, xmlNode):
     """
@@ -181,44 +182,6 @@ class EnsembleModel(Dummy):
     if len(models) == 0:
       models = None
     return models
-
-  ##############################################################################
-  # #To be uncommented when the execution list can be handled
-  # def __getExecutionList(self, orderedNodes, allPath):
-  #   """
-  #    Method to get the execution list
-  #    @ In, orderedNodes, list, list of models ordered based
-  #                     on the input/output relationships
-  #    @ In, allPath, list, list of lists containing all the
-  #                     path from orderedNodes[0] to orderedNodes[-1]
-  #    @ Out, executionList, list, list of lists with the execution
-  #                     order ([[model1],[model2.1,model2.2],[model3], etc.]
-  #   """
-  #   numberPath    = len(allPath)
-  #   maxComponents = max([len(path) for path in allPath])
-
-  #   executionList = [ [] for _ in range(maxComponents)]
-  #   executionCounter = -1
-  #   for node in orderedNodes:
-  #     nodeCtn = 0
-  #   for path in allPath:
-  #     if node in path:
-  #       nodeCtn +=1
-  #   if nodeCtn == numberPath:
-  #     executionCounter+=1
-  #     executionList[executionCounter] = [node]
-  #   else:
-  #     previousNodesInPath = []
-  #     for path in allPath:
-  #       if path.count(node) > 0:
-  #         previousNodesInPath.append(path[path.index(node)-1])
-  #     for previousNode in previousNodesInPath:
-  #       if previousNode in executionList[executionCounter]:
-  #         executionCounter+=1
-  #         break
-  #     executionList[executionCounter].append(node)
-  #   return executionList
-  ##############################################################################
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -766,10 +729,11 @@ class EnsembleModel(Dummy):
     returnDict = {}
     suffix = ''
     if 'batchRun' in  inputRlz: # FIXME what is this check now?
-      aaaa
+      aaaa # TODO REMOVE ME
       suffix = f"{utils.returnIdSeparator()}{inputRlz['batchRun']}"
     self.raiseADebug('Submitting model',modelDict['Instance'].name)
     localIdentifier = f"{modelDict['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"
+    # MPI-like, distributed memory
     if self.parallelStrategy == 1:
       # we evaluate the model directly
       try:
@@ -777,22 +741,29 @@ class EnsembleModel(Dummy):
       except Exception:
         excType, excValue, excTrace = sys.exc_info()
         evaluation = None
+
+    # threaded (strategy 2), shared memory
     else:
-      moveOn = False
-      while not moveOn: # FIXME what is this while loop doing? It breaks on the first pass every time.
-        # run the model
-        inputInfo.pop("jobHandler", None)
-        modelDict['Instance'].submit(inputRlz, origInputList, samplerType, jobHandler)
-        ## wait until the model finishes, in order to get ready to run the subsequential one
-        while not jobHandler.isThisJobFinished(localIdentifier):
-          time.sleep(1.e-3)
-        moveOn = True
+      # run the model
+      inputInfo.pop("jobHandler", None)
+      # NOTE: this copies significantly from Steps.MultiRun. Is there any way we can bring these together?
+      #   Should EnsembleModel really know how to interact with other models to submit jobs instead of Step?
+      # need to submit a batch, so make one
+      batch = RealizationBatch(1)
+      batch[0] = inputRlz
+      batch.ID = localIdentifier
+      modelDict['Instance'].submit(batch, origInputList, samplerType, jobHandler)
+      ## wait until the model finishes, in order to get ready to run the subsequential one
+      while not jobHandler.isThisJobFinished(localIdentifier):
+        time.sleep(1.e-3)
       # get job that just finished to gather the results
-      finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
-      evaluation = finishedRun[0].getEvaluation()
+      finishedBatch = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
+      # since it's always a batch, [0] gets the run and [0][0] gets the results
+      finishedRun = finishedBatch[0][0]
+      evaluation = finishedRun.getEvaluation()
       if isinstance(evaluation, rerror):
-        if finishedRun[0].exceptionTrace is not None:
-          excType, excValue, excTrace = finishedRun[0].exceptionTrace
+        if finishedRun.exceptionTrace is not None:
+          excType, excValue, excTrace = finishedRun.exceptionTrace
         else:
           # the failure happened at the input creation stage
           excType, excValue, excTrace = IOError, IOError("Failure happened at the input creation stage. See trace above"), None
@@ -804,7 +775,7 @@ class EnsembleModel(Dummy):
 
       else: # model did not fail!
         # collect the target evaluation
-        modelDict['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
+        modelDict['Instance'].collectOutput(finishedRun, inRunTargetEvaluations)
 
     if not evaluation:
       # the model failed
@@ -815,16 +786,16 @@ class EnsembleModel(Dummy):
       self.raiseAnError(RuntimeError, f'The Model "{modelDict["Instance"].name}" id "{localIdentifier}" '+
                         f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
     else:
-      if self.parallelStrategy == 1:
+      if self.parallelStrategy == 1: # distributed memory
         inRunTargetEvaluations.addRealization(evaluation)
-      else:
-        modelDict['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
+      else: # shared memory
+        modelDict['Instance'].collectOutput(finishedRun, inRunTargetEvaluations)
 
     ## FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
     ## does not return the indexes values (TO FIX)
     inRunTargetEvaluations.asDataset()
     # get realization
-    dataSet = inRunTargetEvaluations.realization(index=iterationCount-1,unpackXArray=True)
+    dataSet = inRunTargetEvaluations.realization(index=iterationCount-1, unpackXArray=True)
     ##FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
     dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
     responseSpace = dataSet

@@ -16,22 +16,18 @@ Created on April, 2020
 
 @author: wangc
 """
-
-#External Modules------------------------------------------------------------------------------------
 import copy
 import abc
-import numpy as np
 import itertools
 from collections import OrderedDict
-from ...Decorators.Parallelization import Parallel
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+import numpy as np
+
+from ...Decorators.Parallelization import Parallel
 from ...Models import Dummy
 from ... import Models
 from ... import Files
 from ...utils import InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
 
 class HybridModelBase(Dummy):
   """
@@ -188,7 +184,7 @@ class HybridModelBase(Dummy):
     """
     self.raiseADebug("Evaluate Sample")
     excludeKeys = ['jobHandler']
-    kwargsKeys = list(x for x in rlz.inputInfo.keys() if x not in excludeKeys)
+    # TODO remove, unused: kwargsKeys = list(x for x in rlz.inputInfo.keys() if x not in excludeKeys)
     jobHandler = rlz.inputInfo['jobHandler']
     newInput = self.createNewInput(myInput, samplerType, rlz)
     ## Unpack the specifics for this class, namely just the jobHandler
@@ -246,13 +242,16 @@ class HybridModelBase(Dummy):
       outputDict = copy.deepcopy(tempExportDict)
     else:
       outputDict = copy.deepcopy(exportDict)
-      inKey = 'inputSpaceParams'
-      outKey = 'outputSpaceParams'
-      for key, value in tempExportDict[inKey].items():
-        outputDict[inKey][key] = value
-      for key, value in tempExportDict[outKey].items():
-        output[outKey][key] = value
-      for key, value in tempExportDict['metadata'].items():
-        output['metadata'][key] = value
+      outputDict.update(tempExportDict) # NEW, TODO does this work?
+      # OLD # TODO what happened to the in/out keys?
+      # inKey = 'inputSpaceParams'
+      # outKey = 'outputSpaceParams'
+      # for key, value in tempExportDict[inKey].items():
+      #   outputDict[inKey][key] = value
+      # for key, value in tempExportDict[outKey].items():
+      #   # TODO is this ever called? seems like it would fail if so
+      #   output[outKey][key] = value
+      # for key, value in tempExportDict['metadata'].items():
+      #   output['metadata'][key] = value
     self.raiseADebug("The exportDict has been updated")
     return outputDict

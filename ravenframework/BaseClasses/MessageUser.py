@@ -19,6 +19,7 @@ Moved from MessageHandler
 @author: talbpaul
 """
 
+import inspect
 from pprint import pp
 
 from .. import MessageHandler
@@ -125,20 +126,32 @@ class MessageUser(object):
     msg = ' '.join(str(a) for a in args)
     self.messageHandler.message(self, msg, str(tag), verbosity, color)
 
-  def raiseWhatsThis(self, member, obj=None, tag="DEBUGG"):
+  def raiseWhatsThis(self, label, obj, tag="DEBUGG"):
     """
       Shortcut for a commonly-used print command for developers.
-      @ In, member, str, name of member to interrogate
-      @ In, obj, object, optional, if provided then this is the thing to print; otherwise it's self.member
-      @ In, tag, str, optional, identifying message to include with print
+      @ In, label, str, string description of object
+      @ In, obj, object, this is the thing to print
+      @ In, tag, str, optional, identifying prefix to include with print
     """
+    stack = inspect.stack()
     print('/'+'*'*80)
-    print('WHAT THIS IS:')
-    print(f'{tag} CLASS: {self.__class__.__name__}: MEMBER: "{member}"')
-    if obj is None:
-      toPrint = getattr(self, member)
-    else:
-      toPrint = obj
-    pp(toPrint)
-    print('DEBUGG TYPE:', type(obj))
+    print(f'{tag} WHAT THIS IS:')
+    for f, frame in enumerate(stack[:0:-1]):
+      if f == 0:
+        starter = 'started by'
+      else:
+        starter = 'called'
+      print(f'{tag} -> {starter} "{frame[3]}" line {frame[2]} in file "{frame[1]}"')
+    print(f'{tag} {label}: type "{type(obj)}"')
+    print(pp(obj))
     print('\\'+'*'*80)
+
+  def raiseMarker(self, tag=""):
+    """
+      Shortcut for a commonly-used print command for developers.
+      @ In, label, str, string description of object
+      @ In, obj, object, this is the thing to print
+      @ In, tag, str, optional, identifying prefix to include with print
+    """
+    stack = inspect.stack()
+    print(f'*** MARKER {tag} method "{stack[1][3]}" line {stack[1][2]} file "{stack[1][1]}"')

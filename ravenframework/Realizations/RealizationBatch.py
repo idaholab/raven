@@ -65,6 +65,18 @@ class RealizationBatch:
     assert isinstance(value, Realization)
     self._realizations[index] = value
 
+  def __repr__(self):
+    """
+      Provides a string representation of this object.
+      @ In, None
+      @ Out, msg, str, string representation
+    """
+    msg = '<BatchRealization object>'
+    msg += f'\n  BATCH ID: {self.ID}'
+    msg += f'\n  NUM RLZ: {len(self._realizations)}'
+    msg += '\n</BatchRealization object>'
+    return msg
+
   def pop(self, *args):
     """
       Python built-in for removing and returning entry in realization

@@ -168,7 +168,7 @@ class MultiRun(SingleRun):
         #           otherwise, the finalizeActualSampling method MUST BE called ONCE/job
         # FIXME: This method needs to be improved since it is very intrusise
         # TODO this should get fixed as part of the current batching rework
-        if type(finishedJobObjs).__name__ in 'list':
+        if isinstance(finishedJobObjs, list):
           finishedJobList = finishedJobObjs
           self.raiseADebug(f'BATCHING: Collecting JOB batch named "{finishedJobList[0].groupId}".')
         else:

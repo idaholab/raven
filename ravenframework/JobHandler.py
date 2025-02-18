@@ -708,7 +708,8 @@ class JobHandler(BaseType):
       @ In, evalFunc, callable, method to be executed
       @ Out, None
     """
-    # TODO register batch to fill later?
+    if batch.ID is None:
+      aaaa # TODO remove me
     for rlz in batch:
       if rlz.isRestart:
         self.addFinishedJob(rlz, metadata=rlz.inputInfo)
@@ -1036,7 +1037,7 @@ class JobHandler(BaseType):
     with self.__queueLock:
       finished = []
       runsToBeRemoved = []
-      for i,run in enumerate(self.__finished):
+      for i, run in enumerate(self.__finished):
         # If the jobIdentifier does not match or the uniqueHandler does not
         # match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
