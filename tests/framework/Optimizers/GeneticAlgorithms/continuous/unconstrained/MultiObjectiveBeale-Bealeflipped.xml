@@ -5,7 +5,13 @@
     <author>Mohammad Abdo</author>
     <created>2024-02-18</created>
     <classesTested/>
-    <description>NSGA-II min-max test </description>
+    <description>NSGA-II min-max test: This tackles two objectives obj1, and obj2.
+    Design variables are x and y that are integers with a lower bound of 0, and an upper bound of 5.
+    The objectives are just the beale function and the flipped version of it, so it should have a single optimal point not a pareto front.
+    This is just to test if the optimizer will be able to find this single objective.
+    opt point is: (3,0.5)
+    optimal value is zero (i.e., obj1 = f(3,0.5) = 0, obj2 = -f(3,0.5 = 0) )
+    </description>
   </TestInfo>
 
   <RunInfo>

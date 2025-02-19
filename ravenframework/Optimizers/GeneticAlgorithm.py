@@ -1011,11 +1011,6 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
 
-    if self._isMultiObjective:
-      objVal = xr.DataArray(np.array(self.objectiveVal).T, #objVal,
-                            dims=['chromosome','obj'],
-                            coords={'chromosome':np.arange(len(self.objectiveVal[0])),
-                                    'obj': self._objectiveVar})
     if self._writeSteps == 'every':
       self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
       #self.raiseADebug("### self.population.shape is {}".format(self.population.shape))

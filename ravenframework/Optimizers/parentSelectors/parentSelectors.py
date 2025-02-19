@@ -28,11 +28,8 @@ from ...utils import randomUtils
 # External Modules----------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
+from ...utils.gaUtils import datasetToDataArray
 # Internal Modules End------------------------------------------------------------------------------
-
-# For mandd: to be updated with RAVEN official tools
-from itertools import combinations
 
 # @profile
 def rouletteWheel(population,**kwargs):

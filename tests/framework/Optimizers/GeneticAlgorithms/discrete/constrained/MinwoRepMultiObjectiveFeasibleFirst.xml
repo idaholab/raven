@@ -5,7 +5,12 @@
     <author>Mohammad Abdo</author>
     <created>2024-04-27</created>
     <classesTested/>
-    <description>NSGA-II min-min test </description>
+    <description>NSGA-II min-min test: This test is for two objectives obj1, and obj2
+    objective1 is a weighted sum of the whole chromosome from myLocalSum_multi.py, whereas objective 2
+    is a partial sum (i.e., the weighted sum of the first two genes), the goal is to minimize obj1 and maximize 2.
+    The design/serach variables are x1, through x3. Each of these variables are integers between 2, and 4.
+    The problem is subjected to constraints: expConstr1, ixpConstr2, ixpConstr3 found at myCOnstraints.py
+    </description>
   </TestInfo>
 
   <RunInfo>
