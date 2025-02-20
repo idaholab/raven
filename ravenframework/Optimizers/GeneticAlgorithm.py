@@ -234,8 +234,6 @@
                                                                 | _popDist                           |
                                                                 | _rejectOptPoint                    |
                                                                 | _resolveNewGeneration              |
-                                                                | _resolveNewGenerationMulti         |
-                                                                | _solutionExportUtilityUpdate       |
                                                                 | _submitRun                         |
                                                                 | _updateConvergence                 |
                                                                 | _updatePersistence                 |
@@ -555,7 +553,10 @@ class GeneticAlgorithm(RavenSampled):
               criteria are given, then the defaults are used.""")
     specs.addSub(conv)
     for name, descr in cls.convergenceOptions.items():
-      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108  ))
+      if name != 'objective':
+        conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108))
+      else:
+        conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatListType,descr=descr,printPriority=108))
 
     # Persistence
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
@@ -758,16 +759,9 @@ class GeneticAlgorithm(RavenSampled):
     # overload as needed in inheritors
     return True
 
-  #########################################################################################################
-  # Run Methods                                                                                           #
-  #########################################################################################################
-
-  #########################################################################################################
-  # Developer note:
-  # Each algorithm step is indicated by a number followed by the generation number
-  # e.g., '0 @ n-1' refers to step 0 for generation n-1 (i.e., previous generation)
-  # for more details refer to GRP-Raven-development/Disceret_opt channel on MS Teams.
-  #########################################################################################################
+  ######################################################################################
+  # Run Methods                                                                        #
+  ######################################################################################
 
   ## TODO: We have to estimate the max number of unique chromosomes and make sure population size doesn't exceed that number. Or should it?
   def _useRealization(self, info, rlz):
@@ -971,25 +965,6 @@ class GeneticAlgorithm(RavenSampled):
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
 
-  # def _solutionExportUtilityUpdate(self, traj, rlz, fitness, g, acceptable):
-  #   """
-  #     Utility method to update the solution export
-  #     @ In, traj, int, trajectory for this new point
-  #     @ In, rlz, dict, realized realization
-  #     @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
-  #     @ In, g, xr.DataArray, the constraint evaluation function
-  #     @ In, acceptable, str, 'accetable' status (i.e. first, accepted, rejected, final)
-  #     @ Out, None
-  #   """
-  #   for i in range(rlz.sizes['RAVEN_sample_ID']):
-  #     varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-  #     rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-  #     rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
-  #     rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
-  #     for ind, consName in enumerate(g['Constraint'].values):
-  #       rlzDict['ConstraintEvaluation_'+consName] = g[i,ind]
-  #     self._updateSolutionExport(traj, rlzDict, acceptable, None)
-
   def _resolveNewGeneration(self, traj, rlz, info, objectiveVal=None, fitness=None, g=None):
     """
       Store a new Generation after checking convergence
@@ -1142,26 +1117,15 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, any(convs.values()), bool, True of any of the convergence criteria was reached
       @ Out, convs, dict, on the form convs[conv] = bool, where conv is in self._convergenceCriteria
     """
-    if not self._isMultiObjective:
-      convs = {}
-      for conv in self._convergenceCriteria:
-        fName = conv[:1].upper() + conv[1:]
-        # get function from lookup
-        f = getattr(self, f'_checkConv{fName}')
-        # check convergence function
-        okay = f(traj, new=new, old=old)
-        # store and update
-        convs[conv] = okay
-    else:
-      convs = {}
-      for conv in self._convergenceCriteria:
-        fName = conv[:1].upper() + conv[1:]
-        # get function from lookup
-        f = getattr(self, f'_checkConv{fName}')
-        # check convergence function
-        okay = f(traj, new=new, old=old)
-        # store and update
-        convs[conv] = okay
+    convs = {}
+    for conv in self._convergenceCriteria:
+      fName = conv[:1].upper() + conv[1:]
+      # get function from lookup
+      f = getattr(self, f'_checkConv{fName}')
+      # check convergence function
+      okay = f(traj, new=new, old=old)
+      # store and update
+      convs[conv] = okay
     return any(convs.values()), convs
 
   def _checkConvObjective(self, traj, **kwargs):
@@ -1171,6 +1135,8 @@ class GeneticAlgorithm(RavenSampled):
       @ In, kwargs, dict, dictionary of parameters for convergence criteria
       @ Out, converged, bool, convergence state
     """
+    ## TODO: @Josh please fix this to support multi-objective
+    # I prefer not using _optPointHistory,
     if len(self._optPointHistory[traj]) < 2:
       return False
     o1, _ = self._optPointHistory[traj][-1]
@@ -1348,25 +1314,14 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, True if converged on ANY criteria
     """
     # NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
-    if not self._isMultiObjective: # This is for a single-objective Optimization case.
-      if acceptable == 'accepted':
-        self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
-        # check convergence
-        converged, convDict = self.checkConvergence(traj, new, old)
-      else:
-        converged = False
-        convDict = dict((var, False) for var in self._convergenceInfo[traj])
-      self._convergenceInfo[traj].update(convDict)
-    else: # This is for a multi-objective Optimization case.
-      if acceptable == 'accepted':
-        self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
-        # check convergence
-        converged, convDict = self.checkConvergence(traj, new, old)
-      else:
-        converged = False
-        convDict = dict((var, False) for var in self._convergenceInfo[traj])
-      self._convergenceInfo[traj].update(convDict)
-
+    if acceptable == 'accepted':
+      self.raiseADebug(f'Convergence Check for Trajectory {traj}:')
+      # check convergence
+      converged, convDict = self.checkConvergence(traj, new, old)
+    else:
+      converged = False
+      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+    self._convergenceInfo[traj].update(convDict)
     return converged
 
   def _updatePersistence(self, traj, converged, optVal):
@@ -1505,7 +1460,8 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, new, set, modified set of acceptable variables with all formatting complete
     """
     # remaking the list is easier than using the existing one
-    acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+    # acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+    acceptable = super(RavenSampled, self)._formatSolutionExportVariableNames(acceptable)
     new = []
     while acceptable:
       template = acceptable.pop()
