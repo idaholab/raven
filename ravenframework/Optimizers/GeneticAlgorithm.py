@@ -1135,14 +1135,29 @@ class GeneticAlgorithm(RavenSampled):
       @ In, kwargs, dict, dictionary of parameters for convergence criteria
       @ Out, converged, bool, convergence state
     """
-    ## TODO: @Josh please fix this to support multi-objective
-    # I prefer not using _optPointHistory,
+    # _optPointHistory is used to check that we run the algorithm one step
     if len(self._optPointHistory[traj]) < 2:
       return False
-    o1, _ = self._optPointHistory[traj][-1]
-    converged = True
-    for objVar in self._objectiveVar:
-      converged = (o1[objVar] == self._convergenceCriteria['objective']) and converged
+    # An alternative was to use:
+    # o1, _ = self._optPointHistory[traj][-1]
+    # but that will only search the "best points" so is slower at finding
+    # one that matches the objective.
+    o1 = kwargs['new']
+    #print(f"{o1=}")
+    for j in range(len(np.atleast_1d(o1[self._objectiveVar[0]]))):
+      converged = True
+      bestObjective = []
+      for i,objVar in enumerate(self._objectiveVar):
+        #print(f"{objVar=}  {np.atleast_1d(o1[objVar])[j]=} {self._convergenceCriteria['objective'][i]=}")
+        currentObj = np.atleast_1d(o1[objVar])[j]*self._objMult[objVar]
+        bestObjective.append(currentObj*self._objMult[objVar])
+        converged = (currentObj == self._convergenceCriteria['objective'][i]) and converged
+      if converged:
+        if self._isMultiObjective:
+          self.multiBestObjective = np.array([bestObjective])
+        else:
+          self.bestObjective = bestObjective[0]
+        return converged
     return converged
 
   def _checkConvAHDp(self, traj, **kwargs):
