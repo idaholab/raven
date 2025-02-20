@@ -121,6 +121,7 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
       if "input" not in spec:
         continue
       testType = spec.get('type', "notfound").strip()
+      newTestFile = spec['input'].split()[0]
 
       if whichTests == 4:
         addTest = True
@@ -129,34 +130,20 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
         testInterfaceOnly = False
         if 'test_interface_only' in spec:
           testInterfaceOnly = True if spec['test_interface_only'].lower() == 'true' else False
-        if spec['input'].endswith('.xml') and '.py' not in spec['input']:
+        if newTestFile.endswith('.xml'):
           if whichTests == 3 and testInterfaceOnly:
             addTest = True
           elif whichTests == 1 and not testInterfaceOnly:
             addTest = True
-        else:
+        elif newTestFile.endswith('.py'):
           if whichTests == 2 and testType.lower() != 'crowpython':
             addTest = True
 
       if addTest:
         if groupBy == 'directory':
-          for newTestFile in spec['input'].split(' '):
-            if whichTests == 4 and (newTestFile.endswith('.py') or
-                                    (newTestFile.endswith('.xml') and '.py' not in spec['input'])):
-              doTests[root].append(newTestFile)
-            elif whichTests in [1, 3] and newTestFile.endswith('.xml'):
-              doTests[root].append(newTestFile)
-            elif whichTests == 2 and newTestFile.endswith('.py'):
-              doTests[root].append(newTestFile)
+          doTests[root].append(newTestFile)
         else:
-          for newTestFile in spec['input'].split(' '):
-            if whichTests == 4 and (newTestFile.endswith('.py') or
-                                    (newTestFile.endswith('.xml') and '.py' not in spec['input'])):
-              doTests[spec['test_name']] = spec
-            elif whichTests in [1, 3] and newTestFile.endswith('.xml'):
-              doTests[spec['test_name']] = spec
-            elif whichTests == 2 and newTestFile.endswith('.py'):
-              doTests[spec['test_name']] = spec
+          doTests[spec['test_name']] = spec
 
   return doTests
 
