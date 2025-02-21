@@ -552,6 +552,7 @@ class EconomicRatio(BasicStatistics):
           if self.pivotParameter in targDa.sizes.keys():
             subCVaR = []
             for label, group in targDa.groupby(self.pivotParameter):
+              group = group.squeeze()
               sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(group.values, targWeight,thd)
               quantile = self._computeWeightedPercentile(group.values, targWeight, needed[metric]['interpolation'], percent=[thd])[0]
               lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL, 0]*sortedWeightsAndPoints[:indexL,1])
