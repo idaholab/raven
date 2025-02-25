@@ -431,4 +431,14 @@
       rel_err = 0.001
     [../]
   [../]
+
+  [./TestConstrainedObjective]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMinwRepConstrained.xml'
+    [./csv]
+      type = UnorderedCSV
+      output = 'discrete/constrained/MinwReplacementConstrained/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
 []

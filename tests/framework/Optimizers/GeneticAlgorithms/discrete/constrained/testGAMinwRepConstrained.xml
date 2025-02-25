@@ -55,7 +55,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>5</limit>
+        <limit>500</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -76,7 +76,8 @@
       </GAparams>
 
       <convergence>
-        <AHDp>0.0</AHDp>
+        <!-- <AHDp>0.0</AHDp> -->
+	<objective>6.0</objective>
       </convergence>
 
       <variable name="x1">
@@ -136,7 +137,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
       </PointSet>
     </DataObjects>
 
