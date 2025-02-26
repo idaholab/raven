@@ -275,10 +275,12 @@ class GeneticAlgorithm(RavenSampled):
   """
     This class performs Genetic Algorithm optimization ...
   """
-  convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
+  convergenceOptions = {'objective': r""" provides the desired value or values for the convergence criterion of the objective function
                         ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable
-                         at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$.
-                        \default{1e-6}, if no criteria specified""",
+                         at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$
+                         For multiobjective problems, a comma separated list of objective
+                         values should be provided instead of a single value.
+                        \default{1e-6}, if no criteria specified.""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
                         'AHD': r""" provides the desired value for the Hausdorff Distance between populations""",
                         'HDSM': r""" provides the desired value for the Hausdorff Distance Similarity Measure between populations.
