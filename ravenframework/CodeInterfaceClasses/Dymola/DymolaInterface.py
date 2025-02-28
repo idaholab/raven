@@ -299,8 +299,11 @@ class Dymola(CodeInterfaceBase):
       text = src.read()
 
     # Set the parameters.
+    from pprint import pp
+    pp(varDict)
     for name, value in varDict.items():
-      # skip in the special key for the index mapper
+      print('DEBUGG DymInt cni looking for:', name, value)
+      # skip the special key for the index mapper
       if name == '_indexMap':
         continue
       namere = re.escape(name) # Escape the dots, square brackets, etc.
@@ -311,8 +314,8 @@ class Dymola(CodeInterfaceBase):
           break
       else:
         raise AssertionError(
-          "Parameter %s does not exist or is not formatted as expected "
-          "in %s." % (name, originalPath))
+          f'Parameter {name} does not exist or is not formatted as expected ' +\
+          f'in {originalPath}.')
 
     # Re-write the file.
     with open(currentInputFiles[indexInit].getAbsFile(), 'w', encoding='utf-8') as src:

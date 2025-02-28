@@ -18,17 +18,10 @@ Created on March 3, 2021
 @author: wangc
 """
 
-#External Modules------------------------------------------------------------------------------------
-import os
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules------------------------------------------------------------------------------------
-from .. import Runners
 from ..Models import Model
 from ..Decorators.Parallelization import Parallel
-from ..utils import utils, InputTypes
+from ..utils import InputTypes
 from .PostProcessors import factory
-#Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessor(Model):
   """
@@ -221,6 +214,7 @@ class PostProcessor(Model):
             and output of the PostProcessor, as well as other control options for the PostProcessor
         @ Out, None
     """
+    batch.ID = 0 # TODO postprocessors just get run once usually, right? What could we use this ID for?
     for rlz in batch:
       rlz.inputInfo['forceThreads'] = True
     super().submit(batch, myInput, samplerType, jobHandler)

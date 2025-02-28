@@ -76,10 +76,11 @@ class Realization:
     new = Realization()
     varKeyedEntries = []
     oneVar = next(iter(self._values))
+    # fill new inputInfo
     for key, entry in self.inputInfo.items():
       # assuming the only entries relevant to variables are first-layer dicts in inputInfo ...
       if isinstance(entry, dict) and oneVar in entry:
-        new[key] = {}
+        new.inputInfo[key] = {}
         varKeyedEntries.append(key)
       # TODO other exceptions to handle?
       else:

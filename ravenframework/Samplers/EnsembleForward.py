@@ -232,7 +232,8 @@ class EnsembleForward(Sampler):
     index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict=True)
     coordinate = []
     for samplingStrategy in self.instantiatedSamplers:
-      coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+      coord = self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])]
+      coordinate.append(coord)
     for combination in coordinate:
       for key, value in combination.items():
         # FIXME we don't know what's inputInfo and what's sampled vars!

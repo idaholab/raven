@@ -17,20 +17,12 @@
   Created on May 21, 2016
   @author: alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
-import copy
-import numpy as np
 from collections import namedtuple
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
+import numpy as np
+
 from .Sampler import Sampler
 from ..utils import InputData, InputTypes, utils, mathUtils
-# Internal Modules End------------------------------------------------------------------------------
 
 class CustomSampler(Sampler):
   """
@@ -204,7 +196,6 @@ class CustomSampler(Sampler):
         self.infoFromCustom['ProbabilityWeight'] = data[:, headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
-
       self.limits['samples'] = len(utils.first(self.pointsToSample.values()))
     else:
       self.readingFrom = 'DataObject'
@@ -245,10 +236,10 @@ class CustomSampler(Sampler):
     if self.batch > 1:
       # OLD rlz.inputInfo['batchMode'] = True
       batchMode = True
-      batchData = []
       self.batchId += 1
     else:
       # OLD rlz.inputInfo['batchMode'] = False
+      rlzBatch = [rlzBatch]
       batchMode = False
     for rlz in rlzBatch:
       if self.indexes is None:

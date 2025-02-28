@@ -126,25 +126,33 @@ class MessageUser(object):
     msg = ' '.join(str(a) for a in args)
     self.messageHandler.message(self, msg, str(tag), verbosity, color)
 
-  def raiseWhatsThis(self, label, obj, tag="DEBUGG"):
+  def raiseWhatsThis(self, label, obj, tag="DEBUGG", raiseStack=True):
     """
       Shortcut for a commonly-used print command for developers.
       @ In, label, str, string description of object
       @ In, obj, object, this is the thing to print
       @ In, tag, str, optional, identifying prefix to include with print
+      @ In, raiseStack, bool, optional, if True then print stack
+      @ Out, None
     """
     stack = inspect.stack()
-    print('/'+'*'*80)
-    print(f'{tag} WHAT THIS IS:')
-    for f, frame in enumerate(stack[:0:-1]):
-      if f == 0:
-        starter = 'started by'
-      else:
-        starter = 'called'
+    if raiseStack:
+      print('/'+'*'*80)
+      print(f'{tag} WHAT THIS IS: {label}')
+      for f, frame in enumerate(stack[:0:-1]):
+        if f == 0:
+          starter = 'started by'
+        else:
+          starter = 'called'
+        print(f'{tag} -> {starter} "{frame[3]}" line {frame[2]} in file "{frame[1]}"')
+    else:
+      starter = 'called'
+      frame = stack[1]
       print(f'{tag} -> {starter} "{frame[3]}" line {frame[2]} in file "{frame[1]}"')
     print(f'{tag} {label}: type "{type(obj)}"')
-    print(pp(obj))
-    print('\\'+'*'*80)
+    print(pp(obj, indent=4))
+    if raiseStack:
+      print('\\'+'*'*80)
 
   def raiseMarker(self, tag=""):
     """

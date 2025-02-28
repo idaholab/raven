@@ -384,9 +384,13 @@ class EnsembleModel(Dummy):
                               'has not been found among other models\' outputs and sampled variables!')
 
     ## Now prepare the new inputs for each model
+    self.raiseWhatsThis('full rlz', rlz)
     for modelIn, specs in self.modelsDictionary.items():
+      self.raiseMarker(f'making subs {modelIn}')
+      print('DEBUGG modelsDictIn:', self.modelsDictionary[modelIn]['Input'])
       # FIXME this gets overwritten in _externalRun!
       sub = rlz.createSubsetRlz(self.modelsDictionary[modelIn]['Input'], ignoreMissing=True)
+      self.raiseWhatsThis('sub', sub)
       subRlzs[modelIn] = sub
 
       # local prefix
@@ -635,6 +639,7 @@ class EnsembleModel(Dummy):
             self.raiseAnError(RuntimeError,'metadata "'+metadataToGet+'" is not present among the ones available in source "'+source+'"!')
         # get dependent outputs
         dependentOutput = self.__retrieveDependentOutput(modelIn, gotOutputs, typeOutputs)
+        self.raiseWhatsThis('dep out', dependentOutput)
         # if nonlinear system, check for initial coditions
         if iterationCount == 1  and self.activatePicard:
           sampledVars = inputRlz.keys() # OLD inputKwargs[modelIn]['SampledVars'].keys()
@@ -645,11 +650,9 @@ class EnsembleModel(Dummy):
             else:
               self.raiseAnError(IOError,"No initial conditions provided for variable "+ initialConditionToSet)
         # set new identifiers
-        suffix = ''
         # FIXME this was already set in the createNewInput method!
-        # -> the Suffix is added. Should this be something the Batch takes care of?
-        inputInfo['prefix'] += f"{suffix}"
-        inputInfo['uniqueHandler'] = f"{self.name}{identifier}{suffix}"
+        # TODO REMOVE inputInfo['prefix'] += f"{suffix}"
+        inputInfo['uniqueHandler'] = f"{self.name}{identifier}"
         if metadataToTransfer is not None:
           inputInfo['metadataToTransfer'] = metadataToTransfer
 
@@ -658,8 +661,10 @@ class EnsembleModel(Dummy):
           ## FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transferred from outside
           ## Who has this information? -- DPM 4/11/17
           inputInfo["SampledVarsPb"][var] =  1.
+        self.raiseWhatsThis('pre alias', inputRlz)
         self._replaceVariablesNamesWithAliasSystem(inputRlz, 'input', False)
-        self._replaceVariablesNamesWithAliasSystem(inputInfo["SampledVarsPb"], 'input', False)
+        self.raiseWhatsThis('post alias', inputRlz)
+        # FIXME need? self._replaceVariablesNamesWithAliasSystem(inputInfo["SampledVarsPb"], 'input', False)
         ## FIXME: this will come after we rework the "runInfo" collection in the code
 
         retDict, gotOuts, evaluation = self.__advanceModel(identifier,
@@ -727,12 +732,10 @@ class EnsembleModel(Dummy):
     """
     inputInfo = inputRlz.inputInfo
     returnDict = {}
-    suffix = ''
     if 'batchRun' in  inputRlz: # FIXME what is this check now?
       aaaa # TODO REMOVE ME
-      suffix = f"{utils.returnIdSeparator()}{inputRlz['batchRun']}"
     self.raiseADebug('Submitting model',modelDict['Instance'].name)
-    localIdentifier = f"{modelDict['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"
+    localIdentifier = f"{modelDict['Instance'].name}{utils.returnIdSeparator()}{identifier}"
     # MPI-like, distributed memory
     if self.parallelStrategy == 1:
       # we evaluate the model directly
@@ -757,7 +760,7 @@ class EnsembleModel(Dummy):
       while not jobHandler.isThisJobFinished(localIdentifier):
         time.sleep(1.e-3)
       # get job that just finished to gather the results
-      finishedBatch = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
+      finishedBatch = jobHandler.getFinished(jobIdentifier=localIdentifier, uniqueHandler=f"{self.name}{identifier}")
       # since it's always a batch, [0] gets the run and [0][0] gets the results
       finishedRun = finishedBatch[0][0]
       evaluation = finishedRun.getEvaluation()
@@ -770,8 +773,8 @@ class EnsembleModel(Dummy):
         evaluation = None
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelDict['Instance'].name])):
-          jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}",
-                                 uniqueHandler = f"{self.name}{identifier}{suffix}")
+          jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}",
+                                 uniqueHandler = f"{self.name}{identifier}")
 
       else: # model did not fail!
         # collect the target evaluation

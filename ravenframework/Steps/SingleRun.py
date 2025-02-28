@@ -186,6 +186,7 @@ class SingleRun(Step):
     #
     # since we don't generate a RealizationBatch from the Sampler, we have to generate one here
     batch = RealizationBatch(0)
+    batch.ID = 0
     rlz = batch[0]
     rlz.inputInfo.update({
         'prefix': 'None',
