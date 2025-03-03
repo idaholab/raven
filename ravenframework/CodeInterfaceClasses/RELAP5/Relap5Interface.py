@@ -18,11 +18,12 @@ Created on April 14, 2014
 """
 import os
 import copy
-from . import relapdata
 import shutil
 import re
 from collections import defaultdict
 from math import *
+
+from . import relapdata
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from . import RELAPparser
 
@@ -31,6 +32,17 @@ class Relap5(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
   """
+
+  def __init__(self):
+    """
+    Constructor.
+    @ In, None
+    @ Out, None
+    """
+    super().__init__()
+    self.det = None # whether using dynamic event tree
+    self.inputAliases = None
+    self.detVars = None
 
   def initialize(self, runInfo, oriInputFiles):
     """
@@ -257,24 +269,23 @@ class Relap5(CodeInterfaceBase):
         failure = False
     return failure
 
-  def _evaluateOperators(self,**Kwargs):
+  def _evaluateOperators(self, rlz):
     """
       Method to evaluate the operators
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, None
     """
     for operator in self.operators:
       expression = copy.copy(operator['expression'])
       for var in operator['vars']:
-        if var not in Kwargs['SampledVars']:
+        if var not in rlz:
           raise ValueError('The variable "'+var+'" has not been found among the  SampledVars')
-        expression = expression.replace(var,str(Kwargs['SampledVars'][var]))
+        expression = expression.replace(var,str(rlz[var]))
       expr = copy.copy(expression)
       for card in operator['cards']:
         expr = copy.copy(expression).replace("%card%",operator['cardsValues'][card])
         try:
-          Kwargs['SampledVars'][card] = eval(expr)
+          rlz[card] = eval(expr)
         except Exception as e:
           raise IOError('ERROR in "RELAP5 Code Interface": inputted <expression> is not valid! Exception:'+str(e) )
 
@@ -317,28 +328,29 @@ class Relap5(CodeInterfaceBase):
       else:
         raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, rlz):
     """
       this generate a new input file depending on which sampler is chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    if "_indexMap" in Kwargs['SampledVars']:
-      Kwargs['SampledVars'].pop("_indexMap")
+    info = rlz.inputInfo
+    # TODO needed?
+    # if "_indexMap" in Kwargs['SampledVars']:
+    #   Kwargs['SampledVars'].pop("_indexMap")
     self.det = 'dynamiceventtree' in str(samplerType).lower()
     if self.det:
-      self.tripControlVariables[Kwargs['prefix']] = None
+      self.tripControlVariables[info['prefix']] = None
     # find input file index
     index = self._findInputFileIndex(currentInputFiles)
     # instanciate the parser
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), datatypes=self.datatypes,addMinorEdits=self.det)
     if self.det:
-      self.inputAliases = Kwargs.get('alias').get('input')
-      self.detVars   = Kwargs.get('DETVariables')
+      self.inputAliases = info.get('alias').get('input')
+      self.detVars = info.get('DETVariables')
       if not self.detVars:
         raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
       # check if the DET variables are part of a trip
@@ -351,25 +363,26 @@ class Relap5(CodeInterfaceBase):
         splitted = var.split(":")
         if splitted[len(splitted)-2].split("|")[-1] not in varTrips and var not in logTrips:
           notTrips.append(var)
-      if len(notTrips):
+      if notTrips:
         raise IOError ('For Dynamic Event Tree-based approaches with RELAP5, \n'
                        +'the DET variables must be part of a Trip. The variables \n"'
                        +', '.join(notTrips)+'" are not part of Trips. Consider to sample \nthem with the'
                        +' HybridDynamicEventTree approach (treat them \nas epistemic uncertanties)!' )
     if len(self.operators) > 0:
-      self._evaluateOperators(**Kwargs)
+      self._evaluateOperators(rlz)
 
     # transfer metadata
-    self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
+    self.__transferMetadata(info.get("metadataToTransfer",None), currentInputFiles[index].getPath())
 
     if 'None' not in str(samplerType):
-      Kwargs['currentPath'] = currentInputFiles[index].getPath()
-      modifDict = self.dynamicEventTreeForRELAP5(**Kwargs) if self.det else self.pointSamplerForRELAP5(**Kwargs)
+      info['currentPath'] = currentInputFiles[index].getPath()
+      modifDict = self.dynamicEventTreeForRELAP5(rlz) if self.det else self.pointSamplerForRELAP5(rlz)
       parser.modifyOrAdd(modifDict,True)
+    ### TODO WORKING HERE ###
 
     parser.printInput(currentInputFiles[index])
     if self.det:
-      self.tripControlVariables[Kwargs['prefix']] = parser.additionalControlVariables
+      self.tripControlVariables[info['prefix']] = parser.additionalControlVariables
     return currentInputFiles
 
   def _convertVariablNameInInfo(self, variableName):
@@ -395,26 +408,26 @@ class Relap5(CodeInterfaceBase):
       raise IOError("RELAP5 interface: word number is not an integer (first word followed by '|' symbol). Got "+str(word))
     return (deck, card, word)
 
-  def pointSamplerForRELAP5(self,**Kwargs):
+  def pointSamplerForRELAP5(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for Point samplers (Grid, Stratified, Monte Carlo, etc.).
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, modifDict, dict,  dictionary used by the parser to change the input file
     """
     modifDict = {}
     deckList = {1:{}}
     deckActivated = False
-    for keys in Kwargs['SampledVars']:
-      deck, card, word = self._convertVariablNameInInfo(keys)
+    for name, value in rlz.items():
+      deck, card, word = self._convertVariablNameInInfo(name)
       deckActivated = deck > 1
       if deck not in deckList:
         deckList[deck] = {}
       if card not in deckList[deck]:
-        deckList[deck][card] = [{'position':word,'value':Kwargs['SampledVars'][keys]}]
+        deckList[deck][card] = [{'position':word, 'value':value}]
       else:
-        deckList[deck][card].append({'position':word,'value':Kwargs['SampledVars'][keys]})
+        deckList[deck][card].append({'position':word, 'value':value})
 
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
@@ -423,44 +436,45 @@ class Relap5(CodeInterfaceBase):
     modifDict['decks']=deckList
     return modifDict
 
-  def dynamicEventTreeForRELAP5(self,**Kwargs):
+  def dynamicEventTreeForRELAP5(self, rlz):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for DET-based samplers.
-      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, modifDict, dict,  dictionary used by the parser to change the input file
     """
+    info = rlz.inputInfo
     modifDict = {}
     deckList = {1:{}}
     deckActivated = False
     if self.det:
-      modifDict['happenedEvent'] = Kwargs['happenedEvent']
+      modifDict['happenedEvent'] = info['happenedEvent']
       modifDict['excludeTrips'] = None
       modifDict['DETvariables'] = self.detVars
-      parentID = Kwargs.get("RAVEN_parentID", "none")
+      parentID = info.get("RAVEN_parentID", "none")
       if parentID.lower() != "none":
-        Kwargs['SampledVars']['1|100:1'] = 'restart'
-        Kwargs['SampledVars']['1|103:1'] = '-1'
+        rlz['1|100:1'] = 'restart'
+        rlz['1|103:1'] = '-1'
         # now we can copy the restart file
-        sourcePath = os.path.join(Kwargs['currentPath'],"..",parentID)
-        self.__copyRestartFile(sourcePath, Kwargs['currentPath'])
+        sourcePath = os.path.join(info['currentPath'],"..",parentID)
+        self.__copyRestartFile(sourcePath, info['currentPath'])
         # now we can check if the event happened and if so, remove the variable fro the det variable list
         if modifDict['happenedEvent']:
           modifDict['excludeTrips'] = defaultdict(list)
-          for var in Kwargs['happenedEventVarHistory']:
+          for var in info['happenedEventVarHistory']:
             aliased = self._returnAliasedVariable(var, False)
             deck, card, _ = self._convertVariablNameInInfo(aliased)
             modifDict['excludeTrips'][deck].append(card)
-    for keys in Kwargs['SampledVars']:
-      deck, card, word = self._convertVariablNameInInfo(keys)
+    for name, value in rlz.items():
+      deck, card, word = self._convertVariablNameInInfo(name)
       deckActivated = deck > 1
       if deck not in deckList:
         deckList[deck] = {}
       if card not in deckList[deck]:
-        deckList[deck][card] = [{'position':word,'value':Kwargs['SampledVars'][keys]}]
+        deckList[deck][card] = [{'position':word,'value':value}]
       else:
-        deckList[deck][card].append({'position':word,'value':Kwargs['SampledVars'][keys]})
+        deckList[deck][card].append({'position':word,'value':value})
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
         if deckActivated:
