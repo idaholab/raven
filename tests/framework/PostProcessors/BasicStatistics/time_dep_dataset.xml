@@ -13,7 +13,7 @@
       <revision author="wangc" date="2018-12-13">
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
-          In this case, the time dependent standard errors will be printed out. 
+          In this case, the time dependent standard errors will be printed out.
       </revision>
     </revisions>
   </TestInfo>
@@ -64,7 +64,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
@@ -85,13 +85,14 @@
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="placeholder"/>
     <HistorySet name="HistorySetPostProcTest">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
     <DataSet name='basicStatSet'>
         <Output>
-            variance, 
+            variance,
             covariance,
             percentile,
             pearson,
@@ -104,7 +105,7 @@
             median
         </Output>
         <Index var='time'>
-            variance, 
+            variance,
             covariance,
             percentile,
             pearson,
@@ -117,7 +118,7 @@
             samples
         </Index>
         <Index var='targets'>
-            variance, 
+            variance,
             covariance,
             percentile,
             pearson,

@@ -19,7 +19,7 @@
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
-          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
     </revisions>
   </TestInfo>
@@ -64,7 +64,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
@@ -86,6 +86,7 @@
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="placeholder"/>
     <HistorySet name="HistorySetPostProcTest">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

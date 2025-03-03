@@ -104,7 +104,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
@@ -123,7 +123,7 @@
       <Output class="OutStreams" type="Print">timeDepBasicStat_basicStatPP_dump</Output>
     </PostProcess>
     <MultiRun name="FirstMRunEnsemble">
-      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="CustomSampler">ensemble</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestEnsemble</Output>
@@ -172,6 +172,7 @@
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="placeholder"/>
     <HistorySet name="HistorySetPostProcTest">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

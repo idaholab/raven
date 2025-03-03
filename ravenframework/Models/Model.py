@@ -186,8 +186,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
         raise IOError('The number of times class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper. Number of allowable times is '+str(tester['multiplicity'])+'.Got '+str(tester['tempCounter']))
     #testing if all argument to be tested have been found
     for anItem in what:
-      if anItem['found']==False:
-        raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
+      if not anItem['found']:
+        raise IOError(f'It is not possible to use {anItem["class"]} ' +\
+                      f'with type "{anItem["type"]} as for the {who} role!')
     return True
 
   def __init__(self):

@@ -89,7 +89,7 @@ class Dummy(Model):
     """
     # FIXME wondering if a dictionary compatibility should be kept - Dan M.
     if not isinstance(dataIN, (dict, Realization)) and dataIN.type not in self.admittedData:
-      self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
+      self.raiseAnError(IOError, self, f'Provided input type "{dataIN.type}" is not compatible with the requested {self.type} model "{self.name}"!')
     if not isinstance(dataIN, (dict, Realization)):
       localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes,None)
       if not len(dataIN) == 0:
