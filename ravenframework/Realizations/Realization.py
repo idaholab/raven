@@ -14,8 +14,22 @@
 """
   Realizations carry sampled information between entities in RAVEN
 """
-import numpy as np
 from pprint import pformat
+
+import numpy as np
+
+def dictToRlz(d):
+  """
+    Converts dictionaries into realizations
+    @ In, d, dict, mapping of variables to values
+    @ Out, rlz, Realization, realization instance
+  """
+  rlz = Realization()
+  # TODO allow a way to sort some things as values, indices, info, or labels
+  for name, value in d.items():
+    rlz[name] = value
+  return rlz
+
 class Realization:
   """
     A mapping container specifically for carrying data between entities in RAVEN, such

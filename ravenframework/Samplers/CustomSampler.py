@@ -23,6 +23,7 @@ import numpy as np
 
 from .Sampler import Sampler
 from ..utils import InputData, InputTypes, utils, mathUtils
+from ..Realizations import RealizationBatch
 
 class CustomSampler(Sampler):
   """
@@ -233,14 +234,15 @@ class CustomSampler(Sampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.batch > 1:
-      # OLD rlz.inputInfo['batchMode'] = True
-      batchMode = True
-      self.batchId += 1
-    else:
-      # OLD rlz.inputInfo['batchMode'] = False
-      rlzBatch = [rlzBatch]
-      batchMode = False
+    assert isinstance(rlzBatch, RealizationBatch) # TODO remove debugg
+    # if self.batch > 1:
+    #   # OLD rlz.inputInfo['batchMode'] = True
+    #   batchMode = True
+    self.batchId += 1
+    # else:
+    #   # OLD rlz.inputInfo['batchMode'] = False
+    #   rlzBatch = [rlzBatch]
+    #   batchMode = False
     for rlz in rlzBatch:
       if self.indexes is None:
         index = self.counters['samples'] - 1
@@ -274,6 +276,9 @@ class CustomSampler(Sampler):
           for subVar in var.split(','):
             subVar = subVar.strip()
             # assign the custom sampled variables values to the sampled variables
+            # varDict = self.pointsToSample[subVar][index]
+            # rlz[subVar] = dictToRlz(varDict)
+            self.raiseWhatsThis('rlz', rlz)
             rlz[subVar] = self.pointsToSample[subVar][index]
             # This is the custom sampler, assign the ProbabilityWeights based on the provided values
             rlz.inputInfo[f'ProbabilityWeight-{subVar}'] = self.infoFromCustom[f'ProbabilityWeight-{subVar}'][index]
@@ -282,10 +287,9 @@ class CustomSampler(Sampler):
         rlz.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
       rlz.indexMap = self.sourceIndexMap
       rlz.inputInfo['SamplerType'] = 'Custom'
-      if batchMode:
+      if self.batch > 1:
         self._incrementCounter()
-    if batchMode:
-      rlzBatch.ID = self.name + str(self.batchId)
+    rlzBatch.ID = self.name + str(self.batchId)
 
   def flush(self):
     """

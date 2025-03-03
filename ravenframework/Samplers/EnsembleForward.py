@@ -34,7 +34,7 @@ from .FactorialDesign       import FactorialDesign
 from .ResponseSurfaceDesign import ResponseSurfaceDesign
 from .CustomSampler         import CustomSampler
 from .. import GridEntities
-from ..Realizations import Realization
+from ..Realizations import Realization, RealizationBatch
 
 class EnsembleForward(Sampler):
   """
@@ -197,10 +197,13 @@ class EnsembleForward(Sampler):
       upperBounds[samplingStrategy] = sampler.limits['samples']
       self.toBeSampled.update(sampler.toBeSampled)
       while sampler.amIreadyToProvideAnInput():
-        rlz = Realization()
         sampler.counters['samples'] += 1
-        sampler.localGenerateInput(rlz, None, None)
+        batch = RealizationBatch(1)
+        rlz = batch[0]
+        sendToSampler = rlz if sampler.batch < 1 else batch
+        sampler.localGenerateInput(sendToSampler, None, None)
         rlz.inputInfo['prefix'] = sampler.counters['samples']
+        # TODO can we keep this as a rlz instead of sending a dict?
         self.samplersCombinations[samplingStrategy].append(copy.deepcopy(rlz.asDict()))
       cnt += 1
       mKeys, mParams = sampler.provideExpectedMetaKeys()

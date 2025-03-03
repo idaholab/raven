@@ -17,5 +17,5 @@
 
 # These lines ensure that we do not have to do something like:
 # 'from Samplers.Sampler import Sampler' outside of this submodule
-from .Realization import Realization
+from .Realization import Realization, dictToRlz
 from .RealizationBatch import RealizationBatch
