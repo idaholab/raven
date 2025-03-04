@@ -42,6 +42,7 @@ class Realization:
       @ In, None
       @ Out, None
     """
+    # should we just call "clear" here?
     self._values = {}      # mapping of variables to their values
     self.indexMap = {}     # information about dimensionality of variables
     self.labels = {}       # custom labels for tracking, set externally
@@ -110,7 +111,36 @@ class Realization:
         raise KeyError(f'Desired variable "{tvar}" missing from source Realization!')
     return new
 
+  def copyFrom(self, otherRlz):
+    """
+    Fills this rlz with info from another rlz.
+    @ In, otherRlz, Realization, realization from which to take info
+    @ Out, None
+    """
+    self._values.update(otherRlz)
+    self.indexMap.update(otherRlz.indexMap)
+    self.labels.update(otherRlz.labels)
+    self.isRestart = otherRlz.isRestart
+    self.inputInfo.update(otherRlz.inputInfo)
 
+  def clear(self, what='all'):
+    """
+      Resets this realization.
+      @ In, None
+      @ Out, None
+    """
+    if what == 'all':
+      what = ['values', 'map', 'labels', 'restart', 'info']
+    if 'values' in what:
+      self._values = {}
+    if 'map' in what:
+      self.indexMap = {}
+    if 'labels' in what:
+      self.labels = {}
+    if 'restart' in what:
+      self.isRestart = False
+    if 'info' in what:
+      self.inputInfo = {'SampledVarsPb': {}}
 
   ########
   #
