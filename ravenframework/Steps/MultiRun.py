@@ -20,18 +20,13 @@
   @author: alfoa
   supercedes Steps.py from alfoa (2/16/2013)
 """
-#External Modules------------------------------------------------------------------------------------
 import time
 import copy
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .SingleRun import SingleRun
 from .. import Models
 from ..utils import utils
 from ..OutStreams import OutStreamEntity
-#Internal Modules End--------------------------------------------------------------------------------
-
 
 class MultiRun(SingleRun):
   """
@@ -172,6 +167,7 @@ class MultiRun(SingleRun):
           finishedJobList = finishedJobObjs
           self.raiseADebug(f'BATCHING: Collecting JOB batch named "{finishedJobList[0].groupId}".')
         else:
+          # TODO do we ever get here still?
           finishedJobList = [finishedJobObjs]
         currentFailures = []
         for finishedJob in finishedJobList:

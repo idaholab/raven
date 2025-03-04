@@ -16,10 +16,11 @@ Created March 17th, 2015
 
 @author: talbpaul
 """
-import os
-import copy
-from . import GenericParser
+
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
+
+from . import GenericParser
+
 
 class GenericCode(CodeInterfaceBase):
   """

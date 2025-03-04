@@ -699,8 +699,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     for var in self.toBeSampled:
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     if self.batch > 0:
-      meta.append('batchID')
-      meta.append('batchSize')
+      meta.append('batchID') # TODO shouldn't this just be batch.ID?
+      # TODO do I need this? meta.append('batchSize')
     self.addMetaKeys(meta)
 
   def getBatchSize(self):

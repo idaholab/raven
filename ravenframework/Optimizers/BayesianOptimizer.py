@@ -129,24 +129,25 @@ class BayesianOptimizer(RavenSampled):
     """
     RavenSampled.__init__(self)
     # TODO Figure out best way for tracking 'iterations', 'function evaluations', and 'steps'
-    self._iteration = {}                                                      # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
-    self._initialSampleSize = None                                            # Number of samples to build initial model with before applying acquisition
-    self._trainingInputs = [{}]                                               # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
-    self._trainingTargets = []                                                # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
-    self._model = None                                                        # Regression model used for Bayesian Decision making
-    self._acquFunction = None                                                 # Acquisition function object used in optimization
-    self._modelSelection = 'Internal'                                         # Method for conducting model selection
-    self._modelDuration = 1                                                   # Number of iterations between model updates
-    self._acquisitionConv = 1e-8                                              # Value for acquisition convergence criteria
-    self._convergenceInfo = {}                                                # by traj, the persistence and convergence information for most recent opt
-    self._requiredPersistence = 5                                             # consecutive persistence required to mark convergence
-    self._expectedOptVal = None                                               # Expected value of fopt, in other words, muopt
-    self._optValSigma = None                                                  # Standard deviations at expected solution, confidence of solution
-    self._expectedSolution = None                                             # Decision variable values at expected solution
-    self._evaluationCount = 0                                                 # Number of function/model calls
+    self.batch = 1                      # flag to use batch system
+    self._iteration = {}                # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
+    self._initialSampleSize = None      # Number of samples to build initial model with before applying acquisition
+    self._trainingInputs = [{}]         # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
+    self._trainingTargets = []          # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
+    self._model = None                  # Regression model used for Bayesian Decision making
+    self._acquFunction = None           # Acquisition function object used in optimization
+    self._modelSelection = 'Internal'   # Method for conducting model selection
+    self._modelDuration = 1             # Number of iterations between model updates
+    self._acquisitionConv = 1e-8        # Value for acquisition convergence criteria
+    self._convergenceInfo = {}          # by traj, the persistence and convergence information for most recent opt
+    self._requiredPersistence = 5       # consecutive persistence required to mark convergence
+    self._expectedOptVal = None         # Expected value of fopt, in other words, muopt
+    self._optValSigma = None            # Standard deviations at expected solution, confidence of solution
+    self._expectedSolution = None       # Decision variable values at expected solution
+    self._evaluationCount = 0           # Number of function/model calls
+    self._resetModel = False            # Reset regression model if True
     self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
     self._externalParamOptimizer = 'fmin_l_bfgs_b'                            # Optimizer for external hyperparameter selection
-    self._resetModel = False                                                  # Reset regression model if True
 
   def handleInput(self, paramInput):
     """
@@ -627,7 +628,7 @@ class BayesianOptimizer(RavenSampled):
       optVal = singleRlz[self._objectiveVar]
       self._resolveNewOptPoint(traj, singleRlz, optVal, info)
       singleRlz = {} # FIXME is this necessary?
-    self.raiseADebug(f'Multi-sample resolution completed')
+    self.raiseADebug('Multi-sample resolution completed')
 
   def _resolveNewOptPoint(self, traj, rlz, optVal, info):
     """

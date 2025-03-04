@@ -18,8 +18,8 @@
   @author: talbpaul
 """
 import copy
-from pprint import pprint
 from collections import deque, defaultdict
+
 import numpy as np
 
 from ..utils import InputData, InputTypes, mathUtils
@@ -330,8 +330,8 @@ class GradientDescent(RavenSampled):
   def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
-      @ In, meta, dict, meta information from job run
-      @ In, data, xr.Dataset, batch of realization data (not actual RealizationBatch)
+      @ In, info, dict, meta information from job run
+      @ In, rlz, xr.Dataset, realization data (not actual Realization)
       @ Out, None
     """
     traj = info['traj']

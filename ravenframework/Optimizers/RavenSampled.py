@@ -211,7 +211,13 @@ class RavenSampled(Optimizer):
     ready = Optimizer.amIreadyToProvideAnInput(self)
     # we're not ready yet if we don't have anything in queue
     ready = ready and len(self._submissionQueue) != 0
+    # if taking [batch] more samples puts us over the limit, stop now
     ready = ready and self.counters['samples'] + self.batch < self.limits['samples']
+    # DEBUGG TODO
+    # self.raiseWhatsThis(f'readycheck q:{len(self._submissionQueue)} ' +\
+    #                     f'samps: {self.counters["samples"]} ' +\
+    #                     f'batch: {self.batch} ' +\
+    #                     f'limit: {self.limits["samples"]}', ready)
     return ready
 
   def localGenerateInput(self, batch, model, modelInput):
