@@ -19,10 +19,6 @@ Created on April 04, 2018
 comments: Interface for Scale Simulation (current Origen and Triton)
 """
 import os
-import copy
-import shutil
-from ravenframework.utils import utils
-import xml.etree.ElementTree as ET
 
 from ..Generic import GenericParser
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
@@ -139,14 +135,13 @@ class Scale(CodeInterfaceBase):
     returnCommand = executeCommand, list(self.outputRoot.values())[-1]
     return returnCommand
 
-  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, origInputFiles, samplerType, rlz):
     """
       Generates new perturbed input files for Scale sequences
       @ In, currentInputFiles, list,  list of current input files
       @ In, origInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dict, dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-        where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, newInputFiles, list, list of new input files (modified or not)
     """
     if 'dynamiceventtree' in str(samplerType).lower():
@@ -154,7 +149,7 @@ class Scale(CodeInterfaceBase):
     currentInputsToPerturb = [item for subList in self.findInps(currentInputFiles).values() for item in subList]
     originalInputs         = [item for subList in self.findInps(origInputFiles).values() for item in subList]
     parser = GenericParser.GenericParser(currentInputsToPerturb)
-    parser.modifyInternalDictionary(**Kwargs)
+    parser.modifyInternalDictionary(rlz)
     parser.writeNewInput(currentInputsToPerturb,originalInputs)
     return currentInputFiles
 

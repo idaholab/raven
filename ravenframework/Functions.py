@@ -158,7 +158,7 @@ class External(BaseEntity, InputDataUser):
       execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=paramDict)
     return paramDict
 
-  def __importValues(self,myInput):
+  def __importValues(self, myInput):
     """
       This method makes available the variable values sent in as self.key
       @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
@@ -183,17 +183,17 @@ class External(BaseEntity, InputDataUser):
       else:
         self.raiseAnError(IOError,f'The input variable "{name}" in external function missing!')
 
-  def evaluate(self,what,myInput):
+  def evaluate(self, method, myInput):
     """
       Method that returns the result of the type of action described by 'what'
-      @ In, what, string, what action needs to be performed
+      @ In, method, string, what action needs to be performed
       @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
       @ Out, response, object, the response of the action defined in what
     """
     self.__importValues(myInput)
-    if what not in self.__actionDictionary:
-      self.raiseAnError(IOError,'Method ' + what + ' not defined in ' + self.name)
-    response = self.__actionDictionary[what](self)
+    if method not in self.__actionDictionary:
+      self.raiseAnError(IOError, f'Method "{method}" not defined in Function "{self.name}"!')
+    response = self.__actionDictionary[method](self)
     return response
 
   def availableMethods(self):

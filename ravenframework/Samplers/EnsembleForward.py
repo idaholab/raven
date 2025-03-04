@@ -270,7 +270,11 @@ class EnsembleForward(Sampler):
     rlz.inputInfo['SamplerType'] = 'EnsembleForward'
 
     # Update dependent variables
-    self._functionalVariables(rlz) # FIXME does this want batch or single?
+    # but we're expecting a batch, so wrap the rlz in a temporary batch
+    # FIXME there is surely a better way than wrapping this?
+    batch = RealizationBatch(1)
+    batch[0] = rlz
+    self._functionalVariables(batch) # FIXME does this want batch or single?
 
   def flush(self):
     """

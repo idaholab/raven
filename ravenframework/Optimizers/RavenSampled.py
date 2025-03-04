@@ -212,7 +212,11 @@ class RavenSampled(Optimizer):
     # we're not ready yet if we don't have anything in queue
     ready = ready and len(self._submissionQueue) != 0
     # if taking [batch] more samples puts us over the limit, stop now
-    ready = ready and self.counters['samples'] + self.batch < self.limits['samples']
+    tooManySamples = self.counters['samples'] + self.batch >= self.limits['samples']
+    if tooManySamples:
+      self.raiseADebug(f'A new sample batch ({self.batch} samples) would exceed ' +\
+                       f'sampling limit ({self.limits["samples"]}). Current num samples: {self.counters["samples"]}')
+    ready = ready and not tooManySamples
     # DEBUGG TODO
     # self.raiseWhatsThis(f'readycheck q:{len(self._submissionQueue)} ' +\
     #                     f'samps: {self.counters["samples"]} ' +\

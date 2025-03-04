@@ -278,7 +278,6 @@ class CustomSampler(Sampler):
             # assign the custom sampled variables values to the sampled variables
             # varDict = self.pointsToSample[subVar][index]
             # rlz[subVar] = dictToRlz(varDict)
-            self.raiseWhatsThis('rlz', rlz)
             rlz[subVar] = self.pointsToSample[subVar][index]
             # This is the custom sampler, assign the ProbabilityWeights based on the provided values
             rlz.inputInfo[f'ProbabilityWeight-{subVar}'] = self.infoFromCustom[f'ProbabilityWeight-{subVar}'][index]

@@ -981,7 +981,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputD
     """
     for var in self.variableFunctionExecutionList:
       for rlz in rlzBatch:
-        funcEval = self.funcDict[var].instance.evaluate(self.funcDict[var].methodName, rlz)
+        func = self.funcDict[var]
+        funcEval = func.instance.evaluate(func.methodName, rlz)
         for corrVar in var.split(","):
           rlz[corrVar.strip()] = funcEval
 
