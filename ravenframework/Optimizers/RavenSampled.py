@@ -408,7 +408,6 @@ class RavenSampled(Optimizer):
         key = list(opt.keys())
         val = [item[i] for item in opt.values()]
         optElm = {key[a]: val[a] for a in range(len(key))}
-        optVal = [(-1*(self._minMax[b]=='max')+(self._minMax[b]=='min'))*optElm[self._objectiveVar[b]] for b in range(len(self._objectiveVar))]
 
         bestTraj = traj
         bestOpt = self.denormalizeData(optElm)
