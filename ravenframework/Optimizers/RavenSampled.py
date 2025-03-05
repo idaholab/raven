@@ -309,15 +309,13 @@ class RavenSampled(Optimizer):
         self._objMult[self._objectiveVar[0]] = -1
       else:
         self._objMult[self._objectiveVar[0]] = 1
-    elif type(self._objectiveVar) == list:
+    else:
       for i in range(len(self._objectiveVar)):
         if self._minMax[i] == 'max':
           rlz[self._objectiveVar[i]] *= -1
           self._objMult[self._objectiveVar[i]] = -1
         else:
           self._objMult[self._objectiveVar[i]] = 1
-    else:
-      rlz[self._objectiveVar] *= -1
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
