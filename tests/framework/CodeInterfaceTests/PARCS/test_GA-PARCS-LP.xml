@@ -48,7 +48,7 @@
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
-  
+
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
@@ -174,7 +174,7 @@
       <constant name="loc43">-1.0</constant>
       <constant name="loc44">-1.0</constant>
       <constant name="loc45">-1.0</constant>
-	  
+
       <objective>MaxEFPD</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
@@ -327,7 +327,7 @@
       loc8, loc9, loc10, loc11, loc12, loc13, loc14,
       loc15, loc16, loc17, loc18, loc19, loc20,
       loc21, loc22, loc23, loc24, loc25, loc26,
-      loc29, loc30, loc31,iteration,age,MaxEFPD, 
+      loc29, loc30, loc31,iteration,age,MaxEFPD,
       PinPowerPeaking, max_boron, MaxFDH,batchId,fitness,accepted
     </Output>
   </PointSet>

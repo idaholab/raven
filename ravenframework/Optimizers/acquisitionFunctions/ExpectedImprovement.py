@@ -67,7 +67,7 @@ class ExpectedImprovement(AcquisitionFunction):
     """
     # Need to retrieve current optimum point
     best = bayesianOptimizer._optPointHistory[0][-1][0]
-    fopt = best[bayesianOptimizer._objectiveVar]
+    fopt = best[bayesianOptimizer._objectiveVar[0]]
 
     # Need to convert array input "x" into dict point
     featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
@@ -112,7 +112,7 @@ class ExpectedImprovement(AcquisitionFunction):
 
     # Need to retrieve current optimum point
     best = bayesianOptimizer._optPointHistory[0][-1][0]
-    fopt = best[bayesianOptimizer._objectiveVar]
+    fopt = best[bayesianOptimizer._objectiveVar[0]]
     # Other common quantities
     beta = (fopt - mu)/s
     phi = norm.pdf(beta)
