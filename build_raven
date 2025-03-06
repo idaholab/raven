@@ -114,7 +114,7 @@ fi
 PIP_COMMAND=pip3
 if [[ $EDITABLE == 0 ]]
 then # Don't install editable
-    (cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose --verbose --debug install . --upgrade --target ./install)
+    (cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose --verbose --debug install . --upgrade --target ./install --no-clean)
     #pip install will add a duplicate ravenframework directory, so delete so there isn't
     # confusion over which of the two copies to use.
     (cd $RAVEN_BUILD_DIR && rm -Rf install/ravenframework || rm -Rvf install/ravenframework)
