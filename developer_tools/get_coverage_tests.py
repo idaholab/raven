@@ -17,19 +17,19 @@ import argparse
 ravenDir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 parser = argparse.ArgumentParser(description="Find tests")
-parser.add_argument('--tests-dir', dest='tests_dir', type=str, default=os.path.join(ravenDir, 'tests'),
+parser.add_argument('--tests-dir', dest='testsDir', type=str, default=os.path.join(ravenDir, 'tests'),
                     help="Test directory in which to search for tests")
-parser.add_argument('--get-test-names', action='store_true', dest='find_test_names',
+parser.add_argument('--get-test-names', action='store_true', dest='findTestNames',
                     help='Find all test names')
-parser.add_argument('--get-test-input-filenames', action='store_true', dest='find_input_filenames',
+parser.add_argument('--get-test-input-filenames', action='store_true', dest='findInputFilenames',
                     help='Find all test filenames')
-parser.add_argument('--skip-fails', action='store_true', dest='skip_fails',
+parser.add_argument('--skip-fails', action='store_true', dest='skipFails',
                     help='Skip the expected failed tests')
-parser.add_argument('--get-python-tests', action='store_true', dest='get_python_tests',
+parser.add_argument('--get-python-tests', action='store_true', dest='getPythonTests',
                     help='Find python (unit) tests only')
-parser.add_argument('--get-interface-check-tests', action='store_true', dest='get_interface_check_tests',
+parser.add_argument('--get-interface-check-tests', action='store_true', dest='getInterfaceCheckTests',
                     help='Find interface tests only')
-parser.add_argument('--get-all-tests', action='store_true', dest='get_all_tests',
+parser.add_argument('--get-all-tests', action='store_true', dest='getAllTests',
                     help='Find all tests')
 args = parser.parse_args()
 
@@ -47,19 +47,19 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
     @ In, groupBy, optional, str, how to sort the test info:
                                        - "directory" => output dict keyed by directories with
                                                         values of test input files
-                                       - "test_name" => output dict keyed by test names with
+                                       - "testName" => output dict keyed by test names with
                                                         values of dicts containing test info
                                        default "directory" => output dict keyed by directories
-    @ Out, dict, dict[dir] = list(filenames) OR dict[test_name] = dict[test_info]
+    @ Out, dict, dict[dir] = list(filenames) OR dict[testName] = dict[testInfo]
   """
-  if (groupBy != 'directory') and (groupBy != 'test_name'):
+  if (groupBy != 'directory') and (groupBy != 'testName'):
     print("Unrecognized input for groupBy: ", groupBy)
-    print("Allowed values for groupBy input are 'directory' and 'test_name'. Defaulting to 'directory'.")
+    print("Allowed values for groupBy input are 'directory' and 'testName'. Defaulting to 'directory'.")
     groupBy = 'directory'
   testsFilenames = []
 
   # Search for all the 'tests' files
-  for root, _, files in os.walk(args.tests_dir):
+  for root, _, files in os.walk(args.testsDir):
     if skipExpectedFails and 'ErrorChecks' in root.split(os.sep):
       continue
     if 'tests' in files:
@@ -90,8 +90,8 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
 
       if line.strip().startswith("[./"):
         if depth == 0: # This line contains the test name
-          testSpecs['test_name'] = os.path.normpath(os.path.join(root, line.strip()[3:-1]))
-          testSpecs['test_directory'] = root
+          testSpecs['testName'] = os.path.normpath(os.path.join(root, line.strip()[3:-1]))
+          testSpecs['testDirectory'] = root
           startReading = True
           collectSpecs = False
         else: # This line is the start of a differ
@@ -143,44 +143,44 @@ def getRegressionTests(whichTests=1, skipExpectedFails=True, groupBy='directory'
         if groupBy == 'directory':
           doTests[root].append(newTestFile)
         else:
-          doTests[spec['test_name']] = spec
+          doTests[spec['testName']] = spec
 
   return doTests
 
 if __name__ == '__main__':
-  if args.find_test_names:
+  if args.findTestNames:
     # Test name flag has priority over input filename flag
-    searchTarget = 'test_names'
-  elif args.find_input_filenames:
-    searchTarget = 'input_filenames'
+    searchTarget = 'testNames'
+  elif args.findInputFilenames:
+    searchTarget = 'inputFilenames'
   else:
-    searchTarget = 'input_filenames'
+    searchTarget = 'inputFilenames'
 
   # Skip the expected failed tests
-  skipFails = True if args.skip_fails else False
+  skipFails = True if args.skipFails else False
 
-  if args.get_python_tests:
+  if args.getPythonTests:
     # Unit tests flag has priority over interface check and all tests
     which = 2
-  elif args.get_interface_check_tests:
+  elif args.getInterfaceCheckTests:
     which = 3
-  elif args.get_all_tests:
+  elif args.getAllTests:
     which = 4
   else:
     which = 1
-  if searchTarget == 'input_filenames':
+  if searchTarget == 'inputFilenames':
     keysType = 'directory'
   else:
-    keysType = 'test_name'
+    keysType = 'testName'
 
   tests = getRegressionTests(which, skipExpectedFails=skipFails, groupBy=keysType)
 
   targetList = []
   for key in tests:
-    if searchTarget == 'input_filenames':
+    if searchTarget == 'inputFilenames':
       # Keys are directories, values are input filenames
       targetList.extend([os.path.join(key, l) for l in tests[key]])
-    elif searchTarget == 'test_names':
+    elif searchTarget == 'testNames':
       # Keys are test names, values are dicts with test specs
       targetList.append(key)
 
