@@ -286,7 +286,7 @@ class CustomSampler(Sampler):
         # Construct probabilities based on the user provided information
         self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
         self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
-      self.values['_indexMap'] = self.sourceIndexMap
+      #self.values['_indexMap'] = self.sourceIndexMap
       self.inputInfo['SamplerType'] = 'Custom'
       if self.inputInfo['batchMode']:
         self.inputInfo['SampledVars'] = self.values
