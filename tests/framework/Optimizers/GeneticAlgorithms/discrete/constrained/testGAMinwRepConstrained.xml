@@ -55,14 +55,14 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>20</limit>
+        <limit>500</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
         <populationSize>20</populationSize>
-        <parentSelection>rouletteWheel</parentSelection>
+        <parentSelection>tournamentSelection</parentSelection> <!-- rouletteWheel, tournamentSelection -->
         <reproduction>
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
@@ -71,12 +71,13 @@
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst"></fitness>
+        <fitness type="feasibleFirst"></fitness>  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
 
       <convergence>
-        <AHDp>0.0</AHDp>
+        <!-- <AHDp>0.0</AHDp> -->
+	<objective>6.0</objective>
       </convergence>
 
       <variable name="x1">
@@ -136,7 +137,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
       </PointSet>
     </DataObjects>
 
