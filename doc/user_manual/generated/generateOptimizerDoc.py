@@ -214,57 +214,6 @@ Genetic Algorithm Example:
 
 \hspace{24pt}
 Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
-
-\begin{lstlisting}[style=XML]
-  <Optimizers>
-    <GeneticAlgorithm name="GAopt">
-      <samplerInit>
-        <limit>15</limit>
-        <initialSeed>42</initialSeed>
-        <writeSteps>every</writeSteps>
-        <type>min,min</type>
-      </samplerInit>
-
-      <GAparams>
-        <populationSize>10</populationSize>
-        <parentSelection>tournamentSelection</parentSelection>
-        <reproduction>
-          <crossover type="twoPointsCrossover">
-            <crossoverProb>1.0</crossoverProb>
-          </crossover>
-          <mutation type="randomMutator">
-            <mutationProb>1.0</mutationProb>
-          </mutation>
-        </reproduction>
-        <fitness type="feasibleFirst">
-        </fitness>
-        <survivorSelection>rankNcrowdingBased</survivorSelection>
-      </GAparams>
-
-      <convergence>
-        <AHDp>0.0</AHDp>
-      </convergence>
-
-      <variable name="x1">
-        <distribution>unifDist</distribution>
-      </variable>
-      <variable name="x2">
-        <distribution>unifDist</distribution>
-      </variable>
-      <variable name="x3">
-        <distribution>unifDist</distribution>
-      </variable>
-      <objective>obj1, obj2 </objective>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </GeneticAlgorithm>
-  </Optimizers>
-\end{lstlisting}
-"""
-
-minimalGeneticAlgorithmMultiObjective = r"""
-\hspace{24pt}
-Genetic Algorithm Example:
 \begin{lstlisting}[style=XML]
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
