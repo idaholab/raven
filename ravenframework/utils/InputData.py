@@ -840,3 +840,11 @@ def wrapText(text, indent, width=100):
   msg = textwrap.dedent(text)
   msg = textwrap.fill(msg, width=width, initial_indent=indent, subsequent_indent=indent)
   return msg
+
+def removeTrailingWhitespace(text):
+  """
+    Utility to remove whitespace at end of lines.
+    @ In, text, text to clean
+    @ Out, msg, str, modified text
+  """
+  return re.sub("[ \t]*\n", "\n", text)
