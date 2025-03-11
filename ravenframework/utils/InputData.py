@@ -426,7 +426,7 @@ class ParameterInput(object):
       """
       s = f'{".".join(parentList)}: ' + s
       # TODO give the offending XML! Use has no idea where they went wrong.
-      if errorList == None:
+      if errorList is None:
         raise IOError(s)
       else:
         errorList.append(s)
