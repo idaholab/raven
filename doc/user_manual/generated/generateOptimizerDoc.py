@@ -28,7 +28,7 @@ except Exception as e:
   raise e
 sys.path.pop()
 
-from ravenframework.utils.InputData import wrapText
+from ravenframework.utils.InputData import wrapText, removeTrailingWhitespace
 
 def insertSolnExport(tex, obj):
   """
@@ -277,6 +277,6 @@ for name in Optimizers.factory.knownTypes():
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w', encoding='utf-8') as f:
-  f.writelines(msg)
+  f.writelines(removeTrailingWhitespace(msg))
 
 print(f'\nSuccessfully wrote "{fName}"')
