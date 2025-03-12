@@ -303,19 +303,12 @@ class RavenSampled(Optimizer):
     # so get the correct-signed value into the realization
 
     self._objMult = {} #max will be -1, min will be 1
-    if not self._isMultiObjective:
-      if 'max' in self._minMax:
-        rlz[self._objectiveVar[0]] *= -1
-        self._objMult[self._objectiveVar[0]] = -1
+    for i in range(len(self._objectiveVar)):
+      if self._minMax[i] == 'max':
+        rlz[self._objectiveVar[i]] *= -1
+        self._objMult[self._objectiveVar[i]] = -1
       else:
-        self._objMult[self._objectiveVar[0]] = 1
-    else:
-      for i in range(len(self._objectiveVar)):
-        if self._minMax[i] == 'max':
-          rlz[self._objectiveVar[i]] *= -1
-          self._objMult[self._objectiveVar[i]] = -1
-        else:
-          self._objMult[self._objectiveVar[i]] = 1
+        self._objMult[self._objectiveVar[i]] = 1
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
@@ -331,10 +324,8 @@ class RavenSampled(Optimizer):
     bestTraj = None
     bestPoint = None
 
-    if not self._isMultiObjective:
-      s = np.array(-1 if 'max' in self._minMax else 1)
-    else:
-      s = np.array([-1 if w == 'max' else 1 for w in self._minMax])
+
+    s = np.array([self._objMult[x] for x in self._objectiveVar])
 
     # check converged trajectories
     self.raiseAMessage('*' * 80)
@@ -393,7 +384,7 @@ class RavenSampled(Optimizer):
       self.raiseAMessage(' - Final Optimal Point:')
       finalTemplate = '    {name:^20s}  {value: 1.3e}'
       finalTemplateInt = '    {name:^20s}  {value: 3d}'
-      self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=s * bestValue))
+      self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=s[0] * bestValue))
       self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
       for var, val in bestPoint.items():
         self.raiseAMessage(finalTemplate.format(name=var, value=val))

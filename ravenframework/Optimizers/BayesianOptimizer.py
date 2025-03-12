@@ -452,7 +452,7 @@ class BayesianOptimizer(RavenSampled):
       prevDelta = None
     toAdd['radiusFromBest'] = bestDelta
     toAdd['radiusFromLast'] = prevDelta
-    if self._minMax == 'max':
+    if self._minMax[0] == 'max':
       toAdd['solutionValue'] = -1*self._expectedOptVal
     else:
       toAdd['solutionValue'] = self._expectedOptVal

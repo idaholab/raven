@@ -381,7 +381,7 @@ class Optimizer(AdaptiveSampler):
       @ In, rlz, dict, realization particularly including objective variable
       @ Out, optVal, float, sign-adjust objective value
     """
-    optVal = (-1 if self._minMax == 'max' else 1) * rlz[self._objectiveVar]
+    optVal = (-1 if self._minMax[0] == 'max' else 1) * rlz[self._objectiveVar]
 
     return optVal
 
