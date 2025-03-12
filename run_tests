@@ -52,16 +52,16 @@ done
 echo 'Loading libraries ...'
 if [[ $SKIP_LOAD_ENV == 1 ]];
 then
-    echo Using currently active python environment, with command $(which python)
-    PYTHON_COMMAND=$(which python)
+    echo Using currently active python environment, with command $(command -v python)
+    PYTHON_COMMAND=$(command -v python)
 elif  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
-    echo Loaded conda environment, with command $(which python)
+    echo Loaded conda environment, with command $(command -v python)
 elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
-    echo Loaded pip environment, with command $(which python)
+    echo Loaded pip environment, with command $(command -v python)
 else
     echo No installation: $INSTALLATION_MANAGER
     if [ -z $PYTHON_COMMAND ];
