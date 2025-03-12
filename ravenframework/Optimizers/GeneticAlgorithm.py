@@ -382,7 +382,7 @@ class GeneticAlgorithm(RavenSampled):
                             non-dominated (Pareto-optimal) solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
                             providing decision-makers with a comprehensive view of the problem's solution space. More information about NSGA-II can be found in:\\\\
 
-                            Deb, Kalyanmoy, et al. "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\\\
+                            Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\\\
 
                             GA in RAVEN supports for both single and multi-objective optimization problem."""
 
@@ -582,7 +582,7 @@ class GeneticAlgorithm(RavenSampled):
     # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
     new['rank'] = 'It refers to the sorting of solutions into non-dominated fronts based on their Pareto dominance relationships'
-    new['CD'] = 'It measures the density of solutions within each front to guide the selection of diverse individuals for the next generation'
+    new['CD'] = 'Crowding Distance measures the density of solutions within each front to guide the selection of diverse individuals for the next generation'
     new['fitness'] = 'fitness of the current chromosome'
     new['age'] = 'age of current chromosome'
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'

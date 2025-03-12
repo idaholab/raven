@@ -202,7 +202,7 @@ class GradientDescent(RavenSampled):
     # history trackers, by traj, are deques (-1 is most recent)
     self._gradHistory = {}         # gradients
     self._stepHistory = {}         # {'magnitude': size, 'versor': direction, 'info': dict} for step
-    self._acceptHistory = {}       # acceptabilitys
+    self._acceptHistory = {}       # a dictionary of trajectories of acceptable
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
     self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
