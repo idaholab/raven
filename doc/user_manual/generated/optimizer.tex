@@ -1004,9 +1004,9 @@ Simulated Annealing Example:
   efficiently explore trade-offs between conflicting objectives,
   providing decision-makers with a comprehensive view of the problem's solution space. More
   information about NSGA-II can be found in:\\\\                              Deb, Kalyanmoy, et al.
-  "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary
-  computation 6.2 (2002): 182-197.\\\\                              GA in RAVEN supports for both
-  single and multi-objective optimization problem.
+  ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on
+  evolutionary computation 6.2 (2002): 182-197.\\\\                              GA in RAVEN
+  supports for both single and multi-objective optimization problem.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -1019,7 +1019,7 @@ Simulated Annealing Example:
              \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
              \item \texttt{rank}: It refers to the sorting of solutions into non-dominated fronts based on their Pareto dominance relationships
-             \item \texttt{CD}: It measures the density of solutions within each front to guide the selection of diverse individuals for the next generation
+             \item \texttt{CD}: Crowding Distance measures the density of solutions within each front to guide the selection of diverse individuals for the next generation
              \item \texttt{fitness}: fitness of the current chromosome
              \item \texttt{age}: age of current chromosome
              \item \texttt{batchId}: Id of the batch to whom the chromosome belongs
