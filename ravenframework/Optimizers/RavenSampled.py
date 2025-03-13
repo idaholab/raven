@@ -371,8 +371,9 @@ class RavenSampled(Optimizer):
       self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                         'Perhaps the Model failed?')
 
+    opt = self._optPointHistory[traj][-1][0]
+
     if not self._isMultiObjective:
-      opt = self._optPointHistory[traj][-1][0]
       val = opt[self._objectiveVar[0]]
       self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
       if bestValue is None or val < bestValue:
@@ -392,11 +393,8 @@ class RavenSampled(Optimizer):
       # write final best solution to soln export
       self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
     else: #self._isMultiObjective true
-      for i in range(len(self._optPointHistory[traj][-1][0][self._objectiveVar[0]])):
-        opt = self._optPointHistory[traj][-1][0]
-        key = list(opt.keys())
-        val = [item[i] for item in opt.values()]
-        optElm = {key[a]: val[a] for a in range(len(key))}
+      for i in range(len(opt[self._objectiveVar[0]])):
+        optElm = {key: opt[key][i] for key in opt}
 
         bestTraj = traj
         bestOpt = self.denormalizeData(optElm)
