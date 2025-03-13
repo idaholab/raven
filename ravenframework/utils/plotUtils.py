@@ -32,11 +32,13 @@ def errorFill(x, y, yerr, color=None, alphaFill=0.3, ax=None, logScale=False):
     @ Out, None
   """
   ax = ax if ax is not None else plt.gca()
-  if np.isscalar(yerr) or len(yerr) == len(y):
+  if np.isscalar(yerr) or (len(yerr) == len(y) and np.ndim(yerr) == 1):
     ymin = y - yerr
     ymax = y + yerr
   elif len(yerr) == 2:
     ymin, ymax = yerr
+  else:
+    print(f"Unhandled {yerr=} with {y=}")
   ax.plot(x, y, color=color)
   ax.fill_between(x, ymax, ymin, color=color, alpha=alphaFill)
   if logScale:
