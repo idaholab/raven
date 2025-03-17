@@ -128,6 +128,8 @@ class RavenSampled(Optimizer):
     # additional methods
     # # register adaptive sample identification criteria
     self.registerIdentifier('step')  # the step within the action
+    self._finals = []                # A list of unique final points
+
 
   def handleInput(self, paramInput):
     """
@@ -363,9 +365,14 @@ class RavenSampled(Optimizer):
         bestTraj = traj
         bestValue = val
 
-    # further check active unfinished trajectories
-    # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
-    traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+    if bestValue is not None:
+      traj = bestTraj
+    else:
+      # further check active unfinished trajectories
+      # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
+      # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+      traj = 0
+      bestTraj = traj
     # sanity check: if there's no history (we never got any answers) then report rather than crash
     if len(self._optPointHistory[traj]) == 0:
       self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
@@ -373,35 +380,30 @@ class RavenSampled(Optimizer):
 
     opt = self._optPointHistory[traj][-1][0]
 
-    if not self._isMultiObjective:
-      val = opt[self._objectiveVar[0]]
-      self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
-      if bestValue is None or val < bestValue:
-        bestValue = val
-        bestTraj = traj
-      bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
+    #Note: bestTraj == traj
+    for i in range(len(np.atleast_1d(opt[self._objectiveVar[0]]))):
+      optElm = {key: np.atleast_1d(opt[key])[i] for key in opt}
+      bestOpt = self.denormalizeData(optElm)
       bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-      self.raiseADebug('')
-      self.raiseAMessage(' - Final Optimal Point:')
-      finalTemplate = '    {name:^20s}  {value: 1.3e}'
-      finalTemplateInt = '    {name:^20s}  {value: 3d}'
-      self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=s[0] * bestValue))
-      self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
-      for var, val in bestPoint.items():
-        self.raiseAMessage(finalTemplate.format(name=var, value=val))
-      self.raiseAMessage('*' * 80)
-      # write final best solution to soln export
-      self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
-    else: #self._isMultiObjective true
-      for i in range(len(opt[self._objectiveVar[0]])):
-        optElm = {key: opt[key][i] for key in opt}
 
-        bestTraj = traj
-        bestOpt = self.denormalizeData(optElm)
-        bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-        if bestPoint not in self._finals:
+      if not self._isMultiObjective:
+
+        val = optElm[self._objectiveVar[0]]
+        self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
+        self.raiseADebug('')
+        self.raiseAMessage(' - Final Optimal Point:')
+        finalTemplate = '    {name:^20s}  {value: 1.3e}'
+        finalTemplateInt = '    {name:^20s}  {value: 3d}'
+        self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=s[0] * val))
+        self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
+        for var, val in bestPoint.items():
+          self.raiseAMessage(finalTemplate.format(name=var, value=val))
+        self.raiseAMessage('*' * 80)
+      # write final best solution to soln export
+      if bestPoint not in self._finals:
           self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
           self._finals.append(bestPoint)
+
 
   def flush(self):
     """
