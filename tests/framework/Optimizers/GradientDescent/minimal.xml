@@ -55,6 +55,7 @@
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
         <limit>100</limit>
+        <writeSteps>every</writeSteps>
       </samplerInit>
       <gradient>
         <FiniteDifference/>

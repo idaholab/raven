@@ -228,21 +228,16 @@ class RAVENparser():
     xmlObj = xml.dom.minidom.parseString(ET.tostring(rootToPrint))
     inputAsString = xmlObj.toprettyxml()
     inputAsString = "".join([s for s in inputAsString.strip().splitlines(True) if s.strip()])
-    if outfile==None:
+    if outfile is None:
       outfile =self.inputfile
-    IOfile = open(outfile,'w+')
+    IOfile = open(outfile, 'w+', encoding='utf-8')
     IOfile.write(inputAsString)
     IOfile.close()
 
-  def modifyOrAdd(self,modiDictionary={},save=True, allowAdd = False):
+  def modifyOrAdd(self, rlz, save=True, allowAdd=False):
     """
-      modiDictionary a dict of dictionaries of the required addition or modification
-      {"variableToChange":value }
-      @ In, modiDictionary, dict, dictionary of variables to modify
-            syntax:
-            {'Node|SubNode|SubSubNode:value1','Node|SubNode|SubSubNode@attribute:attributeValue|SubSubSubNode':value2
-                      'Node|SubNode|SubSubNode@attribute':value3}
-             TODO: handle added XML nodes
+      Modify the XML based on provided data for the sake of sampling.
+      @ In, rlz, RAVEN Realization, instance with samples required for modification
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ In, allowAdd, bool, optional, True if the nodes that are not found should be added (additional piece of input)
       @ Out, returnElement, xml.etree.ElementTree.Element, the tree that got modified
@@ -252,7 +247,7 @@ class RAVENparser():
     else:
       returnElement = self.tree                           #otherwise return the original modified
 
-    for fullNode, val in modiDictionary.items():
+    for fullNode, val in rlz.items():
       # might be comma-separated ("fully correlated") variables
       nodes = [x.strip() for x in fullNode.split(',')]
       for node in nodes:

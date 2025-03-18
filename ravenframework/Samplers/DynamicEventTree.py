@@ -40,7 +40,7 @@ from .Sampler import Sampler
 from ..utils import utils
 from ..utils import InputData, InputTypes
 from ..utils import TreeStructure as ETS
-from ..Realizations import RealizationBatch
+from ..Realizations import RealizationBatch, Realization
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):
@@ -96,63 +96,63 @@ class DynamicEventTree(Grid):
     Grid.__init__(self)
     self.onlySampleAfterCollecting = True # see note in Steps.MultiRun about the not-point-sampler loop
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
-    self.workingDir                        = ""
+    self.workingDir = ""
     # (optional) if not present, the sampler will not change the relative keyword in the input file
-    self.maxSimulTime                      = None
+    self.maxSimulTime = None
     # print the xml tree representation of the dynamic event tree calculation
     # see variable 'self.TreeInfo'
-    self.printEndXmlSummary                = False
+    self.printEndXmlSummary = False
     # flag to control if the branch info xml file needs to be removed after reading
-    self.removeXmlBranchInfo               = True
+    self.removeXmlBranchInfo = True
     # Dictionary of the probability bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
-    self.branchProbabilities               = {}
+    self.branchProbabilities = {}
     # Dictionary of the Values' bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
     # these are the invCDFs of the PBs inputted in branchProbabilities (if ProbabilityThresholds have been inputted)
-    self.branchValues                      = {}
+    self.branchValues = {}
     # List of Dictionaries of the last probability bin level (position in the array) reached for each distribution ('distName':IntegerValue)
     # This container is a working dictionary. The branchedLevels are stored in the xml tree "self.TreeInfo" since they must track
     # the evolution of the dynamic event tree
-    self.branchedLevel                     = []
+    self.branchedLevel = []
     # Counter for the branch needs to be run after a calculation branched (it is a working variable)
-    self.branchCountOnLevel                = 0
+    self.branchCountOnLevel = 0
     # Dictionary tha contains the actual branching info
     # (i.e. distribution that triggered, values of the variables that need to be changed, etc)
-    self.actualBranchInfo                  = {}
+    self.actualBranchInfo = {}
     # Parent Branch end time (It's a working variable used to set up the new branches need to be run.
     #   The new branches' start time will be the end time of the parent branch )
-    self.actualEndTime                     = 0.0
+    self.actualEndTime = 0.0
     # Parent Branch end time step (It's a working variable used to set up the new branches need to be run.
     #  The end time step is used to construct the filename of the restart files needed for restart the new branch calculations)
-    self.actualEndTs                       = 0
+    self.actualEndTs = 0
     # Xml tree object. It stored all the info regarding the DET. It is in continue evolution during a DET calculation
-    self.TreeInfo                          = None
+    self.TreeInfo = None
     # List of Dictionaries. It is a working variable used to store the information needed to create branches from a Parent Branch
-    self.endInfo                           = []
+    self.endInfo = []
     # Queue system. The inputs are waiting to be run are stored in this queue dictionary
-    self.RunQueue                          = {}
+    self.RunQueue = {}
     # identifiers of the inputs in queue (name of the history... for example DET_1,1,1)
-    self.RunQueue['identifiers']           = []
+    self.RunQueue['identifiers'] = []
     # Corresponding inputs
-    self.RunQueue['queue']                 = []
+    self.RunQueue['queue'] = []
     # mapping from jobID to rootname in TreeInfo {jobID:rootName}
-    self.rootToJob                         = {}
+    self.rootToJob = {}
     # dictionary of Hybrid Samplers available
-    self.hybridSamplersAvail               = {'MonteCarlo':MonteCarlo,'Stratified':Stratified,'Grid':Grid}
+    self.hybridSamplersAvail = {'MonteCarlo':MonteCarlo,'Stratified':Stratified,'Grid':Grid}
     # dictionary of inputted hybridsamplers need to be applied
-    self.hybridStrategyToApply             = {}
+    self.hybridStrategyToApply = {}
     # total number of hybridsampler samples (combination of all different hybridsampler strategy)
-    self.hybridNumberSamplers              = 0
+    self.hybridNumberSamplers = 0
     # List of variables that represent the aleatory space
-    self.standardDETvariables              = []
+    self.standardDETvariables = []
     # Dictionary of variables that represent the epistemic space (hybrid det).
     # Format => {'epistemicVarName':{'HybridTree name':value}}
-    self.epistemicVariables                = {}
+    self.epistemicVariables = {}
     # Dictionary (mapping) between the fully correlated variables and the "epistemic"
     # variable representation (variable name) in the input file. For example,
     # {'var1':'var1,var2','var2':'var1,var2'}
-    self.fullyCorrelatedEpistemicToVar     = {}
+    self.fullyCorrelatedEpistemicToVar = {}
     # Dictionary to store constants, e.g., {constantName: constantValue} from hybrid sampler
     self.hybridConstants = {}
     # Dictionary to store dependent variables, e.g., {dependentVariableName:value} from hybrid sampler
@@ -181,15 +181,15 @@ class DynamicEventTree(Grid):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    self._endJobRunnable = max((len(self.RunQueue['queue']),1))
+    self._endJobRunnable = max((len(self.RunQueue['queue']), 1))
     if(len(self.RunQueue['queue']) != 0 or self.counters['samples'] == 0):
       ready = True
     else:
       if self.printEndXmlSummary:
-        myFile = open(os.path.join(self.workingDir,self.name + "_outputSummary.xml"),'w')
-        for treeNode in self.TreeInfo.values():
-          treeNode.writeNodeTree(myFile)
-        myFile.close()
+        name = os.path.join(self.workingDir, f'{self.name}_outputSummary.xml')
+        with open(name, 'w', encoding='utf-8') as myFile:
+          for treeNode in self.TreeInfo.values():
+            treeNode.writeNodeTree(myFile)
       ready = False
     return ready
 
@@ -217,6 +217,7 @@ class DynamicEventTree(Grid):
       @ In, genRunQueue, bool, optional, True if the RunQueue needs to be updated
       @ Out, None
     """
+    # FIXME it doesn't appear that genRunQueue can ever be false ... Sampler calls this method without arguments
     self.workingDir = model.workingDir
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     parentNode = self._retrieveParentNode(jobObject.identifier)
@@ -242,7 +243,7 @@ class DynamicEventTree(Grid):
     rlz = jobObject.args[3]
     info = rlz.inputInfo
     stepWorkingDir = info['WORKING_DIR']
-    jobWorkingDir = os.path.join(stepWorkingDir,info['prefix'] if 'prefix' in info else '1')
+    jobWorkingDir = os.path.join(stepWorkingDir, info['prefix'] if 'prefix' in info else '1')
 
     ## This appears to be the same, so I am switching to the model's workingDir
     ## since it is more directly available and less change to how data is stored
@@ -252,10 +253,14 @@ class DynamicEventTree(Grid):
       parentNode.add('endTime',self.actualEndTime)
       return False
     # Collect the branch info in a multi-level dictionary
-    endInfo = {'endTime':self.actualEndTime,'endTimeStep':self.actualEndTs,'branchDist':list(self.actualBranchInfo.keys())[0]}
+    endInfo = {
+        'endTime': self.actualEndTime,
+        'endTimeStep': self.actualEndTs,
+        'branchDist': list(self.actualBranchInfo.keys())[0]
+    }
     endInfo['branchChangedParams'] = self.actualBranchInfo[endInfo['branchDist']]
     # check if RELAP7 mode is activated, in case prepend the "<distribution>" string
-    if any("<distribution>" in s for s in self.branchProbabilities.keys()):
+    if any("<distribution>" in s for s in self.branchProbabilities):
       endInfo['branchDist'] = list(self.toBeSampled.keys())[list(self.toBeSampled.values()).index(endInfo['branchDist'])]
       #endInfo['branchDist'] = "<distribution>"+endInfo['branchDist']
     parentNode.add('actualEndTimeStep',self.actualEndTs)
@@ -263,11 +268,19 @@ class DynamicEventTree(Grid):
     endInfo['parentNode'] = parentNode
     # get the branchedLevel dictionary
     branchedLevel = {}
-    for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
-      if distk not in list(self.epistemicVariables.keys())+list(self.constants.keys())+list(self.hybridConstants.keys()):
+    self.raiseMarker(f'branch {rlz.inputInfo["prefix"]}')
+    self.raiseWhatsThis('parent', endInfo['parentNode'])
+    self.raiseWhatsThis('branchProbs', self.branchProbabilities)
+    self.raiseWhatsThis('epistemics', self.epistemicVariables)
+    for distk, distpb in endInfo['parentNode'].get('SampledVarsPb').items(): #zip(endInfo['parentNode'].get('SampledVarsPb'), endInfo['parentNode'].get('SampledVarsPb').values()):
+      self.raiseMarker(f'disk {distk} distpb {distpb}')
+      if all(distk not in checklist for checklist in (self.epistemicVariables, self.constants, self.hybridConstants)):
         branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]
+        self.raiseMarker('... found aleatoric var')
+      else:
+        self.raiseMarker('... not an aleatoric var')
     if not branchedLevel:
-      self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
+      self.raiseAnError(RuntimeError, f'branchedLevel of node {jobObject.identifier} not found!')
     if endInfo['branchDist'] not in branchedLevel:
       self.raiseAnError(RuntimeError,'<Distribution_trigger> (aka variable) "{}"  in job "{}" not found in the DET set of variables. Available variables are "{}". Problem with the alias?'.format(endInfo['branchDist'],jobObject.identifier, ','.join(branchedLevel.keys())))
 
@@ -458,29 +471,29 @@ class DynamicEventTree(Grid):
     rootnode.add('completedHistory', False)
     # Fill th values dictionary in
     if precSampled:
-      rlz.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
-    rlz.inputInfo['prefix'                    ] = rname
-    rlz.inputInfo['standardDETvariables'      ] = self.standardDETvariables
-    rlz.inputInfo['initiatorDistribution'     ] = []
-    rlz.inputInfo['triggeredVariable'         ] = 'None'
-    rlz.inputInfo['happenedEventVarHistory'   ] = []
-    rlz.inputInfo['PbThreshold'               ] = []
-    rlz.inputInfo['ValueThreshold'            ] = []
-    rlz.inputInfo['branchChangedParam'        ] = ['None']
-    rlz.inputInfo['branchChangedParamValue'   ] = ['None']
-    rlz.inputInfo['startTime'                 ] = -sys.float_info.max
-    rlz.inputInfo['endTimeStep'               ] = 0
-    rlz.inputInfo['RAVEN_parentID'            ] = "None"
-    rlz.inputInfo['RAVEN_isEnding'            ] = True
-    rlz.inputInfo['conditionalPb'            ] = 1.0
-    rlz.inputInfo['happenedEvent'             ] = False
+      rlz.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
+    rlz.inputInfo['prefix'] = rname
+    rlz.inputInfo['standardDETvariables'] = self.standardDETvariables
+    rlz.inputInfo['initiatorDistribution'] = []
+    rlz.inputInfo['triggeredVariable'] = 'None'
+    rlz.inputInfo['happenedEventVarHistory'] = []
+    rlz.inputInfo['PbThreshold'] = []
+    rlz.inputInfo['ValueThreshold'] = []
+    rlz.inputInfo['branchChangedParam'] = ['None']
+    rlz.inputInfo['branchChangedParamValue'] = ['None']
+    rlz.inputInfo['startTime'] = -sys.float_info.max
+    rlz.inputInfo['endTimeStep'] = 0
+    rlz.inputInfo['RAVEN_parentID'] = "None"
+    rlz.inputInfo['RAVEN_isEnding'] = True
+    rlz.inputInfo['conditionalPb'] = 1.0
+    rlz.inputInfo['happenedEvent'] = False
     for branch, probs in self.branchProbabilities.items():
       rlz.inputInfo['initiatorDistribution'].append(self.toBeSampled[branch])
       rlz.inputInfo['PbThreshold'].append(probs[branchedLevel[branch]])
       rlz.inputInfo['ValueThreshold'].append(self.branchValues[branch][branchedLevel[branch]])
     for varname in self.standardDETvariables:
       rlz[varname] = self.branchValues[varname][branchedLevel[varname]]
-      rlz.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname] ]
+      rlz.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
     # constant variables
     # need to wrap in a batch # TODO is there a better way?
     batch = RealizationBatch(1)
@@ -488,13 +501,16 @@ class DynamicEventTree(Grid):
     self._constantVariables(batch)
 
     if precSampled:
-      for precSample in precSampled:
-        rlz.update(precSample['SampledVars'])
-        rlz.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-    pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+      for precRlz in precSampled:
+        precInfo = precRlz.inputInfo
+        rlz.update(precRlz)
+        rlz.inputInfo['SampledVarsPb'].update(precInfo['SampledVarsPb'])
+    pointPb = reduce(mul,[it for sub in [pre.inputInfo['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
     rlz.inputInfo['PointProbability' ] = pointPb
     rlz.inputInfo['ProbabilityWeight'] = pointPb
-    rlz.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
+    for name, pb in rlz.inputInfo['SampledVarsPb'].items():
+      rlz.inputInfo[f'ProbabilityWeight-{name.strip()}'] = pb
+    # rlz.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
 
     ##### REDUNDANT FUNCTIONALS #####
     self._functionalVariables(batch) # TODO batch or single?
@@ -510,10 +526,9 @@ class DynamicEventTree(Grid):
     for key,value in rlz.inputInfo.items():
       rootnode.add(key,copy.copy(value))
     self.RunQueue['queue'].append(newInputs)
-
     self.RunQueue['identifiers'].append(rlz.inputInfo['prefix'])
     self.rootToJob[rlz.inputInfo['prefix']] = rname
-    del newInputs
+    del newInputs # TODO is this necessary? should go out of scope naturally.
     self.counters['samples'] += 1
 
   def _createRunningQueueBegin(self, rlz, model, myInput):
@@ -534,13 +549,15 @@ class DynamicEventTree(Grid):
     # Get the initial branchedLevel dictionary (=> the list gets empty)
     branchedLevel = self.branchedLevel.pop(0)
     for rootTree in self.TreeInfo.values():
-      self._createRunningQueueBeginOne(rlz,rootTree,branchedLevel, model,myInput)
+      # we actually need a separate rlz for each entry here, so make copies
+      branchRlz = copy.deepcopy(rlz)
+      self._createRunningQueueBeginOne(branchRlz,rootTree,branchedLevel, model,myInput)
 
-  def _createRunningQueueBranch(self, rlz, model, myInput, forceEvent=False):
+  def _createRunningQueueBranch(self, baseRlz, model, myInput, forceEvent=False):
     """
       Method to generate the running internal queue right after a branch occurred
       It generates the the information to insatiate the branches' continuation of the Deterministic Dynamic Event Tree
-      @ In, rlz, Realization, dict-like object to fill with sample
+      @ In, baseRlz, Realization, dict-like object to fill with sample
       @ In, model, Models object, the model that is used to explore the input space (e.g. a code, like RELAP-7)
       @ In, myInput, list, list of inputs for the Models object (passed through the Steps XML block)
       @ In, forceEvent, bool, if True the events are forced to happen (basically, the "unchanged event" is not created at all)
@@ -558,22 +575,26 @@ class DynamicEventTree(Grid):
     # Check if the distribution that just triggered hitted the last probability threshold .
     # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in
     # which the event did not occur is not going to be tracked
+    self.raiseMarker('top crqb')
     if branchedLevelParent[endInfo['branchDist']] >= len(self.branchProbabilities[endInfo['branchDist']]):
-      self.raiseADebug('Branch ' + endInfo['parentNode'].get('name') + ' hit last Threshold for distribution ' + endInfo['branchDist'])
-      self.raiseADebug('Branch ' + endInfo['parentNode'].get('name') + ' is dead end.')
+      self.raiseADebug(f'Branch {endInfo["parentNode"].get("name")} hit last Threshold for distribution {endInfo["branchDist"]}')
+      self.raiseADebug(f'Branch {endInfo["parentNode"].get("name")} is dead end.')
       self.branchCountOnLevel = 1
       nBranches -= 1
     else:
-      if forceEvent == True:
+      if forceEvent:
         self.branchCountOnLevel = 1
         nBranches -= 1
     # Loop over the branches for which the inputs must be created
     for _ in range(nBranches):
+      # since each branch will become a new input, each needs to be a fresh rlz
+      rlz = copy.deepcopy(baseRlz)
       self.counters['samples'] += 1
       self.branchCountOnLevel += 1
       branchedLevel = copy.deepcopy(branchedLevelParent)
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
+      self.raiseMarker(f'rname "{rname}"')
       # create a subgroup that will be appended to the parent element in the xml tree structure
       subGroup = ETS.HierarchicalNode(rname)
       subGroup.add('parent', endInfo['parentNode'].get('name'))
@@ -655,6 +676,7 @@ class DynamicEventTree(Grid):
       # check if it is a preconditioned DET sampling, if so add the relative information
       precSampled = endInfo['parentNode'].get('hybridsamplerCoordinate')
       if precSampled:
+        # TODO deepcopy necessary?
         rlz.inputInfo['hybridsamplerCoordinate'] = copy.deepcopy(precSampled)
         subGroup.add('hybridsamplerCoordinate', precSampled)
       # Check if the distribution that just triggered hitted the last probability threshold .
@@ -682,18 +704,27 @@ class DynamicEventTree(Grid):
           rlz.inputInfo['PbThreshold'].append(probs[branchedLevel[branch]])
           rlz.inputInfo['ValueThreshold'].append(self.branchValues[branch][branchedLevel[branch]])
       rlz.clear(what=['values'])
+      self.raiseMarker(f'stdDETvars, pref {rlz.inputInfo["prefix"]}')
+      self.raiseWhatsThis('stdDETvars', self.standardDETvariables)
       for varname in self.standardDETvariables:
         rlz[varname] = self.branchValues[varname][branchedLevel[varname]]
         rlz.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[varname][branchedLevel[varname]]
       self._constantVariables(rlz)
       if precSampled:
         for precSample in precSampled:
-          rlz.update(precSample['SampledVars'])
-          rlz.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-      pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+          # precSample is a realization object, so pull information to rlz from it
+          rlz.update(precSample)
+          rlz.inputInfo.update(precSample.inputInfo)
+      pointPb = reduce(mul,
+            [it for sub in
+               [pre.inputInfo['SampledVarsPb'].values() for pre in precSampled ]
+            for it in sub]
+            if precSampled else [1.0])
       rlz.inputInfo['PointProbability'] = pointPb * subGroup.get('conditionalPb')
       rlz.inputInfo['ProbabilityWeight'] = rlz.inputInfo['PointProbability']
-      rlz.inputInfo.update({f'ProbabilityWeight-{key.strip()}':value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
+      for varName, pb in rlz.inputInfo['SampledVarsPb'].items():
+        rlz.inputInfo[f'ProbabilityWeight-{varName.strip()}'] = pb
+      # TODO REMOVE rlz.inputInfo.update({f'ProbabilityWeight-{key.strip()}':value for key,value in rlz.inputInfo['SampledVarsPb'].items()})
       ##### REDUNDANT FUNCTIONALS #####
       self._functionalVariables(rlz)
       # Add some useful variable naming in the input
@@ -750,7 +781,8 @@ class DynamicEventTree(Grid):
     hvars = {}
     if 'hybridsamplerCoordinate' in rlz.inputInfo:
       for precSample in rlz.inputInfo['hybridsamplerCoordinate']:
-        hvars.update(precSample['SampledVars'])
+        hvars.update(precSample)
+        # TODO also need inputInfo?
       model._replaceVariablesNamesWithAliasSystem(hvars)
       varInfo['HDETVariables'] = list(hvars.keys())
     varInfo['FunctionVariables'] = depVars
@@ -801,7 +833,7 @@ class DynamicEventTree(Grid):
     # provide batches of realizations.
     rlz = rlzBatch[0]
     modelInput = self.localGenerateInput(rlz, model, modelInput)
-    rlzBatch.ID = self.counters['samples'] # TODO fix when moving to batches
+    rlzBatch.ID = rlz.inputInfo['prefix'] # TODO fix when moving to batches
     return rlzBatch, modelInput
 
   def localGenerateInput(self, rlz, model, modelInput):
@@ -870,7 +902,7 @@ class DynamicEventTree(Grid):
         self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
       except (KeyError,NameError):
         self.raiseAnError(IOError,'Can not convert maxSimulationTime in float number!!!')
-    branchedLevel, error_found = {}, False
+    branchedLevel = {}
     gridInfo   = self.gridEntity.returnParameter("gridInfo")
     errorFound = False
     errorMsgs  = ''
@@ -923,9 +955,9 @@ class DynamicEventTree(Grid):
       if child.tag == 'HybridSampler':
         if not 'type' in child.attrib.keys():
           self.raiseAnError(IOError,'Not found attribute type in hybridsamplerSampler block!')
-        if child.attrib['type'] in self.hybridStrategyToApply.keys():
+        if child.attrib['type'] in self.hybridStrategyToApply:
           self.raiseAnError(IOError,'Hybrid Sampler type '+child.attrib['type'] + ' already inputted!')
-        if child.attrib['type'] not in self.hybridSamplersAvail.keys():
+        if child.attrib['type'] not in self.hybridSamplersAvail:
           self.raiseAnError(IOError,'Hybrid Sampler type ' +child.attrib['type'] + ' unknown. Available are '+ ','.join(self.hybridSamplersAvail.keys()) + '!')
         self.hybridNumberSamplers = 1
         # the user can decided how to sample the epistemic
@@ -952,10 +984,10 @@ class DynamicEventTree(Grid):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    for key in self.branchProbabilities.keys():
-      paramDict['Probability Thresholds for var ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
-    for key in self.branchValues.keys()       :
-      paramDict['Values Thresholds for var ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
+    for branch, probs in self.branchProbabilities.items():
+      paramDict[f'Probability Thresholds for var {branch} are: '] = [str(x) for x in probs]
+    for branch, vals in self.branchValues.items()       :
+      paramDict[f'Values Thresholds for var {branch} are: '] = [str(x) for x in vals]
     return paramDict
 
   def localGetCurrentSetting(self):
@@ -979,49 +1011,70 @@ class DynamicEventTree(Grid):
       @ In, None
       @ Out, None
     """
-    if len(self.hybridStrategyToApply.keys()) > 0:
-      hybridlistoflist = []
-    for cnt, preckey  in enumerate(self.hybridStrategyToApply.keys()):
-      hybridsampler =  self.hybridStrategyToApply[preckey]
-      hybridlistoflist.append([])
-      hybridsampler.initialize()
-      self.hybridNumberSamplers *= hybridsampler.limits['samples']
-      while hybridsampler.amIreadyToProvideAnInput():
-        hybridsampler.counters['samples'] +=1
-        hybridsampler.localGenerateInput(None,None)
-        hybridsampler._constantVariables()
-        ##### REDUNDANT FUNCTIONALS #####
-        hybridsampler._functionalVariables()
-        self.hybridConstants.update(hybridsampler.constants)
-        self.hybridDependentSample.update(hybridsampler.dependentSample)
-        hybridsampler.inputInfo['prefix'] = hybridsampler.counter
-        hybridlistoflist[cnt].append(copy.deepcopy(hybridsampler.inputInfo))
+    # if using the "hybrid" approach, then the aleatoric uncertainty is handled by DET,
+    # but the epistemic uncertainty is handled by other samplers (called "hybrid" samplers)
+    # Thus, the hybrid samples serve as starting branch points for the DET sampling, I think.
+    # See 2015 PSA ALFONSI et al. - talbpw 2025
+    if self.hybridStrategyToApply:
+      hybridRlzs = []
+      for cnt, samplerName  in enumerate(self.hybridStrategyToApply):
+        hybridSampler = self.hybridStrategyToApply[samplerName]
+        hybridRlzs.append([])
+        hybridSampler.initialize()
+        self.hybridNumberSamplers *= hybridSampler.limits['samples']
+        while hybridSampler.amIreadyToProvideAnInput():
+          # TODO make this a full batch rather than one-at-a-time?
+          batch = RealizationBatch(1)
+          rlz = batch[0]
+          hybridSampler.counters['samples'] +=1
+          if hybridSampler.batch > 0:
+            hybridSampler.localGenerateInput(batch, None, None)
+          else:
+            hybridSampler.localGenerateInput(rlz, None, None)
+          hybridSampler._constantVariables(batch)
+          hybridSampler._functionalVariables(batch)
+          # TODO is this redundant with calling _constantVariables?
+          self.hybridConstants.update(hybridSampler.constants)
+          self.hybridDependentSample.update(hybridSampler.dependentSample)
+          # TODO adding this crashes the run ... why? Who knows.
+          # rlz.inputInfo['prefix'] = hybridSampler.counters['samples']
+          # only store the Realization (not the Batch), since we're going to recombine these later.
+          hybridRlzs[cnt].append(rlz)
+    # samples covering epistemic space are then the full combination of hybrid samples
     if self.hybridNumberSamplers > 0:
       self.raiseAMessage('Number of Hybrid Samples are ' + str(self.hybridNumberSamplers) + '!')
       hybridNumber = self.hybridNumberSamplers
-      combinations = list(itertools.product(*hybridlistoflist))
+      combinations = list(itertools.product(*hybridRlzs))
     else:
       hybridNumber = 1
+    # build tree mapping to store each branch (I think?)
     self.TreeInfo = {}
     for precSample in range(hybridNumber):
-      elm = ETS.HierarchicalNode(f'{self.name}_{precSample+1}')
-      elm.add('name', self.name + '_'+ str(precSample+1))
+      branchName = f'{self.name}_{precSample+1}'
+      elm = ETS.HierarchicalNode(branchName)
+      elm.add('name', branchName)
+      self.raiseMarker(f'branch "{branchName}"')
       elm.add('startTime', str(0.0))
       # Initialize the endTime to be equal to the start one...
       # It will modified at the end of each branch
       elm.add('endTime', str(0.0))
-      elm.add('runEnded',False)
-      elm.add('running',True)
-      elm.add('queue',False)
+      elm.add('runEnded', False)
+      elm.add('running', True)
+      elm.add('queue', False)
       # if preconditioned DET, add the sampled from hybridsampler samplers
-      if self.hybridNumberSamplers > 0:
+      if self.hybridNumberSamplers > 0: # isn't this always true? We are already looping over hybridNumber
         elm.add('hybridsamplerCoordinate', combinations[precSample])
-        for point in combinations[precSample]:
-          for epistVar, val in point['SampledVars'].items():
-            if epistVar in hybridsampler.constants or epistVar in hybridsampler.dependentSample:
+        for rlz in combinations[precSample]:
+          for epistVar, val in rlz.items():
+            # skip constants or dependent variables, as these will be added separately
+            if epistVar in hybridSampler.constants or epistVar in hybridSampler.dependentSample:
               continue
+            # correlated variables need slight special handling
             if epistVar in self.fullyCorrelatedEpistemicToVar:
               self.epistemicVariables[self.fullyCorrelatedEpistemicToVar[epistVar]][elm.get('name')] = val
+            # add realization values to the epistemic variables; epistemicVariables become effectively
+            #   rebuilt samples combined from the hybrid samples
+            # TODO should they be realizations?
             else:
               self.epistemicVariables[epistVar][elm.get('name')] = val
       # The dictionary branchedLevel is stored in the xml tree too. That's because
@@ -1029,39 +1082,52 @@ class DynamicEventTree(Grid):
       elm.add('branchedLevel', self.branchedLevel[0])
       # Here it is stored all the info regarding the DET => we create the info for all the
       # branchings and we store them
-      self.TreeInfo[f'{self.name}_{precSample+1}'] = ETS.HierarchicalTree(elm)
+      self.TreeInfo[branchName] = ETS.HierarchicalTree(elm)
 
     initBranchProbabilities = copy.copy(self.branchProbabilities)
-    initBranchValues        = copy.copy(self.branchValues)
-    for key in self.branchProbabilities.keys():
-      if ("<distribution>" in key) or (self.variables2distributionsMapping[key]['totDim']==1):
+    initBranchValues = copy.copy(self.branchValues)
+    for name, probs in self.branchProbabilities.items():
+      if ("<distribution>" in name) or (self.variables2distributionsMapping[name]['totDim']==1):
         # 1Dimensional Distributions (inverse CDF)
-        initBranchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
+        initBranchValues[name] = [self.distDict[name].ppf(float(probs[index])) for index in range(len(probs))]
       else:
         # NDimensional Distrubutions (inverse Marginal CDF)
-        initBranchValues[key] = [self.distDict[key].inverseMarginalDistribution(float(self.branchProbabilities[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchProbabilities[key]))]
+        initBranchValues[name] = [
+            self.distDict[name].inverseMarginalDistribution(
+                float(probs[index]),
+                self.variables2distributionsMapping[name]['dim']-1)
+            for index in range(len(probs))
+        ]
 
-    for key in self.branchValues.keys():
-      #self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[key]['dim']-1)
-      if ("<distribution>" in key) or (self.variables2distributionsMapping[key]['totDim']==1):
+    for name, value in self.branchValues.items():
+      if ("<distribution>" in name) or (self.variables2distributionsMapping[name]['totDim']==1):
         # 1Dimensional Distributions (CDF)
-        initBranchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+        initBranchProbabilities[name] = [self.distDict[name].cdf(float(value[index])) for index in range(len(value))]
       else:
         # NDimensional Distrubutions (Marginal CDF)
-        initBranchProbabilities[key] = [self.distDict[key].marginalDistribution(float(self.branchValues[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchValues[key]))]
+        initBranchProbabilities[name] = [
+            self.distDict[name].marginalDistribution(
+                float(value[index]),
+                self.variables2distributionsMapping[name]['dim']-1)
+            for index in range(len(value))
+        ]
 
     self.branchValues.update(initBranchValues)
     self.branchProbabilities.update(initBranchProbabilities)
-    for key in self.branchValues.keys():
+    for name, value in self.branchValues.items():
       # add the last forced branch (CDF=1)
-      if 1.0 not in self.branchProbabilities[key]:
-        self.branchProbabilities[key] = np.append(self.branchProbabilities[key],[1.0])
+      if 1.0 not in self.branchProbabilities[name]:
+        self.branchProbabilities[name] = np.append(self.branchProbabilities[name],[1.0])
         #self.branchProbabilities[key].append( 1.0 )
-        if ("<distribution>" in key) or (self.variables2distributionsMapping[key]['totDim']==1):
-          self.branchValues[key] = np.append(self.branchValues[key],[self.distDict[key].ppf(1.0)])
+        if ("<distribution>" in name) or (self.variables2distributionsMapping[name]['totDim']==1):
+          self.branchValues[name] = np.append(value,[self.distDict[name].ppf(1.0)])
           #self.branchValues[key].append( self.distDict[key].ppf(1.0) )
         else:
-          self.branchValues[key] = np.append(self.branchValues[key],self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1))
+          self.branchValues[name] = np.append(
+              value,
+              self.distDict[name].inverseMarginalDistribution(
+                  1.0, self.variables2distributionsMapping[name]['dim']-1)
+          )
           #self.branchValues[key].append(self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1) )
     self.limits['samples'] = sys.maxsize # ??? why?
     # add expected metadata

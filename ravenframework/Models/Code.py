@@ -656,13 +656,13 @@ class Code(Model):
             # FIXME this is VERY implicit checking!!!
             if '_' in info['prefix']:
               self.raiseAnError(RuntimeError,'OUTER RAVEN is using an OPTIMIZER, but INNER RAVEN is returning multiple realizations!')
-            addon = '_{}'.format(n)
+            addon = f'_{n}'
           else:
             addon = ''
           out['prefix'] = np.atleast_1d(info['prefix']+addon)
           ## add the rest of the metadata # TODO slow
-          for var,val in rlz.asDict.items():
-            if var not in out.keys():
+          for var, val in rlz.asDict().items():
+            if var not in out:
               out[var] = np.atleast_1d(val)
           self._replaceVariablesNamesWithAliasSystem(out, 'inout', True)
           exportDict['realizations'].append(out)

@@ -150,7 +150,7 @@ class MessageUser(object):
       frame = stack[1]
       print(f'{tag} -> {starter} "{frame[3]}" line {frame[2]} in file "{frame[1]}"')
     print(f'{tag} {label}: type "{type(obj)}"')
-    print(pp(obj, indent=4))
+    pp(obj, indent=4)
     if raiseStack:
       print('\\'+'*'*80)
 
@@ -162,4 +162,4 @@ class MessageUser(object):
       @ In, tag, str, optional, identifying prefix to include with print
     """
     stack = inspect.stack()
-    print(f'*** MARKER {tag} method "{stack[1][3]}" line {stack[1][2]} file "{stack[1][1]}"')
+    print(f'*** MARKER <{tag}> in method "{stack[1][3]}" line {stack[1][2]} file "{stack[1][1]}"')

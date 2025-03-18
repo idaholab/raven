@@ -17,8 +17,9 @@ Created on Sept 10, 2017
 @author: alfoa
 """
 import os
+
 import numpy as np
-from sys import platform
+
 from ravenframework.utils import utils
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ravenframework import DataObjects
@@ -229,14 +230,13 @@ class RAVEN(CodeInterfaceBase):
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, rlz):
     """
       this generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
       @ In, oriInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ In, rlz, Realization, Realization from whiech to build input
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     from . import RAVENparser
@@ -244,13 +244,12 @@ class RAVEN(CodeInterfaceBase):
       raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
     index = self.__findInputFile(currentInputFiles)
     parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
-    # get sampled variables
-    modifDict = Kwargs['SampledVars']
+    info = rlz.inputInfo
 
     # apply conversion scripts
     for source, convDict in self.conversionDict.items():
       module = utils.importFromPath(source)
-      varVals = dict((var,np.asarray(modifDict[var])) for var in convDict['variables'])
+      varVals = dict((var,np.asarray(rlz[var])) for var in convDict['variables'])
       # modify vector+ variables that need to be flattened
       if convDict['noScalar']:
         # call conversion
@@ -259,17 +258,17 @@ class RAVEN(CodeInterfaceBase):
         if type(newVars).__name__ != 'dict':
           raise IOError(self.printTag+' ERROR: convertNotScalarSampledVariables in "{}" must return a dictionary!'.format(source))
         # apply new and/or updated values
-        modifDict.update(newVars)
+        rlz.update(newVars)
       # modify scalar variables
       if convDict['scalar']:
         # call conversion, value changes happen in-place
-        module.manipulateScalarSampledVariables(modifDict)
+        module.manipulateScalarSampledVariables(rlz)
     # we work on batchSizes here
-    newBatchSize = Kwargs['NumMPI']
-    internalParallel = Kwargs.get('internalParallel',False)
-    if int(Kwargs['numberNodes']) > 0:
+    newBatchSize = info['NumMPI']
+    internalParallel = info.get('internalParallel',False)
+    if int(info['numberNodes']) > 0:
       # we are in a distributed memory machine => we allocate a node file
-      nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],"node_" +str(Kwargs['INDEX']))
+      nodeFileToUse = os.path.join(info['BASE_WORKING_DIR'],"node_" +str(info['INDEX']))
       if not os.path.exists(nodeFileToUse):
         if "PBS_NODEFILE" not in os.environ:
           raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
@@ -277,32 +276,33 @@ class RAVEN(CodeInterfaceBase):
           nodeFileToUse = os.environ["PBS_NODEFILE"]
       if len(parser.tree.findall('./RunInfo/mode')) == 1:
         #If there is a mode node, give it a nodefile.
-        modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
+        info['RunInfo|mode|nodefile'] = nodeFileToUse
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
-      modifDict['RunInfo|batchSize'] = newBatchSize
+      info['RunInfo|batchSize'] = newBatchSize
 
-    if 'headNode' in Kwargs:
-      modifDict['RunInfo|headNode'] = Kwargs['headNode']
-    if 'schedulerFile' in Kwargs:
-      modifDict['RunInfo|schedulerFile'] = Kwargs['schedulerFile']
-    if 'remoteNodes' in Kwargs:
-      if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
-        modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
+    if 'headNode' in info:
+      info['RunInfo|headNode'] = info['headNode']
+    if 'schedulerFile' in info:
+      info['RunInfo|schedulerFile'] = info['schedulerFile']
+    if 'remoteNodes' in info:
+      if info['remoteNodes'] is not None and len(info['remoteNodes']):
+        info['RunInfo|remoteNodes'] = ','.join(info['remoteNodes'])
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
-    modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
+    modifiedRoot = parser.modifyOrAdd(rlz, save=True, allowAdd=True)
+    ### TODO WORKING HERE FIXME ###
     # modify tree
     if self.inputManipulationModule is not None:
       module = utils.importFromPath(self.inputManipulationModule)
-      modifiedRoot = module.modifyInput(modifiedRoot,modifDict)
+      modifiedRoot = module.modifyInput(modifiedRoot, rlz)
     # write input file
     parser.printInput(modifiedRoot, currentInputFiles[index].getAbsFile())
     # copy slave files
     parser.copySlaveFiles(currentInputFiles[index].getPath())
     return currentInputFiles
 
-  def checkForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run  if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0

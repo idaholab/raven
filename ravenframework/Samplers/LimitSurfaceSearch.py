@@ -743,9 +743,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
       #here we are still generating the batch
       for key in sorted(self.distDict.keys()):
         if self.toleranceWeight=='cdf':
-          rlz[key]                       = self.distDict[key].ppf(float(randomUtils.random()))
+          rlz[key] = self.distDict[key].ppf(float(randomUtils.random()))
         else:
-          rlz[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(randomUtils.random())
+          rlz[key] = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(randomUtils.random())
         rlz.inputInfo['distributionName'][key]  = self.toBeSampled[key]
         rlz.inputInfo['distributionType'][key]  = self.distDict[key].type
         rlz.inputInfo['SampledVarsPb'][key]  = self.distDict[key].pdf(rlz[key])
