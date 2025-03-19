@@ -72,11 +72,7 @@ def scrambleMutator(offSprings, distDict, **kwargs):
           variables, list, variables names.
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
-  if kwargs['locs'] is None:
-    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
-  else:
-    locs = [kwargs['locs'][0], kwargs['locs'][1]]
-  locs.sort()
+  locs = locationsGenerator(offSprings, kwargs['locs'])
 
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
