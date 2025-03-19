@@ -25,6 +25,9 @@ import numpy as np
 from pandas.plotting import parallel_coordinates
 import pandas as pd
 
+from .. import MessageHandler
+mh = getMessageHandler()
+
 def errorFill(x, y, yerr, color=None, alphaFill=0.3, ax=None, logScale=False):
   """
     Method designed to draw a line x vs y including a shade between the min and max of y
@@ -38,7 +41,7 @@ def errorFill(x, y, yerr, color=None, alphaFill=0.3, ax=None, logScale=False):
   elif len(yerr) == 2:
     ymin, ymax = yerr
   else:
-    print(f"Unhandled {yerr=} with {y=}")
+    mh.message("plotUtils", f"Unhandled {yerr=} with {y=}", "warning", "quiet")
   ax.plot(x, y, color=color)
   ax.fill_between(x, ymax, ymin, color=color, alpha=alphaFill)
   if logScale:
