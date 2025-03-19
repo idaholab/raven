@@ -107,7 +107,7 @@ def tournamentSelection(population, **kwargs):
   """
   nParents = kwargs['nParents']
   nObjVal = len(kwargs['objVar'])
-  fitness_provided = 'fitness' in kwargs
+  fitnessProvided = 'fitness' in kwargs
   selectedParent = xr.DataArray(np.zeros((nParents, np.shape(population.values)[1])),
                                 dims=['chromosome', 'Gene'],
                                 coords={'chromosome': np.arange(nParents),
@@ -115,33 +115,32 @@ def tournamentSelection(population, **kwargs):
   if not kwargs['isMultiObjective']:
     # Single-objective case
     fitness = kwargs['fitness']
-    all_selected = set()
+    allSelected = set()
     for i in range(nParents):
       matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
-      selectChromoIndexes = list(set(range(len(population))) - all_selected)
+      selectChromoIndexes = list(set(range(len(population))) - allSelected)
       selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                 replace=False, engine=None)
       # Extract relevant information
-      if fitness_provided:
+      if fitnessProvided:
         matrixOperationRaw[:, 0] = selectedChromo
         matrixOperationRaw[:, 1] = np.transpose(fitness[kwargs['objVar'][0]][selectedChromo].values)
       else:
         raise ValueError("Fitness must be provided for single-objective selection")
       tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:, 1]), 0])
-      all_selected.add(tournamentWinnerIndex)
+      allSelected.add(tournamentWinnerIndex)
       selectedParent[i, :] = population.values[tournamentWinnerIndex, :]
-  else:
-    # Multi-objective case
-    if kwargs['isMultiObjective']:
-      rank_provided = 'rank' in kwargs
-      crowd_distance_provided = 'crowdDistance' in kwargs
+  else: # Multi-objective case
 
-    if rank_provided and crowd_distance_provided:
+    rankProvided = 'rank' in kwargs
+    crowdDistanceProvided = 'crowdDistance' in kwargs
+
+    if rankProvided and crowdDistanceProvided:
       # If both rank and crowd distance are provided, use them directly as per NSGA-II
-      all_selected = set()
+      allSelected = set()
       for i in range(nParents):
         matrixOperationRaw = np.zeros((kwargs['kSelection'], 3))
-        selectChromoIndexes = list(set(range(len(population.chromosome))) - all_selected)
+        selectChromoIndexes = list(set(range(len(population.chromosome))) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
@@ -160,14 +159,14 @@ def tournamentSelection(population, **kwargs):
           minRankNmaxCDIndex = minRankIndex
         # Stage 2: Select the individual with the highest crowding distance within their rank group
         tournamentWinnerIndex = int(minRankNmaxCDIndex[0])
-        all_selected.add(selectedChromo[tournamentWinnerIndex])
+        allSelected.add(selectedChromo[tournamentWinnerIndex])
         selectedParent[i, :] = population.values[selectedChromo[tournamentWinnerIndex], :]
-    elif rank_provided and not crowd_distance_provided:
+    elif rankProvided and not crowdDistanceProvided:
       # If only rank is provided (without crowd distance), calculate a default crowding distance
-      all_selected = set()
+      allSelected = set()
       for i in range(nParents):
         matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
-        selectChromoIndexes = list(set(range(len(population))) - all_selected)
+        selectChromoIndexes = list(set(range(len(population))) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
@@ -183,14 +182,14 @@ def tournamentSelection(population, **kwargs):
           minRankNmaxCDIndex = minRankIndex
         # Stage 2: Select the individual with the highest rank within their group
         tournamentWinnerIndex = int(minRankNmaxCDIndex[0])
-        all_selected.add(selectedChromo[tournamentWinnerIndex])
+        allSelected.add(selectedChromo[tournamentWinnerIndex])
         selectedParent[i, :] = population.values[selectedChromo[tournamentWinnerIndex], :]
-    elif 'fitness' in kwargs and not rank_provided:
+    elif 'fitness' in kwargs and not rankProvided:
       # If only fitness is provided (without rank), calculate a default rank
-      all_selected = set()
+      allSelected = set()
       for i in range(nParents):
         matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
-        selectChromoIndexes = list(set(range(len(population))) - all_selected)
+        selectChromoIndexes = list(set(range(len(population))) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
@@ -198,7 +197,7 @@ def tournamentSelection(population, **kwargs):
         matrixOperationRaw[:, 1] = np.transpose(kwargs['fitness'][selectedChromo])
         # Stage 1: Select based on fitness
         tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:, 1]), 0])
-        all_selected.add(selectedChromo[tournamentWinnerIndex])
+        allSelected.add(selectedChromo[tournamentWinnerIndex])
         selectedParent[i, :] = population.values[selectedChromo[tournamentWinnerIndex], :]
     else:
       # Handle cases where neither fitness nor rank are provided
