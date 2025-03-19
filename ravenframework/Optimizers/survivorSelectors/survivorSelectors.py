@@ -47,20 +47,19 @@ def ageBased(newRlz,**kwargs):
     @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
     @ Out, newFitness, xr.DataArray, fitness of the new population
     @ Out, newAge, list, Ages of each chromosome in the new population.
+    @ Out, popObjectiveVal, list, floats of objective values
   """
   popSize = np.shape(kwargs['population'])[0]
   if ('age' not in kwargs.keys() or kwargs['age'] is None):
     popAge = [0] * popSize
   else:
     popAge = kwargs['age']
-  # offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
   offSpringsFitness = datasetToDataArray(kwargs['offSpringsFitness'], list(kwargs['offSpringsFitness'].keys())).data
   offSprings = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
                             dims=['chromosome','Gene'],
                             coords={'chromosome':np.arange(np.shape(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()))[0]),
                                     'Gene': kwargs['variables']})
   population = np.atleast_2d(kwargs['population'].data)
-  # popFitness = np.atleast_1d(kwargs['fitness'].data)
   popFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data
   # sort population, popFitness according to age
   sortedAge,sortedPopulation,sortedFitness = zip(*[[x,y,z] for x,y,z in sorted(zip(popAge,population,popFitness),key=lambda x: (x[0], -x[2]))])# if equal age then use descending fitness
@@ -99,6 +98,7 @@ def fitnessBased(newRlz,**kwargs):
     @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
     @ Out, newFitness, xr.DataArray, fitness of the new population
     @ Out, newAge, list, Ages of each chromosome in the new population.
+    @ Out, popObjectiveVal, list, floats of objective values
   """
   popSize = np.shape(kwargs['population'])[0]
   if ('age' not in kwargs.keys() or kwargs['age'] is None):
@@ -142,7 +142,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
     rankNcrowdingBased survivorSelection mechanism for new generation selection
     It combines the parents and children/offsprings then calculates their rank and crowding distance.
     After having ranks and crowding distance, it keeps the lowest ranks (and highest crowding distance if indivisuals have same rank.
-    @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
+    @ In, offsprings, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
           variables
           age
