@@ -147,41 +147,39 @@ def tournamentSelection(population, **kwargs):
     for i in range(nParents):
       if rankProvided and crowdDistanceProvided:
       # If both rank and crowd distance are provided, use them directly as per NSGA-II
-        matrixOperationRaw = np.zeros((kwargs['kSelection'], 3))
+        matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
         selectChromoIndexes = list(set(range(len(population.chromosome))) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
-        matrixOperationRaw[:, 0] = selectedChromo
-        matrixOperationRaw[:, 1] = np.transpose(kwargs['rank'].data[selectedChromo])
-        matrixOperationRaw[:, 2] = np.transpose(kwargs['crowdDistance'].data[selectedChromo])
+        matrixOperationRaw[:, 0] = np.transpose(kwargs['rank'].data[selectedChromo])
+        matrixOperationRaw[:, 1] = np.transpose(kwargs['crowdDistance'].data[selectedChromo])
         # Stage 1: Select based on rank and crowding distance
-        minRankIndex = list(np.where(matrixOperationRaw[:, 1] == matrixOperationRaw[:, 1].min())[0])
+        minRankIndex = list(np.where(matrixOperationRaw[:, 0] == matrixOperationRaw[:, 0].min())[0])
         if len(minRankIndex) != 1:
           # Handle cases where more than one chromosome has the same rank
-          minRankNmaxCDIndex = list(np.where((matrixOperationRaw[minRankIndex, 2] ==
-                                              matrixOperationRaw[minRankIndex, 2].max()) &
-                                             (matrixOperationRaw[minRankIndex, 1] ==
-                                              matrixOperationRaw[minRankIndex, 1].min()))[0])
+          minRankNmaxCDIndex = list(np.where((matrixOperationRaw[minRankIndex, 1] ==
+                                              matrixOperationRaw[minRankIndex, 1].max()) &
+                                             (matrixOperationRaw[minRankIndex, 0] ==
+                                              matrixOperationRaw[minRankIndex, 0].min()))[0])
         else:
           minRankNmaxCDIndex = minRankIndex
         # Stage 2: Select the individual with the highest crowding distance within their rank group
         tournamentWinnerIndex = int(minRankNmaxCDIndex[0])
       elif rankProvided and not crowdDistanceProvided:
         # If only rank is provided (without crowd distance), calculate a default crowding distance
-        matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
+        matrixOperationRaw = np.zeros((kwargs['kSelection'], 1))
         selectChromoIndexes = list(set(range(len(population))) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
-        matrixOperationRaw[:, 0] = selectedChromo
-        matrixOperationRaw[:, 1] = np.transpose(kwargs['rank'].data[selectedChromo])
+        matrixOperationRaw[:, 0] = np.transpose(kwargs['rank'].data[selectedChromo])
         # Stage 1: Select based on rank
-        minRankIndex = list(np.where(matrixOperationRaw[:, 1] == matrixOperationRaw[:, 1].min())[0])
+        minRankIndex = list(np.where(matrixOperationRaw[:, 0] == matrixOperationRaw[:, 0].min())[0])
         if len(minRankIndex) != 1:
           # Handle cases where more than one chromosome has the same rank
-          minRankNmaxCDIndex = list(np.where((matrixOperationRaw[minRankIndex, 1] ==
-                                              matrixOperationRaw[minRankIndex, 1].min()))[0])
+          minRankNmaxCDIndex = list(np.where((matrixOperationRaw[minRankIndex, 0] ==
+                                              matrixOperationRaw[minRankIndex, 0].min()))[0])
         else:
           minRankNmaxCDIndex = minRankIndex
         # Stage 2: Select the individual with the highest rank within their group
