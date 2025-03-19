@@ -364,7 +364,7 @@ class GeneticAlgorithm(RavenSampled):
     specs.description = r"""The \xmlNode{GeneticAlgorithm} is a metaheuristic optimization technique inspired by the principles
                             of natural selection and genetics. Introduced by John Holland in the 1960s, GA mimics the process of
                             biological evolution to solve complex optimization and search problems. They operate by maintaining a population of
-                            potential solutions represented as as arrays of fixed length variables (genes), and each such array is called a chromosome.
+                            potential solutions represented as arrays of fixed length variables (genes), and each such array is called a chromosome.
                             These solutions undergo iterative refinement through processes such as mutation, crossover, and survivor selection. Mutation involves randomly altering certain genes within
                             individual solutions, introducing diversity into the population and enabling exploration of new regions in the solution space.
                             Crossover, on the other hand, mimics genetic recombination by exchanging genetic material between two parent solutions to create

@@ -103,7 +103,8 @@ class Optimizer(AdaptiveSampler):
     seed = InputData.parameterInputFactory('initialSeed', contentType=InputTypes.IntegerType,
         descr=r"""seed for random number generation. Note that by default RAVEN uses an internal seed,
               so this seed must be changed to observe changed behavior. \default{RAVEN-determined}""")
-    minMaxEnum = InputTypes.makeEnumType('MinMax', 'MinMaxType', ['min', 'max'])
+    #Saddly, we don't have the below feature yet.
+    #minMaxEnumList = InputTypes.makeEnumListType('MinMax', 'MinMaxType', ['min', 'max'])
     minMaxList = InputTypes.StringListType()
     minMax = InputData.parameterInputFactory('type', contentType=minMaxList,
         descr=r"""the type of optimization to perform. \xmlString{min} will search for the lowest
@@ -131,7 +132,8 @@ class Optimizer(AdaptiveSampler):
         descr=r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
               point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}
               block (see Section~\ref{sec:functions}). This external function must contain a method called
-              ``implicitConstrain'', which returns True for outputs satisfying the implicit constraints and False otherwise.""")
+              ``implicitConstraint'', which returns a float value which should
+        be less than zero when the constraint is violated.""")
     ImplicitConstraintInput.addParam("class", InputTypes.StringType, True,
         descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
     ImplicitConstraintInput.addParam("type", InputTypes.StringType, True,
