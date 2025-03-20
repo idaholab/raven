@@ -16,18 +16,12 @@
 
 def evaluate(Inputs):
   """
-    @In, Inputs, dictionary with the input
-    @Out, Sum, LocalSum1, LocalSum2, floating point arrays made from the input
+    @ In, Inputs, dict, dictionary with the input
+    @ Out, (Sum, LocalSum1, LocalSum2), (float[], float[], float[]) floating point arrays made from the input
   """
   Sum = 0
   LocalSum1 = 0
   LocalSum2 = 0
-  # for ind,var in enumerate(Inputs.keys()):
-  #   # write the objective function here
-  #   Sum += (ind + 1) * Inputs[var]
-  #   if (ind == 1):
-  #       LocalSum1 = Sum
-  # return Sum[:], LocalSum1[:]
   for ind,var in enumerate(Inputs.keys()):
     # write the objective function here
     Sum += (ind + 1) * Inputs[var]
