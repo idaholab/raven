@@ -130,8 +130,6 @@ expectedFitDS[objectiveVar] = xr.DataArray([9.5,7.2,3.2,2.0],
                            dims=['chromosome'],
                            coords={'chromosome':np.arange(np.shape(population)[0])})
 
-# expectedFit = expectedFit.to_dataset(name = 'x1')
-
 expectedAge = [8,4,0,0]
 
 ## TESTING
