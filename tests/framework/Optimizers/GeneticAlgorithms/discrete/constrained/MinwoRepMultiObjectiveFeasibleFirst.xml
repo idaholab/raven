@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_MinwoRepFeasibleFirst</name>
     <author>Mohammad Abdo</author>
     <created>2024-04-27</created>
     <classesTested/>
