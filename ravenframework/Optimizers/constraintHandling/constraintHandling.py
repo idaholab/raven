@@ -38,7 +38,7 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
         params = []
         for y in (self._constraintFunctions + self._impConstraintFunctions):
             params += y.parameterNames()
-        excludeParams = set(self._objectiveVar) if multiObjective else {self._objectiveVar[0]}
+        excludeParams = set(self._objectiveVar)
         excludeParams.update(list(self.toBeSampled.keys()))
         for p in list(set(params) - excludeParams):
             constraintData[p] = list(np.atleast_1d(rlz[p].data))
@@ -54,13 +54,12 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
     for index, individual in enumerate(offSprings):
         newOpt = individual
 
-        # Handle optimization values differently for single and multi-objective
+        #note that objectiveVal is 2d in multiObjective and 1d in single
         if multiObjective:
-            objOpt = dict(zip(self._objectiveVar, list(map(lambda x: -1 if x == "max" else 1, self._minMax))))
-            opt = dict(zip(self._objectiveVar, [item[index] for item in objectiveVal]))
-            opt = {k: objOpt[k] * opt[k] for k in opt}
+            optDict = dict(zip(self._objectiveVar, [item[index] for item in objectiveVal]))
         else:
-            opt = {self._objectiveVar[0]: objectiveVal[index]}
+            optDict = {self._objectiveVar[0]: objectiveVal[index]}
+        opt = {k: self._objMult[k] * optDict[k] for k in self._objectiveVar}
 
         for p, v in constraintData.items():
             opt[p] = v[index]
