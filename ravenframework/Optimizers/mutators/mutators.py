@@ -189,7 +189,7 @@ def locationsGenerator(offSprings,locs):
   @ In, locs, list, the two locations of the genes to be swapped
   @ Out, loc1, loc2, int, the two ordered processed locations required by the mutators
   """
-  if locs == None:
+  if locs is None:
     locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
   loc1 = np.minimum(locs[0], locs[1])
   loc2 = np.maximum(locs[0], locs[1])
