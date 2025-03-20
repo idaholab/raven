@@ -40,6 +40,7 @@ from .ValidationBase import ValidationBase
 from .Validations import Probabilistic
 from .Validations import PPDSS
 from .Validations import PhysicsGuidedCoverageMapping
+from .Validations import StaticMetricsCombinedDTW
 from .TSACharacterizer import TSACharacterizer
 from .SparseSensing import SparseSensing
 

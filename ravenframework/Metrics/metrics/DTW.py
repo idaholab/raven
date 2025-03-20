@@ -64,6 +64,9 @@ class DTW(MetricInterface):
     self._dynamicHandling = True
     # True indicates the metric needs to be able to handle pairwise data
     self._pairwiseHandling = True
+    #local attribute data
+    self.path = None
+    self.lenPath = None
 
   def handleInput(self, paramInput):
     """
@@ -139,7 +142,7 @@ class DTW(MetricInterface):
     D0[1:, 0] = np.inf
     D1 = D0[1:, 1:]
     D1 = spatialDistance.cdist(x.T,y.T, metric=self.localDistance)
-    C = D1.copy()
+    #C = D1.copy()
     for i in range(r):
       for j in range(c):
         D1[i, j] += min(D0[i, j], D0[i, j+1], D0[i+1, j])
@@ -149,6 +152,8 @@ class DTW(MetricInterface):
       path = range(len(x)), np.zeros(len(x))
     else:
       path = self.tracePath(D0)
+    self.path = path
+    self.lenPath = len(self.path[0])
     return D1[-1, -1]
 
   def tracePath(self, D):
