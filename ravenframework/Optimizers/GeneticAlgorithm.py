@@ -361,6 +361,11 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(GeneticAlgorithm, cls).getInputSpecification()
+    objective = specs.popSub('objective')
+    objective.description = r"""Name of the objective variable(s) (or ``objective function'') that should be optimized
+        (minimized or maximized). It can be a single string or a list of strings if it is a multi-objective problem.
+        Note that only genetic algorithm supports multi-objective."""
+    specs.addSub(objective)
     specs.description = r"""The \xmlNode{GeneticAlgorithm} is a metaheuristic optimization technique inspired by the principles
                             of natural selection and genetics. Introduced by John Holland in the 1960s, GA mimics the process of
                             biological evolution to solve complex optimization and search problems. They operate by maintaining a population of
