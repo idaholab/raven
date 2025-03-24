@@ -42,9 +42,8 @@
   The \xmlNode{GradientDescent} node recognizes the following subnodes:
   \begin{itemize}
     \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
-      Name of the objective variable(s) (or ``objective function'') that should be optimized
-      (minimized or maximized). It can be a single string or a list of strings if it is a multi-
-      objective problem.         Note that only genetic algorithm supports multi-objective.
+      Name of the response variable (or ``objective function'') that should be optimized
+      (minimized or maximized).
 
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
@@ -424,8 +423,8 @@
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called               ``implicitConstraint'', which returns a
+      float value which should         be less than zero when the constraint is violated.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -595,9 +594,8 @@ Gradient Descent Example:
   The \xmlNode{SimulatedAnnealing} node recognizes the following subnodes:
   \begin{itemize}
     \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
-      Name of the objective variable(s) (or ``objective function'') that should be optimized
-      (minimized or maximized). It can be a single string or a list of strings if it is a multi-
-      objective problem.         Note that only genetic algorithm supports multi-objective.
+      Name of the response variable (or ``objective function'') that should be optimized
+      (minimized or maximized).
 
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
@@ -841,8 +839,8 @@ Gradient Descent Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called               ``implicitConstraint'', which returns a
+      float value which should         be less than zero when the constraint is violated.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -982,26 +980,25 @@ Simulated Annealing Example:
   principles                             of natural selection and genetics. Introduced by John
   Holland in the 1960s, GA mimics the process of                             biological evolution to
   solve complex optimization and search problems. They operate by maintaining a population of
-  potential solutions represented as as arrays of fixed length variables (genes), and each such
-  array is called a chromosome.                             These solutions undergo iterative
-  refinement through processes such as mutation, crossover, and survivor selection. Mutation
-  involves randomly altering certain genes within                             individual solutions,
-  introducing diversity into the population and enabling exploration of new regions in the solution
-  space.                             Crossover, on the other hand, mimics genetic recombination by
-  exchanging genetic material between two parent solutions to create
-  offspring with combined traits. Survivor selection determines which solutions will advance to the
-  next generation based on                             their fitness—how well they perform in
-  solving the problem at hand. Solutions with higher fitness scores are more likely to
-  survive and reproduce, passing their genetic material to subsequent generations. This iterative
-  process continues                             until a stopping criterion is met, typically when a
-  satisfactory solution is found or after a predetermined number of generations.
-  More information can be found in:\\\\                              Holland, John H. "Genetic
-  algorithms." Scientific American 267.1 (1992): 66-73.\\\\                              Non-
-  dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective
-  optimization problems.                             NSGA-II extends traditional GAs by
-  incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set
-  of                             non-dominated (Pareto-optimal) solutions. This enables NSGA-II to
-  efficiently explore trade-offs between conflicting objectives,
+  potential solutions represented as arrays of fixed length variables (genes), and each such array
+  is called a chromosome.                             These solutions undergo iterative refinement
+  through processes such as mutation, crossover, and survivor selection. Mutation involves randomly
+  altering certain genes within                             individual solutions, introducing
+  diversity into the population and enabling exploration of new regions in the solution space.
+  Crossover, on the other hand, mimics genetic recombination by exchanging genetic material between
+  two parent solutions to create                             offspring with combined traits.
+  Survivor selection determines which solutions will advance to the next generation based on
+  their fitness—how well they perform in solving the problem at hand. Solutions with higher fitness
+  scores are more likely to                             survive and reproduce, passing their genetic
+  material to subsequent generations. This iterative process continues
+  until a stopping criterion is met, typically when a satisfactory solution is found or after a
+  predetermined number of generations.                             More information can be found
+  in:\\\\                              Holland, John H. "Genetic algorithms." Scientific American
+  267.1 (1992): 66-73.\\\\                              Non-dominated Sorting Genetic Algorithm II
+  (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
+  NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance
+  estimation to maintain a diverse set of                             non-dominated (Pareto-optimal)
+  solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
   providing decision-makers with a comprehensive view of the problem's solution space. More
   information about NSGA-II can be found in:\\\\                              Deb, Kalyanmoy, et al.
   ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on
@@ -1396,8 +1393,8 @@ Simulated Annealing Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called               ``implicitConstraint'', which returns a
+      float value which should         be less than zero when the constraint is violated.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -1652,9 +1649,8 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
   The \xmlNode{BayesianOptimizer} node recognizes the following subnodes:
   \begin{itemize}
     \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
-      Name of the objective variable(s) (or ``objective function'') that should be optimized
-      (minimized or maximized). It can be a single string or a list of strings if it is a multi-
-      objective problem.         Note that only genetic algorithm supports multi-objective.
+      Name of the response variable (or ``objective function'') that should be optimized
+      (minimized or maximized).
 
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
@@ -2008,8 +2004,8 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called               ``implicitConstraint'', which returns a
+      float value which should         be less than zero when the constraint is violated.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
