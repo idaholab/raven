@@ -423,8 +423,8 @@
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstraint'', which returns a
-      float value which should         be less than zero when the constraint is violated.
+      function must contain a method called         ``implicitConstraint'', which returns True for
+      outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -839,8 +839,8 @@ Gradient Descent Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstraint'', which returns a
-      float value which should         be less than zero when the constraint is violated.
+      function must contain a method called         ``implicitConstraint'', which returns True for
+      outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -993,7 +993,7 @@ Simulated Annealing Example:
   material to subsequent generations. This iterative process continues
   until a stopping criterion is met, typically when a satisfactory solution is found or after a
   predetermined number of generations.                             More information can be found
-  in:\\\\                              Holland, John H. "Genetic algorithms." Scientific American
+  in:\\\\                              Holland, John H. ``Genetic algorithms.'' Scientific American
   267.1 (1992): 66-73.\\\\                              Non-dominated Sorting Genetic Algorithm II
   (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
   NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance
@@ -2004,8 +2004,8 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstraint'', which returns a
-      float value which should         be less than zero when the constraint is violated.
+      function must contain a method called         ``implicitConstraint'', which returns True for
+      outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
