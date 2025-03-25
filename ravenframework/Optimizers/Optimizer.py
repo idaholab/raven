@@ -130,9 +130,10 @@ class Optimizer(AdaptiveSampler):
         printPriority=150,
         descr=r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
               point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}
-              block (see Section~\ref{sec:functions}). This external function must contain a method called
-              ``implicitConstraint'', which returns a float value which should
-        be less than zero when the constraint is violated.""")
+              block (see Section~\ref{sec:functions}). This external
+         function must contain a method called
+        ``implicitConstraint'', which returns True for outputs satisfying
+the implicit constraints and False otherwise.""")
     ImplicitConstraintInput.addParam("class", InputTypes.StringType, True,
         descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
     ImplicitConstraintInput.addParam("type", InputTypes.StringType, True,

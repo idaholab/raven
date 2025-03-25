@@ -366,6 +366,13 @@ class GeneticAlgorithm(RavenSampled):
         (minimized or maximized). It can be a single string or a list of strings if it is a multi-objective problem.
         Note that only genetic algorithm supports multi-objective."""
     specs.addSub(objective)
+    implicitConstraint = specs.popSub('ImplicitConstraint')
+    implicitConstraint.description = r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
+              point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}
+              block (see Section~\ref{sec:functions}). This external function must contain a method called
+              ``implicitConstraint'', which returns a float value which should
+        be less than zero when the constraint is violated."""
+    specs.addSub(implicitConstraint)
     specs.description = r"""The \xmlNode{GeneticAlgorithm} is a metaheuristic optimization technique inspired by the principles
                             of natural selection and genetics. Introduced by John Holland in the 1960s, GA mimics the process of
                             biological evolution to solve complex optimization and search problems. They operate by maintaining a population of
@@ -379,7 +386,7 @@ class GeneticAlgorithm(RavenSampled):
                             until a stopping criterion is met, typically when a satisfactory solution is found or after a predetermined number of generations.
                             More information can be found in:\\\\
 
-                            Holland, John H. "Genetic algorithms." Scientific American 267.1 (1992): 66-73.\\\\
+                            Holland, John H. ``Genetic algorithms.'' Scientific American 267.1 (1992): 66-73.\\\\
 
                             Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
                             NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set of
