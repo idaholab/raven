@@ -375,6 +375,15 @@
     [../]
   [../]
 
+  [./GAwithEnsembleModelHDSMconvergence]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/test_ensemble_withGA_HDSM.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/unconstrained/ensemble_withGA_HDSM/opt_export.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 
   [./GAwithEnsembleModelIncludingCode]
     type = 'RavenFramework'
