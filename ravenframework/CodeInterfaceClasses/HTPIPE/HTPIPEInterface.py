@@ -205,6 +205,11 @@ class HTPIPE(CodeInterfaceBase):
           # apply conversion if needed
           factor = 1.0 if var not in self.varConversion else self.varConversion[var]
           results[var].append(values[index]*factor)
+        if self.calcType == 2:
+          # max power "dischargable" is the minimum of the limits
+          values.pop(variables.index('eetemp'))
+          results['maxPower'].append(min(values))
       for var in variables:
         results[var] = np.atleast_1d(results[var])
+
     return results
