@@ -24,7 +24,7 @@
 
   <Models>
     <Code name="htpipe_code" subType="HTPIPE">
-      <executable>/Users/aalfonsi/projects/HTPIPE/htpipe-MAC-M2-executable.x</executable>
+      <executable>.</executable>
     </Code>
   </Models>
 
