@@ -28,7 +28,7 @@ class HTPIPE(CodeInterfaceBase):
     Provides code to interface RAVEN to HTPIPE (HEAT PIPE) code
     Woloshun, K A, et al. 'HTPIPE: A steady-state heat pipe
     analysis program: A user's manual.' , Nov. 1988.
-    
+
     The name of this class represents the type in the RAVEN input file
     e.g.
     <Models>
@@ -47,7 +47,10 @@ class HTPIPE(CodeInterfaceBase):
     # Calculation type: 1) pressure/temperature profile 2) temperature vs q_max
     # The calculation type is inferred by the input file (see initialize)
     self.calcType = None
-  
+    # variable conversion factors
+    # pvap, pliq (Pressures) from d/cm2 to Pa
+    self.varConversion = {'pvap': 0.1, 'pvap': 0.1}
+
   def findInputFile(self, inputFiles):
     """
       Method to find the HTPIPE input file
@@ -72,7 +75,7 @@ class HTPIPE(CodeInterfaceBase):
       @ Out, getInputExtension, tuple(str), the ext of the code input file (empty string here)
     """
     return ("",)
-  
+
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -190,6 +193,7 @@ class HTPIPE(CodeInterfaceBase):
     @ Out, results, dict, the dictionary with the results
     """
     results = defaultdict(list)
+    # we read the plotfile first
     outputPath = os.path.join(workingDir, "plotf")
     # open original output file
     with open(outputPath,"r+") as outputFile:
@@ -198,7 +202,9 @@ class HTPIPE(CodeInterfaceBase):
       for line in lines:
         values = [float(val.strip()) for val in line.strip().split()]
         for index, var in enumerate(variables):
-          results[var].append(values[index])
+          # apply conversion if needed
+          factor = 1.0 if var not in self.varConversion else self.varConversion[var]
+          results[var].append(values[index]*factor)
       for var in variables:
         results[var] = np.atleast_1d(results[var])
     return results

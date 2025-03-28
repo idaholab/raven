@@ -14,10 +14,9 @@
 """
   Created on Mar 27, 2025
   @author: Andrea Alfonsi
-  
+
   This script is aimed to Run HTPIPE sending commands directly via command line (for the execution of the input)
-  
-"""```
+"""
 if __name__=='__main__':
   import sys
   import subprocess
