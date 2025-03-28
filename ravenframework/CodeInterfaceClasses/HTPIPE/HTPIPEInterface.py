@@ -27,7 +27,6 @@ class HTPIPE(GenericCode):
     Provides code to interface RAVEN to HTPIPE (HEAT PIPE) code
     Woloshun, K A, et al. 'HTPIPE: A steady-state heat pipe
     analysis program: A user's manual.' , Nov. 1988.
-
     The name of this class represents the type in the RAVEN input file
     e.g.
     <Models>
