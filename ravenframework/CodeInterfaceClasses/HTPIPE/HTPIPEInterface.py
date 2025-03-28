@@ -17,6 +17,7 @@
 """
 
 import os
+import numpy as np
 from collections import defaultdict
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 from ..Generic import GenericParser
@@ -62,7 +63,16 @@ class HTPIPE(CodeInterfaceBase):
     if not found:
       raise Exception('No correct input file has been found. HTPIPE input must be of type "htpipe". Got: '+' '.join(inputFiles))
     return inputFile
-    
+
+  def getInputExtension(self):
+    """
+      Return input extensions
+      for HTPIPE, not extensions are used
+      @ In, None
+      @ Out, getInputExtension, tuple(str), the ext of the code input file (empty string here)
+    """
+    return ("",)
+  
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -70,7 +80,7 @@ class HTPIPE(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    inputFile = findInputFile(oriInputFiles)
+    inputFile = self.findInputFile(oriInputFiles)
     with open(inputFile.getAbsFile(), "r") as filestream:
       # we check the first line
       line = filestream.readline()
@@ -96,16 +106,15 @@ class HTPIPE(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
             run the code (string), returnCommand[1] is the name of the output root
     """
-    inputFile = findInputFile(inputFiles)
+    inputFile = self.findInputFile(inputFiles)
     #Creates the output file that saves information that is outputted to the command prompt
     #The output file name of the Neutrino results
     outputfile = f"o{inputFile.getBase()}"
     # since HTPIPE uses an interactive approach to inquire for the input file,
-    #  we create a string that we pass to command To Run:
-    # 2: indicating we will provide an input file
-    # input file name: the input file name
-    # n: indicating that we don't want to perform series calculations
-    commandToRun = executable + f'2\n{inputFile.getFilename()}\nn\n'
+    #  we are using the run_htpipe.py script to run it with pre-defined options
+    pathOfscript = os.path.dirname(os.path.abspath(__file__))
+    runHTPIPEscript = os.path.join(pathOfscript,'run_htpipe.py')
+    commandToRun = f'python {runHTPIPEscript} -e {executable} -i {inputFile.getFilename()}'
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
 
@@ -132,9 +141,9 @@ class HTPIPE(CodeInterfaceBase):
              (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    parser = GenericParser.GenericParser(currentInputsToPerturb)
+    parser = GenericParser.GenericParser(currentInputFiles)
     parser.modifyInternalDictionary(**Kwargs)
-    parser.writeNewInput(currentInputsToPerturb,originalInputs)
+    parser.writeNewInput(currentInputFiles,oriInputFiles)
     return currentInputFiles
 
   def checkForOutputFailure(self,output,workingDir):
@@ -148,16 +157,27 @@ class HTPIPE(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = False
-    badWords  = ['failure']
+    badWords  = ['failure', 'halted']
+
+    try:
+      outputToRead = open(os.path.join(workingDir,'plotf'),"r")
+    except:
+      return True
+    lines = outputToRead.readlines()
+    if len(lines) < 2:
+      outputToRead.close()
+      return True
+    outputToRead.close()
     try:
       outputToRead = open(os.path.join(workingDir,output),"r")
     except:
+      outputToRead.close()
       return True
     readLines = outputToRead.readlines()
-
     for badMsg in badWords:
-      if any(badMsg in x.lower() for x in readLines[-10:]):
+      if any(badMsg in x.lower() for x in readLines):
         failure = True
+    outputToRead.close()
     return failure
 
   def finalizeCodeOutput(self, command, output, workingDir):
@@ -179,4 +199,6 @@ class HTPIPE(CodeInterfaceBase):
         values = [float(val.strip()) for val in line.strip().split()]
         for index, var in enumerate(variables):
           results[var].append(values[index])
+      for var in variables:
+        results[var] = np.atleast_1d(results[var])
     return results
