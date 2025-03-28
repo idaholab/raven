@@ -75,7 +75,6 @@ class HTPIPE(GenericCode):
       @ Out, getInputExtension, tuple(str), the ext of the code input file (empty string here)
     """
     return ("",)
-
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
