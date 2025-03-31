@@ -47,6 +47,8 @@ class HTPIPE(CodeInterfaceBase):
     # Calculation type: 1) pressure/temperature profile 2) temperature vs q_max
     # The calculation type is inferred by the input file (see initialize)
     self.calcType = None
+    # geometry type. If == 3 (wickless) and calcType == 2, the boillim should not be considered
+    self.geomType = None
     # variable conversion factors
     # pvap, pliq (Pressures) from d/cm2 to Pa
     self.varConversion = {'pvap': 0.1, 'pvap': 0.1}
@@ -92,7 +94,16 @@ class HTPIPE(CodeInterfaceBase):
         self.calcType = int(c)
       except ValueError as ae:
         raise IOError(f"Input File '{inputFile.getAbsFile()}' type 'htpipe' is not a valid HTPIPE input file. "
-                      f"First line (first column) should indicate the calculation type (1 or 2)! Got '{c}'!")
+                      f"First line (first column) should indicate the calculation type (1 or 2)! Got '{c}'! Error: {str(ae)}")
+      # we check the second line
+      line = filestream.readline()
+      try:
+        c = line.split()[0].strip()
+        self.geomType = int(c)
+      except ValueError as ae:
+        raise IOError(f"Input File '{inputFile.getAbsFile()}' type 'htpipe' is not a valid HTPIPE input file. "
+                      f"Second line (first column) should indicate the geometry type as integer! Got '{c}'! Error: {str(ae)}")
+
 
   def generateCommand(self, inputFiles, executable, clargs=None,fargs=None,preExec=None):
     """
@@ -208,7 +219,11 @@ class HTPIPE(CodeInterfaceBase):
         if self.calcType == 2:
           # max power "dischargable" is the minimum of the limits
           values.pop(variables.index('eetemp'))
-          results['maxPower'].append(min(values))
+          if  self.geomType != 3:
+            results['maxPower'].append(min(values))
+          else:
+            # thermalsyphon (boillim should be discarded)
+            results['maxPower'].append(min(values[:-1]))
       for var in variables:
         results[var] = np.atleast_1d(results[var])
 
