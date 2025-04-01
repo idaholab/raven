@@ -377,16 +377,6 @@ the implicit constraints and False otherwise.""")
     # TODO shouldn't this require the realization and information to do right?
     info['traj'] = kwargs['traj']
 
-  def _collectOptValue(self, rlz):
-    """
-      collects the objective variable from a realization and adjusts the sign for min/max
-      @ In, rlz, dict, realization particularly including objective variable
-      @ Out, optVal, float, sign-adjust objective value
-    """
-    optVal = (-1 if self._minMax[0] == 'max' else 1) * rlz[self._objectiveVar]
-
-    return optVal
-
   def _collectOptPoint(self, rlz):
     """
       collects the point (dict) from a realization

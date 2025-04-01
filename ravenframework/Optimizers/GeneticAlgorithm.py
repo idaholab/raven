@@ -64,7 +64,6 @@
                                                                 | _addTrackingInfo               |
                                                                 | _closeTrajectory               |
                                                                 | _collectOptPoint               |
-                                                                | _collectOptValue               |
                                                                 | _initializeInitSampler         |
                                                                 | _localGenerateAssembler        |
                                                                 | _localWhatDoINeed              |
