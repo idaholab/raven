@@ -152,6 +152,15 @@ class RavenSampled(Optimizer):
     # additional checks
     if self.limit is None:
       self.raiseAnError(IOError, 'A <limit> is required for any RavenSampled Optimizer!')
+    self._objMult = {} #max will be -1, min will be 1
+    self._objMultArray = np.ones(len(self._objectiveVar))
+    for i in range(len(self._objectiveVar)):
+      if self._minMax[i] == 'max':
+        self._objMult[self._objectiveVar[i]] = -1
+        self._objMultArray[i] = -1
+      else:
+        self._objMult[self._objectiveVar[i]] = 1
+
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -304,13 +313,8 @@ class RavenSampled(Optimizer):
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
 
-    self._objMult = {} #max will be -1, min will be 1
-    for i in range(len(self._objectiveVar)):
-      if self._minMax[i] == 'max':
-        rlz[self._objectiveVar[i]] *= -1
-        self._objMult[self._objectiveVar[i]] = -1
-      else:
-        self._objMult[self._objectiveVar[i]] = 1
+    for objVar in self._objectiveVar:
+      rlz[objVar] *= self._objMult[objVar]
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
@@ -327,8 +331,6 @@ class RavenSampled(Optimizer):
     bestPoint = None
 
 
-    s = np.array([self._objMult[x] for x in self._objectiveVar])
-
     # check converged trajectories
     self.raiseAMessage('*' * 80)
     self.raiseAMessage('Optimizer Final Results:')
@@ -344,7 +346,7 @@ class RavenSampled(Optimizer):
     for traj, info in self._cancelledTraj.items():
       val = info['value']
       status = info['reason']
-      self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=s * val))
+      self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=self._objMultArray * val))
     # check converged traj
     for traj, info in self._convergedTraj.items():
       opt = self._optPointHistory[traj][-1][0]
@@ -352,7 +354,7 @@ class RavenSampled(Optimizer):
 
       if self._isMultiObjective:
         # Format the values in the array
-        formatted_values = np.vectorize(lambda v: valueTemplate.format(val=v))(s*val)
+        formatted_values = np.vectorize(lambda v: valueTemplate.format(val=v))(self._objMultArray*val)
 
         # Combine the formatted values into a single string with appropriate spacing
         formatted_values_string = '\n'.join(['   '.join(row) for row in formatted_values])
@@ -360,7 +362,7 @@ class RavenSampled(Optimizer):
         # Raise debug message for the entire formatted string
         self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formatted_values_string.format(formatted_values))
       else:
-        self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=s * val))
+        self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=self._objMultArray * val))
       if bestValue is None or val < bestValue:
         bestTraj = traj
         bestValue = val
@@ -389,12 +391,12 @@ class RavenSampled(Optimizer):
       if not self._isMultiObjective:
 
         val = optElm[self._objectiveVar[0]]
-        self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
+        self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=self._objMultArray * val))
         self.raiseADebug('')
         self.raiseAMessage(' - Final Optimal Point:')
         finalTemplate = '    {name:^20s}  {value: 1.3e}'
         finalTemplateInt = '    {name:^20s}  {value: 3d}'
-        self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=s[0] * val))
+        self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=self._objMultArray[0] * val))
         self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
         for var, val in bestPoint.items():
           self.raiseAMessage(finalTemplate.format(name=var, value=val))
@@ -677,11 +679,9 @@ class RavenSampled(Optimizer):
                      'modelRuns': self.counter
                     })
     # optimal point input and output spaces
-    for i in range(len(self._objectiveVar)):
-      objValue = rlz[self._objectiveVar[i]]
-      if self._minMax[i] == 'max':
-        objValue *= -1
-      toExport[self._objectiveVar[i]] = objValue
+    for objVar in self._objectiveVar:
+      objValue = rlz[objVar]*self._objMult[objVar]
+      toExport[objVar] = objValue
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)
