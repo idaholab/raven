@@ -124,7 +124,7 @@ def tournamentSelection(population, **kwargs):
     allSelected = set()
     for i in range(nParents):
       matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
-      selectChromoIndexes = list(set(range(len(population))) - allSelected)
+      selectChromoIndexes = list(set(population.indexes['chromosome']) - allSelected)
       selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                 replace=False, engine=None)
       # Extract relevant information
@@ -148,7 +148,7 @@ def tournamentSelection(population, **kwargs):
       if rankProvided and crowdDistanceProvided:
       # If both rank and crowd distance are provided, use them directly as per NSGA-II
         matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
-        selectChromoIndexes = list(set(range(len(population.chromosome))) - allSelected)
+        selectChromoIndexes = list(set(population.indexes['chromosome']) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
@@ -169,7 +169,7 @@ def tournamentSelection(population, **kwargs):
       elif rankProvided and not crowdDistanceProvided:
         # If only rank is provided (without crowd distance), calculate a default crowding distance
         matrixOperationRaw = np.zeros((kwargs['kSelection'], 1))
-        selectChromoIndexes = list(set(range(len(population))) - allSelected)
+        selectChromoIndexes = list(set(population.indexes['chromosome']) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
@@ -187,7 +187,7 @@ def tournamentSelection(population, **kwargs):
       elif 'fitness' in kwargs and not rankProvided:
         # If only fitness is provided (without rank), calculate a default rank
         matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
-        selectChromoIndexes = list(set(range(len(population))) - allSelected)
+        selectChromoIndexes = list(set(population.indexes['chromosome']) - allSelected)
         selectedChromo = randomUtils.randomChoice(selectChromoIndexes, size=kwargs['kSelection'],
                                                   replace=False, engine=None)
         # Extract relevant information
