@@ -32,11 +32,12 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
     """
     traj = info['traj']
 
+    allConstraintFunctions = self._constraintFunctions + self._impConstraintFunctions
     # Collect parameters for constraint functions (excluding default params)
     constraintData = {}
-    if self._constraintFunctions or self._impConstraintFunctions:
+    if allConstraintFunctions:
         params = []
-        for y in (self._constraintFunctions + self._impConstraintFunctions):
+        for y in allConstraintFunctions:
             params += y.parameterNames()
         excludeParams = set(self._objectiveVar)
         excludeParams.update(list(self.toBeSampled.keys()))
@@ -44,12 +45,12 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
             constraintData[p] = list(np.atleast_1d(rlz[p].data))
 
     # Compute constraint function g_j(x) for all constraints and population individuals
-    g0 = np.zeros((np.shape(offSprings)[0], len(self._constraintFunctions) + len(self._impConstraintFunctions)))
+    g0 = np.zeros((np.shape(offSprings)[0], len(allConstraintFunctions)))
 
     g = xr.DataArray(g0,
                      dims=['chromosome', 'Constraint'],
                      coords={'chromosome': np.arange(np.shape(offSprings)[0]),
-                             'Constraint': [y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+                             'Constraint': [y.name for y in allConstraintFunctions]})
 
     for index, individual in enumerate(offSprings):
         newOpt = individual
@@ -64,7 +65,7 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
         for p, v in constraintData.items():
             opt[p] = v[index]
 
-        for constIndex, constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
+        for constIndex, constraint in enumerate(allConstraintFunctions):
             if constraint in self._constraintFunctions:
                 g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
             else:
