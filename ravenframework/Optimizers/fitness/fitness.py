@@ -69,7 +69,7 @@ def invLinear(rlz, **kwargs):
   for i, obj in enumerate(objVar):
       data = np.atleast_1d(rlz[obj].data)  # Objective values
       fitness = np.zeros(data.shape)
-      for ind in range(data.size):
+      for ind in range(data.shape[0]):
           # Calculate base fitness: Inversely proportional to the objective value
           fit = -a[i] * data[ind]
           # Apply penalties for constraint violations, if any
@@ -123,7 +123,7 @@ def feasibleFirst(rlz, **kwargs):
       data = np.atleast_1d(rlz[obj].data)
       worstObj = max(data) # Worst objective value for penalizing violating solutions
       fitness = np.zeros(data.shape)
-      for ind in range(data.size):
+      for ind in range(data.shape[0]):
           # If no contraints or all constraints are satisfied
           if constraintNum == 0 or np.all(g.data[ind, :] >= 0):  # Feasible solutions
               fit = -a[i] * data[ind]
@@ -167,7 +167,7 @@ def logistic(rlz, **kwargs):
   for i, obj in enumerate(objVar):
       data = np.atleast_1d(rlz[obj].data)  # Objective values
       fitness = np.zeros(data.shape)
-      for ind in range(data.size):
+      for ind in range(data.shape[0]):
           # Base logistic fitness calculation
           denom = 1.0 + np.exp(-scale[i] * (data[ind] - shift[i]))
           fit = 1.0 / denom
