@@ -12,6 +12,8 @@
       <revisions>
           <revision author="mattdon" date="2023-02-20">Adding this test description.</revision>
           <revision author="mattdon" date="2020-02-20">Modified csv file for new interface test</revision>
+          <revision author="alfoa" date="2017-04-27">Adding this test description.</revision>
+          <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
       </revisions>
   </TestInfo>
 
@@ -30,7 +32,7 @@
 	  <executable>/home/administrator/projects/melcor/MELCOR-2.2.18019/binaries/Linux/01_Melcor.18019.lic</executable>
 	  <preexec>/home/administrator/projects/melcor/MELCOR-2.2.18019/binaries/Linux/00_Melgen.18019.lic</preexec>
       <variables>
-         CVH-P_1$, CVH-TLIQ_2$, CFVALU_2
+         CVH-P_1, CVH-TLIQ_2, CFVALU_2
       </variables>
 	  <CodePlotFile>MELPTF.PTF</CodePlotFile>
 	  <MelcorOutput>MELMES_v2-0</MelcorOutput>
