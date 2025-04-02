@@ -28,9 +28,14 @@ import numpy as np
 import xarray as xr
 import sys
 # Internal Imports
+from ... import MessageHandler # makes sure getMessageHandler is defined
+mh = getMessageHandler()
 
 # [MANDD] Note: the fitness function are bounded by 2 parameters: a and b
 #               We should make this method flexible to accept different set of params
+
+_defaultObjectiveScaling = 1.0
+_defaultPenaltyScaling = 10.0
 
 # @profile
 def invLinear(rlz, **kwargs):
@@ -53,8 +58,12 @@ def invLinear(rlz, **kwargs):
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
   """
   objVar = kwargs['objVar']
-  a = [1.0] * len(objVar) if kwargs.get('a') is None else kwargs['a']  # Scaling factors for objectives
-  b = [10.0] * len(objVar) if kwargs.get('b') is None else kwargs['b']  # Penalty scaling factors
+  a = [_defaultObjectiveScaling] * len(objVar) if kwargs.get('a') is None else kwargs['a']  # Scaling factors for objectives
+  b = [_defaultPenaltyScaling] * len(objVar) if kwargs.get('b') is None else kwargs['b']  # Penalty scaling factors
+  if len(a) != len(objVar):
+    mh.error("fitness", IOError, f"Objective scaling factors {a} should have length {len(objVar)}")
+  if len(b) != len(objVar):
+    mh.error("fitness", IOError, f"Penalty scaling factors {b} should have length {len(objVar)}")
   g = kwargs['constraintFunction'] if 'constraintFunction' in kwargs else None  # Constraint evaluations
   fitnessSet = xr.Dataset()
   for i, obj in enumerate(objVar):
@@ -100,8 +109,12 @@ def feasibleFirst(rlz, **kwargs):
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
   """
   objVar = kwargs['objVar']
-  a = [1.0] * len(objVar) if kwargs.get('a') is None else kwargs['a']  # Scaling factors for objectives
-  b = [10.0] * len(objVar) if kwargs.get('b') is None else kwargs['b']  # Penalty scaling factors
+  a = [_defaultObjectiveScaling] * len(objVar) if kwargs.get('a') is None else kwargs['a']  # Scaling factors for objectives
+  b = [_defaultPenaltyScaling] * len(objVar) if kwargs.get('b') is None else kwargs['b']  # Penalty scaling factors
+  if len(a) != len(objVar):
+    mh.error("fitness", IOError, f"Objective scaling factors {a} should have length {len(objVar)}")
+  if len(b) != len(objVar):
+    mh.error("fitness", IOError, f"Penalty scaling factors {b} should have length {len(objVar)}")
   constraintNum = kwargs['constraintNum']
   g = kwargs['constraintFunction'] if constraintNum > 0 else None  # Constraint evaluations
   fitnessSet = xr.Dataset()
@@ -146,9 +159,9 @@ def logistic(rlz, **kwargs):
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
   """
   objVar = kwargs['objVar']
-  scale = kwargs.get('scale', [1.0] * len(objVar))  # Scaling factors for objectives
+  scale = kwargs.get('scale', [_defaultObjectiveScaling] * len(objVar))  # Scaling factors for objectives
   shift = kwargs.get('shift', [0.0] * len(objVar))  # Shifting value for each objective
-  penalty = kwargs.get('penalty', [1.0] * len(objVar))  # Penalty for constraint violations
+  penalty = kwargs.get('penalty', [_defaultPenaltyScaling] * len(objVar))  # Penalty for constraint violations
   g = kwargs.get('constraintFunction', None)  # Constraint evaluations (if any)
   fitnessSet = xr.Dataset()
   for i, obj in enumerate(objVar):
