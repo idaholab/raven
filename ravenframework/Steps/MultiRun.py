@@ -125,7 +125,7 @@ class MultiRun(SingleRun):
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'], inDictionary['jobHandler'])
           if newInput is not None:
             inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
-            self.raiseADebug(f'Submitted input {inputIndex+1}')
+            self.raiseAMessage(f'Submitted input {inputIndex+1}')
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
 
@@ -176,10 +176,10 @@ class MultiRun(SingleRun):
           if finishedJob.getReturnCode() == 0:
             for myLambda, outIndex in self._outputCollectionLambda:
               myLambda([finishedJob,outputs[outIndex]])
-              self.raiseADebug(f'Just collected job {finishedJob.identifier} and sent to output "{inDictionary["Output"][outIndex].name}"')
+              self.raiseAMessage(f'Just collected job {finishedJob.identifier} and sent to output "{inDictionary["Output"][outIndex].name}"')
           # pool it if it failed, before we loop back to "while True" we'll check for these again
           else:
-            self.raiseADebug(f'the job "{finishedJob.identifier}" has failed.')
+            self.raiseAMessage(f'the job "{finishedJob.identifier}" has failed.')
             if self.failureHandling['fail']:
               # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
               if not sampler.ableToHandelFailedRuns:
@@ -214,7 +214,7 @@ class MultiRun(SingleRun):
           for idx in currentFailures:
             finishedJobList.pop(idx)
 
-        if type(finishedJobObjs).__name__ in 'list': # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
+        if isinstance(finishedJobObjs, list): # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
           # if sampler claims it's batching, then only collect once, since it will collect the batch
           # together, not one-at-a-time
           # FIXME: IN HERE WE SEND IN THE INSTANCE OF THE FIRST JOB OF A BATCH

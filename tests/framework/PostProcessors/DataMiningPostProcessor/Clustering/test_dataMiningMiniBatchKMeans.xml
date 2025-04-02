@@ -102,7 +102,7 @@
       <source>DataSets</source>
       <what>Output|MoonLabels</what>
     </Print>
-    <Plot name="PlotBlobs" overwrite="false">
+    <Plot name="PlotBlobs" overwrite="True">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -126,7 +126,7 @@
       </actions>
       <filename>blobs</filename>
     </Plot>
-    <Plot name="PlotCircles" overwrite="false">
+    <Plot name="PlotCircles" overwrite="True">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -150,7 +150,7 @@
       </actions>
       <filename>circles</filename>
     </Plot>
-    <Plot name="PlotMoons" overwrite="false">
+    <Plot name="PlotMoons" overwrite="True">
       <plotSettings>
         <plot>
           <type>scatter</type>

@@ -32,6 +32,7 @@ from scipy.interpolate import interp1d
 from ..utils import utils, mathUtils, xmlUtils, randomUtils
 from ..utils import InputData, InputTypes
 from .SupervisedLearning import SupervisedLearning
+from .SyntheticHistory import SyntheticHistory
 # import pickle as pk # TODO remove me!
 import os
 #
@@ -636,7 +637,7 @@ class Segments(Collection):
     """
       Writes pointwise data about segmentation to a realization.
       @ In, writeTo, DataObject, data structure into which data should be written
-      @ Out, None
+      @ Out, rlz, dict, realization data structure where each entry is an np.ndarray
     """
 
     # realization to add eventually
@@ -956,12 +957,23 @@ class Clusters(Segments):
     featureNames = sorted(list(self._clusterInfo['features']['unscaled'].keys()))
     for scaling in ['unscaled', 'scaled']:
       for name in featureNames:
-        varName = 'ClusterFeature|{}|{}'.format(name, scaling)
+        varName = f'ClusterFeature|{name}|{scaling}'
         writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
     rlz[varName] = np.asarray(labels)
+    # below, we loop through all segment ROMs to find feature data to write to data object
+    segments = self.getSegmentRoms(full=True)
+    for i,rom in enumerate(segments):
+      romRlz = rom.getSegmentPointwiseData()
+      for feature, featureVal in romRlz.items():
+        varName = f'Feature|{feature}'
+        if i==0:
+          writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
+          rlz[varName] = featureVal
+        else:
+          rlz[varName] = np.r_[rlz[varName],featureVal]
 
     writeTo.addRealization(rlz)
 
@@ -981,7 +993,7 @@ class Clusters(Segments):
     labels = self._clusterInfo['labels']
     for i, repRom in enumerate(self._roms):
       # find associated node
-      modify = xmlUtils.findPath(main, 'SegmentROM[@segment={}]'.format(i))
+      modify = xmlUtils.findPath(main, f'SegmentROM[@segment={i}]')
       # make changes to reflect being a cluster
       modify.tag = 'ClusterROM'
       modify.attrib['cluster'] = modify.attrib.pop('segment')
@@ -1720,7 +1732,7 @@ class Interpolated(SupervisedLearning):
       if df is None:
         df = newDf
       else:
-        df = df.append(newDf)
+        df = df._append(newDf)
 
     df.fillna(0.0) # FIXME is 0 really the best for all signals??
     # create interpolators
@@ -1750,7 +1762,7 @@ class Interpolated(SupervisedLearning):
       @ Out, newModel, SupervisedEngine instance, interpolated model
     """
     newModel = copy.deepcopy(exampleModel)
-    segmentRoms = [] # FIXME speedup, make it a numpy array from the start
+    segmentRoms = np.array([])
     for segment in range(N):
       params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
       # DEBUGG, leave for future development
@@ -1761,9 +1773,8 @@ class Interpolated(SupervisedLearning):
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
       newRom.setFundamentalFeatures(inputs)
-      segmentRoms.append(newRom)
+      segmentRoms = np.r_[segmentRoms, newRom]
 
-    segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
     # DEBUGG, leave for future development
@@ -1855,6 +1866,290 @@ class Interpolated(SupervisedLearning):
         results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
     results[self._macroParameter] = macroIndexValues
     return results
+
+  ############### DUMMY ####################
+  # dummy methods that are required by SVL and not generally used
+  def __confidenceLocal__(self, featureVals):
+    """
+      This should return an estimation of the quality of the prediction.
+      This could be distance or probability or anything else, the type needs to be declared in the variable cls.qualityEstType
+      @ In, featureVals, 2-D numpy array , [n_samples,n_features]
+      @ Out, __confidenceLocal__, float, the confidence
+    """
+    pass
+
+  def __resetLocal__(self):
+    """
+      Reset ROM. After this method the ROM should be described only by the initial parameter settings
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      Returns a dictionary with the parameters and their current values
+      @ In, None
+      @ Out, params, dict, dictionary of parameter names and current values
+    """
+    return {}
+
+  def __returnInitialParametersLocal__(self):
+    """
+      Returns a dictionary with the parameters and their initial values
+      @ In, None
+      @ Out, params, dict,  dictionary of parameter names and initial values
+    """
+    return {}
+
+  # Are private-ish so should not be called directly, so we don't implement them, as they don't fit the collection.
+  def __evaluateLocal__(self, featureVals):
+    """
+      @ In,  featureVals, np.array, 2-D numpy array [n_samples,n_features]
+      @ Out, targetVals , np.array, 1-D numpy array [n_samples]
+    """
+    pass
+
+  def _train(self, featureVals, targetVals):
+    """
+      Perform training on samples in featureVals with responses y.
+      For an one-class model, +1 or -1 is returned.
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature values
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
+    pass
+#
+#
+#
+class Decomposition(SupervisedLearning):
+  """ Time series histories are decomposed into multiple levels for training and evaluation.
+      Histories are combined into a single signal upon evaluation.
+  """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    # segmenting and clustering
+    segment = InputData.parameterInputFactory("Segment", strictMode=True,
+                                              descr=r"""provides an alternative way to build the ROM. When
+                                                this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
+                                                requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
+                                                during the subspace the ROM representation of the signal changes significantly. For example, if the signal
+                                                is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
+                                                segments. By default, no segmentation occurs.""")
+    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'segmentGroupType', ['decomposition'])
+    segment.addParam('grouping', segmentGroups, descr=r"""enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node.""", default='decomposition')
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType,
+        descr=r"""pivot parameter for macro steps (e.g. years)"""))
+    sh = SyntheticHistory.getInputSpecification()
+    for sub in sh.subs:
+      segment.addSub(sub)
+    spec.addSub(segment)
+    return spec
+
+  def __init__(self):
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
+    super().__init__()
+    self._macroTemplate = SyntheticHistory() # empty SyntheticHistory object, deepcopy'd later to train multiple instances per decomposition level
+    self._macroParameter = None              # macroParameter name (str), e.g. 'YEAR'
+    self._macroSteps = {}                    # collection of macro steps (e.g. each year)
+    self._decompSteps = {}                   # collection of decomposition steps, indexed per macroID and then per level
+    self.name = 'Decomposition'              # ROM Collection subtype
+
+  def setTemplateROM(self, romInfo):
+    """
+      Set the ROM that will be used in this grouping
+      @ In, romInfo, dict, {'name':romName, 'modelInstance':romInstance}, the information used to set up template ROM
+      @ Out, None
+    """
+    self._templateROM = romInfo.get('modelInstance')
+    self._romName = romInfo.get('name', 'unnamed')
+    if self._templateROM is None:
+      self.raiseAnError(IOError, 'A rom instance is required by', self.name, 'please check your implementation')
+    # only allowing Decomposition ROMCollection to be used with MultiResolutionTSA ROM subtype
+    if self._templateROM.printTag != 'Multi-Resolution Synthetic History':
+      self.raiseAnError(IOError, 'The Decomposition ROMCollection segment class requires a ROM subtype of MultiResolutionTSA.')
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
+    #           "macroParameter" is for macro-steps (e.g. from year to year)
+    inputSpecs = paramInput.findFirst('Segment')
+    try:
+      self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
+    except:
+      self.raiseAnError(IOError, '<macroParameter> input spec is required for Decomposition class')
+
+    self._macroTemplate._handleInput(inputSpecs)            # example "yearly" SVL engine collection
+
+
+  ############### TRAINING ####################
+  def train(self, tdict):
+    """
+      Trains the SVL and its supporting SVLs etc. Overwrites base class behavior due to
+        special decomposition and macro-step needs.
+      @ In, tdict, dict, dictionary with training data
+      @ Out, None
+    """
+    # create macro steps as needed
+    self._createMacroSteps(tdict)
+    noPivotTargets = [x for x in self.target if x != self.pivotID]
+
+    # step through macroparameters (years)
+    for s, (macroID,step) in enumerate(self._macroSteps.items()):
+      self.raiseADebug('Training Statepoint Year {} ...'.format(s))
+      trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
+
+      self.raiseADebug(f'... Training Global Signal per Year {macroID} ...')
+      step.train(trainingData)
+
+      numLvls, trainedParams = step._getMRTrainedParams()
+
+      # create new ROM for every level
+      for lvl in range(numLvls):
+        new = copy.deepcopy(self._macroTemplate)
+        self._decompSteps[macroID][lvl] = new
+
+      # NOW we train each level decomposition
+      for lvl, decomp in enumerate(self._decompSteps[macroID].values()):
+        # write training dict
+        decomp_tdict = copy.deepcopy(trainingData)
+        for target in noPivotTargets:
+          decomp_tdict[target] = [trainedParams[target][lvl]]
+        self.raiseADebug(f'... Training Decomposition Level {lvl} ...')
+        # train global algos
+        _, newTrainingDict = decomp.getGlobalRomSegmentSettings(decomp_tdict, None)
+        # train non-global algos
+        decomp.train(newTrainingDict)
+    self.amITrained = True
+
+  def _createMacroSteps(self, tdict):
+    """
+      Initializes the macroStep ROMs required for each step (e.g., year).
+      @ In, tdict, dict, dictionary with training data
+      @ Out, None
+    """
+    # tdict should have two parameters, the pivotParameter and the macroParameter -> one step per realization
+    if self._macroParameter not in tdict:
+      self.raiseAnError(IOError, f'The <macroParameter> "{self._macroParameter}" was not found in the training DataObject! Training is not possible.')
+
+    # create each progressive step
+    for macroID in tdict[self._macroParameter]:
+      macroID = macroID[0]
+      new = copy.deepcopy(self._templateROM)
+      self._macroSteps[macroID] = new
+      self._decompSteps[macroID] = {}
+
+  ############### EVALUATING ####################
+  def evaluate(self, edict):
+    """
+      Evaluate the set of decomposition models
+      @ In, edict, dict, dictionary of evaluation parameters
+      @ Out, result, dict, result of evaluation
+    """
+    self.raiseADebug('Evaluating decomposition ROM ...')
+    noPivotTargets = [x for x in self.target if x != self.pivotID]
+    # keys which include targets and other metadata
+    resultsKeys = [x for x in self.target]
+    resultsKeys.extend([self.pivotID,'_indexMap'])
+    results = {}  # this is the dictionary that gets sent upstream to the rest of RAVEN/ROM stuff
+
+    numMacro = len(self._macroSteps)
+
+    # step through trained macroSteps (e.g., years)
+    macroIndexValues = []
+    for m, (macroID, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+      macroIndexValues.append(macroID)
+      decompModels = self._decompSteps[macroID]
+      decompResults = {x:{} for x in self.target if x != self.pivotID}
+      for d, (lvl, decompModel) in enumerate(decompModels.items()):
+        # evaluate algos for given decomposition level
+        subResult = decompModel.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
+        # evaluate global algos for given decomposition level
+        decompResult = decompModel.finalizeGlobalRomSegmentEvaluation(None, subResult, weights=None, slicer=None)
+
+        # singular decomposition level stored in larger decompResult*s* dict
+        for target, contents in decompResult.items():
+          if target not in [self.pivotID,'_indexMap']:
+            decompResults[target][lvl] = contents
+
+      # combine results and save to macroStep model trainedParams
+      model._updateMRTrainedParams(decompResults)
+
+      # run first set of MR TSA algorithms (should include some sort of MRA transformer)
+      macroResults = model.evaluate(edict)
+
+      # if first macro step, must set up dict correctly
+      if not results:
+        for k in resultsKeys:
+          if k == self.pivotID:
+            # storing pivot parameter array (assuming same for all macroSteps/years)
+            results[k] = macroResults[self.pivotID]
+          elif k == '_indexMap':
+            # an instance of _indexMap stored for each target
+            results[k] = {}
+            for target in self.target:
+              if target != self.pivotID:
+                results[k][target] = [self._macroParameter, self.pivotID]
+          elif k in noPivotTargets:
+            # this was taken from the Interpolated method, specifying dtype fixed an error as well...
+            results[k] = np.zeros([numMacro] + list((macroResults[noPivotTargets[0]].shape)), dtype=object)
+
+      # storing results from a single macroStep (includes all decomp levels)
+      for target in noPivotTargets:
+        results[target][m] = macroResults[target]
+
+    results[self._macroParameter] = macroIndexValues
+    return results
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Write out Decomposition information
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused
+      @ In, skip, list, optional, unused
+      @ Out, None
+    """
+    # write global information
+    newNode = xmlUtils.StaticXmlElement('DecompositionMultiyearROM')
+    ## macro steps information
+    newNode.getRoot().append(xmlUtils.newNode('MacroParameterID', text=self._macroParameter))
+    newNode.getRoot().append(xmlUtils.newNode('MacroSteps', text=len(self._macroSteps)))
+    newNode.getRoot().append(xmlUtils.newNode('MacroFirstStep', text=min(self._macroSteps)))
+    newNode.getRoot().append(xmlUtils.newNode('MacroLastStep', text=max(self._macroSteps)))
+    writeTo.getRoot().append(newNode.getRoot())
+    # write info about EACH macro step
+    main = writeTo.getRoot()
+    for macroID, step in self._macroSteps.items():
+      newNode = xmlUtils.StaticXmlElement('MacroStepROM', attrib={self._macroParameter: str(macroID)})
+      step.writeXML(newNode, targets, skip)
+      # write info about EACH decomposition step
+      for decompID, dStep in self._decompSteps[macroID].items():
+        newSubNode = xmlUtils.StaticXmlElement('DecompStepROM', attrib={'detail_level': str(decompID)})
+        dStep.writeXML(newSubNode, targets, skip)
+        newNode.getRoot().append(newSubNode.getRoot())
+      main.append(newNode.getRoot())
 
   ############### DUMMY ####################
   # dummy methods that are required by SVL and not generally used

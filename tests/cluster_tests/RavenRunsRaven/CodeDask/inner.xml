@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+
+  <RunInfo>
+    <WorkingDir>Inner</WorkingDir>
+    <Sequence>sample, aggregate, print</Sequence>
+    <parallelMethod>dask</parallelMethod>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="">aux</Input>
+      <Input class="Files" type="">inp</Input>
+      <Input class="Files" type="">model</Input>
+      <Model class="Models" type="Code">simple</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc_inner</Sampler>
+      <Output class="DataObjects" type="PointSet">inner_samples</Output>
+    </MultiRun>
+    <PostProcess name="aggregate">
+      <Input class="DataObjects" type="PointSet">inner_samples</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">inner_results</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">inner_results</Input>
+      <Output class="OutStreams" type="Print">inner_out</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inner_samples">
+      <Input>a, b, x, y</Input>
+      <Output>c</Output>
+    </PointSet>
+    <PointSet name="inner_results">
+      <Output>avg_c</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Files>
+    <Input name="aux" type="" >simple.aux</Input>
+    <Input name="inp" type="" >template.inp</Input>
+    <Input name="model" type="" >Simple.py</Input>
+  </Files>
+
+  <Models>
+    <Code name="simple" subType="GenericCode">
+      <executable>Simple.py</executable>
+      <clargs arg="%PYTHON%" type="prepend"/>
+      <clargs arg="-i" extension=".inp" type="input"/>
+      <fileargs arg="output" type="output"/>
+    </Code>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="avg">c</expectedValue>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="dist">
+      <mean>1</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc_inner">
+      <samplerInit>
+        <limit>8</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>dist</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>dist</distribution>
+      </variable>
+      <constant name='a'>0</constant>
+      <constant name='b'>0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="inner_out">
+      <type>csv</type>
+      <source>inner_results</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

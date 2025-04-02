@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>PhysicsGuidedCoverageMapping</WorkingDir>
+    <Sequence>load,PCM</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Validation/test_validation_gate_pcm_Static</name>
+    <author>syin</author>
+    <created>2022-09-09</created>
+    <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
+    <description>
+        This test is aimed to show how PCM works.
+        This test is using SETH-C and SETH-D data 
+        as experiment (Feature) and application (Target) models.
+        Here, three timesteps' samples from SETH-C are used as experiment responses (Features),
+        one timestep's samples from SETH-D are used as application responses (Target)
+        The output is a fraction value reflecting the uncertainty reduction fraction 
+        using Feature to validate Target comparing to the Target prior.
+        The output name convention is 'pri_post_stdReduct_'+"Target name".
+    </description>
+  </TestInfo>
+
+  <Files>
+    <Input name="expData">./data/StaticExample/T1_c_SimpleGap.csv</Input>
+    <Input name="appData">./data/StaticExample/T1_d_SimpleGap.csv</Input>
+    <Input name="msrData">./data/StaticExample/C_MSR.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="pcm" subType="PhysicsGuidedCoverageMapping">
+      <Features>expData|time20s,expData|time40s,expData|time50s</Features>
+      <Targets>appData|time20s</Targets>
+      <Measurements>msrData|time20s,msrData|time40s,msrData|time50s</Measurements>
+      <pcmType>Static</pcmType>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">expData</Input>
+      <Input class="Files" type="">appData</Input>
+      <Input class="Files" type="">msrData</Input>
+      <Output class="DataObjects" type="PointSet">expData</Output>
+      <Output class="DataObjects" type="PointSet">appData</Output>
+      <Output class="DataObjects" type="PointSet">msrData</Output>
+    </IOStep>
+    <PostProcess name="PCM">
+      <Input class="DataObjects" type="PointSet">expData</Input>
+      <Input class="DataObjects" type="PointSet">appData</Input>
+      <Input class="DataObjects" type="PointSet">msrData</Input>
+      <Model class="Models" type="PostProcessor">pcm</Model>
+      <Output class="DataObjects" type="PointSet">pcmStatic_metric</Output>
+      <Output class="OutStreams" type="Print">pcmStatic_metric_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="expData">
+      <Output>time20s,time40s,time50s</Output>     
+    </PointSet>
+    <PointSet name="appData">
+      <Output>time20s</Output>     
+    </PointSet>      
+    <PointSet name="msrData">
+      <Output>time20s,time40s,time50s</Output>     
+    </PointSet>    
+    <PointSet name="pcmStatic_metric">
+      <Input>InputPlaceHolder</Input>
+      <Output>static_pri_post_stdReduct_time20s</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>       
+    <Print name="pcmStatic_metric_dump">
+      <type>csv</type>
+      <source>pcmStatic_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

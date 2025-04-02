@@ -37,24 +37,30 @@
         </waveform>
       </signal1>
     </Fourier>
+    <Gaussianize>
+      <signal0 />
+      <signal1 />
+    </Gaussianize>
     <ARMA>
       <signal0>
-        <constant>7.234090799e-03</constant>
-        <AR_0>2.976565851e-01</AR_0>
-        <AR_1>2.312423174e-01</AR_1>
-        <MA_0>2.950216446e-01</MA_0>
-        <MA_1>1.291025329e-01</MA_1>
-        <MA_2>1.513012125e-01</MA_2>
-        <variance>5.611933985e-01</variance>
+        <constant>4.845534460e-03</constant>
+        <AR_0>4.711740521e-01</AR_0>
+        <AR_1>1.073644214e-01</AR_1>
+        <MA_0>1.495391834e-01</MA_0>
+        <MA_1>1.881403533e-01</MA_1>
+        <MA_2>1.434737504e-01</MA_2>
+        <variance>4.917653474e-01</variance>
+        <order>2,0,3</order>
       </signal0>
       <signal1>
-        <constant>4.832166618e-03</constant>
-        <AR_0>4.679211501e-01</AR_0>
-        <AR_1>2.694770881e-01</AR_1>
-        <MA_0>2.866933674e-02</MA_0>
-        <MA_1>1.667744479e-02</MA_1>
-        <MA_2>1.382157544e-02</MA_2>
-        <variance>5.642030945e-01</variance>
+        <constant>3.270397313e-03</constant>
+        <AR_0>6.989113244e-01</AR_0>
+        <AR_1>8.753301419e-02</AR_1>
+        <MA_0>-1.698366098e-01</MA_0>
+        <MA_1>9.744195391e-02</MA_1>
+        <MA_2>-1.413859360e-02</MA_2>
+        <variance>4.949581056e-01</variance>
+        <order>2,0,3</order>
       </signal1>
     </ARMA>
   </synth>

@@ -1,0 +1,45 @@
+[Tests]
+  [./Basic]
+    type = 'RavenFramework'
+    input = 'Basic/BayesianBasic.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'Basic/final_opt.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./MishraBirdConstrained]
+    type = 'RavenFramework'
+    input = 'MishraBirdConstrained/BayesianMishraBirdConstrained.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'MishraBirdConstrained/final_opt.csv'
+      rel_err = 3e-3
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./Matyas]
+    type = 'RavenFramework'
+    input = 'Matyas/BayesianMatyas.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'Matyas/final_opt.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-2
+    [../]
+  [../]
+
+  [./BayesianPretrainedRom]
+    type = 'RavenFramework'
+    input = 'PreTrainedRom/BayesianPretrainedRom.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'PreTrainedRom/final_opt.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-2
+    [../]
+  [../]
+[]

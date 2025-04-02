@@ -184,9 +184,9 @@ class BasicStatistics(PostProcessorInterface):
       # and store the probability weights
       if len(currentInput) != 2:
         self.raiseAnError(RuntimeError, "If tuple is sent in, the dataset and the pb weights must be sent in!")
-      if type(currentInput[0]).__name__ != 'Dataset' or type(currentInput[1]).__name__ != 'Dataset':
+      if type(currentInput[0]).__name__ != 'Dataset' or (currentInput[1] is not None and type(currentInput[1]).__name__ != 'Dataset'):
         self.raiseAnError(RuntimeError, "If tuple is sent in, the elements must be Dataset!")
-      if 'ProbabilityWeight' in  currentInput[1]:
+      if currentInput[1] is not None and 'ProbabilityWeight' in  currentInput[1]:
         self.realizationWeight = xr.Dataset()
         self.realizationWeight['ProbabilityWeight'] =  currentInput[1]['ProbabilityWeight']
       return currentInput
@@ -1090,7 +1090,10 @@ class BasicStatistics(PostProcessorInterface):
       self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
       norm = stats.norm
       factor = np.sqrt(np.asarray(percent)*(1.0 - np.asarray(percent)))/norm.pdf(norm.ppf(percent))
-      sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(calculations['equivalentSamples'][list(needed[metric]['targets'])])
+      try:
+        sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(calculations['equivalentSamples'][list(needed[metric]['targets'])])
+      except KeyError:
+        sigmaAdjusted = calculations['sigma'][list(needed[metric]['targets'])]/np.sqrt(self.sampleSize)
       sigmaAdjusted = sigmaAdjusted.expand_dims(dim={'percent': percent})
       factor = xr.DataArray(data=factor, dims='percent', coords={'percent': percent})
       calculations[metric + '_ste'] = sigmaAdjusted*factor
@@ -1254,6 +1257,7 @@ class BasicStatistics(PostProcessorInterface):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
+          group = group.squeeze()
           corrMatrix = self.corrCoeff(group.values)
           da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
@@ -1312,6 +1316,7 @@ class BasicStatistics(PostProcessorInterface):
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
         ds = None
         for label, group in reducedCovar.groupby(self.pivotParameter):
+          group = group.squeeze()
           da = self.varianceDepSenCalculation(targCoords,group.values)
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords

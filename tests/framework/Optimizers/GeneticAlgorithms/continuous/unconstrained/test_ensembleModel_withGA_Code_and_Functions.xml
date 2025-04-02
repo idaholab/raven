@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/GeneticAlgorithms.GAwithEnsembleModelIncludingCode</name>
+    <author>alfoa</author>
+    <created>2024-05-07</created>
+    <classesTested>Models.EnsembleModel, Optimizers.GeneticAlgorithm</classesTested>
+    <description>
+         This test is aimed to test the usage of the GeneticAlgorithm with an EnsembleModel, including
+         a model Code. This test has been created to test the modifications performed to address issue
+         #2304 (see \\url{https://github.com/idaholab/raven/issues/2304}).
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <JobName>metaModelWithCodeAndFunctionsAndGenetic</JobName>
+    <Sequence>
+        optimize
+    </Sequence>
+    <WorkingDir>metaModelWithCodeAndFunctionsAndGenetic</WorkingDir>
+    <batchSize>2</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="testModel" subType="GenericCode">
+      <executable>../../../../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+    </Code>
+    <ExternalModel ModuleToLoad="ABCDsum" name="sumOfABCD" subType="">
+      <inputs>A,B,C,D</inputs>
+      <outputs>sum</outputs>
+    </ExternalModel>
+    <EnsembleModel name="codeAndExtModel" subType="">
+      <Model class="Models" type="ExternalModel">
+        sumOfABCD
+        <Input class="DataObjects" type="PointSet">inputPlaceHolderForInternalObjects</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">sumData</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="Code">
+          testModel
+        <Input class="Files" type="">referenceInput.xml</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">samplesMC</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="sigma">
+      <lowerBound>0</lowerBound>
+      <upperBound>1000</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.00000001</lowerBound>
+      <upperBound>0.0000001</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>2</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
+        <reproduction>
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.9</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst"></fitness>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay_A">
+        <distribution>decayConstant</distribution>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay_B">
+        <function>decayConstantB</function>
+      </variable>
+
+      <objective>sum</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">finalResponses</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </GeneticAlgorithm>
+  </Optimizers>
+  
+  <Functions>
+      <External file="decayConstantB.py" name="decayConstantB">
+        <variables>decay_A</variables>
+      </External>
+  </Functions>
+  
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>2</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+    <variable name="sigma-A">
+      <distribution>sigma</distribution>
+    </variable>
+    <variable name="decay_A">
+      <distribution>decayConstant</distribution>
+    </variable>
+    <variable name="sigma-B">
+      <distribution>sigma</distribution>
+    </variable>
+    <variable name="decay_B">
+      <function>decayConstantB</function>
+    </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="Files" type="">referenceInput.xml</Input>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolderForInternalObjects</Input>
+      <Model class="Models" type="EnsembleModel">codeAndExtModel</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">finalResponses</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="samplesMC">
+      <Input>sigma-A,sigma-B,decay_A,decay_B</Input>
+      <Output>A,B,C,D</Output>
+    </PointSet>
+    <PointSet name="inputPlaceHolderForInternalObjects">
+      <Input>A,B,C,D</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sumData">
+      <Input>A,B,C,D</Input>
+      <Output>sum</Output>
+    </PointSet>
+    <PointSet name="finalResponses">
+      <Input>sigma-A,sigma-B,decay_A,decay_B</Input>
+      <Output>A,B,C,D,sum</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>sigma-A,sigma-B,decay_A,decay_B,sum,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

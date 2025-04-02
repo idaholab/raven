@@ -84,6 +84,7 @@ class OptPath(PlotInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
+    super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
@@ -114,17 +115,23 @@ class OptPath(PlotInterface):
         self.addPoint(ax, r, value, accepted)
         if v == len(self.vars) - 1:
           ax.set_xlabel('Optimizer Iteration')
-        ax.set_ylabel(var)
+        ax.set_ylabel('\n'.join(var.split('_')))
+    fig.tight_layout()
     # common legend
     fig.subplots_adjust(right=0.80)
     lns = []
     for cond in self.markerMap.keys():
       lns.append(Line2D([0], [0], color=self.markerMap[cond][0], marker=self.markerMap[cond][1]))
+
     fig.legend(lns, list(self.markerMap.keys()),
                loc='center right',
                borderaxespad=0.1,
                title='Legend')
-    plt.savefig(f'{self.name}.png')
+
+    # create filename
+    filename = self._createFilename(defaultName=f'{self.name}.png')
+
+    plt.savefig(filename)
 
   def addPoint(self, ax, i, value, accepted):
     """

@@ -9,15 +9,17 @@ Structure:
 Note all install methods after "main" take
   Instructions:
 
- add library:                <library>pinned.version.number</library>
- add with no pinned version: <library/>
- remove a library:           <library>remove</library>
- action for limited OS:      <library os='windows'>...
- add library from forge:     <library source='forge'>...
- optional:                   <library optional='True'>...
- skip run/install check:     <library skip_check='True'>...
+ add library:                     <library>pinned.version.number</library>
+ add with no pinned version:      <library/>
+ remove a library:                <library>remove</library>
+ action for limited OS:           <library os='windows'>...
+ action for certain machine       <library machine='arm64'>...
+ add library from forge:          <library source='forge'>...
+ add library from git repository: <library source='pip' repo='https://addressOfRepository/libraryName.git'>...
+ optional:                        <library optional='True'>...
+ skip run/install check:          <library skip_check='True'>...
  add pip library with extra parameters:
-                             <ray source="pip" pip_extra="[tune]">1.9</ray>
+                                  <ray source="pip" pip_extra="[tune]">1.9</ray>
    the above will use pip_extra to translate into a command:
      pip install ray[tune]==1.9.*
    which installs ray and the dependencies for Ray Tune
@@ -36,20 +38,20 @@ Note all install methods after "main" take
 <dependencies>
   <main>
     <h5py/>
-    <numpy>1.22</numpy>
-    <scipy>1.7</scipy>
-    <scikit-learn>1.0</scikit-learn>
-    <pandas>1.3</pandas>
+    <numpy>1.26</numpy>
+    <scipy>1.12</scipy>
+    <scikit-learn>1.1</scikit-learn>
+    <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
-    <xarray>2023</xarray>
-    <netcdf4>1.5</netcdf4>
-    <matplotlib>3.5</matplotlib>
+    <xarray/>
+    <netcdf4 source="pip">1.6</netcdf4>
+    <matplotlib>3.6</matplotlib>
     <statsmodels>0.13</statsmodels>
-    <cloudpickle>2.2</cloudpickle>
-    <tensorflow os='mac,linux'>2.10</tensorflow>
-    <tensorflow source="pip" os='windows'>2.10</tensorflow>
+    <cloudpickle/>
+    <tensorflow source="pip">2.14</tensorflow>
+    <grpcio source="pip" />
     <!-- conda is really slow on windows if the version is not specified.-->
-    <python skip_check='True' os='windows'>3.8</python>
+    <python skip_check='True' os='windows'>3.11</python>
     <python skip_check='True' os='mac,linux'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -58,19 +60,21 @@ Note all install methods after "main" take
     <lxml/>
     <psutil/>
     <pip/>
+    <pyDOE3 source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
-    <numexpr os='linux'/>
     <cmake skip_check='True' optional='True'/>
-    <ray source="pip" pip_extra="[default]" os='mac,linux'>2.2</ray>
-    <ray source="pip" pip_extra="[default]" os='windows'>1.13</ray>
+    <dask source="pip" pip_extra="[complete]"/>
+    <ray source="pip" pip_extra="[default]">2.38</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
-    <imageio>2.22</imageio>
+    <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
-    <pywavelets optional='True'>1.1</pywavelets>
+    <statsforecast/>
+    <pywavelets>1.4</pywavelets>
+    <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
@@ -79,7 +83,13 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
-    <setuptools/>
+    <setuptools />
+    <!-- source="mamba" are the ones installed when mamba is installed -->
+    <!-- mamba version 2.0.0 causes failures on mac: critical libmamba filesystem error: in permissions: Operation not permitted-->
+    <mamba source="mamba" skip_check='True' os='mac'>1.5</mamba>
+    <mamba source="mamba" skip_check='True' os='windows,linux' />
+    <serpentTools optional='True' source="pip"/>
+    <pydmd source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
@@ -87,7 +97,7 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
+    <liblapack>remove</liblapack>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
@@ -95,6 +105,5 @@ Note all install methods after "main" take
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <numexpr>remove</numexpr>
   </alternate>
 </dependencies>

@@ -21,14 +21,38 @@ from ..EntityFactoryBase import EntityFactory
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 from .Fourier import Fourier
 from .ARMA import ARMA
+from .VARMA import VARMA
+from .AutoARMA import AutoARMA
+from .MarkovAR import MarkovAR
 from .Wavelet import Wavelet
 from .PolynomialRegression import PolynomialRegression
 from .RWD import RWD
+from .STL import STL
+from .Transformers import ZeroFilter, LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
+                          OutTruncation, MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
+                          QuantileTransformer, Gaussianize, PreserveCDF, Differencing, FilterBankDWT
 
 factory = EntityFactory('TimeSeriesAnalyzer')
 # TODO map lower case to upper case, because of silly ROM namespace problems
 aliases = {'Fourier': 'fourier',
            'ARMA': 'arma',
+           'VARMA': 'varma',
+           'AutoARMA': 'autoarma',
            'RWD': 'rwd',
-           'Wavelet': 'wavelet'}
+           'Wavelet': 'wavelet',
+           'ZeroFilter': 'zerofilter',
+           'OutTruncation': 'outtruncation',
+           'LogTransformer': 'logtransformer',
+           'ArcsinhTransformer': 'arcsinhtransformer',
+           'TanhTransformer': 'tanhtransformer',
+           'SigmoidTransformer': 'sigmoidtransformer',
+           'MaxAbsScaler': 'maxabsscaler',
+           'MinMaxScaler': 'minmaxscaler',
+           'StandardScaler': 'standardscaler',
+           'RobustScaler': 'robustscaler',
+           'QuantileTransformer': 'quantiletransformer',
+           'Gaussianize': 'gaussianize',
+           'PreserveCDF': 'preserveCDF',
+           'Differencing': 'differencing',
+           'FilterBankDWT': 'filterbankdwt'}
 factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)

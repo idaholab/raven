@@ -53,5 +53,6 @@ os.environ["PYTHONPATH"] = pythonPath
 for f in [0,1,2]:
   os.close(f)
 
+print("about to run:", command, file=out)
 out.close()
 subprocess.Popen(command)

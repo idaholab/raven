@@ -187,8 +187,8 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 ######################################
 def createARMAXML(targets, P, Q):
   xml = xmlUtils.newNode('ARMA', attrib={'target':','.join(targets)})
-  xml.append(xmlUtils.newNode('SignalLag', text=f'{P}'))
-  xml.append(xmlUtils.newNode('NoiseLag', text=f'{Q}'))
+  xml.append(xmlUtils.newNode('P', text=f'{P}'))
+  xml.append(xmlUtils.newNode('Q', text=f'{Q}'))
   return xml
 
 def createFromXML(xml):
@@ -250,7 +250,7 @@ settings = {'P': 2, 'Q': 3,
             'gaussianize': False,
             'seed': 42}
 settings = arma.setDefaults(settings)
-params = arma.characterize(signals, pivot, targets, settings)
+params = arma.fit(signals, pivot, targets, settings)
 check = params['A']['arma']
 # Note these are WAY OFF! They should match slags and nlags above.
 # I don't know how to convince it to get
@@ -314,7 +314,7 @@ settings = {'P': 2, 'Q': 3,
             'gaussianize': True,
             'seed': 42}
 settings = arma.setDefaults(settings)
-params = arma.characterize(signals, pivot, targets, settings)
+params = arma.fit(signals, pivot, targets, settings)
 # These are a little different from the non-Gaussianize above, but pretty close (kind of).
 # Given the numerical nature of the empirical CDF, maybe not too bad.
 okay_ar = [-0.1288380832279767, 0.5286049589896539]

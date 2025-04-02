@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/AbceInterface</name>
+    <author>@JiaZhou-PU</author>
+    <created>2023-08-01</created>
+    <revisions>
+    </revisions>
+    <classesTested>CodeInterfaces.AbceCodeInterface</classesTested>
+    <description>
+      Test the Abce Code Interface. This perturbs the peak demand in
+      settings file.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>AbceInterfaceTest</WorkingDir>
+    <Sequence>runAbce</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="settings.yml" type="">settings.yml</Input>
+    <Input name="demand_data_file" type="" subDirectory="inputs">demand_data.csv</Input>
+    <Input name="agent_specifications_file" type="" subDirectory="inputs">single_agent_testing.yml</Input>
+    <Input name="unit_specs_data_file" type="" subDirectory="inputs">unit_specs.yml</Input>
+    <Input name="C2N_project_definitions.yml" type="" subDirectory="inputs">C2N_project_definitions.yml</Input>
+    <Input name="timeseries_nspin_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_nspin_hourly.csv</Input>
+    <Input name="timeseries_spin_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_spin_hourly.csv</Input>
+    <Input name="timeseries_reg_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_reg_hourly.csv</Input>
+    <Input name="timeseries_load_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_load_hourly.csv</Input>
+    <Input name="timeseries_wind_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_wind_hourly.csv</Input>
+    <Input name="timeseries_pv_hourly.csv" type="" subDirectory="inputs/ts_data">timeseries_pv_hourly.csv</Input>
+  </Files>
+
+  <Models>
+    <Code name="abce" subType="Abce">
+      <executable>
+      </executable>
+      <clargs arg="python" type="prepend" />
+      <clargs arg="--settings_file" extension=".yml" type="input" delimiter="=" />
+      <clargs arg="--inputs_path=inputs --verbosity=3" type="text" />
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>80000</lowerBound>
+      <upperBound>80010</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="var">
+        <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="runAbce" clearRunDir="False">
+      <Input class="Files" type="">settings.yml</Input>
+      <Input class="Files" type="">demand_data_file</Input>
+      <Input class="Files" type="">agent_specifications_file</Input>
+      <Input class="Files" type="">unit_specs_data_file</Input>
+      <Input class="Files" type="">C2N_project_definitions.yml</Input>
+      <Input class="Files" type="">timeseries_nspin_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_spin_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_reg_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_load_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_wind_hourly.csv</Input>
+      <Input class="Files" type="">timeseries_pv_hourly.csv</Input>
+      <Model class="Models" type="Code">abce</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="HistorySet">grid</Output>
+      <Output class="OutStreams" type="Print">grid</Output>
+    </MultiRun>
+  </Steps>
+
+
+  <DataObjects>
+    <HistorySet name="grid">
+      <Input>var</Input>
+      <Output>agent_id, unit_type, start_pd, completion_pd, cancellation_pd,
+        retirement_pd, total_capex, cap_pmt, C2N_reserved </Output>
+      <options>
+        <pivotParameter>asset_id</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="grid">
+      <type>csv</type>
+      <source>grid</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -29,3 +29,9 @@ factory = EntityFactory('Optimizer')
 factory.registerType('GradientDescent', GradientDescent)
 factory.registerType('SimulatedAnnealing', SimulatedAnnealing)
 factory.registerType('GeneticAlgorithm', GeneticAlgorithm)
+
+try:
+    from .BayesianOptimizer import BayesianOptimizer
+    factory.registerType('BayesianOptimizer', BayesianOptimizer)
+except ModuleNotFoundError as error:
+    print("ERROR: Unable to import BayesianOptimizer", error)

@@ -69,6 +69,7 @@
             <xsd:element name="maxQueueSize"       type="xsd:integer" minOccurs="0" default="1"/>
             <xsd:element name="RemoteRunCommand"   type="xsd:string"  minOccurs="0" default="raven_qsub_command.sh"/>
             <xsd:element name="internalParallel"   type="RavenBool"   minOccurs="0" default="false"/>
+            <xsd:element name="parallelMethod"     type="xsd:string" minOccurs="0" default="shared"/>
             <xsd:element name="JobName"            type="xsd:string"  minOccurs="0"/>
             <xsd:element name="printInput"         type="xsd:string"  minOccurs="0" default=""/>
             <xsd:element name="NumThreads"         type="xsd:integer" minOccurs="0" default="1"/>
@@ -79,8 +80,10 @@
                         <xsd:element name="memory"       type="xsd:string" minOccurs="0"/>
                         <xsd:element name="coresneeded"  type="xsd:string" minOccurs="0"/>
                         <xsd:element name="runQSUB"                        minOccurs="0"/>
+			<xsd:element name="noPrecommand"                   minOccurs="0"/>
                         <xsd:element name="nodefile"     type="xsd:string" minOccurs="0"/>
                         <xsd:element name="nodefileenv"  type="xsd:string" minOccurs="0"/>
+			<xsd:element name="MPIParam"     type="xsd:string" minOccurs="0"/>
                         <xsd:element name="NoSplitNode" minOccurs="0">
                           <xsd:complexType>
                             <xsd:attribute name="maxOnNode" type="xsd:integer" />

@@ -19,9 +19,46 @@
  [../]
  [./test_mpiqsub]
    #REQUIREMENT_TEST R-IS-7
-   input='test_mpiqsub_local.xml pbspro_mpi.xml cluster_runinfo_legacy.xml'
+   input='test_mpiqsub_local.xml pbspro_mpi.xml cluster_runinfo_legacy.xml plain_qsub.xml'
    run_types = 'qsub'
    output = 'FirstMQ/FirstMQRun/1/out~simple_gp_test.csv FirstMQ/FirstMQRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_mpislurm]
+   input='test_mpiqsub_local.xml slurm_block.xml cluster_runinfo_slurm.xml'
+   run_types = 'slurm'
+   output = 'FirstMQ/FirstMQRun/1/out~simple_gp_test.csv FirstMQ/FirstMQRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_mpiqsub_long]
+   input='test_mpiqsub_long.xml qsub_block.xml cluster_runinfo_legacy.xml mpi_mode_include_pbs.xml'
+   run_types = 'qsub'
+   output = 'FirstMQL/FirstMQRun/1/out~simple_gp_test.csv FirstMQL/FirstMQRun/6/out~simple_gp_test.csv'
+   csv = 'FirstMQL/samples.csv'
+   output_wait_time = 60
+   #Note that the output includes the time the test is running
+   # which is why the relative error is very high
+   rel_err = 0.4
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_mpislurm_long]
+   input='test_mpiqsub_long.xml cluster_runinfo_slurm.xml slurm_block.xml mpi_mode_include_slurm.xml'
+   run_types = 'slurm'
+   output = 'FirstMQL/FirstMQRun/1/out~simple_gp_test.csv FirstMQL/FirstMQRun/6/out~simple_gp_test.csv'
+   [./csv]
+    type = OrderedCSV
+    output = 'FirstMQL/samples.csv'
+    gold_files = 'FirstMQL/samples_bitterroot.csv'
+    #Note that the output includes the time the test is running
+    # which is why the relative error is very high. Also, this
+    # will have to be adjusted for different clusters
+    rel_err = 0.9
+   [../]
    output_wait_time = 60
    type = RavenFramework
    max_time = 3600
@@ -59,13 +96,21 @@
    type = RavenFramework
    max_time = 3600
  [../]
+ [./test_mpi_noprecommand]
+   input='test_mpiqsub_noprecommand.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMPre/FirstMPreRun/1/out~simple_gp_test.csv FirstMPre/FirstMPreRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
  [./test_mpi_fake]
    input=test_mpi.xml
    skip = 'cluster only test'
    type = RavenFramework
  [../]
  [./test_mpiqsub_1_proc]
-   input='test_mpiqsub_1_proc.xml pbspro_mpi.xml cluster_runinfo_legacy.xml'
+   input='test_mpiqsub_1_proc.xml pbspro_mpi.xml cluster_runinfo_legacy.xml plain_qsub.xml'
    run_types = 'qsub'
    output = 'FirstMQ1/FirstMQ1ProcRun/1/out~simple_gp_test.csv FirstMQ1/FirstMQ1ProcRun/6/out~simple_gp_test.csv'
    output_wait_time = 60

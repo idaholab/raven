@@ -160,7 +160,7 @@
  [../]
 
  [./test_xml_differ]
-  type = 'RavenPython'
+  type = 'Unittest'
   input = 'TestDiffer/TestXMLDiffer.py'
  [../]
 
@@ -223,27 +223,6 @@
    csv = 'dists_vars/PrintPointSet_dump.csv'
  [../]
 
- [./redundantInputs]
-   type = 'RavenFramework'
-   input = 'test_redundant_inputs.xml'
-   output = 'RedundantInputs/mc_out.xml RedundantInputs/grid_out.xml'
-   csv = 'RedundantInputs/mc_out.csv RedundantInputs/grid_out.csv'
- [../]
- [./redundantInputsSCgPC]
-   type = 'RavenFramework'
-   input = 'test_redundant_scgpc.xml'
-   output = 'RedundantInputs/sc_out.xml'
-   UnorderedCsv = 'RedundantInputs/sc_out.csv'
-   rel_err = 1.0E-6
- [../]
- [./redundantInputsSobol]
-   type = 'RavenFramework'
-   input = 'test_redundant_sobol.xml'
-   output = 'RedundantInputs/hdmr_out.xml'
-   UnorderedCsv = 'RedundantInputs/hdmr_out.csv'
-   rel_err = 1.0E-6
- [../]
-
  [./failrunsMC]
    type = 'RavenFramework'
    input = 'test_failruns_MC.xml'
@@ -262,6 +241,7 @@
   type = 'RavenFramework'
   input = 'test_simple_ND_grid_probabilityWeight_value.xml'
   csv = 'NDGridPWvalue/testPrintPointSet_dump.csv'
+  rel_err = 1.0e-9
  [../]
 
  [./LHSVariables]

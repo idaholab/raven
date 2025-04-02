@@ -27,13 +27,13 @@ import numpy as np
 import copy
 
 from .utils import findCrowModule
-from . import mathUtils
 from ..CustomDrivers.DriverUtils import setupCpp
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
-# Numpy stochastic environment can not pass the test as this point
-stochasticEnv = 'crow'
-#stochasticEnv = 'numpy'
+# As of 2023-11-13, the crow and numpy random environments produce identical outputs for the same seed.
+# Numpy version 1.22.4 is used. The numpy is environment is now the default, and crow will be removed
+# in the future.
+# stochasticEnv = 'crow'
+stochasticEnv = 'numpy'
 
 class BoxMullerGenerator:
   """
@@ -48,29 +48,58 @@ class BoxMullerGenerator:
     self.queue = defaultdict(deque)
     self.__queueLock = threading.RLock()
 
-  def generate(self,engine=None):
+  def generate(self, size, engine=None):
     """
       Yields a normally-distributed pseudorandom value
+      @ In, size, tuple, number of values to generate
       @ In, engine, instance, optional, random number generator
-      @ Out, generate, float, random value
+      @ Out, values, np.ndarray, random value
     """
+    values = np.zeros(size)
     with self.__queueLock:
-      if len(self.queue[engine]) == 0:
+      queueLength = len(self.queue[engine])
+      if queueLength < size:
         #calculate new values
-        self.queue[engine].extend(self.createSamples(engine=engine))
-      val = self.queue[engine].pop()
-    return val
+        # We want to add only as many new values as we need to the queue, but Box Muller does them in pairs.
+        # Asking for ceil((size - len(queue)) / 2) evaluations of Box Muller will give us enough values to
+        # satisfy the request.
+        genSize = np.ceil((size - queueLength) / 2).astype(int)
+        # Using extendleft instead of extend so that the values are added behind the existing values in the deque.
+        self.queue[engine].extendleft(self.createSamples(size=genSize, engine=engine))
+    values = np.array([self.queue[engine].pop() for _ in range(size)])
+    return values
 
-  def createSamples(self,engine=None):
+  def createSamples(self, size, engine=None):
     """
-      Sample calculator.  Because Box Muller does batches of 2, add them to a queue.
+      Sample calculator.  Because Box Muller does batches of 2, 2*size numbers are generated. If size
+      is 1, a non-vectorized version is used. Otherwise, a vectorized implementation calculates all
+      of the random numbers at once. The vectorized implementation is much faster for large values
+      of size but adds overhead for small values. When size is greater than 1, the returned values
+      are interleaved to match the order of repeated calls to this function with size=1.
+      @ In, size, int, number of samples to create
       @ In, engine, instance, optional, random number generator.
-      @ Out, (z1,z2), tuple, two independent random values
+      @ Out, z, tuple or np.ndarray, two independent random values
     """
-    u1,u2 = random(2,engine=engine)
-    z1 = np.sqrt(-2.*np.log(u1))*np.cos(2.*np.pi*u2)
-    z2 = np.sqrt(-2.*np.log(u1))*np.sin(2.*np.pi*u2)
-    return z1,z2
+    # This is a little ugly, but the original code (if block) is the faster way to handle the size=1
+    # case (~25% faster). However, the vectorized code (else block) is up to 100x faster if generating
+    # many samples at once. Implementing like this allows us to get the best of both worlds.
+    if size == 1:
+      u1,u2 = random(2,engine=engine)
+      z1 = np.sqrt(-2.*np.log(u1))*np.cos(2.*np.pi*u2)
+      z2 = np.sqrt(-2.*np.log(u1))*np.sin(2.*np.pi*u2)
+      z = (z2, z1)  # see note below for why z1 and z2 are reversed
+    else:
+      u = random(2, size, engine=engine)
+      r = np.sqrt(-2. * np.log(u[:, 0]))
+      theta = 2. * np.pi * u[:, 1]
+      z1 = r * np.cos(theta)
+      z2 = r * np.sin(theta)
+      # The original code was returning z1,z2, so the z1 and z2 produced here need to be combined
+      # into a single 1-d array where the values of z1 and z2 are interleaved. Also, because of the
+      # first in-last out nature of the deque, we need to reverse the order of the values so that
+      # they come out in the expected order.
+      z = np.vstack((z2, z1)).T.flatten()
+    return z
 
   def testSampling(self, n=1e5,engine=None):
     """
@@ -81,25 +110,20 @@ class BoxMullerGenerator:
       @ Out, stdev, float, standard deviation of sample set
     """
     n = int(n)
-    samples = np.array([self.generate(engine=engine) for _ in range(n)])
+    samples = self.generate(n, engine=engine)
     mean = np.average(samples)
     stdev = np.std(samples)
     return mean,stdev
 
 class CrowRNG:
   """ Wraps crow RandomClass to make it serializable """
-  def __init__(self, engine=None):
+  def __init__(self):
     """
       Constructor
-      @ In, engine, RandomClass, optional, will wrap the given engine if provided, otherwise a new engine is created
+      @ In, None
       @ Out, None
     """
-    if engine is None:
-      self._engine = findCrowModule('randomENG').RandomClass()
-    elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-      self._engine = engine
-    else:
-      raise TypeError(f'Object of unknown type {type(engine)} cannot be wrapped by CrowRNG class!')
+    self._engine = findCrowModule('randomENG').RandomClass()
     self._seed = abs(int(self._engine.get_rng_seed()))
 
   def __getstate__(self):
@@ -134,13 +158,17 @@ class CrowRNG:
     self._seed = abs(int(value))
     self._engine.seed(self._seed)  # takes unsigned long
 
-  def random(self):
+  def random(self, size):
     """
       Wrapper for RandomClass.random()
-      @ In, None
-      @ Out, float, random number from RNG engine
+      @ In, size, tuple, size of array to return
+      @ Out, vals, np.ndarray, random numbers from RNG engine
     """
-    return self._engine.random()  # returns double
+    vals = np.zeros(size)
+    for i in range(size[0]):
+      for j in range(size[1]):
+        vals[i][j] = self._engine.random()
+    return vals
 
   def getRNGState(self):
     """
@@ -168,63 +196,123 @@ class CrowRNG:
     self._seed = abs(int(val))
     return self._seed
 
+# FIXME: A wrapper class for numpy.random.Generator is used here instead of using the Generator directly
+# in order to reproduce the same outputs as CrowRNG.random(). CrowRNG, which uses the 32-bit
+# boost::random::mt19937 under the hood in Crow, produces 64-bit floats by dividing a 32-bit integer
+# by the maximum value of an unsigned 32-bit integer; this division produces a 64-bit float. This is
+# far from ideal, since this does not actually contain 64 bits of randomness. However, fixing this
+# or using an RNG which does not produce identical outputs to CrowRNG.random() would require enormous
+# effort to fix all of the tests which rely on the current behavior. At the time of writing, that is
+# approximately 400 of about 900 tests! If anybody has the availability to fix that many tests, please
+# do it! Switching the util functions in this file to directly use the methods of np.random.Generator
+# really streamline things and probably provide a reasonable speed boost. But for now, we'll go with
+# the wrapper option so we don't have to regold all those tests.
+#   j-bryan, 2023-11-13
+class NumpyRNG:
+  """ Wraps numpy.random.Generator to provide an interface similar to CrowRNG """
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    self._engine = None
+    self._seed = None
+    self.seed(5489)  # default seed of boost::random::mt19937
+
+  def seed(self, value):
+    """
+      Reseeds the RNG
+      @ In, value, int, RNG seed
+      @ Out, None
+    """
+    self._seed = abs(int(value))
+    # According to the numpy docs, best practice is to create a new Generator rather than reseed an
+    # existing one.
+    bitGenerator = np.random.MT19937()
+    # MT19937(seed) doesn't produce the same initial seed and state as the _legacy_seeding method
+    # because passing the seed in the MT19937 constructor or the Generator.seed() method creates a
+    # SeedSequence object, which effectively hashes the seed value, while _legacy_seeding uses the
+    # seed value directly. FIXME: If somebody in the future knows of a way to get the same initial
+    # state from the seed without using a private method, please change this! -- j-bryan, 2023-11-09
+    bitGenerator._legacy_seeding(self._seed)
+    self._engine = np.random.Generator(bitGenerator)
+
+  def getRNGSeed(self):
+    """
+      Gets the RNG seed
+      @ In, None
+      @ Out, int, RNG seed value
+    """
+    return self._seed
+
+  def random(self, size):
+    """
+      Uses a scaling of Generator.integers because Generator.random() does not return values in the same order
+      as CrowRNG.random()
+      @ In, size, tuple, size of array to return
+      @ Out, vals, np.ndarray, random numbers from RNG engine
+    """
+    # Generator.random(dtype=np.float32) produces approximately the same outputs as CrowRNG.random(),
+    # but the CrowRNG outputs are 64-bit floats calculated as below.
+    # NOTE: The 64-bit random number generated here only contains about 32 bits of randomness, since
+    # only one state of a 32-bit MT19937 bit generator is used.
+    return self._engine.integers(0, 4294967295, endpoint=True, size=size) / 4294967295  # that's 2**32 - 1
+
+  def forwardSeed(self, count):
+    """
+      Throws away a random number to advance the RNG state
+      @ In, count, int, number of random states to progress
+      @ Out, None
+    """
+    self._engine.integers(0, 2 ** 32 - 1, endpoint=True, size=count)
+
+setupCpp()
+boxMullerGen = BoxMullerGenerator()
 if stochasticEnv == 'numpy':
-  npStochEnv = np.random.RandomState()
+  npStochEnv = NumpyRNG()
 else:
-  setupCpp()
   crowStochEnv = CrowRNG()
-  # this is needed for now since we need to split the stoch environments
-  distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
+
+def setStochasticEnv(env):
+  """
+    Sets (or resets) the global stochastic environment
+
+    @ In, env, str, the environment to use; may be 'numpy' or 'crow'
+    @ Out, None
+  """
+  global stochasticEnv, npStochEnv, crowStochEnv, boxMullerGen
+  stochasticEnv = env
+  if env == 'numpy':
+    npStochEnv = NumpyRNG()
+  else:
+    setupCpp()
+    crowStochEnv = CrowRNG()
   boxMullerGen = BoxMullerGenerator()
 
 #
 # Utilities
 #
 #
-def randomSeed(value, seedBoth=False, engine=None):
+def randomSeed(value, engine=None):
   """
     Function to get a random seed
     @ In, value, float, the seed
     @ In, engine, instance, optional, random number generator
-    @ In, seedBoth, bool, optional, if True then seed both random environments
     @ Out, None
   """
-  # we need a flag to tell us  if the global numpy stochastic environment is needed to be changed
-  replaceGlobalEnv=False
-  ## choose an engine if it is none
-  if engine is None:
-    if stochasticEnv == 'crow':
-      distStochEnv.seedRandom(value)
-      engine = crowStochEnv
-    elif stochasticEnv == 'numpy':
-      replaceGlobalEnv = True
-      global npStochEnv
-      # global npStochEvn is needed in numpy environment here
-      # to prevent referenced before assignment in local loop
-      engine = npStochEnv
+  engine = getEngine(engine)
+  engine.seed(value)
 
-  if isinstance(engine, np.random.RandomState):
-    engine = np.random.RandomState(value)
-  elif isinstance(engine, CrowRNG):
-    engine.seed(value)
-    if seedBoth:
-      np.random.seed(value+1) # +1 just to prevent identical seed sets
-  if stochasticEnv == 'numpy' and replaceGlobalEnv:
-    npStochEnv = engine
-  if replaceGlobalEnv:
-    print('randomUtils: Global random number seed has been changed to',value)
-
-def forwardSeed(count, engine):
+def forwardSeed(count, engine=None):
   """
     Function to advance the state of a random number generator engine
     @ In, count, int, number of steps to advance the RNG
-    @ In, engine, np.random.RandomState or CrowRNG, RNG engine to modify
+    @ In, engine, NumpyRNG or CrowRNG, optional, RNG engine to modify
     @ Out, None
   """
-  if isinstance(engine, np.random.RandomState):
-    engine.rand(count)
-  elif isinstance(engine, CrowRNG):
-    engine.forwardSeed(count)
+  engine = getEngine(engine)
+  engine.forwardSeed(count)
 
 def random(dim=1, samples=1, keepMatrix=False, engine=None):
   """
@@ -238,13 +326,7 @@ def random(dim=1, samples=1, keepMatrix=False, engine=None):
   engine = getEngine(engine)
   dim = int(dim)
   samples = int(samples)
-  if isinstance(engine, np.random.RandomState):
-    vals = engine.rand(samples,dim)
-  elif isinstance(engine, CrowRNG):
-    vals = np.zeros([samples, dim])
-    for i in range(len(vals)):
-      for j in range(len(vals[0])):
-        vals[i][j] = engine.random()
+  vals = engine.random(size=(samples, dim))
   # regardless of stoch env
   if keepMatrix:
     return vals
@@ -258,18 +340,13 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
       (if int, an array of samples will be returned if size>1, otherwise a float if keepMatrix is false)
     @ In, keepMatrix, bool, optional, if True then will always return np.array(np.array(float))
     @ In, engine, instance, optional, random number generator
-    @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
+    @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if samples>1)
   """
   engine = getEngine(engine)
   if isinstance(size, int):
     size = (size, )
-  if isinstance(engine, np.random.RandomState):
-    vals = engine.randn(*size)
-  elif isinstance(engine, CrowRNG):
-    vals = np.zeros(np.prod(size))
-    for i in range(len(vals)):
-      vals[i] = boxMullerGen.generate(engine=engine)
-    vals.shape = size
+  vals = boxMullerGen.generate(np.prod(size), engine=engine)
+  vals.shape = size
   if keepMatrix:
     return vals
   else:
@@ -303,19 +380,15 @@ def randomIntegers(low, high, caller=None, engine=None):
     @ Out, rawInt, int, random int
   """
   engine = getEngine(engine)
-  if isinstance(engine, np.random.RandomState):
-    return engine.randint(low, high=high+1)
-  elif isinstance(engine, CrowRNG):
-    intRange = high - low + 1.0
-    rawNum = low + random(engine=engine)*intRange
-    rawInt = math.floor(rawNum)
-    if rawInt < low or rawInt > high:
-      if caller:
-        caller.raiseAMessage("Random int out of range")
-      rawInt = max(low, min(rawInt, high))
-    return rawInt
-  else:
-    raise TypeError('Engine type not recognized! {}'.format(type(engine)))
+  intRange = high - low + 1.0
+  rawNum = low + random(engine=engine)*intRange
+  rawInt = math.floor(rawNum)
+  if rawInt < low or rawInt > high:
+    if caller:
+      caller.raiseAMessage("Random int out of range")
+    rawInt = max(low, min(rawInt, high))
+  return rawInt
+
 
 def randomChoice(array, size = 1, replace = True, engine = None):
   """
@@ -357,14 +430,11 @@ def randomPermutation(l,caller,engine=None):
     @ Out, newList, list, randomly permuted list
   """
   engine = getEngine(engine)
-  if isinstance(engine, np.random.RandomState):
-    return engine.permutation(l)
-  elif isinstance(engine, CrowRNG):
-    newList = []
-    oldList = l[:]
-    while len(oldList) > 0:
-      newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller,engine=engine)))
-    return newList
+  newList = []
+  oldList = l[:]
+  while len(oldList) > 0:
+    newList.append(oldList.pop(randomIntegers(0,len(oldList)-1,caller,engine=engine)))
+  return newList
 
 def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   """
@@ -391,7 +461,6 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
     return pts
   else:
     return _reduceRedundantListing(pts,(samples, dim))
-  return pts
 
 def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   """
@@ -411,7 +480,6 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
     return pts
   else:
     return _reduceRedundantListing(pts,(samples, dim))
-  return pts
 
 def newRNG(env=None):
   """
@@ -424,7 +492,7 @@ def newRNG(env=None):
   if env == 'crow':
     engine = CrowRNG()
   elif env == 'numpy':
-    engine = np.random.RandomState()
+    engine = NumpyRNG()
   return engine
 
 ### internal utilities ###
@@ -447,10 +515,10 @@ def _reduceRedundantListing(data,size):
   else:
     return data
 
-def getEngine(eng):
+def getEngine(eng=None):
   """
    Choose an engine if it is none and raise error if engine type not recognized
-   @ In, engine, instance, random number generator
+   @ In, engine, instance, optional, random number generator
    @ Out, engine, instance, random number generator
   """
   if eng is None:
@@ -458,7 +526,7 @@ def getEngine(eng):
       eng = npStochEnv
     elif stochasticEnv == 'crow':
       eng = crowStochEnv
-  if not isinstance(eng, np.random.RandomState) and not isinstance(eng, CrowRNG):
+  if not isinstance(eng, NumpyRNG) and not isinstance(eng, CrowRNG):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
 

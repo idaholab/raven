@@ -19,68 +19,134 @@ Created on 2016-Oct-21
 This is used to test the xml differ
 """
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-import sys,os
+import sys
+import os
+import unittest
+import copy
+import xml.etree.ElementTree as ET
 
 scriptDir = os.path.dirname(os.path.abspath(__file__))
 ravenDir = os.path.dirname(os.path.dirname(os.path.dirname(scriptDir)))
 
-sys.path.append(os.path.join(ravenDir,"scripts","TestHarness","testers"))
-sys.path.append(os.path.join(ravenDir,"rook"))
-
-results = {"pass":0, "fail": 0}
-
-def checkAnswer(comment,value,expected):
-  """
-    This method is aimed to compare two values
-    @ In, comment, string, a comment printed out if it fails
-    @ In, value, any, the value to compare
-    @ In, expected, any, the expected value
-    @ Out, None
-  """
-  if value != expected:
-    print("checking answer",comment,value,"!=",expected)
-    results["fail"] += 1
-  else:
-    results["pass"] += 1
+sys.path.append(os.path.join(ravenDir, "scripts", "TestHarness", "testers"))
+sys.path.append(os.path.join(ravenDir, "rook"))
 
 import XMLDiff
 
-import xml.etree.ElementTree as ET
 
-same,message = XMLDiff.compare_ordered_element(ET.fromstring("<test></test>"),
-                                             ET.fromstring("<test></test>"))
-checkAnswer("simple",same,True)
+class TestXMLDiffer(unittest.TestCase):
+  """ Unit testing for utility functions in rook/XMLDiff.py """
 
-same,message = XMLDiff.compare_ordered_element(ET.fromstring("<test>Hello  World</test>"),
-                                             ET.fromstring("<test>Hello World</test>"))
+  def testCompareOrderedElement(self):
+    """
+    Tests the XMLDiff.compare_ordered_element function
+    @ In, None
+    @ Out, None
+    """
+    tree1 = ET.fromstring("<test></test>")
+    same, _ = XMLDiff.compare_ordered_element(tree1, tree1)
+    self.assertTrue(same, "simple")
 
-checkAnswer("whitespace",same,False)
+    hello1 = ET.fromstring("<test>Hello  World</test>")
+    hello2 = ET.fromstring("<test>Hello World</test>")
+    same, _ = XMLDiff.compare_ordered_element(hello1, hello2)
+    self.assertFalse(same, "whitespace")
+    same, _ = XMLDiff.compare_ordered_element(hello1, hello2, remove_whitespace=True)
+    self.assertTrue(same, "whitespace with remove")
 
-same,message = XMLDiff.compare_ordered_element(ET.fromstring("<test>Hello  World</test>"),
-                                             ET.fromstring("<test>Hello World</test>"),
-                                             remove_whitespace=True)
+  def testCompareUnorderedElement(self):
+    """
+    Tests the XMLDiff.compare_unordered_element function
+    @ In, None
+    @ Out, None
+    """
+    tree1 = ET.fromstring("<test></test>")
+    tree2 = copy.deepcopy(tree1)
+    same, _ = XMLDiff.compare_unordered_element(tree1, tree2)
+    self.assertTrue(same, "simple")
 
-checkAnswer("whitespace with remove",same,True)
-same,message = XMLDiff.compare_ordered_element(ET.fromstring("<test></test>"),
-                                             ET.fromstring("<test></test>"))
-checkAnswer("simple",same,True)
+    hello1 = ET.fromstring("<test>Hello  World</test>")
+    hello2 = ET.fromstring("<test>Hello World</test>")
+    same, _ = XMLDiff.compare_unordered_element(hello1, hello2)
+    self.assertFalse(same, "whitespace")
+    same, _ = XMLDiff.compare_unordered_element(hello1, hello2, remove_whitespace=True)
+    self.assertTrue(same, "whitespace with remove")
+
+  def testIgnoreSubnodesFromTree(self):
+    """
+    Tests the XMLDiff.ignore_subnodes_from_tree function
+    @ In, None
+    @ Out, None
+    """
+    tree1 = ET.fromstring("<test> <a>0</a> <b>0</b> </test>")
+    tree2 = copy.deepcopy(tree1)
+    aTree, bTree, success = XMLDiff.ignore_subnodes_from_tree(tree1, tree2, ignored_nodes=["./b"])
+    self.assertTrue(success, "ignoring child node in both trees")
+    same, _ = XMLDiff.compare_unordered_element(aTree, bTree)
+    self.assertTrue(same, "comparing roots after ignoring child node in both trees")
+
+    treeAttrib1 = ET.fromstring("<test><a n='0'>1</a><a n='1'/></test>")
+    treeAttrib2 = ET.fromstring("<test><a n='0'>2</a><a n='1'/></test>")
+    aTree, bTree, success = XMLDiff.ignore_subnodes_from_tree(treeAttrib1, treeAttrib2, ignored_nodes=["./a[@n='0']"])
+    self.assertTrue(success, "ignoring child node in both trees via attribute")
+    same, _ = XMLDiff.compare_unordered_element(aTree, bTree)
+    self.assertTrue(same, "comparing roots after ignoring child node in both trees via attribute")
+
+    treeExclusive1 = ET.fromstring("<test> <a/> <c/> </test>")
+    treeExclusive2 = ET.fromstring("<test> <a/> <b/> </test>")
+    aTree, bTree, success = XMLDiff.ignore_subnodes_from_tree(treeExclusive1, treeExclusive2, ignored_nodes=["./b", "./c"])
+    self.assertTrue(success, "ignoring multiple nodes exclusive to trees")
+    same, _ = XMLDiff.compare_unordered_element(aTree, bTree)
+    self.assertTrue(same, "comparing roots after ignoring multiple nodes exclusive to trees")
+
+  def testComparePathsInSubnodes(self):
+    """
+    Tests the XMLDiff.compare_paths_in_subnodes function
+    @ In, None
+    @ Out, None
+    """
+    # exactly equal paths
+    path1 = os.path.sep.join(["..", "some", "rel", "path"])
+    path2 = copy.deepcopy(path1)
+    node1 = ET.fromstring(f"<root><test>{path1}</test></root>")
+    node2 = ET.fromstring(f"<root><test>{path2}</test></root>")
+    _, _, equal = XMLDiff.compare_paths_in_subnodes(node1, node2, ["./test"])
+    self.assertTrue(equal, "comparing equal paths")
+
+    # this should fail
+    path1 = "foo"
+    path2 = "bar"
+    node1 = ET.fromstring(f"<root><test>{path1}</test></root>")
+    node2 = ET.fromstring(f"<root><test>{path2}</test></root>")
+    _, _, equal = XMLDiff.compare_paths_in_subnodes(node1, node2, ["./test"])
+    self.assertFalse(equal, "comparing different paths")
+
+    # looking at multiple nodes with paths
+    path1 = "foo"
+    path2 = "bar"
+    node1 = ET.fromstring(f"<root><test>{path1}</test><other>{path2}</other></root>")
+    node2 = ET.fromstring(f"<root><test>{path1}</test><other>{path2}</other></root>")
+    _, _, equal = XMLDiff.compare_paths_in_subnodes(node1, node2, ["./test", "./other"])
+    self.assertTrue(equal, "comparing multiple paths that match")
+
+    # looking at multiple nodes with one path that fails
+    path1 = "foo"
+    path2 = "bar"
+    node1 = ET.fromstring(f"<root><test>{path1}</test><other>{path1}</other></root>")
+    node2 = ET.fromstring(f"<root><test>{path1}</test><other>{path2}</other></root>")
+    _, _, equal = XMLDiff.compare_paths_in_subnodes(node1, node2, ["./test", "./other"])
+    self.assertFalse(equal, "comparing multiple paths with one mismatch")
+
+    # Compare between Windows paths and POSIX paths
+    path_parts = ["some", "path"]
+    posix = "/".join(path_parts)
+    windows = "\\".join(path_parts)
+    node1 = ET.fromstring(f"<root><test>{posix}</test></root>")
+    node2 = ET.fromstring(f"<root><test>{windows}</test></root>")
+    _, _, equal = XMLDiff.compare_paths_in_subnodes(node1, node2, ["./test"])
+    self.assertTrue(equal, "comparing Windows and POSIX paths")
 
 
-same,message = XMLDiff.compare_unordered_element(ET.fromstring("<test>Hello  World</test>"),
-                                             ET.fromstring("<test>Hello World</test>"))
-
-checkAnswer("whitespace unordered",same,False)
-
-same,message = XMLDiff.compare_unordered_element(ET.fromstring("<test>Hello  World</test>"),
-                                             ET.fromstring("<test>Hello World</test>"),
-                                             remove_whitespace=True)
-
-checkAnswer("whitespace with remove unordered",same,True)
-
-
-sys.exit(results["fail"])
 """
   <TestInfo>
     <name>framework.test_xml_differ</name>
@@ -92,6 +158,10 @@ sys.exit(results["fail"])
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="sotogj" date="2023-09-07">Adding tests for ignoring nodes.</revision>
+      <revision author="j-bryan" date="2024-01-09">
+        Refactor to use unittest and adding tests for file path node parsing
+      </revision>
     </revisions>
   </TestInfo>
 """

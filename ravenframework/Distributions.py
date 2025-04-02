@@ -23,16 +23,21 @@ import os
 import operator
 import csv
 from scipy.interpolate import UnivariateSpline
+import scipy.stats
 from numpy import linalg as LA
 import copy
 import math as math
+import bisect
+from collections import namedtuple
 
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
 from .utils import utils
 from .utils.randomUtils import random
 from .utils import randomUtils
-distribution1D = utils.findCrowModule('distribution1D')
+CrowDistribution1D = utils.findCrowModule('distribution1D')
+from . import Distributions1D
+from . import DistributionsND
 from .utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -72,6 +77,12 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'UniformDiscrete' : 'UniformDiscreteDistribution'
 }
 
+
+# Declaring namedtuple(DistributionTypes)
+DistributionTypes = namedtuple('DistributionType', ['discrete', 'continuous'])
+# Adding values
+distType = DistributionTypes('Discrete', 'Continuous')
+
 class DistributionsCollection(InputData.ParameterInput):
   """
     Class for reading in a collection of distributions
@@ -95,8 +106,20 @@ class Distribution(BaseEntity, InputDataUser):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType))
+    inputSpecification.addSub(
+      InputData.parameterInputFactory(
+        'upperBound',
+        descr=r"""the maximum value allowable by this distribution. For distributions that do not traditionally
+          include an upper bound, including this node will truncate (and rebalance the probability) of the distribution,
+          with this value as the maximum value.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(
+      InputData.parameterInputFactory(
+        'lowerBound',
+        descr=r"""the minimum value allowable by this distribution. For distributions that do not traditionally
+          include a lower bound, including this node will truncate (and rebalance the probability) of the distribution,
+          with this value as the minimum value.""",
+        contentType=InputTypes.FloatType))
     return inputSpecification
 
   def __init__(self):
@@ -389,7 +412,7 @@ class BoostDistribution(Distribution):
     """
     super().__init__()
     self.dimensionality  = 1
-    self.distType        = 'Continuous'
+    self.distType        = distType.continuous
 
   def cdf(self,x):
     """
@@ -397,10 +420,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the cdf at
       @ Out, retunrCdf, float, requested cdf
     """
-    if hasattr(x,'__len__'):
-      returnCdf = np.array([self.cdf(i) for i in x])
-    else:
-      returnCdf = self._distribution.cdf(x)
+    returnCdf = self._distribution.cdf(x)
     return returnCdf
 
   def ppf(self,x):
@@ -409,11 +429,7 @@ class BoostDistribution(Distribution):
       @ In, x, float, value to get the inverse cdf at
       @ Out, retunrPpf, float, requested inverse cdf
     """
-    # TODO speed this up by doing it in Crow, not in python
-    if hasattr(x,'__len__'):
-      returnPpf = np.array([self.ppf(i) for i in x])
-    else:
-      returnPpf = self._distribution.inverseCdf(x)
+    returnPpf = self._distribution.inverseCdf(x)
     return returnPpf
 
   def pdf(self,x):
@@ -483,18 +499,14 @@ class BoostDistribution(Distribution):
     untrMode = self._distribution.untrMode()
     return untrMode
 
-
   def rvs(self, size=None):
     """
       Function to get random numbers
       @ In, size, int, optional, number of entries to return (one if None)
       @ Out, rvsValue, float or list, requested random number or numbers
     """
-    if size is None:
-      rvsValue = self.ppf(random())
-    else:
-      # TODO to speed up, do this on the C side instead of in python
-      rvsValue = np.array([self.rvs() for _ in range(size)])
+    size = size or 1
+    rvsValue = self.ppf(random(size))
     return rvsValue
 
   def selectedRvs(self, discardedElems):
@@ -513,6 +525,22 @@ class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(Uniform, cls).getInputSpecification()
+    inputSpecification.description = r"""Classical uniform distribution. The probability density function for the uniform
+      distribution is given by $f(x)=\frac{1}{b-a}$ for $a \le x \le b$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.uniform.html} for more details.
+      """
+    return inputSpecification
 
   def __init__(self, lowerBound=None, upperBound=None):
     """
@@ -604,7 +632,7 @@ class Uniform(BoostDistribution):
     self.convertToDistrDict['ClenshawCurtis'] = self.convertLegendreToUniform
     self.convertToQuadDict ['ClenshawCurtis'] = self.convertUniformToLegendre
     self.measureNormDict   ['ClenshawCurtis'] = self.stdProbabilityNorm
-    self._distribution = distribution1D.BasicUniformDistribution(self.lowerBound,self.lowerBound+self.range)
+    self._distribution = Distributions1D.BasicUniformDistribution(self.lowerBound,self.lowerBound+self.range)
 
   def convertUniformToLegendre(self,y):
     """Converts from distribution domain to standard Legendre [-1,1].
@@ -636,8 +664,18 @@ class Normal(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Normal, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Classical Gaussian normal distribution. The probability density function for the normal
+      distribution is given by $f(x)=\frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$ for $-\infty\leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("mean",
+        descr=r"""the distribution mean or expected value. For a standard normal distribution,
+          this is zero. """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma",
+        descr=r"""the standard deviation (stdv) of this distribution. For a standard normal distribution,
+          this is one. The variance of this distribution is the square of this value, $\sigma^2$.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -722,8 +760,7 @@ class Normal(BoostDistribution):
     self.convertToQuadDict ['Hermite'] = self.convertNormalToHermite
     self.measureNormDict   ['Hermite'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicNormalDistribution(self.mean,
-                                                                  self.sigma)
+      self._distribution = Distributions1D.BasicNormalDistribution(self.mean, self.sigma)
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
       self.preferredQuadrature  = 'Hermite'
@@ -741,9 +778,7 @@ class Normal(BoostDistribution):
         self.upperBound = b
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicNormalDistribution(self.mean,
-                                                                  self.sigma,
-                                                                  a,b)
+      self._distribution = Distributions1D.BasicNormalDistribution(self.mean, self.sigma, a, b)
 
   def stdProbabilityNorm(self,std=False):
     """Returns the factor to scale error norm by so that norm(probability)=1.
@@ -789,9 +824,24 @@ class Gamma(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Gamma, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Classical gamma distribution. The probability density function for the gamma
+      distribution is given by $f(x,\alpha)=\frac{\beta^{\alpha}x^{\alpha-1}e^{-\beta x}}{\Gamma(\alpha)}$
+      for $x\geq 0,\alpha>0$, and where $\Gamma(\alpha)$ refers to the gamma function.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""the lower domain value of this distribution. Setting this to a nonzero value will shift the
+          distribution to the left or right. \default{0.0} """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha",
+        descr=r"""first shape parameter.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html} for more details.  """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta",
+        descr=r"""rate parameter, also inverse scale parameter.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html} for more details. \default{1.0}
+          """,
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -808,7 +858,7 @@ class Gamma(BoostDistribution):
     self.alpha = alpha
     self.beta = beta
     self.type = 'Gamma'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Laguerre')
     self.compatibleQuadrature.append('CDF')
@@ -887,7 +937,7 @@ class Gamma(BoostDistribution):
     self.measureNormDict   ['Laguerre'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed):
       # and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
+      self._distribution = Distributions1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
       #self.lowerBoundUsed = 0.0
       self.upperBound     = sys.float_info.max
       self.preferredQuadrature  = 'Laguerre'
@@ -905,7 +955,7 @@ class Gamma(BoostDistribution):
         self.upperBound = b
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
+      self._distribution = Distributions1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
   def convertGammaToLaguerre(self,y):
     """Converts from distribution domain to standard Laguerre [0,inf].
@@ -945,11 +995,34 @@ class Beta(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Beta, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("high", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("peakFactor", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Classical beta distribution. The probability density function for the beta
+      distribution is given by $f(x;\alpha,\beta)=\frac{1}{B(\alpha,\beta)}x^{\alpha-1}(1-x)^{\beta-1}$
+      for $\alpha>0, \beta>0$ and $0 \leq x \leq 1$
+      and $B(\alpha,\beta)=\frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.beta.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""the lower domain value of this distribution. Setting this to a nonzero value will shift the
+          distribution to the left or right. \default{0.0} """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("high",
+        descr=r"""the upper domain value of this distribution. Setting this to a nonzero value will shift the right side
+          of the distribution to the left or right. \default{0.0} """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha",
+        descr=r"""first shape parameter. If specified, \xmlNode{beta} must also be provided, and
+          \xmlNode{peakFactor} cannot be specified.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.beta.html} for more details. """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta",
+        descr=r"""second shape parameter. If specified, \xmlNode{alpha} must also be provided, and
+          \xmlNode{peakFactor} cannot be specified.
+          See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.beta.html} for more details. """,
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("peakFactor",
+        descr=r"""alternate shape parameter. If specified, neither \xmlNode{alpha} nor \xmlNode{beta} may be specified.
+          """,
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -965,7 +1038,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('CDF')
@@ -1060,7 +1133,7 @@ class Beta(BoostDistribution):
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
     #this "if" section can only be called if distribution not generated using readMoreXML
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low)
+      self._distribution = Distributions1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low)
     else:
       if self.lowerBoundUsed == False:
         a = 0.0
@@ -1070,7 +1143,7 @@ class Beta(BoostDistribution):
         b = sys.float_info.max
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,a,b,self.low)
+      self._distribution = Distributions1D.BasicBetaDistribution(self.alpha,self.beta,self.high-self.low,self.low,a,b)
     self.preferredPolynomials = 'Jacobi'
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('ClenshawCurtis')
@@ -1122,9 +1195,20 @@ class Triangular(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Triangular, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("apex", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("min", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical triangular distribution. The probability density function for the
+      triangular distribution is given by
+      $f(x)=\frac{2(x-a)}{(b-a)(c-a))}$ for $a \le x < c$, and $\frac{2(b-x)}{(b-a)(b-c)}$ for $c< x \le b$, and 0 otherwise.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.triang.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("min",
+        descr=r"""lower domain boundary of this distribution, referred to as $a$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max",
+        descr=r"""upper domain boundary of this distribution, referred to as $b$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("apex",
+        descr=r"""location of the peak of the distribution, referred to as $c$ in equation form.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1139,7 +1223,7 @@ class Triangular(BoostDistribution):
     self.min  = None  # domain lower boundary
     self.max  = None  # domain upper boundary
     self.type = 'Triangular'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1219,7 +1303,7 @@ class Triangular(BoostDistribution):
       @ Out, None
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.min == self.lowerBound and self.max == self.upperBound):
-      self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
+      self._distribution = Distributions1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
       self.raiseAnError(IOError,'Truncated triangular not yet implemented')
 
@@ -1240,7 +1324,14 @@ class Poisson(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Poisson, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mu", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical Poisson discrete distribution. The probability mass function for the
+      Poisson distribution is given by
+      $f(k)=\frac{\mu^k e^{-\mu}}{k!}$ where $k$ is the number of occurances and $\mu$ is the mean.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.poisson.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("mu",
+        descr=r"""mean rate of events/time""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1254,7 +1345,7 @@ class Poisson(BoostDistribution):
     self.mu  = 0.0
     self.type = 'Poisson'
     self.hasInfiniteBound = True
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1311,7 +1402,7 @@ class Poisson(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicPoissonDistribution(self.mu)
+      self._distribution = Distributions1D.BasicPoissonDistribution(self.mu)
       self.lowerBound = 0.0
       self.upperBound = sys.float_info.max
     else:
@@ -1334,8 +1425,18 @@ class Binomial(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Binomial, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("n", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical binomial discrete distribution. The probability mass function for the
+      binomial distribution is given by
+      $f(k;n,p)=\binom{n}{k}p^k (1-p)^{n-k}$ where $k$ is the number of occurances, $p$ is the probabilty of occurance,
+      and $n$ is the number of experiments.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.binom.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("n",
+        descr=r"""number of experiments or trials.""",
+        contentType=InputTypes.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""probability of occurance, often probability of a success.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1350,7 +1451,7 @@ class Binomial(BoostDistribution):
     self.p       = 0.0
     self.type     = 'Binomial'
     self.hasInfiniteBound = True
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1415,7 +1516,7 @@ class Binomial(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
+      self._distribution = Distributions1D.BasicBinomialDistribution(self.n,self.p)
     else:
       self.raiseAnError(IOError,'Truncated Binomial not yet implemented')
 
@@ -1436,7 +1537,14 @@ class Bernoulli(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Bernoulli, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical Bernoulli discrete distribution. The probability mass function for the
+      Bernoulli distribution is given by
+      $f(k;p)=p$ if $k=1$ and $f(k;p)=1-p$ if $k=0$, where $k$ is the possible outcomes and $p$ is the probabilty of occurance.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.Bernoulli.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""probability of occurrance, or success.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1449,7 +1557,7 @@ class Bernoulli(BoostDistribution):
     super().__init__()
     self.p        = 0.0
     self.type     = 'Bernoulli'
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1508,7 +1616,7 @@ class Bernoulli(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
+      self._distribution = Distributions1D.BasicBernoulliDistribution(self.p)
     else:
       self.raiseAnError(IOError,'Truncated Bernoulli not yet implemented')
 
@@ -1529,7 +1637,14 @@ class Geometric(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Geometric, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical geometric discrete distribution. The probability mass function for the
+      geometric distribution is given by
+      $f(k;p)=(1-p)^{k}p$, where $k$ is the possible outcomes and $p$ is the probabilty of occurance.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.geom.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""probability of occurrance, or success.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1542,7 +1657,7 @@ class Geometric(BoostDistribution):
     super().__init__()
     self.p        = 0.0
     self.type     = 'Geometric'
-    self.distType = 'Discrete'
+    self.distType = distType.discrete
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1600,7 +1715,7 @@ class Geometric(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicGeometricDistribution(self.p)
+      self._distribution = Distributions1D.BasicGeometricDistribution(self.p)
     else:  self.raiseAnError(IOError,'Truncated Geometric not yet implemented')
 
 DistributionsCollection.addSub(Geometric.getInputSpecification())
@@ -1620,14 +1735,28 @@ class Categorical(Distribution):
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
-
-    StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
-    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
+    inputSpecification.description = r"""classical categorical discrete distribution, sometimes also referred to
+      as a multinomial distribution. The categorical distribution
+      describes the result of a random variable that can have $K$ possible outcome states, with each outcome potentially
+      having a distinct probability. These states can be numbers as well as strings.
+      """
+    StatePartInput = InputData.parameterInputFactory("state",
+        descr=r"""probability of this state's outcome""",
+        contentType=InputTypes.FloatType)
+    StatePartInput.addParam("outcome",
+        InputTypes.FloatOrStringType,
+        True,
+        descr=r"""value of this state's outcome""")
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
-
+    inputSpecification.addSub(InputData.parameterInputFactory("rtol",
+        contentType=InputTypes.FloatType,
+        descr=r"""Relative tolerance used to identify close states in case of
+            float/int states. Not used for string states!""",
+        default=1e-6))
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
-    inputSpecification.addParam("name", InputTypes.StringType, True)
+    inputSpecification.addParam("name", InputTypes.StringType, True,
+        descr=r"""User-defined name to designate this entity in the RAVEN input file.""")
 
     return inputSpecification
 
@@ -1642,7 +1771,9 @@ class Categorical(Distribution):
     self.values         = set()
     self.type           = 'Categorical'
     self.dimensionality = 1
-    self.distType       = 'Discrete'
+    self.distType       = distType.discrete
+    self.isFloat        = True
+    self.rtol = 1e-6
 
   def _handleInput(self, paramInput):
     """
@@ -1651,18 +1782,26 @@ class Categorical(Distribution):
       @ Out, None
     """
     super()._handleInput(paramInput)
+    isFloats = []
     for child in paramInput.subparts:
       if child.getName() == "state":
         outcome = child.parameterValues["outcome"]
         value = child.value
         self.mapping[outcome] = value
-        if float(outcome) in self.values:
+        isFloats.append(utils.floatConversion(outcome) is not None)
+        if outcome in self.values:
           self.raiseAnError(IOError,'Categorical distribution has identical outcomes')
         else:
-          self.values.add(float(outcome))
+          self.values.add(float(outcome) if isFloats[-1] else outcome)
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
+    if False in isFloats:
+      self.isFloat = False
+    else:
+      self.rtol = paramInput.findNodesAndExtractValues(['rtol'])[0]['rtol']
     self.initializeDistribution()
+    self.upperBoundUsed = True
+    self.lowerBoundUsed = True
 
   def getInitParams(self):
     """
@@ -1692,10 +1831,13 @@ class Categorical(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
+    isFloats = []
     for idx, val in enumerate(inputDict['outcome']):
       self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
-
+      isFloats.append(utils.floatConversion(val) is not None)
+    if False in isFloats:
+      self.isFloat = False
     self.checkDistParams()
 
   def initializeDistribution(self):
@@ -1716,16 +1858,14 @@ class Categorical(Distribution):
       @ Out, None
     """
     # check all probability values are between 0.0 and 1.0
-    for element in self.mapping:
-      if self.mapping[element] < 0.0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
-      if self.mapping[element] > 1.0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1')
+    for element, value in self.mapping.items():
+      if value < 0.0:
+        self.raiseAnError(IOError,f'Categorical distribution entry {element} cannot be negative; received: {value}')
 
     localSum = sum(self.mapping.values())
-    if not mathUtils.compareFloats(localSum,1.0):
-      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!')
+    if not mathUtils.compareFloats(localSum, 1., self.rtol):
+      # courtesy warning
+      self.raiseAWarning(f'Provided weights for Categorical distribution summed to {localSum}; normalizing to 1.')
 
     # Probability values normalization
     for key in self.mapping.keys():
@@ -1740,7 +1880,21 @@ class Categorical(Distribution):
     if x in self.values:
       pdfValue = self.mapping[x]
     else:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
+      if self.isFloat:
+        vals = sorted(list(self.values))
+        idx = [idx for idx in range(len(vals)) if utils.isClose(vals[idx], x, relTolerance=self.rtol)]
+        if not len(idx):
+          self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the closest '
+                            f'state {list(vals)[bisect.bisect(vals, x)]} is outside the acceptance interval given by the provided relative tolerance {self.rtol}!')
+        idx = idx[0]
+        val =  list(vals)[idx]
+        pdfValue = self.mapping[val]
+        if not utils.isClose(val, x, relTolerance=self.rtol):
+          self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the closest '
+                            f'state {val} is outside the acceptance interval given by the provided relative tolerance {self.rtol}!')
+      else:
+        self.raiseAnError(IOError,f'{self.type} distribution cannot compute pdf for {x} since the states are not floats/integers and the'
+                            f'value {x} is not present in the list of states!!')
     return pdfValue
 
   def cdf(self,x):
@@ -1752,14 +1906,22 @@ class Categorical(Distribution):
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == sortedMapping[-1][0]:
       return 1.0
+
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
-        if x == float(element[0]):
+        if x == ( float(element[0]) if self.isFloat else element[0] ):
           return cumulative
     else:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate cdf for ' + str(x))
+      if self.isFloat:
+        cumulative=0.0
+        for idx in range(len(sortedMapping)-1):
+          cumulative += sortedMapping[idx][1]
+          if x >= sortedMapping[idx][0] and x <= sortedMapping[idx+1][0]:
+            return cumulative
+      # if we reach this point we must error out
+      self.raiseAnError(IOError,f'{self.type} distribution cannot calculate cdf for ' + str(x))
 
   def ppf(self,x):
     """
@@ -1767,17 +1929,17 @@ class Categorical(Distribution):
       @ In, x, float, value to get the ppf at
       @ Out, element[0], float/string, requested inverse cdf
     """
-    if x > 1.0 or x < 0:
-      self.raiseAnError(IOError,'Categorical distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
+    if x > 1. or x < 0.:
+      self.raiseAnError(IOError,f'{self.type} distribution cannot calculate ppf for', str(x), '! Valid value should within [0,1]!')
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
     if x == 1.0:
-      return float(sortedMapping[-1][0])
+      return float(sortedMapping[-1][0]) if self.isFloat else sortedMapping[-1][0]
     else:
       cumulative=0.0
       for element in sortedMapping:
         cumulative += element[1]
         if cumulative >= x:
-          return float(element[0])
+          return float(element[0]) if self.isFloat else element[0]
 
   def rvs(self):
     """
@@ -1834,8 +1996,9 @@ class UniformDiscrete(Distribution):
     super().__init__()
     self.type           = 'UniformDiscrete'
     self.dimensionality = 1
-    self.distType       = 'Discrete'
+    self.distType       = distType.discrete
     self.memory         = True
+    self.nPoints = None
 
   def _handleInput(self, paramInput):
     """
@@ -1851,16 +2014,14 @@ class UniformDiscrete(Distribution):
       self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
 
     strategy = paramInput.findFirst('strategy')
-    if strategy != None:
+    if strategy is not None:
       self.strategy = strategy.value
     else:
       self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
 
     nPoints = paramInput.findFirst('nPoints')
-    if nPoints != None:
+    if nPoints is not None:
       self.nPoints = nPoints.value
-    else:
-      self.nPoints = None
 
     self.initializeDistribution()
 
@@ -2004,14 +2165,29 @@ class MarkovCategorical(Categorical):
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
+    inputSpecification.description = r"""Markov categorical discrete distribution. Describes a random variable
+      that can have $K$ possible outcomes, based on the steady state probilities provided by a Markov model.
+      """
 
-    StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.StringType)
-    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
-    StatePartInput.addParam("index", InputTypes.IntegerType, True)
-    TransitionInput = InputData.parameterInputFactory("transition", contentType=InputTypes.StringType)
+    StatePartInput = InputData.parameterInputFactory("state",
+        descr=r"""probability of occurrance, or outcome 1.""",
+        contentType=InputTypes.StringType)
+    StatePartInput.addParam("outcome",
+        InputTypes.FloatType,
+        True,
+        descr=r"""value of this outcome""")
+    StatePartInput.addParam("index",
+        InputTypes.IntegerType,
+        True,
+        descr=r"""indexes steady state probabilities corresponding to the transition matrix""")
+    TransitionInput = InputData.parameterInputFactory("transition",
+        descr=r"""transition matrix of the desired Markov model""",
+        contentType=InputTypes.StringType)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
     inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir",
+        descr=r"""filesystem referential path""",
+        contentType=InputTypes.StringType))
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
     inputSpecification.addParam("name", InputTypes.StringType, True)
@@ -2026,7 +2202,7 @@ class MarkovCategorical(Categorical):
     """
     super().__init__()
     self.dimensionality = 1
-    self.distType       = 'Discrete'
+    self.distType       = distType.discrete
     self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
     self.transition     = None # transition matrix of a continuous time Markov Model
@@ -2138,8 +2314,17 @@ class Logistic(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Logistic, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical logistic distribution. The probability density function for the
+      logistic distribution is given by
+      $f(x)=\frac{1}{1+e^{-\frac{x-\lambda}{\sigma}}}$ for $-\infty \leq x < \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.logistic.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("location",
+        descr=r"""location parameter, referred to as $\lambda$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale",
+        descr=r"""scale parameter, referred to as $\sigma$ in equation form.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2153,7 +2338,7 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2219,7 +2404,7 @@ class Logistic(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale)
+      self._distribution = Distributions1D.BasicLogisticDistribution(self.location,self.scale)
     else:
       if self.lowerBoundUsed == False:
         a = -sys.float_info.max
@@ -2229,7 +2414,7 @@ class Logistic(BoostDistribution):
         b = sys.float_info.max
       else:
         b = self.upperBound
-      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)
+      self._distribution = Distributions1D.BasicLogisticDistribution(self.location,self.scale,a,b)
 
 DistributionsCollection.addSub(Logistic.getInputSpecification())
 
@@ -2248,8 +2433,17 @@ class Laplace(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Laplace, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical Laplace distribution. The probability density function for the
+      Laplace distribution is given by
+      $f(x)=\frac{1}{2b}e^{-\frac{\left| x-\mu\right| }{b}}$ for $-\infty \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.laplace.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("location",
+        descr=r"""location parameter, referred to as $\mu$ in equation form.""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale",
+        descr=r"""scale parameter, referred to as $b$ in equation form.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2263,7 +2457,7 @@ class Laplace(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Laplace'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2332,7 +2526,7 @@ class Laplace(BoostDistribution):
       self.lowerBound = -sys.float_info.max
     if self.upperBoundUsed == False:
       self.upperBound = sys.float_info.max
-    self._distribution = distribution1D.BasicLaplaceDistribution(self.location,self.scale,self.lowerBound,self.upperBound)
+    self._distribution = Distributions1D.BasicLaplaceDistribution(self.location,self.scale,self.lowerBound,self.upperBound)
 
 DistributionsCollection.addSub(Laplace.getInputSpecification())
 
@@ -2351,8 +2545,17 @@ class Exponential(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Exponential, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""classical exponential distribution. The probability density function for the
+      exponential distribution is given by
+      $f(x)=\lambda e^{-\lambda x}$ for $0 \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.expon.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""lower domain boundary for this distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda",
+        descr=r"""rate parameter for this distribution, shown as $\lambda$ in equation form""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2366,7 +2569,7 @@ class Exponential(BoostDistribution):
     self.lambdaVar = 1.0
     self.low        = 0.0
     self.type = 'Exponential'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2436,7 +2639,7 @@ class Exponential(BoostDistribution):
       @ Out, None
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,self.low)
+      self._distribution = Distributions1D.BasicExponentialDistribution(self.lambdaVar,self.low)
       self.lowerBound = self.low
       self.upperBound = sys.float_info.max
     else:
@@ -2444,7 +2647,7 @@ class Exponential(BoostDistribution):
         self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambdaVar,self.lowerBound,self.upperBound,self.low)
+      self._distribution = Distributions1D.BasicExponentialDistribution(self.lambdaVar,self.low,self.lowerBound,self.upperBound)
 
   def convertDistrPointsToStd(self,y):
     """
@@ -2489,9 +2692,20 @@ class LogNormal(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(LogNormal, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""log-normal distribution. The probability density function for the
+      log-normal distribution is given by
+      $f(x)=\frac{1}{x\sigma\sqrt{2\pi}}e^{-\frac{(\ln{x}-\mu)^2}{2\sigma^2}}$ for $0 \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.lognorm.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("mean",
+        descr=r"""mean of log of the distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma",
+        descr=r"""standard deviation of the log of the distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""distribution lower domain boundary""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2506,7 +2720,7 @@ class LogNormal(BoostDistribution):
     self.sigma = 1.0
     self.low = 0.0
     self.type = 'LogNormal'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2579,7 +2793,7 @@ class LogNormal(BoostDistribution):
       @ Out, None
     """
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low)
+      self._distribution = Distributions1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low)
       self.lowerBound = 0.0
       self.upperBound =  sys.float_info.max
     else:
@@ -2587,7 +2801,7 @@ class LogNormal(BoostDistribution):
         self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
-      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,self.lowerBound,self.upperBound, self.low)
+      self._distribution = Distributions1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,self.lowerBound,self.upperBound)
 
 DistributionsCollection.addSub(LogNormal.getInputSpecification())
 
@@ -2606,9 +2820,20 @@ class Weibull(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Weibull, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("k", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputTypes.FloatType))
+    inputSpecification.description = r"""Weibull distribution. The probability density function for the
+      Weibull distribution is given by
+      $f(x)=\frac{k}{\lambda}\left(\frac{x}{\lambda}\right)^{k-1} e^{-(x/\lambda)^k}$ for $0 \leq x \leq \infty$.
+      See \url{https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.weibull_min.html} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("low",
+        descr=r"""distribution lower domain boundary""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("k",
+        descr=r"""shape parameter""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda",
+        descr=r"""scale parameter""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2622,7 +2847,7 @@ class Weibull(BoostDistribution):
     self.lambdaVar = 1.0
     self.k = 1.0
     self.type = 'Weibull'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
@@ -2696,7 +2921,7 @@ class Weibull(BoostDistribution):
       @ Out, None
     """
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.low)
+      self._distribution = Distributions1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.low)
       self.lowerBound = self.low
       self.upperBound = sys.float_info.max
     else:
@@ -2704,7 +2929,7 @@ class Weibull(BoostDistribution):
         self.lowerBound = self.low
       if self.upperBoundUsed == False:
         self.upperBound = sys.float_info.max
-      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.lowerBound,self.upperBound,self.low)
+      self._distribution = Distributions1D.BasicWeibullDistribution(self.k,self.lambdaVar,self.lowerBound,self.upperBound,self.low)
 
 DistributionsCollection.addSub(Weibull.getInputSpecification())
 
@@ -2723,11 +2948,24 @@ class Custom1D(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(Custom1D, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("functionType", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("functionID", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("variableID", contentType=InputTypes.StringType))
+    inputSpecification.description = r"""Custom user-defined distribution. This allows empirically-defined
+        functions that are not currently defined in RAVEN to be used for probability weighting and sampling.
+        The distribution is defined through empirical distribution in a CSV file."""
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir",
+        descr=r"""relative working directory that contains the input file""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionType",
+        descr=r"""type of initialization values specifid in the input file (pdf or cdf)""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dataFilename",
+        descr=r"""name of file to be used to initialize the distribution""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionID",
+        descr=r"""ID of the function associated to the variableID in the input file""",
+        contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("variableID",
+        descr=r"""ID of the variable in the input file""",
+        contentType=InputTypes.StringType))
 
     return inputSpecification
 
@@ -2744,7 +2982,7 @@ class Custom1D(Distribution):
     self.functionID      = None
     self.variableID      = None
     self.dimensionality  = 1
-    self.distType        = 'Continuous'
+    self.distType        = distType.continuous
     # Scipy.interpolate.UnivariateSpline is used
     self.k               = 4 # Degree of the smoothing spline, Must be <=5
     self.s               = 0 # Positive smoothing factor used to choose the number of knots
@@ -2906,9 +3144,16 @@ class LogUniform(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(LogUniform, cls).getInputSpecification()
+    inputSpecification.description = r"""Log-Uniform distribution. This distribution is associated
+        to a variable $x'$ such that $x = e^{x'}$. Sometimes known as the Reciprocal distribution. The
+        probability density function of this distribution is
+        $f(x)=\frac{1}{x(\ln{b}-\ln{a})}$ for $a \le x \le b$."""
 
     BaseInputType = InputTypes.makeEnumType("base", "baseType", ["natural","decimal"])
-    inputSpecification.addSub(InputData.parameterInputFactory("base"      , BaseInputType))
+    inputSpecification.addSub(InputData.parameterInputFactory("base",
+        BaseInputType,
+        descr=r"""exponent base for scaling the underlying uniform distribution, either "decimal" (base 10) or
+        "natural" base ($e$)."""))
 
     return inputSpecification
 
@@ -3023,7 +3268,9 @@ class NDimensionalDistributions(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(NDimensionalDistributions, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir",
+        descr=r"""relative working directory that contains data files""",
+        contentType=InputTypes.StringType))
 
     return inputSpecification
 
@@ -3147,13 +3394,22 @@ class NDInverseWeight(NDimensionalDistributions):
         specifying input of cls.
     """
     inputSpecification = super(NDInverseWeight, cls).getInputSpecification()
-
-
-    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType)
-    DataFilenameParameterInput.addParam("type", InputTypes.StringType, True)
+    inputSpecification.description = r"""Custom user-defined N-dimensional distribution. This allows empirically-defined
+        custom distributions that are not currently defined in RAVEN to be used for probability weighting and sampling.
+        The combined distribution is defined through empirical distribution in a CSV file."""
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename",
+        descr=r"""name of file to be used to initialize the distribution""",
+        contentType=InputTypes.StringType)
+    DataFilenameParameterInput.addParam("type",
+        InputTypes.StringType,
+        True,
+        descr=r"""type of initialization values specifid in the input file (PDF or CDF)""")
     inputSpecification.addSub(DataFilenameParameterInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p",
+        descr=r"""power parameter. Greater values of p assign greater influence to values closest to
+          interpolation points.""",
+        contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -3222,9 +3478,9 @@ class NDInverseWeight(NDimensionalDistributions):
       @ Out, None
     """
     if self.functionType == 'CDF':
-      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,True)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,True)
     else:
-      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,False)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalInverseWeight(str(self.dataFilename), self.p,False)
     self.dimensionality = self._distribution.returnDimensionality()
     self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimensionality)]
     self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimensionality)]
@@ -3235,10 +3491,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, list, list of variable coordinate
       @ Out, cdfValue, float, cdf value
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    cdfValue = self._distribution.cdf(coordinate)
+    cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     return cdfValue
 
   def ppf(self,x):
@@ -3256,10 +3509,7 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, x, np.array , coordinates to get the pdf at
       @ Out, pdfValue, np.array, requested pdf
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    pdfValue = self._distribution.pdf(coordinate)
+    pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -3269,11 +3519,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    dxs        = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
+    coordinate = numpyToCxxVector(x)
+    dxs = numpyToCxxVector(dx)
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
@@ -3358,9 +3605,17 @@ class NDCartesianSpline(NDimensionalDistributions):
         specifying input of cls.
     """
     inputSpecification = super(NDCartesianSpline, cls).getInputSpecification()
+    inputSpecification.description = r"""describes a N-dimensional distribution given a set of points regularly
+        distributed on a Cartesian grid. These points sample the PDF of the original distribution. Distributed
+        values (PDF or CDF) are calculated using the ND Spline interpolation scheme."""
 
-    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType)
-    DataFilenameParameterInput.addParam("type", InputTypes.StringType, True)
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename",
+        descr=r"""name of file to be used to initialize the distribution""",
+        contentType=InputTypes.StringType)
+    DataFilenameParameterInput.addParam("type",
+        InputTypes.StringType,
+        True,
+        descr=r"""type of initialization values specifid in the input file (PDF or CDF)""")
     inputSpecification.addSub(DataFilenameParameterInput)
 
     return inputSpecification
@@ -3403,9 +3658,9 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     self.raiseAMessage('initialize Distribution')
     if self.functionType == 'CDF':
-      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),True)
     else:
-      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),False)
+      self._distribution = CrowDistribution1D.BasicMultiDimensionalCartesianSpline(str(self.dataFilename),False)
     self.dimensionality = self._distribution.returnDimensionality()
     self.lowerBound = [self.returnLowerBound(dim) for dim in range(self.dimensionality)]
     self.upperBound = [self.returnUpperBound(dim) for dim in range(self.dimensionality)]
@@ -3416,10 +3671,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, list, list of variable coordinate
       @ Out, cdfValue, float, cdf value
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    cdfValue = self._distribution.cdf(coordinate)
+    cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     return cdfValue
 
   def ppf(self,x):
@@ -3437,10 +3689,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, x, np.array , coordinates to get the pdf at
       @ Out, pdfValue, np.array, requested pdf
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-    pdfValue = self._distribution.pdf(coordinate)
+    pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def cellIntegral(self,x,dx):
@@ -3450,11 +3699,8 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    dxs        = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
+    coordinate = numpyToCxxVector(x)
+    dxs = numpyToCxxVector(dx)
     integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     return integralReturn
 
@@ -3537,14 +3783,33 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for input data.
     """
     inputSpecification = super(MultivariateNormal, cls).getInputSpecification()
+    inputSpecification.description = r"""describes a N-dimensional multivariate Gaussian normal distribution.
+        This generalizes the univariate normal distribution to higher dimensions. The multivariate normal
+        distribution is defined by an N-dimensional random vector $\widehat{x}$ and is defined by a multidimensional
+        mean $\widehat{\mu}$ and standard deviation $\Sigma$. The probability density function for this distribution is
+        $f(\widehat{x})=\frac{1}{\sqrt{(2\pi)^k}\left|\Sigma\right| } e^{-\frac{1}{2}(\widehat{x}-\widehat{\mu})^T \Sigma^{-1}(\widehat{x}-\widehat{\mu})}$."""
 
-    MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputTypes.StringType)
+    MuListParameterInput = InputData.parameterInputFactory("mu",
+        descr=r"""list of mean values for each dimension of the distribution""",
+        contentType=InputTypes.StringType)
 
-    CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputTypes.StringType)
-    CovarianceListParameterInput.addParam("type", InputTypes.StringType, False)
+    CovarianceListParameterInput = InputData.parameterInputFactory("covariance",
+        descr=r"""list of covariance values in the covariance matrix. These are specified based on the \xmlAttr{type} parameter""",
+        contentType=InputTypes.StringType)
+    CovarianceListParameterInput.addParam("type",
+        InputTypes.StringType,
+        False,
+        descr=r"""type of covariance. \xmlString{abs} indicates a normal covariance matrix, while \xmlString{rel}
+        indicates a relative covarience matrics.
+        For \xmlNode{transformation}, \xmlString{pca} can be combined with both types, and
+        \xmlString{spline} only accepts \xmlString{abs}\default{abs}""")
 
-    TransformationParameterInput = InputData.parameterInputFactory("transformation")
-    RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputTypes.IntegerType)
+    TransformationParameterInput = InputData.parameterInputFactory("transformation",
+        descr=r"""enables input parameter transformation using principle component analysis (PCA). If enabled,
+        PCA is used on the input covariance matrix with truncation to the specified rank.""")
+    RankParameterInput = InputData.parameterInputFactory("rank",
+        descr=r"""desired dimensionality reduction for covariance matrix""",
+        contentType=InputTypes.IntegerType)
     TransformationParameterInput.addSub(RankParameterInput)
 
     inputSpecification.addSub(MuListParameterInput)
@@ -3552,7 +3817,9 @@ class MultivariateNormal(NDimensionalDistributions):
     inputSpecification.addSub(TransformationParameterInput)
 
     MultivariateMethodType = InputTypes.makeEnumType("multivariateMethod","multivariateMethodType",["pca","spline"])
-    inputSpecification.addParam("method", MultivariateMethodType, True)
+    inputSpecification.addParam("method",
+        MultivariateMethodType,
+        True)
 
     return inputSpecification
 
@@ -3564,7 +3831,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     super().__init__()
     self.type = 'MultivariateNormal'
-    self.distType = 'Continuous'
+    self.distType = distType.continuous
     self.mu  = None
     self.covariance = None
     self.covarianceType = 'abs'  # abs: absolute covariance, rel: relative covariance matrix
@@ -3622,6 +3889,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, pdict, dict, the namespace state
       @ Out, None
     """
+    super()._localSetState(pdict)
     self.method = pdict.pop('method')
     self.dimension = pdict.pop('dimension')
     self.rank = pdict.pop('rank')
@@ -3651,18 +3919,14 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, None
     """
     self.raiseAMessage('initialize distribution')
-    mu = distribution1D.vectord_cxx(len(self.mu))
-    for i in range(len(self.mu)):
-      mu[i] = self.mu[i]
-    covariance = distribution1D.vectord_cxx(len(self.covariance))
-    for i in range(len(self.covariance)):
-      covariance[i] = self.covariance[i]
     if self.method == 'spline':
       if self.covarianceType != 'abs':
         self.raiseAnError(IOError,'covariance with type ' + self.covariance + ' is not implemented for ' + self.method + ' method')
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu)
+      mu = numpyToCxxVector(self.mu)
+      covariance = numpyToCxxVector(self.covariance)
+      self._distribution = CrowDistribution1D.BasicMultivariateNormal(covariance, mu)
     elif self.method == 'pca':
-      self._distribution = distribution1D.BasicMultivariateNormal(covariance, mu, str(self.covarianceType), self.rank)
+      self._distribution = DistributionsND.MultivariateNormalPCA(self.covariance, self.mu, self.covarianceType, self.rank)
     if self.transformation:
       self.lowerBound = [-sys.float_info.max]*self.rank
       self.upperBound = [sys.float_info.max]*self.rank
@@ -3677,10 +3941,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, cdfValue, float, cdf value
     """
     if self.method == 'spline':
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      cdfValue = self._distribution.cdf(coordinate)
+      cdfValue = self._distribution.cdf(numpyToCxxVector(x))
     else:
       self.raiseAnError(NotImplementedError,'cdf not yet implemented for ' + self.method + ' method')
     return cdfValue
@@ -3693,19 +3954,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, L, np.array, the transformation matrix
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-          matrixDim = self._distribution.getTransformationMatrixDimensions(coordinateIndex)
-          transformation = self._distribution.getTransformationMatrix(coordinateIndex)
-      else:
-        matrixDim = self._distribution.getTransformationMatrixDimensions()
-        transformation = self._distribution.getTransformationMatrix()
-      row = matrixDim[0]
-      column = matrixDim[1]
-      # convert 1D vector to 2D array
-      L = np.atleast_1d(transformation).reshape(row,column)
+      L = self._distribution.getTransformationMatrix(index)
     else:
       self.raiseAnError(NotImplementedError,' transformationMatrix is not yet implemented for ' + self.method + ' method')
     return L
@@ -3718,19 +3967,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, L, np.array, the inverse transformation matrix
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-          matrixDim = self._distribution.getInverseTransformationMatrixDimensions(coordinateIndex)
-          inverseTransformation = self._distribution.getInverseTransformationMatrix(coordinateIndex)
-      else:
-        matrixDim = self._distribution.getInverseTransformationMatrixDimensions()
-        inverseTransformation = self._distribution.getInverseTransformationMatrix()
-      row = matrixDim[0]
-      column = matrixDim[1]
-      # convert 1D vector to 2D array
-      L = np.atleast_1d(inverseTransformation).reshape(row,column)
+      L = self._distribution.getInverseTransformationMatrix(index)
     else:
       self.raiseAnError(NotImplementedError,' inverse transformationMatrix is not yet implemented for ' + self.method + ' method')
     return L
@@ -3743,14 +3980,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, singularValues, np.array, the singular values vector
     """
     if self.method == 'pca':
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-        singularValues = self._distribution.getSingularValues(coordinateIndex)
-      else:
-        singularValues = self._distribution.getSingularValues()
-      singularValues = np.atleast_1d(singularValues).tolist()
+      singularValues = self._distribution.getSingularValues(index)
     else:
       self.raiseAnError(NotImplementedError,' returnSingularValues is not available for ' + self.method + ' method')
     return singularValues
@@ -3764,33 +3994,11 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.method == 'pca':
       if len(x) > self.rank:
-        self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is large than the rank defined in <Distributions>')
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      if index is not None:
-        coordinateIndex = distribution1D.vectori_cxx(len(index))
-        for i in range(len(index)):
-          coordinateIndex[i] = index[i]
-        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate,coordinateIndex)
-      else:
-        originalCoordinate = self._distribution.coordinateInverseTransformed(coordinate)
-      values = np.atleast_1d(originalCoordinate).tolist()
+        self.raiseAnError(IOError,'The dimension of the latent variables defined in <Samples> is larger than the rank defined in <Distributions>')
+      values = self._distribution.coordinateInverseTransformed(x, index)
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return values
-
-  def coordinateInTransformedSpace(self):
-    """
-      Return the coordinate in the transformed space
-      @ In, None
-      @ Out, coordinateInTransformedSpace, np.array, coordinates
-    """
-    if self.method == 'pca':
-      coordinateInTransformedSpace = self._distribution.coordinateInTransformedSpace(self.rank)
-    else:
-      self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
-    return coordinateInTransformedSpace
 
   def ppf(self,x):
     """
@@ -3799,7 +4007,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, ppfValue, np.array, ppf values
     """
     if self.method == 'spline':
-      ppfValue = self._distribution.inverseCdf(x,random())
+      ppfValue = self._distribution.inverseCdf(numpyToCxxVector(x), random())
     else:
       self.raiseAnError(NotImplementedError,'ppf is not yet implemented for ' + self.method + ' method')
     return ppfValue
@@ -3812,11 +4020,10 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     if self.transformation:
       pdfValue = self.pdfInTransformedSpace(x)
+    elif self.method == 'pca':
+      pdfValue = self._distribution.pdf(x)
     else:
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      pdfValue = self._distribution.pdf(coordinate)
+      pdfValue = self._distribution.pdf(numpyToCxxVector(x))
     return pdfValue
 
   def logPdf(self,x):
@@ -3835,10 +4042,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ Out, pdfInTransformedSpace, np.array, pdf values in the transformed space
     """
     if self.method == 'pca':
-      coordinate = distribution1D.vectord_cxx(len(x))
-      for i in range(len(x)):
-        coordinate[i] = x[i]
-      pdfInTransformedSpace = self._distribution.pdfInTransformedSpace(coordinate)
+      pdfInTransformedSpace = self._distribution.pdfInTransformedSpace(x)
     else:
       self.raiseAnError(NotImplementedError,'ppfTransformedSpace not yet implemented for ' + self.method + ' method')
     return pdfInTransformedSpace
@@ -3850,18 +4054,15 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, dx, np.array, discretization passes
       @ Out, integralReturn, float, the integral
     """
-    coordinate = distribution1D.vectord_cxx(len(x))
-    dxs        = distribution1D.vectord_cxx(len(x))
-    for i in range(len(x)):
-      coordinate[i] = x[i]
-      dxs[i]=dx[i]
     if self.method == 'pca':
       if self.transformation:
         self.raiseAWarning("The ProbabilityWeighted is computed on the reduced transformed space")
       else:
         self.raiseAWarning("The ProbabilityWeighted is computed on the full transformed space")
-      integralReturn = self._distribution.cellProbabilityWeight(coordinate,dxs)
+      integralReturn = self._distribution.cellProbabilityWeight(x, dx)
     elif self.method == 'spline':
+      coordinate = numpyToCxxVector(x)
+      dxs = numpyToCxxVector(dx)
       integralReturn = self._distribution.cellIntegral(coordinate,dxs)
     else:
       self.raiseAnError(NotImplementedError,'cellIntegral not yet implemented for ' + self.method + ' method')
@@ -3890,7 +4091,7 @@ class MultivariateNormal(NDimensionalDistributions):
       if self.method == 'pca':
         inverseMarginal = self._distribution.inverseMarginalForPCA(min(1.-sys.float_info.epsilon,
                                                                    max(sys.float_info.epsilon,
-                                                                   x)))
+                                                                   x)))  # TODO can probably remove min/max and just use x
       elif self.method == 'spline':
         inverseMarginal=  self._distribution.inverseMarginal(min(1.-sys.float_info.epsilon,
                                                              max(sys.float_info.epsilon,x)),
@@ -3950,14 +4151,33 @@ class MultivariateNormal(NDimensionalDistributions):
     # if no transformation, then return the coordinate for the original input parameters
     # if there is a transformation, then return the coordinate in the reduced space
     elif self.method == 'pca':
+      rands = random(self.rank)
+      # use marginal CDF (unit normal) to
+      rands = self._distribution.inverseMarginalForPCA(rands)
       if self.transformation:
-        rvsValue = self._distribution.coordinateInTransformedSpace(self.rank)
+        rvsValue = rands
       else:
-        coordinate = self._distribution.coordinateInTransformedSpace(self.rank)
-        rvsValue = self._distribution.coordinateInverseTransformed(coordinate)
+        rvsValue = self._distribution.coordinateInverseTransformed(rands)
     else:
       self.raiseAnError(NotImplementedError,'rvs is not yet implemented for ' + self.method + ' method')
     return rvsValue
+
+def numpyToCxxVector(x):
+  """
+    Utility function for converting a numpy array into a C++ vector swig object.
+
+    @ In, x, np.ndarray, the 1d numpy array to convert
+    @ Out, xCxx, C++ vector, the converted vector
+  """
+  x = np.atleast_1d(x)
+  if x.ndim > 1:
+    raise ValueError('x must be 1d, not {}d'.format(x.ndim))
+
+  xCxx = CrowDistribution1D.vectord_cxx(len(x))
+  for i in range(len(x)):
+    xCxx[i] = x[i]
+
+  return xCxx
 
 DistributionsCollection.addSub(MultivariateNormal.getInputSpecification())
 

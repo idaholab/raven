@@ -17,11 +17,11 @@
 import numpy as np
 
 from ..utils import InputData, InputTypes, xmlUtils
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator
 
 
 # utility methods
-class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
+class Wavelet(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerator):
   """
     Perform Discrete Wavelet Transformation on time-dependent data.
   """
@@ -84,7 +84,6 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     # general infrastructure
     super().__init__(*args, **kwargs)
 
-
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
@@ -95,8 +94,7 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     settings['family'] = spec.findFirst('family').value
     return settings
 
-
-  def characterize(self, signal, pivot, targets, settings):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
       This function utilizes the Discrete Wavelet Transform to
       characterize a time-dependent series of data.
@@ -105,6 +103,7 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, additional settings specific to this algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
       @ Out, params, dict, characteristic parameters
     """
     # TODO extend to continuous wavelet transform
@@ -114,7 +113,6 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
       print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
       raise ModuleNotFoundError
 
-
     ## The pivot input parameter isn't used explicity in the
     ## transformation as it assumed/required that each element in the
     ## time-dependent series is independent, uniquely indexed and
@@ -123,6 +121,10 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
     params = {target: {'results': {}} for target in targets}
 
     for i, target in enumerate(targets):
+      if np.isnan(signal).any():
+        raise ValueError(f'The history for target {target} contains NaN values.'
+                          'Perhaps there is a Filter transformer that is causing this?')
+
       results = params[target]['results']
       results['coeff_a'], results['coeff_d'] = pywt.dwt(signal[:, i], family)
 
@@ -156,6 +158,35 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
           rlz[f'{base}__{name}__{v}'] = val
     return rlz
 
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    synthetic = self.generate(params, pivot, settings)
+    residual = initial - synthetic
+    return residual
+
+  def getComposite(self, initial, params, pivot, settings):
+    """
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
+    """
+    synthetic = self.generate(params, pivot, settings)
+    composite = initial + synthetic
+    return composite
+
   def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
@@ -178,7 +209,6 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
       cD = results['coeff_d']
       synthetic[:, t] = pywt.idwt(cA, cD, family)
     return synthetic
-
 
   def writeXML(self, writeTo, params):
     """

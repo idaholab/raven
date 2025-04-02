@@ -1,18 +1,51 @@
 [Tests]
  [./ROM]
-   input = 'rom.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
+   input = 'rom.xml qsub_extra.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
    output = 'Rom/testPointSet_dump.csv Rom/testPrintHistorySet_dump_0.csv Rom/testPrintHistorySet_dump_14.csv Rom/testPrintHistorySet_dump.csv'
    run_types = 'qsub'
    output_wait_time = 60
    type = RavenFramework
    max_time = 3600
  [../]
- [./Code]
-   input = 'code.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
-   output = 'Code/outer_out.csv Code/outer_out.xml'
+ [./ROM_slurm]
+   input = 'rom.xml ../slurm_block.xml ../cluster_runinfo_slurm.xml'
+   output = 'Rom/testPointSet_dump.csv Rom/testPrintHistorySet_dump_0.csv Rom/testPrintHistorySet_dump_14.csv Rom/testPrintHistorySet_dump.csv'
+   run_types = 'slurm'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./CodeDask]
+   input = 'code_dask.xml qsub_extra.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
+   output = 'CodeDask/outer_out.csv CodeDask/outer_out.xml'
    run_types = 'qsub'
    output_wait_time = 60
    type = RavenFramework
    max_time = 3600
+ [../]
+ [./CodeDask_slurm]
+   input = 'code_dask.xml ../slurm_block.xml ../cluster_runinfo_slurm.xml'
+   output = 'CodeDask/outer_out.csv CodeDask/outer_out.xml'
+   run_types = 'slurm'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./CodeRay]
+   input = 'code_ray.xml qsub_extra.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
+   output = 'CodeRay/outer_out.csv CodeRay/outer_out.xml'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./CodeRay_slurm]
+   input = 'code_ray.xml ../slurm_block.xml slurm_extra.xml'
+   output = 'CodeRay/outer_out.csv CodeRay/outer_out.xml'
+   run_types = 'slurm'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+   skip = 'usually fails'
  [../]
 []

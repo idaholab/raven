@@ -1,10 +1,20 @@
 [Tests]
- [./SerpentTestBasic]
+ [./SerpentTestBurnup]
   type = 'RavenFramework'
-  input = 'test_serpent.xml'
-  text = 'SerpentTestBasic/sampleInput/1/testInput.serpent SerpentTestBasic/sampleInput/2/testInput.serpent'
-  output = 'SerpentTestBasic/sampleInput/1/testInput.serpent_res.csv SerpentTestBasic/sampleInput/2/testInput.serpent_res.csv'
-  csv = 'SerpentTestBasic/RAVENout.csv'
+  input = 'test_serpent_burnup.xml'
+  text = 'SerpentTestBurnup/sampleInput/1/testInput.serpent SerpentTestBurnup/sampleInput/2/testInput.serpent'
+  output = 'SerpentTestBurnup/RAVENoutHS_0.csv SerpentTestBurnup/RAVENoutHS_1.csv SerpentTestBurnup/sampleInput/1/testInput.serpent_res.csv'
+  csv = 'SerpentTestBurnup/RAVENout.csv'
   test_interface_only = True 
+  required_libraries='serpentTools'
+ [../]
+ [./SerpentTestEigen]
+  type = 'RavenFramework'
+  input = 'test_serpent_eigen.xml'
+  text = 'SerpentTestEigen/sampleInput/1/testInput.serpent SerpentTestEigen/sampleInput/2/testInput.serpent'
+  output = 'SerpentTestEigen/sampleInput/2/testInput.serpent_res.csv'
+  csv = 'SerpentTestEigen/RAVENout.csv'
+  test_interface_only = True 
+  required_libraries='serpentTools'
  [../]
 []

@@ -25,7 +25,23 @@ the commands
 \begin{lstlisting}[language=bash]
 git clone https://github.com/idaholab/raven.git
 cd raven
+\end{lstlisting}
+
+\subsubsection{Getting Plugins}
+
+Individual plugins can be gotten with a command like (from the
+\texttt{raven} directory):
+
+\begin{lstlisting}[language=bash]
+git submodule update --init plugins/TEAL/
+python scripts/install_plugins.py -s plugins/TEAL
+\end{lstlisting}
+
+All the plugins can be gotten, but this may throw errors if there are non-open source ones currently:
+
+\begin{lstlisting}[language=bash]
 git submodule update --init
+python scripts/install_plugins.py -a
 \end{lstlisting}
 This will obtain RAVEN as well as other submodules that RAVEN uses.  In the future, whenever we declare a path
 starting with \texttt{raven/}, we refer to the cloned directory.
@@ -50,7 +66,7 @@ cd scripts
 cd scripts
 bash.exe establish_conda_env.sh --install
 \end{lstlisting}
-  
+
 \end{itemize}
 Assure that there are no errors in this process, then continue to compiling RAVEN.
 

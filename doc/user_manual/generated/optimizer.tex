@@ -24,23 +24,24 @@
              \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
              \item \texttt{rejectReason}: description of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
+             \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
              \item \texttt{stepSize}: the size of step taken in the normalized input space to arrive at each optimal point
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
              \item \texttt{CG\_task}: for ConjugateGradient, current task of line search. FD suggests continuing the search, and CONV indicates the line search converged and will pivot.
-           
+
          \end{itemize}
 
   The \xmlNode{GradientDescent} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+      \item \xmlAttr{name}: \xmlDesc{string, required},
         User-defined name to designate this entity in the RAVEN input file.
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional},
         Desired verbosity of messages coming from this entity
   \end{itemize}
 
   The \xmlNode{GradientDescent} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{objective}: \xmlDesc{string}, 
+    \item \xmlNode{objective}: \xmlDesc{string},
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
@@ -48,10 +49,10 @@
       defines the input space variables to be sampled through various means.
       The \xmlNode{variable} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{name}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{name}: \xmlDesc{string, optional},
             user-defined name of this Sampler. \nb As for the other objects,               this is
             the name that can be used to refer to this specific entity from other input blocks
-          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional}, 
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
             determines the number of samples and shape of samples               to be taken.  For
             example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3               matrix of values,
             while \xmlAttr{shape}=``10'' will produce a vector of 10 values.               Omitting
@@ -62,7 +63,7 @@
 
       The \xmlNode{variable} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{distribution}: \xmlDesc{string}, 
+        \item \xmlNode{distribution}: \xmlDesc{string},
           name of the distribution that is associated to this variable.               Its name needs
           to be contained in the \xmlNode{Distributions} block explained               in Section
           \ref{sec:distributions}. In addition, if NDDistribution is used,               the
@@ -70,32 +71,33 @@
           if the \xmlNode{function} node is supplied.}
           The \xmlNode{distribution} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{dim}: \xmlDesc{integer, optional}, 
+              \item \xmlAttr{dim}: \xmlDesc{integer, optional},
                 for an NDDistribution, indicates the dimension within the NDDistribution that
                 corresponds               to this variable.
           \end{itemize}
 
-        \item \xmlNode{grid}: \xmlDesc{string}, 
+        \item \xmlNode{grid}: \xmlDesc{string},
           -- no description yet --
           The \xmlNode{grid} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+              \item \xmlAttr{type}: \xmlDesc{string, optional},
                 -- no description yet --
-              \item \xmlAttr{construction}: \xmlDesc{string, optional}, 
+              \item \xmlAttr{construction}: \xmlDesc{string, optional},
                 -- no description yet --
-              \item \xmlAttr{steps}: \xmlDesc{integer, optional}, 
+              \item \xmlAttr{steps}: \xmlDesc{integer, optional},
                 -- no description yet --
           \end{itemize}
 
-        \item \xmlNode{function}: \xmlDesc{string}, 
+        \item \xmlNode{function}: \xmlDesc{string},
           name of the function that               defines the calculation of this variable from
           other distributed variables.  Its name               needs to be contained in the
           \xmlNode{Functions} block explained in Section               \ref{sec:functions}. This
-          function must implement a method named ``evaluate''.               \nb{Each
-          \xmlNode{variable} must contain only one \xmlNode{Function} or
-          \xmlNode{Distribution}, but not both.}
+          function module must contain and implement a method either with the same name of the
+          function or a method named  ``evaluate''.               \nb{Each \xmlNode{variable} must
+          contain only one \xmlNode{Function} or               \xmlNode{Distribution}, but not
+          both.}
 
-        \item \xmlNode{initial}: \xmlDesc{comma-separated floats}, 
+        \item \xmlNode{initial}: \xmlDesc{comma-separated floats},
           indicates the initial values where independent trajectories for this optimization
           effort should begin. The number of entries should be the same for all variables, unless
           a variable is initialized with a sampler (see \xmlNode{samplerInit} below). Note these
@@ -105,16 +107,16 @@
           beginning at the locations (1, 5), (2, 6),               (3, 7), and (4, 8).
       \end{itemize}
 
-    \item \xmlNode{TargetEvaluation}: \xmlDesc{string}, 
+    \item \xmlNode{TargetEvaluation}: \xmlDesc{string},
       name of the DataObject where the sampled outputs of the Model will be collected.
       This DataObject is the means by which the sampling entity obtains the results of requested
       samples, and so should require all the input and output variables needed for adaptive
       sampling.
       The \xmlNode{TargetEvaluation} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
       \end{itemize}
 
@@ -123,21 +125,21 @@
 
       The \xmlNode{samplerInit} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{limit}: \xmlDesc{integer}, 
+        \item \xmlNode{limit}: \xmlDesc{integer},
           limits the number of Model evaluations that may be performed as part of this optimization.
           For example, a limit of 100 means at most 100 total Model evaluations may be performed.
 
-        \item \xmlNode{writeSteps}: \xmlDesc{[final, every]}, 
+        \item \xmlNode{writeSteps}: \xmlDesc{[final, every]},
           delineates when the \xmlNode{SolutionExport} DataObject should be written to. In case
           of \xmlString{final}, only the final optimal solution for each trajectory will be written.
           In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
           iteration               of the Optimizer.
 
-        \item \xmlNode{initialSeed}: \xmlDesc{integer}, 
+        \item \xmlNode{initialSeed}: \xmlDesc{integer},
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
 
-        \item \xmlNode{type}: \xmlDesc{[min, max]}, 
+        \item \xmlNode{type}: \xmlDesc{[min, max]},
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
       \end{itemize}
@@ -165,7 +167,7 @@
 
           The \xmlNode{FiniteDifference} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float}, 
+            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float},
               a scalar for the distance away from an optimal point candidate in the optimization
               search at which points should be evaluated to estimate the local gradient. This scalar
               is a         multiplier for the step size used to reach this optimal point candidate
@@ -190,7 +192,7 @@
 
           The \xmlNode{CentralDifference} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float}, 
+            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float},
               a scalar for the distance away from an optimal point candidate in the optimization
               search at which points should be evaluated to estimate the local gradient. This scalar
               is a         multiplier for the step size used to reach this optimal point candidate
@@ -216,7 +218,7 @@
 
           The \xmlNode{SPSA} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float}, 
+            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float},
               a scalar for the distance away from an optimal point candidate in the optimization
               search at which points should be evaluated to estimate the local gradient. This scalar
               is a         multiplier for the step size used to reach this optimal point candidate
@@ -247,7 +249,7 @@
 
           The \xmlNode{GradientHistory} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{initialStepScale}: \xmlDesc{float}, 
+            \item \xmlNode{initialStepScale}: \xmlDesc{float},
               specifies the scale of the initial step in the optimization, in percent of the
               size of the problem. The size of the problem is defined as the hyperdiagonal of the
               input space, composed of the input variables. A value of 1 indicates the first step
@@ -258,13 +260,13 @@
               problem. This scaling factor should always               be less than $1/\sqrt{N}$,
               where $N$ is the number of optimization variables. \default{0.05}
 
-            \item \xmlNode{growthFactor}: \xmlDesc{float}, 
+            \item \xmlNode{growthFactor}: \xmlDesc{float},
               specifies the rate at which the step size should grow if the gradient continues in
               same direction through multiple iterative steps. For example, a growth factor of 2
               means               that if the gradient is identical twice, the step size is doubled.
               \default{1.25}
 
-            \item \xmlNode{shrinkFactor}: \xmlDesc{float}, 
+            \item \xmlNode{shrinkFactor}: \xmlDesc{float},
               specifies the rate at which the step size should shrink if the gradient changes
               direction through multiple iterative steps. For example, a shrink factor of 2 means
               that if the gradient completely flips direction, the step size is halved. Note that
@@ -273,13 +275,13 @@
               optimization path appears to be converging               early, increasing the shrink
               factor might improve the search. \default{1.15}
 
-            \item \xmlNode{window}: \xmlDesc{integer}, 
+            \item \xmlNode{window}: \xmlDesc{integer},
               the number of previous gradient evaluations to include when determining a new step
               direction. Modifying this allows past gradient evaluations to influence future steps,
               with a decaying influence. Setting this to 1 means only the local gradient evaluation
               will be used. \default{1}.
 
-            \item \xmlNode{decay}: \xmlDesc{float}, 
+            \item \xmlNode{decay}: \xmlDesc{float},
               if including more than one gradient history terms when determining a new step
               direction,               specifies the rate of decay for previous terms to influence
               the current direction. The               decay factor has the form $e^(-\lambda t)$,
@@ -293,7 +295,7 @@
 
           The \xmlNode{ConjugateGradient} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{initialStepScale}: \xmlDesc{float}, 
+            \item \xmlNode{initialStepScale}: \xmlDesc{float},
               specifies the scale of the initial step in the optimization, in percent of the
               size of the problem. The size of the problem is defined as the hyperdiagonal of the
               input space, composed of the input variables. A value of 1 indicates the first step
@@ -331,43 +333,43 @@
 
       The \xmlNode{convergence} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{gradient}: \xmlDesc{float}, 
+        \item \xmlNode{gradient}: \xmlDesc{float},
           provides the desired value for the local estimated of the gradient
           for convergence. \default{1e-6, if no criteria specified}
 
-        \item \xmlNode{objective}: \xmlDesc{float}, 
+        \item \xmlNode{objective}: \xmlDesc{float},
           provides the maximum relative change in the objective function for convergence.
 
-        \item \xmlNode{stepSize}: \xmlDesc{float}, 
+        \item \xmlNode{stepSize}: \xmlDesc{float},
           provides the maximum size in relative step size for convergence.
 
-        \item \xmlNode{terminateFollowers}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
+        \item \xmlNode{terminateFollowers}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
           indicates whether a trajectory should be terminated when it begins following the path
           of another trajectory.
           The \xmlNode{terminateFollowers} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{proximity}: \xmlDesc{float, optional}, 
+              \item \xmlAttr{proximity}: \xmlDesc{float, optional},
                 provides the normalized distance at which a trajectory's head should be proximal to
                 another trajectory's path before terminating the following trajectory.
           \end{itemize}
 
-        \item \xmlNode{persistence}: \xmlDesc{integer}, 
+        \item \xmlNode{persistence}: \xmlDesc{integer},
           provides the number of consecutive times convergence should be reached before a trajectory
           is considered fully converged. This helps in preventing early false convergence.
 
-        \item \xmlNode{constraintExplorationLimit}: \xmlDesc{integer}, 
+        \item \xmlNode{constraintExplorationLimit}: \xmlDesc{integer},
           provides the number of consecutive times a functional constraint boundary can be explored
           for an acceptable sampling point before aborting search. Only apples if using a
           \xmlNode{Constraint}. \default{500}
       \end{itemize}
 
-    \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats}, 
+    \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats},
       allows variables that do not change value to be part of the input space.
       The \xmlNode{constant} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+          \item \xmlAttr{name}: \xmlDesc{string, required},
             variable name for this constant, which will be provided to the Model.
-          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional}, 
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
             determines the shape of samples of the constant value.               For example,
             \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3               matrix, while
             \xmlAttr{shape}=``10'' will shape into a vector of 10 values.               Unlike the
@@ -375,17 +377,17 @@
             of required values is equal to the product of the \xmlAttr{shape} values, e.g. 6 entries
             for shape ``2,3'').               \nb A model interface must be prepared to handle non-
             scalar inputs to use this option.
-          \item \xmlAttr{source}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{source}: \xmlDesc{string, optional},
             the name of the DataObject containing the value to be used for this constant.
             Requires \xmlNode{ConstantSource} node with a \xmlNode{DataObject} identified for this
             Sampler/Optimizer.
-          \item \xmlAttr{index}: \xmlDesc{integer, optional}, 
+          \item \xmlAttr{index}: \xmlDesc{integer, optional},
             the index of the realization in the \xmlNode{ConstantSource} \xmlNode{DataObject}
             containing the value for this constant. Requires \xmlNode{ConstantSource} node with
             a \xmlNode{DataObject} identified for this Sampler/Optimizer.
       \end{itemize}
 
-    \item \xmlNode{ConstantSource}: \xmlDesc{string}, 
+    \item \xmlNode{ConstantSource}: \xmlDesc{string},
       identifies a \xmlNode{DataObject} to provide \xmlNode{constant} values to the input
       space of this entity while sampling. As an alternative to providing predefined values
       for constants, the \xmlNode{ConstantSource} provides a dynamic means of always providing
@@ -393,14 +395,14 @@
       calculation.
       The \xmlNode{ConstantSource} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
             The RAVEN class for this source. Options include \xmlString{DataObject}.
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
             The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
             such as HistorySet or PointSet.
       \end{itemize}
 
-    \item \xmlNode{Constraint}: \xmlDesc{string}, 
+    \item \xmlNode{Constraint}: \xmlDesc{string},
       name of \xmlNode{Function} which contains explicit constraints for the sampling of
       the input space of the Model. From a practical point of view, this XML node must contain
       the name of a function defined in the \xmlNode{Functions} block (see
@@ -410,13 +412,13 @@
       user.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this source. Options include \xmlString{Functions}.
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
-    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string}, 
+    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string},
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
@@ -424,13 +426,27 @@
       for outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this source. Options include \xmlString{Functions}.
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
-    \item \xmlNode{Sampler}: \xmlDesc{string}, 
+    \item \xmlNode{ROM}: \xmlDesc{string},
+      Name of a Model that optimizers may want to use during optimization. For example, the
+      Bayesian Optimizer requires a ROM to select points during optimization. The model is defined
+      in                                           detail with in the \xmlNode{Models} as in other
+      uses. This node should be provided a string referencing
+      the model definition's name.
+      The \xmlNode{ROM} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{Sampler}: \xmlDesc{string},
       name of a Sampler that can be used to initialize the starting points for the trajectories
       of some of the variables. From a practical point of view, this XML node must contain the
       name of a Sampler defined in the \xmlNode{Samplers} block (see
@@ -440,13 +456,13 @@
       variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables.
       The \xmlNode{Sampler} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
       \end{itemize}
 
-    \item \xmlNode{Restart}: \xmlDesc{string}, 
+    \item \xmlNode{Restart}: \xmlDesc{string},
       name of a DataObject. Used to leverage existing data when sampling a model. For
       example, if a Model has               already been sampled, but some samples were not
       collected, the successful samples can               be stored and used instead of rerunning
@@ -455,14 +471,14 @@
       being sampled.
       The \xmlNode{Restart} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
             The RAVEN class for this source. Options include \xmlString{DataObject}.
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
             The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
             such as HistorySet or PointSet.
       \end{itemize}
 
-    \item \xmlNode{restartTolerance}: \xmlDesc{float}, 
+    \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
       relative Euclidean distance (as specified by the value in this node) of a desired sample
@@ -475,7 +491,7 @@
       by the Model.
       The \xmlNode{variablesTransformation} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{distribution}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{distribution}: \xmlDesc{string, optional},
             the name for the distribution defined in the XML node \xmlNode{Distributions}.
             This attribute indicates the values of \xmlNode{manifestVariables} are drawn from
             \xmlAttr{distribution}.
@@ -483,21 +499,21 @@
 
       The \xmlNode{variablesTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{latentVariables}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{latentVariables}: \xmlDesc{comma-separated strings},
           user-defined latent variables that are used for the variables transformation.
           All the variables listed under this node should be also mentioned in \xmlNode{variable}.
 
-        \item \xmlNode{manifestVariables}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{manifestVariables}: \xmlDesc{comma-separated strings},
           user-defined manifest variables that can be used by the \xmlNode{Model}.
 
-        \item \xmlNode{manifestVariablesIndex}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{manifestVariablesIndex}: \xmlDesc{comma-separated strings},
           user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
           These indices indicate the position of manifest variables associated with multivariate
           normal               distribution defined in the XML node \xmlNode{Distributions}.
           The indices should be postive integer. If not provided, the code will use the positions
           of manifest variables listed in \xmlNode{manifestVariables} as the indices.
 
-        \item \xmlNode{method}: \xmlDesc{string}, 
+        \item \xmlNode{method}: \xmlDesc{string},
           the method that is used for the variables transformation. The currently available method
           is \xmlString{pca}.
       \end{itemize}
@@ -557,25 +573,26 @@ Gradient Descent Example:
              \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
              \item \texttt{rejectReason}: description of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
+             \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
              \item \texttt{amp\_\{VAR\}}: amplitude associated to each variable used to compute step size based on cooling method and the corresponding next neighbor
              \item \texttt{delta\_\{VAR\}}: step size associated to each variable
              \item \texttt{Temp}: temperature at current state
              \item \texttt{fraction}: current fraction of the max iteration limit
-           
+
          \end{itemize}
 
   The \xmlNode{SimulatedAnnealing} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+      \item \xmlAttr{name}: \xmlDesc{string, required},
         User-defined name to designate this entity in the RAVEN input file.
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional},
         Desired verbosity of messages coming from this entity
   \end{itemize}
 
   The \xmlNode{SimulatedAnnealing} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{objective}: \xmlDesc{string}, 
+    \item \xmlNode{objective}: \xmlDesc{string},
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
@@ -583,10 +600,10 @@ Gradient Descent Example:
       defines the input space variables to be sampled through various means.
       The \xmlNode{variable} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{name}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{name}: \xmlDesc{string, optional},
             user-defined name of this Sampler. \nb As for the other objects,               this is
             the name that can be used to refer to this specific entity from other input blocks
-          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional}, 
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
             determines the number of samples and shape of samples               to be taken.  For
             example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3               matrix of values,
             while \xmlAttr{shape}=``10'' will produce a vector of 10 values.               Omitting
@@ -597,7 +614,7 @@ Gradient Descent Example:
 
       The \xmlNode{variable} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{distribution}: \xmlDesc{string}, 
+        \item \xmlNode{distribution}: \xmlDesc{string},
           name of the distribution that is associated to this variable.               Its name needs
           to be contained in the \xmlNode{Distributions} block explained               in Section
           \ref{sec:distributions}. In addition, if NDDistribution is used,               the
@@ -605,32 +622,33 @@ Gradient Descent Example:
           if the \xmlNode{function} node is supplied.}
           The \xmlNode{distribution} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{dim}: \xmlDesc{integer, optional}, 
+              \item \xmlAttr{dim}: \xmlDesc{integer, optional},
                 for an NDDistribution, indicates the dimension within the NDDistribution that
                 corresponds               to this variable.
           \end{itemize}
 
-        \item \xmlNode{grid}: \xmlDesc{string}, 
+        \item \xmlNode{grid}: \xmlDesc{string},
           -- no description yet --
           The \xmlNode{grid} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+              \item \xmlAttr{type}: \xmlDesc{string, optional},
                 -- no description yet --
-              \item \xmlAttr{construction}: \xmlDesc{string, optional}, 
+              \item \xmlAttr{construction}: \xmlDesc{string, optional},
                 -- no description yet --
-              \item \xmlAttr{steps}: \xmlDesc{integer, optional}, 
+              \item \xmlAttr{steps}: \xmlDesc{integer, optional},
                 -- no description yet --
           \end{itemize}
 
-        \item \xmlNode{function}: \xmlDesc{string}, 
+        \item \xmlNode{function}: \xmlDesc{string},
           name of the function that               defines the calculation of this variable from
           other distributed variables.  Its name               needs to be contained in the
           \xmlNode{Functions} block explained in Section               \ref{sec:functions}. This
-          function must implement a method named ``evaluate''.               \nb{Each
-          \xmlNode{variable} must contain only one \xmlNode{Function} or
-          \xmlNode{Distribution}, but not both.}
+          function module must contain and implement a method either with the same name of the
+          function or a method named  ``evaluate''.               \nb{Each \xmlNode{variable} must
+          contain only one \xmlNode{Function} or               \xmlNode{Distribution}, but not
+          both.}
 
-        \item \xmlNode{initial}: \xmlDesc{comma-separated floats}, 
+        \item \xmlNode{initial}: \xmlDesc{comma-separated floats},
           indicates the initial values where independent trajectories for this optimization
           effort should begin. The number of entries should be the same for all variables, unless
           a variable is initialized with a sampler (see \xmlNode{samplerInit} below). Note these
@@ -640,16 +658,16 @@ Gradient Descent Example:
           beginning at the locations (1, 5), (2, 6),               (3, 7), and (4, 8).
       \end{itemize}
 
-    \item \xmlNode{TargetEvaluation}: \xmlDesc{string}, 
+    \item \xmlNode{TargetEvaluation}: \xmlDesc{string},
       name of the DataObject where the sampled outputs of the Model will be collected.
       This DataObject is the means by which the sampling entity obtains the results of requested
       samples, and so should require all the input and output variables needed for adaptive
       sampling.
       The \xmlNode{TargetEvaluation} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
       \end{itemize}
 
@@ -658,21 +676,21 @@ Gradient Descent Example:
 
       The \xmlNode{samplerInit} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{limit}: \xmlDesc{integer}, 
+        \item \xmlNode{limit}: \xmlDesc{integer},
           limits the number of Model evaluations that may be performed as part of this optimization.
           For example, a limit of 100 means at most 100 total Model evaluations may be performed.
 
-        \item \xmlNode{writeSteps}: \xmlDesc{[final, every]}, 
+        \item \xmlNode{writeSteps}: \xmlDesc{[final, every]},
           delineates when the \xmlNode{SolutionExport} DataObject should be written to. In case
           of \xmlString{final}, only the final optimal solution for each trajectory will be written.
           In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
           iteration               of the Optimizer.
 
-        \item \xmlNode{initialSeed}: \xmlDesc{integer}, 
+        \item \xmlNode{initialSeed}: \xmlDesc{integer},
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
 
-        \item \xmlNode{type}: \xmlDesc{[min, max]}, 
+        \item \xmlNode{type}: \xmlDesc{[min, max]},
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
       \end{itemize}
@@ -684,17 +702,17 @@ Gradient Descent Example:
 
       The \xmlNode{convergence} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{objective}: \xmlDesc{float}, 
+        \item \xmlNode{objective}: \xmlDesc{float},
           provides the desired value for the convergence criterion of the objective function
           ($\epsilon^{obj}$), i.e., convergence is reached when: $$ |newObjevtive - oldObjective|
           \le \epsilon^{obj}$$.                        \default{1e-6}, if no criteria specified
 
-        \item \xmlNode{temperature}: \xmlDesc{float}, 
+        \item \xmlNode{temperature}: \xmlDesc{float},
           provides the desired value for the convergence creiteron of the system temperature,
           ($\epsilon^{temp}$), i.e., convergence is reached when: $$T \le \epsilon^{temp}$$.
           \default{1e-10}, if no criteria specified
 
-        \item \xmlNode{persistence}: \xmlDesc{integer}, 
+        \item \xmlNode{persistence}: \xmlDesc{integer},
           provides the number of consecutive times convergence should be reached before a trajectory
           is considered fully converged. This helps in preventing early false convergence.
       \end{itemize}
@@ -708,7 +726,7 @@ Gradient Descent Example:
       T^{k} = \frac{T^0}{log(k + d)}$$                  In case of \xmlString{cauchy} is provided,
       The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + d}$$In case of
       \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 *
-      \exp(-ck^{1/D}),$$                  where $D$ is the dimentionality of the problem (i.e.,
+      \exp(-ck^{1/D}),$$                  where $D$ is the dimensionality of the problem (i.e.,
       number of optimized variables), $k$ is the number of the current iteration
       $T^{0} = \max{(0.01,1-\frac{k}{\xmlNode{limit}})}$ is the initial temperature, and $T^{k}$ is
       the current temperature                  according to the specified cooling schedule.
@@ -716,51 +734,57 @@ Gradient Descent Example:
 
       The \xmlNode{coolingSchedule} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{exponential}: \xmlDesc{string}, 
+        \item \xmlNode{exponential}: \xmlDesc{string},
           exponential cooling schedule
 
           The \xmlNode{exponential} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{alpha}: \xmlDesc{float}, 
+            \item \xmlNode{alpha}: \xmlDesc{float},
               slowing down constant, should be between 0,1 and preferable very close to 1.
               \default{0.94}
           \end{itemize}
 
-        \item \xmlNode{veryfast}: \xmlDesc{string}, 
+        \item \xmlNode{veryfast}: \xmlDesc{string},
           veryfast cooling schedule
 
           The \xmlNode{veryfast} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{c}: \xmlDesc{float}, 
+            \item \xmlNode{c}: \xmlDesc{float},
               decay constant, \default{1.0}
           \end{itemize}
 
-        \item \xmlNode{cauchy}: \xmlDesc{string}, 
+        \item \xmlNode{cauchy}: \xmlDesc{string},
           cauchy cooling schedule
 
           The \xmlNode{cauchy} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{d}: \xmlDesc{float}, 
+            \item \xmlNode{d}: \xmlDesc{float},
               bias, \default{1.0}
+
+            \item \xmlNode{learningRate}: \xmlDesc{float},
+              learning rate, Scale constant for adjusting guesses. \default{0.9}
           \end{itemize}
 
-        \item \xmlNode{boltzmann}: \xmlDesc{string}, 
+        \item \xmlNode{boltzmann}: \xmlDesc{string},
           boltzmann cooling schedule
 
           The \xmlNode{boltzmann} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{d}: \xmlDesc{float}, 
+            \item \xmlNode{d}: \xmlDesc{float},
               bias, \default{1.0}
+
+            \item \xmlNode{learningRate}: \xmlDesc{float},
+              learning rate, Scale constant for adjusting guesses. \default{0.9}
           \end{itemize}
       \end{itemize}
 
-    \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats}, 
+    \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats},
       allows variables that do not change value to be part of the input space.
       The \xmlNode{constant} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+          \item \xmlAttr{name}: \xmlDesc{string, required},
             variable name for this constant, which will be provided to the Model.
-          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional}, 
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
             determines the shape of samples of the constant value.               For example,
             \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3               matrix, while
             \xmlAttr{shape}=``10'' will shape into a vector of 10 values.               Unlike the
@@ -768,17 +792,17 @@ Gradient Descent Example:
             of required values is equal to the product of the \xmlAttr{shape} values, e.g. 6 entries
             for shape ``2,3'').               \nb A model interface must be prepared to handle non-
             scalar inputs to use this option.
-          \item \xmlAttr{source}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{source}: \xmlDesc{string, optional},
             the name of the DataObject containing the value to be used for this constant.
             Requires \xmlNode{ConstantSource} node with a \xmlNode{DataObject} identified for this
             Sampler/Optimizer.
-          \item \xmlAttr{index}: \xmlDesc{integer, optional}, 
+          \item \xmlAttr{index}: \xmlDesc{integer, optional},
             the index of the realization in the \xmlNode{ConstantSource} \xmlNode{DataObject}
             containing the value for this constant. Requires \xmlNode{ConstantSource} node with
             a \xmlNode{DataObject} identified for this Sampler/Optimizer.
       \end{itemize}
 
-    \item \xmlNode{ConstantSource}: \xmlDesc{string}, 
+    \item \xmlNode{ConstantSource}: \xmlDesc{string},
       identifies a \xmlNode{DataObject} to provide \xmlNode{constant} values to the input
       space of this entity while sampling. As an alternative to providing predefined values
       for constants, the \xmlNode{ConstantSource} provides a dynamic means of always providing
@@ -786,14 +810,14 @@ Gradient Descent Example:
       calculation.
       The \xmlNode{ConstantSource} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
             The RAVEN class for this source. Options include \xmlString{DataObject}.
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
             The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
             such as HistorySet or PointSet.
       \end{itemize}
 
-    \item \xmlNode{Constraint}: \xmlDesc{string}, 
+    \item \xmlNode{Constraint}: \xmlDesc{string},
       name of \xmlNode{Function} which contains explicit constraints for the sampling of
       the input space of the Model. From a practical point of view, this XML node must contain
       the name of a function defined in the \xmlNode{Functions} block (see
@@ -803,13 +827,13 @@ Gradient Descent Example:
       user.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this source. Options include \xmlString{Functions}.
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
-    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string}, 
+    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string},
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
@@ -817,13 +841,27 @@ Gradient Descent Example:
       for outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this source. Options include \xmlString{Functions}.
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
-    \item \xmlNode{Sampler}: \xmlDesc{string}, 
+    \item \xmlNode{ROM}: \xmlDesc{string},
+      Name of a Model that optimizers may want to use during optimization. For example, the
+      Bayesian Optimizer requires a ROM to select points during optimization. The model is defined
+      in                                           detail with in the \xmlNode{Models} as in other
+      uses. This node should be provided a string referencing
+      the model definition's name.
+      The \xmlNode{ROM} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{Sampler}: \xmlDesc{string},
       name of a Sampler that can be used to initialize the starting points for the trajectories
       of some of the variables. From a practical point of view, this XML node must contain the
       name of a Sampler defined in the \xmlNode{Samplers} block (see
@@ -833,13 +871,13 @@ Gradient Descent Example:
       variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables.
       The \xmlNode{Sampler} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
       \end{itemize}
 
-    \item \xmlNode{Restart}: \xmlDesc{string}, 
+    \item \xmlNode{Restart}: \xmlDesc{string},
       name of a DataObject. Used to leverage existing data when sampling a model. For
       example, if a Model has               already been sampled, but some samples were not
       collected, the successful samples can               be stored and used instead of rerunning
@@ -848,14 +886,14 @@ Gradient Descent Example:
       being sampled.
       The \xmlNode{Restart} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
             The RAVEN class for this source. Options include \xmlString{DataObject}.
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
             The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
             such as HistorySet or PointSet.
       \end{itemize}
 
-    \item \xmlNode{restartTolerance}: \xmlDesc{float}, 
+    \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
       relative Euclidean distance (as specified by the value in this node) of a desired sample
@@ -868,7 +906,7 @@ Gradient Descent Example:
       by the Model.
       The \xmlNode{variablesTransformation} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{distribution}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{distribution}: \xmlDesc{string, optional},
             the name for the distribution defined in the XML node \xmlNode{Distributions}.
             This attribute indicates the values of \xmlNode{manifestVariables} are drawn from
             \xmlAttr{distribution}.
@@ -876,21 +914,21 @@ Gradient Descent Example:
 
       The \xmlNode{variablesTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{latentVariables}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{latentVariables}: \xmlDesc{comma-separated strings},
           user-defined latent variables that are used for the variables transformation.
           All the variables listed under this node should be also mentioned in \xmlNode{variable}.
 
-        \item \xmlNode{manifestVariables}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{manifestVariables}: \xmlDesc{comma-separated strings},
           user-defined manifest variables that can be used by the \xmlNode{Model}.
 
-        \item \xmlNode{manifestVariablesIndex}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{manifestVariablesIndex}: \xmlDesc{comma-separated strings},
           user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
           These indices indicate the position of manifest variables associated with multivariate
           normal               distribution defined in the XML node \xmlNode{Distributions}.
           The indices should be postive integer. If not provided, the code will use the positions
           of manifest variables listed in \xmlNode{manifestVariables} as the indices.
 
-        \item \xmlNode{method}: \xmlDesc{string}, 
+        \item \xmlNode{method}: \xmlDesc{string},
           the method that is used for the variables transformation. The currently available method
           is \xmlString{pca}.
       \end{itemize}
@@ -953,6 +991,7 @@ Simulated Annealing Example:
              \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
              \item \texttt{rejectReason}: description of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
+             \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
              \item \texttt{fitness}: fitness of the current chromosome
              \item \texttt{age}: age of current chromosome
@@ -961,20 +1000,20 @@ Simulated Annealing Example:
              \item \texttt{AHD}: Hausdorff Distance between populations
              \item \texttt{HDSM}: Hausdorff Distance Similarity Measure between populations
              \item \texttt{ConstraintEvaluation\_\{CONSTRAINT\}}: Constraint function evaluation (negative if violating and positive otherwise)
-           
+
          \end{itemize}
 
   The \xmlNode{GeneticAlgorithm} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+      \item \xmlAttr{name}: \xmlDesc{string, required},
         User-defined name to designate this entity in the RAVEN input file.
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional},
         Desired verbosity of messages coming from this entity
   \end{itemize}
 
   The \xmlNode{GeneticAlgorithm} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{objective}: \xmlDesc{string}, 
+    \item \xmlNode{objective}: \xmlDesc{string},
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
@@ -982,10 +1021,10 @@ Simulated Annealing Example:
       defines the input space variables to be sampled through various means.
       The \xmlNode{variable} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{name}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{name}: \xmlDesc{string, optional},
             user-defined name of this Sampler. \nb As for the other objects,               this is
             the name that can be used to refer to this specific entity from other input blocks
-          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional}, 
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
             determines the number of samples and shape of samples               to be taken.  For
             example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3               matrix of values,
             while \xmlAttr{shape}=``10'' will produce a vector of 10 values.               Omitting
@@ -996,7 +1035,7 @@ Simulated Annealing Example:
 
       The \xmlNode{variable} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{distribution}: \xmlDesc{string}, 
+        \item \xmlNode{distribution}: \xmlDesc{string},
           name of the distribution that is associated to this variable.               Its name needs
           to be contained in the \xmlNode{Distributions} block explained               in Section
           \ref{sec:distributions}. In addition, if NDDistribution is used,               the
@@ -1004,32 +1043,33 @@ Simulated Annealing Example:
           if the \xmlNode{function} node is supplied.}
           The \xmlNode{distribution} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{dim}: \xmlDesc{integer, optional}, 
+              \item \xmlAttr{dim}: \xmlDesc{integer, optional},
                 for an NDDistribution, indicates the dimension within the NDDistribution that
                 corresponds               to this variable.
           \end{itemize}
 
-        \item \xmlNode{grid}: \xmlDesc{string}, 
+        \item \xmlNode{grid}: \xmlDesc{string},
           -- no description yet --
           The \xmlNode{grid} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+              \item \xmlAttr{type}: \xmlDesc{string, optional},
                 -- no description yet --
-              \item \xmlAttr{construction}: \xmlDesc{string, optional}, 
+              \item \xmlAttr{construction}: \xmlDesc{string, optional},
                 -- no description yet --
-              \item \xmlAttr{steps}: \xmlDesc{integer, optional}, 
+              \item \xmlAttr{steps}: \xmlDesc{integer, optional},
                 -- no description yet --
           \end{itemize}
 
-        \item \xmlNode{function}: \xmlDesc{string}, 
+        \item \xmlNode{function}: \xmlDesc{string},
           name of the function that               defines the calculation of this variable from
           other distributed variables.  Its name               needs to be contained in the
           \xmlNode{Functions} block explained in Section               \ref{sec:functions}. This
-          function must implement a method named ``evaluate''.               \nb{Each
-          \xmlNode{variable} must contain only one \xmlNode{Function} or
-          \xmlNode{Distribution}, but not both.}
+          function module must contain and implement a method either with the same name of the
+          function or a method named  ``evaluate''.               \nb{Each \xmlNode{variable} must
+          contain only one \xmlNode{Function} or               \xmlNode{Distribution}, but not
+          both.}
 
-        \item \xmlNode{initial}: \xmlDesc{comma-separated floats}, 
+        \item \xmlNode{initial}: \xmlDesc{comma-separated floats},
           indicates the initial values where independent trajectories for this optimization
           effort should begin. The number of entries should be the same for all variables, unless
           a variable is initialized with a sampler (see \xmlNode{samplerInit} below). Note these
@@ -1039,16 +1079,16 @@ Simulated Annealing Example:
           beginning at the locations (1, 5), (2, 6),               (3, 7), and (4, 8).
       \end{itemize}
 
-    \item \xmlNode{TargetEvaluation}: \xmlDesc{string}, 
+    \item \xmlNode{TargetEvaluation}: \xmlDesc{string},
       name of the DataObject where the sampled outputs of the Model will be collected.
       This DataObject is the means by which the sampling entity obtains the results of requested
       samples, and so should require all the input and output variables needed for adaptive
       sampling.
       The \xmlNode{TargetEvaluation} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
       \end{itemize}
 
@@ -1057,21 +1097,21 @@ Simulated Annealing Example:
 
       The \xmlNode{samplerInit} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{limit}: \xmlDesc{integer}, 
+        \item \xmlNode{limit}: \xmlDesc{integer},
           limits the number of Model evaluations that may be performed as part of this optimization.
           For example, a limit of 100 means at most 100 total Model evaluations may be performed.
 
-        \item \xmlNode{writeSteps}: \xmlDesc{[final, every]}, 
+        \item \xmlNode{writeSteps}: \xmlDesc{[final, every]},
           delineates when the \xmlNode{SolutionExport} DataObject should be written to. In case
           of \xmlString{final}, only the final optimal solution for each trajectory will be written.
           In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
           iteration               of the Optimizer.
 
-        \item \xmlNode{initialSeed}: \xmlDesc{integer}, 
+        \item \xmlNode{initialSeed}: \xmlDesc{integer},
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
 
-        \item \xmlNode{type}: \xmlDesc{[min, max]}, 
+        \item \xmlNode{type}: \xmlDesc{[min, max]},
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
       \end{itemize}
@@ -1106,10 +1146,10 @@ Simulated Annealing Example:
 
       The \xmlNode{GAparams} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{populationSize}: \xmlDesc{integer}, 
+        \item \xmlNode{populationSize}: \xmlDesc{integer},
           The number of chromosomes in each population.
 
-        \item \xmlNode{parentSelection}: \xmlDesc{string}, 
+        \item \xmlNode{parentSelection}: \xmlDesc{string},
           A node containing the criterion based on which the parents are selected. This can be a
           fitness proportional selection such as:                   a.
           \textbf{\textit{rouletteWheel}},                   b.
@@ -1127,53 +1167,53 @@ Simulated Annealing Example:
 
           The \xmlNode{reproduction} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{crossover}: \xmlDesc{string}, 
+            \item \xmlNode{crossover}: \xmlDesc{string},
               a subnode containing the implemented crossover mechanisms.                   This
               includes: a.    onePointCrossover,                                  b.
               twoPointsCrossover,                                  c.    uniformCrossover.
               The \xmlNode{crossover} node recognizes the following parameters:
                 \begin{itemize}
-                  \item \xmlAttr{type}: \xmlDesc{string, required}, 
+                  \item \xmlAttr{type}: \xmlDesc{string, required},
                     type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)
               \end{itemize}
 
               The \xmlNode{crossover} node recognizes the following subnodes:
               \begin{itemize}
-                \item \xmlNode{points}: \xmlDesc{comma-separated integers}, 
+                \item \xmlNode{points}: \xmlDesc{comma-separated integers},
                   point/gene(s) at which crossover will occur.
 
-                \item \xmlNode{crossoverProb}: \xmlDesc{float}, 
+                \item \xmlNode{crossoverProb}: \xmlDesc{float},
                   The probability governing the crossover step, i.e., the probability that if
                   exceeded crossover will occur.
               \end{itemize}
 
-            \item \xmlNode{mutation}: \xmlDesc{string}, 
+            \item \xmlNode{mutation}: \xmlDesc{string},
               a subnode containing the implemented mutation mechanisms.                   This
               includes: a.    bitFlipMutation,                                  b.    swapMutation,
               c.    scrambleMutation,                                  d.    inversionMutation, or
               e.    randomMutator.
               The \xmlNode{mutation} node recognizes the following parameters:
                 \begin{itemize}
-                  \item \xmlAttr{type}: \xmlDesc{string, required}, 
+                  \item \xmlAttr{type}: \xmlDesc{string, required},
                     type of mutation operation to be used (e.g., bit, swap, or scramble)
               \end{itemize}
 
               The \xmlNode{mutation} node recognizes the following subnodes:
               \begin{itemize}
-                \item \xmlNode{locs}: \xmlDesc{comma-separated integers}, 
+                \item \xmlNode{locs}: \xmlDesc{comma-separated integers},
                   locations at which mutation will occur.
 
-                \item \xmlNode{mutationProb}: \xmlDesc{float}, 
+                \item \xmlNode{mutationProb}: \xmlDesc{float},
                   The probability governing the mutation step, i.e., the probability that if
                   exceeded mutation will occur.
               \end{itemize}
           \end{itemize}
 
-        \item \xmlNode{survivorSelection}: \xmlDesc{string}, 
+        \item \xmlNode{survivorSelection}: \xmlDesc{string},
           a subnode containing the implemented survivor selection mechanisms.                   This
           includes: a.    ageBased, or                                  b.    fitnessBased.
 
-        \item \xmlNode{fitness}: \xmlDesc{string}, 
+        \item \xmlNode{fitness}: \xmlDesc{string},
           a subnode containing the implemented fitness functions.                   This includes:
           \begin{itemize}                                 \item    invLinear:
           \[fitness = -a \times obj - b \times \sum\\_{j=1}^{nConstraint} max(0,-penalty\\_j) \].
@@ -1186,16 +1226,16 @@ Simulated Annealing Example:
           \end{itemize}.
           The \xmlNode{fitness} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{type}: \xmlDesc{string, required}, 
+              \item \xmlAttr{type}: \xmlDesc{string, required},
                 [invLin, logistic, feasibleFirst]
           \end{itemize}
 
           The \xmlNode{fitness} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{a}: \xmlDesc{float}, 
+            \item \xmlNode{a}: \xmlDesc{float},
               a: coefficient of objective function.
 
-            \item \xmlNode{b}: \xmlDesc{float}, 
+            \item \xmlNode{b}: \xmlDesc{float},
               b: coefficient of constraint penalty.
           \end{itemize}
       \end{itemize}
@@ -1207,20 +1247,20 @@ Simulated Annealing Example:
 
       The \xmlNode{convergence} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{objective}: \xmlDesc{float}, 
+        \item \xmlNode{objective}: \xmlDesc{float},
           provides the desired value for the convergence criterion of the objective function
           ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design
           variable                         at a given objective value, i.e., convergence is reached
           when: $$ Objective = \epsilon^{obj}$$.                        \default{1e-6}, if no
           criteria specified
 
-        \item \xmlNode{AHDp}: \xmlDesc{float}, 
+        \item \xmlNode{AHDp}: \xmlDesc{float},
           provides the desired value for the Average Hausdorff Distance between populations
 
-        \item \xmlNode{AHD}: \xmlDesc{float}, 
+        \item \xmlNode{AHD}: \xmlDesc{float},
           provides the desired value for the Hausdorff Distance between populations
 
-        \item \xmlNode{HDSM}: \xmlDesc{float}, 
+        \item \xmlNode{HDSM}: \xmlDesc{float},
           provides the desired value for the Hausdorff Distance Similarity Measure between
           populations.                                     This convergence criterion is based on a
           normalized                                     similarity metric that can be summurized as
@@ -1228,18 +1268,18 @@ Simulated Annealing Example:
           domain of to population/iterations). The metric is normalized between 0 and 1,
           which implies that values closer to 1.0 represents a tighter convergence criterion.
 
-        \item \xmlNode{persistence}: \xmlDesc{integer}, 
+        \item \xmlNode{persistence}: \xmlDesc{integer},
           provides the number of consecutive times convergence should be reached before a trajectory
           is considered fully converged. This helps in preventing early false convergence.
       \end{itemize}
 
-    \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats}, 
+    \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats},
       allows variables that do not change value to be part of the input space.
       The \xmlNode{constant} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{name}: \xmlDesc{string, required}, 
+          \item \xmlAttr{name}: \xmlDesc{string, required},
             variable name for this constant, which will be provided to the Model.
-          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional}, 
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
             determines the shape of samples of the constant value.               For example,
             \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3               matrix, while
             \xmlAttr{shape}=``10'' will shape into a vector of 10 values.               Unlike the
@@ -1247,17 +1287,17 @@ Simulated Annealing Example:
             of required values is equal to the product of the \xmlAttr{shape} values, e.g. 6 entries
             for shape ``2,3'').               \nb A model interface must be prepared to handle non-
             scalar inputs to use this option.
-          \item \xmlAttr{source}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{source}: \xmlDesc{string, optional},
             the name of the DataObject containing the value to be used for this constant.
             Requires \xmlNode{ConstantSource} node with a \xmlNode{DataObject} identified for this
             Sampler/Optimizer.
-          \item \xmlAttr{index}: \xmlDesc{integer, optional}, 
+          \item \xmlAttr{index}: \xmlDesc{integer, optional},
             the index of the realization in the \xmlNode{ConstantSource} \xmlNode{DataObject}
             containing the value for this constant. Requires \xmlNode{ConstantSource} node with
             a \xmlNode{DataObject} identified for this Sampler/Optimizer.
       \end{itemize}
 
-    \item \xmlNode{ConstantSource}: \xmlDesc{string}, 
+    \item \xmlNode{ConstantSource}: \xmlDesc{string},
       identifies a \xmlNode{DataObject} to provide \xmlNode{constant} values to the input
       space of this entity while sampling. As an alternative to providing predefined values
       for constants, the \xmlNode{ConstantSource} provides a dynamic means of always providing
@@ -1265,14 +1305,14 @@ Simulated Annealing Example:
       calculation.
       The \xmlNode{ConstantSource} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
             The RAVEN class for this source. Options include \xmlString{DataObject}.
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
             The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
             such as HistorySet or PointSet.
       \end{itemize}
 
-    \item \xmlNode{Constraint}: \xmlDesc{string}, 
+    \item \xmlNode{Constraint}: \xmlDesc{string},
       name of \xmlNode{Function} which contains explicit constraints for the sampling of
       the input space of the Model. From a practical point of view, this XML node must contain
       the name of a function defined in the \xmlNode{Functions} block (see
@@ -1282,13 +1322,13 @@ Simulated Annealing Example:
       user.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this source. Options include \xmlString{Functions}.
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
-    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string}, 
+    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string},
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
@@ -1296,13 +1336,27 @@ Simulated Annealing Example:
       for outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this source. Options include \xmlString{Functions}.
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
-    \item \xmlNode{Sampler}: \xmlDesc{string}, 
+    \item \xmlNode{ROM}: \xmlDesc{string},
+      Name of a Model that optimizers may want to use during optimization. For example, the
+      Bayesian Optimizer requires a ROM to select points during optimization. The model is defined
+      in                                           detail with in the \xmlNode{Models} as in other
+      uses. This node should be provided a string referencing
+      the model definition's name.
+      The \xmlNode{ROM} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{Sampler}: \xmlDesc{string},
       name of a Sampler that can be used to initialize the starting points for the trajectories
       of some of the variables. From a practical point of view, this XML node must contain the
       name of a Sampler defined in the \xmlNode{Samplers} block (see
@@ -1312,13 +1366,13 @@ Simulated Annealing Example:
       variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables.
       The \xmlNode{Sampler} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+          \item \xmlAttr{class}: \xmlDesc{string, required},
             RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
-          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+          \item \xmlAttr{type}: \xmlDesc{string, required},
             RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
       \end{itemize}
 
-    \item \xmlNode{Restart}: \xmlDesc{string}, 
+    \item \xmlNode{Restart}: \xmlDesc{string},
       name of a DataObject. Used to leverage existing data when sampling a model. For
       example, if a Model has               already been sampled, but some samples were not
       collected, the successful samples can               be stored and used instead of rerunning
@@ -1327,14 +1381,14 @@ Simulated Annealing Example:
       being sampled.
       The \xmlNode{Restart} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{class}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
             The RAVEN class for this source. Options include \xmlString{DataObject}.
-          \item \xmlAttr{type}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
             The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
             such as HistorySet or PointSet.
       \end{itemize}
 
-    \item \xmlNode{restartTolerance}: \xmlDesc{float}, 
+    \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
       relative Euclidean distance (as specified by the value in this node) of a desired sample
@@ -1347,7 +1401,7 @@ Simulated Annealing Example:
       by the Model.
       The \xmlNode{variablesTransformation} node recognizes the following parameters:
         \begin{itemize}
-          \item \xmlAttr{distribution}: \xmlDesc{string, optional}, 
+          \item \xmlAttr{distribution}: \xmlDesc{string, optional},
             the name for the distribution defined in the XML node \xmlNode{Distributions}.
             This attribute indicates the values of \xmlNode{manifestVariables} are drawn from
             \xmlAttr{distribution}.
@@ -1355,21 +1409,21 @@ Simulated Annealing Example:
 
       The \xmlNode{variablesTransformation} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{latentVariables}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{latentVariables}: \xmlDesc{comma-separated strings},
           user-defined latent variables that are used for the variables transformation.
           All the variables listed under this node should be also mentioned in \xmlNode{variable}.
 
-        \item \xmlNode{manifestVariables}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{manifestVariables}: \xmlDesc{comma-separated strings},
           user-defined manifest variables that can be used by the \xmlNode{Model}.
 
-        \item \xmlNode{manifestVariablesIndex}: \xmlDesc{comma-separated strings}, 
+        \item \xmlNode{manifestVariablesIndex}: \xmlDesc{comma-separated strings},
           user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
           These indices indicate the position of manifest variables associated with multivariate
           normal               distribution defined in the XML node \xmlNode{Distributions}.
           The indices should be postive integer. If not provided, the code will use the positions
           of manifest variables listed in \xmlNode{manifestVariables} as the indices.
 
-        \item \xmlNode{method}: \xmlDesc{string}, 
+        \item \xmlNode{method}: \xmlDesc{string},
           the method that is used for the variables transformation. The currently available method
           is \xmlString{pca}.
       \end{itemize}
@@ -1445,6 +1499,535 @@ Genetic Algorithm Example:
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GeneticAlgorithm>
     ...
+  </Optimizers>
+\end{lstlisting}
+
+
+
+\subsection{BayesianOptimizer}
+  The \xmlNode{BayesianOptimizer} optimizer is a method for black-box optimization.
+  This approach utilizes a surrogate model, in the form of a Gaussian Process Regression,
+  to find the global optima of expensive functions. Furthermore, this approach easily
+  incorporates noisy observations of the function. This approach tends to offer the
+  tradeoff of additional backend calculation (training regressions and selecting samples) in
+  favor of reducing the number of function or 'model' evaluations.
+\vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
+        additional information through the \xmlNode{SolutionExport} DataObject. The
+        following variables can be requested within the \xmlNode{SolutionExport}:
+        \begin{itemize}
+          \item \texttt{trajID}: integer identifier for different optimization starting locations and paths
+             \item \texttt{iteration}: integer identifying which iteration (or step, or generation) a trajectory is on
+             \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
+             \item \texttt{rejectReason}: description of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
+             \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
+             \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
+             \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
+             \item \texttt{acquisition}: value of acquisition at each iteration
+             \item \texttt{radiusFromBest}: radius of current point from current best point
+             \item \texttt{radiusFromLast}: radius of current point from previous point
+             \item \texttt{solutionValue}: Expected value of objective var at recommended solution point
+             \item \texttt{solutionDeviation}: Standard deviation of recommended solution
+
+         \end{itemize}
+
+  The \xmlNode{BayesianOptimizer} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{name}: \xmlDesc{string, required},
+        User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional},
+        Desired verbosity of messages coming from this entity
+  \end{itemize}
+
+  The \xmlNode{BayesianOptimizer} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{objective}: \xmlDesc{string},
+      Name of the response variable (or ``objective function'') that should be optimized
+      (minimized or maximized).
+
+    \item \xmlNode{variable}:
+      defines the input space variables to be sampled through various means.
+      The \xmlNode{variable} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, optional},
+            user-defined name of this Sampler. \nb As for the other objects,               this is
+            the name that can be used to refer to this specific entity from other input blocks
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
+            determines the number of samples and shape of samples               to be taken.  For
+            example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3               matrix of values,
+            while \xmlAttr{shape}=``10'' will produce a vector of 10 values.               Omitting
+            this optional attribute will result in a single scalar value instead.               Each
+            of the values in the matrix or vector will be the same as the single sampled value.
+            \nb A model interface must be prepared to handle non-scalar inputs to use this option.
+      \end{itemize}
+
+      The \xmlNode{variable} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{distribution}: \xmlDesc{string},
+          name of the distribution that is associated to this variable.               Its name needs
+          to be contained in the \xmlNode{Distributions} block explained               in Section
+          \ref{sec:distributions}. In addition, if NDDistribution is used,               the
+          attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be omitted
+          if the \xmlNode{function} node is supplied.}
+          The \xmlNode{distribution} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{dim}: \xmlDesc{integer, optional},
+                for an NDDistribution, indicates the dimension within the NDDistribution that
+                corresponds               to this variable.
+          \end{itemize}
+
+        \item \xmlNode{grid}: \xmlDesc{string},
+          -- no description yet --
+          The \xmlNode{grid} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{type}: \xmlDesc{string, optional},
+                -- no description yet --
+              \item \xmlAttr{construction}: \xmlDesc{string, optional},
+                -- no description yet --
+              \item \xmlAttr{steps}: \xmlDesc{integer, optional},
+                -- no description yet --
+          \end{itemize}
+
+        \item \xmlNode{function}: \xmlDesc{string},
+          name of the function that               defines the calculation of this variable from
+          other distributed variables.  Its name               needs to be contained in the
+          \xmlNode{Functions} block explained in Section               \ref{sec:functions}. This
+          function module must contain and implement a method either with the same name of the
+          function or a method named  ``evaluate''.               \nb{Each \xmlNode{variable} must
+          contain only one \xmlNode{Function} or               \xmlNode{Distribution}, but not
+          both.}
+
+        \item \xmlNode{initial}: \xmlDesc{comma-separated floats},
+          indicates the initial values where independent trajectories for this optimization
+          effort should begin. The number of entries should be the same for all variables, unless
+          a variable is initialized with a sampler (see \xmlNode{samplerInit} below). Note these
+          entries are ordered; that is, if the optimization variables are $x$ and $y$, and the
+          initial               values for $x$ are \xmlString{1, 2, 3, 4} and initial values for $y$
+          are \xmlString{5, 6, 7, 8},               then there will be four starting trajectories
+          beginning at the locations (1, 5), (2, 6),               (3, 7), and (4, 8).
+      \end{itemize}
+
+    \item \xmlNode{TargetEvaluation}: \xmlDesc{string},
+      name of the DataObject where the sampled outputs of the Model will be collected.
+      This DataObject is the means by which the sampling entity obtains the results of requested
+      samples, and so should require all the input and output variables needed for adaptive
+      sampling.
+      The \xmlNode{TargetEvaluation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{samplerInit}:
+      collection of nodes that describe the initialization of the optimization algorithm.
+
+      The \xmlNode{samplerInit} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{limit}: \xmlDesc{integer},
+          limits the number of Model evaluations that may be performed as part of this optimization.
+          For example, a limit of 100 means at most 100 total Model evaluations may be performed.
+
+        \item \xmlNode{writeSteps}: \xmlDesc{[final, every]},
+          delineates when the \xmlNode{SolutionExport} DataObject should be written to. In case
+          of \xmlString{final}, only the final optimal solution for each trajectory will be written.
+          In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
+          iteration               of the Optimizer.
+
+        \item \xmlNode{initialSeed}: \xmlDesc{integer},
+          seed for random number generation. Note that by default RAVEN uses an internal seed,
+          so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
+
+        \item \xmlNode{type}: \xmlDesc{[min, max]},
+          the type of optimization to perform. \xmlString{min} will search for the lowest
+          \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
+      \end{itemize}
+
+    \item \xmlNode{Acquisition}:
+      A required node for specifying                                                           the
+      details about the acquisition function
+      used in the policy of Bayesian Optimization.
+
+      The \xmlNode{Acquisition} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{ExpectedImprovement}:
+          If this node is present within the acquisition node,                         the expected
+          improvement acqusition function is utilized.                         This function is
+          derived by applying Bayesian optimal decision making (Bellman's Principle of Optimality)
+          with a local reward utility function in conjunction with a one-step lookahead.
+          The approach weighs both expected reward and likely reward with the
+          following expression (for minimization):                         $EI(x) =
+          (f^*-\mu)\phi(\frac{f^*-\mu}{s}) + s \Phi(\frac{f^*-\mu}{s})$
+
+          The \xmlNode{ExpectedImprovement} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{optimizationMethod}: \xmlDesc{[differentialEvolution, slsqp]},
+              String to specify routine used for the optimization of the acquisition function.
+              Acceptable options include: ('differentialEvolution', 'slsqp').
+              \default{'differentialEvolution'}.
+              \begin{itemize}                                                  \item Differential
+              Evolution: A style of evolutionary algorithm, which specializes in floating point
+              representations of decision variables. Works similar to its parent algorithm Genetic
+              Algorithm                                                  \item SLSQP: A Sequential
+              Least Squares algorithm, which uses an BFGS update and
+              Lawson and Hanson’s NNLS nonlinear least-squares solver.
+              \end{itemize}
+  \default{differentialEvolution}
+
+            \item \xmlNode{seedingCount}: \xmlDesc{integer},
+              If the method is gradient based or typically handled with singular
+              decisions (ex. slsqp approximates a quadratic program using the gradient), this number
+              represents the number of trajectories for a multi-start variant (default=2N).
+              N is the dimension of the input space.
+              If the method works on populations (ex. differential evolution simulates
+              natural selection on a population),
+              the number represents the population size (default=10N).
+          \end{itemize}
+
+        \item \xmlNode{ProbabilityOfImprovement}:
+          If this node is present within the acquisition node,                         the
+          probability of improvement acqusition function is utilized.                         This
+          function is derived by applying Bayesian optimal decision making (Bellman's Principle of
+          Optimality)                         with the probability of local reward utility function
+          in conjunction with a one-step lookahead.                         The approach weighs
+          values the probability of improving the solution past some thresh-hold and has the
+          following expression (for minimization):                         $PoI(x) = \frac{\tau -
+          \mu}{\sigma}$
+
+          The \xmlNode{ProbabilityOfImprovement} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{optimizationMethod}: \xmlDesc{[differentialEvolution, slsqp]},
+              String to specify routine used for the optimization of the acquisition function.
+              Acceptable options include: ('differentialEvolution', 'slsqp').
+              \default{'differentialEvolution'}.
+              \begin{itemize}                                                  \item Differential
+              Evolution: A style of evolutionary algorithm, which specializes in floating point
+              representations of decision variables. Works similar to its parent algorithm Genetic
+              Algorithm                                                  \item SLSQP: A Sequential
+              Least Squares algorithm, which uses an BFGS update and
+              Lawson and Hanson’s NNLS nonlinear least-squares solver.
+              \end{itemize}
+  \default{differentialEvolution}
+
+            \item \xmlNode{seedingCount}: \xmlDesc{integer},
+              If the method is gradient based or typically handled with singular
+              decisions (ex. slsqp approximates a quadratic program using the gradient), this number
+              represents the number of trajectories for a multi-start variant (default=2N).
+              N is the dimension of the input space.
+              If the method works on populations (ex. differential evolution simulates
+              natural selection on a population),
+              the number represents the population size (default=10N).
+
+            \item \xmlNode{epsilon}: \xmlDesc{float},
+              Defines the threshold for PoI via the equation:
+              $\tau = min \mu(\textbf{X}) - \epsilon$. The larger $\epsilon$ is, the
+              more exploratory the algorithm and vice versa.
+  \default{1.0}
+
+            \item \xmlNode{rho}: \xmlDesc{float},
+              Provides a 'time-constant' for the Exploit and Explore transient settings.
+              Provides the period for the oscillate transient setting.
+  \default{1.0}
+
+            \item \xmlNode{transient}: \xmlDesc{[Constant, Exploit, Explore, Oscillate, DecayingOscillate]},
+              Determines how the threshold $\tau$ changes as optimization progresses.
+              \begin{itemize}                                                  \item Constant:
+              $\epsilon$ remains the provided value.
+              \item Exploit: $\epsilon$ exponentially decays to 0 encouraging exploitation.
+              \item Explore: $\epsilon$ exponentially grows from 0 to provided value.
+              \item Oscillate: $\epsilon$ varies between 0 and provided value.
+              \item DecayingOscillate: $\epsilon$ oscillates and decays, driving to exploitation.
+              \end{itemize}
+  \default{Constant}
+          \end{itemize}
+
+        \item \xmlNode{LowerConfidenceBound}:
+          If this node is present within the acquisition node,                         the lower
+          confidence bound acqusition function is utilized.                         This function is
+          derived by applying optimistic decision making in the infinite-armed bandit problem.
+          The approach assumes the model is conservative and values optimism through the following
+          equation (for minimization):                         $LCB(x) = \mu - \beta \sigma$, where
+          $\beta = \Phi^{-1}(\pi)$
+
+          The \xmlNode{LowerConfidenceBound} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{optimizationMethod}: \xmlDesc{[differentialEvolution, slsqp]},
+              String to specify routine used for the optimization of the acquisition function.
+              Acceptable options include: ('differentialEvolution', 'slsqp').
+              \default{'differentialEvolution'}.
+              \begin{itemize}                                                  \item Differential
+              Evolution: A style of evolutionary algorithm, which specializes in floating point
+              representations of decision variables. Works similar to its parent algorithm Genetic
+              Algorithm                                                  \item SLSQP: A Sequential
+              Least Squares algorithm, which uses an BFGS update and
+              Lawson and Hanson’s NNLS nonlinear least-squares solver.
+              \end{itemize}
+  \default{differentialEvolution}
+
+            \item \xmlNode{seedingCount}: \xmlDesc{integer},
+              If the method is gradient based or typically handled with singular
+              decisions (ex. slsqp approximates a quadratic program using the gradient), this number
+              represents the number of trajectories for a multi-start variant (default=2N).
+              N is the dimension of the input space.
+              If the method works on populations (ex. differential evolution simulates
+              natural selection on a population),
+              the number represents the population size (default=10N).
+
+            \item \xmlNode{pi}: \xmlDesc{float},
+              Parameter that determines the lower confidence bound. Must be
+              between 0 and 1.
+  \default{0.98}
+
+            \item \xmlNode{rho}: \xmlDesc{float},
+              Provides a 'time-constant' for the Exploit and Explore transient settings.
+              Provides the period for the oscillate transient settings.
+  \default{1.0}
+
+            \item \xmlNode{transient}: \xmlDesc{[Constant, Exploit, Explore, Oscillate, DecayingOscillate]},
+              Determines how the threshold $\tau$ changes as optimization progresses.
+              \begin{itemize}                                                  \item Constant:
+              $\epsilon$ remains the provided value.
+              \item Exploit: $\epsilon$ exponentially decays to 0 encouraging exploitation.
+              \item Explore: $\epsilon$ exponentially grows from 0 to provided value.
+              \item Oscillate: $\epsilon$ varies between 0 and provided value.
+              \item DecayingOscillate: $\epsilon$ oscillates and decays, driving to exploitation.
+              \end{itemize}
+  \default{Constant}
+          \end{itemize}
+      \end{itemize}
+
+    \item \xmlNode{ModelSelection}:
+      An optional node allowing the user to specify the details of model selection.
+      For example, the manner in which hyperparameters are selected for the GPR model.
+
+      The \xmlNode{ModelSelection} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{Duration}: \xmlDesc{integer},
+          Number of iterations between each reselection of the model. Default is 1
+
+        \item \xmlNode{Method}: \xmlDesc{[External, Internal, Average]},
+          Determines methodology for selecting the model. This methodology is applied
+          after every duration length.
+          \begin{itemize}                                                        \item External,
+          uses whatever method the model has internal to itself
+          \item Internal, selects the MAP point of the model using slsqp
+          \item Average, Approximate marginalization over model space
+          \end{itemize}. Default is Internal
+  \default{Internal}
+      \end{itemize}
+
+    \item \xmlNode{convergence}:
+      a node containing the desired convergence criteria for the optimization algorithm.
+      Note that convergence is met when any one of the convergence criteria is met. If no
+      convergence                                            criteria are given.
+
+      The \xmlNode{convergence} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{acquisition}: \xmlDesc{float},
+          Provides convergence criteria in terms of the value of the acquisition
+          function at a given iteration. If the value falls below a provided threshhold,
+          the optimizer is considered converged; however, it is recommended to pair this
+          criteria with persistance. Default is 1e-8
+
+        \item \xmlNode{persistence}: \xmlDesc{integer},
+          provides the number of consecutive times convergence should
+          be reached before a trajectory is considered fully converged.
+          This helps in preventing early false convergence. Default is 5 (BO specific)
+  \default{5}
+      \end{itemize}
+
+    \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats},
+      allows variables that do not change value to be part of the input space.
+      The \xmlNode{constant} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{name}: \xmlDesc{string, required},
+            variable name for this constant, which will be provided to the Model.
+          \item \xmlAttr{shape}: \xmlDesc{comma-separated integers, optional},
+            determines the shape of samples of the constant value.               For example,
+            \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3               matrix, while
+            \xmlAttr{shape}=``10'' will shape into a vector of 10 values.               Unlike the
+            \xmlNode{variable}, the constant requires each value be entered; the number
+            of required values is equal to the product of the \xmlAttr{shape} values, e.g. 6 entries
+            for shape ``2,3'').               \nb A model interface must be prepared to handle non-
+            scalar inputs to use this option.
+          \item \xmlAttr{source}: \xmlDesc{string, optional},
+            the name of the DataObject containing the value to be used for this constant.
+            Requires \xmlNode{ConstantSource} node with a \xmlNode{DataObject} identified for this
+            Sampler/Optimizer.
+          \item \xmlAttr{index}: \xmlDesc{integer, optional},
+            the index of the realization in the \xmlNode{ConstantSource} \xmlNode{DataObject}
+            containing the value for this constant. Requires \xmlNode{ConstantSource} node with
+            a \xmlNode{DataObject} identified for this Sampler/Optimizer.
+      \end{itemize}
+
+    \item \xmlNode{ConstantSource}: \xmlDesc{string},
+      identifies a \xmlNode{DataObject} to provide \xmlNode{constant} values to the input
+      space of this entity while sampling. As an alternative to providing predefined values
+      for constants, the \xmlNode{ConstantSource} provides a dynamic means of always providing
+      the same value for a constant. This is often used as part of a larger multi-workflow
+      calculation.
+      The \xmlNode{ConstantSource} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
+            The RAVEN class for this source. Options include \xmlString{DataObject}.
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
+            The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
+            such as HistorySet or PointSet.
+      \end{itemize}
+
+    \item \xmlNode{Constraint}: \xmlDesc{string},
+      name of \xmlNode{Function} which contains explicit constraints for the sampling of
+      the input space of the Model. From a practical point of view, this XML node must contain
+      the name of a function defined in the \xmlNode{Functions} block (see
+      Section~\ref{sec:functions}).               This external function must contain a method
+      called ``constrain'', which returns True for               inputs satisfying the explicit
+      constraints and False otherwise. \nb Currently this accepts any number of constraints from the
+      user.
+      The \xmlNode{Constraint} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this source. Options include \xmlString{Functions}.
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this source. Options include \xmlNode{External}.
+      \end{itemize}
+
+    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string},
+      name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
+      point of view, this XML node must contain the name of a function defined in the
+      \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
+      function must contain a method called               ``implicitConstrain'', which returns True
+      for outputs satisfying the implicit constraints and False otherwise.
+      The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this source. Options include \xmlString{Functions}.
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this source. Options include \xmlNode{External}.
+      \end{itemize}
+
+    \item \xmlNode{ROM}: \xmlDesc{string},
+      Name of a Model that optimizers may want to use during optimization. For example, the
+      Bayesian Optimizer requires a ROM to select points during optimization. The model is defined
+      in                                           detail with in the \xmlNode{Models} as in other
+      uses. This node should be provided a string referencing
+      the model definition's name.
+      The \xmlNode{ROM} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{Sampler}: \xmlDesc{string},
+      name of a Sampler that can be used to initialize the starting points for the trajectories
+      of some of the variables. From a practical point of view, this XML node must contain the
+      name of a Sampler defined in the \xmlNode{Samplers} block (see
+      Section~\ref{subsec:onceThroughSamplers}).               The Sampler will be used to
+      initialize the trajectories' initial points for some or all               of the variables.
+      For example, if the Sampler selected samples only 2 of the 5 optimization
+      variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables.
+      The \xmlNode{Sampler} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+      \end{itemize}
+
+    \item \xmlNode{Restart}: \xmlDesc{string},
+      name of a DataObject. Used to leverage existing data when sampling a model. For
+      example, if a Model has               already been sampled, but some samples were not
+      collected, the successful samples can               be stored and used instead of rerunning
+      the model for those specific samples. This RAVEN               entity definition must be a
+      DataObject with contents including the input and output spaces               of the Model
+      being sampled.
+      The \xmlNode{Restart} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, optional},
+            The RAVEN class for this source. Options include \xmlString{DataObject}.
+          \item \xmlAttr{type}: \xmlDesc{string, optional},
+            The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
+            such as HistorySet or PointSet.
+      \end{itemize}
+
+    \item \xmlNode{restartTolerance}: \xmlDesc{float},
+      specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
+      the desired sample point in order to be used. If a potential restart point is within a
+      relative Euclidean distance (as specified by the value in this node) of a desired sample
+      point,               the restart point will be used instead of sampling the Model.
+      \default{1e-15}
+
+    \item \xmlNode{variablesTransformation}:
+      Allows transformation of variables via translation matrices. This defines two spaces,
+      a ``latent'' transformed space sampled by RAVEN and a ``manifest'' original space understood
+      by the Model.
+      The \xmlNode{variablesTransformation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{distribution}: \xmlDesc{string, optional},
+            the name for the distribution defined in the XML node \xmlNode{Distributions}.
+            This attribute indicates the values of \xmlNode{manifestVariables} are drawn from
+            \xmlAttr{distribution}.
+      \end{itemize}
+
+      The \xmlNode{variablesTransformation} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{latentVariables}: \xmlDesc{comma-separated strings},
+          user-defined latent variables that are used for the variables transformation.
+          All the variables listed under this node should be also mentioned in \xmlNode{variable}.
+
+        \item \xmlNode{manifestVariables}: \xmlDesc{comma-separated strings},
+          user-defined manifest variables that can be used by the \xmlNode{Model}.
+
+        \item \xmlNode{manifestVariablesIndex}: \xmlDesc{comma-separated strings},
+          user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
+          These indices indicate the position of manifest variables associated with multivariate
+          normal               distribution defined in the XML node \xmlNode{Distributions}.
+          The indices should be postive integer. If not provided, the code will use the positions
+          of manifest variables listed in \xmlNode{manifestVariables} as the indices.
+
+        \item \xmlNode{method}: \xmlDesc{string},
+          the method that is used for the variables transformation. The currently available method
+          is \xmlString{pca}.
+      \end{itemize}
+  \end{itemize}
+
+\hspace{24pt}
+Bayesian Optimizer Example:
+\begin{lstlisting}[style=XML]
+  <Optimizers>
+    <BayesianOptimizer name="opter">
+
+      <objective>ans</objective>
+
+      <variable name="x">
+        <distribution>egg_dist</distribution>
+      </variable>
+
+      <variable name="y">
+        <distribution>egg_dist</distribution>
+      </variable>
+
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+
+      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
+
+      <ROM  class="Models" type="ROM">gpROM</ROM>
+
+      <Acquisition>
+        <ExpectedImprovement>
+          <optimizationMethod>differentialEvolution</optimizationMethod>
+          <seedingCount>30</seedingCount>
+        </ExpectedImprovement>
+      </Acquisition>
+
+    </BayesianOptimizer>
   </Optimizers>
 \end{lstlisting}
 

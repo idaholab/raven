@@ -16,11 +16,6 @@
   It can not be considered part of the active code but of the regression test system
 """
 
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import xml.etree.ElementTree as ET
 import sys, os
 import pickle as pk
@@ -61,17 +56,27 @@ def checkAnswer(comment,value,expected,tol=1e-10, relative=False):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
-    @ In, value, float, the value to compare
-    @ In, expected, float, the expected value
-    @ In, tol, float, optional, the tolerance
+    @ In, value, float (or string), the value to compare
+    @ In, expected, float (or string), the expected value
+    @ In, tol, float, optional, the tolerance (valid for floats/ints only)
     @ In, relative, bool, optional, the tolerance needs be checked relative?
     @ Out, None
   """
-  if relative:
-    denominator = expected if expected != 0. else 1.0
-  diff = abs(value - expected) if not relative else abs(value - expected)/denominator
+  isFloat = True
+  try:
+    val, expect = float(value), float(expected)
+  except ValueError:
+    val, expect = value, expected
+    isFloat = False
+  if relative and isFloat:
+    denominator = expect if expect != 0. else 1.0
+  if isFloat:
+    diff = abs(val - expect) if not relative else abs(val - expect)/denominator
+  else:
+    diff = 0.0 if val == expect else tol + 1.0
+
   if diff > tol:
-    print("checking answer",comment,value,"!=",expected)
+    print("checking answer",comment,val,"!=",expect)
     results["fail"] += 1
   else:
     results["pass"] += 1
@@ -106,6 +111,20 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
   dx = (high-low)/float(numpts)
   tot = sum(dist.pdf(x)*dx for x in xs)
   checkAnswer(name+' unity integration',tot,1,tol)
+
+def checkIntegralDiscrete(name, dist, low, high, tol=1e-3):
+  """
+    Check the consistency of the pmf sum (cdf) for discrete distributions
+    @ In, name, string, the name printed out if it fails
+    @ In, dist, instance, the distribution to inquire
+    @ In, low, float, the lower bound of the dist
+    @ In, high, float, the uppper bound of the dist
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
+  xs = np.arange(low, high + 1)
+  tot = sum(dist.pdf(x) for x in xs)
+  checkAnswer(name+' unity integration', tot, 1, tol)
 
 def getDistribution(xmlElement):
   """
@@ -554,7 +573,7 @@ ppoisson=pk.load(open('testDistrDump.pk','rb'))
 checkCrowDist("poisson",poisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 checkCrowDist("ppoisson",ppoisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 
-checkIntegral("poisson",poisson,0.0,1000.0, numpts=1000)
+checkIntegralDiscrete("poisson",poisson,0.0,1000.0)
 
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
 checkAnswer("poisson cdf(5.0)",poisson.cdf(5.0),0.7851303870304052)
@@ -593,7 +612,7 @@ pbinomial=pk.load(open('testDistrDump.pk','rb'))
 checkCrowDist("binomial",binomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 checkCrowDist("pbinomial",pbinomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 
-checkIntegral("binomial",binomial,0.0,10.0,numpts=100,tol=3e-2) #TODO why is this so hard to integrate?
+checkIntegralDiscrete("binomial",binomial,0.0,100.0,tol=3e-2)
 
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
 checkAnswer("binomial cdf(2)",binomial.cdf(2),0.525592803955)
@@ -629,7 +648,7 @@ pbernoulli=pk.load(open('testDistrDump.pk','rb'))
 checkCrowDist("bernoulli",bernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 checkCrowDist("pbernoulli",pbernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 
-#checkIntegral("bernoulli",bernoulli,0.0,1.0,numpts=2) #why does this integrate to 0.5?
+checkIntegralDiscrete("bernoulli",bernoulli,0.0,1.0)
 
 checkAnswer("bernoulli cdf(0)",bernoulli.cdf(0),0.6)
 checkAnswer("bernoulli cdf(1)",bernoulli.cdf(1),1.0)
@@ -1081,7 +1100,7 @@ checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineD
 #checkAnswer("MultiVariate inverseMarginalDim1(0.5)" , inverse1, 10., tol=0.01, relative=True)
 #checkAnswer("MultiVariate inverseMarginalDim2(0.5)" , inverse2, 20., tol=0.01, relative=True)
 
-#Test Categorical
+#Test Categorical (float)
 
 CategoricalElement = ET.Element("Categorical",{"name":"test"})
 filenode1=createElement("state", text="0.1")
@@ -1123,6 +1142,49 @@ checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),10)
 checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),50)
 checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),60)
 checkAnswer("Categorical  ppf(1.0)" , Categorical.ppf(1.0),60)
+
+#Test Categorical (string)
+
+CategoricalElement = ET.Element("Categorical",{"name":"test"})
+filenode1=createElement("state", text="0.1")
+filenode1.set("outcome","A")
+CategoricalElement.append(filenode1)
+
+filenode2=createElement("state", text="0.2")
+filenode2.set("outcome","B")
+CategoricalElement.append(filenode2)
+
+filenode3=createElement("state", text="0.15")
+filenode3.set("outcome","C")
+CategoricalElement.append(filenode3)
+
+filenode4=createElement("state", text="0.4")
+filenode4.set("outcome","D")
+CategoricalElement.append(filenode4)
+
+filenode5=createElement("state", text="0.15")
+filenode5.set("outcome","E")
+CategoricalElement.append(filenode5)
+
+
+Categorical = getDistribution(CategoricalElement)
+
+## Should these be checked?
+initParams = Categorical.getInitParams()
+
+checkAnswer("Categorical  pdf(A)" , Categorical.pdf("A"),0.1)
+checkAnswer("Categorical  pdf(C)" , Categorical.pdf("C"),0.15)
+checkAnswer("Categorical  pdf(E)" , Categorical.pdf("E"),0.15)
+
+checkAnswer("Categorical  cdf(A)" , Categorical.cdf("A"),0.1)
+checkAnswer("Categorical  cdf(C)" , Categorical.cdf("C"),0.45)
+checkAnswer("Categorical  cdf(E)" , Categorical.cdf("E"),1.0)
+
+checkAnswer("Categorical  ppf(0.0)" , Categorical.ppf(0.0),"A")
+checkAnswer("Categorical  ppf(0.1)" , Categorical.ppf(0.1),"A")
+checkAnswer("Categorical  ppf(0.5)" , Categorical.ppf(0.5),"D")
+checkAnswer("Categorical  ppf(0.9)" , Categorical.ppf(0.9),"E")
+checkAnswer("Categorical  ppf(1.0)" , Categorical.ppf(1.0),"E")
 
 # Test Custom1D
 Custom1DElement = ET.Element("Custom1D",{"name":"test"})
@@ -1223,6 +1285,8 @@ sys.exit(results["fail"])
       <revision author="cogljj" date="2016-04-12">Converting Distributions to use the new input system. All distributions have been converted.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-05-10">Added Log Uniform distribution unit test</revision>
+      <revision author="j-bryan" date="2023-10-27">Removed use of Crow distributions</revision>
+      <revision author="j-bryan" date="2023-10-27">Added integral for discrete distributions</revision>
     </revisions>
     <requirements>R-RE-1</requirements>
   </TestInfo>

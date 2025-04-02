@@ -20,12 +20,18 @@ source $RAVEN_RC_SCRIPT
 # set up installation manager
 INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
 
+# maybe skip loading the environment in .ravenrc
+SKIP_LOAD_ENV=0
+
 # read command-line arguments
 ARGS=()
 for A in "$@"; do
     case $A in
         --skip-conda)
             INSTALLATION_MANAGER=PIP
+            ;;
+        --skip-load-env)
+            SKIP_LOAD_ENV=1
             ;;
         --raven)
             TEST_SET=0
@@ -44,12 +50,18 @@ for A in "$@"; do
     esac
 done
 echo 'Loading libraries ...'
-if  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
+if [[ $SKIP_LOAD_ENV == 1 ]];
+then
+    echo Using currently active python environment, with command $(command -v python)
+    PYTHON_COMMAND=$(command -v python)
+elif  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
+    echo Loaded conda environment, with command $(command -v python)
 elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
+    echo Loaded pip environment, with command $(command -v python)
 else
     echo No installation: $INSTALLATION_MANAGER
     if [ -z $PYTHON_COMMAND ];
@@ -106,6 +118,8 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo 'Running RAVEN tests ...'
 
+  echo "Python command: $PYTHON_COMMAND"
+  echo "Script directory: $SCRIPT_DIR"
   $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
   # store return codes individually (rc) and combined (ALL_PASS)
   rc=$?
@@ -129,9 +143,9 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
+  EXTRA="--test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub,slurm"
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py $EXTRA "${ARGS[@]}"
   # $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
-  $ROOK_COMMAND
   rc=$?
   ALL_PASS=$(($ALL_PASS + $rc))
   if [[ $rc != 0 ]]; then
@@ -157,11 +171,13 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo
     echo Starting tests for plugin "$P" ...
     # add RAVEN testers to plugin testers
-    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
-    echo Running ROOK command: "$ROOK_COMMAND" ...
+    EXTRA="--test-dir $LOCATION --testers-dir $RAVEN_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub"
+    echo Running ROOK command: "$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py $EXTRA ${ARGS[@]} ..."
     {
       # try
-      $ROOK_COMMAND
+      # this is copy/paste from line 175
+      # saving this entire command in a string variable causes problems when there are multi-word args using quotes (--arg="con tent") in ARGS
+      $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py $EXTRA "${ARGS[@]}"
       rc=$?
     } || {
       # catch

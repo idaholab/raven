@@ -24,6 +24,7 @@ from enum import Enum
 import xml.etree.ElementTree as ET
 from . import InputTypes
 import textwrap
+from ravenframework.utils import xmlUtils
 
 class Quantity(Enum):
   """
@@ -46,6 +47,16 @@ def checkQuantity(quantity, n):
   if end == 1:
     match = match and n <= 1
   return match
+
+def _escUnderscore(s):
+  """
+    Escapes underscores in LaTeX
+    @ In, s, string, the string to escape the underscores
+    @ Out, _escUnderscore, string, the string with underscores escaped
+  """
+  # assure underscore is escaped, but not doubly
+  # and never escape an underscore followed by a '{'
+  return re.sub(r'(?<!\\)_(?!{)', r'\_', s)
 
 class CheckClass(object):
   """
@@ -137,9 +148,13 @@ class ParameterInput(object):
       create new instance.
       @ Out, None
     """
-    self.parameterValues = {}
-    self.subparts = []
-    self.value = ""
+    self.parameterValues = {} # attributes of the hierarchal input, attached to nodes, but not nodes themselves
+    self.subparts = []        # pre-defined nodes that are children of this node
+    self.value = ""           # non-hierarchal value associated with this node
+    # addtionalInput is a List of raven.utils.TreeStructure.InputNode instances. Unlike subparts, these do not have
+    #   a predefined structure, and will not directly be parsed as part of the spec. Only used when
+    #   strictMode is set to False for this node.
+    self.additionalInput = []
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
@@ -374,6 +389,24 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
+  def convertToXML(self, recDepth=0):
+    """
+      Converts back to XML representation of the parameters (attributes) of this spec.
+      @ In, recDepth, int, recursion depth for subNodes
+      @ Out, xml, xml.etree.ElementTree.Element, XML node representation of this input spec
+    """
+    xml = xmlUtils.newNode(self.name)
+    if self.parameterValues:
+      xml.attrib = self.parameterValues
+    if self.value != '':
+      xml.text = str(self.value)
+    if self.subparts:
+      for sub in self.subparts:
+        if isinstance(sub,ParameterInput):
+          sub_node = sub.convertToXML(recDepth+1)
+          xml.append(sub_node)
+    return xml
+
   def parseNode(self, node, errorList=None, parentList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
@@ -435,10 +468,12 @@ class ParameterInput(object):
       subs = self.subs
     # read in subnodes
     subNames = set()
+    # loop over each of the nodes in the input and find matches in the defined spec
     for child in node:
       childName = child.tag
       subsSet = self._subDict.get(childName,set())
       foundSubs = 0
+      # loop over defined spec subs and see if there's a match for the input node
       for sub in subsSet:
         if sub._checkCanRead is None:
           subInstance = sub()
@@ -453,6 +488,8 @@ class ParameterInput(object):
       elif self.strictMode:
         allowed = [s.getName() for s in subs]
         handleError(f'Unrecognized input node "{childName}"! Allowed: [{", ".join(allowed)}], tried [{", ".join(subsSet)}]')
+      else:
+        self.additionalInput.append(child)
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:
@@ -658,8 +695,7 @@ class ParameterInput(object):
       msg += '{i}\\end{{itemize}}\n'.format(i=doDent(recDepth, 1))
     # TODO is this a good idea? -> disables underscores in math mode :(
     if recDepth == 0:
-      # assure underscore is escaped, but not doubly
-      msg = re.sub(r'(?<!\\)_', r'\_', msg)
+      msg = _escUnderscore(msg)
     return msg
 
   @classmethod
@@ -676,12 +712,12 @@ class ParameterInput(object):
     specName = cls.name
     if '_' in specName:
       # assure underscore is escaped, but not doubly
-      specName = re.sub(r'(?<!\\)_', r'\_', specName)
+      specName = _escUnderscore(specName)
     msg += '{i}The \\xmlNode{{{n}}} node recognizes the following parameters:'.format(i=doDent(recDepth), n=specName)
     msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
     for param, info in cls.parameters.items():
       # assure underscore is escaped, but not doubly
-      name = re.sub(r'(?<!\\)_', r'\_', param)
+      name = _escUnderscore(param)
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
       default = '\\default{'+ str(info['default']) +'}' if info['default'] != 'no-default' else ""
@@ -701,7 +737,6 @@ class ParameterInput(object):
                                                                                      d=desc)
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
-
 
 
 
@@ -805,3 +840,11 @@ def wrapText(text, indent, width=100):
   msg = textwrap.dedent(text)
   msg = textwrap.fill(msg, width=width, initial_indent=indent, subsequent_indent=indent)
   return msg
+
+def removeTrailingWhitespace(text):
+  """
+    Utility to remove whitespace at end of lines.
+    @ In, text, text to clean
+    @ Out, msg, str, modified text
+  """
+  return re.sub("[ \t]*\n", "\n", text)

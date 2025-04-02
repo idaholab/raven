@@ -20,6 +20,7 @@
 """
 import numpy as np
 import collections
+import copy
 
 from ..utils import InputData, xmlUtils
 from ..TSA import TSAUser
@@ -77,7 +78,9 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, None
     """
     SupervisedLearning._handleInput(self, paramInput)
-    self.readTSAInput(paramInput)
+    self.readTSAInput(paramInput, self.hasClusters())
+    if len(self.getTsaAlgorithms())==0:
+      self.raiseAWarning("No Segmenting algorithms were requested.")
 
   def _train(self, featureVals, targetVals):
     """
@@ -97,6 +100,55 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     rlz = self.evaluateTSASequential()
     return rlz
 
+
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
+      @ In, trainingDict, dict, data for training, full and unsegmented
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    self.raiseADebug('Training Global...')
+    # extracting info from training Dict, convert all signals to single array
+    trainingDict = copy.deepcopy(trainingDict)
+    names, values  = list(trainingDict.keys()), list(trainingDict.values())
+    ## This is for handling the special case needed by skl *MultiTask* that
+    ## requires multiple targets.
+    targetValues = []
+    targetNames = []
+    for target in self.target:
+      if target in names:
+        targetValues.append(values[names.index(target)])
+        targetNames.append(target)
+      else:
+        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+    # stack targets
+    targetValues = np.stack(targetValues, axis=-1)
+    self.trainTSASequential(targetValues, trainGlobal=True)
+    settings = self.getGlobalTSARomSettings()
+    # update targets in trainingDict
+    for i,target in enumerate(targetNames):
+      trainingDict[target] = targetValues[:,:,i]
+    return settings, trainingDict
+
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights, slicer):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ In, slicer, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    if len(self.getGlobalTsaAlgorithms())>0:
+      rlz = self.evaluateTSASequential(evalGlobal=True, evaluation=evaluation, slicer=slicer)
+      for key,val in rlz.items():
+        evaluation[key] = val
+    return evaluation
+
   def writePointwiseData(self, writeTo):
     """
       Writes pointwise data about this ROM to the data object.
@@ -104,6 +156,21 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, None
     """
     pass # TODO
+
+  def getSegmentPointwiseData(self):
+    """
+      Allows the SVE to accumulate data arrays to later add to a DataObject
+      Overload in subclasses.
+      @ In, None
+      @ Out, segmentData, dict
+    """
+    segmentNonFeatures = self.getTSApointwiseData()
+    formattedNonFeatures = {}
+    for algo,algoInfo in segmentNonFeatures.items():
+      for target,targetInfo in algoInfo.items():
+        for k,val in targetInfo.items():
+          formattedNonFeatures[f'{target}|{algo}|{k}'] = val
+    return formattedNonFeatures
 
   def writeXML(self, writeTo, targets=None, skip=None):
     """
@@ -145,6 +212,10 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
         badAlgos.append(algoName)
         continue
       algo = factory.returnClass(algoName, self)
+      if not algo.canCharacterize():
+        errMsg.append(f'Cannot cluster on TSA algorithm "{algoName}"!  It does not support clustering.')
+        badAlgos.append(algoName)
+        continue
       if feature not in algo._features:
         badFeatures[algoName].append(feature)
     if badFeatures:
@@ -156,17 +227,22 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
                         '\n  '.join(errMsg))
     return request
 
-  def _getClusterableFeatures(self):
+  def _getClusterableFeatures(self, trainGlobal=False):
     """
       Provides a list of clusterable features.
       For this ROM, these are as "TSA_algorith|feature" such as "fourier|amplitude"
       @ In, None
+      @ In, trainGlobal, bool, if True then this method uses the globally trained algorithms
       @ Out, features, dict(list(str)), clusterable features by algorithm
     """
     features = {}
     # check: is it possible tsaAlgorithms isn't populated by now?
-    for algo in self._tsaAlgorithms:
-      features[algo.name] = algo._features
+    algorithms = self.getGlobalTsaAlgorithms() if trainGlobal else self.getTsaAlgorithms()
+    for algo in algorithms:
+      if algo.canCharacterize():
+        features[algo.name] = algo._features
+      else:
+        features[algo.name] = []
     return features
 
   def getLocalRomClusterFeatures(self, featureTemplate, settings, request, picker=None):
@@ -180,11 +256,11 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
     """
     features = {}
-    for algo in self._tsaAlgorithms:
-      if algo.name not in request:
+    for algo in self.getTsaAlgorithms():
+      if algo.name not in request or not algo.canCharacterize():
         continue
       algoReq = request[algo.name] if request is not None else None
-      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self._tsaTrainedParams[algo])
+      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self.getTsaTrainedParams()[algo])
       features.update(algoFeatures)
     return features
 
@@ -195,14 +271,27 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, settings, dict, parameters to set
     """
     byAlgo = collections.defaultdict(list)
+    # Here we take the interpolated features and reorganize them to a dict
+    #   the original entry names are 'target|algorithmName|featureName'
+    #   the new structure is {algorithmName:(target,featureName,value)}
     for feature, values in settings.items():
       target, algoName, ident = feature.split('|', maxsplit=2)
       byAlgo[algoName].append((target, ident, values))
-    for algo in self._tsaAlgorithms:
+    trainedParams = self.getTsaTrainedParams()
+    for algo in self.getTsaAlgorithms():
       settings = byAlgo.get(algo.name, None)
+      # The incoming features are organized by algorithmName, but the trainedParams are indexed
+      #    by the algorithm objects themselves. so there could be two objects with the same algo name.
+      # Need to make sure that we send the right target information over (algorithms are agnostic)
       if settings:
-        params = algo.setClusteringValues(settings, self.trainedParams[algo])
-        self.trainedParams[algo] = params
+        trainedTargets = list(trainedParams[algo]) # list of targets used in the specific algorithm
+        if algo.name in trainedTargets:
+          # most algorithm trainedParam dictionaries are indexed by target except for VARMA since it
+          #  uses targets together. The syntax for those types of algorithms is to index by the algo Name
+          trainedTargets = list(trainedParams[algo][algo.name]['targets'])
+        # keep settings with targets that are present in the trainedParams for the specific algorithm
+        filtered_settings = [paramSet for paramSet in settings if paramSet[0] in trainedTargets]
+        trainedParams[algo] = algo.setClusteringValues(filtered_settings, trainedParams[algo])
 
   def findAlgoByName(self, name):
     """
@@ -210,10 +299,113 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
       @ In, name, str, name of algorithm
       @ Out, algo, TSA.TimeSeriesAnalyzer, algorithm
     """
-    for algo in self._tsaAlgorithms:
+    for algo in self.getTsaAlgorithms():
       if algo.name == name:
         return algo
     return None
+
+  def getFundamentalFeatures(self, requestedFeatures, featureTemplate=None):
+    """
+      Collect the fundamental parameters for this ROM
+      Used for writing XML, interpolating, clustering, etc
+      NOTE: This is originally copied over from SupervisedLearning!
+         Primarily using this for interpolation.
+      @ In, requestedFeatures, dict(list), featureSet and features to collect (may be None)
+      @ In, featureTemplate, str, optional, templated string for naming features (probably leave as None)
+      @ Out, features, dict, features to cluster on with shape {target_metric: np.array(floats)}
+    """
+    # NOTE: this should match the clustered features template.
+    if featureTemplate is None:
+      featureTemplate = '{target}|{metric}|{id}' # TODO this kind of has to be the format currently
+
+    requests = self._getClusterableFeatures()
+    features = self.getLocalRomClusterFeatures(featureTemplate, {}, requests, picker=None)
+
+    return features
+
+  def readFundamentalFeatures(self, features):
+    """
+      Reads in the requested ARMA model properties from a feature dictionary
+      @ In, features, dict, dictionary of fundamental features
+      @ Out, readFundamentalFeatures, dict, more clear list of features for construction
+    """
+    return features
+
+  def setFundamentalFeatures(self, features):
+    """
+      opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures
+      Constructs this ROM by setting fundamental features from "features"
+      @ In, features, dict, dictionary of info as from readFundamentalFeatures
+      @ Out, None
+    """
+    # NOTE: we deepcopy'd a ROM to get here... so any non-clusterable features have
+    #       been copied over. For example: ARMA 'results', 'model', 'initials'
+    # TODO: these attributes should be overloaded in some fashion in the future
+    self.setLocalRomClusterFeatures(features)
+    self.amITrained = True
+
+  def parametrizeGlobalRomFeatures(self, featureDict):
+    """
+      Parametrizes the GLOBAL features of the ROM (assumes this is the templateROM and segmentation is active)
+      @ In, featureDict, dict, dictionary of features to parametrize
+      @ Out, params, dict, dictionary of collected parametrized features
+    """
+    # NOTE: this should match the clustered features template.
+    featureTemplate = '{target}|{metric}|{id}' # TODO this kind of has to be the format currently
+    params = {}
+    requests = self._getClusterableFeatures(trainGlobal=True)
+
+    for algo in self.getGlobalTsaAlgorithms():
+      if algo.name not in requests or not algo.canCharacterize():
+        continue
+      algoReq = requests[algo.name] if requests is not None else None
+      algoFeatures = algo.getClusteringValues(featureTemplate, algoReq, self.getTsaTrainedParams()[algo])
+      params.update(algoFeatures)
+    return params
+
+  def setGlobalRomFeatures(self, params, pivotValues):
+    """
+      Sets global ROM properties for a templateROM when using segmenting
+      Returns settings rather than "setting" them for use in ROMCollection classes
+      @ In, params, dict, dictionary of parameters to set
+      @ In, pivotValues, np.array, values of time parameter
+      @ Out, results, dict, global ROM feature set
+    """
+    byAlgo = collections.defaultdict(list)
+    # Here we take the interpolated features and reorganize them to a dict
+    #   the original entry names are 'target|algorithmName|featureName'
+    #   the new structure is {algorithmName:(target,featureName,value)}
+    for feature, values in params.items():
+      target, algoName, ident = feature.split('|', maxsplit=2)
+      byAlgo[algoName].append((target, ident, values))
+    trainedParams = self.getTsaTrainedParams()
+    for algo in self.getGlobalTsaAlgorithms():
+      settings = byAlgo.get(algo.name, None)
+      # The incoming features are organized by algorithmName, but the trainedParams are indexed
+      #    by the algorithm objects themselves. so there could be two objects with the same algo name.
+      # Need to make sure that we send the right target information over (algorithms are agnostic)
+      if settings:
+        trainedTargets = list(trainedParams[algo]) # list of targets used in the specific algorithm
+        if algo.name in trainedTargets:
+          # most algorithm trainedParam dictionaries are indexed by target except for VARMA since it
+          #  uses targets together. The syntax for those types of algorithms is to index by the algo Name
+          trainedTargets = list(trainedParams[algo][algo.name]['targets'])
+        # keep settings with targets that are present in the trainedParams for the specific algorithm
+        filtered_settings = [paramSet for paramSet in settings if paramSet[0] in trainedTargets]
+        trainedParams[algo] = algo.setClusteringValues(filtered_settings, trainedParams[algo])
+    return trainedParams
+
+  def finalizeLocalRomSegmentEvaluation(self,  settings, evaluation, globalPicker, localPicker=None):
+    """
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, globalPicker, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
+      @ In, localPicker, slice, optional, indexer for part of signal that should be adjusted IN LOCAL SIGNAL
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    return evaluation
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):

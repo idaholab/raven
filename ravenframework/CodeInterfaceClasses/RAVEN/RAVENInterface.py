@@ -72,7 +72,7 @@ class RAVEN(CodeInterfaceBase):
       @ Out, None.
     """
     baseName = os.path.basename(xmlNode.find("executable").text)
-    if baseName not in ['raven_framework','raven_framework.py']:
+    if baseName not in ['raven_framework','raven_framework.py', '%RAVENEXECUTABLE%']:
       raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)! Got "'+baseName+'"!')
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
@@ -170,10 +170,13 @@ class RAVEN(CodeInterfaceBase):
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
     # executable command will either be the direct raven_framework, or
-    # executable command will be: "python <path>/raven_framework.py"
+    # executable command will be: "<python> <path>/raven_framework.py"
     # in which case make sure executable ends with .py
     # Note that for raven_framework to work, it needs to be in the path.
-    if executable == 'raven_framework':
+    if clargs["pre"] != '':
+      self.preCommand = clargs["pre"]
+    # TODO: Add support for other clargs
+    if executable == 'raven_framework' or executable == '%RAVENEXECUTABLE%':
       self.preCommand = ''
     elif not executable.endswith(".py"):
       executable += ".py"
@@ -281,6 +284,8 @@ class RAVEN(CodeInterfaceBase):
 
     if 'headNode' in Kwargs:
       modifDict['RunInfo|headNode'] = Kwargs['headNode']
+    if 'schedulerFile' in Kwargs:
+      modifDict['RunInfo|schedulerFile'] = Kwargs['schedulerFile']
     if 'remoteNodes' in Kwargs:
       if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
         modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])

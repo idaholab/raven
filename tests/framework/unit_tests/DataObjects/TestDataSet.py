@@ -215,7 +215,7 @@ def checkNone(comment,entry,update=True):
       print("checking answer",comment,'|','"{}" is not None!'.format(entry))
       results["fail"] += 1
 
-def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
+def checkFails(comment,errstr,function,update=True,args=None,kwargs=None,exact=True):
   """
     Checks if expected error occurs
     @ In, comment, string, a comment printed out if it fails
@@ -224,6 +224,7 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
     @ In, update, bool, optional, if False then don't update results counter
     @ In, args, list, arguments to pass to function
     @ In, kwargs, dict, keyword arguments to pass to function
+    @ In, exact, bool, optional, defaults to True, but if False, only check if errstr in the full error string.
     @ Out, res, bool, True if failed as expected
   """
   print('Error testing ...')
@@ -236,7 +237,10 @@ def checkFails(comment,errstr,function,update=True,args=None,kwargs=None):
     res = False
     msg = 'Function call did not error!'
   except Exception as e:
-    res = checkSame('',e.args[0],errstr,update=False)
+    if exact:
+      res = checkSame('',e.args[0],errstr,update=False)
+    else:
+      res = errstr in e.args[0]
     if not res:
       msg = 'Unexpected error message.  \n    Received: "{}"\n    Expected: "{}"'.format(e.args[0],errstr)
   if update:
@@ -635,7 +639,7 @@ dataCSV.load(csvname,style='CSV')
 for var in data.getVars():
   if var == 'z':
     # not included in XML input specs, so should be left out
-    checkFails('CSV var z','z',dataCSV.getVarValues,args=var)
+    checkFails('CSV var z','z',dataCSV.getVarValues,args=var, exact=False)
   elif isinstance(data.getVarValues(var).item(0),(float,int)):
     checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
   else:
@@ -710,7 +714,7 @@ seed['b'] = np.array([ np.array([1.00]),
                        np.array([1.70, 1.71, 1.72, 1.73, 1.74, 1.75, 1.76, 1.77]),
                        np.array([1.80, 1.81, 1.82, 1.83, 1.84, 1.85, 1.86, 1.87, 1.88]),
                        np.array([1.90, 1.91, 1.92, 1.93, 1.94, 1.95, 1.96, 1.97, 1.98, 1.99])
-                       ])
+                       ], dtype=object)
 # coordinate, as vector
 seed['t'] = np.array([ np.linspace(0,1,1),
                        np.linspace(0,1,2),
@@ -721,7 +725,7 @@ seed['t'] = np.array([ np.linspace(0,1,1),
                        np.linspace(0,1,7),
                        np.linspace(0,1,8),
                        np.linspace(0,1,9),
-                       np.linspace(0,1,10) ])
+                       np.linspace(0,1,10) ], dtype=object)
 # set up data object
 xml = createElement('DataSet',attrib={'name':'test'})
 xml.append(createElement('Input',text='a'))

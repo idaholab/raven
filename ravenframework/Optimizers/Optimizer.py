@@ -147,7 +147,6 @@ class Optimizer(AdaptiveSampler):
               The Sampler will be used to initialize the trajectories' initial points for some or all
               of the variables. For example, if the Sampler selected samples only 2 of the 5 optimization
               variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables."""))
-
     return specs
 
   def __init__(self):
@@ -181,7 +180,7 @@ class Optimizer(AdaptiveSampler):
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
     self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
-
+    self.addAssemblerObject('ROM', InputData.Quantity.zero_to_one)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -396,7 +395,11 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     if not self.assemblerDict.get('Sampler', False):
-      return
+      # Need to make sure that initial values have been provided
+      if self._initialValues:
+        return
+      else:
+        self.raiseAnError(RuntimeError, 'Initial values not provided via sampler or user selected points')
     sampler = self.assemblerDict['Sampler'][0][3]
     if not isinstance(sampler, Sampler):
       self.raiseAnError(IOError, 'Initialization samplers must be a Forward sampling type, such as MonteCarlo or Grid!')
@@ -482,9 +485,26 @@ class Optimizer(AdaptiveSampler):
 
     return normalized
 
+  def denormalizeVariable(self, value, variable):
+    """
+      Method to denormalize the variable 'variable'
+      @ In, value, float,  value of decision variable to be denormalized
+      @ In, variable, str, variable to be denormalized
+      @ Out, denormed, float, the denormalized value
+    """
+    # some algorithms should not be normalizing and denormalizing!
+    # in that case, we allow this method to turn off normalization
+    if self.needDenormalized():
+      return value
+    denormed = value
+    if variable in self.toBeSampled:
+      lower, upper = self._variableBounds[variable]
+      denormed = value * (upper - lower) + lower
+    return denormed
+
   def denormalizeData(self, normalized):
     """
-      Method to normalize the data
+      Method to denormalize the data
       @ In, normalized, dict, dictionary containing the value of decision variables to be denormalized, in form of {varName: varValue}
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
@@ -494,11 +514,9 @@ class Optimizer(AdaptiveSampler):
       return normalized
     denormed = copy.deepcopy(normalized)
     for var in self.toBeSampled:
-      val = normalized[var]
-      lower, upper = self._variableBounds[var]
-      denormed[var] = val * (upper - lower) + lower
-
+      denormed[var] = self.denormalizeVariable(normalized[var], var)
     return denormed
+
 
   def needDenormalized(self):
     """

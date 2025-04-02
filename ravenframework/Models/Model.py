@@ -131,11 +131,10 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type'] = ['SPSA',
-                                          'FiniteDifference',
-                                          'ConjugateGradient',
+  validateDict['Optimizer'][0]['type'] = ['GradientDescent',
+                                          'GeneticAlgorithm',
                                           'SimulatedAnnealing',
-                                          'GeneticAlgorithm']
+                                          'BayesianOptimizer']
 
   @classmethod
   def generateValidateDict(cls):
@@ -211,7 +210,16 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     self.runQueue = []
     self.printTag = 'MODEL'
     self.createWorkingDir = False
+    self._isThereACode = False
 
+  @property
+  def containsACode(self):
+    """
+     Property to check if this model is either a Code or contains one
+     @ In, None
+     @ Out, self._isThereACode, bool, is there a code?
+    """
+    return self._isThereACode
 
   def _readMoreXML(self,xmlNode):
     """
@@ -503,4 +511,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     """
     serializationFiles = set()
     return serializationFiles
+
+  def endStepActions(self):
+    """
+      This method is intended for performing actions (within the Model) at the end of a step
+      Each model can overload the method to perform specific actions
+      @ In, None
+      @ Out, None
+    """
+    pass
 

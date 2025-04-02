@@ -139,6 +139,23 @@
    csv = 'PrescientInterfaceTest/out_prescient_fake_0.csv PrescientInterfaceTest/out_prescient_fake_1.csv'
    text = 'PrescientInterfaceTest/runPrescientFake/1/deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/Scenario_actuals.dat PrescientInterfaceTest/runPrescientFake/2/deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/Scenario_actuals.dat '
    test_interface_only = True
-   
  [../]
+ [./AbceInterfaceTest]
+   type = 'RavenFramework'
+   input = 'test_Abce_code_interface.xml'
+   csv = 'AbceInterfaceTest/grid_0.csv AbceInterfaceTest/grid_1.csv'
+   rel_err = 0.0001
+   required_executable = 'abce/run.py'
+   max_time = 600
+   heavy = true
+ [../]
+
+ [./AbceInterfaceOnlyTest]
+   type = 'RavenFramework'
+   input = 'test_Abce_code_interface_fake.xml'
+   csv = 'AbceInterfaceTest/grid_fake.csv'
+   text = 'AbceInterfaceTest/runAbceFake/1/settings.yml'
+   test_interface_only = true
+ [../]
+
 []

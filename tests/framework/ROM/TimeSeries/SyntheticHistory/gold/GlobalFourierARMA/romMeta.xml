@@ -1,0 +1,70 @@
+<DataObjectMetadata name="romMeta">
+  <DataSet type="Static">
+    <dims>
+      <ClusterLabels>segment_number</ClusterLabels>
+      <seg_index_end>segment_number</seg_index_end>
+      <seg_index_start>segment_number</seg_index_start>
+      <seg_pivot_end>segment_number</seg_pivot_end>
+      <seg_pivot_start>segment_number</seg_pivot_start>
+    </dims>
+    <general>
+      <datasetName>romMeta</datasetName>
+      <pointwise_meta>ClusterFeature|signal0|ARMA|ar_0|scaled,ClusterFeature|signal0|ARMA|ar_0|unscaled,ClusterFeature|signal0|ARMA|const|scaled,ClusterFeature|signal0|ARMA|const|unscaled,ClusterFeature|signal0|ARMA|var|scaled,ClusterFeature|signal0|ARMA|var|unscaled,ClusterFeature|signal1|ARMA|ar_0|scaled,ClusterFeature|signal1|ARMA|ar_0|unscaled,ClusterFeature|signal1|ARMA|const|scaled,ClusterFeature|signal1|ARMA|const|unscaled,ClusterFeature|signal1|ARMA|var|scaled,ClusterFeature|signal1|ARMA|var|unscaled,ClusterLabels,Feature|signal0|ARMA|d,Feature|signal0|ARMA|p,Feature|signal0|ARMA|q,Feature|signal1|ARMA|d,Feature|signal1|ARMA|p,Feature|signal1|ARMA|q,seg_index_end,seg_index_start,seg_pivot_end,seg_pivot_start</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+
+  <synth type="Static">
+    <ROM>
+      <type>Clustered ROM</type>
+      <Features>scaling</Features>
+      <Targets>signal0,signal1,pivot</Targets>
+    </ROM>
+    <GlobalROM segment="all" type="Static" />
+    <ClusterROM type="Static" cluster="0">
+      <Gaussianize>
+        <signal0 />
+        <signal1 />
+      </Gaussianize>
+      <ARMA>
+        <signal0>
+          <constant>2.067324766e-02</constant>
+          <AR_0>5.789104500e-01</AR_0>
+          <variance>9.548311183e-01</variance>
+          <order>1,0,0</order>
+        </signal0>
+        <signal1>
+          <constant>-2.949861285e-04</constant>
+          <AR_0>5.181471892e-01</AR_0>
+          <variance>1.051423590e+00</variance>
+          <order>1,0,0</order>
+        </signal1>
+      </ARMA>
+      <segments_represented>0, 1, 2, 3, 5, 6, 7, 8, 9</segments_represented>
+      <indices>0, 99</indices>
+    </ClusterROM>
+    <ClusterROM type="Static" cluster="1">
+      <Gaussianize>
+        <signal0 />
+        <signal1 />
+      </Gaussianize>
+      <ARMA>
+        <signal0>
+          <constant>1.726144055e-02</constant>
+          <AR_0>7.454777809e-01</AR_0>
+          <variance>6.347865921e-01</variance>
+          <order>1,0,0</order>
+        </signal0>
+        <signal1>
+          <constant>8.705061198e-02</constant>
+          <AR_0>7.343611299e-01</AR_0>
+          <variance>8.113936096e-01</variance>
+          <order>1,0,0</order>
+        </signal1>
+      </ARMA>
+      <segments_represented>4</segments_represented>
+      <indices>100, 199</indices>
+    </ClusterROM>
+  </synth>
+
+</DataObjectMetadata>

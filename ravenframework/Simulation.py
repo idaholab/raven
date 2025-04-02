@@ -39,6 +39,7 @@ from . import Functions
 from . import OutStreams
 from .JobHandler import JobHandler
 from .utils import utils, TreeStructure, xmlUtils, mathUtils
+from .utils.utils import ParallelLibEnum
 from . import Decorators
 from .Application import __QtAvailable
 from .Interaction import Interaction
@@ -215,6 +216,7 @@ class Simulation(MessageUser):
                                     'suppressErrs': suppressErrs})
     # ensure messageHandler time has been reset (important if re-running simulation)
     self.messageHandler.starttime = time.time()
+    self.raiseAMessage('Initializing '+str(time.ctime()))
     sys.path.append(os.getcwd())
     # flag for checking if simulation has been run before
     self.ranPreviously = False
@@ -242,6 +244,7 @@ class Simulation(MessageUser):
     self.runInfoDict['numProcByRun'      ] = 1      # Total number of core used by one run (number of threads by number of mpi)
     self.runInfoDict['batchSize'         ] = 1      # number of contemporaneous runs
     self.runInfoDict['internalParallel'  ] = False  # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
+    self.runInfoDict['parallelMethod'    ] = None   #What parallel method to use? None (shared memory), dask, ray ...
     self.runInfoDict['ParallelCommand'   ] = ''     # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''     # the command that should be used to submit multi-threaded
     self.runInfoDict['totalNumCoresUsed' ] = 1      # total number of cores used by driver
@@ -400,7 +403,9 @@ class Simulation(MessageUser):
       for element in unknownAttribs:
         errorMsg += ' ' + element
       self.raiseAnError(IOError, errorMsg)
-    self.verbosity = xmlNode.attrib.get('verbosity', 'all').lower()
+    if  'verbosity' in xmlNode.attrib.keys():
+      #Note: verbosity default set at __init__
+      self.verbosity = xmlNode.attrib['verbosity'].lower()
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug(f'Setting "printTimeStamps" to {xmlNode.attrib["printTimeStamps"]}')
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
@@ -656,6 +661,13 @@ class Simulation(MessageUser):
         self.runInfoDict['internalParallel'] = utils.interpretBoolean(element.text)
         dashboard = element.attrib.get("dashboard",'False')
         self.runInfoDict['includeDashboard'  ] = utils.interpretBoolean(dashboard)
+      elif element.tag == 'parallelMethod':
+        parallelMethodStr = element.text.strip().lower()
+        if parallelMethodStr in ParallelLibEnum.__members__:
+          self.runInfoDict['parallelMethod'] = ParallelLibEnum.__members__[parallelMethodStr]
+        else:
+          parallelMethods = list(ParallelLibEnum.__members__.keys())
+          self.raiseAnError(IOError, f'Unknown parallel method: {parallelMethodStr}, supported methods are {parallelMethods}')
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'] = int(element.text)
       elif element.tag.lower() == 'maxqueuesize':
@@ -672,6 +684,8 @@ class Simulation(MessageUser):
         self.runInfoDict['headNode'] = element.text.strip()
       elif element.tag == 'remoteNodes':
         self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
+      elif element.tag == 'schedulerFile':
+        self.runInfoDict['schedulerFile'] = element.text.strip()
       elif element.tag == 'PYTHONPATH':
         self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
@@ -688,7 +702,12 @@ class Simulation(MessageUser):
         # parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
           self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
-          self.__modeHandler.XMLread(element)
+          if hasattr(self.__modeHandler,"handleInput"):
+            paramInput = self.__modeHandler.getInputSpecification()()
+            paramInput.parseNode(element)
+            self.__modeHandler.handleInput(paramInput)
+          else:
+            self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError, f"Unknown mode {self.runInfoDict['mode']}")
       elif element.tag == 'expectedTime':

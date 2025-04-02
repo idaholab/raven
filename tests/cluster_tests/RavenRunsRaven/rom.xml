@@ -16,16 +16,8 @@
   <RunInfo>
     <WorkingDir>Rom</WorkingDir>
     <Sequence>FirstMRun</Sequence>
-    <!--
-      <mode>mpi</mode>
-    -->
     <batchSize>5</batchSize>
-    <mode>
-      mpi
-      <runQSUB/>
-    </mode>
     <expectedTime>0:10:0</expectedTime>
-    <clusterParameters>-P ops_gen -j oe</clusterParameters>
   </RunInfo>
 
   <Files>
@@ -50,7 +42,7 @@
   <!-- MODELS -->
   <Models>
     <Code name="raven_running_rom" subType="RAVEN">
-      <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+      <executable>%RAVENEXECUTABLE%</executable>
       <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
       <conversion>
         <module source="testConversionModule.py">
