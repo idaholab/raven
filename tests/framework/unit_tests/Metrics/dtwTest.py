@@ -30,17 +30,6 @@ from ravenframework import MessageHandler
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug'})
 
-def createElement(tag,attrib={},text={}):
-  """
-    Method to create a dummy xml element readable by the distribution classes
-    @ In, tag, string, the node tag
-    @ In, attrib, dict, optional, the attribute of the xml node
-    @ In, text, dict, optional, the dict containing what should be in the xml text
-  """
-  element = ET.Element(tag,attrib)
-  element.text = text
-  return element
-
 #
 #
 # checkers
@@ -85,12 +74,11 @@ def checkAnswer(comment,value,expected,tol=1e-10,relative=False):
 #      <localDistance>euclidean</localDistance>
 #    </Metric>
 #
-dtwElement = ET.Element("Metric",{"name":"dtw","subType":"DTW"})
-dtwElement.append(createElement("order",        text="0"))
-dtwElement.append(createElement("localDistance",text="euclidean"))
 
 DTWinstance = DTW.DTW()
-DTWinstance._readMoreXML(dtwElement)
+DTWinstance.order=0
+DTWinstance.localDistance = "euclidean"
+
 #
 #
 # initialize test
