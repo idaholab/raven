@@ -29,13 +29,6 @@ class Melcor(CodeInterfaceBase):
     This class is used a part of a code dictionary to specialize Model. Code for different MELCOR versions
     like MELCOR 2.2x, MELCOR 1.86, MELCOR for fusion applications
   """
-  def __init__(self):
-    """
-      Constructor
-      @ In, None
-      @ Out, None
-    """
-    self.inputExtensions = ['i','inp']  # defined before PR#2017
 
   def _readMoreXML(self,xmlNode):
     """
@@ -70,20 +63,17 @@ class Melcor(CodeInterfaceBase):
     """
     foundMelcorInp = False
     for index, inputFile in enumerate(currentInputFiles):
-      if inputFile.getExt() in self.getInputExtension():
+      if inputFile.getExt() in ['i','inp']:
         if foundMelcorInp:
-          raise IOError(f"Multiple Melcor input files are found {inputFile} and {melgIn}, please check your inputs, only one of input is accepted")
+          raise IOError(f"Multiple Melcor input files are found, only one of input is accepted")
         foundMelcorInp = True
         melcIn = currentInputFiles[index]
 
     if not foundMelcorInp:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-
-    if not foundMelcorInp:
-      raise IOError("Unknown input extensions. Expected input file extensions are "+ ",".join(self.getInputExtension())+" No input file has been found!")
+      raise IOError('None of the input files has been found')
+      
     return melcIn
-
-
+  
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
@@ -105,8 +95,8 @@ class Melcor(CodeInterfaceBase):
       precommand = executable + clargs['text']
     else:
       precommand = executable
-    melgCommand = str(preExec)+ ' '+melcin.getFilename()
-    melcCommand = precommand+ ' '+melcin.getFilename()
+    melgCommand = str(preExec)    + ' ' + melcin.getFilename()
+    melcCommand = str(precommand) + ' ' + melcin.getFilename()
     returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],melcOut
 
     return returnCommand
