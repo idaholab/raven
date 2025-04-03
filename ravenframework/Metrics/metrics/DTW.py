@@ -101,8 +101,7 @@ class DTW(MetricInterface):
     tempX = copy.copy(x)
     tempY = copy.copy(y)
     if axis == 0:
-       pass
-      #assert (len(x) == len(y))
+       assert (len(x) == len(y))
     elif axis == 1:
       assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
               the same as the second dimension of second input!")
@@ -135,10 +134,9 @@ class DTW(MetricInterface):
       @ Out, value, float, distance between x and y
     """
     r, c = len(x[0,:]), len(y[0,:])
-    D0 = np.zeros((r + 1, c + 1))
+    D0 = np.zeros((r+1, c+1))
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
-    print(self.localDistance)
     D1 = spatialDistance.cdist(x.T,y.T, metric=self.localDistance)
     D0[1:, 1:] = D1
 
@@ -146,7 +144,7 @@ class DTW(MetricInterface):
     for i in range(1, r+1):
         for j in range(1, c+1):
             D0[i, j] += min(D0[i-1, j], D0[i, j-1], D0[i-1, j-1])
-    
+
     if returnPath:
        path = self.tracePath(D1,r,c)
        return D0[r, c], path
