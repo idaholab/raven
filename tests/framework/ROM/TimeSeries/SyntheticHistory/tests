@@ -283,4 +283,12 @@
       zero_threshold = 1e-3
     [../]
   [../]
+
+  [./Residuals]
+    type = 'RavenFramework'
+    input = 'residuals.xml'
+    output = 'Residuals/romMeta.xml'
+    rel_err = 1e-6
+    zero_threshold = 1e-12
+  [../]
 []
