@@ -1,0 +1,4 @@
+include LICENSE
+include NOTICE.txt
+include README.md
+recursive-include src *.py

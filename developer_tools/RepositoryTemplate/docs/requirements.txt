@@ -1,0 +1,7 @@
+sphinx>=6.2.0
+sphinx-rtd-theme
+nbsphinx
+sphinx-copybutton
+sphinx-autoapi
+furo
+pypandoc_binary
