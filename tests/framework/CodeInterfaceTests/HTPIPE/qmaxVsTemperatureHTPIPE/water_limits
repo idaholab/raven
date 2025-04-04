@@ -1,0 +1,36 @@
+         2               calculate q vs tee
+         3               geometry: wickless pipe    
+         5               working fluid: water     
+         5               input choice: does not apply      
+         5               input choice: does not apply      
+         3               source coupling:does not apply      
+         3               sink coupling:does not apply      
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         $RAVEN-evapLength|8.5f$         evaporator length (cm)
+         5.00000         adiabatic length (cm)
+         $RAVEN-condLength|8.5f$         condenser length (cm)                                            
+        90.00000         tilt angle (0 to 90, positive for assist)
+         0.50000         pipe inside radius (cm)                                          
+         0.00000         default value (should be 0 for this geometry)                    
+     0.10000E+01         default value (should be 1 for this geometry)                    
+         1.00000         default value (should be 1 for this geometry)                    
+         0.00600         depth of surface texture                                         
+         0.00000         default value (should be 0 for this geometry)                    
+         0.01826         default value (should be 0 for this geometry)                    
+         0.00000         default value (should be 0)                                      
+         1.00000         default value (should be 1 for this geometry)                    
+         0.00000         default value (should be 0 for this geometry)                    
+       300.00000         lowest evaporator exit temperature (K)                           
+       340.00000         highest evaporator exit temperature (K)                          
+         1.00000         temperature increment (K)                                        
+         0.00000         default value (should be zero)                                   
+         0.00000         default value (should be zero)                                   
+         1.00000         wick surface porosity (0.<poro<1.)                               
+         0.50000         thermal conductivity of pipe wick (W/cm K)                       
+         0.00000         default value should be zero                                     
+         0.00000         nucl. site radius (cm),if 0.0 defaults to .00127                 
+         0.00000         default value (should be zero)                                   

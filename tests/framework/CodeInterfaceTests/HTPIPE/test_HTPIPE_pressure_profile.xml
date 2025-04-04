@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/HTPIPE.htpipe_pressure_profile</name>
+    <author>alfoa</author>
+    <created>2025-03-28</created>
+    <classesTested>Models.Code.HTPIPE</classesTested>
+    <description>
+       An example of using the interface with HTPIPE for the calculation type 2, which
+       allows to compute the pressure profile in the heat pipe
+    </description>
+ 
+  </TestInfo>
+  <RunInfo>
+    <JobName>htpipe_pressure_profile</JobName>
+    <Sequence>sample</Sequence>
+    <WorkingDir>pressureProfileHTPIPE</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="water" type="htpipe">water</Input>
+  </Files>
+
+  <Models>
+    <Code name="htpipe_code" subType="HTPIPE">
+      <executable>.</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="power">
+      <lowerBound>50.</lowerBound>
+      <upperBound>200.</upperBound>
+    </Uniform>
+    <Uniform name="temperature">
+      <lowerBound>300.0</lowerBound>
+      <upperBound>340.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="power">
+        <distribution>power</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.1 0.9</grid>
+      </variable>
+      <variable name="temperature">
+        <distribution>temperature</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.2 0.8</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" clearRunDir="False">
+      <Input   class="Files" type="htpipe">water</Input>
+      <Model   class="Models" type="Code">htpipe_code</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output  class="DataObjects" type="HistorySet">samplesHS</Output>
+      <Output  class="OutStreams" type="Print">samplesHS</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="samplesHS">
+      <Input>power,temperature</Input>
+      <Output>dist,pvap,pliq,tempx</Output>
+      <options>
+        <pivotParameter>dist</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samplesHS">
+      <type>csv</type>
+      <source>samplesHS</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
