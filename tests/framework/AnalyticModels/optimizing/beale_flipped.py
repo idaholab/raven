@@ -19,9 +19,20 @@
 # parameter range is -4.5 <= x,y <= 4.5
 
 def evaluate(x,y):
+  """
+    @ In, x, float, x coordinate
+    @ In, y, float, y coordinate
+    @ Out, -beale, float, polynomial of the inputs
+  """
   beale = (1.5 - x + x*y)**2 + (2.25 - x + x*y*y)**2 + (2.625 - x + x*y*y*y)**2
   return -1.0*beale
 
 def run(self,Inputs):
+  """
+    RAVEN API
+    @ In, self, object, RAVEN container
+    @ In, Inputs, dict, additional inputs
+    @ Out, None
+  """
   self.ans = evaluate(self.x,self.y)
 
