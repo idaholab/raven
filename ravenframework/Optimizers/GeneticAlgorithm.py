@@ -973,7 +973,6 @@ class GeneticAlgorithm(RavenSampled):
 
     if self._writeSteps == 'every':
       self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
-      #self.raiseADebug("### self.population.shape is {}".format(self.population.shape))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
         if self._isMultiObjective:
           rlzDict = self.population.isel(chromosome=i).to_series().to_dict()
@@ -1050,9 +1049,11 @@ class GeneticAlgorithm(RavenSampled):
     """
       Collects the point (dict) from a realization
       @ In, population, Dataset, container containing the population
-      @ In, objectiveVal, list, objective values at each chromosome of the realization
       @ In, rank, xr.DataArray, rank values at each chromosome of the realization
-      @ In, crowdingDistance, xr.DataArray, crowdingDistance values at each chromosome of the realization
+      @ In, CD (crowdingDistance), xr.DataArray, crowdingDistance values at each chromosome of the realization
+      @ In, objVal, list, objective values at each chromosome of the realization
+      @ In, fitness, dict, population fitness
+      @ In, constraintsV, xr.DataArray, calculated contraints value
       @ Out, point, dict, point used in this realization
     """
     rankOneIDX = np.where(rank.data == 1)[0].tolist()
@@ -1128,12 +1129,10 @@ class GeneticAlgorithm(RavenSampled):
     # but that will only search the "best points" so is slower at finding
     # one that matches the objective.
     o1 = kwargs['new']
-    #print(f"{o1=}")
     for j in range(len(np.atleast_1d(o1[self._objectiveVar[0]]))):
       converged = True
       bestObjective = []
       for i,objVar in enumerate(self._objectiveVar):
-        #print(f"{objVar=}  {np.atleast_1d(o1[objVar])[j]=} {self._convergenceCriteria['objective'][i]=}")
         currentObj = np.atleast_1d(o1[objVar])[j]*self._objMult[objVar]
         bestObjective.append(currentObj*self._objMult[objVar])
         converged = (currentObj == self._convergenceCriteria['objective'][i]) and converged
