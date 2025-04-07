@@ -327,7 +327,7 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionType = None                             # type of the parent selection process chosen
     self._parentSelectionInstance = None                         # instance of the parent selection process chosen
     self._nParents = None                                        # number of parents
-    self._kSelection = None                                      # number of chromosomes selected for tournament selection
+    self._kSelection = 3                                         # number of chromosomes selected for tournament selection
     self._nChildren = None                                       # number of children
     self._crossoverType = None                                   # type of the crossover process chosen
     self._crossoverPoints = None                                 # point where crossover process will happen
@@ -642,9 +642,7 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     # k-Selection node                                                                #
     ####################################################################################
-    if reproductionNode.findFirst('kSelection') is None:
-      self._kSelection = 3 # Default value is set to 3.
-    else:
+    if reproductionNode.findFirst('kSelection') is not None:
       self._kSelection = reproductionNode.findFirst('kSelection').value
 
     ####################################################################################
