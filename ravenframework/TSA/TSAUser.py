@@ -20,6 +20,7 @@ Contains a utility base class for accessing commonly-used TSA functions.
 import numpy as np
 import copy
 from inspect import isabstract
+from collections import defaultdict
 
 from ..utils import xmlUtils, InputData, InputTypes
 
@@ -76,6 +77,7 @@ class TSAUser:
     self._tsaTargets = None          # cached list of targets
     self._saveResiduals = False      # switch for saving algorithm residuals at train time
     self._residuals = {}             # residuals by algorithm and target
+    self._globalResiduals = {}       # residuals by algorithm and target for global algorithms
     self.target = None
 
   def readTSAInput(self, spec, hasClusters=False):
@@ -154,6 +156,8 @@ class TSAUser:
     self._paramNames = None          # cached list of parameter names
     self._paramRealization = None    # cached dict of param variables mapped to values
     self._tsaTargets = None          # cached list of targets
+    self._residuals = {}             # algorithm training residuals
+    self._globalResiduals = {}       # global algorithm training residuals
 
   def getTargets(self):
     """
@@ -225,6 +229,7 @@ class TSAUser:
 
     # if NOT training globally, deep-ish copy, so we don't mod originals
     residual = targetVals if trainGlobal else targetVals[:, :, :]
+    savedResiduals = self._globalResiduals if trainGlobal else self._residuals
     # check if training globally, if so we only train global algos
     algorithms = self._tsaGlobalAlgorithms if trainGlobal else self._tsaAlgorithms
 
@@ -249,7 +254,7 @@ class TSAUser:
         residual[0, :, indices] = algoResidual.T  # transpose, again because of indices
       # Save the residuals if requested
       if self._saveResiduals:
-        self._residuals[algo.name] = {target: resid for target, resid in zip(self.target, residual[0].T)}
+        savedResiduals[algo.name] = {target: np.copy(resid) for target, resid in zip(self.target, residual[0].T)}
 
   def evaluateTSASequential(self, evalGlobal=False, evaluation=None, slicer=None):
     """
@@ -336,7 +341,8 @@ class TSAUser:
     """
     residsNode = xmlUtils.newNode('residuals')
     tsaNode.append(residsNode)
-    for algo, residuals in self._residuals.items():
+    residsToWrite = self._residuals or self._globalResiduals  # Write global residuals if there's nothing in self._residuals. Depends on the global algorithms always being fitted, then written first.
+    for algo, residuals in residsToWrite.items():
       algoNode = xmlUtils.newNode(algo)
       for target, resids in residuals.items():
         algoNode.append(xmlUtils.newNode(target, text=np.array2string(resids, separator=',').strip('[]')))
