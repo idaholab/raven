@@ -170,7 +170,7 @@ def inversionMutator(offSprings, distDict, **kwargs):
       seq = np.arange(locL,locU+1)
       allElems = []
       for i,elem in enumerate(seq):
-         allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
+        allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
 
       mirrSeq = allElems[::-1]
       mirrElems = []

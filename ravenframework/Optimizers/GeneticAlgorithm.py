@@ -17,7 +17,6 @@
   Genetic Algorithm-based optimization. Multiple strategies for
   mutations, cross-overs, etc. are available.
   Created June,3,2020
-  Updated Sepember,17,2023
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim,
     Joshua Cogliati
   References
