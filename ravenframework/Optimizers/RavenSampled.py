@@ -354,13 +354,13 @@ class RavenSampled(Optimizer):
 
       if self._isMultiObjective:
         # Format the values in the array
-        formatted_values = np.vectorize(lambda v: valueTemplate.format(val=v))(self._objMultArray*val)
+        formattedValues = np.vectorize(lambda v: valueTemplate.format(val=v))(self._objMultArray*val)
 
         # Combine the formatted values into a single string with appropriate spacing
-        formatted_values_string = '\n'.join(['   '.join(row) for row in formatted_values])
+        formattedValuesString = '\n'.join(['   '.join(row) for row in formattedValues])
 
         # Raise debug message for the entire formatted string
-        self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formatted_values_string.format(formatted_values))
+        self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formattedValuesString.format(formattedValues))
       else:
         self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=self._objMultArray * val))
       if bestValue is None or val < bestValue:
