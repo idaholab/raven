@@ -789,13 +789,9 @@ class GeneticAlgorithm(RavenSampled):
 
     population = datasetToDataArray(rlz, list(self.toBeSampled))
 
-    # Handle objective values differently for single and multi-objective cases
-    if self._isMultiObjective:
-        objectiveVal = []
-        for i in range(len(self._objectiveVar)):
-            objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
-    else:
-        objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar[0]].data))
+    objectiveVal = []
+    for i in range(len(self._objectiveVar)):
+      objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
 
     # 1. Check constraint violations and calculate the constraint function g (<0 if the constraint is violated)
     g = constraintHandling(self, info, rlz, population, objectiveVal, multiObjective=self._isMultiObjective)
@@ -812,8 +808,8 @@ class GeneticAlgorithm(RavenSampled):
 
     # Single-objective post-processing (if needed)
     if not self._isMultiObjective:
-        self._collectOptPoint(rlz, populationFitness, objectiveVal, g)
-        self._resolveNewGeneration(traj, rlz, info, objectiveVal, populationFitness, g)
+        self._collectOptPoint(rlz, populationFitness, objectiveVal[0], g)
+        self._resolveNewGeneration(traj, rlz, info, objectiveVal[0], populationFitness, g)
 
     # 3. Survivor selection
     if self._activeTraj:

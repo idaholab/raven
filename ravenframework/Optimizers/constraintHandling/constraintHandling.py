@@ -55,11 +55,8 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
     for index, individual in enumerate(offSprings):
         newOpt = individual
 
-        #note that objectiveVal is 2d in multiObjective and 1d in single
-        if multiObjective:
-            optDict = dict(zip(self._objectiveVar, [item[index] for item in objectiveVal]))
-        else:
-            optDict = {self._objectiveVar[0]: objectiveVal[index]}
+        optDict = dict(zip(self._objectiveVar, [item[index] for item in objectiveVal]))
+
         opt = {k: self._objMult[k] * optDict[k] for k in self._objectiveVar}
 
         for p, v in constraintData.items():
