@@ -101,7 +101,7 @@ class DTW(MetricInterface):
     tempX = copy.copy(x)
     tempY = copy.copy(y)
     if axis == 0:
-       assert (len(x) == len(y))
+      assert (len(x) == len(y))
     elif axis == 1:
       assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
               the same as the second dimension of second input!")
@@ -146,21 +146,23 @@ class DTW(MetricInterface):
             D0[i, j] += min(D0[i-1, j], D0[i, j-1], D0[i-1, j-1])
 
     if returnPath:
-       path = self.tracePath(D1,r,c)
+       path = self.tracePath(D1)
        return D0[r, c], path
     else:
        return D0[r, c]
 
-  def tracePath(self, D, i, j):
+  def tracePath(self, D):
     """
       This method calculate the time warping path given a local distance matrix D
       @ In, D,  numpy.ndarray (2D), local distance matrix D
-      @ Out, p, numpy.ndarray (1D), path along horizontal direction
-      @ Out, q, numpy.ndarray (1D), path along vertical direction
+      @ Out, warpingPath, numpy.ndarray (2D), DTW path along the D matrix
     """
-    warping_path = []
+    i, j = D.shape
+    i=i-1
+    j=j-1
+    warpingPath = []
     while i > 0 or j > 0:
-        warping_path.append((i-1, j-1))
+        warpingPath.append((i-1, j-1))
         if i > 0 and j > 0:
             min_cost = min(D[i-1, j], D[i, j-1], D[i-1, j-1])
             if min_cost == D[i-1, j-1]:
@@ -173,6 +175,6 @@ class DTW(MetricInterface):
             i = i-1
         else:
             j = j-1
-    warping_path.reverse()
+    warpingPath.reverse()
 
-    return np.array(warping_path)
+    return np.array(warpingPath)

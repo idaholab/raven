@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Testing for the onePointCrossover method
-  @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
+  Testing for the DTW distance metrics
+  @authors: mandd
 """
 import os
 import sys
 import numpy as np
-import xml.etree.ElementTree as ET
 
 ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 sys.path.append(ravenDir)
@@ -26,6 +25,7 @@ frameworkDir = os.path.join(ravenDir, 'framework')
 
 from ravenframework.Metrics.metrics import DTW
 from ravenframework import MessageHandler
+from tests.framework.unit_tests.utils.testUtils import checkArray
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug'})
@@ -66,15 +66,6 @@ def checkAnswer(comment,value,expected,tol=1e-10,relative=False):
   else:
     results["pass"] += 1
 
-#
-#
-# initialize metric instance
-#    <Metric name="dtw" subType="DTW">
-#      <order>0</order>
-#      <localDistance>euclidean</localDistance>
-#    </Metric>
-#
-
 DTWinstance = DTW.DTW()
 DTWinstance.order=0
 DTWinstance.localDistance = "euclidean"
@@ -86,12 +77,23 @@ DTWinstance.localDistance = "euclidean"
 s1 = np.array([1, 2, 3, 2, 2.13, 1])
 s2 = np.array([1, 1, 2, 2, 2.42, 3, 2, 1])
 
-DTWdistance = DTWinstance.run(s1,s2)
+DTWdistance, path = DTWinstance.run(s1, s2, returnPath=True)
 
 ## TESTING
 # Test DTW distance metric
 expectedDTWdistance = 0.5499999999999998
-checkAnswer('DTW analytical test', DTWdistance, expectedDTWdistance)
+expectedPath = np.array([[0, 0],
+ [0, 1],
+ [1, 2],
+ [1, 3],
+ [1, 4],
+ [2, 5],
+ [3, 6],
+ [4, 6],
+ [5, 7]])
+checkAnswer('DTW analytical test: distance', DTWdistance, expectedDTWdistance)
+checkArray('DTW analytical test: path (1)', path[:,0], expectedPath[:,0])
+checkArray('DTW analytical test: path (2)', path[:,1], expectedPath[:,1])
 #
 # end
 #
