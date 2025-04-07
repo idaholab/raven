@@ -9,28 +9,6 @@
      $RAVEN-temperature|10.4f$         vapor temperature at evaporator exit (K)
          0.00000         source temperature (K)
          0.00000         sink temperature (K)                                             
-         0.00000         default value should be zero                                     
-        10.00000         evaporator length (cm)                                           
-         5.00000         adiabatic length (cm)                                            
-        20.00000         condenser length (cm)                                            
-        90.00000         tilt angle (0 to 90, positive for assist)                        
-         0.50000         pipe inside radius (cm)                                          
-         0.00000         default value (should be 0 for this geometry)                    
-     0.10000E+01         default value (should be 1 for this geometry)                    
-         1.00000         default value (should be 1 for this geometry)                    
-         0.00600         depth of surface texture                                         
-         0.00000         default value (should be 0 for this geometry)                    
-         0.00000         default value (should be 0 for this geometry)                    
-         0.00000         default value (should be 0)                                      
-         1.00000         default value (should be 1 for this geometry)                    
-         0.00000         default value (should be 0 for this geometry)                    
-         5.00000         number of increments in evaporator                               
-         3.00000         number of increments in adiabatic zone                           
-         5.00000         number of increments in condenser                                
-         0.00000         default value (should be zero)                                   
-         0.00000         default value (should be zero)                                   
-         1.00000         wick surface porosity (0.<poro<1.)                               
-         0.50000         thermal conductivity of pipe wick (W/cm K)                       
-         0.00000         default value should be zero                                     
-         0.00000         nucl. site radius (cm),if 0.0 defaults to .00127                 
-         0.00000         pipe outside radius (cm)                                         
+         0.00000         default value should be zero 
+
+         (...)           The remains of the input file is not reported for this test                                    
