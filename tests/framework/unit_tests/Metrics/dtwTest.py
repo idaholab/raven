@@ -91,9 +91,10 @@ expectedPath = np.array([[0, 0],
  [3, 6],
  [4, 6],
  [5, 7]])
+
 checkAnswer('DTW analytical test: distance', DTWdistance, expectedDTWdistance)
-checkArray('DTW analytical test: path (1)', path[:,0], expectedPath[:,0])
-checkArray('DTW analytical test: path (2)', path[:,1], expectedPath[:,1])
+checkArray('DTW analytical test: path (1)',  path[:,0],   expectedPath[:,0])
+checkArray('DTW analytical test: path (2)',  path[:,1],   expectedPath[:,1])
 #
 # end
 #
