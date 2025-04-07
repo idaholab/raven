@@ -340,7 +340,7 @@ class RavenSampled(Optimizer):
     statusTemplate = '   {traj:2d}  {status:^11s}  {val}'
     templateNoValue = '   {traj:2d}  {status:^11s}'
     # Define the template for the values
-    valueTemplate = '{val: 1.3e}'
+    valueTemplate = '{val}'
 
     # print cancelled traj
     for traj, info in self._cancelledTraj.items():
@@ -352,17 +352,14 @@ class RavenSampled(Optimizer):
       opt = self._optPointHistory[traj][-1][0]
       val = info['value']
 
-      if self._isMultiObjective:
-        # Format the values in the array
-        formattedValues = np.vectorize(lambda v: valueTemplate.format(val=v))(self._objMultArray*val)
+      # Format the values in the array
+      formattedValues = np.vectorize(lambda v: valueTemplate.format(val=v))(self._objMultArray*val)
 
-        # Combine the formatted values into a single string with appropriate spacing
-        formattedValuesString = '\n'.join(['   '.join(row) for row in formattedValues])
+      # Combine the formatted values into a single string with appropriate spacing
+      formattedValuesString = '\n'.join(['   '.join(row) for row in formattedValues])
 
-        # Raise debug message for the entire formatted string
-        self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formattedValuesString.format(formattedValues))
-      else:
-        self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=self._objMultArray * val))
+      # Raise debug message for the entire formatted string
+      self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formattedValuesString.format(formattedValues))
       if bestValue is None or val < bestValue:
         bestTraj = traj
         bestValue = val
@@ -388,19 +385,16 @@ class RavenSampled(Optimizer):
       bestOpt = self.denormalizeData(optElm)
       bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
 
-      if not self._isMultiObjective:
-
-        val = optElm[self._objectiveVar[0]]
-        self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=self._objMultArray * val))
-        self.raiseADebug('')
-        self.raiseAMessage(' - Final Optimal Point:')
-        finalTemplate = '    {name:^20s}  {value: 1.3e}'
-        finalTemplateInt = '    {name:^20s}  {value: 3d}'
-        self.raiseAMessage(finalTemplate.format(name=self._objectiveVar[0], value=self._objMultArray[0] * val))
-        self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
-        for var, val in bestPoint.items():
-          self.raiseAMessage(finalTemplate.format(name=var, value=val))
-        self.raiseAMessage('*' * 80)
+      val = optElm[self._objectiveVar[0]]
+      self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=self._objMultArray * val))
+      self.raiseADebug('')
+      self.raiseAMessage(' - Final Optimal Point:')
+      finalTemplate = '    {name}  {value}'
+      self.raiseAMessage(finalTemplate.format(name=self._objectiveVar, value=self._objMultArray * val))
+      self.raiseAMessage(finalTemplate.format(name='trajID', value=bestTraj))
+      for var, val in bestPoint.items():
+        self.raiseAMessage(finalTemplate.format(name=var, value=val))
+      self.raiseAMessage('*' * 80)
       # write final best solution to soln export
       if bestPoint not in self._finals:
           self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
