@@ -12,14 +12,14 @@
     <created>2022-12-05</created>
     <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
     <description>
-        This test is aimed to show how snapshot_PCM works.This test is using SETH-C and SETH-D data 
+        This test is aimed to show how snapshot_PCM works.This test is using SETH-C and SETH-D data
         as experiment (Feature) and application (Target) models.It basically runs a loop of static_PCM.
-        In each iteration of the loop,one execution of static_PCM is applied. 
+        In each iteration of the loop,one execution of static_PCM is applied.
         Here, temperatures from one timestep in SETH-C are used as experiemnt responses (Features);
         temperatures from the corresponding timestep in SETH-D are used as application responses (Target)
-        The output is a fraction value reflecting the uncertainty reduction fraction 
-        of Target Posterior comparing to the Target prior, 
-        which includes uncertainty reductions along timesteps 
+        The output is a fraction value reflecting the uncertainty reduction fraction
+        of Target Posterior comparing to the Target prior,
+        which includes uncertainty reductions along timesteps
         and has two columns:'time' and 'snapshot_pri_post_stdReduct'.
     </description>
   </TestInfo>
@@ -31,8 +31,8 @@
   <Models>
     <PostProcessor name="pcm_snapshot" subType="PhysicsGuidedCoverageMapping">
       <pivotParameter>time</pivotParameter>
-      <Features>exp|TempC</Features>
-      <Targets>app|TempD</Targets>
+      <prototypeOutputs>exp|TempC</prototypeOutputs>
+      <targetOutputs>app|TempD</targetOutputs>
       <Measurements>msr|TempMsrC</Measurements>
       <pcmType>Snapshot</pcmType>
     </PostProcessor>
@@ -60,32 +60,32 @@
   <DataObjects>
     <HistorySet name="exp">
       <options>
-       <pivotParameter>time</pivotParameter> 
+       <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempC</Output>     
+      <Output>TempC</Output>
     </HistorySet>
     <HistorySet name="app">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempD</Output>     
-    </HistorySet>      
+      <Output>TempD</Output>
+    </HistorySet>
     <HistorySet name="msr">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempMsrC</Output>     
-    </HistorySet>    
+      <Output>TempMsrC</Output>
+    </HistorySet>
     <HistorySet name="pcmSnapshot_metric">
       <Input>InputPlaceHolder</Input>
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
       <Output>snapshot_pri_post_stdReduct</Output>
     </HistorySet>
   </DataObjects>
 
-  <OutStreams>       
+  <OutStreams>
     <Print name="pcmSnapshot_metric_dump">
       <type>csv</type>
       <source>pcmSnapshot_metric</source>
