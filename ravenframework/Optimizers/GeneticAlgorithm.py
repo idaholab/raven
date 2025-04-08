@@ -1459,7 +1459,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, new, set, modified set of acceptable variables with all formatting complete
     """
     # remaking the list is easier than using the existing one
-    # acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+
     acceptable = super(RavenSampled, self)._formatSolutionExportVariableNames(acceptable)
     new = []
     while acceptable:

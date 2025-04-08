@@ -120,7 +120,7 @@ class RavenSampled(Optimizer):
     self._writeSteps = 'final'  # when steps should be written
     self._submissionQueue = deque()  # TODO change to Queue.Queue if multithreading samples
     self._stepTracker = {}  # action tracking: what is collected, what needs collecting?
-    self._optPointHistory = {}  # by traj, is a deque (-1 is most recent)
+    self._optPointHistory = {}  # a dictionary of deque's by traj (-1 is most recent)
     self._maxHistLen = 2  # FIXME who should set this?
     self._rerunsSinceAccept = {} # by traj, how long since our last accepted point
     # __private
@@ -152,6 +152,10 @@ class RavenSampled(Optimizer):
     # additional checks
     if self.limit is None:
       self.raiseAnError(IOError, 'A <limit> is required for any RavenSampled Optimizer!')
+    #These objective multipliers are use so that the objective can always
+    # appear as a minimization problem internally.
+    # This multipiles by -1 to turn a maximization problem to a minimization
+    # problem.
     self._objMult = {} #max will be -1, min will be 1
     self._objMultArray = np.ones(len(self._objectiveVar))
     for i in range(len(self._objectiveVar)):
