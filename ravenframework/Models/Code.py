@@ -610,17 +610,42 @@ class Code(Model):
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    if self.maxWallTime is not None:
-      timeout = time.time() + self.maxWallTime
-      while True:
-        time.sleep(0.5)
-        process.poll()
-        if time.time() > timeout and process.returncode is None:
-          self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
-          process.kill()
-          process.returncode = -1
-        if process.returncode is not None or time.time() > timeout:
-          break
+    if self.maxWallTime is not None or self.code._hasOnlineStopCriteriaCheck:
+      stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self._hasOnlineStopCriteriaCheck else None
+
+
+      if self.maxWallTime is not None:
+        currentTime = time.time()
+        timeout = currentTime + self.maxWallTime
+        while True:
+          time.sleep(0.5)
+          process.poll()
+          if time.time() > timeout and process.returncode is None:
+            self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+            process.kill()
+            process.returncode = -1
+          if stoppingCriteriaTimeInterval is not None and time.time() > currentTime + stoppingCriteriaTimeInterval:
+            continueSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
+            if not continueSim:
+              self.raiseAMessage(f'Code {self.code.type} triggered a stopping criteria to stop the run. Return code is set to 0!')
+              process.kill()
+              process.returncode = 0
+            currentTime = time.time()
+
+          if process.returncode is not None or time.time() > timeout:
+            break
+      else:
+        # only the stopping Criteria Check needs to be performed
+        while True:
+          time.sleep(stoppingCriteriaTimeInterval)
+          process.poll()
+          continueSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
+          if not continueSim:
+            self.raiseAMessage(f'Code {self.code.type} triggered a stopping criteria to stop the run. Return code is set to 0!')
+            process.kill()
+            process.returncode = 0
+          if process.returncode is not None:
+            break
     else:
       process.wait()
 

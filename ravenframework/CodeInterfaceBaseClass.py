@@ -56,12 +56,16 @@ class CodeInterfaceBase(BaseInterface):
       @ Out, None
     """
     super().__init__()
-    self.inputExtensions = []    # list of input extensions
-    self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
-    self._ravenWorkingDir = None # location of RAVEN's main working directory
-    self._csvLoadUtil = 'pandas' # utility to use to load CSVs
-    self.printFailedRuns = True  # whether to print failed runs to the screen
-    self._writeCSV = False       # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
+    self.inputExtensions = []                # list of input extensions
+    self._runOnShell = True                  # True if the specified command by the code interfaces will be executed through shell.
+    self._ravenWorkingDir = None             # location of RAVEN's main working directory
+    self._csvLoadUtil = 'pandas'             # utility to use to load CSVs
+    self.printFailedRuns = True              # whether to print failed runs to the screen
+    self._writeCSV = False                   # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
+    # has the underlying code interface a method to stop the simulation if a set of criteria is met?
+    onlineStopCriteria = getattr(self, "onlineStopCriteria", None)
+    self._hasOnlineStopCriteriaCheck = callable(onlineStopCriteria)
+    self.onlineStopCriteriaTimeInterval = 5.0  # 5 seconds interval by default (but it can be overwritten in the input file)
 
   def _handleInput(self, paramInput):
     """
@@ -152,6 +156,13 @@ class CodeInterfaceBase(BaseInterface):
     # should we print CSV even if the data can be directly returned to RAVEN?
     csvLog = xmlNode.find("csv")
     self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
+    # onlineStopCriteriaTimeInterval (if any)
+    onlineStopCriteriaTimeInterval = xmlNode.find("onlineStopCriteriaTimeInterval")
+    if  onlineStopCriteriaTimeInterval is not None:
+      self.onlineStopCriteriaTimeInterval = utils.floatConversion(onlineStopCriteriaTimeInterval.text)
+      if not self._hasOnlineStopCriteriaCheck:
+        self.raiseAWarning(f"onlineStopCriteriaTimeInterval provided, but Code interface {self.type} "
+                           "does not have 'onlineStopCriteriaCheck' method! IGNORED!")
     super().readXML(xmlNode, workingDir=workingDir)
 
   def _readMoreXML(self, xmlNode):
@@ -270,6 +281,35 @@ class CodeInterfaceBase(BaseInterface):
     """
     failure = False
     return failure
+
+  def onlineStopCriteriaCheck(self, command, output, workingDir):
+    """
+      This method is called by RAVEN during the simulation.
+      It is intended to provide means for the code interface to monitor the execution of a run
+      and stop it if certain creteria are met (defined at the code interface level)
+      For example, the underlying code interface can check for a figure of merit in the output file
+      produced by the driven code and stop the simulation if that figure of merit is outside a certain interval
+      (e.g. Pressure > 2 bar, stop otherwise, continue).
+      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal execution) and
+      the 'checkForOutputFailure' method is not called. So the simulation is considered to be successful.
+
+      NOTE: This method is only called if 'onlineStopCriteria' is implemented in the underlying code interface
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, continueSim, bool, True if the job needs to continue being executed, False if it needs to be stopped
+    """
+    continueSim = self.onlineStopCriteria(command, output, workingDir)
+    assert isinstance(continueSim, bool), f"First return argument of 'onlineStopCriteria' (for code interface {self.type}) must be a bool, got {type(continueSim)}!"
+    return continueSim
+
+  def getOnlineStopCriteriaTimeInterval(self):
+    """
+      Method to get the time interval (frequency) of how often the onlineStopCriteriaCheck needs to be inquired.
+      @ In, None
+      @ Out,
+    """
+    return self.onlineStopCriteriaTimeInterval
 
   # Function is required by the base class but not used in this and its subclass
   def run(self, *args, **kwargs):
