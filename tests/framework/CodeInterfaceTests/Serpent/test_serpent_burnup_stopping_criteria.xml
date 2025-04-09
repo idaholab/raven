@@ -23,8 +23,8 @@
   </RunInfo>
 
   <Files>
-    <Input name="originalInput" type="serpent">testInput.serpent</Input>
-    <Input name="geom_file" type="">geom_file</Input>
+    <Input name="originalInput" type="serpent">../SerpentTestBurnup/testInput.serpent</Input>
+    <Input name="geom_file" type="">../SerpentTestBurnup/geom_file</Input>
   </Files>
 
   <Models>
