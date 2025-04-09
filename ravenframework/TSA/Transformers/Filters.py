@@ -18,31 +18,51 @@ Filters which mask values based on some criterion.
 
 import abc
 import numpy as np
-from sklearn.base import TransformerMixin
+
+from ..TimeSeriesAnalyzer import TimeSeriesTransformer
+from ...utils import xmlUtils, InputData, InputTypes
 
 
 class FilterBase(TransformerMixin):
   """ Base class for transformers which filter or mask data """
-  def __init__(self, maskFill=np.nan):
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Define input spec for this class.
+      @ In, None
+      @ Out, specs, InputData.ParameterInput, input specification
+    """
+    specs = super().getInputSpecification()
+    specs.addParam('fill', param_type=InputTypes.FloatOrStringType, required=False, default='drop',
+                   descr=r"""fill strategy for masked values. May be one of 'drop' or a float value.
+                             If 'drop', the masked values are dropped and replaced with NaN. If a float value,
+                             that value is used to fill the masked values.""")
+    return specs
+
+  def handleInput(self, spec):
     """
       @ In, maskFill, float or None, value used to replace masked values; if maskFill=None,
                                       the masked values will be dropped
     """
-    # NOTE using np.nan to fill the masked values is advantageous because it preserves
-    ## the full shape and spacing of the masked array. However, this requires any
-    ## subsequent models to be able to correctly handle NaN values! Using maskFill=None
-    ## will drop the masked values instead of filling them with a different value.
-    self._maskFill = maskFill
-    self._mask = None
-    self._hiddenValues = None
+    settings = super().handleInput(spec)
+    fill = spec.parameterValues.get('fill', 'drop')
+    if isinstance(fill, str):
+      if fill.lower() != 'drop':
+        raise ValueError(f"An unsupported fill value for {spec.name} was provided. Must be one of 'drop' "
+                          "or a numeric value.")
+      settings['fillValue'] = np.nan
+    else:
+      settings['fillValue'] = fill
+    return settings
 
   @abc.abstractmethod
-  def criterion(self, X):
+  def criterion(self, signal, settings):
     """
-      Criterion for being masked. Evaluates to False if the value should be
-      masked and evaluates to True otherwise.
-      @ In, X, numpy.ndarray, data array
-      @ In, tol, float, tolerance for the criterion
+      Criterion for being masked. Evaluates to True if the value should be masked and evaluates to
+      False otherwise.
+      @ In, signal, numpy.ndarray, data array
+      @ In, settings, dict, initialization settings for this algorithm
       @ Out, mask, numpy.ndarray, numpy array of boolean values that masks values of X
     """
     pass
@@ -53,11 +73,14 @@ class FilterBase(TransformerMixin):
       @ In, X, np.ndarray, array of data
       @ Out, self, FilterBase, class instance
     """
-    # find indices to mask based on criterion
-    self._mask = self.criterion(X)
-    # save the masked (hidden) values
-    self._hiddenValues = np.ma.MaskedArray(X, mask=~self._mask)
-    return self
+    params = {}
+    for tg, target in enumerate(targets):
+      history = signal[:, tg]
+      mask = self.criterion(history, settings)
+      # save the masked (hidden) values
+      hiddenValues = history[mask]
+      params[target] = {'mask': mask, 'hiddenValues': hiddenValues}
+    return params
 
   def transform(self, X):
     """
@@ -65,17 +88,11 @@ class FilterBase(TransformerMixin):
       @ In, X, np.ndarray, array of data
       @ Out, xMasked, np.ndarray, array of masked data
     """
-    xMasked = np.ma.MaskedArray(X, mask=self._mask, fill_value=self._maskFill)
-    if self._maskFill is None:
-      xMasked = xMasked.compressed()
-    else:
-      xMasked = xMasked.filled()
-    if xMasked.ndim == 1:
-      # X is passed in as a column vector, and masking can flatten the array.
-      ## Reshaping the array here ensures xMasked is returned as a column
-      ## vector (2-d array) rather than as a flat, 1-d array.
-      xMasked = xMasked.reshape(-1, 1)
-    return xMasked
+    residual = initial.copy()
+    for t, (target, data) in enumerate(params.items()):
+      mask = data['mask']
+      residual[:, t] = np.ma.MaskedArray(residual[:, t], mask=mask, fill_value=settings['fillValue']).filled()
+    return residual
 
   def inverse_transform(self, X):
     """
@@ -99,10 +116,10 @@ class ZeroFilter(FilterBase):
     """
     specs = super().getInputSpecification()
     specs.name = 'zerofilter'
-    specs.description = r"""masks values that are near zero. The masked values are replaced with a fill
-    value (defaults to NaN). Caution should be used when using this algorithm because not all algorithms
-    can handle NaN values! A warning will be issued if NaN values are detected in the input of an algorithm
-    that does not support them."""
+    specs.description = r"""masks values that are near zero. The masked values are replaced with NaN
+    values. Caution should be used when using this algorithm because not all algorithms can handle
+    NaN values! A warning will be issued if NaN values are detected in the input of an algorithm that
+    does not support them."""
     specs.addParam('tol', param_type=InputTypes.FloatType, required=False, default=1e-8,
                    descr=r"""absolute tolerance about zero for which to apply the filter""")
     return specs

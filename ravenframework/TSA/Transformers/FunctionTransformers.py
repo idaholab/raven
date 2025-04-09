@@ -23,7 +23,7 @@ import scipy.special as sps
 import sklearn.preprocessing as skl
 
 from .ScikitLearnBase import SKLTransformer
-from ...utils import InputTypes
+from ...utils import InputTypes, InputData
 
 
 class LogTransformer(SKLTransformer):
