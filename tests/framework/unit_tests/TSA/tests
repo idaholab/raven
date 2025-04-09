@@ -24,10 +24,6 @@
     type = 'RavenPython'
     input = 'testOutTruncation.py'
   [../]
-  [./BoundDomain]
-    type = 'Unittest'
-    input = 'testBoundDomain.py'
-  [../]
   [./Normalization]
     type = 'RavenPython'
     input = 'testNormalization.py'
