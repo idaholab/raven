@@ -196,14 +196,13 @@ class SERPENT(GenericCode):
     """
       This method is called by RAVEN during the simulation.
       It is intended to provide means for the code interface to monitor the execution of a run
-      and stop it if certain creteria are met (defined at the code interface level)
+      and stop it if certain criteria are met (defined at the code interface level)
       For example, the underlying code interface can check for a figure of merit in the output file
       produced by the driven code and stop the simulation if that figure of merit is outside a certain interval
       (e.g. Pressure > 2 bar, stop otherwise, continue).
-      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal execution) and
+      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal termination) and
       the 'checkForOutputFailure' method is not called. So the simulation is considered to be successful.
 
-      NOTE: This method is only called if 'onlineStopCriteria' is implemented in the underlying code interface
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
@@ -212,7 +211,6 @@ class SERPENT(GenericCode):
     continueSim = True
     if self.stoppingCriteriaFunction is not None:
       inputRoot = output.replace("_res","")
-      print(os.path.join(workDir,output, ".m"))
       if os.path.exists(os.path.join(workDir,output+".m")):
         outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), self.eolTarget)
         results = outputParser.processOutputs()

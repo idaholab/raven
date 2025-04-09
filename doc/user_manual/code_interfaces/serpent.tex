@@ -42,10 +42,26 @@ In the RAVEN input file, your \xmlNode{Models} node should look like:
         DepletionReader, DetectorReader, DepmtxReader
       <additionalFileTypes/>
       <!-- EOL parameters -->
-      <EOL target="absKeff">1.0</EOL>
-      <EOL target="impKeff">1.0</EOL>
+      <EOL target="absKeff_0">1.0</EOL>
+      <EOL target="impKeff_0">1.0</EOL>
       <!-- Volume calculation -->
       <volumeCalculation nPoints="1e9">True</volumeCalculation>
+      <!--
+        For burnup calculation, the user can provide a
+        function to halt the simulation if a certain condition is
+        met. The criterion or criteria is or are defined through
+        an external RAVEN python function (e.g. ``criteria'' in the
+        following example). The time frequency of the check is defined
+        by the node onlineStopCriteriaTimeInterval. By default, the output
+        is checked every 10 seconds.
+       -->
+      <onlineStopCriteriaTimeInterval>
+        15.0
+      </onlineStopCriteriaTimeInterval>
+      <stoppingCriteriaFunction file="stoppingCriteria.py" name="criteria">
+        <variables>impKeff_0</variables>
+      </stoppingCriteriaFunction>
+      
     </Code>
 </Models>
 \end{lstlisting}
@@ -87,7 +103,61 @@ Additional XML sub-nodes can be optionally added in the \xmlNode{Code} XML node 
    \item \xmlNode{volumeCalculation}, \xmlDesc{bool, optional parameter},  true to activate the stochastic material volume calculation via Serpent ``checkvolumes'' command. If True, the execution of 
                                                              SERPENT is always preceded with a volume calculation. If the user wants to use the volume calculation output file in its SERPENT template input, he needs to include 
                                                              the filename in the SERPENT template input (e.g. include ``myInputFile.mvol'')  value of the ``target'' at which the time (in burnup calculations) of end of life should be recorded.
-                                                             The  \xmlNode{volumeCalculation} node  must contain the attribute \xmlAttr{nPoints}, which indicates the number of samples that needs to be used by SERPENT for the calculation of the volumes (e.g. 1e8).                                                         
+                                                             The  \xmlNode{volumeCalculation} node  must contain the attribute \xmlAttr{nPoints}, which indicates the number of samples that needs to be used by SERPENT for the calculation of the volumes (e.g. 1e8).
+   \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds)) at which  the stopping function (if inputted)
+                                                            is inquired (stoppingCriteriaFunction).
+                                                            For burnup calculation, a good time frequency (time interval) is of the order of a the CPU time
+                                                            required for an eginevalue calc. \default{10}.
+   \item \xmlNode{stoppingCriteriaFunction}, \xmlDesc{XML node, optional node}, For burnup calculation, the user can provide a
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through an external RAVEN python function. The function must return a ``bool'':
+                                                            \begin{itemize}
+                                                              \item True, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item False, if the simulation must STOP (i.e. the criteria are met)
+                                                            \end{itemize}
+                                                            The syntax of the XML node follows the RAVEN function structure (see Section \ref{sec:functions}):
+                                                            \begin{itemize}
+                                                              \itemsep0em
+                                                              \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this function.
+                                                              \item \xmlAttr{file}, \xmlDesc{required string attribute}, absolute or
+                                                              relative path specifying the python module (file) associated to this function.
+                                                              \nb If a relative path is specified, it must be relative with respect
+                                                              to where the user is running the instance of RAVEN.
+                                                              %
+                                                            \end{itemize}
+                                                            In order to make the RAVEN code aware of the variables the user is going to
+                                                            manipulate/use in her/his own python function, the variables need to be
+                                                            specified in the \xmlNode{stoppingCriteriaFunction} input block.
+                                                            %
+                                                            The user needs to input, within this block, only the variables directly used by
+                                                            the external function and not the local variables that the user might use in the function for local calculation.
+                                                            %
+                                                            These variables are inputted in a single
+                                                            \xmlNode{variables} XML node:
+                                                            \begin{itemize}
+                                                              \item \xmlNode{variables}, \xmlDesc{comma separated list, required parameter}, in the body of
+                                                              this XML node, the user needs to specify the name of the variables (separated by commas).
+                                                              %
+                                                              This variables need to match variables used/defined in the external python
+                                                              function.
+                                                              %
+                                                            \end{itemize}
+                                                            When the external function variables are defined, at runtime, RAVEN initializes
+                                                            them and keeps track of their values during the simulation.
+                                                            %
+                                                            Each variable defined in the \xmlNode{stoppingCriteriaFunction} block is available in the
+                                                            function as a python \texttt{raven.} member. In the following, an example of a
+                                                            user-defined stopping condition function is reported.
+                                                            
+\begin{lstlisting}[language=python]
+import numpy as np
+def criteria(raven):
+  if raven.impKeff_0[-1] < 1.0:
+    return False
+  else:
+    return True
+\end{lstlisting}
+
 \end{itemize}
 
 \subsubsection{Files}
