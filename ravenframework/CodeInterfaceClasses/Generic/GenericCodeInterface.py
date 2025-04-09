@@ -54,7 +54,7 @@ class GenericCode(CodeInterfaceBase):
     self.fixedOutFileName = outFileName.text if outFileName is not None else None
     if self.fixedOutFileName is not None:
       if '.' in self.fixedOutFileName and self.fixedOutFileName.split(".")[-1] != 'csv':
-        raise IOError('user defined output extension "'+userExt+'" is not a "csv"!')
+        raise IOError('user defined output extension "'+self.fixedOutFileName.split(".")[-1]+'" is not a "csv"!')
       else:
         self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
 
@@ -84,7 +84,6 @@ class GenericCode(CodeInterfaceBase):
     #if len(fargs['output'])<1 and 'output' not in clargs.keys():
     #  raise IOError('No output file was specified, either in clargs or fileargs!')
     #check all required input files are there
-    inFiles=inputFiles[:]
     #check for duplicate extension use
     extsClargs = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
     extsFargs  = list(ext[0] for ext in fargs['input'].values())

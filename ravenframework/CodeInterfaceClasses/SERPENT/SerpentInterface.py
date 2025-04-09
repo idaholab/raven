@@ -23,7 +23,6 @@ from xml.etree import ElementTree
 from ravenframework.utils import utils
 from ..Generic.GenericCodeInterface import GenericCode
 from ...Functions import factory as functionFactory
-from ...Functions import External as functionExternal
 from ...Functions import returnInputParameter
 from ...utils.TreeStructure import InputNode
 from . import serpentOutputParser as op
@@ -51,7 +50,7 @@ class SERPENT(GenericCode):
     except ImportError:
       raise ImportError("serpentTools not found and SERPENT Interface has been invoked. Install serpentTools through pip!")
     # intialize code interface
-    GenericCode.__init__(self)
+    super().__init__()
     self.printTag         = 'SERPENT'         # Print Tag
     self._fileTypesToRead = ['ResultsReader'] # container of file types to read
     # in case of burnup calc, the interface can compute the time at which FOMs (e.g. keff) crosses
@@ -87,6 +86,7 @@ class SERPENT(GenericCode):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
+    super()._readMoreXML(xmlNode)
     preVolumeCalc = xmlNode.find("volumeCalculation")
     if preVolumeCalc is not None:
       self.volumeCalc = utils.interpretBoolean(preVolumeCalc.text)
@@ -121,8 +121,6 @@ class SERPENT(GenericCode):
     # we just store it for now because we need the runInfo to be applied before parsing it
     self.stoppingCriteriaFunctionNode = xmlNode.find("stoppingCriteriaFunction")
 
-
-
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -130,6 +128,7 @@ class SERPENT(GenericCode):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
+    super().initialize(runInfo, oriInputFiles)
     if self.stoppingCriteriaFunctionNode is not None:
       # get instance of function and apply run info
       self.stoppingCriteriaFunction = functionFactory.returnInstance('External')
