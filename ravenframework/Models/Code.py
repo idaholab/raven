@@ -611,7 +611,7 @@ class Code(Model):
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     if self.maxWallTime is not None or self.code._hasOnlineStopCriteriaCheck:
-      stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self._hasOnlineStopCriteriaCheck else None
+      stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self.code._hasOnlineStopCriteriaCheck else None
 
 
       if self.maxWallTime is not None:
@@ -627,7 +627,8 @@ class Code(Model):
           if stoppingCriteriaTimeInterval is not None and time.time() > currentTime + stoppingCriteriaTimeInterval:
             continueSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
             if not continueSim:
-              self.raiseAMessage(f'Code {self.code.type} triggered a stopping criteria to stop the run. Return code is set to 0!')
+              self.raiseAMessage(f'Code "{self.code.name}". Job ID: "{str(process.pid)}" (type: "{self.code.printTag}") triggered a '
+                                 'stopping criteria to halt the run. Return code is set to 0!')
               process.kill()
               process.returncode = 0
             currentTime = time.time()
@@ -641,7 +642,7 @@ class Code(Model):
           process.poll()
           continueSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
           if not continueSim:
-            self.raiseAMessage(f'Code {self.code.type} triggered a stopping criteria to stop the run. Return code is set to 0!')
+            self.raiseAMessage(f'Code "{self.code.name}" (type: "{self.code.name}") triggered a stopping criteria to stop the run. Return code is set to 0!')
             process.kill()
             process.returncode = 0
           if process.returncode is not None:

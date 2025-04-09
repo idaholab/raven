@@ -210,10 +210,14 @@ class SERPENT(GenericCode):
       @ In, workingDir, string, current working dir
       @ Out, continueSim, bool, True if the job needs to continue being executed, False if it needs to be stopped
     """
-    inputRoot = output.replace("_res","")
-    outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), self.eolTarget)
-    results = outputParser.processOutputs()
-    continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
+    continueSim = True
+    if self.stoppingCriteriaFunction is not None:
+      inputRoot = output.replace("_res","")
+      print(os.path.join(workDir,output, ".m"))
+      if os.path.exists(os.path.join(workDir,output+".m")):
+        outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), self.eolTarget)
+        results = outputParser.processOutputs()
+        continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
 
     return continueSim
 
