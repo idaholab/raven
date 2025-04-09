@@ -146,10 +146,10 @@ class ZeroFilter(FilterBase):
     """
     specs = super().getInputSpecification()
     specs.name = 'zerofilter'
-    specs.description = r"""masks values that are near zero. The masked values are replaced with NaN
-    values. Caution should be used when using this algorithm because not all algorithms can handle
-    NaN values! A warning will be issued if NaN values are detected in the input of an algorithm that
-    does not support them."""
+    specs.description = r"""masks values that are near zero. The masked values are replaced with a fill
+    value (defaults to NaN). Caution should be used when using this algorithm because not all algorithms
+    can handle NaN values! A warning will be issued if NaN values are detected in the input of an algorithm
+    that does not support them."""
     specs.addParam('tol', param_type=InputTypes.FloatType, required=False, default=1e-8,
                    descr=r"""absolute tolerance about zero for which to apply the filter""")
     return specs

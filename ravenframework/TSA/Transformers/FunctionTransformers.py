@@ -177,13 +177,15 @@ class BoundDomain(SKLTransformer):
     specs = super().getInputSpecification()
     specs.name = 'bounddomain'
     specs.description = r"""applies the transformation function
-      $$ f(x) = \begin{cases}
-            L & x < L \\
-            x & L \leq x leq U \\
-            U & x > U
-         \end{cases} $$
+      \begin{align}
+        f(x) = \begin{cases}
+          L & x < L \\
+          x & L \leq x \leq U \\
+          U & x > U
+        \end{cases}
+      \end{align}
     for both the forward and inverse transformations to limit the training
-    signal and samples to the interval $\[L, U\]$."""
+    signal and samples to the interval $[L, U]$."""
     specs.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType, default=-np.inf,
                                                  descr=r"""Bounding interval lower bound $L$"""))
     specs.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType, default=np.inf,
