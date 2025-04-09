@@ -60,7 +60,7 @@ class SERPENT(GenericCode):
     self.nVolumePoints = None
     # function to be evaluated for the stopping condition if any
     self.stoppingCriteriaFunction = None
-    self.stoppingCriteriaFunctionNode = None
+    self._stoppingCriteriaFunctionNode = None
 
   def _findInputFile(self, inputFiles):
     """
@@ -118,7 +118,7 @@ class SERPENT(GenericCode):
                         f'{", ".join(op.serpentOutputAvailableTypes)}!!')
       self._fileTypesToRead += serpentFileTypes
     # we just store it for now because we need the runInfo to be applied before parsing it
-    self.stoppingCriteriaFunctionNode = xmlNode.find("stoppingCriteriaFunction")
+    self._stoppingCriteriaFunctionNode = xmlNode.find("stoppingCriteriaFunction")
 
   def initialize(self, runInfo, oriInputFiles):
     """
@@ -128,7 +128,7 @@ class SERPENT(GenericCode):
       @ Out, None
     """
     super().initialize(runInfo, oriInputFiles)
-    if self.stoppingCriteriaFunctionNode is not None:
+    if self._stoppingCriteriaFunctionNode is not None:
       # get instance of function and apply run info
       self.stoppingCriteriaFunction = functionFactory.returnInstance('External')
       self.stoppingCriteriaFunction.applyRunInfo(runInfo)
@@ -136,8 +136,8 @@ class SERPENT(GenericCode):
       functs = InputNode('Functions')
       # change tag name to External (to use the parser)
       # this is very ugly but works fine
-      self.stoppingCriteriaFunctionNode.tag = 'External'
-      functs.append(self.stoppingCriteriaFunctionNode)
+      self._stoppingCriteriaFunctionNode.tag = 'External'
+      functs.append(self._stoppingCriteriaFunctionNode)
       inputParams = returnInputParameter()
       inputParams.parseNode(functs)
       self.stoppingCriteriaFunction.handleInput(inputParams.subparts[0])
