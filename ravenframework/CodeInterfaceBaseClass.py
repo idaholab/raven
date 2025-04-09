@@ -300,7 +300,7 @@ class CodeInterfaceBase(BaseInterface):
       @ Out, continueSim, bool, True if the job needs to continue being executed, False if it needs to be stopped
     """
     continueSim = self.onlineStopCriteria(command, output, workingDir)
-    assert isinstance(continueSim, bool), f"First return argument of 'onlineStopCriteria' (for code interface {self.type}) must be a bool, got {type(continueSim)}!"
+    assert isinstance(continueSim, bool), f"Return argument of 'onlineStopCriteria' (for code interface {self.type}) must be a boolean, got {type(continueSim)}!"
     return continueSim
 
   def getOnlineStopCriteriaTimeInterval(self):
