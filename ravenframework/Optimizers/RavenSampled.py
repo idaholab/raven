@@ -374,6 +374,9 @@ class RavenSampled(Optimizer):
       # further check active unfinished trajectories
       # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
       # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+      self.raiseAWarning("No bestValue found in the trajectories, "+
+                         "this may indicate problems finding a solution. "+
+                         "Arbitarily defaulting to using trajectory 0.")
       traj = 0
       bestTraj = traj
     # sanity check: if there's no history (we never got any answers) then report rather than crash
