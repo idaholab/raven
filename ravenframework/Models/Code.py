@@ -612,8 +612,6 @@ class Code(Model):
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     if self.maxWallTime is not None or self.code._hasOnlineStopCriteriaCheck:
       stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self.code._hasOnlineStopCriteriaCheck else None
-
-
       if self.maxWallTime is not None:
         currentTime = time.time()
         timeout = currentTime + self.maxWallTime
@@ -632,7 +630,6 @@ class Code(Model):
               process.kill()
               process.returncode = 0
             currentTime = time.time()
-
           if process.returncode is not None or time.time() > timeout:
             break
       else:
