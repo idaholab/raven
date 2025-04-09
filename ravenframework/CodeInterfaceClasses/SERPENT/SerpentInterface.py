@@ -16,7 +16,6 @@ Created May 9th, 2019
 """
 #External Modules--------------------begin
 import os
-from xml.etree import ElementTree
 #External Modules--------------------end
 
 #Internal Modules--------------------begin
