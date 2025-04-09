@@ -20,6 +20,7 @@ Contains a utility base class for accessing commonly-used TSA functions.
 import numpy as np
 import copy
 from inspect import isabstract
+from collections import defaultdict
 
 from ..utils import xmlUtils, InputData, InputTypes
 

@@ -11,8 +11,4 @@
          0.00000         sink temperature (K)                                             
          0.00000         default value should be zero 
 
-<<<<<<< HEAD
          (...)           The remains of the input file is not reported for this test                                    
-=======
-         (...)           The remains of the input file is not reported for this test                                    
->>>>>>> e9ed81077 (redacted input file...no need for a complete one)
