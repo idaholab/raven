@@ -1441,11 +1441,12 @@ class GeneticAlgorithm(RavenSampled):
              'batchId': self.batchId,
              'AHDp': self.ahdp,
              'AHD': self.ahd,
-             'rank': 0 if not self._isMultiObjective else rlz['rank'],
-             'CD': 0 if not self._isMultiObjective else rlz['CD'],
              'HDSM': self.hdsm
              }
 
+    if self._isMultiObjective:
+      toAdd['rank'] = rlz['rank']
+      toAdd['CD'] = rlz['CD']
 
     for var, val in self.constants.items():
       toAdd[var] = val
