@@ -272,6 +272,17 @@ from .repairOperators.repair import returnInstance as repairReturnInstance
 class GeneticAlgorithm(RavenSampled):
   """
     This class performs Genetic Algorithm optimization ...
+
+    The realization used for sampling contains the genes, the
+    objectives and other variables. The objectives are changed to all
+    be minimization problems internally by multipilying by
+    self._objMult[varname].  All the variables in the realization are
+    internally normalized to improve the algorithm (methods
+    self.normalizeData and self.denormalizeData are used for this)
+
+    The objective variable names are in self._objectiveVar and the
+    gene (or chromosome) names are the keys in self.toBeSampled )
+
   """
   convergenceOptions = {'objective': r""" provides the desired value or values for the convergence criterion of the objective function
                         ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable
