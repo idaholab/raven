@@ -17,4 +17,12 @@
   test_interface_only = True 
   required_libraries='serpentTools'
  [../]
+ [./SerpentTestBurnupStoppingCriteria]
+  type = 'RavenFramework'
+  input = 'test_serpent_burnup_stopping_criteria.xml'
+  output = 'SerpentTestBurnupStoppingCriteria/RAVENoutHS_0.csv SerpentTestBurnupStoppingCriteria/RAVENoutHS_1.csv SerpentTestBurnupStoppingCriteria/sampleInput/1/testInput.serpent_res.csv'
+  csv = 'SerpentTestBurnupStoppingCriteria/RAVENout.csv'
+  test_interface_only = True 
+  required_libraries='serpentTools'
+ [../]
 []
