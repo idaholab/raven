@@ -189,7 +189,6 @@
                                                                 | batch                              |
                                                                 | batchId                            |
                                                                 | bestFitness                        |
-                                                                | bestObjective                      |
                                                                 | bestPoint                          |
                                                                 | constraintsV                       |
                                                                 | convergenceOptions                 |
@@ -326,7 +325,6 @@ class GeneticAlgorithm(RavenSampled):
     self.hdsm = np.NaN                                           # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
     self.bestFitness = None                                      # fitness value of the best solution found
-    self.bestObjective = None                                    # objective value of the best solution found
     self.multiBestPoint = {}                                     # the best solutions (chromosomes) found among population in a specific batchId
     self.multiBestFitness = {}                                   # fitness values of the best solutions found
     self.multiBestObjective = {}                                 # objective values of the best solutions found
@@ -949,7 +947,6 @@ class GeneticAlgorithm(RavenSampled):
     self.hdsm = np.NaN
     self.bestPoint = None
     self.bestFitness = None
-    self.bestObjective = None
     self.objectiveVal = None
     self.multiBestPoint = None
     self.multiBestFitness = None
@@ -978,7 +975,7 @@ class GeneticAlgorithm(RavenSampled):
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
-      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective if self._isMultiObjective else self.bestObjective)
+      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
 
@@ -1024,7 +1021,7 @@ class GeneticAlgorithm(RavenSampled):
             bestRlz['FitnessEvaluation_'+ fitName] = self.multiBestFitness[fitName].data
         bestRlz.update(self.multiBestPoint)
       else:
-        bestRlz[self._objectiveVar[0]] = self.bestObjective
+        bestRlz[self._objectiveVar[0]] = self.multiBestObjective[0]
         bestRlz['fitness'] = self.bestFitness
         bestRlz.update(self.bestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
@@ -1048,11 +1045,11 @@ class GeneticAlgorithm(RavenSampled):
                                                                           key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i, var in enumerate(selVars) if var in rlz.data_vars)
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
-    if (self.counter > 1 and obj[0] <= self.bestObjective and fit[0] >= self.bestFitness) or self.counter == 1:
+    if (self.counter > 1 and obj[0] <= self.multiBestObjective[0] and fit[0] >= self.bestFitness) or self.counter == 1:
       point.update(gOfBest)
       self.bestPoint = point
       self.bestFitness = fit[0]
-      self.bestObjective = obj[0]
+      self.multiBestObjective = np.array([obj[0]])
 
     return point
 
@@ -1148,10 +1145,7 @@ class GeneticAlgorithm(RavenSampled):
         bestObjective.append(currentObj*self._objMult[objVar])
         converged = (currentObj == self._convergenceCriteria['objective'][i]) and converged
       if converged:
-        if self._isMultiObjective:
-          self.multiBestObjective = np.array([bestObjective])
-        else:
-          self.bestObjective = bestObjective[0]
+        self.multiBestObjective = np.array([bestObjective])
         return converged
     return converged
 
