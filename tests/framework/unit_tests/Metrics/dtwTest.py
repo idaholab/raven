@@ -25,7 +25,7 @@ frameworkDir = os.path.join(ravenDir, 'framework')
 
 from ravenframework.Metrics.metrics import DTW
 from ravenframework import MessageHandler
-from tests.framework.unit_tests.utils.testUtils import checkArray
+#from tests.framework.unit_tests.utils.testUtils import checkArray
 
 mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity':'debug'})
@@ -37,7 +37,7 @@ mh.initialize({'verbosity':'debug'})
 
 results = {"pass":0,"fail":0}
 
-def checkAnswer(comment,value,expected,tol=1e-10,relative=False):
+def checkAnswerDTW(comment,value,expected,tol=1e-10,relative=False):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
@@ -59,12 +59,55 @@ def checkAnswer(comment,value,expected,tol=1e-10,relative=False):
     diff = abs(val - expect) if not relative else abs(val - expect)/denominator
   else:
     diff = 0.0 if val == expect else tol + 1.0
-
+  
   if diff > tol:
     print("checking answer",comment,val,"!=",expect)
     results["fail"] += 1
   else:
     results["pass"] += 1
+
+def checkAnswer(comment,value,expected,tol=1e-10,updateResults=True):
+  """
+    This method is aimed to compare two floats given a certain tolerance
+    @ In, comment, string, a comment printed out if it fails
+    @ In, value, float, the value to compare
+    @ In, expected, float, the expected value
+    @ In, tol, float, optional, the tolerance
+    @ In, updateResults, bool, optional, if True updates global results
+    @ Out, None
+  """
+  if abs(value - expected) > tol:
+    print("checking answer",comment,value,"!=",expected)
+    if updateResults:
+      results["fail"] += 1
+    return False
+  else:
+    if updateResults:
+      results["pass"] += 1
+    return True
+
+def checkArray(comment,check,expected,tol=1e-10):
+  """
+    This method is aimed to compare two arrays of floats given a certain tolerance
+    @ In, comment, string, a comment printed out if it fails
+    @ In, check, list, the value to compare
+    @ In, expected, list, the expected value
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
+  same=True
+  if len(check) != len(expected):
+    same=False
+  else:
+    for i in range(len(check)):
+      same = same*checkAnswer(comment+'[%i]'%i,check[i],expected[i],tol,False)
+  if not same:
+    print("checking array",comment,"did not match!")
+    results['fail']+=1
+    return False
+  else:
+    results['pass']+=1
+    return True
 
 DTWinstance = DTW.DTW()
 DTWinstance.order=0
@@ -92,9 +135,33 @@ expectedPath = np.array([[0, 0],
  [4, 6],
  [5, 7]])
 
-checkAnswer('DTW analytical test: distance', DTWdistance, expectedDTWdistance)
+checkAnswerDTW('DTW analytical test: distance', DTWdistance, expectedDTWdistance)
 checkArray('DTW analytical test: path (1)',  path[:,0],   expectedPath[:,0])
 checkArray('DTW analytical test: path (2)',  path[:,1],   expectedPath[:,1])
+
+s12d = np.array([[0, 0],
+                  [0, 1],
+                  [1, 2],
+                  [1, 3],
+                  [1, 4],
+                  [2, 5],
+                  [3, 6],
+                  [4, 6],
+                  [5, 7]])
+
+s22d = 2*np.array([[0, 0],
+                    [0, 1],
+                    [1, 2],
+                    [1, 3],
+                    [1, 4],
+                    [2, 5],
+                    [3, 6],
+                    [4, 6],
+                    [5, 7]])
+
+DTWdistance2D = DTWinstance.run(s12d, s22d)
+expectedDTWdistance2D = 31.182578215353598
+checkAnswerDTW('2D DTW analytical test: distance', DTWdistance2D, expectedDTWdistance2D)
 #
 # end
 #

@@ -78,7 +78,7 @@ class DTW(MetricInterface):
       elif child.getName() == "localDistance":
         self.localDistance = child.value
 
-  def run(self, x, y, weights=None, axis=0, **kwargs):
+  def run(self, x, y, weights=None, axis=0, returnPath=False, **kwargs):
     """
       This method computes DTW distance between two inputs x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
@@ -98,17 +98,11 @@ class DTW(MetricInterface):
     """
     assert (isinstance(x, np.ndarray))
     assert (isinstance(x, np.ndarray))
-    tempX = copy.copy(x)
-    tempY = copy.copy(y)
-    if axis == 0:
-      assert (len(x) == len(y))
-    elif axis == 1:
+    if axis == 1:
       assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
               the same as the second dimension of second input!")
-      tempX = tempX.T
-      tempY = tempY.T
-    else:
-      self.raiseAnError(IOError, "Valid axis value should be '0' or '1' for the evaluate method of metric", self.name)
+    tempX = x.T
+    tempY = y.T
 
     if len(tempX.shape) == 1:
       tempX = tempX.reshape(1,-1)
@@ -123,7 +117,10 @@ class DTW(MetricInterface):
       else:
         X[index] = tempX[index]
         Y[index] = tempY[index]
-    value = self.dtwDistance(X, Y)
+    if returnPath:
+       value = self.dtwDistance(X, Y, returnPath=True)
+    else:
+       value = self.dtwDistance(X, Y)
     return value
 
   def dtwDistance(self, x, y, returnPath=False):
@@ -146,7 +143,7 @@ class DTW(MetricInterface):
             D0[i, j] += min(D0[i-1, j], D0[i, j-1], D0[i-1, j-1])
 
     if returnPath:
-       path = self.tracePath(D1)
+       path = self.tracePath(D0)
        return D0[r, c], path
     else:
        return D0[r, c]
