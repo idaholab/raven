@@ -17,8 +17,12 @@ Created March 17th, 2015
 @author: talbpaul
 """
 import os
-import copy
+import pandas as pd
+import numpy as np
 from . import GenericParser
+from ...Functions import factory as functionFactory
+from ...Functions import returnInputParameter
+from ...utils.TreeStructure import InputNode
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class GenericCode(CodeInterfaceBase):
@@ -42,6 +46,9 @@ class GenericCode(CodeInterfaceBase):
     self.execPostfix      = ''       # executioner command postfix (e.g. -zcvf)
     self.caseName         = None     # base label for outgoing files, should default to inputFileName
     self.fixedOutFileName = None     # CSV output filename of the run code (in case it is hardcoded in the driven code)
+    # function to be evaluated for the stopping condition if any
+    self.stoppingCriteriaFunction = None
+    self._stoppingCriteriaFunctionNode = None
 
   def _readMoreXML(self,xmlNode):
     """
@@ -57,6 +64,33 @@ class GenericCode(CodeInterfaceBase):
         raise IOError('user defined output extension "'+self.fixedOutFileName.split(".")[-1]+'" is not a "csv"!')
       else:
         self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
+    # we just store it for now because we need the runInfo to be applied before parsing it
+    self._stoppingCriteriaFunctionNode = xmlNode.find("stoppingCriteriaFunction")
+
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    super().initialize(runInfo, oriInputFiles)
+    if self._stoppingCriteriaFunctionNode is not None:
+      # get instance of function and apply run info
+      self.stoppingCriteriaFunction = functionFactory.returnInstance('External')
+      self.stoppingCriteriaFunction.applyRunInfo(runInfo)
+      # create a functions input node to use the Functions reader
+      functs = InputNode('Functions')
+      # change tag name to External (to use the parser)
+      # this is very ugly but works fine
+      self._stoppingCriteriaFunctionNode.tag = 'External'
+      functs.append(self._stoppingCriteriaFunctionNode)
+      inputParams = returnInputParameter()
+      inputParams.parseNode(functs)
+      self.stoppingCriteriaFunction.handleInput(inputParams.subparts[0])
+      if self.stoppingCriteriaFunction.name not in self.stoppingCriteriaFunction.availableMethods():
+        self.raiseAnError(ValueError, f"<stoppingCriteriaFunction> named '{self.stoppingCriteriaFunction.name}' "
+                          f"not found in file '{self.stoppingCriteriaFunction.functionFile}'!")
 
   def addDefaultExtension(self):
     """
@@ -177,3 +211,28 @@ class GenericCode(CodeInterfaceBase):
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(infiles,origfiles)
     return currentInputFiles
+
+  def onlineStopCriteria(self, command, output, workDir):
+    """
+      This method is called by RAVEN during the simulation.
+      It is intended to provide means for the code interface to monitor the execution of a run
+      and stop it if certain criteria are met (defined at the code interface level)
+      For example, the underlying code interface can check for a figure of merit in the output file
+      produced by the driven code and stop the simulation if that figure of merit is outside a certain interval
+      (e.g. Pressure > 2 bar, stop otherwise, continue).
+      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal termination) and
+      the 'checkForOutputFailure' method is not called. So the simulation is considered to be successful.
+
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, continueSim, bool, True if the job needs to continue being executed, False if it needs to be stopped
+    """
+    continueSim = True
+    if self.stoppingCriteriaFunction is not None:
+      outCsv = os.path.join(workDir,output+".csv")
+      if os.path.exists(outCsv):
+        df = pd.read_csv(outCsv)
+        results =  dict((header, np.array(df[header])) for header in df.columns)
+        continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
+    return continueSim

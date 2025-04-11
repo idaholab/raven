@@ -71,7 +71,7 @@ Example:
       <clargs type='prepend' arg='python'/>
       <clargs type='input'   arg='-i' extension='.one'/>
       <clargs type='input'   arg='-a' extension='.two'/>
-      <clargs type='output'  arg='-o'/>
+      <clargs type='output'  arg='-o'/> 
     </Code>
 \end{lstlisting}
 
@@ -155,4 +155,91 @@ Where,
   \item  \texttt{:}, in case the variable ``two'' is not defined in the RAVEN XML input file, the Parser, will replace it with the value ``3''.;
   \item  \texttt{|}, the value that is going to be replaced by the Generic Interface, will be left- justified with a string length of ``10'';
 \end{itemize}
+
+The GenericCode interface also implements a mean for the user to stop a simulation while running if certain criteria are met, 
+monitoring the output file (CSV in this case). 
+Indeed, the user can provide a function to halt the simulation if a certain condition is met. The criterion or criteria is or are defined through
+an external RAVEN python function (e.g. ``criteria'' in the  following example). The time frequency of the check is defined
+by the node \xmlNode{onlineStopCriteriaTimeInterval} . By default, the output  is checked every 10 seconds.
+\\To activate such capability, the following addition XML nodes can be inputted:
+\begin{itemize}
+   \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds)) at which  the stopping function (if inputted)
+                                                            is inquired (stoppingCriteriaFunction). \default{10}.
+   \item \xmlNode{stoppingCriteriaFunction}, \xmlDesc{XML node, optional node}, the user can provide a
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through an external RAVEN python function. The function must return a ``bool'':
+                                                            \begin{itemize}
+                                                              \item True, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item False, if the simulation must STOP (i.e. the criteria are met)
+                                                            \end{itemize}
+                                                            The syntax of the XML node follows the RAVEN function structure (see Section \ref{sec:functions}):
+                                                            \begin{itemize}
+                                                              \itemsep0em
+                                                              \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this function.
+                                                              \item \xmlAttr{file}, \xmlDesc{required string attribute}, absolute or
+                                                              relative path specifying the python module (file) associated to this function.
+                                                              \nb If a relative path is specified, it must be relative with respect
+                                                              to where the user is running the instance of RAVEN.
+                                                              %
+                                                            \end{itemize}
+                                                            In order to make the RAVEN code aware of the variables the user is going to
+                                                            manipulate/use in her/his own python function, the variables need to be
+                                                            specified in the \xmlNode{stoppingCriteriaFunction} input block.
+                                                            %
+                                                            The user needs to input, within this block, only the variables directly used by
+                                                            the external function and not the local variables that the user might use in the function for local calculation.
+                                                            %
+                                                            These variables are inputted in a single
+                                                            \xmlNode{variables} XML node:
+                                                            \begin{itemize}
+                                                              \item \xmlNode{variables}, \xmlDesc{comma separated list, required parameter}, in the body of
+                                                              this XML node, the user needs to specify the name of the variables (separated by commas).
+                                                              %
+                                                              This variables need to match variables used/defined in the external python
+                                                              function.
+                                                              %
+                                                            \end{itemize}
+                                                            When the external function variables are defined, at runtime, RAVEN initializes
+                                                            them and keeps track of their values during the simulation.
+                                                            %
+                                                            Each variable defined in the \xmlNode{stoppingCriteriaFunction} block is available in the
+                                                            function as a python \texttt{raven.} member. In the following, an example of a
+                                                            user-defined stopping condition function is reported.
+\begin{lstlisting}[language=python]
+def criteria(raven):
+  if raven.var1[-1] < 1.0 or raven.var2[-1] < 1.0:
+    return False
+  else:
+    return True
+\end{lstlisting}
+\end{itemize}
+
+Then, our example XML for the code would be
+
+Example:
+\begin{lstlisting}[style=XML]
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterface/poly_inp.py</executable>
+      <inputExtentions>.one,.two</inputExtentions>
+      <clargs   type='prepend' arg='python'/>
+      <clargs   type='input'   arg='-i'  extension='.one'/>
+      <fileargs type='input'   arg='two' extension='.two'/>
+      <outputFile>fixed_output.csv</outputFile>
+      <!--
+        Check the output every 15 seconds
+       -->
+      <onlineStopCriteriaTimeInterval>
+        15.0
+      </onlineStopCriteriaTimeInterval>
+      <!-- use the function named criteria in the python file stoppingCriteria.py --> 
+      <stoppingCriteriaFunction file="stoppingCriteria.py" name="criteria">
+         <!-- 
+           variables below must be retrievable
+           from the generic code interface csv output 
+         -->
+        <variables>var1, var2 </variables>
+      </stoppingCriteriaFunction>
+    </Code>
+\end{lstlisting}
+
 

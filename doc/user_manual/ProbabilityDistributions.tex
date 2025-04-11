@@ -925,7 +925,7 @@ After, the sampler has generated values for all variables, the distribution is
 resetted (i.e., the set of values that can be sampled is returned to $N$).
 In case the ``with replacement'' strategy is used, the distribution samples always from the complete set of specified $N$ values.
 
-\specBlock{a}{Uniform Discrete}
+\specBlock{a}{UniformDiscrete}
 %
 \attrIntro
 \vspace{-5mm}
@@ -951,7 +951,7 @@ Example:
     <UniformDiscrete name="UD_dist">
       <lowerBound>3</lowerBound>
       <upperBound>8</upperBound>
-      <strategy>orderedWithReplacement</strategy>
+      <strategy>withReplacement</strategy>
     </UniformDiscrete>
   ...
 </Distributions>
