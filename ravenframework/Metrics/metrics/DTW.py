@@ -105,11 +105,13 @@ class DTW(MetricInterface):
     tempY = y.T
 
     if len(tempX.shape) == 1:
-      tempX = tempX.reshape(1,-1)
+      tempX = tempX.reshape(-1,1)
     if len(tempY.shape) == 1:
-      tempY = tempY.reshape(1,-1)
+      tempY = tempY.reshape(-1,1)
+
     X = np.empty(tempX.shape)
     Y = np.empty(tempY.shape)
+
     if self.order == 1:
       for index in range(len(tempX)):
         X[index] = np.gradient(tempX[index])
@@ -117,6 +119,7 @@ class DTW(MetricInterface):
     else:
       X = tempX
       Y = tempY
+
     if returnPath:
        value = self.dtwDistance(X, Y, returnPath=True)
     else:
@@ -135,6 +138,7 @@ class DTW(MetricInterface):
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
     D1 = spatialDistance.cdist(x,y, metric=self.localDistance)
+    print(D1)
     D0[1:, 1:] = D1
 
     # Populate the distance matrix

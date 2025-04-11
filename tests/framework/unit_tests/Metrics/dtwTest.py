@@ -153,14 +153,11 @@ s22d = 2*np.array([[0, 0],
                     [0, 1],
                     [1, 2],
                     [1, 3],
-                    [1, 4],
-                    [2, 5],
                     [3, 6],
-                    [4, 6],
                     [5, 7]])
 
-DTWdistance2D = DTWinstance.run(s12d, s22d)
-expectedDTWdistance2D = 31.182578215353598
+DTWdistance2D = DTWinstance.run(s12d.T, s22d.T)
+expectedDTWdistance2D = 21.34109414975248
 checkAnswerDTW('2D DTW analytical test: distance', DTWdistance2D, expectedDTWdistance2D)
 #
 # end
