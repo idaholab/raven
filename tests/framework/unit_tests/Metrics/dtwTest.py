@@ -59,7 +59,7 @@ def checkAnswerDTW(comment,value,expected,tol=1e-10,relative=False):
     diff = abs(val - expect) if not relative else abs(val - expect)/denominator
   else:
     diff = 0.0 if val == expect else tol + 1.0
-  
+
   if diff > tol:
     print("checking answer",comment,val,"!=",expect)
     results["fail"] += 1
