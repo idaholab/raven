@@ -187,7 +187,7 @@ class SERPENT(GenericCode):
       @ Out, None
     """
     inputRoot = output.replace("_res","")
-    outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), self.eolTarget)
+    outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), eol = self.eolTarget)
     results = outputParser.processOutputs()
     return results
 
@@ -211,9 +211,11 @@ class SERPENT(GenericCode):
     if self.stoppingCriteriaFunction is not None:
       inputRoot = output.replace("_res","")
       if os.path.exists(os.path.join(workDir,output+".m")):
-        outputParser = op.SerpentOutputParser(self._fileTypesToRead, os.path.join(workDir,inputRoot), self.eolTarget)
+        outputParser = op.SerpentOutputParser(self._fileTypesToRead,
+                                              os.path.join(workDir,inputRoot),
+                                              eol = self.eolTarget,
+                                              checkAccessAndWait = True)
         results = outputParser.processOutputs()
         continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
-
     return continueSim
 
