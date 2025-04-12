@@ -63,9 +63,12 @@ class CodeInterfaceBase(BaseInterface):
     self.printFailedRuns = True              # whether to print failed runs to the screen
     self._writeCSV = False                   # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
     # has the underlying code interface a method to stop the simulation if a set of criteria is met?
-    onlineStopCriteria = getattr(self, "onlineStopCriteria", None)
-    self._hasOnlineStopCriteriaCheck = callable(onlineStopCriteria)
+    # and, if so, is it active? (there is a function associated with it?)
+    self.hasOnlineStopCriteriaCheck = False
     self.onlineStopCriteriaTimeInterval = 5.0  # 5 seconds interval by default (but it can be overwritten in the input file)
+    # function to be evaluated for the stopping condition if any
+    self.stoppingCriteriaFunction = None
+    self._stoppingCriteriaFunctionNode = None
 
   def _handleInput(self, paramInput):
     """
@@ -252,6 +255,12 @@ class CodeInterfaceBase(BaseInterface):
     """
     # store working dir for future needs
     self._ravenWorkingDir = runInfo['WorkingDir']
+    # has the underlying code interface a method to stop the simulation if a set of criteria is met?
+    onlineStopCriteria = getattr(self, "onlineStopCriteria", None)
+    isOnlineStopCriteriaPresent = callable(onlineStopCriteria)
+    if isOnlineStopCriteriaPresent:
+      # check if the function is associated with it
+      self.hasOnlineStopCriteriaCheck = self.stoppingCriteriaFunction is not None
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """

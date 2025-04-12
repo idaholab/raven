@@ -610,7 +610,7 @@ class Code(Model):
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    if self.maxWallTime is not None or self.code._hasOnlineStopCriteriaCheck:
+    if self.maxWallTime is not None or self.code.hasOnlineStopCriteriaCheck:
       stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self.code._hasOnlineStopCriteriaCheck else None
       if self.maxWallTime is not None:
         currentTime = time.time()

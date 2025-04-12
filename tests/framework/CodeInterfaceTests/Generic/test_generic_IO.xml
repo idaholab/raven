@@ -1,27 +1,26 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests.genericInterfaceIOCustomOutput</name>
-    <author>alfoa</author>
-    <created>2017-01-24</created>
+    <name>framework/CodeInterfaceTests/Generic.genericInterfaceIO</name>
+    <author>senrs</author>
+    <created>2015-10-06</created>
     <classesTested>Models.Code.GenericCode</classesTested>
     <description>
-       An example of using the the Model Code of type GenericCode with a code
-       that produces CSV output file.
+       An example of using the the Model Code of type GenericCode.
        This test is aimed to test the IO system present in the GenericCode interface.
-       In XML node outputFile the user can specify the specific output
-       file name RAVEN is going to load.
     </description>
     <revisions>
-      <revision author="alfoa" date="2018-01-24">Adding this test description.</revision>
-      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2020-10-15">This is now a requirement test (R-IS-2)</revision>
+      <revision author="alfoa" date="2025-04-11">Moved this test in its own folder (Generic)</revision>
     </revisions>
-    <requirements>R-IS-6</requirements>
+    <requirements>R-IS-2</requirements>
   </TestInfo>
   <RunInfo>
-    <JobName>GenericInterfaceIOCustomOutput</JobName>
+    <JobName>testGenericCodeInterface</JobName>
     <Sequence>sample</Sequence>
-    <WorkingDir>GenericInterfaceIOCustomOutput</WorkingDir>
+    <WorkingDir>GenericInterfaceIO</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -32,12 +31,11 @@
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>GenericInterfaceIOCustomOutput/poly_inp_io.py</executable>
+      <executable>GenericInterfaceIO/poly_inp_io.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
-      <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
-      <outputFile>fixed_output.csv</outputFile>
+      <fileargs arg="output" type="output"/>
     </Code>
   </Models>
 
@@ -78,7 +76,7 @@
 
   <DataObjects>
     <PointSet name="samples">
-      <Input>y,x</Input>
+      <Input>x,y</Input>
       <Output>poly</Output>
     </PointSet>
   </DataObjects>

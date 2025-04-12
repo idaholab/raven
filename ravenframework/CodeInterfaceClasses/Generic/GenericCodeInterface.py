@@ -46,9 +46,6 @@ class GenericCode(CodeInterfaceBase):
     self.execPostfix      = ''       # executioner command postfix (e.g. -zcvf)
     self.caseName         = None     # base label for outgoing files, should default to inputFileName
     self.fixedOutFileName = None     # CSV output filename of the run code (in case it is hardcoded in the driven code)
-    # function to be evaluated for the stopping condition if any
-    self.stoppingCriteriaFunction = None
-    self._stoppingCriteriaFunctionNode = None
 
   def _readMoreXML(self,xmlNode):
     """
