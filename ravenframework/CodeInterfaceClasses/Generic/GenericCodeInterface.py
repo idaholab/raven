@@ -20,9 +20,7 @@ import os
 import pandas as pd
 import numpy as np
 from . import GenericParser
-from ...Functions import factory as functionFactory
-from ...Functions import returnInputParameter
-from ...utils.TreeStructure import InputNode
+
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class GenericCode(CodeInterfaceBase):
@@ -61,8 +59,6 @@ class GenericCode(CodeInterfaceBase):
         raise IOError('user defined output extension "'+self.fixedOutFileName.split(".")[-1]+'" is not a "csv"!')
       else:
         self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
-    # we just store it for now because we need the runInfo to be applied before parsing it
-    self._stoppingCriteriaFunctionNode = xmlNode.find("stoppingCriteriaFunction")
 
   def initialize(self, runInfo, oriInputFiles):
     """
@@ -72,22 +68,6 @@ class GenericCode(CodeInterfaceBase):
       @ Out, None
     """
     super().initialize(runInfo, oriInputFiles)
-    if self._stoppingCriteriaFunctionNode is not None:
-      # get instance of function and apply run info
-      self.stoppingCriteriaFunction = functionFactory.returnInstance('External')
-      self.stoppingCriteriaFunction.applyRunInfo(runInfo)
-      # create a functions input node to use the Functions reader
-      functs = InputNode('Functions')
-      # change tag name to External (to use the parser)
-      # this is very ugly but works fine
-      self._stoppingCriteriaFunctionNode.tag = 'External'
-      functs.append(self._stoppingCriteriaFunctionNode)
-      inputParams = returnInputParameter()
-      inputParams.parseNode(functs)
-      self.stoppingCriteriaFunction.handleInput(inputParams.subparts[0])
-      if self.stoppingCriteriaFunction.name not in self.stoppingCriteriaFunction.availableMethods():
-        self.raiseAnError(ValueError, f"<stoppingCriteriaFunction> named '{self.stoppingCriteriaFunction.name}' "
-                          f"not found in file '{self.stoppingCriteriaFunction.functionFile}'!")
 
   def addDefaultExtension(self):
     """

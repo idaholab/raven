@@ -21,11 +21,7 @@ import os
 #Internal Modules--------------------begin
 from ravenframework.utils import utils
 from ..Generic.GenericCodeInterface import GenericCode
-from ...Functions import factory as functionFactory
-from ...Functions import returnInputParameter
-from ...utils.TreeStructure import InputNode
 from . import serpentOutputParser as op
-
 #Internal Modules--------------------end
 
 class SERPENT(GenericCode):
@@ -58,7 +54,6 @@ class SERPENT(GenericCode):
     # volume calculation?
     self.volumeCalc = False
     self.nVolumePoints = None
-
 
   def _findInputFile(self, inputFiles):
     """
@@ -115,7 +110,6 @@ class SERPENT(GenericCode):
           raise ValueError(self.printTag+f' ERROR: <Serpent File Type> {ft} not supported! Available types are "'
                         f'{", ".join(op.serpentOutputAvailableTypes)}!!')
       self._fileTypesToRead += serpentFileTypes
-
 
   def initialize(self, runInfo, oriInputFiles):
     """

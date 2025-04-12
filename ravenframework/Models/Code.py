@@ -611,7 +611,7 @@ class Code(Model):
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
     if self.maxWallTime is not None or self.code.hasOnlineStopCriteriaCheck:
-      stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self.code._hasOnlineStopCriteriaCheck else None
+      stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self.code.hasOnlineStopCriteriaCheck else None
       if self.maxWallTime is not None:
         currentTime = time.time()
         timeout = currentTime + self.maxWallTime
@@ -634,6 +634,7 @@ class Code(Model):
             break
       else:
         # only the stopping Criteria Check needs to be performed
+        time.sleep(0.5)
         while True:
           time.sleep(stoppingCriteriaTimeInterval)
           process.poll()

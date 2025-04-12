@@ -24,7 +24,9 @@ import os
 #Internal Modules------------------------------------------------------------------------------------
 from . import CsvLoader
 from .BaseClasses import BaseInterface
-from .utils import InputTypes, InputData
+from .Functions import factory as functionFactory
+from .Functions import returnInputParameter
+from .utils.TreeStructure import InputNode
 from .utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -63,6 +65,8 @@ class CodeInterfaceBase(BaseInterface):
     self.printFailedRuns = True              # whether to print failed runs to the screen
     self._writeCSV = False                   # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
     # has the underlying code interface a method to stop the simulation if a set of criteria is met?
+    onlineStopCriteria = getattr(self, "onlineStopCriteria", None)
+    self.hasOnlineStopCriteriaCheckMethod = callable(onlineStopCriteria)
     # and, if so, is it active? (there is a function associated with it?)
     self.hasOnlineStopCriteriaCheck = False
     self.onlineStopCriteriaTimeInterval = 5.0  # 5 seconds interval by default (but it can be overwritten in the input file)
@@ -161,11 +165,13 @@ class CodeInterfaceBase(BaseInterface):
     self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
     # onlineStopCriteriaTimeInterval (if any)
     onlineStopCriteriaTimeInterval = xmlNode.find("onlineStopCriteriaTimeInterval")
-    if  onlineStopCriteriaTimeInterval is not None:
+    if onlineStopCriteriaTimeInterval is not None:
       self.onlineStopCriteriaTimeInterval = utils.floatConversion(onlineStopCriteriaTimeInterval.text)
-      if not self._hasOnlineStopCriteriaCheck:
+      if not self.hasOnlineStopCriteriaCheckMethod:
         self.raiseAWarning(f"onlineStopCriteriaTimeInterval provided, but Code interface {self.type} "
                            "does not have 'onlineStopCriteriaCheck' method! IGNORED!")
+    # we just store it for now because we need the runInfo to be applied before parsing it
+    self._stoppingCriteriaFunctionNode = xmlNode.find("stoppingCriteriaFunction")
     super().readXML(xmlNode, workingDir=workingDir)
 
   def _readMoreXML(self, xmlNode):
@@ -255,12 +261,23 @@ class CodeInterfaceBase(BaseInterface):
     """
     # store working dir for future needs
     self._ravenWorkingDir = runInfo['WorkingDir']
-    # has the underlying code interface a method to stop the simulation if a set of criteria is met?
-    onlineStopCriteria = getattr(self, "onlineStopCriteria", None)
-    isOnlineStopCriteriaPresent = callable(onlineStopCriteria)
-    if isOnlineStopCriteriaPresent:
-      # check if the function is associated with it
-      self.hasOnlineStopCriteriaCheck = self.stoppingCriteriaFunction is not None
+    if self.hasOnlineStopCriteriaCheckMethod and self._stoppingCriteriaFunctionNode is not None:
+      # get instance of function and apply run info
+      self.stoppingCriteriaFunction = functionFactory.returnInstance('External')
+      self.stoppingCriteriaFunction.applyRunInfo(runInfo)
+      # create a functions input node to use the Functions reader
+      functs = InputNode('Functions')
+      # change tag name to External (to use the parser)
+      # this is very ugly but works fine
+      self._stoppingCriteriaFunctionNode.tag = 'External'
+      functs.append(self._stoppingCriteriaFunctionNode)
+      inputParams = returnInputParameter()
+      inputParams.parseNode(functs)
+      self.stoppingCriteriaFunction.handleInput(inputParams.subparts[0])
+      if self.stoppingCriteriaFunction.name not in self.stoppingCriteriaFunction.availableMethods():
+        self.raiseAnError(ValueError, f"<stoppingCriteriaFunction> named '{self.stoppingCriteriaFunction.name}' "
+                          f"not found in file '{self.stoppingCriteriaFunction.functionFile}'!")
+      self.hasOnlineStopCriteriaCheck = True
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
