@@ -32,7 +32,7 @@ def evalAndWrite(x, y, case):
       outf.writelines(','.join(str(i) for i in row)+'\n')
       outf.close()
       time.sleep(0.5)
-        
+
 
 def run(xin):
   inx = open(xin,'r')
