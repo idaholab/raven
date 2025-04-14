@@ -129,6 +129,12 @@ class RavenSampled(Optimizer):
     # # register adaptive sample identification criteria
     self.registerIdentifier('step')  # the step within the action
     self._finals = []                # A list of unique final points
+    #These objective multipliers are used so that the objective can always
+    # appear as a minimization problem internally.
+    # This multipiles by -1 to turn a maximization problem to a minimization
+    # problem.
+    self._objMult = {} #max will be -1, min will be 1
+    self._objMultArray = np.array([])
 
 
   def handleInput(self, paramInput):
@@ -152,11 +158,6 @@ class RavenSampled(Optimizer):
     # additional checks
     if self.limit is None:
       self.raiseAnError(IOError, 'A <limit> is required for any RavenSampled Optimizer!')
-    #These objective multipliers are use so that the objective can always
-    # appear as a minimization problem internally.
-    # This multipiles by -1 to turn a maximization problem to a minimization
-    # problem.
-    self._objMult = {} #max will be -1, min will be 1
     self._objMultArray = np.ones(len(self._objectiveVar))
     for i in range(len(self._objectiveVar)):
       if self._minMax[i] == 'max':
