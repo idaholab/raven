@@ -138,7 +138,6 @@ class DTW(MetricInterface):
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
     D1 = spatialDistance.cdist(x,y, metric=self.localDistance)
-    print(D1)
     D0[1:, 1:] = D1
 
     # Populate the distance matrix
