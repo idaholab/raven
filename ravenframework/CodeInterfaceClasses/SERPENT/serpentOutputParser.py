@@ -175,8 +175,10 @@ class SerpentOutputParser(object):
     resultsResults = {}
     ready = True
     fn = f"{self._fileRootName}{outputExtensions['ResultsReader']}"
-    if self._checkAccessAndWait: ready = checkAccessAndWaitIfStillAccessed(fn)
-    if not ready: raise ImportError(f"ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!")
+    if self._checkAccessAndWait:
+      ready = checkAccessAndWaitIfStillAccessed(fn)
+    if not ready:
+      raise ImportError(f"ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!")
     res = self._st.read(fn)
 
     buSteps = res.get('burnStep')
@@ -256,8 +258,10 @@ class SerpentOutputParser(object):
     for bu in range(buSteps):
       ready = True
       fn = f"{self._fileRootName}{outputExtensions['DetectorReader']}".replace("[bu]", f"{bu}")
-      if self._checkAccessAndWait: ready = checkAccessAndWaitIfStillAccessed(fn)
-      if not ready: raise ImportError(f'ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!')
+      if self._checkAccessAndWait:
+        ready = checkAccessAndWaitIfStillAccessed(fn)
+      if not ready:
+        raise ImportError(f'ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!')
       det = self._st.read(fn)
       for detectorName, detectorContent in det.detectors.items():
         indeces = detectorContent.indexes
@@ -301,8 +305,10 @@ class SerpentOutputParser(object):
     depletionResults = {}
     ready = True
     fn = f"{self._fileRootName}{outputExtensions['DepletionReader']}"
-    if self._checkAccessAndWait: ready = checkAccessAndWaitIfStillAccessed(fn)
-    if not ready: raise ImportError(f'ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!')
+    if self._checkAccessAndWait:
+      ready = checkAccessAndWaitIfStillAccessed(fn)
+    if not ready:
+      raise ImportError(f'ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!')
     dep = self._st.read(fn)
     depletionResults[f"time_days"] = dep.days
     depletionResults[f"burnup"] = dep.burnup
