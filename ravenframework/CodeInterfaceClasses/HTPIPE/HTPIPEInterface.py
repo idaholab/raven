@@ -19,10 +19,10 @@
 import os
 import numpy as np
 from collections import defaultdict
-from ..Generic import GenericCodeInterface
+from ..Generic.GenericCodeInterface import GenericCode
 
 
-class HTPIPE(GenericCodeInterface):
+class HTPIPE(GenericCode):
   """
     Provides code to interface RAVEN to HTPIPE (HEAT PIPE) code
     Woloshun, K A, et al. 'HTPIPE: A steady-state heat pipe
