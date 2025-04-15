@@ -71,7 +71,7 @@ Example:
       <clargs type='prepend' arg='python'/>
       <clargs type='input'   arg='-i' extension='.one'/>
       <clargs type='input'   arg='-a' extension='.two'/>
-      <clargs type='output'  arg='-o'/> 
+      <clargs type='output'  arg='-o'/>
     </Code>
 \end{lstlisting}
 
@@ -163,14 +163,14 @@ an external RAVEN python function (e.g. ``criteria'' in the  following example).
 by the node \xmlNode{onlineStopCriteriaTimeInterval} . By default, the output  is checked every 10 seconds.
 \\To activate such capability, the following addition XML nodes can be inputted:
 \begin{itemize}
-   \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds)) at which  the stopping function (if inputted)
+   \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds) at which  the stopping function (if inputted)
                                                             is inquired (stoppingCriteriaFunction). \default{10}.
    \item \xmlNode{stoppingCriteriaFunction}, \xmlDesc{XML node, optional node}, the user can provide a
                                                             function to halt the simulation if a certain condition is
                                                             met. The criterion or criteria is or are defined through an external RAVEN python function. The function must return a ``bool'':
                                                             \begin{itemize}
-                                                              \item True, if the simulation can continue (i.e. the criteria are not met)
-                                                              \item False, if the simulation must STOP (i.e. the criteria are met)
+                                                              \item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item True, if the simulation must STOP (i.e. the criteria are met)
                                                             \end{itemize}
                                                             The syntax of the XML node follows the RAVEN function structure (see Section \ref{sec:functions}):
                                                             \begin{itemize}

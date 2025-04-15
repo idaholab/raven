@@ -623,8 +623,8 @@ class Code(Model):
             process.kill()
             process.returncode = -1
           if stoppingCriteriaTimeInterval is not None and time.time() > currentTime + stoppingCriteriaTimeInterval:
-            continueSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
-            if not continueSim:
+            stopSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
+            if stopSim:
               self.raiseAMessage(f'Code "{self.code.name}". Job ID: "{str(process.pid)}" (type: "{self.code.printTag}") triggered a '
                                  'stopping criteria to halt the run. Return code is set to 0!')
               process.kill()
@@ -638,8 +638,8 @@ class Code(Model):
         while True:
           time.sleep(stoppingCriteriaTimeInterval)
           process.poll()
-          continueSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
-          if not continueSim:
+          stopSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
+          if stopSim:
             self.raiseAMessage(f'Code "{self.code.name}" (type: "{self.code.name}") triggered a stopping criteria to stop the run. Return code is set to 0!')
             process.kill()
             process.returncode = 0

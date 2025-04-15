@@ -203,13 +203,13 @@ class GenericCode(CodeInterfaceBase):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, continueSim, bool, True if the job needs to continue being executed, False if it needs to be stopped
+      @ Out, stopSim, bool, True if the job needs to stop being executed, False if it needs to continue to be executed
     """
-    continueSim = True
+    stopSim = False
     if self.stoppingCriteriaFunction is not None:
       outCsv = os.path.join(workDir,output+".csv")
       if os.path.exists(outCsv):
         df = pd.read_csv(outCsv)
         results =  dict((header, np.array(df[header])) for header in df.columns)
-        continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
-    return continueSim
+        stopSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
+    return stopSim

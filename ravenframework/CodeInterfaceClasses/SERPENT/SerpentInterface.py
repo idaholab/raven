@@ -179,9 +179,9 @@ class SERPENT(GenericCode):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, continueSim, bool, True if the job needs to continue being executed, False if it needs to be stopped
+      @ Out, stopSim, bool, True if the job needs to stop being executed, False if it needs to continue to be executed
     """
-    continueSim = True
+    stopSim = False
     if self.stoppingCriteriaFunction is not None:
       inputRoot = output.replace("_res","")
       if os.path.exists(os.path.join(workDir,output+".m")):
@@ -190,6 +190,6 @@ class SERPENT(GenericCode):
                                               eol = self.eolTarget,
                                               checkAccessAndWait = True)
         results = outputParser.processOutputs()
-        continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
-    return continueSim
+        stopSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
+    return stopSim
 
