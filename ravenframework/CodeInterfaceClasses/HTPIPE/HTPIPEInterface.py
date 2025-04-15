@@ -19,11 +19,10 @@
 import os
 import numpy as np
 from collections import defaultdict
-from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
-from ..Generic import GenericParser
+from ..Generic import GenericCodeInterface
 
 
-class HTPIPE(CodeInterfaceBase):
+class HTPIPE(GenericCodeInterface):
   """
     Provides code to interface RAVEN to HTPIPE (HEAT PIPE) code
     Woloshun, K A, et al. 'HTPIPE: A steady-state heat pipe
@@ -85,6 +84,7 @@ class HTPIPE(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
+    super().initialize(runInfo, oriInputFiles)
     inputFile = self.findInputFile(oriInputFiles)
     with open(inputFile.getAbsFile(), "r") as filestream:
       # we check the first line
@@ -142,23 +142,6 @@ class HTPIPE(CodeInterfaceBase):
     if inputFile.getType().lower() == 'htpipe':
       valid = True
     return valid
-
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
-    """
-      Generate a new HTPIPE input file from the original, changing parameters
-      as specified in Kwargs['SampledVars']
-      @ In , currentInputFiles, list,  list of current input files (input files of this iteration)
-      @ In , oriInputFiles, list, list of the original input files
-      @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another
-             dictionary called "SampledVars" where RAVEN stores the variables that got sampled
-             (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
-    """
-    parser = GenericParser.GenericParser(currentInputFiles)
-    parser.modifyInternalDictionary(**Kwargs)
-    parser.writeNewInput(currentInputFiles,oriInputFiles)
-    return currentInputFiles
 
   def checkForOutputFailure(self,output,workingDir):
     """
