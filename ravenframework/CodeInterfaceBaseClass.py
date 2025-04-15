@@ -24,9 +24,6 @@ import os
 #Internal Modules------------------------------------------------------------------------------------
 from . import CsvLoader
 from .BaseClasses import BaseInterface
-from .Functions import factory as functionFactory
-from .Functions import returnInputParameter
-from .utils.TreeStructure import InputNode
 from .utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -72,7 +69,6 @@ class CodeInterfaceBase(BaseInterface):
     self.onlineStopCriteriaTimeInterval = 5.0  # 5 seconds interval by default (but it can be overwritten in the input file)
     # function to be evaluated for the stopping condition if any
     self.stoppingCriteriaFunction = None
-    self._stoppingCriteriaFunctionNode = None
 
   def _handleInput(self, paramInput):
     """
@@ -170,8 +166,6 @@ class CodeInterfaceBase(BaseInterface):
       if not self.hasOnlineStopCriteriaCheckMethod:
         self.raiseAWarning(f"onlineStopCriteriaTimeInterval provided, but Code interface {self.type} "
                            "does not have 'onlineStopCriteriaCheck' method! IGNORED!")
-    # we just store it for now because we need the runInfo to be applied before parsing it
-    self._stoppingCriteriaFunctionNode = xmlNode.find("stoppingCriteriaFunction")
     super().readXML(xmlNode, workingDir=workingDir)
 
   def _readMoreXML(self, xmlNode):
@@ -252,6 +246,16 @@ class CodeInterfaceBase(BaseInterface):
     """
     self.addInputExtension(['i','inp','in'])
 
+  def addStoppingFunctionPointer(self,stoppingFunction):
+    """
+      This method adds a the stopping function pointer to the code interface to be used in onlineStopCriteria
+      if needed
+      @ In, stoppingFunction, instance, the stopping function pointer
+      @ Out, None
+    """
+    if self.hasOnlineStopCriteriaCheckMethod:
+      self.stoppingCriteriaFunction = stoppingFunction
+
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -261,19 +265,7 @@ class CodeInterfaceBase(BaseInterface):
     """
     # store working dir for future needs
     self._ravenWorkingDir = runInfo['WorkingDir']
-    if self.hasOnlineStopCriteriaCheckMethod and self._stoppingCriteriaFunctionNode is not None:
-      # get instance of function and apply run info
-      self.stoppingCriteriaFunction = functionFactory.returnInstance('External')
-      self.stoppingCriteriaFunction.applyRunInfo(runInfo)
-      # create a functions input node to use the Functions reader
-      functs = InputNode('Functions')
-      # change tag name to External (to use the parser)
-      # this is very ugly but works fine
-      self._stoppingCriteriaFunctionNode.tag = 'External'
-      functs.append(self._stoppingCriteriaFunctionNode)
-      inputParams = returnInputParameter()
-      inputParams.parseNode(functs)
-      self.stoppingCriteriaFunction.handleInput(inputParams.subparts[0])
+    if self.hasOnlineStopCriteriaCheckMethod and self.stoppingCriteriaFunction is not None:
       if self.stoppingCriteriaFunction.name not in self.stoppingCriteriaFunction.availableMethods():
         self.raiseAnError(ValueError, f"<stoppingCriteriaFunction> named '{self.stoppingCriteriaFunction.name}' "
                           f"not found in file '{self.stoppingCriteriaFunction.functionFile}'!")

@@ -34,12 +34,18 @@
       <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
       <outputFile>fixed_output_case.csv</outputFile>
       <onlineStopCriteriaTimeInterval>0.1</onlineStopCriteriaTimeInterval>
-      <stoppingCriteriaFunction file="genericStopCriteria.py" name="stoppingCriteria">
-        <variables>poly</variables>
-      </stoppingCriteriaFunction>
+      <!-- link to function defined in <Functions> XML node -->
+      <StoppingFunction class="Functions" type="External">stoppingCriteria</StoppingFunction>
+      
     </Code>
   </Models>
-
+  
+  <Functions>
+      <External file="genericStopCriteria.py" name="stoppingCriteria">
+          <variables>poly</variables>
+      </External>
+  </Functions>
+  
   <Distributions>
     <Uniform name="xd">
       <lowerBound>0.0</lowerBound>

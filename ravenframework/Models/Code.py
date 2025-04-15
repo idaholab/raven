@@ -82,6 +82,23 @@ class Code(Model):
     FileargsInput.addParam("extension", InputTypes.StringType, False)
     inputSpecification.addSub(FileargsInput)
     ## End file arguments tag
+    stoppingFunction = InputData.parameterInputFactory("StoppingFunction",
+                                                   contentType=InputTypes.StringType,
+                                                   printPriority=200,
+                                                   descr=r"""user provided
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through an external
+                                                            RAVEN python function (defined in the $<Functions>$ XML node).
+                                                            The function must return a ``bool'':
+                                                            \\begin{itemize}
+                                                              \\item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \\item True, if the simulation must STOP (i.e. the criteria are met)
+                                                            \\end{itemize}""")
+    stoppingFunction.addParam("class", InputTypes.StringType,
+        descr=r"""The RAVEN class for this source. Options include \xmlString{Functions}. """)
+    stoppingFunction.addParam("type", InputTypes.StringType,
+        descr=r"""The RAVEN type for this source. Options include only \xmlNode{External} type.""")
+    inputSpecification.addSub(stoppingFunction)
 
     return inputSpecification
 
@@ -122,6 +139,8 @@ class Code(Model):
     self._ravenWorkingDir = None # RAVEN's working dir
     self.commandSeparator = "&&" # command separator
     self._isThereACode = True    # it is a code
+    # assembler object for stopping condition
+    self.addAssemblerObject('StoppingFunction', InputData.Quantity.zero_to_infinity)
 
   def applyRunInfo(self, runInfo):
     """
@@ -310,6 +329,13 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
+    stoppingFunction = None
+    if 'StoppingFunction' in self.assemblerDict:
+      self.raiseADebug('StoppingFunction object: '+str(self.assemblerDict['StoppingFunction']))
+      stoppingFunction = self.assemblerDict['StoppingFunction'][0][3]
+    # add stopping function if any
+    self.code.addStoppingFunctionPointer(stoppingFunction)
+
     self.workingDir = os.path.join(runInfoDict['WorkingDir'], runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
