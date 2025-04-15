@@ -373,8 +373,8 @@ The \textbf{onlineStopCriteria} function is an optional method. If present, it i
       with the partial results read by the code interface parser to check if the criteria are met)  
       \nb This method \textbf{MUST} return a boolean:
       \begin{itemize}
-        \item True, if the simulation can continue (i.e. the stopping criteria are not met)
-        \item False, if the simulation MUST stop (i.e. the criteria are met).
+        \item False, if the simulation can continue (i.e. the stopping criteria are not met)
+        \item True, if the simulation MUST stop (i.e. the criteria are met).
       \end{itemize}
 RAVEN is going to call this function passing in the following arguments:
 \begin{itemize}
