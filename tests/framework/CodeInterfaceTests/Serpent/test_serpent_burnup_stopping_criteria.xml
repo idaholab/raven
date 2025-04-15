@@ -37,12 +37,17 @@
           required for an eginevalue calc 
       -->
       <onlineStopCriteriaTimeInterval>1e-5</onlineStopCriteriaTimeInterval>
-      <stoppingCriteriaFunction file="testSerpentStoppingCriteria.py" name="testSerpentStoppingCriteria">
-        <variables>impKeff_0</variables>
-      </stoppingCriteriaFunction>
+      <!-- link to function defined in <Functions> XML node -->
+      <StoppingFunction class="Functions" type="External">testSerpentStoppingCriteria</StoppingFunction>
     </Code>
   </Models>
 
+  <Functions>
+    <External file="testSerpentStoppingCriteria.py" name="testSerpentStoppingCriteria">
+        <variables>impKeff_0</variables>
+    </External>
+  </Functions>
+  
   <Distributions>
     <!-- uniform distribution from 0.1 to 1 -->
     <Uniform name="timedist">
