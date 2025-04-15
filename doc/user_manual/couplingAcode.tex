@@ -395,6 +395,29 @@ def onlineStopCriteria(self, command, output, workingDir):
         continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
     return continueSim
  \end{lstlisting}
+ 
+ It is important to notice that this method can leverage any  external function defined in the  \xmlNode{Functions} block (see Section~\ref{sec:functions}) 
+ as long as it returns a boolean.
+ Within the \xmlNode{Code} XML node, the user can already link such function thorugh the following XML node:
+ 
+ \begin{itemize}
+    \item \xmlNode{StoppingFunction}, \xmlDesc{XML node, optional node}, the
+                                                           body of this XML node must contain the name of an appropriate \textbf{Function} defined in the
+                                                            \xmlNode{Functions} block (see Section~\ref{sec:functions}). It is used as a
+                                                           ``stopping'' function tool for online simulation monitoring. Indeed, the user can provide a
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through the external RAVEN python function linked here through this XML node. 
+                                                            The function must return a ``bool'':
+                                                            \begin{itemize}
+                                                              \item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item True, if the simulation must STOP (i.e. the criteria are met)
+                                                            \end{itemize}
+                                                            %
+                                                            Each variable defined in the \xmlNode{StoppingFunction} block is available in the
+                                                            function as a python \texttt{raven.} member. In the following, an example of a
+                                                            user-defined stopping condition function is reported.
+ 
+ \end{itemize}
 
  \subsubsection{Method: \texttt{checkForOutputFailure}}
 \label{subsubsec:checkForOutputFailure}
