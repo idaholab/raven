@@ -14,7 +14,7 @@
 """
   Created on April 18, 2017
   @author: Matteo D'Onorio (Sapienza University of Rome)
-           Andrea Alfonsi (INL)
+           Andrea Alfonsi (Nucube)
 """
 
 import os
@@ -29,6 +29,16 @@ class Melcor(CodeInterfaceBase):
     This class is used a part of a code dictionary to specialize Model. Code for different MELCOR versions
     like MELCOR 2.2x, MELCOR 1.86, MELCOR for fusion applications
   """
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    self.melcOut = 'OUTPUT_MELCOR'
+    self.goodWord  = "Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
+
 
   def _readMoreXML(self,xmlNode):
     """
@@ -52,8 +62,8 @@ class Melcor(CodeInterfaceBase):
       raise IOError("Please enter MELCOR message file name")
 
     self.varList        = [var.strip() for var in varNode.text.split(",")]
-    self.melcorPlotFile = [var.strip() for var in plotNode.text.split(",")][0]
-    self.melcorOutFile  = [var.strip() for var in melNode.text.split(",")][0]
+    self.melcorPlotFile = plotNode.text 
+    self.melcorOutFile  = melNode.text
 
   def findInps(self,currentInputFiles):
     """
@@ -89,7 +99,6 @@ class Melcor(CodeInterfaceBase):
     """
     found = False
 
-    melcOut = 'OUTPUT_MELCOR'
     melcin = self.findInps(inputFiles)
     if clargs:
       precommand = executable + clargs['text']
@@ -97,7 +106,7 @@ class Melcor(CodeInterfaceBase):
       precommand = executable
     melgCommand = str(preExec)    + ' ' + melcin.getFilename()
     melcCommand = str(precommand) + ' ' + melcin.getFilename()
-    returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],melcOut
+    returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],self.melcOut
 
     return returnCommand
 
@@ -170,11 +179,10 @@ class Melcor(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = True
-    goodWord  = "Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
     with open(os.path.join(workingDir,self.melcorOutFile),"r") as outputToRead:
       readLines = outputToRead.readlines()
       lastRow = readLines[-1]
-      if goodWord in lastRow:
+      if self.goodWord in lastRow:
         failure = False
       outputToRead.close()
       return failure
