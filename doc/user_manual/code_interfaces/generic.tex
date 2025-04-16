@@ -160,11 +160,11 @@ The GenericCode interface also implements a mean for the user to stop a simulati
 monitoring the output file (CSV in this case). 
 Indeed, the user can provide a function to halt the simulation if a certain condition is met. The criterion or criteria is or are defined through
 an external RAVEN python function (e.g. ``criteria'' in the  following example). The time frequency of the check is defined
-by the node \xmlNode{onlineStopCriteriaTimeInterval} . By default, the output  is checked every 10 seconds.
+by the node \xmlNode{onlineStopCriteriaTimeInterval} . By default, the output  is checked every 5 seconds.
 \\To activate such capability, the following addition XML nodes can be inputted:
 \begin{itemize}
    \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds) at which  the stopping function (if inputted)
-                                                            is inquired (stoppingCriteriaFunction). \default{10}.
+                                                            is inquired (stoppingCriteriaFunction). \default{5}.
    \item \xmlNode{StoppingFunction}, \xmlDesc{XML node, optional node}, the
                                                            body of this XML node must contain the name of an appropriate \textbf{Function} defined in the
                                                             \xmlNode{Functions} block (see Section~\ref{sec:functions}). It is used as a

@@ -53,7 +53,7 @@ In the RAVEN input file, your \xmlNode{Models} node should look like:
         an external RAVEN python function (e.g. ``criteria'' in the
         following example). The time frequency of the check is defined
         by the node onlineStopCriteriaTimeInterval. By default, the output
-        is checked every 10 seconds.
+        is checked every 5 seconds.
        -->
       <onlineStopCriteriaTimeInterval>
         15.0
@@ -116,7 +116,7 @@ Additional XML sub-nodes can be optionally added in the \xmlNode{Code} XML node 
    \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds)) at which  the stopping function (if inputted)
                                                             is inquired (stoppingCriteriaFunction).
                                                             For burnup calculation, a good time frequency (time interval) is of the order of a the CPU time
-                                                            required for an eginevalue calc. \default{10}.
+                                                            required for an eginevalue calc. \default{5}.
    \item \xmlNode{StoppingFunction}, \xmlDesc{XML node, optional node},   the
                                                            body of this XML node must contain the name of an appropriate \textbf{Function} defined in the
                                                             \xmlNode{Functions} block (see Section~\ref{sec:functions}).  It is used as a

@@ -120,18 +120,15 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"pri_post_stdReduct_<targName>":value}
     """
-    """
-      Functions to be applied
-    """
     # Find a reference sample which is closest to samples' average for scaling later
     def FindRef(yExp, yApp):
       """
-       Method to find reference samples within experimental and application data sets that are
-       the closest to the respective sample mean. The reference samples are determined by
-       minimizing the mean squared error between each sample and the sample mean.
+        Method to find reference samples within experimental and application data sets that are
+        the closest to the respective sample mean. The reference samples are determined by
+        minimizing the mean squared error between each sample and the sample mean.
 
-       @ In, yExp, yApp: array-like (2D), experiment and application data [samples x timesteps].
-       @ Out, inExp, inApp: int, indexes of the reference sample in the experimental/application dataset.
+        @ In, yExp, yApp: array-like (2D), experiment and application data [samples x timesteps].
+        @ Out, inExp, inApp: int, indexes of the reference sample in the experimental/application dataset.
       """
       # calculate average temperatures among samples (samples' average)
       yExpMean = np.mean(yExp, axis=0)

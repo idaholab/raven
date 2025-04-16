@@ -140,7 +140,7 @@ class Code(Model):
     self.commandSeparator = "&&" # command separator
     self._isThereACode = True    # it is a code
     # assembler object for stopping condition
-    self.addAssemblerObject('StoppingFunction', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('StoppingFunction', InputData.Quantity.zero_to_one)
 
   def applyRunInfo(self, runInfo):
     """
@@ -635,42 +635,68 @@ class Code(Model):
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
-    process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(),
+                                              stdout=outFileObject, stderr=outFileObject,
+                                              cwd=localenv['PWD'], env=localenv)
+
+    # If we have either a wall time or an online stopping-criterion check, we need our custom loop.
     if self.maxWallTime is not None or self.code.hasOnlineStopCriteriaCheck:
-      stoppingCriteriaTimeInterval = self.code.getOnlineStopCriteriaTimeInterval() if self.code.hasOnlineStopCriteriaCheck else None
+      stoppingCriteriaTimeInterval = (
+            self.code.getOnlineStopCriteriaTimeInterval()
+            if self.code.hasOnlineStopCriteriaCheck else None
+      )
+
+      # If we have a maxWallTime, set up the "timeout" value
       if self.maxWallTime is not None:
         currentTime = time.time()
         timeout = currentTime + self.maxWallTime
-        while True:
-          time.sleep(0.5)
-          process.poll()
-          if time.time() > timeout and process.returncode is None:
-            self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
-            process.kill()
-            process.returncode = -1
-          if stoppingCriteriaTimeInterval is not None and time.time() > currentTime + stoppingCriteriaTimeInterval:
+      else:
+        timeout = None
+
+      # If we only have an online stop-criterion, give the underlying code
+      # some time to initialize before the first check
+      if self.maxWallTime is None and self.code.hasOnlineStopCriteriaCheck:
+        time.sleep(stoppingCriteriaTimeInterval)
+
+      # We'll record the last time we did a stop-criterion check
+      lastCheck = time.time()
+
+      while True:
+        # Decide how long to sleep this iteration:
+        #   - If we have a maxWallTime, we do short sleeps (0.5 sec)
+        #   - If no wallTime, we sleep the entire stop-check interval
+        sleepInterval = 0.5 if self.maxWallTime is not None else stoppingCriteriaTimeInterval
+        time.sleep(sleepInterval)
+
+        # Poll the subprocess to update its returncode if it finished
+        process.poll()
+
+        # 1) Check wall time, if applicable
+        if timeout is not None and time.time() > timeout and process.returncode is None:
+          self.raiseAWarning('walltime exceeded in run in working dir: '
+                             + str(metaData['subDirectory']) + '. Killing the run...')
+          process.kill()
+          process.returncode = -1
+
+        # 2) Check stop criteria, if applicable
+        #    We only check if we've gone at least `stoppingCriteriaTimeInterval`
+        #    since the last check
+        if (self.code.hasOnlineStopCriteriaCheck and stoppingCriteriaTimeInterval is not None):
+          if time.time() - lastCheck >= stoppingCriteriaTimeInterval:
             stopSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
             if stopSim:
-              self.raiseAMessage(f'Code "{self.code.name}". Job ID: "{str(process.pid)}" (type: "{self.code.printTag}") triggered a '
-                                 'stopping criteria to halt the run. Return code is set to 0!')
+              self.raiseAMessage(f'Code "{self.code.name}". Job ID: "{str(process.pid)}" '
+                                 f'(type: "{self.code.printTag}") triggered a stopping '
+                                 'criteria to halt the run. Return code is set to 0!')
               process.kill()
               process.returncode = 0
-            currentTime = time.time()
-          if process.returncode is not None or time.time() > timeout:
-            break
-      else:
-        # only the stopping Criteria Check needs to be performed
-        time.sleep(0.5)
-        while True:
-          time.sleep(stoppingCriteriaTimeInterval)
-          process.poll()
-          stopSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
-          if stopSim:
-            self.raiseAMessage(f'Code "{self.code.name}" (type: "{self.code.name}") triggered a stopping criteria to stop the run. Return code is set to 0!')
-            process.kill()
-            process.returncode = 0
-          if process.returncode is not None:
-            break
+            lastCheck = time.time()
+
+        # 3) If the process has finished or we have (re-)exceeded the timeout, exit loop
+        if process.returncode is not None or (timeout is not None and time.time() > timeout):
+          break
+
+    # Otherwise, if no special checks are needed, just wait for the process to complete
     else:
       process.wait()
 

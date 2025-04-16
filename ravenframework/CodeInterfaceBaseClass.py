@@ -325,7 +325,7 @@ class CodeInterfaceBase(BaseInterface):
     """
       Method to get the time interval (frequency) of how often the onlineStopCriteriaCheck needs to be inquired.
       @ In, None
-      @ Out,
+      @ Out, onlineStopCriteriaTimeInterval, float, the time interval (seconds)
     """
     return self.onlineStopCriteriaTimeInterval
 
