@@ -11,6 +11,8 @@
        external function ``genericStopCriteria'' commands to halt the simulation.
        In this example, the criteria is to stop the simulation
        if the ``poly'' variable is above 0.20.
+       The test exports only the variable ``StoppingReason'' that shows the reason why
+       the simulations stop (we expect the reason to be ``StoppingCondtion'' for 3 out of 4 samples)
     </description>
   </TestInfo>
   <RunInfo>
@@ -84,7 +86,7 @@
   <DataObjects>
     <PointSet name="samples">
       <Input>y,x</Input>
-      <Output>poly</Output>
+      <Output>StoppingReason</Output>
     </PointSet>
   </DataObjects>
 

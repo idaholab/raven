@@ -46,6 +46,7 @@
  [./genericInterfaceStoppingFunction]
    type = 'RavenFramework'
    input = 'test_generic_interface_online_stop_function.xml'
-   output = 'GenericInterfaceStoppingFunction/samples.csv'
+   output = 'GenericInterfaceStoppingFunction/samples.xml'
+   csv = 'GenericInterfaceStoppingFunction/samples.csv'
  [../]
 []
