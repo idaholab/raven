@@ -132,6 +132,7 @@ Additional XML sub-nodes can be optionally added in the \xmlNode{Code} XML node 
                                                             Each variable defined in the \xmlNode{StoppingFunction} block is available in the
                                                             function as a python \texttt{raven.} member. In the following, an example of a
                                                             user-defined stopping condition function is reported.
+                                                            \nb if this function is used, the user can monitor the reason of a stop exporting the variable ``StoppingReason'' if requested in RAVEN DataObjects.
                                                             
 \begin{lstlisting}[language=python]
 def criteria(raven):

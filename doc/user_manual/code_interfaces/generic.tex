@@ -180,6 +180,7 @@ by the node \xmlNode{onlineStopCriteriaTimeInterval} . By default, the output  i
                                                             Each variable defined in the \xmlNode{StoppingFunction} block is available in the
                                                             function as a python \texttt{raven.} member. In the following, an example of a
                                                             user-defined stopping condition function is reported.
+                                                            \nb if this function is used, the user can monitor the reason of a stop exporting the variable ``StoppingReason'' if requested in RAVEN DataObjects.
 \begin{lstlisting}[language=python]
 def criteria(raven):
   if raven.var1[-1] < 1.0 or raven.var2[-1] < 1.0:

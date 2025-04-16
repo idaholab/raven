@@ -639,45 +639,48 @@ class Code(Model):
                                               stdout=outFileObject, stderr=outFileObject,
                                               cwd=localenv['PWD'], env=localenv)
 
+    # we create a variable that monitors the reason for the code stopping
+    # Options are:
+    # - Normal: Normal termination
+    # - Timeout: Timeout of the simulation in the driven code
+    # - StoppingCondtion: Normal Termination, Stopping condition triggered
+
+    # default is Normal
+    reasonStoppingCode = 'Normal'
+
     # If we have either a wall time or an online stopping-criterion check, we need our custom loop.
     if self.maxWallTime is not None or self.code.hasOnlineStopCriteriaCheck:
       stoppingCriteriaTimeInterval = (
             self.code.getOnlineStopCriteriaTimeInterval()
             if self.code.hasOnlineStopCriteriaCheck else None
       )
-
       # If we have a maxWallTime, set up the "timeout" value
       if self.maxWallTime is not None:
         currentTime = time.time()
         timeout = currentTime + self.maxWallTime
       else:
         timeout = None
-
       # If we only have an online stop-criterion, give the underlying code
       # some time to initialize before the first check
       if self.maxWallTime is None and self.code.hasOnlineStopCriteriaCheck:
         time.sleep(stoppingCriteriaTimeInterval)
-
       # We'll record the last time we did a stop-criterion check
       lastCheck = time.time()
-
       while True:
         # Decide how long to sleep this iteration:
         #   - If we have a maxWallTime, we do short sleeps (0.5 sec)
         #   - If no wallTime, we sleep the entire stop-check interval
         sleepInterval = 0.5 if self.maxWallTime is not None else stoppingCriteriaTimeInterval
         time.sleep(sleepInterval)
-
         # Poll the subprocess to update its returncode if it finished
         process.poll()
-
         # 1) Check wall time, if applicable
         if timeout is not None and time.time() > timeout and process.returncode is None:
           self.raiseAWarning('walltime exceeded in run in working dir: '
                              + str(metaData['subDirectory']) + '. Killing the run...')
           process.kill()
           process.returncode = -1
-
+          reasonStoppingCode = 'Timeout'
         # 2) Check stop criteria, if applicable
         #    We only check if we've gone at least `stoppingCriteriaTimeInterval`
         #    since the last check
@@ -690,12 +693,11 @@ class Code(Model):
                                  'criteria to halt the run. Return code is set to 0!')
               process.kill()
               process.returncode = 0
+              reasonStoppingCode = 'StoppingCondtion'
             lastCheck = time.time()
-
         # 3) If the process has finished or we have (re-)exceeded the timeout, exit loop
         if process.returncode is not None or (timeout is not None and time.time() > timeout):
           break
-
     # Otherwise, if no special checks are needed, just wait for the process to complete
     else:
       process.wait()
@@ -763,6 +765,9 @@ class Code(Model):
           pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
+        # add stopping reason in the metadata realization
+        # (we dont add this in the raven case, because this flag will be implicitly inheritated from the inner raven)
+        returnDict.update({'StoppingReason': reasonStoppingCode})
         returnValue = (kwargs['SampledVars'],returnDict)
         exportDict = self.createExportDictionary(returnValue)
       else:
