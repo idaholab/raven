@@ -693,7 +693,7 @@ class Code(Model):
                                  'criteria to halt the run. Return code is set to 0!')
               process.kill()
               process.returncode = 0
-              reasonStoppingCode = 'StoppingCondtion'
+              reasonStoppingCode = 'StoppingCondition'
             lastCheck = time.time()
         # 3) If the process has finished or we have (re-)exceeded the timeout, exit loop
         if process.returncode is not None or (timeout is not None and time.time() > timeout):
