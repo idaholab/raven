@@ -44,6 +44,7 @@ def readInput(infile):
     @ In, infile, string, filename
     @ Out, (a, b, x, y, out), tuple, required inputs
   """
+  print("Reading",infile)
   config = configparser.ConfigParser()
   config.read(infile)
   a = float(config['FromOuter']['a'])
@@ -59,6 +60,8 @@ def run(*args):
     @ In, args, list, list of things to sum up
     @ Out, run, float, sum of entries in list
   """
+  for i in range(100000):
+    a = 2**2**2**2**2
   return sum(args)
 
 def write(a, b, c, x, y, out):
