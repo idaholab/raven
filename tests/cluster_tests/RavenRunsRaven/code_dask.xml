@@ -23,6 +23,7 @@
     <Sequence>sample, print</Sequence>
     <batchSize>8</batchSize>
     <NumMPI>8</NumMPI>
+    <NumThreads>1</NumThreads>
     <expectedTime>0:10:0</expectedTime>
     <NodeParameter>--hostfile</NodeParameter>
     <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
