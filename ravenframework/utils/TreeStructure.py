@@ -17,7 +17,6 @@ Created on Jan 28, 2014
 """
 
 import xml.etree.ElementTree as ET
-import os, sys
 
 from . import xmlUtils
 #message handler

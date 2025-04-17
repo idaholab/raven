@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests/OpenModelicaInterfaceTestNoExecutable</name>
+    <name>framework/CodeInterfaceTests/OpenModelica.OpenModelicaInterfaceTestNoExecutable</name>
     <author>@bobk</author>
     <created>2015-06-11</created>
     <revisions>
