@@ -120,7 +120,7 @@ class RavenSampled(Optimizer):
     self._writeSteps = 'final'  # when steps should be written
     self._submissionQueue = deque()  # TODO change to Queue.Queue if multithreading samples
     self._stepTracker = {}  # action tracking: what is collected, what needs collecting?
-    self._optPointHistory = {}  # by traj, is a deque (-1 is most recent)
+    self._optPointHistory = {}  # a dictionary of deque's by traj (-1 is most recent)
     self._maxHistLen = 2  # FIXME who should set this?
     self._rerunsSinceAccept = {} # by traj, how long since our last accepted point
     # __private
@@ -128,6 +128,14 @@ class RavenSampled(Optimizer):
     # additional methods
     # # register adaptive sample identification criteria
     self.registerIdentifier('step')  # the step within the action
+    self._finals = []                # A list of unique final points
+    #These objective multipliers are used so that the objective can always
+    # appear as a minimization problem internally.
+    # This multipiles by -1 to turn a maximization problem to a minimization
+    # problem.
+    self._objMult = {} #max will be -1, min will be 1
+    self._objMultArray = np.array([])
+
 
   def handleInput(self, paramInput):
     """
@@ -150,6 +158,14 @@ class RavenSampled(Optimizer):
     # additional checks
     if self.limit is None:
       self.raiseAnError(IOError, 'A <limit> is required for any RavenSampled Optimizer!')
+    self._objMultArray = np.ones(len(self._objectiveVar))
+    for i in range(len(self._objectiveVar)):
+      if self._minMax[i] == 'max':
+        self._objMult[self._objectiveVar[i]] = -1
+        self._objMultArray[i] = -1
+      else:
+        self._objMult[self._objectiveVar[i]] = 1
+
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -301,8 +317,9 @@ class RavenSampled(Optimizer):
     # # testing suggests no big deal on smaller problem
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
-    if self._minMax == 'max':
-      rlz[self._objectiveVar] *= -1
+
+    for objVar in self._objectiveVar:
+      rlz[objVar] *= self._objMult[objVar]
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
@@ -317,53 +334,80 @@ class RavenSampled(Optimizer):
     bestValue = None
     bestTraj = None
     bestPoint = None
-    s = -1 if self._minMax == 'max' else 1
+
+
     # check converged trajectories
     self.raiseAMessage('*' * 80)
     self.raiseAMessage('Optimizer Final Results:')
     self.raiseADebug('')
     self.raiseADebug(' - Trajectory Results:')
     self.raiseADebug('  TRAJ   STATUS    VALUE')
-    statusTemplate = '   {traj:2d}  {status:^11s}  {val: 1.3e}'
+    statusTemplate = '   {traj:2d}  {status:^11s}  {val}'
+    templateNoValue = '   {traj:2d}  {status:^11s}'
+    # Define the template for the values
+    valueTemplate = '{val}'
+
     # print cancelled traj
     for traj, info in self._cancelledTraj.items():
       val = info['value']
       status = info['reason']
-      self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=s * val))
+      self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=self._objMultArray * val))
     # check converged traj
     for traj, info in self._convergedTraj.items():
       opt = self._optPointHistory[traj][-1][0]
       val = info['value']
-      self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=s * val))
+
+      # Format the values in the array
+      formattedValues = np.vectorize(lambda v: valueTemplate.format(val=v))(self._objMultArray*val)
+
+      # Combine the formatted values into a single string with appropriate spacing
+      formattedValuesString = '\n'.join(['   '.join(row) for row in formattedValues])
+
+      # Raise debug message for the entire formatted string
+      self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formattedValuesString.format(formattedValues))
       if bestValue is None or val < bestValue:
         bestTraj = traj
         bestValue = val
-    # further check active unfinished trajectories
-    # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
-    traj = 0 # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
-    # sanity check: if there's no history (we never got any answers) then report than rather than crash
+
+    if bestValue is not None:
+      traj = bestTraj
+    else:
+      # further check active unfinished trajectories
+      # FIXME why should there be any active, unfinished trajectories when we're cleaning up sampler?
+      # FIXME why only 0?? what if it's other trajectories that are active and unfinished?
+      self.raiseAWarning("No bestValue found in the trajectories, "+
+                         "this may indicate problems finding a solution. "+
+                         "Arbitarily defaulting to using trajectory 0.")
+      traj = 0
+      bestTraj = traj
+    # sanity check: if there's no history (we never got any answers) then report rather than crash
     if len(self._optPointHistory[traj]) == 0:
       self.raiseAnError(RuntimeError, f'There is no optimization history for traj {traj}! ' +
                         'Perhaps the Model failed?')
+
     opt = self._optPointHistory[traj][-1][0]
-    val = opt[self._objectiveVar]
-    self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
-    if bestValue is None or val < bestValue:
-      bestValue = val
-      bestTraj = traj
-    bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
-    bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
-    self.raiseADebug('')
-    self.raiseAMessage(' - Final Optimal Point:')
-    finalTemplate = '    {name:^20s}  {value: 1.3e}'
-    finalTemplateInt = '    {name:^20s}  {value: 3d}'
-    self.raiseAMessage(finalTemplate.format(name=self._objectiveVar, value=s * bestValue))
-    self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
-    for var, val in bestPoint.items():
-      self.raiseAMessage(finalTemplate.format(name=var, value=val))
-    self.raiseAMessage('*' * 80)
-    # write final best solution to soln export
-    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+
+    #Note: bestTraj == traj
+    for i in range(len(np.atleast_1d(opt[self._objectiveVar[0]]))):
+      optElm = {key: np.atleast_1d(opt[key])[i] for key in opt}
+      bestOpt = self.denormalizeData(optElm)
+      bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
+
+      val = optElm[self._objectiveVar[0]]
+      self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=self._objMultArray * val))
+      self.raiseADebug('')
+      self.raiseAMessage(' - Final Optimal Point:')
+      finalTemplate = '    {name}  {value}'
+      self.raiseAMessage(finalTemplate.format(name=self._objectiveVar, value=self._objMultArray * val))
+      self.raiseAMessage(finalTemplate.format(name='trajID', value=bestTraj))
+      for var, val in bestPoint.items():
+        self.raiseAMessage(finalTemplate.format(name=var, value=val))
+      self.raiseAMessage('*' * 80)
+      # write final best solution to soln export
+      if bestPoint not in self._finals:
+          self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
+          self._finals.append(bestPoint)
+
 
   def flush(self):
     """
@@ -499,10 +543,10 @@ class RavenSampled(Optimizer):
       @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
-    oldVal = normed[self._objectiveVar]
-    normed.pop(self._objectiveVar, oldVal)
+    oldVal = normed[self._objectiveVar[0]]
+    normed.pop(self._objectiveVar[0], oldVal)
     denormed = self.denormalizeData(normed)
-    denormed[self._objectiveVar] = oldVal
+    denormed[self._objectiveVar[0]] = oldVal
     accept = self._checkImpFunctionalConstraints(denormed)
 
     return accept
@@ -570,9 +614,9 @@ class RavenSampled(Optimizer):
       # TODO could we ever use old rerun gradients to inform the gradient direction as well?
       self._rerunsSinceAccept[traj] += 1
       N = self._rerunsSinceAccept[traj] + 1
-      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar]
+      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
       newAvg = ((N-1)*oldVal + optVal) / N
-      self._optPointHistory[traj][-1][0][self._objectiveVar] = newAvg
+      self._optPointHistory[traj][-1][0][self._objectiveVar[0]] = newAvg
     else:
       self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
 
@@ -637,15 +681,14 @@ class RavenSampled(Optimizer):
                      'modelRuns': self.counter
                     })
     # optimal point input and output spaces
-    objValue = rlz[self._objectiveVar]
-    if self._minMax == 'max':
-      objValue *= -1
-    toExport[self._objectiveVar] = objValue
+    for objVar in self._objectiveVar:
+      objValue = rlz[objVar]*self._objMult[objVar]
+      toExport[objVar] = objValue
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)
     toExport.update(dict((var, rlz[var]) for var in self.dependentSample if var in rlz))
-    # additional from from inheritors
+    # additional from inheritors
     toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
     # check for anything else that solution export wants that rlz might provide
     for var in self._solutionExport.getVars():
