@@ -62,7 +62,7 @@ class Melcor(CodeInterfaceBase):
       raise IOError("Please enter MELCOR message file name")
 
     self.varList        = [var.strip() for var in varNode.text.split(",")]
-    self.melcorPlotFile = plotNode.text 
+    self.melcorPlotFile = plotNode.text
     self.melcorOutFile  = melNode.text
 
   def findInps(self,currentInputFiles):
