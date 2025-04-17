@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests/PrescientInterface</name>
+    <name>framework/CodeInterfaceTests/Prescient.PrescientInterface</name>
     <author>@cogljj</author>
     <created>2020-09-02</created>
     <revisions>
