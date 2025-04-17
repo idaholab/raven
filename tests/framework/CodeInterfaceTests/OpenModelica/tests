@@ -1,0 +1,11 @@
+[Tests]
+
+[./OpenModelicaInterfaceTestNoExecutable]
+  type = 'RavenFramework'
+  input = 'test_OpenModelica_code_interface.xml'
+  output = 'OMInterfaceTest/testDummyStep/1/BouncingBall_init.xml OMInterfaceTest/testDummyStep/2/BouncingBall_init.xml OMInterfaceTest/testDummyStep/3/BouncingBall_init.xml OMInterfaceTest/testDummyStep/4/BouncingBall_init.xml OMInterfaceTest/testDummyStep/5/BouncingBall_init.xml'
+  csv = 'OMInterfaceTest/testDummyStep/1/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/2/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/3/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/4/out~BouncingBall_init.csv OMInterfaceTest/testDummyStep/5/out~BouncingBall_init.csv'
+  test_interface_only = True
+ [../]
+
+[]

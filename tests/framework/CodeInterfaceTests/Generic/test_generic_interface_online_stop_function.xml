@@ -1,27 +1,24 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.genericInterfaceIOCustomOutput</name>
+    <name>framework/CodeInterfaceTests/Generic.genericInterfaceStoppingFunction</name>
     <author>alfoa</author>
-    <created>2017-01-24</created>
+    <created>2025-04-11</created>
     <classesTested>Models.Code.GenericCode</classesTested>
     <description>
-       An example of using the the Model Code of type GenericCode with a code
-       that produces CSV output file.
-       This test is aimed to test the IO system present in the GenericCode interface.
-       In XML node outputFile the user can specify the specific output
-       file name RAVEN is going to load.
+       An example of using the the Model Code of type GenericCode to exercise 
+       the option to stop the simulation if a stopping criteria defined by an
+       external function ``genericStopCriteria'' commands to halt the simulation.
+       In this example, the criteria is to stop the simulation
+       if the ``poly'' variable is above 0.20.
+       The test exports only the variable ``StoppingReason'' that shows the reason why
+       the simulations stop (we expect the reason to be ``StoppingCondtion'' for 3 out of 4 samples)
     </description>
-    <revisions>
-      <revision author="alfoa" date="2018-01-24">Adding this test description.</revision>
-      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
-    </revisions>
-    <requirements>R-IS-6</requirements>
   </TestInfo>
   <RunInfo>
-    <JobName>GenericInterfaceIOCustomOutput</JobName>
+    <JobName>GenericInterfaceStoppingFunction</JobName>
     <Sequence>sample</Sequence>
-    <WorkingDir>GenericInterfaceIOCustomOutput</WorkingDir>
+    <WorkingDir>GenericInterfaceStoppingFunction</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -32,15 +29,25 @@
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>GenericInterfaceIOCustomOutput/poly_inp_io.py</executable>
+      <executable>GenericInterfaceStoppingFunction/poly_inp_io.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
       <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
-      <outputFile>fixed_output.csv</outputFile>
+      <outputFile>fixed_output_case.csv</outputFile>
+      <onlineStopCriteriaTimeInterval>0.1</onlineStopCriteriaTimeInterval>
+      <!-- link to function defined in <Functions> XML node -->
+      <StoppingFunction class="Functions" type="External">stoppingCriteria</StoppingFunction>
+      
     </Code>
   </Models>
-
+  
+  <Functions>
+      <External file="genericStopCriteria.py" name="stoppingCriteria">
+          <variables>poly</variables>
+      </External>
+  </Functions>
+  
   <Distributions>
     <Uniform name="xd">
       <lowerBound>0.0</lowerBound>
@@ -79,7 +86,7 @@
   <DataObjects>
     <PointSet name="samples">
       <Input>y,x</Input>
-      <Output>poly</Output>
+      <Output>StoppingReason</Output>
     </PointSet>
   </DataObjects>
 

@@ -107,6 +107,7 @@
    output = 'GenericInterfaceIOCustomOutput/samples.xml'
    csv = 'GenericInterfaceIOCustomOutput/samples.csv'
  [../]
+ 
  [./genericInterfaceDataSet]
    type = 'RavenFramework'
    input = 'test_generic_dataset.xml'
@@ -114,6 +115,7 @@
    csv = 'GenericDataSet/samples.csv'
    test_interface_only = True
  [../]
+
  [./melcorInterfaceForwardSamplingNoExe]
    type = 'RavenFramework'
    input = 'test_melcor_interface.xml'
@@ -121,41 +123,6 @@
    text = 'MelcorInterface/testMelcor/1/test.i'
    test_interface_only = True
    rel_err = 0.0001
- [../]
-
- [./PrescientInterfaceTest]
-   type = 'RavenFramework'
-   input = 'test_Prescient_code_interface.xml'
-   csv = 'PrescientInterfaceTest/out_prescient_0.csv PrescientInterfaceTest/out_prescient_1.csv'
-   rel_err = 0.0001
-   required_executable = 'runner.py'
-   max_time = 600
-   heavy = true
- [../]
-
- [./PrescientInterfaceOnlyTest]
-   type = 'RavenFramework'
-   input = 'test_Prescient_code_interface_fake.xml'
-   csv = 'PrescientInterfaceTest/out_prescient_fake_0.csv PrescientInterfaceTest/out_prescient_fake_1.csv'
-   text = 'PrescientInterfaceTest/runPrescientFake/1/deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/Scenario_actuals.dat PrescientInterfaceTest/runPrescientFake/2/deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/Scenario_actuals.dat '
-   test_interface_only = True
- [../]
- [./AbceInterfaceTest]
-   type = 'RavenFramework'
-   input = 'test_Abce_code_interface.xml'
-   csv = 'AbceInterfaceTest/grid_0.csv AbceInterfaceTest/grid_1.csv'
-   rel_err = 0.0001
-   required_executable = 'abce/run.py'
-   max_time = 600
-   heavy = true
- [../]
-
- [./AbceInterfaceOnlyTest]
-   type = 'RavenFramework'
-   input = 'test_Abce_code_interface_fake.xml'
-   csv = 'AbceInterfaceTest/grid_fake.csv'
-   text = 'AbceInterfaceTest/runAbceFake/1/settings.yml'
-   test_interface_only = true
  [../]
 
 []
