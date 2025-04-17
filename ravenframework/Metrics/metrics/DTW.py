@@ -78,7 +78,7 @@ class DTW(MetricInterface):
       elif child.getName() == "localDistance":
         self.localDistance = child.value
 
-  def run(self, x, y, weights=None, axis=0, **kwargs):
+  def run(self, x, y, weights=None, axis=0, returnPath=False, **kwargs):
     """
       This method computes DTW distance between two inputs x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
@@ -98,77 +98,83 @@ class DTW(MetricInterface):
     """
     assert (isinstance(x, np.ndarray))
     assert (isinstance(x, np.ndarray))
-    tempX = copy.copy(x)
-    tempY = copy.copy(y)
-    if axis == 0:
-      assert (len(x) == len(y))
-    elif axis == 1:
+    if axis == 1:
       assert(x.shape[1] == y.shape[1]), self.raiseAnError(IOError, "The second dimension of first input is not \
               the same as the second dimension of second input!")
-      tempX = tempX.T
-      tempY = tempY.T
-    else:
-      self.raiseAnError(IOError, "Valid axis value should be '0' or '1' for the evaluate method of metric", self.name)
+    tempX = x.T
+    tempY = y.T
 
     if len(tempX.shape) == 1:
-      tempX = tempX.reshape(1,-1)
+      tempX = tempX.reshape(-1,1)
     if len(tempY.shape) == 1:
-      tempY = tempY.reshape(1,-1)
+      tempY = tempY.reshape(-1,1)
+
     X = np.empty(tempX.shape)
     Y = np.empty(tempY.shape)
-    for index in range(len(tempX)):
-      if self.order == 1:
+
+    if self.order == 1:
+      for index in range(len(tempX)):
         X[index] = np.gradient(tempX[index])
         Y[index] = np.gradient(tempY[index])
-      else:
-        X[index] = tempX[index]
-        Y[index] = tempY[index]
-    value = self.dtwDistance(X, Y)
+    else:
+      X = tempX
+      Y = tempY
+
+    if returnPath:
+       value = self.dtwDistance(X, Y, returnPath=True)
+    else:
+       value = self.dtwDistance(X, Y)
     return value
 
-  def dtwDistance(self, x, y):
+  def dtwDistance(self, x, y, returnPath=False):
     """
       This method actually calculates the distance between two histories x and y
       @ In, x, numpy.ndarray, data matrix for x
       @ In, y, numpy.ndarray, data matrix for y
       @ Out, value, float, distance between x and y
     """
-    r, c = len(x[0,:]), len(y[0,:])
-    D0 = np.zeros((r + 1, c + 1))
+    r, c = len(x[:,0]), len(y[:,0])
+    D0 = np.zeros((r+1, c+1))
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
-    D1 = D0[1:, 1:]
-    D1 = spatialDistance.cdist(x.T,y.T, metric=self.localDistance)
-    C = D1.copy()
-    for i in range(r):
-      for j in range(c):
-        D1[i, j] += min(D0[i, j], D0[i, j+1], D0[i+1, j])
-    if len(x)==1:
-      path = np.zeros(len(y)), range(len(y))
-    elif len(y) == 1:
-      path = range(len(x)), np.zeros(len(x))
+    D1 = spatialDistance.cdist(x,y, metric=self.localDistance)
+    D0[1:, 1:] = D1
+
+    # Populate the distance matrix
+    for i in range(1, r+1):
+        for j in range(1, c+1):
+            D0[i, j] += min(D0[i-1, j], D0[i, j-1], D0[i-1, j-1])
+
+    if returnPath:
+       path = self.tracePath(D0)
+       return D0[r, c], path
     else:
-      path = self.tracePath(D0)
-    return D1[-1, -1]
+       return D0[r, c]
 
   def tracePath(self, D):
     """
       This method calculate the time warping path given a local distance matrix D
       @ In, D,  numpy.ndarray (2D), local distance matrix D
-      @ Out, p, numpy.ndarray (1D), path along horizontal direction
-      @ Out, q, numpy.ndarray (1D), path along vertical direction
+      @ Out, warpingPath, numpy.ndarray (2D), DTW path along the D matrix
     """
-    i,j = np.array(D.shape) - 2
-    p,q = [i], [j]
-    while ((i > 0) or (j > 0)):
-      tb = np.argmin((D[i, j], D[i, j+1], D[i+1, j]))
-      if (tb == 0):
-        i -= 1
-        j -= 1
-      elif (tb == 1):
-        i -= 1
-      else:
-        j -= 1
-      p.insert(0, i)
-      q.insert(0, j)
-    return np.array(p), np.array(q)
+    i, j = D.shape
+    i=i-1
+    j=j-1
+    warpingPath = []
+    while i > 0 or j > 0:
+        warpingPath.append((i-1, j-1))
+        if i > 0 and j > 0:
+            min_cost = min(D[i-1, j], D[i, j-1], D[i-1, j-1])
+            if min_cost == D[i-1, j-1]:
+                i, j = i-1, j-1
+            elif min_cost == D[i-1, j]:
+                i = i-1
+            else:
+                j = j-1
+        elif i > 0:
+            i = i-1
+        else:
+            j = j-1
+    warpingPath.reverse()
+
+    return np.array(warpingPath)
