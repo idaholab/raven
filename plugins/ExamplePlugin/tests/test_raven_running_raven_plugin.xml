@@ -24,7 +24,7 @@
     <!-- This settings here are going to run 2 SLAVE RAVENs at a time, each of them using 1 processors -->
     <batchSize>1</batchSize>
     <NumMPI>1</NumMPI>
-    <mode>mpi</mode>
+    <parallelMethod>dask</parallelMethod>
   </RunInfo>
 
 <Files>

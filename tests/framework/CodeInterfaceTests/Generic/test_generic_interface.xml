@@ -1,40 +1,47 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.genericInterfaceIO</name>
+    <name>framework/CodeInterfaceTests/Generic.genericInterface2</name>
     <author>senrs</author>
     <created>2015-10-06</created>
     <classesTested>Models.Code.GenericCode</classesTested>
     <description>
        An example of using the the Model Code of type GenericCode.
-       This test is aimed to test the IO system present in the GenericCode interface.
+       This test is aimed to show the usage of the GenericCode interface present
+       in RAVEN in order to drive an external code using the wild cards approach
     </description>
     <revisions>
+      <revision author="talbpaul" date="2016-01-04">Re-golded for updated external model variables</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="alfoa" date="2020-10-15">This is now a requirement test (R-IS-2)</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="alfoa" date="2025-04-11">Moved this test in its own folder (Generic)</revision>
     </revisions>
-    <requirements>R-IS-2</requirements>
+    <requirements>R-IS-6</requirements>
   </TestInfo>
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
     <Sequence>sample</Sequence>
-    <WorkingDir>GenericInterfaceIO</WorkingDir>
+    <WorkingDir>GenericInterface</WorkingDir>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="gen.one" type="">gen.one</Input>
-    <Input name="gen.two" type="">gen.two</Input>
+    <Input name="one.xml" type="">one.xml</Input>
+    <Input name="inp.two" type="">inp.two</Input>
+    <Input name="inp.three" type="">inp.three</Input>
+    <Input name="mesh" type="">dummy.e</Input>
+    <Input name="a_dummy_file_for_subdirectory" type="" subDirectory="testSubDirectory">dummy_file_for_subdirectory.dummy</Input>
   </Files>
 
   <Models>
     <Code name="poly" subType="GenericCode">
-      <executable>GenericInterfaceIO/poly_inp_io.py</executable>
+      <executable>GenericInterface/poly_inp.py</executable>
       <clargs arg="python" type="prepend"/>
-      <clargs arg="-i" extension=".one" type="input"/>
-      <fileargs arg="aux" extension=".two" type="input"/>
-      <fileargs arg="output" type="output"/>
+      <clargs arg="-i" extension=".xml" type="input"/>
+      <clargs arg="-a" extension=".two" type="input"/>
+      <clargs arg="-a" extension=".three" type="input"/>
+      <clargs arg="-o" type="output"/>
     </Code>
   </Models>
 
@@ -64,8 +71,11 @@
 
   <Steps>
     <MultiRun name="sample" clearRunDir="False">
-      <Input class="Files" type="">gen.one</Input>
-      <Input class="Files" type="">gen.two</Input>
+      <Input class="Files" type="">inp.two</Input>
+      <Input class="Files" type="">one.xml</Input>
+      <Input class="Files" type="">inp.three</Input>
+      <Input class="Files" type="">mesh</Input>
+      <Input class="Files" type="">a_dummy_file_for_subdirectory</Input>
       <Model class="Models" type="Code">poly</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
@@ -75,7 +85,7 @@
 
   <DataObjects>
     <PointSet name="samples">
-      <Input>x,y</Input>
+      <Input>y,x</Input>
       <Output>poly</Output>
     </PointSet>
   </DataObjects>
@@ -84,7 +94,7 @@
     <Print name="samples">
       <type>csv</type>
       <source>samples</source>
-      <what>input, output</what>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

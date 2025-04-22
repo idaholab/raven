@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests/AbceInterface</name>
+    <name>framework/CodeInterfaceTests/ABCE.AbceInterface</name>
     <author>@JiaZhou-PU</author>
     <created>2023-08-01</created>
     <revisions>
@@ -10,13 +10,12 @@
     <description>
       Test the Abce Code Interface. This perturbs the peak demand in
       settings file.
-      This version is an interface check version.
     </description>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>AbceInterfaceTest</WorkingDir>
-    <Sequence>runAbceFake</Sequence>
+    <Sequence>runAbce</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -61,7 +60,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="runAbceFake" clearRunDir="False">
+    <MultiRun name="runAbce" clearRunDir="False">
       <Input class="Files" type="">settings.yml</Input>
       <Input class="Files" type="">demand_data_file</Input>
       <Input class="Files" type="">agent_specifications_file</Input>
@@ -75,24 +74,25 @@
       <Input class="Files" type="">timeseries_pv_hourly.csv</Input>
       <Model class="Models" type="Code">abce</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
-      <Output class="DataObjects" type="DataSet">grid</Output>
-      <Output class="OutStreams" type="Print">grid_fake</Output>
+      <Output class="DataObjects" type="HistorySet">grid</Output>
+      <Output class="OutStreams" type="Print">grid</Output>
     </MultiRun>
   </Steps>
 
 
   <DataObjects>
-    <DataSet name="grid">
-      <Input>var, autoindex</Input>
+    <HistorySet name="grid">
+      <Input>var</Input>
       <Output>agent_id, unit_type, start_pd, completion_pd, cancellation_pd,
-      retirement_pd, total_capex, cap_pmt, C2N_reserved </Output>
-      <Index var="autoindex" autogenerate="True">agent_id, unit_type, start_pd, completion_pd, cancellation_pd,
-      retirement_pd, total_capex, cap_pmt, C2N_reserved</Index>
-    </DataSet>
+        retirement_pd, total_capex, cap_pmt, C2N_reserved </Output>
+      <options>
+        <pivotParameter>asset_id</pivotParameter>
+      </options>
+    </HistorySet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="grid_fake">
+    <Print name="grid">
       <type>csv</type>
       <source>grid</source>
     </Print>
