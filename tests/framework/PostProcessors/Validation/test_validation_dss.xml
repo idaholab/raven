@@ -29,8 +29,8 @@
       <variables>sigma,rho,beta,x2,y2,z2,time2,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="pp1" subType="PPDSS">
-      <Features>outMC1|x1</Features>
-      <Targets>outMC2|x2</Targets>
+      <prototypeOutputs>outMC1|x1</prototypeOutputs>
+      <targetOutputs>outMC2|x2</targetOutputs>
       <Metric class="Metrics" type="Metric">dss</Metric>
       <pivotParameterFeature>time1</pivotParameterFeature>
       <pivotParameterTarget>time2</pivotParameterTarget>
@@ -39,8 +39,8 @@
       <scaleOmega>1</scaleOmega>
     </PostProcessor>
     <PostProcessor name="pp2" subType="PPDSS">
-      <Features>outMC1|x1</Features>
-      <Targets>outMC2|x2</Targets>
+      <prototypeOutputs>outMC1|x1</prototypeOutputs>
+      <targetOutputs>outMC2|x2</targetOutputs>
       <Metric class="Metrics" type="Metric">dss</Metric>
       <pivotParameterFeature>time1</pivotParameterFeature>
       <pivotParameterTarget>time2</pivotParameterTarget>
@@ -51,8 +51,8 @@
       <scaleOmega>1</scaleOmega>
     </PostProcessor>
     <PostProcessor name="pp3" subType="PPDSS">
-      <Features>outMC1|y1</Features>
-      <Targets>outMC2|y2</Targets>
+      <prototypeOutputs>outMC1|y1</prototypeOutputs>
+      <targetOutputs>outMC2|y2</targetOutputs>
       <Metric class="Metrics" type="Metric">dss</Metric>
       <pivotParameterFeature>time1</pivotParameterFeature>
       <pivotParameterTarget>time2</pivotParameterTarget>

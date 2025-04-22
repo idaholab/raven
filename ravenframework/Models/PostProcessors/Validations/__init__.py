@@ -19,4 +19,5 @@
   @author: wangc
 """
 from .Probabilistic import Probabilistic
+from .Representativity import Representativity
 from .PPDSS import PPDSS

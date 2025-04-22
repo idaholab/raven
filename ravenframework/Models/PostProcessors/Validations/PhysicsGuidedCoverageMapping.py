@@ -92,7 +92,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         self.ReconstructionError = 0.001
     # Number of Features responses must equal to number of Measurements responses
     # Number of samples between Features and Measurements can be different
-    if len(self.features) != len(self.measurements):
+    if len(self.prototypeOutputs) != len(self.measurements):
       self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Measurements"')
 
   def run(self, inputIn):
@@ -378,7 +378,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
     featPW = []
     msrPW = []
 
-    for feat, msr, targ in zip(self.features, self.measurements, self.targets):
+    for feat, msr, targ in zip(self.prototypeOutputs, self.measurements, self.targetOutputs):
       featDataProb = self._getDataFromDataDict(datasets, feat, names)
       msrDataProb = self._getDataFromDataDict(datasets, msr, names)
       # read targets' data
@@ -460,7 +460,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       msrData = np.array(msrData).T
       targData = np.array(targData).T
       outputArray = PCM(featData, msrData, targData)
-      for targ in self.targets:
+      for targ in self.targetOutputs:
         name = "static_pri_post_stdReduct_" + targ.split('|')[-1]
         outputDict[name] = np.asarray(outputArray)
 

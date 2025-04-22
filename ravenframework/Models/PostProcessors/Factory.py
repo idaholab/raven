@@ -38,6 +38,7 @@ from .ParetoFrontierPostProcessor import ParetoFrontier
 from .EconomicRatio import EconomicRatio
 from .ValidationBase import ValidationBase
 from .Validations import Probabilistic
+from .Validations import Representativity
 from .Validations import PPDSS
 from .Validations import PhysicsGuidedCoverageMapping
 from .TSACharacterizer import TSACharacterizer

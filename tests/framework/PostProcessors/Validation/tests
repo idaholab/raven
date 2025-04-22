@@ -27,6 +27,27 @@
     rel_err = 0.00001
     zero_threshold = 1e-9
   [../]
+  [./test_validation_representativity1]
+    type = 'RavenFramework'
+    input = 'test_representativity_perfectLinExpToTarget.xml'
+    csv = 'RepresentativityPerfectMatch/pp1_metric_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./test_validation_representativity2]
+    type = 'RavenFramework'
+    input = 'test_representativity_singlePerfectLinExpToTarget.xml'
+    csv = 'RepresentativityPerfectSingleMeasurable/pp1_metric_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
+  [./test_validation_representativity3]
+    type = 'RavenFramework'
+    input = 'test_representativity_rankDifficientLinExpToTarget.xml'
+    csv = 'RepresentativityrankDifficient/pp1_metric_dump.csv'
+    rel_err = 0.00001
+    zero_threshold = 1e-9
+  [../]
   [./test_validation_gate_pcm_Static]
     type = 'RavenFramework'
     input = 'test_validation_gate_pcm_Static.xml'

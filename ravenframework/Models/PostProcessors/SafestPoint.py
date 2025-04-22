@@ -334,8 +334,8 @@ class SafestPoint(PostProcessorInterface):
       rlz[self.outputName][ncLine] = np.prod(probList)
       rlz['ProbabilityWeight'][ncLine] = np.prod(probList)
     metadata = {'ProbabilityWeight':xarray.DataArray(rlz['ProbabilityWeight'])}
-    targets = {tar:xarray.DataArray( rlz[tar])  for tar in self.controllableOrd}
-    rlz['ExpectedSafestPointCoordinates'] = self.stat.run({'metadata':metadata, 'targets':targets})
+    targets = {tar:xarray.DataArray( rlz[tar], dims=self.sampleTag)  for tar in self.controllableOrd}
+    rlz['ExpectedSafestPointCoordinates'] = self.stat._runLegacy({'metadata':metadata, 'targets':targets})
     self.raiseADebug(rlz['ExpectedSafestPointCoordinates'])
     return rlz
 

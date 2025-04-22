@@ -67,6 +67,7 @@ class PostProcessorInterface(BaseInterface):
     ## One possible solution is all postpocessors return a list of realizations, and we only
     ## use addRealization method to add the collections into the DataObjects
     self.outputMultipleRealizations = False
+    self.sampleTag = 'RAVEN_sample_ID' # raven sample tag used to store data
 
   def _handleInput(self, paramInput):
     """

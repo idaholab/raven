@@ -12,7 +12,7 @@
     <created>2023-04-23</created>
     <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
     <description>
-        This test is aimed to show how Tdep_PCM works.This test uses the coefficients of SETH-C and SETH-D data 
+        This test is aimed to show how Tdep_PCM works.This test uses the coefficients of SETH-C and SETH-D data
         based on their U subspace as experiment (Feature) and application (Target) models.
         Here, coefficients of SETH-C are used as experiemnt responses (Features);
         coefficients of SETH-C and SETH-D temperatures data are used as application responses (Target)
@@ -28,8 +28,8 @@
   <Models>
     <PostProcessor name="pcm_Tdep" subType="PhysicsGuidedCoverageMapping">
       <pivotParameter>time</pivotParameter>
-      <Features>exp|TempC</Features>
-      <Targets>app|TempD</Targets>
+      <prototypeOutputs>exp|TempC</prototypeOutputs>
+      <targetOutputs>app|TempD</targetOutputs>
       <Measurements>msr|TempMsrC</Measurements>
       <pcmType>Tdep</pcmType>
       <ReconstructionError>0.001</ReconstructionError>
@@ -58,22 +58,22 @@
   <DataObjects>
     <HistorySet name="exp">
       <options>
-       <pivotParameter>time</pivotParameter> 
+       <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempC</Output>     
+      <Output>TempC</Output>
     </HistorySet>
     <HistorySet name="app">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempD</Output>     
-    </HistorySet>      
+      <Output>TempD</Output>
+    </HistorySet>
     <HistorySet name="msr">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempMsrC</Output>     
-    </HistorySet>    
+      <Output>TempMsrC</Output>
+    </HistorySet>
     <HistorySet name="pcmTdep_metric">
       <options>
         <pivotParameter>time</pivotParameter>
@@ -83,7 +83,7 @@
     </HistorySet>
   </DataObjects>
 
-  <OutStreams>       
+  <OutStreams>
     <Print name="pcmTdep_results">
       <type>csv</type>
       <source>pcmTdep_metric</source>
