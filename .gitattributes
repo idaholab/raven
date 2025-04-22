@@ -1,4 +1,6 @@
 include/contrib/* linguist-vendored
-src/contrib/* linguist-vendored
-crow/contrib/* linguist-vendored
-framework/contrib/* linguist-vendored
+src/AMSC/* linguist-vendored
+crow/contrib/include/boost/* linguist-vendored
+ravenframework/contrib/* linguist-vendored
+tests/framework/CodeInterfaceTests/* linguist-vendored
+doc/* linguist-documentation
