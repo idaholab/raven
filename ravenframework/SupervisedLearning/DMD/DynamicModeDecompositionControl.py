@@ -664,3 +664,6 @@ class DMDC(DMD):
     B = beta.dot(uTruc[n:, :].T)
     C = Y1.dot(scipy.linalg.pinv(X1))
     return A, B, C
+
+#magic to allow ROM to be pickled
+DMDC.getInputSpecification()

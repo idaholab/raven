@@ -871,3 +871,7 @@ class SupervisedLearning(BaseInterface):
       @ In, None
       @ Out, params, dict, dictionary of parameter names and current values
     """
+
+
+#magic to allow SupervisedLearning to be pickled
+SupervisedLearning.getInputSpecification()
