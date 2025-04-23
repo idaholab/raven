@@ -664,3 +664,5 @@ class DMDC(DMD):
     B = beta.dot(uTruc[n:, :].T)
     C = Y1.dot(scipy.linalg.pinv(X1))
     return A, B, C
+
+DMDC.getInputSpecification()
