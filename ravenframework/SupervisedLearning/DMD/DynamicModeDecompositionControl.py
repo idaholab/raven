@@ -273,13 +273,6 @@ class DMDC(DMD):
     """
     data = self._modes[target].dot(self.__getTimeEvolution(target))
     return data
-  def __setstate__(self,state):
-    """
-      Initializes the DMD with the data contained in state
-      @ In, state, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(state)
 
   def _train(self,featureVals,targetVals):
     """
