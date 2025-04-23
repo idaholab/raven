@@ -121,7 +121,7 @@ class DaskRunner(InternalRunner):
       try:
         self._collectRunnerResponse()
       except Exception as ae:
-        self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+        self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedErrorGRC')
         self.returnCode = -1
 
     return self.returnCode
@@ -143,7 +143,7 @@ class DaskRunner(InternalRunner):
             self.runReturn = None
             self.hasBeenAdded = True
             self.returnCode = -1
-            self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+            self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedErrorCRR')
             raise ae
         else:
           self.runReturn = None
@@ -165,10 +165,10 @@ class DaskRunner(InternalRunner):
     except Exception as ae:
       #Uncomment if you need the traceback
       self.exceptionTrace = sys.exc_info()
-      #exc_type, exc_value, exc_traceback = sys.exc_info()
-      #import traceback
-      #traceback.print_exception(exc_type, exc_value, exc_traceback)
-      self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
+      exc_type, exc_value, exc_traceback = sys.exc_info()
+      import traceback
+      traceback.print_exception(exc_type, exc_value, exc_traceback)
+      self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedErrorStart')
       self.returnCode = -1
 
   def kill(self):
