@@ -3,7 +3,7 @@
 
   <TestInfo>
       <name>framework/CodeInterfaceTests.melcorInterfaceForwardSamplingNoExe</name>
-      <author>mattdon</author>
+      <author>alfoa</author>
       <created>2023-02-20</created>
       <classesTested>Models.Code.Melcor</classesTested>
       <description>

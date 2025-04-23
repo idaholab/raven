@@ -123,12 +123,10 @@ class Melcor(CodeInterfaceBase):
 
     if "dynamicevent" in samplerType.lower():
       raise IOError("Dynamic Event Tree-based samplers not implemented for MELCOR yet! But we are working on that.")
-    indexes  = []
     inFiles  = []
     origFiles= []
     for index,inputFile in enumerate(currentInputFiles):
       if inputFile.getExt() in self.getInputExtension():
-        indexes.append(index)
         inFiles.append(inputFile)
     for index,inputFile in enumerate(origInputFiles):
       if inputFile.getExt() in self.getInputExtension():
