@@ -472,3 +472,7 @@ class DMDBase(SupervisedLearning):
       @ Out, params, dict, the dict of the SM settings
     """
     return self.__returnInitialParametersLocal__()
+
+
+#magic to allow DMDBase to be pickled
+DMDBase.getInputSpecification()

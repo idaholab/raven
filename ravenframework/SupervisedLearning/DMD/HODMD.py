@@ -190,3 +190,6 @@ class HODMD(DMDBase):
     self._dmdBase = HODMD
     # intialize the model
     self.initializeModel(self.dmdParams)
+
+#magic to allow HODMD to be pickled
+HODMD.getInputSpecification()
