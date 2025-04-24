@@ -759,7 +759,7 @@ def parameterInputFactory(name, *paramList, **paramDict):
   while tb[i].name != 'getInputSpecification' and i > -5:
     #print(tb[i].filename,tb[i].lineno)
     i -= 1
-  #print(tb[i].filename,tb[i].lineno)  
+  #print(tb[i].filename,tb[i].lineno)
   uniquifier += os.path.basename(tb[i].filename[:-3])
   #print("for",name+'Spec'+uniquifier)
   newClass = type(name+'Spec'+uniquifier, (ParameterInput,), {})
