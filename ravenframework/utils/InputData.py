@@ -754,11 +754,14 @@ def parameterInputFactory(name, *paramList, **paramDict):
   # so we use the stack trace to find which class is calling us
   uniquifier = ""
 
-  i = -2
+  i = -1
   import os
-  while tb[i].name == 'getInputSpecification':
-    uniquifier += os.path.basename(tb[i].filename[:-3])
+  while tb[i].name != 'getInputSpecification' and i > -5:
+    #print(tb[i].filename,tb[i].lineno)
     i -= 1
+  #print(tb[i].filename,tb[i].lineno)  
+  uniquifier += os.path.basename(tb[i].filename[:-3])
+  #print("for",name+'Spec'+uniquifier)
   newClass = type(name+'Spec'+uniquifier, (ParameterInput,), {})
   newClass.createClass(name, *paramList, **paramDict)
   return newClass
