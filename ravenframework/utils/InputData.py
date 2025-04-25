@@ -19,6 +19,8 @@ Created on 2016-Jan-26
 This a library for defining the data used and for reading it in.
 """
 import re
+import traceback
+import os
 from collections import OrderedDict
 from enum import Enum
 import xml.etree.ElementTree as ET
@@ -172,8 +174,9 @@ class ParameterInput(object):
       @ Out, None
     """
 
-    ## Rename the class to something understandable by a developer
-    cls.__name__ = str(name+'Spec')
+    ## Rename the class to something other than ParameterInput if needed
+    if cls.__name__ == "ParameterInput":
+      cls.__name__ = str(name+'Spec')
     # register class name to module (necessary for pickling)
     globals()[cls.__name__] = cls
 
@@ -738,19 +741,46 @@ class ParameterInput(object):
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
 
+#Note: if you get an error like:
+"""
+  File ".../site-packages/distributed/protocol/pickle.py", line 90, in loads
+    return pickle.loads(x, buffers=buffers)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: Can't get attribute 'DMDCSpecInputDataUser' on <module 'ravenframework.utils.InputData' from '.../raven/ravenframework/utils/InputData.py'>
+"""
+#the solution is to do something like:
+"""
+#magic to allow ROM to be pickled, see utils.InputData.parameterInputFactory
+DMDC.getInputSpecification()
+"""
+#Basically, the type function in parameterInputFactory needs to be run
+# to get the attribute in the InputData namespace.
+#Note, that this is only needed if the ParamterInput class needs to be
+#unpickled before the class ever has getInputSpecification called.
 
 
-def parameterInputFactory(*paramList, **paramDict):
+def parameterInputFactory(name, *paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
+    @ In, name, string, The name of the node.
     @ In, same parameters as ParameterInput.createClass
     @ Out, newClass, ParameterInput, the newly created class.
   """
-  class newClass(ParameterInput):
-    """
-      The new class to be created by the factory
-    """
-  newClass.createClass(*paramList, **paramDict)
+  #We need a unique name, but unfortuneately, people used the same
+  # name in different classes, which causes depickling problems
+  # so we use the stack trace to find which class is calling us
+  uniquifier = ""
+  tb = traceback.extract_stack()
+  i = -1
+  while i >= -len(tb) and tb[i].name != 'getInputSpecification' and i > -5:
+    #print(tb[i].filename,tb[i].lineno)
+    i -= 1
+  if i >= -len(tb):
+    #print(tb[i].filename,tb[i].lineno)
+    uniquifier += os.path.basename(tb[i].filename[:-3])
+  #print("for",name+'Spec'+uniquifier)
+  newClass = type(name+'Spec'+uniquifier, (ParameterInput,), {})
+  newClass.createClass(name, *paramList, **paramDict)
   return newClass
 
 def assemblyInputFactory(*paramList, **paramDict):

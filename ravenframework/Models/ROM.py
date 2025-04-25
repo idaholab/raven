@@ -791,3 +791,6 @@ if __name__ == '__main__':
       concreteModel.pprint()
 """
     return template
+
+#magic to allow ROM to be pickled, see utils.InputData.parameterInputFactory
+ROM.getInputSpecification()
