@@ -2206,6 +2206,9 @@ class Decomposition(SupervisedLearning):
     pass
 
 
-#magic to allow ROMCollection to be pickled
+#magic to allow ROMCollection to be pickled, see utils.InputData.parameterInputFactory
 Collection.getInputSpecification()
+Segments.getInputSpecification()
+Clusters.getInputSpecification()
 Interpolated.getInputSpecification()
+Decomposition.getInputSpecification()

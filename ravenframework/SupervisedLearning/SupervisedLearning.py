@@ -873,5 +873,5 @@ class SupervisedLearning(BaseInterface):
     """
 
 
-#magic to allow SupervisedLearning to be pickled
+#magic to allow SupervisedLearning to be pickled, see utils.InputData.parameterInputFactory
 SupervisedLearning.getInputSpecification()

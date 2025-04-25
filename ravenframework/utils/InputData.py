@@ -741,11 +741,28 @@ class ParameterInput(object):
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
 
+#Note: if you get an error like:
+"""
+  File ".../site-packages/distributed/protocol/pickle.py", line 90, in loads
+    return pickle.loads(x, buffers=buffers)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: Can't get attribute 'DMDCSpecInputDataUser' on <module 'ravenframework.utils.InputData' from '.../raven/ravenframework/utils/InputData.py'>
+"""
+#the solution is to do something like:
+"""
+#magic to allow ROM to be pickled, see utils.InputData.parameterInputFactory
+DMDC.getInputSpecification()
+"""
+#Basically, the type function in parameterInputFactory needs to be run
+# to get the attribute in the InputData namespace.
+#Note, that this is only needed if the ParamterInput class needs to be
+#unpickled before the class ever has getInputSpecification called.
 
 
 def parameterInputFactory(name, *paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
+    @ In, name, string, The name of the node.
     @ In, same parameters as ParameterInput.createClass
     @ Out, newClass, ParameterInput, the newly created class.
   """

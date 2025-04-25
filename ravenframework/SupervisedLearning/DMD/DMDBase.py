@@ -474,5 +474,5 @@ class DMDBase(SupervisedLearning):
     return self.__returnInitialParametersLocal__()
 
 
-#magic to allow DMDBase to be pickled
+#magic to allow DMDBase to be pickled, see utils.InputData.parameterInputFactory
 DMDBase.getInputSpecification()

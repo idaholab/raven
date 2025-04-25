@@ -665,5 +665,5 @@ class DMDC(DMD):
     C = Y1.dot(scipy.linalg.pinv(X1))
     return A, B, C
 
-#magic to allow ROM to be pickled
+#magic to allow DMDC to be pickled, see utils.InputData.parameterInputFactory
 DMDC.getInputSpecification()
