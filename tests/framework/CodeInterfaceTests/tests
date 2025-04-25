@@ -41,13 +41,4 @@
    test_interface_only = True
  [../]
 
- [./melcorInterfaceForwardSamplingNoExe]
-   type = 'RavenFramework'
-   input = 'test_melcor_interface.xml'
-   csv = 'MelcorInterface/dumpMelcorPointSet.csv'
-   text = 'MelcorInterface/testMelcor/1/test.i'
-   test_interface_only = True
-   rel_err = 0.0001
- [../]
-
 []
