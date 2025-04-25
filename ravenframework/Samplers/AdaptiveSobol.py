@@ -317,12 +317,13 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #otherwise, we can submit points!
     return True
 
-  def localGenerateInput(self,model,oldInput):
+  def localGenerateInput(self, rlz, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
@@ -330,7 +331,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #note: pointsNeeded is the collection of points needed by sampler,
     #      while neededPoints is just the reference point that needs running
     #if there's a point that THIS sampler needs, prioritize it
-    self.inputInfo['ProbabilityWeight'] = 1.0
+    rlz.inputInfo['ProbabilityWeight'] = 1.0
     if len(self.neededPoints)>0:
       pt = self.neededPoints.pop()
     #otherwise, take from the highest-impact sampler's needed points
@@ -358,9 +359,9 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
-          self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
+          rlz[key] = pt[v]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        rlz.inputInfo['ProbabilityWeight-'+varName] = rlz.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] == 1:
         dist = self.variables2distributionsMapping[varName]['name']
@@ -379,12 +380,12 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
           else:
             self.raiseAnError(IOError,'The variables ' + var + ' listed in adaptive sobol sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
-            self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
-        self.inputInfo['ProbabilityWeight']*=self.inputInfo['ProbabilityWeight-'+dist]
-    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'
+            rlz[key] = pt[location]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        rlz.inputInfo['ProbabilityWeight-'+dist] = rlz.inputInfo['SampledVarsPb'][varName]
+        rlz.inputInfo['ProbabilityWeight']*=rlz.inputInfo['ProbabilityWeight-'+dist]
+    rlz.inputInfo['PointProbability'] = reduce(mul,rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['SamplerType'] = 'Adaptive Sparse Grids for Sobol'
   def _addPointToDataObject(self,subset,point):
     """
       Adds a cut point to the data object for the subset sampler.
@@ -525,14 +526,16 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #set up HDMRRom for training
     self._finalizeROM()
 
-  def _finalizeROM(self, rom=None, include=[]):
+  def _finalizeROM(self, rom=None, include=None):
     """
       Delivers necessary structures to the HDMRRom object
       @ In, rom, HDMRRom object, optional, rom to finalize before training, defaults to target rom
       @ In, include, list[str], optional, subsets to optionally exclude from trimming
       @ Out, None
     """
-    if rom == None:
+    if include is None:
+      include = []
+    if rom is None:
       rom = self.ROM
     initDict = {'ROMs':None, # multitarget requires setting individually, below
                 'SG':self.SQs,
@@ -544,7 +547,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #initialize each HDMRRom object in the ROM
     initDict['ROMs'] = copy.deepcopy(self.ROMs)
     #remove unfinished subsets
-    for subset in self.ROMs.keys():
+    for subset in self.ROMs:
       if subset not in self.useSet.keys() and subset not in include:
         del initDict['ROMs'][subset]
     rom.supervisedContainer[0].initialize(initDict)

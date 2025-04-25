@@ -83,7 +83,7 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
-        <limit>25</limit>
+        <limit>45</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>

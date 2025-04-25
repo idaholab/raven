@@ -63,7 +63,7 @@ class Projectile(CodeInterfaceBase):
     validExtensions = ('i', 'I')
     return validExtensions
 
-  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, rlz):
     """
       Generate a new Projectile input file (txt format) from the original, changing parameters
       as specified in Kwargs['SampledVars']. In addition, it creaes an additional input file including the vector data to be
@@ -77,20 +77,14 @@ class Projectile(CodeInterfaceBase):
     """
     # find the input file (check that one input is provided)
     if (len(currentInputFiles) > 1):
-      raise Exception('Projectile INTERFACE ERROR -> Only one input file is accepted!')
-    # get the dictionary containing the perturbed variables (contained in the "SampledVars")
-    varDict = Kwargs['SampledVars']
+      raise IOError('Projectile INTERFACE ERROR -> Only one input file is accepted!')
     # read the original input file lines (read mode "r")
-    with open(currentInputFiles[0].getAbsFile(), 'r') as src:
-      inputLines= src.readlines()
-    # construct a list of variables out of the input lies (to check if the input variables are the consistent with the one in the original model)
-    originalKeys = [x.split("=")[0] for x in inputLines if x.strip() != ""]
-    # check if the perturbed variables are consistent with the original model input
-    #if set(originalKeys) != set(varDict.keys()):
-    #  raise Exception('Projectile INTERFACE ERROR -> Variables contained in the original input files are different with respect to the ones perturbed!')
+    # NOTE we originally read in the currentInputFiles[0] and read in all its entries,
+    #      then modified them with the requested change dict. However, this was changed,
+    #      and now we only write the key-value pairs sampled by RAVEN instead.
     # we are ready to write the new input file (open in write mode "w")
-    with open(currentInputFiles[0].getAbsFile(), 'w') as src:
-      for var, value in varDict.items():
+    with open(currentInputFiles[0].getAbsFile(), 'w', encoding='utf-8') as src:
+      for var, value in rlz.items():
         src.writelines(var+ " = "+ str(value)+"\n")
     return currentInputFiles
 

@@ -18,18 +18,13 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import copy
 from operator import mul
 from functools import reduce
 from collections import namedtuple
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
+import numpy as np
+
 from ..utils import InputData, InputTypes
 from .Sampler               import Sampler
 from .MonteCarlo            import MonteCarlo
@@ -39,7 +34,7 @@ from .FactorialDesign       import FactorialDesign
 from .ResponseSurfaceDesign import ResponseSurfaceDesign
 from .CustomSampler         import CustomSampler
 from .. import GridEntities
-# Internal Modules End------------------------------------------------------------------------------
+from ..Realizations import Realization, RealizationBatch
 
 class EnsembleForward(Sampler):
   """
@@ -188,26 +183,34 @@ class EnsembleForward(Sampler):
       @ In, None
       @ Out, None
     """
-    self.limit = 1
+    self.limits['samples'] = 1
     cnt = 0
-    lowerBounds, upperBounds = {}, {}
-    metadataKeys, metaParams = [], {}
-    for samplingStrategy in self.instantiatedSamplers:
-      self.instantiatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed, solutionExport=None)
+    lowerBounds = {}
+    upperBounds = {}
+    metadataKeys = []
+    metaParams = {}
+    for samplingStrategy, sampler in self.instantiatedSamplers.items():
+      sampler.initialize(externalSeeding=self.initSeed, solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
-      self.limit *= self.instantiatedSamplers[samplingStrategy].limit
-      lowerBounds[samplingStrategy],upperBounds[samplingStrategy] = 0, self.instantiatedSamplers[samplingStrategy].limit
-      while self.instantiatedSamplers[samplingStrategy].amIreadyToProvideAnInput():
-        self.instantiatedSamplers[samplingStrategy].counter += 1
-        self.instantiatedSamplers[samplingStrategy].localGenerateInput(None,None)
-        self.instantiatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instantiatedSamplers[samplingStrategy].counter
-        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instantiatedSamplers[samplingStrategy].inputInfo))
+      self.limits['samples'] *= sampler.limits['samples']
+      lowerBounds[samplingStrategy] = 0
+      upperBounds[samplingStrategy] = sampler.limits['samples']
+      self.toBeSampled.update(sampler.toBeSampled)
+      while sampler.amIreadyToProvideAnInput():
+        sampler.counters['samples'] += 1
+        batch = RealizationBatch(1)
+        rlz = batch[0]
+        sendToSampler = rlz if sampler.batch < 1 else batch
+        sampler.localGenerateInput(sendToSampler, None, None)
+        rlz.inputInfo['prefix'] = sampler.counters['samples']
+        # TODO can we keep this as a rlz instead of sending a dict?
+        self.samplersCombinations[samplingStrategy].append(copy.deepcopy(rlz.asDict()))
       cnt += 1
-      mKeys, mParams = self.instantiatedSamplers[samplingStrategy].provideExpectedMetaKeys()
+      mKeys, mParams = sampler.provideExpectedMetaKeys()
       metadataKeys.extend(mKeys)
       metaParams.update(mParams)
     metadataKeys = list(set(metadataKeys))
-    self.raiseAMessage(f'Number of Combined Samples are {self.limit}!')
+    self.raiseAMessage(f'Total Number of Combined Samples is {self.limits["samples"]}!')
     # create a grid of combinations (no tensor)
     self.gridEnsemble = GridEntities.factory.returnInstance('GridEntity')
     initDict = {'dimensionNames': self.instantiatedSamplers.keys(),
@@ -221,36 +224,57 @@ class EnsembleForward(Sampler):
     # add meta data keys
     self.addMetaKeys(metadataKeys, params=metaParams)
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlz, model, modelInput):
     """
-      Function to select the next most informative point for refining the limit
-      surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
-      to the model
+      Fill in a new realization with data to be sampled.
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
-      @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict = True)
+    index = self.gridEnsemble.returnPointAndAdvanceIterator(returnDict=True)
     coordinate = []
     for samplingStrategy in self.instantiatedSamplers:
-      coordinate.append(self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])])
+      coord = self.samplersCombinations[samplingStrategy][int(index[samplingStrategy])]
+      coordinate.append(coord)
     for combination in coordinate:
-      for key in combination:
-        if key not in self.inputInfo:
-          self.inputInfo[key] = combination[key]
+      for key, value in combination.items():
+        # FIXME we don't know what's inputInfo and what's sampled vars!
+        # some keys are sampled variables
+        if key in self.toBeSampled:
+          rlz[key] = value
+        # some keys are magic variables
+        elif key in ['_indexMap']:
+          rlz.indexMap.update(value[0])
+        # some keys are new metadata (inputInfo)
+        elif key not in rlz.inputInfo:
+          rlz.inputInfo[key] = value
         else:
-          if type(self.inputInfo[key]).__name__ == 'dict':
-            self.inputInfo[key].update(combination[key])
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = 1.0
-    for key in self.inputInfo:
+          # some keys are already present, and should be updated
+          if isinstance(rlz.inputInfo[key], dict):
+            # sometimes this comes in as a length-1 array wrapper with only one dict inside
+            if isinstance(value, (list, np.ndarray)):
+              value = value[0]
+            rlz.inputInfo[key].update(value)
+          # some other things fall into this category, but are specific to the samplers we combined to
+          #   create our sample point, so we can ignore them. Examples include SamplerType, PointProbability, ProbabiltyWeight, etc.
+          # FIXME a blanket "continue" here could hide future problems. We should probably intentionally
+          #   skip variables that shouldn't be kept.
+          else:
+            continue
+    rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['ProbabilityWeight' ] = 1.0
+    for key in rlz.inputInfo:
       if key.startswith('ProbabilityWeight-'):
-        self.inputInfo['ProbabilityWeight' ] *= self.inputInfo[key]
-    self.inputInfo['SamplerType'] = 'EnsembleForward'
+        rlz.inputInfo['ProbabilityWeight' ] *= rlz.inputInfo[key]
+    rlz.inputInfo['SamplerType'] = 'EnsembleForward'
 
     # Update dependent variables
-    self._functionalVariables()
+    # but we're expecting a batch, so wrap the rlz in a temporary batch
+    # FIXME there is surely a better way than wrapping this?
+    batch = RealizationBatch(1)
+    batch[0] = rlz
+    self._functionalVariables(batch) # FIXME does this want batch or single?
 
   def flush(self):
     """

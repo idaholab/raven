@@ -313,7 +313,7 @@ class GeneticAlgorithm(RavenSampled):
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
     self.needDenormalized()                                      # the default in all optimizers is to normalize the data which is not the case here
-    self.batchId = 0
+    # self.batchId = 0
     self.population = None                                       # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None                                           # population age
     self.fitness = None                                          # population fitness
@@ -743,11 +743,9 @@ class GeneticAlgorithm(RavenSampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-
-    meta = ['batchId']
-    self.addMetaKeys(meta)
     self.batch = self._populationSize
+    # initialize must be called afer setting the batch size
+    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, f'Number of initial values provided for each variable is {len(self._initialValues)}, while the population size is {self._populationSize}')
     for _, init in enumerate(self._initialValues):
@@ -782,14 +780,18 @@ class GeneticAlgorithm(RavenSampled):
   ######################################################################################
 
   ## TODO: We have to estimate the max number of unique chromosomes and make sure population size doesn't exceed that number. Or should it?
-  def _useRealization(self, info, rlz):
+  def _useRealization(self, meta, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
-      @ In, info, dict, identifying information about the realization
+      @ In, meta, dict, job information from the collected realizations
       @ In, rlz, xr.Dataset, new batched realizations
       @ Out, None
     """
+    # FIXME XXX TODO in merging the NSGA2 with this Realization rework, the first argument of this
+    # method was changed from "info" to "meta". Since I don't know all the repurcussions, I'm not
+    # fixing that as I merge, but leaving it to fix as we work on the Realization rework.
+    # talbpw, 2025-04-25
     info['step'] = self.counter
     traj = info['traj']
     for t in self._activeTraj[1:]:
@@ -822,6 +824,26 @@ class GeneticAlgorithm(RavenSampled):
 
     # 3. Survivor selection
     if self._activeTraj:
+      # FIXME XXX TODO The changes in this merge from NSGA2 were so significant, I'm leaving them
+      # here until we can go through them. Significant updates needed.
+      # talbpw, 2025-04-25
+<<<<<<< HEAD
+      # 5.2@ n-1: Survivor selection(rlz)
+      # update population container given obtained children
+      if self.counters['samples'] > 1:
+        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
+                                                                                             variables=list(self.toBeSampled),
+                                                                                             population=self.population,
+                                                                                             fitness=self.fitness,
+                                                                                             newRlz=rlz,
+                                                                                             offSpringsFitness=offSpringFitness,
+                                                                                             popObjectiveVal=self.objectiveVal)
+        self.popAge = age
+      else:
+        self.population = offSprings
+        self.fitness = offSpringFitness
+        self.objectiveVal = rlz[self._objectiveVar].data
+=======
       survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if self._isMultiObjective else  survivorSelectionProcess.singleObjSurvivorSelect
       survivorSelection(self, info, rlz, traj, population, populationFitness, objectiveVal, g)
       if self._isMultiObjective:
@@ -851,6 +873,7 @@ class GeneticAlgorithm(RavenSampled):
                                    self.fitness,
                                    self.constraintsV)
         self._resolveNewGeneration(traj, rlz, info)
+>>>>>>> devel
 
 
       # 6. Parent selection from population
@@ -971,7 +994,7 @@ class GeneticAlgorithm(RavenSampled):
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new Generation (population) ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
-    acceptable = 'accepted' if self.counter > 1 else 'first'
+    acceptable = 'accepted' if self.counters['samples'] > 1 else 'first'
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
@@ -1045,7 +1068,7 @@ class GeneticAlgorithm(RavenSampled):
                                                                           key=lambda x: (x[1]))])
     point = dict((var,optPoints[0][i]) for i, var in enumerate(selVars) if var in rlz.data_vars)
     gOfBest = dict(('ConstraintEvaluation_'+name,float(gOfBest[0][i])) for i, name in enumerate(g.coords['Constraint'].values))
-    if (self.counter > 1 and obj[0] <= self.multiBestObjective[0] and fit[0] >= self.bestFitness) or self.counter == 1:
+    if (self.counters['samples'] > 1 and obj[0] <= self.multiBestObjective[0] and fit[0] >= self.bestFitness) or self.counters['samples'] == 1:
       point.update(gOfBest)
       self.bestPoint = point
       self.bestFitness = fit[0]

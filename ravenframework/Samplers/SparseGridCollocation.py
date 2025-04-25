@@ -194,8 +194,8 @@ class SparseGridCollocation(Grid):
       outFile.writelines(msg)
       outFile.close()
 
-    self.limit=len(self.sparseGrid)
-    self.raiseADebug(f'Size of Sparse Grid: {self.limit}')
+    self.limits['samples'] = len(self.sparseGrid)
+    self.raiseADebug(f'Size of Sparse Grid: {self.limits["samples"]}')
     self.raiseADebug('Finished sampler generation.')
 
     self.raiseADebug('indexset:',self.indexSet)
@@ -267,28 +267,29 @@ class SparseGridCollocation(Grid):
 
       self.importanceDict[varName] = float(dat['weight'])
 
-  def localGenerateInput(self, model, oldInput):
+  def localGenerateInput(self, rlz, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     try:
-      pt,weight = self.sparseGrid[self.counter-1]
-    except IndexError:
-      raise utils.NoMoreSamplesNeeded
+      pt, weight = self.sparseGrid[self.counters['samples'] - 1]
+    except IndexError as ie:
+      raise utils.NoMoreSamplesNeeded from ie
 
     for v, varName in enumerate(self.sparseGrid.varNames):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):
-          self.values[key] = pt[v]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
-        self.inputInfo['ProbabilityWeight-'+varName] = self.inputInfo['SampledVarsPb'][varName]
+          rlz[key] = pt[v]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(pt[v])
+        rlz.inputInfo['ProbabilityWeight-'+varName] = rlz.inputInfo['SampledVarsPb'][varName]
       # compute the SampledVarsPb for N-D distribution
       # Assume only one N-D distribution is associated with sparse grid collocation method
       elif self.variables2distributionsMapping[varName]['totDim'] > 1 and self.variables2distributionsMapping[varName]['reducedDim'] ==1:
@@ -308,13 +309,13 @@ class SparseGridCollocation(Grid):
           else:
             self.raiseAnError(IOError, f'The variables {var} listed in sparse grid collocation sampler, but not used in the ROM!' )
           for key in var.strip().split(','):
-            self.values[key] = pt[location]
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
-        self.inputInfo['ProbabilityWeight-'+dist] = self.inputInfo['SampledVarsPb'][varName]
+            rlz[key] = pt[location]
+        rlz.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(ndCoordinates)
+        rlz.inputInfo['ProbabilityWeight-'+dist] = rlz.inputInfo['SampledVarsPb'][varName]
 
-    self.inputInfo['ProbabilityWeight'] = weight
-    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+    rlz.inputInfo['ProbabilityWeight'] = weight
+    rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
   def readFromROM(self):
     """

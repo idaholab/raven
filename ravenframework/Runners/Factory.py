@@ -32,7 +32,6 @@ class RunnerFactory(EntityFactory):
     """
       Returns an instance pointer from this module.
       @ In, Type, string, requested object
-      @ In, caller, object, requesting object
       @ In, funcArgs, list, arguments to be passed as func(*funcArgs)
       @ In, func, method or function, function that needs to be run
       @ In, kwargs, dict, additional keyword arguments to constructor

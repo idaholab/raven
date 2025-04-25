@@ -23,22 +23,23 @@ from BatemanClass import *
 def readInput(filename):
   tree = ET.parse(filename)
   root = tree.getroot()
-  input = {}
+  inp = {}
   for element in root:
     if element.tag != "nuclides":
-      input[element.tag] = [float(elm) for elm in element.text.split()]
+      inp[element.tag] = [float(elm) for elm in element.text.split()]
       if element.tag == "totalTime":
-        input[element.tag] = input[element.tag][0]
+        inp[element.tag] = inp[element.tag][0]
     else:
-      input[element.tag] = {}
+      inp[element.tag] = {}
       for child in element:
-        input[element.tag][child.tag] ={}
+        inp[element.tag][child.tag] ={}
         for childChild in child:
+          print(f'DEBUGG reading {element.tag}|{child.tag}|{childChild.tag}: {childChild.text}')
           try:
-            input[element.tag][child.tag][childChild.tag] = float(childChild.text)
-          except:
-            input[element.tag][child.tag][childChild.tag] = childChild.text
-  return input
+            inp[element.tag][child.tag][childChild.tag] = float(childChild.text)
+          except ValueError:
+            inp[element.tag][child.tag][childChild.tag] = childChild.text
+  return inp
 
 if __name__ == '__main__':
   if len(sys.argv) == 1:
@@ -49,11 +50,12 @@ if __name__ == '__main__':
     outputFileName = "results.csv"
   else:
     outputFileName = sys.argv[2]
+  import os
+  print('DEBUGG cwd:', os.getcwd())
+  print('DEBUGG input:', inputFileName)
   initializationDict = readInput(inputFileName)
   test = BatemanClass(initializationDict)
   test.runDpl()
-  if outputFileName.endswith(".csv"):
-    outputFileName = outputFileName
-  else:
+  if not outputFileName.endswith(".csv"):
     outputFileName = outputFileName + ".csv"
   test.printResults(outputFileName)

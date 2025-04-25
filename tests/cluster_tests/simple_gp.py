@@ -31,14 +31,8 @@ followed by start1 + i*increment1,start2 + i*increment2
 
 """
 
-
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3----------------------------------------------------------------
-
-import sys,os
+import os
+import sys
 
 print("Arguments:",sys.argv)
 
@@ -48,12 +42,11 @@ if len(sys.argv) < 3 or sys.argv[1] != "-i":
 
 
 inputFilename = sys.argv[2]
-inputFile = open(inputFilename,"r")
 root = os.path.splitext(inputFilename)[0]
-head,tail = os.path.split(root)
-outFile = open(os.path.join(head,"out~"+tail+".csv"),"w")
+head, tail = os.path.split(root)
 
-lines = inputFile.readlines()
+with open(inputFilename, "r", encoding='utf-8') as inputFile:
+  lines = inputFile.readlines()
 
 def get_params(line):
   """
@@ -65,7 +58,7 @@ def get_params(line):
   equalsIndex = line.index("=")
   name = line[:equalsIndex].strip()
   params = line[equalsIndex + 1:].strip().strip('"').split()
-  return name,params
+  return name, params
 
 for name, params in [get_params(l) for l in lines[1:4]]:
   print(name,params)
@@ -76,14 +69,13 @@ for name, params in [get_params(l) for l in lines[1:4]]:
   elif name == "increment":
     increment = list(map(float, params))
 
-print(names,file=outFile)
+with open(os.path.join(head,"out~"+tail+".csv"), "w", encoding='utf-8') as outFile:
+  print(names,file=outFile)
 
-for i in range(0,10):
-  for j in range(0,min(len(start),len(increment))):
-    if j != 0:
-      print(end=",",file=outFile)
-    print(start[j] + i*increment[j],end="",file=outFile)
-  print(file=outFile)
+  for i in range(0,10):
+    for j in range(0,min(len(start),len(increment))):
+      if j != 0:
+        print(end=",",file=outFile)
+      print(start[j] + i*increment[j],end="",file=outFile)
+    print(file=outFile)
 
-
-outFile.close()

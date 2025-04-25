@@ -17,21 +17,14 @@
   Created 2020-01
   @author: talbpaul
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import abc
 from collections import deque
 import copy
-import numpy as np
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
-from ..utils import InputData, InputTypes
+import numpy as np
+
+from ..utils import InputData, InputTypes, utils
 from .Optimizer import Optimizer
-# Internal Modules End------------------------------------------------------------------------------
 
 
 class RavenSampled(Optimizer):
@@ -112,10 +105,9 @@ class RavenSampled(Optimizer):
     Optimizer.__init__(self)
     # Instance Variable Initialization
     # public
-    self.limit = None  # max samples
     self.type = 'Sampled Optimizer'  # type
-    self.batch = 1  # batch size: 1 means no batching (default)
-    self.batchId = 0  # Id of each batch of evaluations
+    self.batch = 0  # batch size: 0 means no batching (default)
+    self.limits['samples'] = None # requires a user input, so override base class definition
     # _protected
     self._writeSteps = 'final'  # when steps should be written
     self._submissionQueue = deque()  # TODO change to Queue.Queue if multithreading samples
@@ -150,13 +142,13 @@ class RavenSampled(Optimizer):
       # limit
       limit = init.findFirst('limit')
       if limit is not None:
-        self.limit = limit.value
+        self.limits['samples'] = limit.value
       # writeSteps
       writeSteps = init.findFirst('writeSteps')
       if writeSteps is not None:
         self._writeSteps = writeSteps.value
     # additional checks
-    if self.limit is None:
+    if self.limits['samples'] is None:
       self.raiseAnError(IOError, 'A <limit> is required for any RavenSampled Optimizer!')
     self._objMultArray = np.ones(len(self._objectiveVar))
     for i in range(len(self._objectiveVar)):
@@ -167,6 +159,15 @@ class RavenSampled(Optimizer):
         self._objMult[self._objectiveVar[i]] = 1
 
 
+  def _checkNDVariables(self):
+    """
+      Checks properties of ND variables for compatibility. RavenSampled ND variables
+      work as expected with the default Sampler implementation.
+      @ In, None
+      @ Out, None
+    """
+    # nothing to check at this point, just overriding the base Sampler definition that errors out by default.
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -175,8 +176,6 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    self.batch = 1
-    self.batchId = 0
 
   ###############
   # Run Methods #
@@ -228,41 +227,48 @@ class RavenSampled(Optimizer):
     ready = Optimizer.amIreadyToProvideAnInput(self)
     # we're not ready yet if we don't have anything in queue
     ready = ready and len(self._submissionQueue) != 0
-
+    # if taking [batch] more samples puts us over the limit, stop now
+    tooManySamples = self.counters['samples'] + self.batch >= self.limits['samples']
+    if tooManySamples:
+      self.raiseADebug(f'A new sample batch ({self.batch} samples) would exceed ' +\
+                       f'sampling limit ({self.limits["samples"]}). Current num samples: {self.counters["samples"]}')
+    ready = ready and not tooManySamples
+    # DEBUGG TODO
+    # self.raiseWhatsThis(f'readycheck q:{len(self._submissionQueue)} ' +\
+    #                     f'samps: {self.counters["samples"]} ' +\
+    #                     f'batch: {self.batch} ' +\
+    #                     f'limit: {self.limits["samples"]}', ready)
     return ready
 
-  def localGenerateInput(self, model, inp):
+  def localGenerateInput(self, batch, model, modelInput):
     """
       Provides the next sample to take.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
+      @ In, batch, RealizationBatch, mapping to populate with sample values
       @ In, model, model instance, an instance of a model
-      @ In, inp, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ In, modelInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.batch > 1:
-      self.inputInfo['batchMode'] = True
-      batchData = []
-      self.batchId += 1
-    else:
-      self.inputInfo['batchMode'] = False
-    for _ in range(self.batch):
-      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
-      if self.counter == self.limit + 1:
-        break
+    # would a new batch exceed the limit of samples?
+    # TODO shouldn't this check be in the Ready check?
+    if self.counters['samples'] + self.batch > self.limits['samples'] + 1:
+      raise utils.NoMoreSamplesNeeded
+    for rlz in batch:
+      inputInfo = rlz.inputInfo
       # get point from stack
+      # FIXME for now uses the popping queue, but this should be shifted to letting the
+      # Sampler fill the batch instead. The queue should store batches instead, maybe?
       point, info = self._submissionQueue.popleft()
       point = self.denormalizeData(point)
       # assign a tracking prefix
-      # prefix = inputInfo['prefix']
-      prefix = self.inputInfo['prefix']
-      inputInfo['prefix'] = prefix
-      # register the point tracking information
-      self._registerSample(prefix, info)
-      # build the point in the way the Sampler expects
+      # TODO update with batching?
+      prefix = inputInfo['prefix']
+      self._registerSample(prefix, info) # TODO still needed after batching rework?
+      # build the point
       for var in self.toBeSampled:  # , val in point.items():
         val = point[var] if isinstance(point[var], float) else np.atleast_1d(point[var].data)[0]
-        self.values[var] = val  # TODO should be np.atleast_1d?
+        rlz[var] = val
         ptProb = self.distDict[var].pdf(val)
         # sampler-required meta information # TODO should we not require this?
         inputInfo[f'ProbabilityWeight-{var}'] = ptProb
@@ -270,16 +276,7 @@ class RavenSampled(Optimizer):
       inputInfo['ProbabilityWeight'] = 1  # TODO assume all weight 1? Not well-distributed samples
       inputInfo['PointProbability'] = np.prod([x for x in inputInfo['SampledVarsPb'].values()])
       inputInfo['SamplerType'] = self.type
-      if self.inputInfo['batchMode']:
-        inputInfo['SampledVars'] = self.values
-        inputInfo['batchId'] = self.batchId
-        batchData.append(copy.deepcopy(inputInfo))
-      else:
-        inputInfo['SampledVars'] = self.values
-        inputInfo['batchId'] = self.batchId
-        self.inputInfo.update(inputInfo)
-    if self.batch > 1:
-      self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
+    return batch
 
   # @profile
   def localFinalizeActualSampling(self, jobObject, model, myInput):
@@ -293,28 +290,45 @@ class RavenSampled(Optimizer):
     Optimizer.localFinalizeActualSampling(self, jobObject, model, myInput)
     # TODO should this be an Optimizer class action instead of Sampled?
     # collect finished job
-    prefix = jobObject.getMetadata()['prefix']
+    meta = jobObject.getMetadata()
+    # OLD prefix = meta['prefix']
+    batchID = meta['batchID']
     # If we're not looking for the prefix, don't bother with using it
     # this usually happens if we've cancelled the run but it's already done
-    if not self.stillLookingForPrefix(prefix):
-      return
     # FIXME implicit constraints probable should be handled here too
-    # get information and realization, and update trajectories
-    info = self.getIdentifierFromPrefix(prefix, pop=True)
-    if self.batch == 1:
-      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
-    else:
-      # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
-      _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True, first=False)
-    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     if self._targetEvaluation.isEmpty:
-      self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation "{self._targetEvaluation.name}", but it is empty!')
-    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
-    if full is None:
-      self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("prefix")}')
+      self.raiseAnError(RuntimeError, f'Expected to find batch "{batchID}" in TargetEvaluation "{self._targetEvaluation.name}", but it is empty!')
+    # get information and realization, and update trajectories
+    # TODO FIXME receive as a dataset instead of dicts? Might be faster. Might be a lot faster.
+    _, data = self._targetEvaluation.realization(matchDict={'batchID': batchID}, asDataSet=False, first=False)
+    if data is None:
+      self.raiseAnError(RuntimeError, f'Expected to find batch with ID "{batchID}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("batchID")}')
+    # NOTE in this case "rlz" is ACTUALLY a xr.Dataset with multiple realizations in it!
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     # # testing suggests no big deal on smaller problem
+    ### FIXME XXX TODO changes are too extensive to quickly check during the merge of NSGA2.
+    # Leaving for a more thorough check later.
+    # talbpw, 2025-04-25
+<<<<<<< HEAD
+    self.raiseADebug('Processing new batch results ...')
+    for rlz in data:
+      prefix = rlz['prefix']
+      if not self.stillLookingForPrefix(prefix):
+        # should we be skipping all of them if any aren't being looked for?
+        # This usually (only?) happens if an opt is rejected and associated runs are cancelled
+        # TODO turn into stillLookingForBatch?
+        continue
+      info = self.getIdentifierFromPrefix(prefix)
+      self.raiseADebug(f'... processing results of batch "{rlz["batchID"]}" prefix "{prefix}" ...')
+      self.raiseADebug('... -> prefix tags:', info)
+      # the sign of the objective function is flipped in case we do maximization
+      # so get the correct-signed value into the realization
+      if self._minMax == 'max':
+        rlz[self._objectiveVar] *= -1
+      rlz = self.normalizeData(rlz)
+      self._useRealization(info, rlz)
+=======
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
 
@@ -323,6 +337,7 @@ class RavenSampled(Optimizer):
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
+>>>>>>> devel
 
   def finalizeSampler(self, failedRuns):
     """
@@ -678,7 +693,7 @@ class RavenSampled(Optimizer):
                      'trajID': traj,
                      'accepted': acceptable,
                      'rejectReason': rejectReason,
-                     'modelRuns': self.counter
+                     'modelRuns': self.counters['samples']
                     })
     # optimal point input and output spaces
     for objVar in self._objectiveVar:

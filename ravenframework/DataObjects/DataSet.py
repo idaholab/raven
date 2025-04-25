@@ -17,8 +17,6 @@
   Contains the general class for DataObjects who may have mixed scalars, vectors, and higher dimensional
   needs, depending on any combination of "index" dimensions (time, space, etc).
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import copy
 import itertools
 
@@ -218,7 +216,8 @@ class DataSet(DataObject):
     #         rlz = {'H': [[0.1, 0.2, 0.3], [0.2, 0.3, 0.4]],
     #                'X': [0, 1, 2],
     #                'Y': [0.5, 1.5],
-    #                '_indexMap': ['Y', 'X']}
+    #                '_indexMap': [{'H': ['Y', 'X']}]
+    #         }
     #         Note the order, H has shape (2, 3) so the first index is Y and the second is X.
     #         A sanity check is that H.shape == tuple(var.size for var in rlz['_indexMap'])
     #
@@ -638,7 +637,7 @@ class DataSet(DataObject):
           rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
           dims = self.getDimensions()
           for index, rl in enumerate(rlzs):
-            d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
+            d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items() if k not in ['_indexMap']}
             rlz[index] =  xr.Dataset.from_dict(d)
           if len(rlzs) > 1:
             # concatenate just in case there are multiple realizations
@@ -860,6 +859,7 @@ class DataSet(DataObject):
       @ In, None
       @ Out, vars, list(str), variable names list
     """
+    # TODO should this include indexes as well??
     return self._inputs + self._outputs + self._metavars
 
   @property

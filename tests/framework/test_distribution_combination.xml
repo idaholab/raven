@@ -34,7 +34,8 @@
 
   <Models>
     <ExternalModel ModuleToLoad="dist_var" name="PythonModule" subType="">
-      <variables>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1,out</variables>
+      <inputs>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</inputs>
+      <outputs>out</outputs>
     </ExternalModel>
   </Models>
 
@@ -105,10 +106,7 @@
   </Steps>
 
   <DataObjects>
-    <PointSet name="inputPlaceHolder">
-      <Input>t1,t2,t3,t4,x0,y0,z0,x1,y1,z1</Input>
-      <Output>out</Output>
-    </PointSet>
+    <PointSet name="inputPlaceHolder"/>
     <PointSet name="PointSet">
       <Input>t4,t2,t3,t1,y1,y0,x0,x1,z0,z1</Input>
       <Output>out</Output>

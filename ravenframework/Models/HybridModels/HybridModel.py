@@ -18,21 +18,19 @@ Restructured on April, 2020
 @author: wangc
 """
 
-#External Modules------------------------------------------------------------------------------------
 import copy
-import numpy as np
-from numpy import linalg
 import time
 import threading
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+import numpy as np
+from numpy import linalg
+
 from .HybridModelBase import HybridModelBase
 from ... import Files
 from ...utils import InputData, InputTypes, mathUtils
 from ...utils import utils
 from ...Runners import Error as rerror
-#Internal Modules End--------------------------------------------------------------------------------
+from ...Realizations import RealizationBatch
 
 class HybridModel(HybridModelBase):
   """
@@ -116,7 +114,7 @@ class HybridModel(HybridModelBase):
     self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one)
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
@@ -149,7 +147,7 @@ class HybridModel(HybridModelBase):
         if name != 'CrowdingDistance':
           self.raiseAnError(IOError, "Validation method ", name, " is not implemented yet!")
 
-  def initialize(self,runInfo,inputs,initDict=None):
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       Method to initialize this model class
       @ In, runInfo, dict, is the run info from the jobHandler
@@ -224,7 +222,7 @@ class HybridModel(HybridModelBase):
     tempDict['ROMs contained in HybridModel are '] = self.romsDictionary.keys()
     return tempDict
 
-  def getAdditionalInputEdits(self,inputInfo):
+  def getAdditionalInputEdits(self, inputInfo):
     """
       Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
       of the sub-models
@@ -233,43 +231,28 @@ class HybridModel(HybridModelBase):
     """
     HybridModelBase.getAdditionalInputEdits(self,inputInfo)
 
-  def __selectInputSubset(self,romName, kwargs):
-    """
-      Method aimed to select the input subset for a certain model
-      @ In, romName, string, the rom name
-      @ In, kwargs , dict, the kwarded dictionary where the sampled vars are stored
-      @ Out, selectedKwargs , dict, the subset of variables (in a swallow copy of the kwargs dict)
-    """
-    selectedKwargs = copy.copy(kwargs)
-    selectedKwargs['SampledVars'], selectedKwargs['SampledVarsPb'] = {}, {}
-    featsList = self.romsDictionary[romName]['Instance'].getInitParams()['Features']
-    selectedKwargs['SampledVars'] = {key: kwargs['SampledVars'][key] for key in featsList}
-    if 'SampledVarsPb' in kwargs.keys():
-      selectedKwargs['SampledVarsPb'] = {key: kwargs['SampledVarsPb'][key] for key in featsList}
-    else:
-      selectedKwargs['SampledVarsPb'] = {key: 1.0 for key in featsList}
-    return selectedKwargs
-
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, myInput, samplerType, rlz):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, Realization to evaluate
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
     self.raiseADebug("Create New Input")
-    useROM = kwargs['useROM']
+    info = rlz.inputInfo
+    useROM = info['useROM']
     if useROM:
-      identifier = kwargs['prefix']
-      newKwargs = {'prefix':identifier, 'useROM':useROM}
-      for romName in self.romsDictionary.keys():
-        newKwargs[romName] = self.__selectInputSubset(romName, kwargs)
-        newKwargs[romName]['prefix'] = romName+utils.returnIdSeparator()+identifier
-        newKwargs[romName]['uniqueHandler'] = self.name+identifier
+      identifier = info['prefix']
+      subRlzs = {}
+      for romName, romDict in self.romsDictionary.items():
+        featsList = romDict['Instance'].getInitParams()['Features']
+        subRlz = rlz.createSubsetRlz(featsList)
+        subRlzs[romName] = subRlz
+        subRlz.inputInfo['prefix'] = romName+utils.returnIdSeparator()+identifier
+        subRlz.inputInfo['uniqueHandler'] = self.name+identifier
     else:
-      newKwargs = copy.deepcopy(kwargs)
+      subRlzs = rlz # this feels implicit and strange: subRlzs structure depends on if useROM or not.
     if self.modelInstance.type == 'Code':
       codeInput = []
       romInput = []
@@ -281,17 +264,17 @@ class HybridModel(HybridModelBase):
         else:
           self.raiseAnError(IOError, "The type of input ", elem.name, " can not be accepted!")
       if useROM:
-        return (romInput, samplerType, newKwargs)
+        return (romInput, samplerType, subRlzs)
       else:
-        return (codeInput, samplerType, newKwargs)
-    return (myInput, samplerType, newKwargs)
+        return (codeInput, samplerType, subRlzs)
+    else:
+      return (myInput, samplerType, subRlzs)
 
-  def trainRom(self, samplerType, kwargs):
+  def trainRom(self):
     """
       This function will train all ROMs if they are not converged
       @ In, samplerType, string, the type of sampler
-      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, point in sample space to evaluate
       @ Out, None
     """
     self.raiseADebug("Start to train roms")
@@ -374,29 +357,27 @@ class HybridModel(HybridModelBase):
       self.raiseADebug("All ROMs are converged")
     return converged
 
-  def checkRomValidity(self, kwargs):
+  def checkRomValidity(self, rlz):
     """
       This function will check the validity of all roms
-      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, rlz, Realization, point in sample space to evaluate
       @ Out, None
     """
     allValid = False
     for selectionMethod, params in self.validationMethod.items():
       if selectionMethod == 'CrowdingDistance':
-        allValid = self.__crowdingDistanceMethod(params, kwargs['SampledVars'])
+        allValid = self.__crowdingDistanceMethod(params, rlz)
       else:
         self.raiseAnError(IOError, "Unknown model selection method ", selectionMethod, " is given!")
     if allValid:
       self.raiseADebug("ROMs  are all valid for given model ", self.modelInstance.name)
     return allValid
 
-  def __crowdingDistanceMethod(self, settingDict, varDict):
+  def __crowdingDistanceMethod(self, settingDict, rlz):
     """
       This function will check the validity of all roms based on the crowding distance method
       @ In, settingDict, dict, stores the setting information for the crowding distance method
-      @ In, varDict, dict,  is a dictionary that contains the information coming from the sampler,
-        i.e. {'name variable':value}
+      @ In, rlz, Realization, point in sample space to evaluate
       @ Out, allValid, bool, True if the  given sampled point is valid for all roms, otherwise False
     """
     allValid = True
@@ -405,7 +386,7 @@ class HybridModel(HybridModelBase):
       # generate the data for input parameters
       paramsList = romInfo['Instance'].getInitParams()['Features']
       trainInput = self._extractInputs(romInfo['Instance'].trainingSet, paramsList)
-      currentInput = self._extractInputs(varDict, paramsList)
+      currentInput = self._extractInputs(rlz, paramsList)
       if self.__crowdingDistance is None or self.__crowdingDistance.size != trainInput.shape[1]:
         #XXX Note that if self.__crowdingDistance.size != trainInput.shape[1]
         # occurs, this is technically a bug.
@@ -472,11 +453,12 @@ class HybridModel(HybridModelBase):
       ready = True
     return ready
 
-  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+  def submit(self, batch, myInput, samplerType, jobHandler):
     """
       This will submit an individual sample to be evaluated by this model to a
       specified jobHandler as a client job. Note, some parameters are needed
       by createNewInput and thus descriptions are copied from there.
+      @ In, batch, RealizationBatch, list of realizations to submit as jobs
       @ In, myInput, list, the inputs (list) to start from to generate the new
         one
       @ In, samplerType, string, is the type of sampler that is calling to
@@ -487,103 +469,160 @@ class HybridModel(HybridModelBase):
         contains a dictionary {'name variable':value}
       @ Out, None
     """
-    prefix = kwargs['prefix']
-    self.tempOutputs['uncollectedJobIds'].append(prefix)
-    if self.amIReadyToTrainROM():
-      self.trainRom(samplerType, kwargs)
-      self.romConverged = self.checkRomConvergence()
-    if self.romConverged:
-      self.romValid = self.checkRomValidity(kwargs)
-    else:
-      self.romValid = False
-    if self.romValid:
-      self.modelIndicator[prefix] = 1
-    else:
-      self.modelIndicator[prefix] = 0
-    kwargs['useROM'] = self.romValid
-    self.raiseADebug(f"Submit job with job identifier: {kwargs['prefix']},  Running ROM: {self.romValid} ")
-    HybridModelBase.submit(self,myInput,samplerType,jobHandler,**kwargs)
+    # TODO does this ever receive a batch longer than 1?
+    for r, rlz in enumerate(batch):
+      prefix = rlz.inputInfo['prefix']
+      self.tempOutputs['uncollectedJobIds'].append(prefix)
+      if self.amIReadyToTrainROM():
+        self.trainRom()
+        self.romConverged = self.checkRomConvergence()
+      if self.romConverged:
+        self.romValid = self.checkRomValidity(rlz)
+      else:
+        self.romValid = False
+      if self.romValid:
+        self.modelIndicator[prefix] = 1
+      else:
+        self.modelIndicator[prefix] = 0
+      rlz.inputInfo['useROM'] = self.romValid
+      self.raiseADebug(f"Submit job with job identifier: {prefix},  Running ROM: {self.romValid} ")
+    HybridModelBase.submit(self, batch, myInput, samplerType, jobHandler)
 
-  def _externalRun(self,inRun, jobHandler):
+  def _externalRun(self, inRun, jobHandler):
     """
       Method that performs the actual run of the hybrid model (separated from run method for parallelization purposes)
-      @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] type of sampler,
-        inRun[2] dictionary that contains information coming from sampler)
+      @ In, inRun, tuple, tuple of Inputs:
+        - inRun[0] actual input,
+        - inRun[1] type of sampler,
+        - inRun[2] realization(s) coming from sampler
       @ In, jobHandler, instance, instance of jobHandler
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
     self.raiseADebug("External Run")
-    originalInput = inRun[0]
-    samplerType = inRun[1]
-    inputKwargs = inRun[2]
-    identifier = inputKwargs.pop('prefix')
-    useROM = inputKwargs.pop('useROM')
+    subRlz = inRun[2]
+    # If subRlz is a dict, then we've used the ROM; otherwise it's a realization
+    # FIXME this is very implicit and subject to significant confusion, in my opinion
+    if isinstance(subRlz, dict):
+      subRlz = next(iter(subRlz.values()))
+    identifier = subRlz.inputInfo['prefix'] # FIXME should be batch ID, not sample ID?
+    # TODO attach this to the batch, instead of the single realizations?
+    useROM = subRlz.inputInfo['useROM'] # TODO need pop? inputKwargs.pop('useROM')
     uniqueHandler = self.name + identifier
     if useROM:
-      # run roms
-      exportDict = {}
-      self.raiseADebug("Switch to ROMs")
-      # submit all the roms
-      for romName, romInfo in self.romsDictionary.items():
-        inputKwargs[romName]['prefix'] = romName+utils.returnIdSeparator()+identifier
-        nextRom = False
-        while not nextRom:
-          if jobHandler.availability() > 0:
-            with self.__busyDictLock:
-              busySet = romInfo['Busy']
-              romInfo['Instance'].submit(originalInput, samplerType, jobHandler, **inputKwargs[romName])
-              busySet.add(inputKwargs[romName]['prefix'])
-              self.__busyDict[inputKwargs[romName]['prefix']] = romName
-              self.raiseADebug("Job ", romName, " with identifier ", identifier, " is submitted, busySet", busySet)
-              nextRom = True
-          else:
-            time.sleep(self.sleepTime)
-      # collect the outputs from the runs of ROMs
-      while True:
-        finishedJobs = jobHandler.getFinished(uniqueHandler=uniqueHandler)
-        for finishedRun in finishedJobs:
-          with self.__busyDictLock:
-            jobRom = self.__busyDict[finishedRun.identifier]
-            self.raiseADebug("collect job with identifier ", identifier, ' internal identifier ',finishedRun.identifier, ' rom ', jobRom, ' busy ', self.romsDictionary[jobRom]['Busy'])
-            self.romsDictionary[jobRom]['Busy'].remove(finishedRun.identifier)
-          evaluation = finishedRun.getEvaluation()
-          if isinstance(evaluation, rerror):
-            self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
-          # collect output in temporary data object
-          tempExportDict = evaluation
-          exportDict = self._mergeDict(exportDict, tempExportDict)
-        if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
-          self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
-          break
-        time.sleep(self.sleepTime)
-      exportDict['prefix'] = identifier
-    else:
-      # run model
-      inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
-      inputKwargs['uniqueHandler'] = self.name + identifier
-      moveOn = False
-      while not moveOn:
-        if jobHandler.availability() > 0:
-          self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
-          self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
-          moveOn = True
-        else:
-          time.sleep(self.sleepTime)
-      while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
-        time.sleep(self.sleepTime)
-      self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
-      finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
-      evaluation = finishedRun[0].getEvaluation()
-      if isinstance(evaluation, rerror):
-        self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
-      # collect output in temporary data object
-      exportDict = evaluation
-      self.raiseADebug("Create exportDict")
+      exportDict = self._runROMs(inRun, jobHandler, identifier, uniqueHandler)
+    else: # useCode, I guess?
+      exportDict = self._runCode(inRun, jobHandler, identifier, uniqueHandler)
     # used in the collectOutput
     exportDict['useROM'] = useROM
     return exportDict
 
-  def collectOutput(self,finishedJob,output):
+  def _runROMs(self, inRun, jobHandler, identifier, uniqueHandler):
+    """
+      Submit ROMs for evaluation, and collect results
+      @ In, inRun, tuple, run input data (see _externalRun)
+      @ In, jobHandler, JobHandler, entity to whom jobs are submitted
+      @ In, identifier, str, identifier for this set of job submissions
+      @ In, uniqueHandler, str, tag for finding jobs submitted by this request
+      @ Out, exportDict, dict, results of runs
+    """
+    originalInput = inRun[0]
+    samplerType = inRun[1]
+    subRlzs = inRun[2]
+    exportDict = {}
+    self.raiseADebug("Switch to ROMs")
+    # submit all the roms
+    # TODO can we submit these as a batch?
+    for romName, romInfo in self.romsDictionary.items():
+      rlz = subRlzs[romName]
+      info = rlz.inputInfo
+      rlz['prefix'] = romName+utils.returnIdSeparator()+identifier
+      info['uniqueHandler'] = uniqueHandler # TODO why do I need to add this?
+      nextRom = False
+      while not nextRom:
+        # FIXME why is jobHandler not handling its own availability?
+        if jobHandler.availability() > 0:
+          with self.__busyDictLock:
+            busySet = romInfo['Busy']
+            # FIXME this is somehow repeated in EnsembleModel and MultiRun; is there a way
+            #    to simplify and consolidate?
+            batch = RealizationBatch(1)
+            batch[0] = rlz
+            batch.ID = rlz['prefix']
+            romInfo['Instance'].submit(batch, originalInput, samplerType, jobHandler)
+            busySet.add(info['prefix'])
+            self.__busyDict[info['prefix']] = romName
+            self.raiseADebug(f'Job "{romName}" with identifier "{identifier}" submitted, busySet "{busySet}"')
+            nextRom = True
+        else:
+          time.sleep(self.sleepTime)
+    exportDict['prefix'] = identifier
+    # collect the outputs from the runs of ROMs
+    while True:
+      finishedBatch = jobHandler.getFinished(uniqueHandler=uniqueHandler) # [0] b/c batch of 1
+      if finishedBatch:
+        finishedJobs = finishedBatch[0]
+      else:
+        finishedJobs = []
+      for finishedRun in finishedJobs:
+        with self.__busyDictLock:
+          jobRom = self.__busyDict[finishedRun.identifier]
+          self.raiseADebug(f'collecting job with identifier "{identifier}" internal identifier ' +\
+                           f'"{finishedRun.identifier}" rom "{jobRom}" busy "{self.romsDictionary[jobRom]["Busy"]}"')
+          self.romsDictionary[jobRom]['Busy'].remove(finishedRun.identifier)
+        evaluation = finishedRun.getEvaluation()
+        if isinstance(evaluation, rerror):
+          self.raiseAnError(RuntimeError, f'Job "{finishedRun.identifier}" failed!')
+        # collect output in temporary data object
+        exportDict.update(evaluation)
+        # OLD, TODO remove
+        # tempExportDict = evaluation
+        # exportDict = self._mergeDict(exportDict, tempExportDict)
+      if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
+        self.raiseADebug(f'Jobs with uniqueHandler "{uniqueHandler}" collected!')
+        break
+      time.sleep(self.sleepTime)
+    exportDict['prefix'] = identifier
+    return exportDict
+
+  def _runCode(self, inRun, jobHandler, identifier, uniqueHandler):
+    """
+      Submit code for evaluation, and collect results
+      @ In, inRun, tuple, run input data (see _externalRun)
+      @ In, jobHandler, JobHandler, entity to whom jobs are submitted
+      @ In, identifier, str, identifier for this set of job submissions
+      @ In, uniqueHandler, str, tag for finding jobs submitted by this request
+      @ Out, exportDict, dict, results of runs
+    """
+    originalInput = inRun[0]
+    samplerType = inRun[1]
+    rlz = inRun[2] # this is the result of the weird implicitness from createNewInput
+    # run model
+    rlz.inputInfo['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
+    rlz.inputInfo['uniqueHandler'] = uniqueHandler #self.name + identifier
+    moveOn = False
+    while not moveOn:
+      if jobHandler.availability() > 0:
+        # make rlz part of a batch -> FIXME why do I have to do this? -> because of weird choice in createNewInput
+        batch = RealizationBatch(1)
+        batch[0] = rlz
+        batch.ID = rlz.inputInfo['prefix']
+        self.modelInstance.submit(batch, originalInput, samplerType, jobHandler)
+        self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
+        moveOn = True
+      else:
+        time.sleep(self.sleepTime)
+    while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
+      time.sleep(self.sleepTime)
+    self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
+    finishedRun = jobHandler.getFinished(jobIdentifier=rlz.inputInfo['prefix'], uniqueHandler=uniqueHandler)
+    evaluation = finishedRun[0][0].getEvaluation()
+    if isinstance(evaluation, rerror):
+      self.raiseAnError(RuntimeError, f'The model "{self.modelInstance.name}" identified by "{finishedRun[0][0].identifier}" failed!')
+    # collect output in temporary data object
+    exportDict = evaluation
+    return exportDict
+
+  def collectOutput(self, finishedJob, output):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, ClientRunner object, instance of the run just finished

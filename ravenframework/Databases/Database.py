@@ -16,20 +16,12 @@ Created on April 9, 2013
 
 @author: alfoa
 """
-# for future compatibility with Python 3------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-# End compatibility block for Python 3--------------------------------------------------------------
-
-# External Modules----------------------------------------------------------------------------------
 import copy
 import os
 import abc
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
 from ..BaseClasses import BaseEntity, InputDataUser
 from ..utils import InputData, InputTypes, utils
-# Internal Modules End------------------------------------------------------------------------------
 
 class DataBase(BaseEntity, InputDataUser):
   """

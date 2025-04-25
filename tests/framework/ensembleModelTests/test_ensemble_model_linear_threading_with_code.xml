@@ -17,13 +17,11 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <JobName>metaModelWithCode</JobName>
-    <Sequence>
-        sampleMC
-    </Sequence>
+    <Sequence>sampleMC</Sequence>
     <WorkingDir>metaModelWithCode</WorkingDir>
-    <batchSize>2</batchSize>
   </RunInfo>
 
   <Files>

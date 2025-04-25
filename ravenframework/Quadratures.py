@@ -16,9 +16,7 @@ Created on Dec 2, 2014
 
 @author: talbpw
 """
-#for future compatibility with Python 3-----------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------------
+import time
 
 #External Modules---------------------------------------------------------------------
 import numpy as np
@@ -449,53 +447,52 @@ class SmolyakSparseGrid(SparseGrid):
     if handler!=None:
       self.parallelSparseQuadGen(handler)
     else:
-      for j,cof in enumerate(self.c):
+      for j, cof in enumerate(self.c):
         idx = self.indexSet[j]
         m = self.quadRule(idx)+1
-        new =   self.tensorGrid.original_function(self, m)
+        new = self.tensorGrid.original_function(self, m)
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
-          newwt=new[1][i]*cof
+          newwt=new[1][i] * cof
           if newpt in self.SG.keys():
             self.SG[newpt]+=newwt
           else:
             self.SG[newpt] = newwt
 
-  def parallelSparseQuadGen(self,handler):
+  def parallelSparseQuadGen(self, handler):
     """
       Generates sparse quadrature points in parallel.
       @ In, handler, JobHandler, parallel processing tool
       @ Out, None
     """
     numRunsNeeded=len(self.c)
-    j=-1
+    j = -1
     prefix = 'sparseTensor_'
     while True:
       finishedJobs = handler.getFinished(jobIdentifier=prefix) #FIXME this is by far the most expensive line in this method
-      #finishedJobs = handler.getFinished(prefix=prefix) #FIXME this is by far the most expensive line in this method
       for job in finishedJobs:
         if job.getReturnCode() == 0:
           new = job.getEvaluation()
           for i in range(len(new[0])):
             newpt = tuple(new[0][i])
-            newwt = new[1][i]*float(str(job.identifier).replace(prefix, ""))
+            newwt = new[1][i] * float(str(job.identifier).replace(prefix, ""))
             if newpt in self.SG.keys():
-              self.SG[newpt]+= newwt
+              self.SG[newpt] += newwt
             else:
               self.SG[newpt] = newwt
         else:
-          self.raiseAMessage('Sparse quad generation (tensor) '+job.identifier+' failed...')
-      if j<numRunsNeeded-1:
-        for _ in range(min(numRunsNeeded-1-j,handler.availability())):
-          j+=1
-          cof=self.c[j]
+          self.raiseAMessage(f'Sparse quad generation (tensor) {job.identifier} failed...')
+      if j < numRunsNeeded - 1:
+        numSpots = min(numRunsNeeded-1-j, handler.availability())
+        for _ in range(numSpots):
+          j += 1
+          cof = self.c[j]
           idx = self.indexSet[j]
-          m=self.quadRule(idx)+1
-          handler.addJob((self, m,),self.tensorGrid,prefix+str(cof))
+          m = self.quadRule(idx) + 1
+          handler.addSingleJob((self, m,), self.tensorGrid, prefix + str(cof))
       else:
-        if handler.isFinished() and len(handler.getFinishedNoPop())==0:
-          break #FIXME this is significantly the second-most expensive line in this method
-      import time
+        if handler.isFinished() and len(handler.getFinishedNoPop()) == 0:
+          break
       time.sleep(0.005)
 
   def smarterMakeCoeffs(self):
@@ -545,7 +542,7 @@ class SmolyakSparseGrid(SparseGrid):
         #load new inputs, up to 100 at a time
         for k in range(min(handler.availability(),N-1-i)):
           i+=1
-          handler.addJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i))
+          handler.addSingleJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break

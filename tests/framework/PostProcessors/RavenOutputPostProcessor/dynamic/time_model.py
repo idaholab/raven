@@ -32,7 +32,15 @@ def initialize(self,runInfoDict,inputFiles):
   self.cnt             = 0.0
   return
 
-def createNewInput(self,myInput,samplerType,**Kwargs): return Kwargs['SampledVars']
+def createNewInput(self, myInput, samplerType, rlz):
+  """
+    This function will return a new input to be submitted to the model
+    @ In, myInput, list, the inputs (list) to start from to generate the new one
+    @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+    @ In, rlz, Realization, Realization from whiech to build input
+    @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
+  """
+  return rlz
 
 def run(self,Input):
   self.cnt = 1.0

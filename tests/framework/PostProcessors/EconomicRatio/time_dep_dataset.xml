@@ -11,15 +11,18 @@
     <revisions>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>economicRatioTimeDependent</WorkingDir>
     <Sequence>FirstMRun,timeDepEconomicRatioPP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <Files>
       <Input name="economicRatioExternalModelTest.py" type="">economicRatioExternalModelTest.py</Input>
       <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
+
   <Models>
     <ExternalModel ModuleToLoad="economicRatioExternalModelTest" name="PythonModule" subType="">
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
@@ -63,7 +66,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun">
-      <Input class="Files" type="">economicRatioExternalModelTest.py</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
@@ -84,6 +87,7 @@
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="placeholder"/>
     <HistorySet name="HistorySetPostProcTest">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>

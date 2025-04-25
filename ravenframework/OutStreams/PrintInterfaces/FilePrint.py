@@ -159,6 +159,8 @@ class FilePrint(PrintInterface):
           rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
         except AttributeError:
           self.raiseAnError(NotImplementedError, f'No implementation for source type {self.sourceData[index].type} and output type "{self.options["type"].strip()}"!')
+        except PermissionError:
+          self.raiseAnError(PermissionError, f'Cannot access file "{filename}" for writing; is it open somewhere else?')
         finally:
           self.indexPrinted[filename] = rlzIndex
       elif self.options['type'] == 'xml':

@@ -53,6 +53,7 @@ class Metropolis(MCMC):
       @ Out, None
     """
     MCMC.__init__(self)
+    self.samplerInfo['SamplerType'] = 'Metropolis'
 
   def handleInput(self, paramInput):
     """
@@ -115,40 +116,41 @@ class Metropolis(MCMC):
         value = dist.rvs()
         self._updateValues[var] = value
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlz, model, myInput):
     """
       Provides the next sample to take.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, RealizationBatch (or Realization if not compatible), mapping of variables to values
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.counter < 2:
-      MCMC.localGenerateInput(self, model, myInput)
+    if self.counters['samples'] < 2:
+      MCMC.localGenerateInput(self, rlz, model, myInput)
     else:
       self._localReady = False
       for key, value in self._updateValues.items():
         # update value based on proposal distribution
         newVal = value + self._proposal[key].rvs() * self._scaling
-        self.values[key] = newVal
+        rlz[key] = newVal
         if key in self.distDict:
           ## check the lowerBound and upperBound
           lowerBound = self.distDict[key].lowerBound
           upperBound = self.distDict[key].upperBound
-          if lowerBound is not None and self.values[key] < lowerBound:
-            self.values[key] = lowerBound
-          if upperBound is not None and self.values[key] > upperBound:
-            self.values[key] = upperBound
-          self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(newVal)
+          if lowerBound is not None and rlz[key] < lowerBound:
+            rlz[key] = lowerBound
+          if upperBound is not None and rlz[key] > upperBound:
+            rlz[key] = upperBound
+          rlz.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(newVal)
         else:
-          self.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self.values)
-        self.inputInfo['ProbabilityWeight-' + key] = 1.
-    self.inputInfo['PointProbability'] = 1.0
-    self.inputInfo['ProbabilityWeight' ] = 1.0
-    self.inputInfo['SamplerType'] = 'Metropolis'
-    self.inputInfo['LogPosterior'] = self.netLogPosterior
-    self.inputInfo['AcceptRate'] = self._acceptRate
+          # TODO do we need to send in asDict or can we send rlz?
+          rlz.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", rlz)
+        rlz.inputInfo['ProbabilityWeight-' + key] = 1.
+    rlz.inputInfo['PointProbability'] = 1.0
+    rlz.inputInfo['ProbabilityWeight' ] = 1.0
+    rlz.inputInfo['LogPosterior'] = self.netLogPosterior
+    rlz.inputInfo['AcceptRate'] = self._acceptRate
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """

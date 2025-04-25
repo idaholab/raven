@@ -20,18 +20,13 @@
   @author: alfoa
   supercedes Steps.py from alfoa (2/16/2013)
 """
-#External Modules------------------------------------------------------------------------------------
 import time
 import copy
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .SingleRun import SingleRun
 from .. import Models
 from ..utils import utils
 from ..OutStreams import OutStreamEntity
-#Internal Modules End--------------------------------------------------------------------------------
-
 
 class MultiRun(SingleRun):
   """
@@ -73,7 +68,7 @@ class MultiRun(SingleRun):
     self.raiseADebug(f'for the role of sampler the item of class {inDictionary[self.samplerType].type} and name {inDictionary[self.samplerType].name} has been initialized')
     self.raiseADebug(f'Sampler initialization dictionary: {self._samplerInitDict}')
 
-  def _localInitializeStep(self, inDictionary):
+  def _localInitializeStep(self, stepEntities):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances (or list of instances if more than one is allowed)
@@ -81,15 +76,21 @@ class MultiRun(SingleRun):
       The role of _localInitializeStep is to call the initialize method if needed
       Remember after each initialization to put:
       self.raiseADebug('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
-      @ In, inDictionary, dict, the initialization dictionary
+      @ In, stepEntities, dict, the entities from the Step definition
       @ Out, None
     """
-    SingleRun._localInitializeStep(self, inDictionary)
-    # check that no input data objects are also used as outputs?
-    for out in inDictionary['Output']:
+    SingleRun._localInitializeStep(self, stepEntities)
+    # these all get re-used a lot, so assign shortcut labels
+    model = stepEntities['Model']
+    inputs = stepEntities['Input']
+    outputs = stepEntities['Output']
+    sampler = stepEntities[self.samplerType]
+    jobHandler = stepEntities['jobHandler']
+    # check that no input data objects are also used as outputs
+    for out in outputs:
       if out.type not in ['PointSet', 'HistorySet', 'DataSet']:
         continue
-      for inp in inDictionary['Input']:
+      for inp in inputs:
         if inp.type not in ['PointSet', 'HistorySet', 'DataSet']:
           continue
         if inp == out:
@@ -97,35 +98,34 @@ class MultiRun(SingleRun):
               + f'Step: "{self.name}", DataObject: "{out.name}"')
     self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
-    self._initializeSampler(inDictionary)
+    self._initializeSampler(stepEntities)
     #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda = []
     # set up output collection lambdas
-    for outIndex, output in enumerate(inDictionary['Output']):
+    for outIndex, output in enumerate(outputs):
       if not isinstance(output, OutStreamEntity):
-        if 'SolutionExport' in inDictionary and output.name == inDictionary['SolutionExport'].name:
+        if 'SolutionExport' in stepEntities and output.name == stepEntities['SolutionExport'].name:
           self._outputCollectionLambda.append((lambda x:None, outIndex))
         else:
-          self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
+          self._outputCollectionLambda.append( (lambda x: model.collectOutput(x[0],x[1]), outIndex) )
       else:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
-    self._registerMetadata(inDictionary)
-    self.raiseADebug(f'Generating input batch of size {inDictionary["jobHandler"].runInfoDict["batchSize"]}')
+    self._registerMetadata(stepEntities)
+    self.raiseADebug(f'Generating input batch of size {jobHandler.runInfoDict["batchSize"]}')
     # set up and run the first batch of samples
     # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
     # first, check and make sure the model is ready
-    model = inDictionary['Model']
     if isinstance(model,Models.ROM):
       if not model.amITrained:
         model.raiseAnError(RuntimeError, f'ROM model "{model.name}" has not been trained yet, so it cannot be sampled!'+\
                                         ' Use a RomTrainer step to train it.')
-    for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
-      if inDictionary[self.samplerType].amIreadyToProvideAnInput():
+    # FIXME sample batching can give many runs, not necessarily matching (parallel) batchSize, so this "for" is misleading
+    for inputIndex in range(jobHandler.runInfoDict['batchSize']):
+      if sampler.amIreadyToProvideAnInput():
         try:
-          newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'], inDictionary['jobHandler'])
-          if newInput is not None:
-            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
-            self.raiseAMessage(f'Submitted input {inputIndex+1}')
+          batch, modelInp = sampler.generateInput(model, inputs)
+          model.submit(batch, modelInp, sampler.type, jobHandler)
+          self.raiseAMessage(f'Submitted input batch {inputIndex+1}')
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
 
@@ -162,10 +162,12 @@ class MultiRun(SingleRun):
         #           in case of BATCHING, the finalizeActualSampling method MUST BE called ONCE/BATCH
         #           otherwise, the finalizeActualSampling method MUST BE called ONCE/job
         # FIXME: This method needs to be improved since it is very intrusise
-        if type(finishedJobObjs).__name__ in 'list':
+        # TODO this should get fixed as part of the current batching rework
+        if isinstance(finishedJobObjs, list):
           finishedJobList = finishedJobObjs
           self.raiseADebug(f'BATCHING: Collecting JOB batch named "{finishedJobList[0].groupId}".')
         else:
+          # TODO do we ever get here still?
           finishedJobList = [finishedJobObjs]
         currentFailures = []
         for finishedJob in finishedJobList:
@@ -287,58 +289,27 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     isEnsemble = isinstance(model, Models.EnsembleModel)
+    if verbose:
+      self.raiseADebug('Testing if the sampler is ready to generate a new input')
     # In order to ensure that the queue does not grow too large, we will
     # employ a threshold on the number of jobs the jobHandler can take,
     # in addition, we cannot provide more jobs than the sampler can provide.
     # So, we take the minimum of these two values.
-    if verbose:
-      self.raiseADebug('Testing if the sampler is ready to generate a new input')
     for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
       if sampler.amIreadyToProvideAnInput():
         try:
-          newInput = self._findANewInputToRun(sampler, model, inputs, outputs, jobHandler)
-          if newInput is not None:
-            model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+          batch, modelInp = sampler.generateInput(model, inputs)
+          model.submit(batch, modelInp, inDictionary[self.samplerType].type, jobHandler)
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
           break
       else:
         if verbose:
-          self.raiseADebug(' ... sampler has no new inputs currently.')
+          self.raiseADebug(' ... sampler has no new inputs to provide yet.')
         break
     else:
       if verbose:
         self.raiseADebug(' ... no available JobHandler spots currently (or the Sampler is done.)')
-
-  def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
-    """
-      Repeatedly calls Sampler until a new run is found or "NoMoreSamplesNeeded" is raised.
-      @ In, sampler, Sampler, the sampler in charge of generating the sample
-      @ In, model, Model, the model in charge of evaluating the sample
-      @ In, inputs, object, the raven object used as the input in this step
-        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
-        inherit from some base "Data" so that we can ensure a consistent
-        interface for these?)
-      @ In, outputs, object, the raven object used as the output in this step
-        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
-        inherit from some base "Data" so that we can ensure a consistent
-        interface for these?)
-      @ In, jobHandler, object, the raven object used to handle jobs
-      @ Out, newInp, list, list containing the new inputs (or None if a restart)
-    """
-    # The value of "found" determines what the Sampler is ready to provide.
-    #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
-    #  case 1: found the input in restart, and newInp is a realization dictionary of data to use
-    found, newInp = sampler.generateInput(model,inputs)
-    if found == 1:
-      kwargs = copy.deepcopy(sampler.inputInfo)
-      # "submit" the finished run
-      jobHandler.addFinishedJob(newInp, metadata=kwargs)
-      return None
-      # NOTE: we return None here only because the Sampler's "counter" is not correctly passed
-      # through if we add several samples at once through the restart. If we actually returned
-      # a Realization object from the Sampler, this would not be a problem. - talbpaul
-    return newInp
 
   def flushStep(self):
     """

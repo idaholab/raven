@@ -16,18 +16,15 @@
   auth: Anthoney Griffith (@grifaa)
   date: May, 2023
 """
-#External Modules------------------------------------------------------------------------------------
 import copy
+
 import numpy as np
 from pyDOE3 import lhs
 import scipy.optimize as sciopt
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from ..utils import InputData, InputTypes, mathUtils
+from ..utils import InputData, InputTypes
 from .RavenSampled import RavenSampled
 from .acquisitionFunctions import factory as acqFactory
-#Internal Modules End--------------------------------------------------------------------------------
 
 
 class BayesianOptimizer(RavenSampled):
@@ -132,24 +129,25 @@ class BayesianOptimizer(RavenSampled):
     """
     RavenSampled.__init__(self)
     # TODO Figure out best way for tracking 'iterations', 'function evaluations', and 'steps'
-    self._iteration = {}                                                      # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
-    self._initialSampleSize = None                                            # Number of samples to build initial model with before applying acquisition
-    self._trainingInputs = [{}]                                               # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
-    self._trainingTargets = []                                                # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
-    self._model = None                                                        # Regression model used for Bayesian Decision making
-    self._acquFunction = None                                                 # Acquisition function object used in optimization
-    self._modelSelection = 'Internal'                                         # Method for conducting model selection
-    self._modelDuration = 1                                                   # Number of iterations between model updates
-    self._acquisitionConv = 1e-8                                              # Value for acquisition convergence criteria
-    self._convergenceInfo = {}                                                # by traj, the persistence and convergence information for most recent opt
-    self._requiredPersistence = 5                                             # consecutive persistence required to mark convergence
-    self._expectedOptVal = None                                               # Expected value of fopt, in other words, muopt
-    self._optValSigma = None                                                  # Standard deviations at expected solution, confidence of solution
-    self._expectedSolution = None                                             # Decision variable values at expected solution
-    self._evaluationCount = 0                                                 # Number of function/model calls
+    self.batch = 1                      # flag to use batch system
+    self._iteration = {}                # Tracks the optimization methods current iteration, DOES NOT INCLUDE INITIALIZATION
+    self._initialSampleSize = None      # Number of samples to build initial model with before applying acquisition
+    self._trainingInputs = [{}]         # Dict of numpy arrays for each traj, values for inputs to actually evaluate the model and train the GPR on
+    self._trainingTargets = []          # A list of function values for each trajectory from actually evaluating the model, used for training the GPR
+    self._model = None                  # Regression model used for Bayesian Decision making
+    self._acquFunction = None           # Acquisition function object used in optimization
+    self._modelSelection = 'Internal'   # Method for conducting model selection
+    self._modelDuration = 1             # Number of iterations between model updates
+    self._acquisitionConv = 1e-8        # Value for acquisition convergence criteria
+    self._convergenceInfo = {}          # by traj, the persistence and convergence information for most recent opt
+    self._requiredPersistence = 5       # consecutive persistence required to mark convergence
+    self._expectedOptVal = None         # Expected value of fopt, in other words, muopt
+    self._optValSigma = None            # Standard deviations at expected solution, confidence of solution
+    self._expectedSolution = None       # Decision variable values at expected solution
+    self._evaluationCount = 0           # Number of function/model calls
+    self._resetModel = False            # Reset regression model if True
     self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
     self._externalParamOptimizer = 'fmin_l_bfgs_b'                            # Optimizer for external hyperparameter selection
-    self._resetModel = False                                                  # Reset regression model if True
 
   def handleInput(self, paramInput):
     """
@@ -210,8 +208,8 @@ class BayesianOptimizer(RavenSampled):
     # FIXME currently BO assumes only one optimization 'trajectory'
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._convergenceInfo = {0:{'persistence':0, 'converged':False}}
-    meta = ['batchId']
-    self.addMetaKeys(meta)
+    # OLD should be handled elsewhere meta = ['batchId']
+    # self.addMetaKeys(meta)
     self._initialSampleSize = len(self._initialValues)
     self.batch = self._initialSampleSize
 
@@ -227,8 +225,8 @@ class BayesianOptimizer(RavenSampled):
       self.raiseAnError(RuntimeError, f'Invalid model type was provided: {self._model.subType}. Bayesian Optimizer'
                         f'currently only accepts the following: {["GaussianProcessRegressor"]}')
     elif self._model.supervisedContainer[0].multioutputWrapper:
-      self.raiseAnError(RuntimeError, f'When using GPR ROM for Bayesian Optimization, must set <multioutput>'
-                        f'node to False')
+      self.raiseAnError(RuntimeError, 'When using GPR ROM for Bayesian Optimization, must set <multioutput> ' +
+                        'node to False')
     elif len(self._model.supervisedContainer[0].target) != 1:
       self.raiseAnError(RuntimeError, f'Only one target allowed when using GPR ROM for Bayesian Optimizer! '
                         f'Received {len(self._model.supervisedContainer[0].target)}')
@@ -324,7 +322,7 @@ class BayesianOptimizer(RavenSampled):
     if not isinstance(rlz, dict):
       if step == 1:
         self.batch = 1 # FIXME when implementing parallel expected improvement, fix this
-        self.counter -= 1 #FIXME hacky way to make sure iterations are correctly counted
+        self.counters['samples'] -= 1 #FIXME hacky way to make sure iterations are correctly counted
         self.raiseAMessage(f'Initialization data of dimension {self._initialSampleSize} received... '
                            f'Setting sample batch size to {self.batch}')
       else:
@@ -630,7 +628,7 @@ class BayesianOptimizer(RavenSampled):
       optVal = singleRlz[self._objectiveVar[0]]
       self._resolveNewOptPoint(traj, singleRlz, optVal, info)
       singleRlz = {} # FIXME is this necessary?
-    self.raiseADebug(f'Multi-sample resolution completed')
+    self.raiseADebug('Multi-sample resolution completed')
 
   def _resolveNewOptPoint(self, traj, rlz, optVal, info):
     """
@@ -749,7 +747,7 @@ class BayesianOptimizer(RavenSampled):
     # No point in checking convergence if no feasible point has been found
     if len(self._optPointHistory[0]) == 0:
       converged = False
-    elif self.getIteration(traj) < self.limit:
+    elif self.getIteration(traj) < self.limits['samples']:
       converged = self.checkConvergence(traj, new, old)
     else:
       converged = True

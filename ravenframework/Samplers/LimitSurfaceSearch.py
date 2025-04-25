@@ -121,7 +121,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.toleranceWeight     = 'cdf'            #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence         = 5                #this is the number of times the error needs to fell below the tolerance before considering the sim converged
     self.repetition          = 0                #the actual number of time the error was below the requested threshold
-    self.forceIteration      = False            #this flag control if at least a self.limit number of iteration should be done
+    self.forceIteration      = False            #this flag control if at minimum a chosen number of iteration should be done
     self.axisName            = None             #this is the ordered list of the variable names (ordering match self.gridStepSize and the ordering in the test matrixes)
     self.oldTestMatrix       = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix   = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
@@ -169,6 +169,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
     self.acceptedScoringParam = ['distance','distancePersistence']
     self.acceptedBatchParam = ['none','naive','maxV','maxP']
+    self.scores = None
 
     self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('Function', InputData.Quantity.zero_to_infinity)
@@ -211,7 +212,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #TODO remove using xmlNode
     if 'limit' in xmlNode.attrib.keys():
       try:
-        self.limit = int(xmlNode.attrib['limit'])
+        self.limits['samples'] = int(xmlNode.attrib['limit'])
       except ValueError:
         self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     # convergence Node
@@ -227,7 +228,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if 'limit'          in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('limit'))
       try:
-        self.limit = int (convergenceNode.attrib['limit'])
+        self.limits['samples'] = int (convergenceNode.attrib['limit'])
       except:
         self.raiseAnError(IOError,'Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
     if 'persistence'    in convergenceNode.attrib.keys():
@@ -505,7 +506,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.converged = True
         if not self.limitSurfacePP.crossedLimitSurf:
           self.raiseAWarning("THE LIMIT SURFACE has NOT been crossed. The search FAILED!!!")
-    self.raiseAMessage('counter: '+str(self.counter)+'       Error: {:9.6E} Repetition: {:5d}'.format(testError,self.repetition) )
+    self.raiseAMessage(f'counter: {self.counters["samples"]}       Error: {testError:9.6E} Repetition: {self.repetition:5d}')
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
     if self.solutionExport is not None:
@@ -562,17 +563,16 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.raiseAMessage(self.name + " converged!")
     return ready
 
-  def __scoreCandidates(self):
+  def __scoreCandidates(self, rlz):
     """
       Compute the scores of the 'candidate set' which should be the currently
       extracted limit surface.
-      @ In, None
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ Out, None
     """
     # DM: This sequence gets used repetitively, so I am promoting it to its own
     #  variable
     axisNames = [key.replace('<distribution>','') for key in self.axisName]
-    matrixShape = self.limitSurfacePP.getTestMatrix().shape
     self.scores = OrderedDict()
     if self.scoringMethod.startswith('distance'):
       sampledMatrix = np.zeros((len(self.limitSurfacePP.getFunctionValue()[axisNames[0]])+len(self.hangingPoints[:,0]),len(self.axisName)))
@@ -582,10 +582,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
       # The hanging point are added to the list of the already explored points
       # so as not to pick the same when in parallel
       for varIndex, _ in enumerate(axisNames):
-        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
-        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
+        rlz.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
+        rlz.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
 
-      for key, value in self.invPointPersistence.items():
+      for key in self.invPointPersistence:
         if key != self.exceptionGrid and self.surfPoint[key] is not None:
           distance, _ = distanceTree.query(self.surfPoint[key])
           # Different versions of scipy/numpy will yield different results on
@@ -612,12 +612,13 @@ class LimitSurfaceSearch(AdaptiveSampler):
     else:
       self.raiseAnError(NotImplementedError,self.scoringMethod + ' scoring method is not implemented yet')
 
-  def localGenerateInput(self,model,oldInput):
+  def localGenerateInput(self, rlz, model, oldInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
@@ -628,8 +629,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #  derivative probability is the lowest
 
     # create values dictionary
-    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    rlz.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    rlz.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     self.raiseADebug('generating input')
     varSet=False
 
@@ -639,7 +640,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
     if self.surfPoint is not None and len(self.surfPoint) > 0:
       if self.batchStrategy == 'none':
-        self.__scoreCandidates()
+        self.__scoreCandidates(rlz)
         maxDistance, maxGridId, maxId =  0.0, "", 0
         for key, value in sorted(self.invPointPersistence.items()):
           if key != self.exceptionGrid and self.surfPoint[key] is not None:
@@ -648,9 +649,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
               maxDistance, maxGridId, maxId  = localMax, key,  np.argmax(self.scores[key])
         if maxDistance > 0.0:
           for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-            self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
-            self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-            self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+            rlz[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
+            rlz.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(rlz[self.axisName[varIndex]])
+            rlz.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(rlz[self.axisName[varIndex]])
           varSet=True
         else:
           self.raiseADebug('Maximum score is 0.0')
@@ -659,7 +660,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         ## Initialize the queue with as many points as requested or as many as
         ## possible
         if len(self.toProcess) == 0:
-          self.__scoreCandidates()
+          self.__scoreCandidates(rlz)
           edges = []
 
           flattenedSurfPoints = list()
@@ -713,16 +714,16 @@ class LimitSurfaceSearch(AdaptiveSampler):
         ## Select one sample
         selectedPoint = self.toProcess.pop()
         for varIndex, varName in enumerate(axisNames):
-          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
-          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          rlz[self.axisName[varIndex]] = float(selectedPoint[varIndex])
+          rlz.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(rlz[self.axisName[varIndex]])
+          rlz.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(rlz[self.axisName[varIndex]])
         varSet=True
       elif self.batchStrategy == 'naive':
         ########################################################################
         ## Initialize the queue with as many points as requested or as many as
         ## possible
         if len(self.toProcess) == 0:
-          self.__scoreCandidates()
+          self.__scoreCandidates(rlz)
           sortedIndices = sorted(range(len(self.scores)), key=lambda k: self.scores[k],reverse=True)
           B = min(self.maxBatchSize,len(sortedIndices))
           for idx in sortedIndices[0:B]:
@@ -733,30 +734,30 @@ class LimitSurfaceSearch(AdaptiveSampler):
         ## Select one sample
         selectedPoint = self.toProcess.pop()
         for varIndex, varName in enumerate(axisNames):
-          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
-          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
+          rlz[self.axisName[varIndex]] = float(selectedPoint[varIndex])
+          rlz.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(rlz[self.axisName[varIndex]])
+          rlz.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(rlz[self.axisName[varIndex]])
         varSet=True
 
     if not varSet:
       #here we are still generating the batch
       for key in sorted(self.distDict.keys()):
         if self.toleranceWeight=='cdf':
-          self.values[key]                       = self.distDict[key].ppf(float(randomUtils.random()))
+          rlz[key] = self.distDict[key].ppf(float(randomUtils.random()))
         else:
-          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(randomUtils.random())
-        self.inputInfo['distributionName'][key]  = self.toBeSampled[key]
-        self.inputInfo['distributionType'][key]  = self.distDict[key].type
-        self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
-        self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
+          rlz[key] = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(randomUtils.random())
+        rlz.inputInfo['distributionName'][key]  = self.toBeSampled[key]
+        rlz.inputInfo['distributionType'][key]  = self.distDict[key].type
+        rlz.inputInfo['SampledVarsPb'][key]  = self.distDict[key].pdf(rlz[key])
+        rlz.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(rlz[key])
         self.addMetaKeys(['ProbabilityWeight-'+key])
-    self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    rlz.inputInfo['PointProbability'] = reduce(mul, rlz.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
-    self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']
-    self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
-    self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
-    self.inputInfo['SamplerType'] = 'LimitSurfaceSearch'
-    self.inputInfo['subGridTol' ] = self.subGridTol
+    rlz.inputInfo['ProbabilityWeight'] = rlz.inputInfo['PointProbability']
+    self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([rlz[axis] for axis in self.axisName]))))
+    self.raiseADebug(f'At counter {self.counters["samples"]} the generated sampled variables are: {rlz}')
+    rlz.inputInfo['SamplerType'] = 'LimitSurfaceSearch'
+    rlz.inputInfo['subGridTol' ] = self.subGridTol
 
     #      This is the normal derivation to be used later on
     #      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
@@ -815,7 +816,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #      minIndex = np.argmin(np.abs(modGrad))
     #      pdDist = self.sign*(pbPoint[minIndex,2*self.nVar][0]-0.5-10*self.tolerance)/modGrad[minIndex]
     #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-    #        self.values[varName] = copy.copy(float(pbMapPointCoord[minIndex,2*self.nVar,varIndex]+pdDist*gradVect[minIndex,varIndex]))
+    #        rlz[varName] = copy.copy(float(pbMapPointCoord[minIndex,2*self.nVar,varIndex]+pdDist*gradVect[minIndex,varIndex]))
     #      gradVect = np.ndarray(self.nVar)
     #      centraPb = pbPoint[minIndex,2*self.nVar]
     #      centralCoor = pbMapPointCoord[minIndex,2*self.nVar,:]
@@ -827,7 +828,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #      gradVect = gradVect*pdDist
     #      gradVect = gradVect+centralCoor
     #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-    #        self.values[varName] = copy.copy(float(gradVect[varIndex]))
+    #        rlz[varName] = copy.copy(float(gradVect[varIndex]))
 
   def _formatSolutionExportVariableNames(self, acceptable):
     """

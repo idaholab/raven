@@ -67,7 +67,7 @@ class ResponseSurfaceDesign(Grid):
       @ Out, None
     """
     Grid.__init__(self)
-    self.limit    = 1
+    self.limits['samples'] = 1
     self.printTag        = 'SAMPLER RESPONSE SURF DESIGN'
     self.respOpt         = {}                                    # response surface design options (type,etc)
     self.designMatrix    = None                                  # matrix container
@@ -181,19 +181,20 @@ class ResponseSurfaceDesign(Grid):
     self.gridEntity.updateParameter("stepLength", stepLength, False)
     self.gridEntity.updateParameter("gridInfo", gridInfo)
     Grid.localInitialize(self)
-    self.limit = self.designMatrix.shape[0]
+    self.limits['samples'] = self.designMatrix.shape[0]
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, rlz, model, myInput):
     """
       Function to select the next most informative point for refining the limit
       surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
+      After this method is called, the rlz.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, Realization, dict-like object to fill with sample
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
+    gridcoordinate = self.designMatrix[self.counters['samples'] - 1][:].tolist()
     for cnt, varName in enumerate(self.axisName):
       self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
-    Grid.localGenerateInput(self,model, myInput)
+    Grid.localGenerateInput(self, rlz, model, myInput)

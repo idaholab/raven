@@ -18,20 +18,11 @@ Created on Oct 20, 2014
 
 This module contains interfaces to import external functions
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, absolute_import
-# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules------------------------------------------------------------------------------------
 from .EntityFactoryBase import EntityFactory
 from .BaseClasses import BaseEntity, InputDataUser
 from .utils import utils, InputData, InputTypes
 from .CustomCommandExecuter import execCommand
-#Internal Modules End--------------------------------------------------------------------------------
+from .Realizations import Realization
 
 class FunctionCollection(InputData.ParameterInput):
   """
@@ -167,46 +158,42 @@ class External(BaseEntity, InputDataUser):
       execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=paramDict)
     return paramDict
 
-  def __importValues(self,myInput):
+  def __importValues(self, myInput):
     """
       This method makes available the variable values sent in as self.key
       @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
       @ Out, None
     """
-    if isinstance(myInput,dict):
+    if isinstance(myInput, (dict, Realization)):
       self.__inputFromWhat['dict'](myInput)
     else:
       self.raiseAnError(IOError,'Unknown type of input provided to the function '+str(self.name))
 
-  def __inputFromDict(self,myInputDict):
+  def __inputFromDict(self, inDict):
     """
       This is meant to be used to collect the input directly from a sampler generated input or simply from a generic dictionary
-      In case the input comes from a sampler the expected structure is myInputDict['SampledVars'][variable name] = value
-      In case it is a generic dictionary the expected structure is myInputDict[variable name] = value
-      @ In, myInputDict, dict, dict from which the data need to be imported
+      The expected structure is inDict[variable name] = value
+      @ In, inDict, dict, dict from which the data need to be imported
       @ Out, None
     """
-    if 'SampledVars' in myInputDict.keys():
-      inDict = myInputDict['SampledVars']
-    else:
-      inDict = myInputDict
     for name in self.__inputVariables:
-      if name in inDict.keys():
+      if name in inDict:
+        # FIXME this doesn't seem secure, and it's not even clear how it works ...
         execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict)
       else:
-        self.raiseAnError(IOError,'The input variable '+name+' in external function seems not to be passed in')
+        self.raiseAnError(IOError,f'The input variable "{name}" in external function missing!')
 
-  def evaluate(self,what,myInput):
+  def evaluate(self, method, myInput):
     """
       Method that returns the result of the type of action described by 'what'
-      @ In, what, string, what action needs to be performed
+      @ In, method, string, what action needs to be performed
       @ In, myInput, object (dataObjects,dict), object from which the data need to be imported
       @ Out, response, object, the response of the action defined in what
     """
     self.__importValues(myInput)
-    if what not in self.__actionDictionary:
-      self.raiseAnError(IOError,'Method ' + what + ' not defined in ' + self.name)
-    response = self.__actionDictionary[what](self)
+    if method not in self.__actionDictionary:
+      self.raiseAnError(IOError, f'Method "{method}" not defined in Function "{self.name}"!')
+    response = self.__actionDictionary[method](self)
     return response
 
   def availableMethods(self):

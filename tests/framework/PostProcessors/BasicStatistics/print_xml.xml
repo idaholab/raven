@@ -104,7 +104,7 @@
 
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="25061978">
-      <Input class="Files" type="">basicStatisticsExternalModelTest.py</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
@@ -130,6 +130,7 @@
   </OutStreams>
 
   <DataObjects>
+    <PointSet name="placeholder"/>
     <PointSet name="PointSetPostProcTest">
       <Input>x0,y0,z0</Input>
       <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>

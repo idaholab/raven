@@ -177,13 +177,13 @@ class IOStep(Step):
       @ Out, None
     """
     outputs = self.__getOutputs(inDictionary)
-    for i in range(len(outputs)):
+    for i, out in enumerate(outputs):
       if self.actionType[i] == 'Database-dataObjects':
         # inDictionary['Input'][i] is Database, outputs[i] is a DataObjects
-        inDictionary['Input'][i].loadIntoData(outputs[i])
+        inDictionary['Input'][i].loadIntoData(out)
       elif self.actionType[i] == 'dataObjects-Database':
         # inDictionary['Input'][i] is a dataObjects, outputs[i] is Database
-        outputs[i].saveDataToFile(inDictionary['Input'][i])
+        out.saveDataToFile(inDictionary['Input'][i])
 
       elif self.actionType[i] == 'ROM-dataObjects':
         # inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
@@ -192,10 +192,10 @@ class IOStep(Step):
         # get non-pointwise data (to place in XML metadata of data object)
         # TODO how can user ask for particular information?
         xml = romModel.writeXML(what='all')
-        self.raiseADebug(f'Adding meta "{xml.getRoot().tag}" to output "{outputs[i].name}"')
-        outputs[i].addMeta(romModel.name, node = xml)
+        self.raiseADebug(f'Adding meta "{xml.getRoot().tag}" to output "{out.name}"')
+        out.addMeta(romModel.name, node = xml)
         # get pointwise data (to place in main section of data object)
-        romModel.writePointwiseData(outputs[i])
+        romModel.writePointwiseData(out)
 
       elif self.actionType[i] == 'MODEL-FILES':
         # inDictionary['Input'][i] is a ROM, outputs[i] is Files
@@ -203,26 +203,25 @@ class IOStep(Step):
         # check the ROM is trained first
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError, f'Pickled rom "{inDictionary["Input"][i].name}" was not trained!  Train it before pickling and unpickling using a RomTrainer step.')
-        fileobj = outputs[i]
+        fileobj = out
         fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i], fileobj, protocol=pickle.HIGHEST_PROTOCOL)
         fileobj.flush()
         fileobj.close()
 
       elif self.actionType[i] == 'MODEL-PYOMO':
-        outfile = open(outputs[i].getAbsFile(),"w")
-        outfile.write(inDictionary['Input'][i].writePyomoGreyModel())
-        outfile.close()
+        with open(out.getAbsFile(), 'w', encoding='utf-8') as outfile:
+          outfile.write(inDictionary['Input'][i].writePyomoGreyModel())
 
       elif self.actionType[i] == 'MODEL-FMU':
         #check the ROM is trained first (if ExternalModel no check it is performed)
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError, f'Pickled rom "{inDictionary["Input"][i].name}" was not trained!  Train it before pickling and unpickling using a RomTrainer step.')
-        self.raiseAMessage(f'Exporting Model "{inDictionary["Input"][i].name}" as FMU named "{outputs[i].name}"')
+        self.raiseAMessage(f'Exporting Model "{inDictionary["Input"][i].name}" as FMU named "{out.name}"')
         from ..utils.fmuExporter import FMUexporter
         fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
-        fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
-        fmuexec.buildFMU(outputs[i].getAbsFile())
+        fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': out.getPath(), 'frameworkDir': fdir, 'keepModule': True})
+        fmuexec.buildFMU(out.getAbsFile())
 
       elif self.actionType[i] == 'FILES-MODEL':
         # inDictionary['Input'][i] is a Files, outputs[i] is ROM or ExternalModel
@@ -246,14 +245,14 @@ class IOStep(Step):
         if isinstance(unpickledObj,Models.ROM) and not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError, f'Pickled rom "{unpickledObj.name}" was not trained!  Train it before pickling and unpickling using a RomTrainer step.')
         # copy model (same for any internal model (Dummy model derived classes)
-        outputs[i]._copyModel(unpickledObj)
+        out._copyModel(unpickledObj)
 
       elif self.actionType[i] == 'FILES-dataObjects':
         # inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         # load a CSV from file
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
+        out.load(inDictionary['Input'][i].getPath(),'csv',**options)
 
       else:
         # unrecognized, and somehow not caught by the step reader.

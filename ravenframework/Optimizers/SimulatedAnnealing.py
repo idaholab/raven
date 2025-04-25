@@ -49,17 +49,14 @@
     .. [13] M. P. Vecchi and S. Kirkpatrick, "Global wiring by simulated annealing",
         IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, 1983.
 """
-# External Modules----------------------------------------------------------------------------------
 from collections import deque, defaultdict
-import numpy as np
-# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
+import numpy as np
+
 from ..utils import mathUtils, randomUtils, InputData, InputTypes, utils
 from .RavenSampled import RavenSampled
 from .stepManipulators import NoConstraintResolutionFound
 from ..Distributions import distType
-# Internal Modules End------------------------------------------------------------------------------
 
 class SimulatedAnnealing(RavenSampled):
   """
@@ -182,6 +179,7 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, None
     """
     RavenSampled.__init__(self)
+    self.batch = 1
     self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
     self._acceptHistory = {}                                    # acceptability
     self._acceptRerun = {}                                      # by traj, if True then override accept for point rerun
@@ -330,7 +328,7 @@ class SimulatedAnnealing(RavenSampled):
       info = self._optPointHistory[traj][-1][1]
       info['step'] = self.getIteration(traj)
     iteration = int(self.getIteration(traj) + 1) # Is that ok or should we always keep the traj in case I have multiple trajectories in parallel?
-    fraction = iteration/self.limit
+    fraction = iteration/self.limits['samples']
     currentPoint = self._collectOptPoint(rlz)
     T0 = self._temperature(fraction)
     self.T = self._coolingSchedule(iteration, T0)
@@ -561,7 +559,7 @@ class SimulatedAnnealing(RavenSampled):
     """
     # meta variables
     toAdd = {'Temp': self.T,
-             'fraction': self.getIteration(traj)/self.limit
+             'fraction': self.getIteration(traj)/self.limits['samples']
             }
 
     for var in self.toBeSampled:

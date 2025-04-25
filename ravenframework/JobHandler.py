@@ -698,7 +698,38 @@ class JobHandler(BaseType):
       # probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False, groupInfo = None):
+  def addJobBatch(self, batch, model, modelInput, samplerType, evalFunc):
+    """
+      Adds a batch of jobs to the internal queue.
+      @ In, batch, RealizationBatch, set of realizations to add
+      @ In, model, Model, model instance to run
+      @ In, modelInput, list, inputs for the Model
+      @ In, samplerType, str, sampler that generated this request
+      @ In, evalFunc, callable, method to be executed
+      @ Out, None
+    """
+    if batch.ID is None:
+      aaaa # TODO remove me
+    for rlz in batch:
+      if rlz.isRestart:
+        self.addFinishedJob(rlz, metadata=rlz.inputInfo)
+      else:
+        # assure the realization knows about the batch it belongs to
+        rlz.inputInfo['batchID'] = batch.ID
+        rlz.inputInfo['batchSize'] = len(batch)
+        self.addSingleJob(
+            (model, modelInput, samplerType, rlz),
+            evalFunc,
+            rlz.inputInfo['prefix'],
+            metadata = rlz.inputInfo,
+            uniqueHandler=rlz.inputInfo.get('uniqueHandler', 'any'),
+            forceUseThreads=rlz.inputInfo.get('forceThreads', False),
+            groupInfo={'id': batch.ID, 'size': len(batch)}
+        )
+
+  def addSingleJob(self, args, functionToRun, identifier, metadata=None,
+             forceUseThreads=False, uniqueHandler="any", clientQueue=False,
+             groupInfo=None):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -788,7 +819,8 @@ class JobHandler(BaseType):
         runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun, identifier, metadata=None, uniqueHandler="any", groupInfo = None):
+  def addClientJob(self, args, functionToRun, identifier,
+                   metadata=None, forceUseThreads=True, uniqueHandler="any", groupInfo=None):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -814,10 +846,9 @@ class JobHandler(BaseType):
               Consequentially the size is immutable
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata,
-                forceUseThreads = True, uniqueHandler = uniqueHandler,
-                clientQueue = True, groupInfo = groupInfo)
-
+    self.addSingleJob(args, functionToRun, identifier, metadata,
+                forceUseThreads=forceUseThreads, uniqueHandler=uniqueHandler,
+                clientQueue=True, groupInfo=groupInfo)
 
   def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
     """
@@ -1006,7 +1037,7 @@ class JobHandler(BaseType):
     with self.__queueLock:
       finished = []
       runsToBeRemoved = []
-      for i,run in enumerate(self.__finished):
+      for i, run in enumerate(self.__finished):
         # If the jobIdentifier does not match or the uniqueHandler does not
         # match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
@@ -1137,17 +1168,17 @@ class JobHandler(BaseType):
             # to replace the execution command. Is this fragile? Possibly. We may
             # want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
-              kwargs = {}
+              codeInfo = {}
               if self._server is not None:
                 for infoKey in ['headNode','remoteNodes','schedulerFile']:
                   if infoKey in self.runInfoDict:
-                    kwargs[infoKey] = self.runInfoDict[infoKey]
-              kwargs['INDEX'] = str(i)
-              kwargs['INDEX1'] = str(i+i)
-              kwargs['CURRENT_ID'] = str(self.__nextId)
-              kwargs['CURRENT_ID1'] = str(self.__nextId+1)
-              kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
-              kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
+                    codeInfo[infoKey] = self.runInfoDict[infoKey]
+              codeInfo['INDEX'] = str(i)
+              codeInfo['INDEX1'] = str(i+i)
+              codeInfo['CURRENT_ID'] = str(self.__nextId)
+              codeInfo['CURRENT_ID1'] = str(self.__nextId+1)
+              codeInfo['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
+              codeInfo['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
 
 
               # This will not be used since the Code will create a new
@@ -1156,11 +1187,11 @@ class JobHandler(BaseType):
               # represents the WRONG directory for an instance of a code!
               # It is however the correct directory for a MultiRun step
               # -- DPM 5/4/17
-              kwargs['WORKING_DIR'] = item.args[0].workingDir
-              kwargs['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
-              kwargs['METHOD'] = os.environ.get("METHOD","opt")
-              kwargs['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])
-              item.args[3].update(kwargs)
+              codeInfo['WORKING_DIR'] = item.args[0].workingDir
+              codeInfo['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
+              codeInfo['METHOD'] = os.environ.get("METHOD","opt")
+              codeInfo['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])
+              item.args[3].inputInfo.update(codeInfo)
 
             self.__running[i] = item
             self.__running[i].start()

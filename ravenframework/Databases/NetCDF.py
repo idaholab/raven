@@ -16,11 +16,9 @@ Created on April 9, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 import os
+
 import numpy as np
 import xarray as xr
 
@@ -65,6 +63,9 @@ class NetCDF(DataBase):
       @ Out, None
     """
     ds, meta = source.getData()
+    if ds is None:
+      self.raiseAMessage(f'No data in source "{source.name}"!')
+      return
     # we actually just tell the DataSet to write out as netCDF
     path = self.get_fullpath()
     # TODO set up to use dask for on-disk operations
@@ -141,7 +142,8 @@ class NetCDF(DataBase):
     # verbose but slower
     xarrs = {}
     for var in rlz:
-      if var == '_indexMap' or var in indices + ['SampledVars', 'SampledVarsPb', 'crowDist', 'SamplerType']:
+      # TODO does removing batchID mess up batch sampling? I feel like it shouldn't ...
+      if var == '_indexMap' or var in indices + ['batchID', 'SampledVars', 'SampledVarsPb', 'crowDist', 'SamplerType']:
         continue
       if self.variables is not None and var not in self.variables:
         continue

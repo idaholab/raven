@@ -19,17 +19,14 @@
   @author: wangc
 """
 
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
 import copy
 import abc
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
+import numpy as np
+
 from ... import Distributions
 from ...Samplers import AdaptiveSampler
-from ...utils import utils,randomUtils,InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
+from ...utils import randomUtils,InputData, InputTypes
 
 class MCMC(AdaptiveSampler):
   """
@@ -200,7 +197,7 @@ class MCMC(AdaptiveSampler):
       # limit
       limit = init.findFirst('limit')
       if limit is not None:
-        self.limit = limit.value
+        self.limits['samples'] = limit.value
       else:
         self.raiseAnError(IOError, 'MCMC', self.name, 'needs the limit block (number of samples) in the samplerInit block')
       # initialSeed
@@ -220,7 +217,7 @@ class MCMC(AdaptiveSampler):
         self._tuneInterval = tuneInterval.value
     else:
       self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
-    if self._burnIn >= self.limit:
+    if self._burnIn >= self.limits['samples']:
       self.raiseAnError(IOError, 'Provided "burnIn" value must be less than "limit" value!')
     # TargetEvaluation Node (Required)
     targetEval = paramInput.findFirst('TargetEvaluation')
@@ -327,26 +324,29 @@ class MCMC(AdaptiveSampler):
     meta = ['LogPosterior', 'AcceptRate']
     self.addMetaKeys(meta)
 
-  def localGenerateInput(self, model, myInput):
+  def localGenerateInput(self, rlz, model, myInput):
     """
       Provides the next sample to take.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
+      @ In, rlz, RealizationBatch (or Realization if not compatible), mapping of variables to values
       @ In, model, model instance, an instance of a model
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
     for key, value in self._updateValues.items():
-      self.values[key] = value
+      rlz[key] = value
       if key in self.distDict:
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(value)
+        rlz.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(value)
       else:
-        self.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self._updateValues)
-      self.inputInfo['ProbabilityWeight-' + key] = 1.
-    self.inputInfo['PointProbability'] = 1.0
-    self.inputInfo['ProbabilityWeight'] = 1.0
-    self.inputInfo['LogPosterior'] = self.netLogPosterior
-    self.inputInfo['AcceptRate'] = self._acceptRate
+        rlz.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self._updateValues)
+      rlz.inputInfo['ProbabilityWeight-' + key] = 1.
+    rlz.inputInfo['PointProbability'] = 1.0
+    rlz.inputInfo['ProbabilityWeight'] = 1.0
+    # TODO is this a property of the Sampler that should be retained, or of the Realization?
+    # self.samplerInfo['LogPosterior'] = self.netLogPosterior
+    rlz.inputInfo['LogPosterior'] = self.netLogPosterior
+    rlz.inputInfo['AcceptRate'] = self._acceptRate
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -358,27 +358,29 @@ class MCMC(AdaptiveSampler):
       @ In, myInput, list, the generating input
       @ Out, None
     """
+    cSamples = self.counters['samples']
     self._localReady = True
     AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
-    prefix = jobObject.getMetadata()['prefix']
-    full = self._targetEvaluation.realization(index=self.counter-1)
-    rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
-    rlz['traceID'] = self.counter
-    rlz['LogPosterior'] = self.inputInfo['LogPosterior']
-    rlz['AcceptRate'] = self.inputInfo['AcceptRate']
-    if self.counter == 1:
-      self._addToSolutionExport(rlz)
-      self._currentRlz = rlz
-    if self.counter > 1:
-      alpha = self._useRealization(rlz, self._currentRlz)
+    full = self._targetEvaluation.realization(index=cSamples-1)
+    res = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
+    res['traceID'] = cSamples
+    res['LogPosterior'] = full['LogPosterior'] # WAS self.inputInfo
+    res['AcceptRate'] = full['AcceptRate']     # WAS self.inputInfo
+    if cSamples == 1:
+      self._addToSolutionExport(res)
+      self._currentRlz = res
+    if cSamples > 1:
+      alpha = self._useRealization(res, self._currentRlz)
       self.netLogPosterior = alpha
       self._accepted = self._checkAcceptance(alpha)
       if self._accepted:
-        self._currentRlz = rlz
-        self._addToSolutionExport(rlz)
-        self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
+        self._currentRlz = res
+        self._addToSolutionExport(res)
+        self._updateValues = dict((var, res[var]) for var in self._updateValues)
       else:
-        self._currentRlz.update({'traceID':self.counter, 'LogPosterior': self.inputInfo['LogPosterior'], 'AcceptRate':self.inputInfo['AcceptRate']})
+        self._currentRlz.update({'traceID': cSamples,
+                                 'LogPosterior': full['LogPosterior'], # WAS self.inputInfo
+                                 'AcceptRate': full['AcceptRate']})    # WAS self.inputInfo
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
     if self._tune:
@@ -411,7 +413,7 @@ class MCMC(AdaptiveSampler):
     acceptable = alpha > acceptValue
     if acceptable:
       self._acceptCount += 1
-    self._acceptRate = self._acceptCount/self.counter
+    self._acceptRate = self._acceptCount/self.counters['samples']
     return acceptable
 
   def localStillReady(self, ready):
@@ -449,7 +451,7 @@ class MCMC(AdaptiveSampler):
       @ In, rlz, dict, sampled realization
       @ Out, None
     """
-    if self._burnIn < self.counter:
+    if self._burnIn < self.counters['samples']:
       rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
       self._solutionExport.addRealization(rlz)
 
