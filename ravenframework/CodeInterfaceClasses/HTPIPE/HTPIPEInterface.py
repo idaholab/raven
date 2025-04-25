@@ -136,7 +136,7 @@ class HTPIPE(GenericCode):
     """
       Check if an input file is a Neutrino input file.
       @ In, inputFile, string, the file name to be checked
-      @ Out, valid, bool, 'True' if an input file has an extension of '.nescene', otherwise 'False'.
+      @ Out, valid, bool, 'True' if an input file has a type == htpipe, otherwise 'False'.
     """
     valid = False
     if inputFile.getType().lower() == 'htpipe':
