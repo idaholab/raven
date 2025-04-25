@@ -2025,13 +2025,10 @@ class DataSet(DataObject):
     ds = self._data[varList] if var is not None else self._data
     mean = ds.mean().variables
     scale = ds.std().variables
-    for name in varList:
-      try:
-        m = mean[name].values[()]
-        s = scale[name].values[()]
-        self._scaleFactors[name] = (m,s)
-      except Exception:
-        self.raiseADebug(f'Had an issue with setting scaling factors for variable "{name}". No big deal.')
+    for name in mean:
+      m = mean[name].values[()]
+      s = scale[name].values[()]
+      self._scaleFactors[name] = (m,s)
 
   def _setStructureFromMetaXML(self, meta):
     """

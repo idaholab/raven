@@ -184,6 +184,7 @@ class NewCode(CodeInterfaceBase):
   ...
   def initialize(self, runInfoDict, oriInputFiles)
   def finalizeCodeOutput(self, command, output, workingDir)
+  def onlineStopCriteria(self, command, output, workingDir)
   def getInputExtension(self)
   def checkForOutputFailure(self, output, workingDir)
 \end{lstlisting}
@@ -353,6 +354,70 @@ def finalizeCodeOutput(self, command, output, workingDir):
     outfile = os.path.join(workingDir,output+".o")
     convertOutputFileToCSV(outfile)
  \end{lstlisting}
+
+\subsubsection{Method: \texttt{onlineStopCriteria}}
+\label{subsubsec:onlineStopCriteria}
+\begin{lstlisting}[language=python]
+def onlineStopCriteria(self, command, output, workingDir)
+\end{lstlisting}
+The \textbf{onlineStopCriteria} function is an optional method. If present, it is is called by RAVEN during the simulation.
+      It is intended to provide means for the code interface to monitor the execution of a run
+      and stop it if certain criteria are met (defined at the code interface level).
+      For example, the underlying code interface can check for a figure of merit in the output file
+      produced by the driven code and stop the simulation if that figure of merit is outside a certain interval
+      (e.g. $Pressure > 2 bar$, stop otherwise, continue).
+      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal termination) and
+      the ``checkForOutputFailure''  method (if present) is not called. So the simulation is considered to be successful.
+      This method can be used to inquire an external function (user-implemented) that can be used to implement
+      a stop logic based on one or multiple figure of merits (e.g. in the example below, an external function (implemented by the user) is inquired
+      with the partial results read by the code interface parser to check if the criteria are met)  
+      \nb This method \textbf{MUST} return a boolean:
+      \begin{itemize}
+        \item False, if the simulation can continue (i.e. the stopping criteria are not met)
+        \item True, if the simulation MUST stop (i.e. the criteria are met).
+      \end{itemize}
+RAVEN is going to call this function passing in the following arguments:
+\begin{itemize}
+  \item \textbf{\texttt{command}}, data type = string: the command used to run
+                    the just ended job;
+  \item \textbf{\texttt{output}}, data type = string, the Output name root;
+  \item  \textbf{\texttt{workingDir}}, data type = string, current working directory.
+\end{itemize}
+For the example referred in the previous section, this method would implemented as follows:
+\newline
+\begin{lstlisting}[language=python]
+def onlineStopCriteria(self, command, output, workingDir):
+    continueSim = True
+    if self.stoppingCriteriaFunction is not None:
+      if os.path.exists(os.path.join(workDir,output+".csv")):
+        outputParser = self.outputParser(os.path.join(workDir,output+".csv"))
+        results = outputParser.processOutputs()
+        continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
+    return continueSim
+ \end{lstlisting}
+ 
+ It is important to notice that this method can leverage any  external function defined in the  \xmlNode{Functions} block (see Section~\ref{sec:functions}) 
+ as long as it returns a boolean.
+ Within the \xmlNode{Code} XML node, the user can already link such function through the following XML node:
+ 
+ \begin{itemize}
+    \item \xmlNode{StoppingFunction}, \xmlDesc{XML node, optional node}, the
+                                                           body of this XML node must contain the name of an appropriate \textbf{Function} defined in the
+                                                            \xmlNode{Functions} block (see Section~\ref{sec:functions}). It is used as a
+                                                           ``stopping'' function tool for online simulation monitoring. Indeed, the user can provide a
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through the external RAVEN python function linked here through this XML node. 
+                                                            The function must return a ``bool'':
+                                                            \begin{itemize}
+                                                              \item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item True, if the simulation must STOP (i.e. the criteria are met)
+                                                            \end{itemize}
+                                                            %
+                                                            Each variable defined in the \xmlNode{StoppingFunction} block is available in the
+                                                            function as a python \texttt{raven.} member. In the following, an example of a
+                                                            user-defined stopping condition function is reported.
+ 
+ \end{itemize}
 
  \subsubsection{Method: \texttt{checkForOutputFailure}}
 \label{subsubsec:checkForOutputFailure}

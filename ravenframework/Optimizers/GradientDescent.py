@@ -195,7 +195,7 @@ class GradientDescent(RavenSampled):
     # history trackers, by traj, are deques (-1 is most recent)
     self._gradHistory = {}         # gradients
     self._stepHistory = {}         # {'magnitude': size, 'versor': direction, 'info': dict} for step
-    self._acceptHistory = {}       # acceptability
+    self._acceptHistory = {}       # a dictionary of trajectories of acceptable
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
     self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
@@ -335,7 +335,9 @@ class GradientDescent(RavenSampled):
       @ Out, None
     """
     traj = info['traj']
-    optVal = rlz[self._objectiveVar]
+    if self._isMultiObjective:
+      self.raiseAnError(IOError, 'Gradient Descent does not support multiObjective optimization yet! objective variable must be a single variable for now!')
+    optVal = rlz[self._objectiveVar[0]]
     info['optVal'] = optVal
     purpose = info['purpose']
     if purpose.startswith('opt'):
@@ -350,13 +352,13 @@ class GradientDescent(RavenSampled):
       gradMag, gradVersor, _ = self._gradientInstance.evaluate(opt,
                                                                grads,
                                                                gradInfos,
-                                                               self._objectiveVar)
+                                                               self._objectiveVar[0])
       self.raiseADebug(' ... gradient calculated ...')
       self._gradHistory[traj].append((gradMag, gradVersor))
       # get new step information
       try:
         newOpt, stepSize, stepInfo = self._stepInstance.step(opt,
-                                                  objVar=self._objectiveVar,
+                                                  objVar=self._objectiveVar[0],
                                                   optHist=self._optPointHistory[traj],
                                                   gradientHist=self._gradHistory[traj],
                                                   prevStepSize=self._stepHistory[traj],
@@ -375,7 +377,7 @@ class GradientDescent(RavenSampled):
       except NoConstraintResolutionFound:
         # we've tried everything, but we just can't hack it
         self.raiseAMessage(f'Optimizer "{self.name}" trajectory {traj} was unable to continue due to functional or boundary constraints.')
-        self._closeTrajectory(traj, 'converge', 'no constraint resolution', opt[self._objectiveVar])
+        self._closeTrajectory(traj, 'converge', 'no constraint resolution', opt[self._objectiveVar[0]])
         return
 
       # update values if modified by constraint handling
@@ -595,7 +597,7 @@ class GradientDescent(RavenSampled):
     # Check acceptability
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
-      oldVal = old[self._objectiveVar]
+      oldVal = old[self._objectiveVar[0]]
       # check if following another trajectory
       if self._terminateFollowers:
         following = self._stepInstance.trajIsFollowing(traj, self.denormalizeData(opt), info,
@@ -813,7 +815,7 @@ class GradientDescent(RavenSampled):
       return False
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
-    delta = mathUtils.relativeDiff(o2[self._objectiveVar], o1[self._objectiveVar])
+    delta = mathUtils.relativeDiff(o2[self._objectiveVar[0]], o1[self._objectiveVar[0]])
     converged = abs(delta) < self._convergenceCriteria['objective']
     self.raiseADebug(self.convFormat.format(name='objective',
                                             conv=str(converged),

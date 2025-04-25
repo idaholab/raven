@@ -120,18 +120,15 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"pri_post_stdReduct_<targName>":value}
     """
-    """
-      Functions to be applied
-    """
     # Find a reference sample which is closest to samples' average for scaling later
     def FindRef(yExp, yApp):
       """
-      Method to find reference samples within experimental and application data sets that are
-      the closest to the respective sample mean. The reference samples are determined by
-      minimizing the mean squared error between each sample and the sample mean.
+        Method to find reference samples within experimental and application data sets that are
+        the closest to the respective sample mean. The reference samples are determined by
+        minimizing the mean squared error between each sample and the sample mean.
 
-      @ In, yExp, yApp: array-like (2D), experiment and application data [samples x timesteps].
-      @ Out, inExp, inApp: int, indexes of the reference sample in the experimental/application dataset.
+        @ In, yExp, yApp: array-like (2D), experiment and application data [samples x timesteps].
+        @ Out, inExp, inApp: int, indexes of the reference sample in the experimental/application dataset.
       """
       # calculate average temperatures among samples (samples' average)
       yExpMean = np.mean(yExp, axis=0)
@@ -140,8 +137,8 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       mse1 = np.zeros(yExp.shape[0])
       mse2 = np.zeros(yExp.shape[0])
       for i in range(yExp.shape[0]):
-          mse1[i] = np.mean((yExp[i,:]-yExpMean)**2)
-          mse2[i] = np.mean((yApp[i,:]-yAppMean)**2)
+        mse1[i] = np.mean((yExp[i,:]-yExpMean)**2)
+        mse2[i] = np.mean((yApp[i,:]-yAppMean)**2)
       # The index for the reference sample
       inExp = np.where(mse1==np.min(mse1))[0][0]
       inApp = np.where(mse2==np.min(mse2))[0][0]
@@ -224,16 +221,16 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         invErr = 100
         # Check whether the covavariance matrix is positive definite
         if condNum>=invErr:
-            # If singular matrix, measurement of Experiment is directly transfered
-            # as predicted Application
-            pdfAppPred = knlMsr(Y[0, :])
+          # If singular matrix, measurement of Experiment is directly transfered
+          # as predicted Application
+          pdfAppPred = knlMsr(Y[0, :])
         else:
-            # If not, KDE of Experiment and Application
-            knl = stats.gaussian_kde(vals)
-            # Joint PDF of Experiment and Application
-            Z = np.reshape(knl(psts).T, X.shape)
-            # yAppPred by integrating p(yexp, yapp)p(ymsr) over [yexp.min(), yexp.max()]
-            pdfAppPred = np.dot(Z, pdfMsr.reshape(pdfMsr.shape[0], 1))
+          # If not, KDE of Experiment and Application
+          knl = stats.gaussian_kde(vals)
+          # Joint PDF of Experiment and Application
+          Z = np.reshape(knl(psts).T, X.shape)
+          # yAppPred by integrating p(yexp, yapp)p(ymsr) over [yexp.min(), yexp.max()]
+          pdfAppPred = np.dot(Z, pdfMsr.reshape(pdfMsr.shape[0], 1))
 
         # Normalized PDF of predicted application
         pdfAppPredNorm = pdfAppPred.flatten()/pdfAppPred.sum()/np.diff(Y[0, :])[0]
@@ -242,13 +239,13 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
         # by integrating xf(x), where f(x) is PDF of x
         predMean = 0.0
         for i in range(len(Y[0, :])):
-            predMean += Y[0, i]*pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
+          predMean += Y[0, i]*pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
 
         # Calculate Variance of predicted application
         # by integrating (x-mu_x)^2f(x), where f(x) is PDF of x
         predVar = 0.0
         for i in range(len(Y[0, :])):
-            predVar += (Y[0, i]-predMean)**2.0 * pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
+          predVar += (Y[0, i]-predMean)**2.0 * pdfAppPredNorm[i]*(Y[0, 1]-Y[0, 0])
 
         # Predicted standard deviation is square root of variance
         predStd = np.sqrt(predVar)
@@ -275,7 +272,7 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       # check the dimension of exp matrix, \
       # if it only has one feature, enasure to make it as a 2D matrix instead of a 1D vector
       if expM.ndim==1:
-          expM = expM.reshape(1, expM.shape[0])
+        expM = expM.reshape(1, expM.shape[0])
       # Scale exp data with its mean (mu) and standard deviation (std).  [expS = (exp - mu)/std]
       # Scale expM data with by same mu and std. [expMS = (expM - mu)/std]
       scaler = StandardScaler()
@@ -336,7 +333,6 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
       """
       yExp = np.array(featData)
       yApp = np.array(targData)
-      yExpMsr = np.array(msrData)
       yExpMsrMean = np.mean(np.array(msrData), axis=0)
 
       # calculate alphaApp as linear combination of alphaExp (with RankApp, RankExp)
@@ -354,7 +350,6 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
       yExpMsrScaled = ((yExpMsrMean - yExpRef)).T # scaled experiments' Measurement data
       alphaExpMsr = (uExp.T@yExpMsrScaled).T #  coefficients of experiments' Measurement data under UExp subspace
-
 
       #KNN regression
       rkApp = FindRank(yAppRef, yAppScaled, recError) #rank of application
@@ -409,7 +404,6 @@ class PhysicsGuidedCoverageMapping(ValidationBase):
 
     pcmVersion = self.pcmType
     recError = self.ReconstructionError #reconstruction error to determine the rank of time series data.
-
 
     if pcmVersion == 'Tdep':
       self.raiseAMessage('***    Running Tdep-PCM       ***')

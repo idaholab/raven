@@ -70,7 +70,7 @@ class Optimizer(AdaptiveSampler):
     specs.description = 'Optimizers'
 
     # objective variable
-    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringType, strictMode=True,
+    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringListType, strictMode=True,
         printPriority=90, # more important than <variable>
         descr=r"""Name of the response variable (or ``objective function'') that should be optimized
         (minimized or maximized)."""))
@@ -94,10 +94,13 @@ class Optimizer(AdaptiveSampler):
     seed = InputData.parameterInputFactory('initialSeed', contentType=InputTypes.IntegerType,
         descr=r"""seed for random number generation. Note that by default RAVEN uses an internal seed,
               so this seed must be changed to observe changed behavior. \default{RAVEN-determined}""")
-    minMaxEnum = InputTypes.makeEnumType('MinMax', 'MinMaxType', ['min', 'max'])
-    minMax = InputData.parameterInputFactory('type', contentType=minMaxEnum,
+    #Saddly, we don't have the below feature yet.
+    #minMaxEnumList = InputTypes.makeEnumListType('MinMax', 'MinMaxType', ['min', 'max'])
+    minMaxList = InputTypes.StringListType()
+    minMax = InputData.parameterInputFactory('type', contentType=minMaxList,
         descr=r"""the type of optimization to perform. \xmlString{min} will search for the lowest
-              \xmlNode{objective} value, while \xmlString{max} will search for the highest value.""")
+              \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
+        For multi-objective, this can be a list like min, max.""")
     init.addSub(seed)
     init.addSub(minMax)
     specs.addSub(init)
@@ -119,8 +122,10 @@ class Optimizer(AdaptiveSampler):
         printPriority=150,
         descr=r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
               point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}
-              block (see Section~\ref{sec:functions}). This external function must contain a method called
-              ``implicitConstrain'', which returns True for outputs satisfying the implicit constraints and False otherwise.""")
+              block (see Section~\ref{sec:functions}). This external
+         function must contain a method called
+        ``implicitConstraint'', which returns True for outputs satisfying
+the implicit constraints and False otherwise.""")
     ImplicitConstraintInput.addParam("class", InputTypes.StringType, True,
         descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
     ImplicitConstraintInput.addParam("type", InputTypes.StringType, True,
@@ -151,27 +156,28 @@ class Optimizer(AdaptiveSampler):
     # Instance Variable Initialization
     # public
     # _protected
-    self._seed = None                   # random seed to apply
-    self._minMax = 'min'                # maximization or minimization?
-    self._activeTraj = []               # tracks live trajectories
-    self._cancelledTraj = {}            # tracks cancelled trajectories, and reasons
-    self._convergedTraj = {}            # tracks converged trajectories, and values obtained
-    self._numRepeatSamples = 1          # number of times to repeat sampling (e.g. denoising)
-    self._objectiveVar = None           # objective variable for optimization
-    self._initialValuesFromInput = None # initial variable values from inputs, list of dicts (used to reset optimizer when re-running workflow)
-    self._initialValues = None          # initial variable values (trajectory starting locations), list of dicts
-    self._variableBounds = None         # dictionary of upper/lower bounds for each variable (may be inf?)
-    self._trajCounter = 0               # tracks numbers to assign to trajectories
-    self._initSampler = None            # sampler to use for picking initial seeds
-    self._constraintFunctions = []      # list of constraint functions
-    self._impConstraintFunctions = []   # list of implicit constraint functions
-    self._requireSolnExport = True      # optimizers only produce result in solution export
-    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files'] # List of assembler entities required to initialize an optmizer
+    self._seed = None                                                                    # random seed to apply
+    self._minMax = ['min']                                                               # maximization or minimization?
+    self._activeTraj = []                                                                # tracks live trajectories
+    self._cancelledTraj = {}                                                             # tracks cancelled trajectories, and reasons
+    self._convergedTraj = {}                                                             # tracks converged trajectories, and values obtained
+    self._numRepeatSamples = 1                                                           # number of times to repeat sampling (e.g. denoising)
+    self._objectiveVar = None                                                            # objective variable for optimization
+    self._initialValuesFromInput = None                                                  # initial variable values from inputs, list of dicts (used to reset optimizer when re-running workflow)
+    self._initialValues = None                                                           # initial variable values (trajectory starting locations), list of dicts
+    self._variableBounds = None                                                          # dictionary of upper/lower bounds for each variable (may be inf?)
+    self._trajCounter = 0                                                                # tracks numbers to assign to trajectories
+    self._initSampler = None                                                             # sampler to use for picking initial seeds
+    self._constraintFunctions = []                                                       # list of constraint functions
+    self._impConstraintFunctions = []                                                    # list of implicit constraint functions
+    self._requireSolnExport = True                                                       # optimizers only produce result in solution export
+    self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files']       # List of assembler entities required to initialize an optmizer
+    self._canHandleMultiObjective = False                                                # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
     # __private
     # additional methods
-    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
-    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
-    self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)           # Explicit (input-based) constraints
+    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)   # Implicit constraints
+    self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)                   # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
     self.addAssemblerObject('ROM', InputData.Quantity.zero_to_one)
 
     # register adaptive sample identification criteria
@@ -240,9 +246,8 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
-    # objective var
     self._objectiveVar = paramInput.findFirst('objective').value
-
+    self._isMultiObjective = len(self._objectiveVar) > 1
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node
     init = paramInput.findFirst('samplerInit')
@@ -255,6 +260,10 @@ class Optimizer(AdaptiveSampler):
       minMax = init.findFirst('type')
       if minMax is not None:
         self._minMax = minMax.value
+        if len(self._minMax) != len(self._objectiveVar):
+          self.raiseAnError(IOError, 'The length of <type> and <Objective> in <Optimizers> must be of the same length!')
+        if list(set(self._minMax)-set(['min','max'])) != []:
+          self.raiseAnError(IOError, "<type> under <Optimizers> must be 'min' and/or 'max'")
 
     # variables additional reading
     for varNode in paramInput.findAll('variable'):
@@ -361,16 +370,6 @@ class Optimizer(AdaptiveSampler):
     """
     # TODO shouldn't this require the realization and information to do right?
     info['traj'] = kwargs['traj']
-
-  def _collectOptValue(self, rlz):
-    """
-      collects the objective variable from a realization and adjusts the sign for min/max
-      @ In, rlz, dict, realization particularly including objective variable
-      @ Out, optVal, float, sign-adjust objective value
-    """
-    optVal = (-1 if self._minMax == 'max' else 1) * rlz[self._objectiveVar]
-
-    return optVal
 
   def _collectOptPoint(self, rlz):
     """

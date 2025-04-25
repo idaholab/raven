@@ -14,7 +14,9 @@
 """
   Implementation of crossovers for crossover process of Genetic Algorithm
   currently the implemented crossover algorithms are:
-  1.  OnePoint Crossover
+  1.  onePointCrossover
+  2.  uniformCrossover
+  3.  twoPointsCrossover
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
