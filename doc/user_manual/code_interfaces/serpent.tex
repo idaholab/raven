@@ -42,12 +42,37 @@ In the RAVEN input file, your \xmlNode{Models} node should look like:
         DepletionReader, DetectorReader, DepmtxReader
       <additionalFileTypes/>
       <!-- EOL parameters -->
-      <EOL target="absKeff">1.0</EOL>
-      <EOL target="impKeff">1.0</EOL>
+      <EOL target="absKeff_0">1.0</EOL>
+      <EOL target="impKeff_0">1.0</EOL>
       <!-- Volume calculation -->
       <volumeCalculation nPoints="1e9">True</volumeCalculation>
+      <!--
+        For burnup calculation, the user can provide a
+        function to halt the simulation if a certain condition is
+        met. The criterion or criteria is or are defined through
+        an external RAVEN python function (e.g. ``criteria'' in the
+        following example). The time frequency of the check is defined
+        by the node onlineStopCriteriaTimeInterval. By default, the output
+        is checked every 5 seconds.
+       -->
+      <onlineStopCriteriaTimeInterval>
+        15.0
+      </onlineStopCriteriaTimeInterval>
+      <StoppingFunction class="Functions" type="External">
+             criteria
+      </StoppingFunction>
     </Code>
 </Models>
+
+<Functions>
+    <External file="stoppingCriteria.py" name="criteria">
+         <!-- 
+           variables below must be retrievable
+           from the one of the Serpent Outputs (see Output Files Conversion section)
+         -->
+        <variables>impKeff_0 </variables>
+    </External>
+</Functions>
 \end{lstlisting}
 where the \xmlNode{executable} and \xmlNode{clargs} should me modified
 to create the appropriate run command for SERPENT. In this example, the command
@@ -87,7 +112,36 @@ Additional XML sub-nodes can be optionally added in the \xmlNode{Code} XML node 
    \item \xmlNode{volumeCalculation}, \xmlDesc{bool, optional parameter},  true to activate the stochastic material volume calculation via Serpent ``checkvolumes'' command. If True, the execution of 
                                                              SERPENT is always preceded with a volume calculation. If the user wants to use the volume calculation output file in its SERPENT template input, he needs to include 
                                                              the filename in the SERPENT template input (e.g. include ``myInputFile.mvol'')  value of the ``target'' at which the time (in burnup calculations) of end of life should be recorded.
-                                                             The  \xmlNode{volumeCalculation} node  must contain the attribute \xmlAttr{nPoints}, which indicates the number of samples that needs to be used by SERPENT for the calculation of the volumes (e.g. 1e8).                                                         
+                                                             The  \xmlNode{volumeCalculation} node  must contain the attribute \xmlAttr{nPoints}, which indicates the number of samples that needs to be used by SERPENT for the calculation of the volumes (e.g. 1e8).
+   \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds)) at which  the stopping function (if inputted)
+                                                            is inquired (stoppingCriteriaFunction).
+                                                            For burnup calculation, a good time frequency (time interval) is of the order of a the CPU time
+                                                            required for an eginevalue calc. \default{5}.
+   \item \xmlNode{StoppingFunction}, \xmlDesc{XML node, optional node},   the
+                                                           body of this XML node must contain the name of an appropriate \textbf{Function} defined in the
+                                                            \xmlNode{Functions} block (see Section~\ref{sec:functions}).  It is used as a
+                                                           ``stopping'' function tool for online simulation monitoring. Indeed, for burnup calculation, the user can provide a
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through the external RAVEN python function linked here through this XML node. 
+                                                            The function must return a ``bool'':
+                                                            \begin{itemize}
+                                                              \item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item True, if the simulation must STOP (i.e. the criteria are met)
+                                                            \end{itemize}
+                                                            %    
+                                                            Each variable defined in the \xmlNode{StoppingFunction} block is available in the
+                                                            function as a python \texttt{raven.} member. In the following, an example of a
+                                                            user-defined stopping condition function is reported.
+                                                            \nb if this function is used, the user can monitor the reason of a stop exporting the variable ``StoppingReason'' if requested in RAVEN DataObjects.
+                                                            
+\begin{lstlisting}[language=python]
+def criteria(raven):
+  if raven.impKeff_0[-1] < 1.0:
+    return True
+  else:
+    return False
+\end{lstlisting}
+
 \end{itemize}
 
 \subsubsection{Files}
@@ -212,9 +266,11 @@ the variables \textit{\textbf{ANA\_KEFF}} and  \textit{\textbf{IMP\_KEFF}}  will
 ANA_KEFF  (idx, [1:   6]) = [1.0E+00 0.001 9.9E-01 0.001 1.0E-02 0.001];
 IMP_KEFF  (idx, [1:   2]) = [1.0E+00 0.001];
 \end{lstlisting}
-For example, for the above snippet of the result file, the variables generated would be:
+For example, for the above snippet of the result file, the generated variables are reported in  Table ~\ref{tab:serpentResultConverted}.
 
 \begin{table}[ht]
+\caption{Example Serpent output converted variables.}
+\label{tab:serpentResultConverted}
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
 \textit{anaKeff\_0} & \textit{anaKeff\_1} & \textit{anaKeff\_2} & \textit{anaKeff\_3} & \textit{anaKeff\_4} & \textit{anaKeff\_5} & \textit{impKeff\_0} & \textit{impKeff\_1} \\ \hline

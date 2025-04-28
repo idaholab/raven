@@ -41,7 +41,7 @@
 
   The \xmlNode{GradientDescent} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{objective}: \xmlDesc{string},
+    \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
@@ -139,9 +139,10 @@
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
 
-        \item \xmlNode{type}: \xmlDesc{[min, max]},
+        \item \xmlNode{type}: \xmlDesc{comma-separated strings},
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
+          For multi-objective, this can be a list like min, max.
       \end{itemize}
 
     \item \xmlNode{gradient}:
@@ -422,8 +423,8 @@
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called         ``implicitConstraint'', which returns True for
+      outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -592,7 +593,7 @@ Gradient Descent Example:
 
   The \xmlNode{SimulatedAnnealing} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{objective}: \xmlDesc{string},
+    \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
@@ -690,9 +691,10 @@ Gradient Descent Example:
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
 
-        \item \xmlNode{type}: \xmlDesc{[min, max]},
+        \item \xmlNode{type}: \xmlDesc{comma-separated strings},
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
+          For multi-objective, this can be a list like min, max.
       \end{itemize}
 
     \item \xmlNode{convergence}:
@@ -837,8 +839,8 @@ Gradient Descent Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called         ``implicitConstraint'', which returns True for
+      outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -974,14 +976,34 @@ Simulated Annealing Example:
 
 
 \subsection{GeneticAlgorithm}
-  The \xmlNode{GeneticAlgorithm} optimizer is a metaheuristic approach
-  to perform a global search in large design spaces. The methodology rose
-  from the process of natural selection, and like others in the large class
-  of the evolutionary algorithms, it utilizes genetic operations such as
-  selection, crossover, and mutations to avoid being stuck in local minima
-  and hence facilitates finding the global minima. More information can
-  be found in:                             Holland, John H. "Genetic algorithms." Scientific
-  American 267.1 (1992): 66-73.
+  The \xmlNode{GeneticAlgorithm} is a metaheuristic optimization technique inspired by the
+  principles                             of natural selection and genetics. Introduced by John
+  Holland in the 1960s, GA mimics the process of                             biological evolution to
+  solve complex optimization and search problems. They operate by maintaining a population of
+  potential solutions represented as arrays of fixed length variables (genes), and each such array
+  is called a chromosome.                             These solutions undergo iterative refinement
+  through processes such as mutation, crossover, and survivor selection. Mutation involves randomly
+  altering certain genes within                             individual solutions, introducing
+  diversity into the population and enabling exploration of new regions in the solution space.
+  Crossover, on the other hand, mimics genetic recombination by exchanging genetic material between
+  two parent solutions to create                             offspring with combined traits.
+  Survivor selection determines which solutions will advance to the next generation based on
+  their fitness—how well they perform in solving the problem at hand. Solutions with higher fitness
+  scores are more likely to                             survive and reproduce, passing their genetic
+  material to subsequent generations. This iterative process continues
+  until a stopping criterion is met, typically when a satisfactory solution is found or after a
+  predetermined number of generations.                             More information can be found
+  in:\\\\                              Holland, John H. ``Genetic algorithms.'' Scientific American
+  267.1 (1992): 66-73.\\\\                              Non-dominated Sorting Genetic Algorithm II
+  (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
+  NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance
+  estimation to maintain a diverse set of                             non-dominated (Pareto-optimal)
+  solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
+  providing decision-makers with a comprehensive view of the problem's solution space. More
+  information about NSGA-II can be found in:\\\\                              Deb, Kalyanmoy, et al.
+  ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on
+  evolutionary computation 6.2 (2002): 182-197.\\\\                              GA in RAVEN
+  supports for both single and multi-objective optimization problem.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -993,6 +1015,8 @@ Simulated Annealing Example:
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
+             \item \texttt{rank}: It refers to the sorting of solutions into non-dominated fronts based on their Pareto dominance relationships
+             \item \texttt{CD}: Crowding Distance measures the density of solutions within each front to guide the selection of diverse individuals for the next generation
              \item \texttt{fitness}: fitness of the current chromosome
              \item \texttt{age}: age of current chromosome
              \item \texttt{batchId}: Id of the batch to whom the chromosome belongs
@@ -1000,6 +1024,7 @@ Simulated Annealing Example:
              \item \texttt{AHD}: Hausdorff Distance between populations
              \item \texttt{HDSM}: Hausdorff Distance Similarity Measure between populations
              \item \texttt{ConstraintEvaluation\_\{CONSTRAINT\}}: Constraint function evaluation (negative if violating and positive otherwise)
+             \item \texttt{FitnessEvaluation\_\{OBJ\}}: Fitness evaluation of each objective
 
          \end{itemize}
 
@@ -1013,9 +1038,10 @@ Simulated Annealing Example:
 
   The \xmlNode{GeneticAlgorithm} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{objective}: \xmlDesc{string},
-      Name of the response variable (or ``objective function'') that should be optimized
-      (minimized or maximized).
+    \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
+      Name of the objective variable(s) (or ``objective function'') that should be optimized
+      (minimized or maximized). It can be a single string or a list of strings if it is a multi-
+      objective problem.         Note that only genetic algorithm supports multi-objective.
 
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
@@ -1111,70 +1137,62 @@ Simulated Annealing Example:
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
 
-        \item \xmlNode{type}: \xmlDesc{[min, max]},
+        \item \xmlNode{type}: \xmlDesc{comma-separated strings},
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
+          For multi-objective, this can be a list like min, max.
       \end{itemize}
 
     \item \xmlNode{GAparams}:
-      Genetic Algorithm Parameters:\begin{itemize}
-      \item populationSize.                                                  \item parentSelectors:
-      \begin{itemize}                                                                      \item
-      rouletteWheel.                                                                      \item
-      tournamentSelection.
-      \item rankSelection.
-      \end{itemize}                                                 \item Reproduction:
-      \begin{itemize}                                                                    \item
-      crossover:
-      \begin{itemize}                                                                        \item
-      onePointCrossover.
-      \item twoPointsCrossover.
-      \item uniformCrossover
-      \end{itemize}                                                                    \item
-      mutators:                                                                      \begin{itemize}
-      \item swapMutator.
-      \item scrambleMutator.
-      \item inversionMutator.
-      \item bitFlipMutator.
-      \item randomMutator.
-      \end{itemize}                                                                    \end{itemize}
-      \item survivorSelectors:
-      \begin{itemize}                                                                        \item
-      ageBased.                                                                        \item
-      fitnessBased.
-      \end{itemize}                                                \end{itemize}
+
 
       The \xmlNode{GAparams} node recognizes the following subnodes:
       \begin{itemize}
         \item \xmlNode{populationSize}: \xmlDesc{integer},
           The number of chromosomes in each population.
 
-        \item \xmlNode{parentSelection}: \xmlDesc{string},
+        \item \xmlNode{parentSelection}: \xmlDesc{[rouletteWheel, tournamentSelection, rankSelection]},
           A node containing the criterion based on which the parents are selected. This can be a
-          fitness proportional selection such as:                   a.
-          \textbf{\textit{rouletteWheel}},                   b.
-          \textbf{\textit{tournamentSelection}},                   c.
-          \textbf{\textit{rankSelection}}                   for all methods nParents is computed
-          such that the population size is kept constant.                   $nChildren = 2 \times
-          {nParents \choose 2} = nParents \times (nParents-1) = popSize$                   solving
-          for nParents we get:                   $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$
-          This will result in a popSize a little larger than the initial one, these excessive
-          children will be later thrawn away and only the first popSize child will be kept
+          fitness proportional selection for all methods.                   The number of parents
+          (i.e., nParents) is computed such that the population size is kept constant. \\\\
+          $nParents = ceil(\frac{1 + \sqrt{1+4*popSize}}{2})$. \\\\                   The number of
+          children (i.e., nChildren) is computed by \\\\                   $nChildren = 2 \times
+          {nParents \choose 2} = nParents \times (nParents-1) = popSize$ \\\\                   This
+          will result in a popSize a little larger than the initial one, and the excessive children
+          will be later thrawn away and only the first popSize child will be kept. \\\\
+          You can choose three options for parentSelection:                       \begin{itemize}
+          \item \textit{rouletteWheel} - It assigns probabilities to chromosomes based on their
+          fitness,                           allowing for selection proportionate to their
+          likelihood of being chosen for reproduction.                           \item
+          \textit{tournamentSelection} - Chromosomes are randomly chosen from the population to
+          compete in a tournament,                           and the fittest individual among them
+          is selected for reproduction.                           \item \textit{rankSelection} -
+          Chromosomes with higher fitness values are selected.                       \end{itemize}
 
         \item \xmlNode{reproduction}:
-          a node containing the reproduction methods.                   This accepts subnodes that
-          specifies the types of crossover and mutation.
+          a node containing the reproduction methods. This accepts subnodes that specifies the types
+          of crossover and mutation.
 
           The \xmlNode{reproduction} node recognizes the following subnodes:
           \begin{itemize}
+            \item \xmlNode{kSelection}: \xmlDesc{integer},
+              Number of chromosome selected for tournament selection
+
             \item \xmlNode{crossover}: \xmlDesc{string},
-              a subnode containing the implemented crossover mechanisms.                   This
-              includes: a.    onePointCrossover,                                  b.
-              twoPointsCrossover,                                  c.    uniformCrossover.
+              a subnode containing the implemented crossover mechanisms. You can choose one of the
+              crossover options listed below:                   \begin{itemize}
+              \item \textit{onePointCrossover} - It selects a random crossover point along the
+              chromosome of parent individuals and swapping the genetic material beyond that point
+              to create offspring.                     \item \textit{twoPointsCrossover} - It
+              selects two random crossover points along the chromosome of parent individuals and
+              swapping the genetic material beyond that point to create offspring.
+              \item \textit{uniformCrossover} - It randomly selects genes from two parent
+              chromosomes with equal probability, creating offspring by exchanging genes at
+              corresponding positions.                   \end{itemize}
               The \xmlNode{crossover} node recognizes the following parameters:
                 \begin{itemize}
-                  \item \xmlAttr{type}: \xmlDesc{string, required},
-                    type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)
+                  \item \xmlAttr{type}: \xmlDesc{[onePointCrossover, twoPointsCrossover, uniformCrossover], required},
+                    type of crossover operation to be used. See the list of options above.
               \end{itemize}
 
               The \xmlNode{crossover} node recognizes the following subnodes:
@@ -1182,20 +1200,31 @@ Simulated Annealing Example:
                 \item \xmlNode{points}: \xmlDesc{comma-separated integers},
                   point/gene(s) at which crossover will occur.
 
-                \item \xmlNode{crossoverProb}: \xmlDesc{float},
+                \item \xmlNode{crossoverProb}: \xmlDesc{float or string},
                   The probability governing the crossover step, i.e., the probability that if
                   exceeded crossover will occur.
+                  The \xmlNode{crossoverProb} node recognizes the following parameters:
+                    \begin{itemize}
+                      \item \xmlAttr{type}: \xmlDesc{[static, adaptive], optional},
+                        type of crossover operation to be used (e.g., static,adaptive)
+                  \end{itemize}
               \end{itemize}
 
             \item \xmlNode{mutation}: \xmlDesc{string},
-              a subnode containing the implemented mutation mechanisms.                   This
-              includes: a.    bitFlipMutation,                                  b.    swapMutation,
-              c.    scrambleMutation,                                  d.    inversionMutation, or
-              e.    randomMutator.
+              a subnode containing the implemented mutation mechanisms. You can choose one of the
+              mutation options listed below:                 \begin{itemize}                   \item
+              \textit{swapMutator} - It randomly selects two genes within an chromosome and swaps
+              their positions.                   \item \textit{scrambleMutator} - It randomly
+              selects a subset of genes within an chromosome and shuffles their positions.
+              \item \textit{inversionMutator} - It selects a contiguous subset of genes within an
+              chromosome and reverses their order.                   \item \textit{bitFlipMutator} -
+              It randomly selects genes within an chromosome and flips their values.
+              \item \textit{randomMutator} - It randomly selects a gene within an chromosome and
+              mutates the gene.                 \end{itemize}
               The \xmlNode{mutation} node recognizes the following parameters:
                 \begin{itemize}
-                  \item \xmlAttr{type}: \xmlDesc{string, required},
-                    type of mutation operation to be used (e.g., bit, swap, or scramble)
+                  \item \xmlAttr{type}: \xmlDesc{[swapMutator, scrambleMutator, inversionMutator, randomMutator], required},
+                    type of mutation operation to be used. See the list of options above.
               \end{itemize}
 
               The \xmlNode{mutation} node recognizes the following subnodes:
@@ -1203,40 +1232,70 @@ Simulated Annealing Example:
                 \item \xmlNode{locs}: \xmlDesc{comma-separated integers},
                   locations at which mutation will occur.
 
-                \item \xmlNode{mutationProb}: \xmlDesc{float},
+                \item \xmlNode{mutationProb}: \xmlDesc{float or string},
                   The probability governing the mutation step, i.e., the probability that if
                   exceeded mutation will occur.
+                  The \xmlNode{mutationProb} node recognizes the following parameters:
+                    \begin{itemize}
+                      \item \xmlAttr{type}: \xmlDesc{[static, adaptive], optional},
+                        type of mutation probability operation to be used (e.g., static, adaptive)
+                  \end{itemize}
               \end{itemize}
           \end{itemize}
 
-        \item \xmlNode{survivorSelection}: \xmlDesc{string},
-          a subnode containing the implemented survivor selection mechanisms.                   This
-          includes: a.    ageBased, or                                  b.    fitnessBased.
+        \item \xmlNode{survivorSelection}: \xmlDesc{[fitnessBased, ageBased, rankNcrowdingBased]},
+          a subnode containing the implemented survivor selection mechanisms. You can choose one of
+          the survivor selection options listed below:                   \begin{itemize}
+          \item \textit{fitnessBased} - Individuals with higher fitness scores are more likely to be
+          selected to survive and                     proceed to the next generation. It suppoort
+          only single-objective optimization problem.                     \item \textit{ageBased} -
+          Individuals are selected for survival based on their age or generation, with older
+          individuals being prioritized                     for retention. It suppoort only single-
+          objective optimization problem.                     \item \textit{rankNcrowdingBased} -
+          Individuals with low rank and crowding distance are more likely to be selected to survive
+          and                     proceed to the next generation. It suppoort only multi-objective
+          optimization problem.                   \end{itemize}
 
         \item \xmlNode{fitness}: \xmlDesc{string},
-          a subnode containing the implemented fitness functions.                   This includes:
-          \begin{itemize}                                 \item    invLinear:
-          \[fitness = -a \times obj - b \times \sum\\_{j=1}^{nConstraint} max(0,-penalty\\_j) \].
-          \item    logistic:                                  \[fitness =
-          \frac{1}{1+e^{a\times(obj-b)}}\].
-          \item           feasibleFirst:                                  \[fitness =           -obj
-          \ \ \  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{for}   \
-          \ g\\_j(x)\geq 0 \;  \forall j\]                                  and           \[fitness
-          = -obj\\_{worst} - \Sigma\\_{j=1}^{J}<g\\_j(x)>   \ \ \ \ \ \ \ \   otherwise \]
-          \end{itemize}.
+          a subnode containing the implemented fitness functions.
           The \xmlNode{fitness} node recognizes the following parameters:
             \begin{itemize}
-              \item \xmlAttr{type}: \xmlDesc{string, required},
-                [invLin, logistic, feasibleFirst]
+              \item \xmlAttr{type}: \xmlDesc{[invLinear, feasibleFirst, logistic], required},
+                You can choose one of the fitness options listed below:
+                \begin{itemize}                         \item \textit{invLinear} - It assigns
+                fitness values inversely proportional to the individual's objective function values,
+                prioritizing solutions with lower objective function values (i.e., minimization) for
+                selection and reproduction. It suppoort only single-objective optimization
+                problem.\\\\                         $fitness = -a \times obj - b \times
+                \sum_{j=1}^{nConstraint} max(0,-penalty_{j}) $\\                         where j
+                represents an index of objects                         \\
+                \item \textit{logistic} - It applies a logistic function to transform raw objective
+                function values into fitness scores.  It suppoort only single-objective optimization
+                problem.\\\\                         $fitness = \frac{1}{1+e^{a\times(obj-b)}}$\\
+                \item \textit{feasibleFirst} - It prioritizes solutions that meet constraints by
+                assigning higher fitness scores to feasible solutions,
+                encouraging the evolution of individuals that satisfy the problem's constraints.  It
+                suppoort single-and multi-objective optimization problem.\\\\
+                $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}-
+                \Sigma_{j=1}^{J}<g\_j(x)> & otherwise \\ \end{matrix}\right\}$\\
+                \end{itemize}
           \end{itemize}
 
           The \xmlNode{fitness} node recognizes the following subnodes:
           \begin{itemize}
-            \item \xmlNode{a}: \xmlDesc{float},
-              a: coefficient of objective function.
+            \item \xmlNode{a}: \xmlDesc{comma-separated floats},
+              a: The weight of objective function(s). \default{list of ones}
 
-            \item \xmlNode{b}: \xmlDesc{float},
-              b: coefficient of constraint penalty.
+            \item \xmlNode{b}: \xmlDesc{comma-separated floats},
+              b: The weight of constraint penalty. \default{list of ones}
+
+            \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
+              scale: in case of logistic fitness, this is the multiplier of the onjective(s).
+              \default{list of ones}
+
+            \item \xmlNode{shift}: \xmlDesc{comma-separated floats},
+              shift: in case of logistic fitness, this is the shift in the exponential function for
+              the onjective(s). \default{list of zeros}
           \end{itemize}
       \end{itemize}
 
@@ -1247,12 +1306,14 @@ Simulated Annealing Example:
 
       The \xmlNode{convergence} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{objective}: \xmlDesc{float},
-          provides the desired value for the convergence criterion of the objective function
-          ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design
-          variable                         at a given objective value, i.e., convergence is reached
-          when: $$ Objective = \epsilon^{obj}$$.                        \default{1e-6}, if no
-          criteria specified
+        \item \xmlNode{objective}: \xmlDesc{comma-separated floats},
+          provides the desired value or values for the convergence criterion of the objective
+          function                        ($\epsilon^{obj}$). In essence this is solving the inverse
+          problem of finding the design variable                         at a given objective value,
+          i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$
+          For multiobjective problems, a comma separated list of objective
+          values should be provided instead of a single value.
+          \default{1e-6}, if no criteria specified.
 
         \item \xmlNode{AHDp}: \xmlDesc{float},
           provides the desired value for the Average Hausdorff Distance between populations
@@ -1332,8 +1393,8 @@ Simulated Annealing Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called               ``implicitConstraint'', which returns a
+      float value which should         be less than zero when the constraint is violated.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},
@@ -1442,7 +1503,7 @@ Genetic Algorithm Example:
       </samplerInit>
 
       <GAparams>
-        <populationSize>20</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction>
           <crossover type="onePointCrossover">
@@ -1467,32 +1528,32 @@ Genetic Algorithm Example:
 
       <variable name="x1">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20</initial>
+        <initial>1,2,3,4,5,6,7,8,9,10</initial>
       </variable>
 
       <variable name="x2">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1</initial>
+        <initial>2,3,4,5,6,7,8,9,10,1</initial>
       </variable>
 
       <variable name="x3">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2</initial>
+        <initial>3,4,5,6,7,8,9,10,1,2</initial>
       </variable>
 
       <variable name="x4">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3</initial>
+        <initial>4,5,6,7,8,9,10,1,2,3</initial>
       </variable>
 
       <variable name="x5">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4</initial>
+        <initial>5,6,7,8,9,10,1,2,3,4</initial>
       </variable>
 
       <variable name="x6">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4,5</initial>
+        <initial>6,7,8,9,10,1,2,3,4,5</initial>
       </variable>
 
       <objective>ans</objective>
@@ -1502,6 +1563,53 @@ Genetic Algorithm Example:
   </Optimizers>
 \end{lstlisting}
 
+\hspace{24pt}
+Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
+\begin{lstlisting}[style=XML]
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>15</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min,min</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>10</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="twoPointsCrossover">
+            <crossoverProb>1.0</crossoverProb>
+          </crossover>
+          <mutation type="randomMutator">
+            <mutationProb>1.0</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst">
+        </fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>unifDist</distribution>
+      </variable>
+      <objective>obj1, obj2 </objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </GeneticAlgorithm>
+  </Optimizers>
+\end{lstlisting}
 
 
 \subsection{BayesianOptimizer}
@@ -1540,7 +1648,7 @@ Genetic Algorithm Example:
 
   The \xmlNode{BayesianOptimizer} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{objective}: \xmlDesc{string},
+    \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
@@ -1638,9 +1746,10 @@ Genetic Algorithm Example:
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
 
-        \item \xmlNode{type}: \xmlDesc{[min, max]},
+        \item \xmlNode{type}: \xmlDesc{comma-separated strings},
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
+          For multi-objective, this can be a list like min, max.
       \end{itemize}
 
     \item \xmlNode{Acquisition}:
@@ -1895,8 +2004,8 @@ Genetic Algorithm Example:
       name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
       point of view, this XML node must contain the name of a function defined in the
       \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
-      function must contain a method called               ``implicitConstrain'', which returns True
-      for outputs satisfying the implicit constraints and False otherwise.
+      function must contain a method called         ``implicitConstraint'', which returns True for
+      outputs satisfying the implicit constraints and False otherwise.
       The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required},

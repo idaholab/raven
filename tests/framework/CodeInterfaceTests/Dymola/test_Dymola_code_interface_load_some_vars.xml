@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
-    <name>framework/CodeInterfaceTests.DymolaTestLoadSomeVarsNoExecutable</name>
+    <name>framework/CodeInterfaceTests/Dymola.DymolaTestLoadSomeVarsNoExecutable</name>
     <author>@alfoa</author>
     <created>2017-09-16</created>
     <classesTested>CodeInterfaces.Dymola</classesTested>
