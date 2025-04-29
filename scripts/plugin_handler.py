@@ -44,7 +44,7 @@ except impErr:
 
 # globals
 ravenConfigName = '.ravenconfig.xml'
-requiredDirs = ['src', 'doc|docs', 'tests']
+requiredDirs = ['doc|docs', 'tests']
 pluginTreeFile = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugins', 'plugin_directory.xml'))
 
 def checkValidPlugin(rawLoc):
