@@ -8,22 +8,22 @@
       This post-processor identifies the points lying on the Pareto Frontier in a cost-value space with data types inverted
     </description>
   </TestInfo>
-  
+
   <Files>
     <Input name="data" type="">dataInverted.csv</Input>
   </Files>
-  
+
   <RunInfo>
     <WorkingDir>ParetoFrontier</WorkingDir>
     <Sequence>LoadPS,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
       <objective goal='max'>out2</objective>
       <objective goal='min'>out1</objective>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
 
   <Steps>
@@ -45,7 +45,7 @@
       <source>paretoPoints</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="candidates">
       <Input>var1,var2</Input>
@@ -56,5 +56,5 @@
       <Output>out1,out2</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

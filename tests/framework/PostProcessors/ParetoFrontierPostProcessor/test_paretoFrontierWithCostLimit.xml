@@ -9,22 +9,22 @@
       when cost limit is specified
     </description>
   </TestInfo>
-  
+
   <Files>
     <Input name="data" type="">data.csv</Input>
   </Files>
-  
+
   <RunInfo>
     <WorkingDir>ParetoFrontier</WorkingDir>
     <Sequence>LoadPS,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
       <objective goal='min' upperLimit='0.5'>cost</objective>
       <objective goal='max'>value</objective>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
 
   <Steps>
@@ -46,7 +46,7 @@
       <source>paretoPoints</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="candidates">
       <Input>var1,var2</Input>
@@ -57,5 +57,5 @@
       <Output>cost,value</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>
