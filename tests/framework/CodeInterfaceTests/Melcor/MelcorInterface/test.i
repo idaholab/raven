@@ -12,7 +12,7 @@ MEL_OUTPUTFILE 'OUTPUT_MELCOR.out'
 !EXTDIAGFILE 'EXTDIAG.TXT'
 !
 !*************************************************
-!'test_1'
+!                    'test_1'                    *
 !*************************************************
 !
 !
@@ -36,7 +36,7 @@ TF_ID             'P_in'           1.0
 !      size
 TF_TAB    2 !n             x             y
              1           0.0         1.0E7
-             2         100.0         10000000.515396683
+             2         100.0         $RAVEN-%PRE%:-1$
 !
 !
 !cc: 2
@@ -55,20 +55,18 @@ TF_TAB    2 !n             x             y
              2         100.0         1.
 !
 CF_INPUT   !
-CF_ID 'ZERO'       01  EQUALS   !
+CF_ID 'ZERO'       1  EQUALS   !
 CF_SAI   1.0   0.0    0.0                                 !  CFSCAL CFADCN CFVALR (INITIAL VALUE)
 CF_ARG    1 ! NARG   CHARG        ARSCAL   ARADCN
               1      EXEC-TIME    0.0      0.0
 !
-CF_INPUT   !
-CF_ID 'Tes      CF'       02  EQUALS   !
+CF_ID 'Test_CF'      2  EQUALS   !
 CF_SAI   1.0   0.0    0.0                                 !  CFSCAL CFADCN CFVALR (INITIAL VALUE)
 CF_ARG    1 ! NARG   CHARG        ARSCAL   ARADCN
               1      EXEC-TIME    2.0      1.0
 !
 !
 CVH_INPUT
-!
 !
 !                   cvname        icvnum
 CV_ID                'IN'             1
@@ -152,10 +150,10 @@ Program MELCOR
 !* Block: MEX (Exec) data ****************************
 EXEC_INPUT
 EXEC_TITLE test_1        ! Title of the calculation
-EXEC_TEND 10.0E+03                                                   !*  ! End of calculation time
+EXEC_TEND 10.0E+02                                                   !*  ! End of calculation time
 EXEC_TIME 2 !*NUMBER   TIME            DTMAX        DTMIN        DTEDT        DTPLT        DTRST          DCRST
-               1       0.00            0.1000E+00    0.10000E-06    2.50000E+03    1.00000E+01    1.00000E+03  0.10000000E+11
-               2       1.50000E+02    0.2000E+00    0.10000E-09    2.50000E+03    1.00000E+01    1.0000E+03     0.10000000E+11
+               1       0.00            0.5000E+00    0.10000E-06    2.50000E+03    1.00000E+01    1.00000E+03  0.10000000E+11
+               2       1.50000E+03     0.5000E+00    0.10000E-09    2.50000E+03    1.00000E+01    1.0000E+03     0.10000000E+11
 
 EXEC_CPULEFT 1000.                                                    ! cpu sec left at end of calculation
 EXEC_CPULIM 4000000.                                                ! Maximum number of CPU seconds allowed for this execution
