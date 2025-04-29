@@ -1,0 +1,329 @@
+%%%%%%%%%%%%%%%%%%%%%
+%%% HTPIPE INTERFACE %%%
+%%%%%%%%%%%%%%%%%%%%%
+\subsection{HTPIPE Interface}
+This section presents the main aspects of the interface between RAVEN and HTPIPE~\cite{htpipeCodeInterface},
+which is a hydrodynamic model designed to evaluate heat pipe performance. Originally developed for high-performance
+ liquid metal heat pipes, it can be adapted for other working fluids as long as their thermal transport properties are available.
+ The program accommodates multiple liquid return geometries, such as homogeneous wicks, screen-covered grooves, 
+ circular arteries, and gutters. By using HTPIPE, one can optimize heat pipe designs, determine performance limits, and 
+ analyze axial temperature and pressure profiles.
+
+In this section, the HTPIPE-specific RAVEN input adjustments and the modifications of the HTPIPE
+input file are reported. \noindent
+
+\noindent In the following sections a short explanation on how to use RAVEN coupled with HTPIPE is reported.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Sequence}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the \xmlNode{Sequence} section, the names of the steps declared in the
+\xmlNode{Steps} block should be specified.
+%
+As an example, if we called the first MultiRun ``MC\_Sample'' and the second
+MultiRun ``plotResults'' in the sequence section we should see this:
+
+\begin{lstlisting}[style=XML]
+<Sequence>MC_Sampler,plotResults</Sequence>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{batchSize and mode}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
+\xmlNode{RunInfo} block in the previous chapters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RunInfo}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+After all of these blocks are filled out, a standard example RunInfo block may
+look like the example below: \\
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  <WorkingDir>~/workingDir</WorkingDir>
+  <Sequence>MC_Sampler,plotResults</Sequence>
+  <batchSize>8</batchSize>
+</RunInfo>
+\end{lstlisting}
+In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simultaneous (parallel) instances
+of HTPIPE are going to be executed when a sampling strategy is employed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+As any other Code, in order to activate the HTPIPE interface, a \xmlNode{Code} XML node needs to be inputted, within the
+main XML node \xmlNode{Models}.
+\\The  \xmlNode{Code} XML node contains the
+information needed to execute the specific External Code.
+
+\attrsIntro
+%
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, specifies the
+  code that needs to be associated to this Model. To use HTPIPE, the \xmlAttr{subType} needs to be set to ``HTPIPE'' 
+  %
+  \nb See Section~\ref{sec:existingInterface} for a list of currently supported
+  codes.
+  %
+\end{itemize}
+
+
+\subnodesIntro
+%
+\begin{itemize}
+  \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
+  of the executable to be used.
+  %
+  \nb Either an absolute or relative path can be used.
+  \item \aliasSystemDescription{Code}
+  %
+\end{itemize}
+
+An example  is shown  below:
+
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name="MyHTPIPEcode" subType="HTPIPE">
+      <executable>path/to/HTPIPE</executable>
+    </Code>
+</Models>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Files} XML node has to contain all the files required to run the external code  (HTPIPE).
+For RAVEN coupled with HTPIPE, only one file is required (the HTPIPE input file). 
+\nb Since HTPIPE can create the input interactively, it is suggested to create a template input of the study that needs to be performed and then use the generated input in RAVEN.
+
+The  \xmlNode{Files} XML node contains the information needed to execute HTPIPE.
+
+\attrsIntro
+%
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, specifies the
+  input type used by HTPIPE. The only accepted type (and required to be inputted) is: 
+  \begin{itemize}
+    \item htpipe, \xmlDesc{required string attribute}, identifies the HTPIPE input file and the code currently accept any name for input. This \xmlAttr{type} (htpipe) is REQUIRED.
+  \end{itemize}
+\end{itemize}
+
+Example:
+
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name="waterHeatPipeInput" type="htpipe">water</Input>
+</Files>
+\end{lstlisting}
+The file mentioned in this section
+need, then, to be placed into the working directory specified
+by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node.
+
+\paragraph{Output Files Conversion}
+The HTPIPE interface is designed to read the output results from the ``plotfl'' generated by HTPIPE, which contains a formatted
+table, whose data and variables depend on the calculation type, which is defined in the input file (first raw of the input file):
+\begin{itemize}
+  \item \textit{1}: Calculation of the operational limits (e.g. boiling limits, capillarity limits, etc.)
+  \item \textit{2}: Calculation of pressure and temperature distribution along the heat pipe 
+\end{itemize}
+
+For calculation type  \textit{(1)} (Operational Limits), the following output values will be collected:
+\begin{itemize}
+  \item \textit{eetemp}: Operational Temperature (K), which is the independent variable for this calculation type (i.e. the \xmlNode{pivotParameter} in an \xmlNode{HistorySet})
+  \item \textit{heat}: Capillarity Limit (W) 
+  \item \textit{sonlim}: Sonic Limit (W)
+  \item \textit{entlim}: Entrainment Limit (W)
+  \item \textit{boillim}: Boiling Limit (W)
+   \item \textit{maxPower}: minimum among the previous operational limits (W). \nb this is generated by the interface and it is not present in the HTPIPE output.
+\end{itemize}
+
+For this calculation type (1), the ``plotfl'' has the following structure:
+  \begin{lstlisting}[basicstyle=\tiny]
+      eetemp        heat      sonlim      entlim     boillim
+     300.000     163.533    1179.676     163.533       0.000
+     301.000     168.030    1250.606     168.030       0.000
+     302.000     172.612    1325.214     172.612       0.000
+     303.000     177.278    1403.654     177.278       0.000
+\end{lstlisting}
+
+For calculation type  \textit{(2)} (Pressure and Temperature distribution), the following output values will be collected:
+\begin{itemize}
+  \item \textit{dist}: Axial coordinate on the heat pipe (cm), which is the independent variable for this calculation type (i.e. the \xmlNode{pivotParameter} in an \xmlNode{HistorySet})
+  \item \textit{pvap}: Vapor Pressure (Pa) 
+  \item \textit{pliq}: Liquid Pressure (Pa)
+  \item \textit{tempx}: Maximum Temperature (K)
+\end{itemize}
+
+For this calculation type (2), the ``plotfl'' has the following structure:
+  \begin{lstlisting}[basicstyle=\tiny]
+        dist        pvap        pliq       tempx
+       0.000  187856.527  187856.527     332.002
+       2.000  187855.229  187855.229     332.002
+       4.000  187852.635  187852.635     332.002
+       6.000  187848.743  187848.743     332.001
+\end{lstlisting}
+
+\textbf{\textit{\nb RAVEN, recognizes failed or crashed HTPIPE runs and no data will be saved from those.}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Distribution} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers} block.
+%
+For all the possible distributions and all their possible inputs please see the
+chapter about Distributions (Section~\ref{sec:distributions}).
+%
+Here we report an example of a Normal and Uniform distributions (for sampling the evaporator and condenser length, respectively):
+
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions verbosity='debug'>
+    <Normal name="evapLength">
+      <mean>10</mean>
+      <sigma>2.0</sigma>
+      <upperBound>20.0</upperBound>
+      <lowerBound>5.0</lowerBound>
+    </Normal>
+    <Uniform name="condLength">
+      <upperBound>30.0</upperBound>
+      <lowerBound>20.0</lowerBound>
+    </Uniform>
+ </Distributions>
+\end{lstlisting}
+
+\noindent
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the \xmlNode{Samplers} block we want to define the variables that are going to be sampled.
+
+\noindent The perturbation or optimization of the input of any HTPIPE sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). 
+Briefly, this approach uses
+ ``wild-cards'' (placed in the original input files) for injecting the perturbed values.
+
+\textbf{Example}:
+
+We want to do the sampling of 2 variable:
+\begin{itemize}
+  \item Condenser section length;
+  \item Evaporator section length;
+\end{itemize}
+
+\noindent We are going to sample this variable using a MonteCarlo method.
+The RAVEN input is then written as follows:
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <MonteCarlo name='MC_Sampler'>
+     <samplerInit> <limit>10</limit> </samplerInit>
+    <variable name='evapLength'>
+      <distribution>evapLength</distribution>
+    </variable>
+    <variable name='condLength'>
+      <distribution>condLength</distribution>
+    </variable>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+
+HTPIPE input file should be modified with wild-cards in the following way.
+\begin{lstlisting}[basicstyle=\tiny]
+         2               calculate q vs tee
+         3               geometry: wickless pipe    
+         5               working fluid: water     
+         5               input choice: does not apply      
+         5               input choice: does not apply      
+         3               source coupling:does not apply      
+         3               sink coupling:does not apply      
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         $RAVEN-evapLength|8.5f$         evaporator length (cm)
+         5.00000         adiabatic length (cm)
+         $RAVEN-condLength|8.5f$         condenser length (cm)                                            
+ (...) 
+\end{lstlisting}
+
+As shown above, for HTPIPE is \textbf{KEY} to specify the format of the variable (eg. ``8.5f'' for float, or ``d5'' for integer or any other formatting available).\\
+
+\noindent It can be seen that each variable is connected with a proper distribution
+defined in the \xmlNode{Distributions} block (from the previous example).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a HTPIPE interface, the \xmlNode{MultiRun} step type will most likely be
+used. But \xmlNode{SingleRun} step can also be used for plotting and data extraction purposes.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{sequence} block.
+%
+In our example,  \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='MC_Sampler' verbosity='debug'>
+\end{lstlisting}
+
+With this step, we need to import all the files needed for the simulation (only one for HTPIPE):
+\begin{itemize}
+  \item ``htpipe'' input file
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input class="Files" type="htpipe">waterHeatPipeInput</Input>
+\end{lstlisting}
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyHTPIPEcode</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='MonteCarlo'>MC_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file).
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>MC_out</Output>
+\end{lstlisting}
+
+Following is the example of two MultiRun step, which uses the MonteCarlo sampling
+method, and create a database storing the results:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input   class='Files' type='htpipe'>
+      waterHeatPipeInput
+     </Input>
+    <Model   class='Models' type='Code'>
+      MyHTPIPEcode
+    </Model>
+    <Sampler class='Samplers'  type='MonteCarlo'>
+      MC_Sampler
+    </Sampler>
+    <Output  class='Databases' type='HDF5' >
+      MC_out
+    </Output>
+    <Output  class='DataObjects' type='PointSet'>
+      MonteCarloHTPIPEPointSet
+    </Output>
+    <Output  class='DataObjects' type='HistorySet'>
+      MonteCarloHTPIPEHistorySet
+    </Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+

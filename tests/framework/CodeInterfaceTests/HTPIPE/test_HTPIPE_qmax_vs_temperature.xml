@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/HTPIPE.htpipe_qmax_vs_temperature</name>
+    <author>alfoa</author>
+    <created>2025-03-28</created>
+    <classesTested>Models.Code.HTPIPE</classesTested>
+    <description>
+       An example of using the interface with HTPIPE for the calculation type 1, which
+       allows to compute the operational limits of the heat pipes vs operational temperature
+    </description>
+ 
+  </TestInfo>
+  <RunInfo>
+    <JobName>htpipe_qmax_vs_temperature</JobName>
+    <Sequence>sample</Sequence>
+    <WorkingDir>qmaxVsTemperatureHTPIPE</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="water" type="htpipe">water_limits</Input>
+  </Files>
+
+  <Models>
+    <Code name="htpipe_code" subType="HTPIPE">
+      <executable>.</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="evapLength">
+      <lowerBound>5.</lowerBound>
+      <upperBound>20.</upperBound>
+    </Uniform>
+    <Uniform name="condLength">
+      <lowerBound>20.0</lowerBound>
+      <upperBound>30.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="evapLength">
+        <distribution>evapLength</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.1 0.9</grid>
+      </variable>
+      <variable name="condLength">
+        <distribution>condLength</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.2 0.8</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" clearRunDir="False">
+      <Input   class="Files" type="htpipe">water</Input>
+      <Model   class="Models" type="Code">htpipe_code</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output  class="DataObjects" type="HistorySet">samplesHS</Output>
+      <Output  class="OutStreams" type="Print">samplesHS</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="samplesHS">
+      <Input>evapLength,condLength</Input>
+      <Output>eetemp,heat,sonlim,entlim,boillim,maxPower</Output>
+      <options>
+        <pivotParameter>eetemp</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samplesHS">
+      <type>csv</type>
+      <source>samplesHS</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
