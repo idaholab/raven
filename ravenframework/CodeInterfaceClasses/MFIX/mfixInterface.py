@@ -236,7 +236,10 @@ class MFIX(GenericCode):
     # outputResults['avg_edge_velocity'] = allEdgeSpaceAverage[:, 1]
 
     df = pd.DataFrame(outputResults)
-    df.to_csv(os.path.join(workingDir,r'out_with_edge.csv'))
+    # df.to_csv(os.path.join(workingDir,r'out_with_edge.csv'))
+    df.to_csv(os.path.join(workingDir,r'out~MFIX_RAVEN_Temp.csv'))
+
+
     file_path = workingDir + '/dataset.pkl'
     # with open('dataset.pkl', 'wb') as f:
     with open(file_path, 'wb') as f:
@@ -262,7 +265,8 @@ class MFIX(GenericCode):
     # Then calculateEdgeVelocityProfile and compute the average edge velocity profile over bins?
     # return is (numSteps, 3) with columns: BedHeight, Average y-velocity, TimeVar
 
-    return output
+    # return output
+    # return df
 
   def checkForOutputFailure(self, output, workingDir):
     """
