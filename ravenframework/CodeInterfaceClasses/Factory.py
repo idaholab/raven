@@ -51,6 +51,7 @@ from .SIMULATE3.SimulateInterface import Simulate
 from .WorkshopExamples.ProjectileInterface import Projectile
 from .WorkshopExamples.ProjectileInterfaceNoCSV import ProjectileNoCSV
 from .WorkshopExamples.BatemanInterface import BatemanSimple
+from .MFIX.mfixInterface import MFIX
 
 factory = EntityFactory('Code', needsRunInfo=True)
 factory.registerAllSubtypes(CodeInterfaceBase)
