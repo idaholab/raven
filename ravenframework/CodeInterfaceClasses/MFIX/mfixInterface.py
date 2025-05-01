@@ -31,7 +31,8 @@ import pickle
 
 
 class MFIX(GenericCode):
-  """MFIX RAVEN interface
+  """
+    MFIX RAVEN interface
   """
 
   def __init__(self):
@@ -72,6 +73,44 @@ class MFIX(GenericCode):
     self._bins = None
     self._dataSet = xr.Dataset()
 
+    # self.raiseAnError(ValueError, f"<stoppingCriteriaFunction> named '{self.stoppingCriteriaFunction.name}' "
+    #                               f"not found in file '{self.stoppingCriteriaFunction.functionFile}'!")
+
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    super().initialize(runInfo, oriInputFiles)
+    with open(oriInputFiles[0].getAbsFile()) as mfix_inputFile: #NOTE: Rather than calling oriInputFiles[0], can we call MFiX input file?
+      lines = mfix_inputFile.readlines()
+      for line in lines:
+        if 'nodesi' in line:
+          try:
+            words = line.split()      
+            nodesi = int(words[-1])    
+          except ValueError:
+            raise IOError('The nodesi entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )  
+        if 'nodesj' in line:
+          try:
+            words = line.split()      
+            nodesj = int(words[-1])     
+          except ValueError:
+            raise IOError('The nodesj entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )     
+        if 'nodesk' in line:
+          try:
+            words = line.split()      
+            nodesk = int(words[-1])     
+          except ValueError:
+            raise IOError('The nodesk entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )  
+        
+    if runInfo['NumThreads'] == nodesi*nodesj*nodesk:    
+      pass
+    else:
+      raise IOError('The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )  
+
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present).
@@ -79,7 +118,7 @@ class MFIX(GenericCode):
       @ In, command, string, the command used to run the just ended job (in general, not used, it is the first argument returned by generateCommand)
       @ In, output, string, the Output name root without the file extension
       @ In, workingDir, string, current working dir
-      @ Out, output, string or dict, optional, 
+      @ Out, output, string or dict, optional,
       if present and string:
         in case the root of the output file gets changed in this method (and a CSV is produced);
       if present and dict:
