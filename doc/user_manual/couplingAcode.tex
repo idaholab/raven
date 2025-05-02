@@ -33,9 +33,13 @@ needs to be used. For example, if the Interface module contains the class ``NewC
   </Models>
 \end{lstlisting}
 
-If the newly-developped  Interface requires additional libraries (installable via PIP, CONDA or MAMBA), the 
+\textcolor{red}{In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.}
+
+\subsection{How to specify additional Python dependencies.}
+\label{subsec:dependencies}
+Firstly, if the newly developped  \textbf{Code Interface} requires additional libraries (installable via PIP, CONDA or MAMBA), the 
 developer can indicate such dependencies in a file ``\textbf{dependecies.xml}'' located in the same folder containing the interface.
-Such  ``\textbf{dependecies.xml}''  file has the same structure of the RAVEN or RAVEN-based Plugin  ``\textbf{dependecies.xml}'' file.
+Such  ``\textbf{dependecies.xml}''  file has the same structure of the RAVEN or RAVEN-based Plugins'  ``\textbf{dependecies.xml}'' file.
 For example, if the Interface requires the additional dependencies ``MyLibrary1'' and ``MyLibrary2'' available in ``conda-forge'', the
 ``\textbf{dependecies.xml}'' would be the following:
 \begin{lstlisting}[style=XML]
@@ -59,7 +63,7 @@ If specific versions of those libraries are required, the file would change as f
 \nb \textcolor{red}{\textbf{Those additional dependencies are not installed by default but they require to invoke RAVEN installation procedure using the ``--code-interface-deps'' command line option. For  more details, see Sections~\ref{sec:clone raven} and ~\ref{subsec:installPythonLibs}}}.
 
 
-In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.
+
 \subsection{Pre-requisites.}
 \label{subsec:prerequisites}
 In order to couple a newer application to the RAVEN code, some pre-requisites need to be satisfied.
