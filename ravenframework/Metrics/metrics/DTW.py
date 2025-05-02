@@ -30,7 +30,8 @@ from ...utils import InputData, InputTypes
 class DTW(MetricInterface):
   """
     Dynamic Time Warping Metric
-    Class for measuring similarity between two variables X and Y, i.e. two temporal sequences
+    Class for measuring similarity between two histories X and Y. Note that it is not required for these histories
+    to have the same length
   """
 
   @classmethod
@@ -56,6 +57,7 @@ class DTW(MetricInterface):
     """
     super().__init__()
     # order of DTW calculation, 0 specifices a classical DTW, and 1 specifies derivative DTW
+    # In this case the DTW distance is calculated on the gradient of the two time series
     self.order = None
     # the ID of distance function to be employed to determine the local distance evaluation of two time series
     # Available options are provided by scipy pairwise distances, i.e. cityblock, cosine, euclidean, manhattan.
@@ -78,7 +80,7 @@ class DTW(MetricInterface):
       elif child.getName() == "localDistance":
         self.localDistance = child.value
 
-  def run(self, x, y, weights=None, axis=0, returnPath=False, **kwargs):
+  def run(self, x, y, axis=0, returnPath=False, **kwargs):
     """
       This method computes DTW distance between two inputs x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
@@ -87,8 +89,7 @@ class DTW(MetricInterface):
       @ In, y, numpy.ndarray, array containing data of y, if 1D array is provided,
         the array will be reshaped via y.reshape(-1,1), shape (n_samples, ), if 2D
         array is provided, shape (n_samples, n_time_steps)
-      @ In, weights, array_like (numpy.array or list), optional, weights associated
-        with input, shape (n_samples) if axis = 0, otherwise shape (n_time_steps)
+      @ In, returnPath, bool, optional, return the DTW path
       @ In, axis, integer, optional, axis along which a metric is performed, default is 0,
         i.e. the metric will performed along the first dimension (the "rows").
         If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
@@ -121,9 +122,9 @@ class DTW(MetricInterface):
       Y = tempY
 
     if returnPath:
-       value = self.dtwDistance(X, Y, returnPath=True)
+      value = self.dtwDistance(X, Y, returnPath=True)
     else:
-       value = self.dtwDistance(X, Y)
+      value = self.dtwDistance(X, Y)
     return value
 
   def dtwDistance(self, x, y, returnPath=False):
@@ -131,50 +132,62 @@ class DTW(MetricInterface):
       This method actually calculates the distance between two histories x and y
       @ In, x, numpy.ndarray, data matrix for x
       @ In, y, numpy.ndarray, data matrix for y
-      @ Out, value, float, distance between x and y
+      @ In, returnPath, bool, optional, return the DTW path
+      @ Out, value, float, distance between x and y calculates as the sum of the local distance
+                           associated with each element of the DTW path
     """
+    # Initialize the distance matrix
     r, c = len(x[:,0]), len(y[:,0])
     D0 = np.zeros((r+1, c+1))
     D0[0, 1:] = np.inf
     D0[1:, 0] = np.inf
+    # Compute the local distance between each element of the two histories x and y.
+    # This matrix has shape (n,m) where n and m are the length of the two time series
     D1 = spatialDistance.cdist(x,y, metric=self.localDistance)
     D0[1:, 1:] = D1
 
-    # Populate the distance matrix
+    # Populate the cost matrix by iteratively creating the path from (0,0) to (n,m) that minimizes
+    # the sum of the local distances of the elements that are part of the path
     for i in range(1, r+1):
-        for j in range(1, c+1):
-            D0[i, j] += min(D0[i-1, j], D0[i, j-1], D0[i-1, j-1])
+      for j in range(1, c+1):
+        # Given a path element at coordinate (i,j), the next element is the
+        # minimum of the elements of coordinates (i-1,j), (i,j-1), (i-1,j-1)
+        D0[i, j] += min(D0[i-1, j], D0[i, j-1], D0[i-1, j-1])
+
+    value = D0[r, c]
 
     if returnPath:
-       path = self.tracePath(D0)
-       return D0[r, c], path
+      path = self.tracePath(D0)
+      return value, path
     else:
-       return D0[r, c]
+      return value
 
   def tracePath(self, D):
     """
-      This method calculate the time warping path given a local distance matrix D
+      This method calculates the indexes of the time warping path given a local distance matrix D.
+      The DTW path is a path in the distance matrix that starts at (0,0) and ends at (n,m).
+      The length P of the path is case dipendent.
       @ In, D,  numpy.ndarray (2D), local distance matrix D
-      @ Out, warpingPath, numpy.ndarray (2D), DTW path along the D matrix
+      @ Out, warpingPath, numpy.ndarray (P,2), DTW path along the D matrix where P is the length of the DTW path
     """
     i, j = D.shape
-    i=i-1
-    j=j-1
+    i = i-1
+    j = j-1
     warpingPath = []
     while i > 0 or j > 0:
-        warpingPath.append((i-1, j-1))
-        if i > 0 and j > 0:
-            min_cost = min(D[i-1, j], D[i, j-1], D[i-1, j-1])
-            if min_cost == D[i-1, j-1]:
-                i, j = i-1, j-1
-            elif min_cost == D[i-1, j]:
-                i = i-1
-            else:
-                j = j-1
-        elif i > 0:
-            i = i-1
+      warpingPath.append((i-1, j-1))
+      if i > 0 and j > 0:
+        min_cost = min(D[i-1, j], D[i, j-1], D[i-1, j-1])
+        if min_cost == D[i-1, j-1]:
+          i, j = i-1, j-1
+        elif min_cost == D[i-1, j]:
+          i = i-1
         else:
-            j = j-1
+          j = j-1
+      elif i > 0:
+        i = i-1
+      else:
+        j = j-1
     warpingPath.reverse()
 
     return np.array(warpingPath)
