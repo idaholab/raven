@@ -300,13 +300,36 @@ def getOptionalLibsCodeInterfaces(useOS=None, installMethod=None,  addOptional=F
 
   sourceFiles = []
   codeInterfaces = [x for x in os.listdir(codeInterfaceClassesFolder) if os.path.isdir(os.path.join(codeInterfaceClassesFolder,x))]
-
   for codeInterface in codeInterfaces:
     dep = os.path.join(codeInterfaceClassesFolder,codeInterface, 'dependencies.xml')
     if os.path.exists(dep):
       sourceFiles.append(dep)
   libs = _combineSources(sourceFiles, opSys, install, addOptional=addOptional, limitSources=limitSources)
   return libs
+
+def checkLibrariesCombatibilityBetweenTwoSets(libsRoot, libsAdditional):
+  """
+    Assembles dictionary of optional libraries from RAVEN supported code interfaces.
+    @ In, libsRoot, dict, dictionary of libraries (root or main) {name: version}
+    @ In, libsAdditional, dict, dictionary of libraries (additional) {name: version}
+    @ Out, None (it errors out if the libraries are not compatible (e.g. different versions of the same library))
+  """
+  libs = set(list(libsRoot.keys()))
+  alibs = set(list(libsAdditional.keys()))
+  if libs.isdisjoint(alibs):
+    # no common libraries between two sets
+    return
+  else:
+    # we need to check that the common libraries have the same version (or no version)
+    libsToCheck = list(libs.intersection(alibs))
+    for lib in libsToCheck:
+      libRootVer = libsRoot[lib]
+      libAdditionalVer = libsAdditional[lib]
+      if libRootVer is not None and libAdditionalVer is not None:
+        if libRootVer.strip() !=  libAdditionalVer.strip():
+          raise ValueError("Incompatible libraries detected between RAVEN and Plugins/Code Interfaces. "
+                           f"RAVEN version for lib '{lib}' is {libRootVer} while Plugins/Code Interfaces requires version {libAdditionalVer}!!")
+
 
 def getSkipCheckLibs(plugins=None):
   """
@@ -635,6 +658,7 @@ if __name__ == '__main__':
       codesLibs = getOptionalLibsCodeInterfaces(useOS=args.useOS,
                                     installMethod='conda',
                                     addOptional=args.addOptional)
+      checkLibrariesCombatibilityBetweenTwoSets(libs, codesLibs)
       libs.update(codesLibs)
 
     msg = '\\begin{itemize}\n'
@@ -698,6 +722,7 @@ if __name__ == '__main__':
                                       installMethod='conda',
                                       addOptional=addOptional,
                                       limitSources=limit)
+        checkLibrariesCombatibilityBetweenTwoSets(libs, codesLibs)
         libs.update(codesLibs)
       # conda can create, install, or list
       if args.action == 'create':
@@ -724,6 +749,7 @@ if __name__ == '__main__':
                                       installMethod='pip',
                                       addOptional=args.addOptional,
                                       limitSources=None)
+        checkLibrariesCombatibilityBetweenTwoSets(libs, codesLibs)
         libs.update(codesLibs)
 
       if args.action == 'install':
