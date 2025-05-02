@@ -113,9 +113,9 @@ class DTW(MetricInterface):
     Y = np.empty(tempY.shape)
 
     if self.order == 1:
-      for index in range(len(tempX)):
-        X[index] = np.gradient(tempX[index])
-        Y[index] = np.gradient(tempY[index])
+      for index in range(tempX.shape[1]):
+        X[:,index] = np.gradient(tempX[:,index])
+        Y[:,index] = np.gradient(tempY[:,index])
     else:
       X = tempX
       Y = tempY

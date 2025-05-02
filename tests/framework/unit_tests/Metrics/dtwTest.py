@@ -139,6 +139,31 @@ checkAnswerDTW('DTW analytical test: distance', DTWdistance, expectedDTWdistance
 checkArray('DTW analytical test: path (1)',  path[:,0],   expectedPath[:,0])
 checkArray('DTW analytical test: path (2)',  path[:,1],   expectedPath[:,1])
 
+## Test derivative on 1D
+DTWinstanceDer = DTW.DTW()
+DTWinstanceDer.order=1
+DTWinstanceDer.localDistance = "euclidean"
+
+DTWdistanceDer, pathDer = DTWinstanceDer.run(s1, s2, returnPath=True)
+
+expectedDTWdistanceDer = 3.485
+expectedPathDer = np.array([[0, 0],
+ [0, 1],
+ [1, 2],
+ [2, 3],
+ [2, 4],
+ [3, 5],
+ [4, 5],
+ [5, 6],
+ [5, 7]])
+
+checkAnswerDTW('DTW derivative analytical test: distance', DTWdistanceDer, expectedDTWdistanceDer)
+checkArray('DTW derivative analytical test: path (1)',  pathDer[:,0],   expectedPathDer[:,0])
+checkArray('DTW derivative analytical test: path (2)',  pathDer[:,1],   expectedPathDer[:,1])
+
+
+## Test 2D vectors ##
+
 s12d = np.array([[0, 0],
                   [0, 1],
                   [1, 2],
