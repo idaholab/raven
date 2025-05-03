@@ -1,0 +1,5 @@
+<dependencies>
+  <main>
+    <foamlib source="forge"/>
+  </main>
+</dependencies>

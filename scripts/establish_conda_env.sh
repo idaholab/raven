@@ -107,16 +107,16 @@ function install_libraries()
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset mamba`" $SET_PYTHON"
+        local PRECOMMAND=`$PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset mamba`" $SET_PYTHON"
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: ${PRECOMMAND}; fi
         ${PRECOMMAND}
-        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
+        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset forge --no-name)`
         activate_env
         local MCOMMAND=${COMMAND/#conda /mamba } #Replace conda at start with mamba
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
         ${MCOMMAND}
     else
-        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
+        local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset forge)`
 
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
         ${COMMAND}
@@ -124,13 +124,13 @@ function install_libraries()
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset pip)`
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
     # pyomo only
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset pyomo)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
     if [[ ${COMMAND} == *"pyomo-extensions"* ]]; # If pip package is created for pynumero, delete this command and add to pip dependencies
     then
@@ -142,7 +142,7 @@ function install_libraries()
     activate_env
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} pip --action install)`
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
@@ -178,29 +178,29 @@ function create_libraries()
         echo ... temporarily using Python $WORKING_PYTHON_COMMAND for installation
     fi
     if [[ $USE_MAMBA == TRUE ]]; then
-        local PRECOMMAND=`$WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset mamba`" $SET_PYTHON"
+        local PRECOMMAND=`$WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action create --subset mamba`" $SET_PYTHON"
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge pre-command: $PRECOMMAND; fi
         ${PRECOMMAND}
-        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge --no-name)`
+        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset forge --no-name)`
         activate_env
         local MCOMMAND=${COMMAND/#conda /mamba }
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${MCOMMAND}; fi
         ${MCOMMAND}
     else
-        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create --subset forge)`
+        local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action create --subset forge)`
         if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
         ${COMMAND}
     fi
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
-    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset pip)`
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
     # pyomo only
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pyomo ...; fi
-    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pyomo)`
+    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} conda --action install --subset pyomo)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pyomo command: ${COMMAND}; fi
     if [[ ${COMMAND} == *"pyomo-extensions"* ]];
     then
@@ -216,7 +216,7 @@ function create_libraries()
     activate_env
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} ${INSTALL_CODE_INTERFACE_DEPS} pip --action install)`
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
@@ -245,12 +245,12 @@ function display_usage()
 	echo '    --installation-manager'
 	echo '      Package installation manager. (CONDA, PIP). If not provided, default to CONDA'
 	echo ''
-        echo '    --mamba'
-        echo '      Use mamba instead of conda for package installation'
-        echo ''
-        echo '    --no-mamba'
-        echo '      Do not use mamba for package installation.'
-        echo ''
+    echo '    --mamba'
+    echo '      Use mamba instead of conda for package installation'
+    echo ''
+    echo '    --no-mamba'
+    echo '      Do not use mamba for package installation.'
+    echo ''
 	echo '    --proxy <proxy>'
 	echo '      Specify a proxy to be used in the form [user:passwd@]proxy.server:port.'
 	echo ''
@@ -265,7 +265,10 @@ function display_usage()
 	echo ''
 	echo '    --optional'
 	echo '      Additionally installs optional libraries used in some RAVEN workflows.  Requires --install.'
-	echo ''
+    echo ''
+    echo '    --code-interface-deps'
+    echo '      Additionally installs specific optional libraries used in some RAVEN code interfaces.  Requires --install.'
+    echo ''
 	echo '    --py3'
 	echo '    When installing, make raven_libraries use Python 3'
 	echo ''
@@ -321,6 +324,7 @@ source $RAVEN_RC_SCRIPT
 # set default operation
 ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
+INSTALL_CODE_INTERFACE_DEPS="" #--code-interface-deps if instally code interface deps, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
 INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
@@ -368,6 +372,10 @@ do
     --optional)
       echo ... Including optional libraries ...
       INSTALL_OPTIONAL="--optional $INSTALL_OPTIONAL"
+      ;;
+    --code-interface-deps)
+      echo ... Including Code Interfaces optional libraries ...
+      INSTALL_CODE_INTERFACE_DEPS="--code-interface-deps"
       ;;
     --py3)
       echo ... --py3 option detected. --pyX option DEPRECATED. Creating Python 3 libraries ...
