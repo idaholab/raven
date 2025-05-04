@@ -2066,11 +2066,11 @@ class UniformDiscrete(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
-    self.strategy = inputDict['strategy']
-    self.categoricalDist = Categorical()
-    self.categoricalDist.initializeFromDict(inputDict)
-    initialPerm = randomUtils.randomPermutation(inputDict['outcome'].tolist(),self)
-    self.pot = np.asarray(initialPerm)
+    self.strategy   = inputDict['strategy']
+    self.lowerBound = inputDict['lowerBound']
+    self.upperBound = inputDict['upperBound']
+    self.nPoints    = inputDict['nPoints']
+    self.initializeDistribution()
 
   def pdf(self,x):
     """
@@ -2119,23 +2119,16 @@ class UniformDiscrete(Distribution):
       @ In, discardedElems, np array, list of discarded elements
       @ Out, rvsValue, float, the random state
     """
-    if self.nPoints is None:
-      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
-    else:
-      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+    xArray = np.setdiff1d(self.xArray,discardedElems)
+    pdfArray = 1/xArray.size * np.ones(xArray.size)
 
-    self.xArray = np.setdiff1d(self.xArray,discardedElems)
-
-    self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
-    paramsDict['outcome'] = self.xArray
-    paramsDict['state'] = self.pdfArray
-    paramsDict['strategy'] = self.strategy
+    paramsDict['outcome'] = xArray
+    paramsDict['state'] = pdfArray
+    self.categoricalDist = Categorical()
+    self.categoricalDist.initializeFromDict(paramsDict)
+    rvsValue = self.categoricalDist.rvs()
 
-    self.tempUniformDiscrete = UniformDiscrete()
-    self.tempUniformDiscrete.initializeFromDict(paramsDict)
-
-    rvsValue = self.tempUniformDiscrete.rvs()
     return rvsValue
 
   def reset(self):
