@@ -75,6 +75,13 @@ private:
 
 typedef lognormal_distribution<double> lognormal;
 
+#ifdef __cpp_deduction_guides
+template <class RealType>
+lognormal_distribution(RealType)->lognormal_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+template <class RealType>
+lognormal_distribution(RealType,RealType)->lognormal_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+#endif
+
 template <class RealType, class Policy>
 inline const std::pair<RealType, RealType> range(const lognormal_distribution<RealType, Policy>& /*dist*/)
 { // Range of permissible values for random variable x is >0 to +infinity.
@@ -326,6 +333,15 @@ inline RealType kurtosis_excess(const lognormal_distribution<RealType, Policy>& 
       return result;
 
    return exp(4 * ss) + 2 * exp(3 * ss) + 3 * exp(2 * ss) - 6;
+}
+
+template <class RealType, class Policy>
+inline RealType entropy(const lognormal_distribution<RealType, Policy>& dist)
+{
+   using std::log;
+   RealType mu = dist.location();
+   RealType sigma = dist.scale();
+   return mu + log(constants::two_pi<RealType>()*constants::e<RealType>()*sigma*sigma)/2;
 }
 
 } // namespace math
