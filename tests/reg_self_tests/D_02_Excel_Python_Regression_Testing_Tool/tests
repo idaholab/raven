@@ -1,0 +1,9 @@
+[Tests]  
+  [./D_02_Excel_Python_Regression_Testing_Tool]
+    required_libraries='xlwings'
+	type = RavenPython
+	input = 'Excel_regression_testing.py 02_example_file_for_testing.xlsx'
+  [../]  
+[]
+
+
