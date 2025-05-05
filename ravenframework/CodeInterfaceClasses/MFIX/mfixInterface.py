@@ -109,7 +109,7 @@ class MFIX(GenericCode):
     if runInfo['NumThreads'] == nodesi*nodesj*nodesk:    
       pass
     else:
-      raise IOError('The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )  
+      raise IOError('The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file. Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )  
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
