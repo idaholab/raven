@@ -310,7 +310,7 @@ class RavenSampled(Optimizer):
     self.raiseADebug('Processing new batch results ...')
     for rlz in data:
       prefix = rlz['prefix']
-      info = self.getIndentifierFromPrefix(prefix)
+      info = self.getIdentifierFromPrefix(prefix)
       self.raiseADebug(f'... processing results of batch "{rlz["batchID"]}" prefix "{prefix}" ...')
       self.raiseADebug('... -> prefix tags:', info)
       # NOTE: previously here we checked self.stillLookingForPrefix(rlz['prefix']), but that was removed in NSGA2, so we omit that check as well.

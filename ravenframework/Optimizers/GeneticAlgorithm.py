@@ -785,12 +785,14 @@ class GeneticAlgorithm(RavenSampled):
       Used to feedback the collected runs into actionable items within the sampler.
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
       @ In, meta, dict, job information from the collected realizations
-      @ In, rlz, xr.Dataset, new batched realizations
+      @ In, rlz, xr.Dataset, new batched realizations # FIXME is it a batch or a dataset?
       @ Out, None
     """
     # FIXME XXX TODO in merging the NSGA2 with this Realization rework, the first argument of this
-    # method was changed from "info" to "meta". Since I don't know all the repurcussions, I'm not
-    # fixing that as I merge, but leaving it to fix as we work on the Realization rework.
+    #   method was changed from "info" to "meta". Since I don't know all the repurcussions, I'm not
+    #   fixing that as I merge, but leaving it to fix as we work on the Realization rework.
+    # ALSO, the second argument claims to be a xr.Dataset, but it looks like RavenSampled.localFinalizeActualSampling
+    #   is sending one realization at a time instead. Maybe it should be modified to send some kind of batch?
     # talbpw, 2025-04-25
     info['step'] = self.counter
     traj = info['traj']
@@ -824,30 +826,11 @@ class GeneticAlgorithm(RavenSampled):
 
     # 3. Survivor selection
     if self._activeTraj:
-      # FIXME XXX TODO The changes in this merge from NSGA2 were so significant, I'm leaving them
-      # here until we can go through them. Significant updates needed.
-      # talbpw, 2025-04-25
-<<<<<<< HEAD
-      # 5.2@ n-1: Survivor selection(rlz)
-      # update population container given obtained children
-      if self.counters['samples'] > 1:
-        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
-                                                                                             variables=list(self.toBeSampled),
-                                                                                             population=self.population,
-                                                                                             fitness=self.fitness,
-                                                                                             newRlz=rlz,
-                                                                                             offSpringsFitness=offSpringFitness,
-                                                                                             popObjectiveVal=self.objectiveVal)
-        self.popAge = age
-      else:
-        self.population = offSprings
-        self.fitness = offSpringFitness
-        self.objectiveVal = rlz[self._objectiveVar].data
-=======
+      ### FIXME MERGEFIX
       survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if self._isMultiObjective else  survivorSelectionProcess.singleObjSurvivorSelect
       survivorSelection(self, info, rlz, traj, population, populationFitness, objectiveVal, g)
       if self._isMultiObjective:
-        if self.counter <= 1:
+        if self.counters['samples'] <= 1:
           # offspringObjsVals for Rank and CD calculation
           fitVal = datasetToDataArray(self.fitness, self._objectiveVar).data
           offspringFitVals = fitVal.tolist()
@@ -873,7 +856,56 @@ class GeneticAlgorithm(RavenSampled):
                                    self.fitness,
                                    self.constraintsV)
         self._resolveNewGeneration(traj, rlz, info)
->>>>>>> devel
+      # FIXME XXX TODO The changes in this merge from NSGA2 were so significant, I'm leaving them
+      # here until we can go through them. Significant updates needed.
+      # talbpw, 2025-04-25
+# <<<<<<< HEAD
+#       # 5.2@ n-1: Survivor selection(rlz)
+#       # update population container given obtained children
+#       if self.counters['samples'] > 1:
+#         self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
+#                                                                                              variables=list(self.toBeSampled),
+#                                                                                              population=self.population,
+#                                                                                              fitness=self.fitness,
+#                                                                                              newRlz=rlz,
+#                                                                                              offSpringsFitness=offSpringFitness,
+#                                                                                              popObjectiveVal=self.objectiveVal)
+#         self.popAge = age
+#       else:
+#         self.population = offSprings
+#         self.fitness = offSpringFitness
+#         self.objectiveVal = rlz[self._objectiveVar].data
+# =======
+#       survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if self._isMultiObjective else  survivorSelectionProcess.singleObjSurvivorSelect
+#       survivorSelection(self, info, rlz, traj, population, populationFitness, objectiveVal, g)
+#       if self._isMultiObjective:
+#         if self.counter <= 1:
+#           # offspringObjsVals for Rank and CD calculation
+#           fitVal = datasetToDataArray(self.fitness, self._objectiveVar).data
+#           offspringFitVals = fitVal.tolist()
+#           # 4. Compute the rank of offsprings
+#           offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals), isFitness=True)
+#           self.rank = xr.DataArray(offSpringRank,
+#                                        dims=['rank'],
+#                                        coords={'rank': np.arange(np.shape(offSpringRank)[0])})
+#           # 5. Compute the crowding distance of offsprings
+#           offSpringCD = frontUtils.crowdingDistance(rank=offSpringRank,
+#                                                               popSize=len(offSpringRank),
+#                                                               fitness=np.array(offspringFitVals))
+#           self.crowdingDistance = xr.DataArray(offSpringCD,
+#                                                dims=['CrowdingDistance'],
+#                                                coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})
+#           self.objectiveVal = []
+#           for i in range(len(self._objectiveVar)):
+#             self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
+#         self._collectOptPointMulti(self.population,
+#                                    self.rank,
+#                                    self.crowdingDistance,
+#                                    self.objectiveVal,
+#                                    self.fitness,
+#                                    self.constraintsV)
+#         self._resolveNewGeneration(traj, rlz, info)
+# >>>>>>> devel
 
 
       # 6. Parent selection from population
