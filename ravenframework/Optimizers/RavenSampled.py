@@ -307,37 +307,18 @@ class RavenSampled(Optimizer):
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     # # testing suggests no big deal on smaller problem
-    ### FIXME XXX TODO changes are too extensive to quickly check during the merge of NSGA2.
-    # Leaving for a more thorough check later.
-    # talbpw, 2025-04-25
-<<<<<<< HEAD
     self.raiseADebug('Processing new batch results ...')
     for rlz in data:
       prefix = rlz['prefix']
-      if not self.stillLookingForPrefix(prefix):
-        # should we be skipping all of them if any aren't being looked for?
-        # This usually (only?) happens if an opt is rejected and associated runs are cancelled
-        # TODO turn into stillLookingForBatch?
-        continue
-      info = self.getIdentifierFromPrefix(prefix)
+      info = self.getIndentifierFromPrefix(prefix)
       self.raiseADebug(f'... processing results of batch "{rlz["batchID"]}" prefix "{prefix}" ...')
       self.raiseADebug('... -> prefix tags:', info)
-      # the sign of the objective function is flipped in case we do maximization
-      # so get the correct-signed value into the realization
-      if self._minMax == 'max':
-        rlz[self._objectiveVar] *= -1
+      # NOTE: previously here we checked self.stillLookingForPrefix(rlz['prefix']), but that was removed in NSGA2, so we omit that check as well.
+      for objVar in self._objectiveVar:
+        rlz[objVar] *= self._objMult[objVar]
+      # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
       rlz = self.normalizeData(rlz)
       self._useRealization(info, rlz)
-=======
-    # the sign of the objective function is flipped in case we do maximization
-    # so get the correct-signed value into the realization
-
-    for objVar in self._objectiveVar:
-      rlz[objVar] *= self._objMult[objVar]
-    # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
-    rlz = self.normalizeData(rlz)
-    self._useRealization(info, rlz)
->>>>>>> devel
 
   def finalizeSampler(self, failedRuns):
     """
