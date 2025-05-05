@@ -26,7 +26,6 @@ from .Dymola.DymolaInterface import Dymola
 from .MAAP5.MAAP5Interface import MAAP5
 from .MAMMOTH.MAMMOTHInterface import MAMMOTH
 from .MELCOR.melcorCombinedInterface import Melcor
-from .MELCOR.melcorInterface import MelcorApp
 from .MooseBasedApp.BisonAndMeshInterface import BisonAndMesh
 from .MooseBasedApp.CubitInterface import Cubit
 from .MooseBasedApp.CubitMooseInterface import CubitMoose
@@ -48,6 +47,7 @@ from .SERPENT.SerpentInterface import SERPENT
 from .SIMULATE3.SimulateInterface import Simulate
 from .Saphire.SaphireInterface import Saphire
 from .SIMULATE3.SimulateInterface import Simulate
+from .HTPIPE.HTPIPEInterface import HTPIPE
 from .WorkshopExamples.ProjectileInterface import Projectile
 from .WorkshopExamples.ProjectileInterfaceNoCSV import ProjectileNoCSV
 from .WorkshopExamples.BatemanInterface import BatemanSimple

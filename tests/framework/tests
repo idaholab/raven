@@ -160,7 +160,7 @@
  [../]
 
  [./test_xml_differ]
-  type = 'RavenPython'
+  type = 'Unittest'
   input = 'TestDiffer/TestXMLDiffer.py'
  [../]
 

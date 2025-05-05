@@ -15,6 +15,7 @@
     <WorkingDir>HAVOK</WorkingDir>
     <Sequence>
              readIn,
+             make_uniform,
              DMDTrain,
              pickleRom,
              stats,
@@ -70,6 +71,13 @@
       <structured>False</structured>
       <lstsq>True</lstsq>
     </ROM>
+    <PostProcessor name="resample_uniform" subType="HistorySetSampling">
+      <samplingType>uniform</samplingType>
+      <numberOfSamples>13</numberOfSamples>
+      <pivotParameter>t</pivotParameter>
+      <interpolation>cubic</interpolation>
+    </PostProcessor>
+
   </Models>
 
   <Steps>
@@ -77,8 +85,14 @@
       <Input class="Files" type="">rawDataFile</Input>
       <Output class="DataObjects" type="HistorySet">rawData</Output>
     </IOStep>
+    <PostProcess name="make_uniform">
+      <Input   class="DataObjects"  type="HistorySet">rawData</Input>
+      <Model   class="Models"       type="PostProcessor">resample_uniform</Model>
+      <Output  class="DataObjects"  type="HistorySet">rawDataUniform</Output>
+      <Output  class="OutStreams"   type="Print">outputUniformData</Output>
+    </PostProcess>
     <RomTrainer name="DMDTrain">
-      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Input class="DataObjects" type="HistorySet">rawDataUniform</Input>
       <Output class="Models" type="ROM">DMDrom</Output>
     </RomTrainer>
     <IOStep name="pickleRom">
@@ -108,6 +122,10 @@
       <type>csv</type>
       <source>synDataDMD</source>
     </Print>
+    <Print name="outputUniformData" dir="outputHAVOKDMD">
+      <type>csv</type>
+      <source>rawDataUniform</source>
+    </Print>
     <Print name="ROMCoefficientsXML">
       <type>csv</type>
       <source>rom_stats</source>
@@ -126,6 +144,13 @@
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="rawDataUniform">
+      <Input>enrichment,burnup</Input>
+      <Output>decay_heat,decay_heat_pu</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
     <HistorySet name="synDataDMD">
       <Input>enrichment,burnup</Input>
       <Output>decay_heat,decay_heat_pu</Output>
@@ -135,6 +160,5 @@
     </HistorySet>
     <DataSet name="rom_stats"/>
   </DataObjects>
-  
 
 </Simulation>

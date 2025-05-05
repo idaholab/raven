@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Generic.genericInterfaceStoppingFunction</name>
+    <author>alfoa</author>
+    <created>2025-04-11</created>
+    <classesTested>Models.Code.GenericCode</classesTested>
+    <description>
+       An example of using the the Model Code of type GenericCode to exercise 
+       the option to stop the simulation if a stopping criteria defined by an
+       external function ``genericStopCriteria'' commands to halt the simulation.
+       In this example, the criteria is to stop the simulation
+       if the ``poly'' variable is above 0.20.
+       The test exports only the variable ``StoppingReason'' that shows the reason why
+       the simulations stop (we expect the reason to be ``StoppingCondtion'' for 3 out of 4 samples)
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <JobName>GenericInterfaceStoppingFunction</JobName>
+    <Sequence>sample</Sequence>
+    <WorkingDir>GenericInterfaceStoppingFunction</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="gen.one" type="">gen.one</Input>
+    <Input name="gen.two" type="">gen.two</Input>
+  </Files>
+
+  <Models>
+    <Code name="poly" subType="GenericCode">
+      <executable>GenericInterfaceStoppingFunction/poly_inp_io.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".one" type="input"/>
+      <fileargs arg="aux" extension=".two" type="input"/>
+      <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
+      <outputFile>fixed_output_case.csv</outputFile>
+      <onlineStopCriteriaTimeInterval>0.1</onlineStopCriteriaTimeInterval>
+      <!-- link to function defined in <Functions> XML node -->
+      <StoppingFunction class="Functions" type="External">stoppingCriteria</StoppingFunction>
+      
+    </Code>
+  </Models>
+  
+  <Functions>
+      <External file="genericStopCriteria.py" name="stoppingCriteria">
+          <variables>poly</variables>
+      </External>
+  </Functions>
+  
+  <Distributions>
+    <Uniform name="xd">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+    <Uniform name="yd">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>2.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="x">
+        <distribution>xd</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
+      <variable name="y">
+        <distribution>yd</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.3 0.7</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" clearRunDir="False">
+      <Input class="Files" type="">gen.one</Input>
+      <Input class="Files" type="">gen.two</Input>
+      <Model class="Models" type="Code">poly</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samples">
+      <Input>y,x</Input>
+      <Output>StoppingReason</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

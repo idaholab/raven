@@ -68,17 +68,20 @@ class OrderedCSVDiffer:
       print('abs check:', self.__check_absolute_values)
       print('zero thr :', self.__zero_threshold)
 
-  def finalize_message(self, same, msg, filename):
+  def finalize_message(self, same, msg, test_filename, gold_filename):
     """
       Compiles useful messages to print, prepending with file paths.
       @ In, same, bool, True if files are the same
       @ In, msg, list(str), messages that explain differences
-      @ In, filename, str, test filename/path
+      @ In, test_filename, str, test filename/path
+      @ In, gold_filename, str, gold filename/path
       @ Out, None
     """
     if not same:
       self.__same = False
-      self.__message += '\nDIFF in {}: \n  {}'.format(filename, '\n  '.join(msg))
+      self.__message += '\nDIFF in {} and\n{}: \n  {}'.format(test_filename,
+                                                              gold_filename,
+                                                              '\n  '.join(msg))
 
   def matches(self, a_obj, b_obj, is_number, tol):
     """
@@ -93,6 +96,8 @@ class OrderedCSVDiffer:
     if not is_number:
       return a_obj == b_obj, 0
     if np.isnan(a_obj) and np.isnan(b_obj):
+      return True, 0
+    if np.isinf(a_obj) and np.isinf(b_obj) and a_obj==b_obj:
       return True, 0
     if self.__ignore_sign:
       a_obj = abs(a_obj)
@@ -143,7 +148,7 @@ class OrderedCSVDiffer:
         same = False
       # if either file did not exist, clean up and go to next outfile
       if not same:
-        self.finalize_message(same, msg, test_filename)
+        self.finalize_message(same, msg, test_filename, gold_filename)
         continue
       # at this point, we've loaded both files (even if they're empty), so compare them.
       ## first, cover the case when both files are empty.
@@ -157,14 +162,14 @@ class OrderedCSVDiffer:
       if len(diff_columns) > 0:
         same = False
         msg.append('Columns are not the same! Different: {}'.format(', '.join(diff_columns)))
-        self.finalize_message(same, msg, test_filename)
+        self.finalize_message(same, msg, test_filename, gold_filename)
         continue
       ## check index length
       if len(gold_rows) != len(test_rows):
         same = False
         msg.append('Different number of entires in Gold ({}) versus Test ({})!'
                    .format(len(gold_rows), len(test_rows)))
-        self.finalize_message(same, msg, test_filename)
+        self.finalize_message(same, msg, test_filename, gold_filename)
         continue
       ## at this point both CSVs have the same shape, with the same header contents.
       ## figure out column indexs
@@ -179,6 +184,12 @@ class OrderedCSVDiffer:
       for idx in range(1, len(gold_rows)):
         gold_row = gold_rows[idx]
         test_row = test_rows[idx]
+        if len(gold_row) != len(test_row):
+          same = False
+          msg.append("Different row lengths"+
+                     f" {len(gold_row)} != {len(test_row)} "+
+                     f" in {gold_row} and {test_row}")
+          continue
         for column in range(len(gold_row)):
           gold_value = to_float(gold_row[column])
           test_value = to_float(test_row[test_indexes[column]])
@@ -201,7 +212,7 @@ class OrderedCSVDiffer:
         msg.append('| Difference | statistics:')
         msg.append('  MEAN    diff.: {:1.9e}'.format(sum(diffs)/float(len(diffs))))
         msg.append('  LARGEST diff.: {:1.9e}'.format(max(diffs)))
-      self.finalize_message(same, msg, test_filename)
+      self.finalize_message(same, msg, test_filename, gold_filename)
     return self.__same, self.__message
 
 

@@ -1,0 +1,17 @@
+         2               calculate q vs tee
+         3               geometry: wickless pipe    
+         5               working fluid: water     
+         5               input choice: does not apply      
+         5               input choice: does not apply      
+         3               source coupling:does not apply      
+         3               sink coupling:does not apply      
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         0.00000         default value should be zero                                     
+         $RAVEN-evapLength|8.5f$         evaporator length (cm)
+         5.00000         adiabatic length (cm)
+         $RAVEN-condLength|8.5f$         condenser length (cm)                                            
+         
+         (...)           The remains of the input file is not reported for this test                               
