@@ -387,8 +387,8 @@ class RFE(FeatureSelectionBase):
           outputSpace = self.subGroups[g]
           self.raiseAMessage("Sub-groupping with targets: {}".format(",".join(outputSpace)))
         # apply RFE
-        supportParallel_, indexToKeepParallel = self._rfe.original_function(self.estimator,
-                                                                            X, y, g, outputSpace, supportDataRFE)
+        supportParallel_, indexToKeepParallel = self._rfe(self.estimator,
+                                                          X, y, g, outputSpace, supportDataRFE)
 
         if nGroups > 1:
           # store candidates in case of sub-groupping
@@ -500,8 +500,8 @@ class RFE(FeatureSelectionBase):
           #Looping over all possible combinations: from initialNumbOfFeatures choose k
           for it, combo in enumerate(itertools.combinations(featuresForRanking,k)):
             # train and get score
-            score, survivors, _ = self._scoring.original_function(copy.deepcopy(self.estimator),
-                                                                  X, y, combo,supportData)
+            score, survivors, _ = self._scoring(copy.deepcopy(self.estimator),
+                                                X, y, combo,supportData)
             updateBestScore(it, k, score, combo, survivors)
       idxx = np.argmin(scoreCollection)
       support_ = copy.copy(originalSupport)
