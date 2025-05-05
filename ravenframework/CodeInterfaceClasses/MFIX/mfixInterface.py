@@ -85,14 +85,14 @@ class MFIX(GenericCode):
       for line in lines:
         if 'nodesi' in line:
           try:
-            words = line.split()      
-            nodesi = int(words[-1])    
+            words = line.split()
+            nodesi = int(words[-1])
           except ValueError:
-            raise IOError('The nodesi entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )  
+            raise IOError('The nodesi entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
         if 'nodesj' in line:
           try:
-            words = line.split()      
-            nodesj = int(words[-1])     
+            words = line.split()
+            nodesj = int(words[-1])
           except ValueError:
             raise IOError('The nodesj entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )     
         if 'nodesk' in line:
