@@ -39,12 +39,9 @@ class Parallel(object):
     i.e. :
     - if ray is available and needs to be used,
       the decorated function (or class) will need to be called as following:
-      functionName.remote(*args, **kwargs)
-    - if ray is available and direct call to the function is needed,
-      the original function (or class) will need to be called as following:
-      functionName.original_function(*args, **kwargs)
-    - if ray is not available,
-      the original function (or class) will need to be called as following:
+      functionName.ray_function.remote(*args, **kwargs)
+    - if a direct call to the function is needed,
+      the original function (or class) can still be called as usual:
       functionName(*args, **kwargs)
   """
   def __init__(self):
@@ -61,15 +58,11 @@ class Parallel(object):
       @ In, func, FunctionType or Class, the function or class to decorate
       @ Out, decorated, FunctionType, or Class, the decorated function or class
     """
-    if self.decorator is None:
-      # Return the function decorated with a wrapper
-      # this is basically not decarate but we keep the same
-      # approach for accessing to the original underlying function
-      # in case of multi-threading
-      decorated = Object()
-    else:
+    if self.decorator is not None:
       # decorate the function
-      decorated = self.decorator(func)
-    decorated.__dict__['original_function'] = func
-    return decorated
+      func.__dict__['ray_function'] = self.decorator(func)
+
+    func.__dict__['parallel_function'] = True
+
+    return func
 
