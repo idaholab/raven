@@ -750,7 +750,7 @@ class JobHandler(BaseType):
 
       elif self._parallelLib == ParallelLibEnum.ray:
         internalJob = Runners.factory.returnInstance('RayRunner', arguments,
-                                                     functionToRun.remote,
+                                                     functionToRun.ray_function.remote,
                                                      identifier=identifier,
                                                      metadata=metadata,
                                                      uniqueHandler=uniqueHandler,

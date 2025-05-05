@@ -22,6 +22,7 @@ from ..utils.utils import Object
 #Internal Modules End-----------------------------------------------------------
 
 #External Modules---------------------------------------------------------------
+import functools
 # for internal parallel
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 _remote = None
@@ -66,10 +67,13 @@ class Parallel(object):
       # this is basically not decarate but we keep the same
       # approach for accessing to the original underlying function
       # in case of multi-threading
-      decorated = Object()
+      decorated = func
     else:
       # decorate the function
-      decorated = self.decorator(func)
+      decorated = func
+      decorated.__dict__['ray_function'] = self.decorator(func)
+      functools.update_wrapper(decorated.ray_function, func)
     decorated.__dict__['original_function'] = func
+
     return decorated
 
