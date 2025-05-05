@@ -94,15 +94,15 @@ class MFIX(GenericCode):
             words = line.split()
             nodesj = int(words[-1])
           except ValueError:
-            raise IOError('The nodesj entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )     
+            raise IOError('The nodesj entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
         if 'nodesk' in line:
           try:
-            words = line.split()      
-            nodesk = int(words[-1])     
+            words = line.split()
+            nodesk = int(words[-1])
           except ValueError:
-            raise IOError('The nodesk entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )  
-        
-    if runInfo['NumThreads'] == nodesi*nodesj*nodesk:    
+            raise IOError('The nodesk entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
+
+    if runInfo['NumThreads'] == nodesi*nodesj*nodesk:
       pass
     else:
       raise IOError('The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file. Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )  
