@@ -25,10 +25,6 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from ravenframework.CodeInterfaceClasses.Generic.GenericCodeInterface import GenericCode
 import pickle
-# import matplotlib.pyplot as plt
-# import time
-# from sklearn import preprocessing as pp
-
 
 class MFIX(GenericCode):
   """
@@ -163,7 +159,7 @@ class MFIX(GenericCode):
         print('Skipping %s because %s does not exist' %(filename, cellFile))
 
       try:
-        partBase = pv.read(filename)  # reading the particle file
+        partBase = pv.read(filename)  # reading the particle files
       except:
         print('Skipping %s because %s does not exist' %('The Code', filename))
 
