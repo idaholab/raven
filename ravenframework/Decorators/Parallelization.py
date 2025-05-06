@@ -22,7 +22,6 @@ from ..utils.utils import Object
 #Internal Modules End-----------------------------------------------------------
 
 #External Modules---------------------------------------------------------------
-import functools
 # for internal parallel
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 _remote = None
@@ -62,7 +61,6 @@ class Parallel(object):
     if self.decorator is not None:
       # decorate the function
       func.__dict__['ray_function'] = self.decorator(func)
-      functools.update_wrapper(func.ray_function, func)
 
     func.__dict__['parallel_function'] = True
 
