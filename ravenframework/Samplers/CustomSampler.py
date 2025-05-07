@@ -25,6 +25,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import copy
 import numpy as np
 from collections import namedtuple
+from collections.abc import Iterable
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
@@ -181,7 +182,9 @@ class CustomSampler(Sampler):
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
       headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
-      data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float64, delimiter=',', skiprows=1, ndmin=2)
+      #data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float64, delimiter=',', skiprows=1, ndmin=2)
+      data = np.genfromtxt(self.assemblerDict['Source'][0][3], delimiter=',',dtype=None, encoding=None, names=True, ndmin=2)
+      data = np.array(data.tolist())
       lenRlz = len(data)
       csvFile.close()
       for var in self.toBeSampled:
@@ -190,22 +193,28 @@ class CustomSampler(Sampler):
           sourceName = self.nameInSource[subVar]
           if sourceName not in headers:
             self.raiseAnError(IOError, f"variable {sourceName} not found in the file {csvFile.getFilename()}")
-          self.pointsToSample[subVar] = data[:,headers.index(sourceName)]
+          #self.pointsToSample[subVar] = data[:,headers.index(sourceName)]
+          self.pointsToSample[subVar] = data[:,0,headers.index(sourceName)]
           subVarPb = 'ProbabilityWeight-'
           if subVarPb+sourceName in headers:
-            self.infoFromCustom[subVarPb+subVar] = data[:, headers.index(subVarPb+sourceName)]
+            #self.infoFromCustom[subVarPb+subVar] = data[:, headers.index(subVarPb+sourceName)]
+            self.infoFromCustom[subVarPb+subVar] = data[:,0,headers.index(subVarPb+sourceName)]
           else:
             self.infoFromCustom[subVarPb+subVar] = np.ones(lenRlz)
       if 'PointProbability' in headers:
-        self.infoFromCustom['PointProbability'] = data[:, headers.index('PointProbability')]
+        self.infoFromCustom['PointProbability'] = data[:, 0,headers.index('PointProbability')]
       else:
         self.infoFromCustom['PointProbability'] = np.ones(lenRlz)
       if 'ProbabilityWeight' in headers:
-        self.infoFromCustom['ProbabilityWeight'] = data[:, headers.index('ProbabilityWeight')]
+        self.infoFromCustom['ProbabilityWeight'] = data[:, 0,headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
-
-      self.limit = len(utils.first(self.pointsToSample.values()))
+      
+      temp = utils.first(self.pointsToSample.values())
+      if isinstance(temp, Iterable) and not isinstance(temp,(str,bytes)):
+        self.limit = len(temp)
+      else:
+        self.limit = 1 ## prevent non iterable cases
     else:
       self.readingFrom = 'DataObject'
       dataObj = self.assemblerDict['Source'][0][3]
