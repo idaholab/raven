@@ -1,6 +1,6 @@
 #!/bin/bash
 # file_path=/projects/MFIX/Run_newVarPerturb/run_4varPerb_constTemp_CGP3_RAVEN-InterfaceTest/MFiX_Sampling_Submission_Postprocess/Run/$2/MFIX_RAVEN_Temp.mfx
-file_path=/home/kimj5/projects/bitterroot/raven/tests/framework/CodeInterfaceTests/MFiX/MFiX_Sampling_Submission_Postprocess/Run/$2/MFIX_RAVEN_Temp.mfx
+file_path=$RAVEN_FRAMEWORK_DIR/../tests/framework/CodeInterfaceTests/MFiX/MFiX_Sampling_Submission_Postprocess/Run/$2/MFIX_RAVEN_Temp.mfx
 
 module load openmpi
 module load mfix
