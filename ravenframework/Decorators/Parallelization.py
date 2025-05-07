@@ -42,7 +42,7 @@ class Parallel(object):
       the decorated function (or class) will need to be called as following:
       functionName.ray_function.remote(*args, **kwargs)
     - if a direct call to the function is needed,
-      the original function (or class) will need to be called as following:
+      the original function (or class) can still be called as usual:
       functionName(*args, **kwargs)
   """
   def __init__(self):
@@ -62,7 +62,6 @@ class Parallel(object):
     if self.decorator is not None:
       # decorate the function
       func.__dict__['ray_function'] = self.decorator(func)
-      functools.update_wrapper(func.ray_function, func)
 
     func.__dict__['parallel_function'] = True
 
