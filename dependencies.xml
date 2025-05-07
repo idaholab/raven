@@ -41,7 +41,7 @@ Note all install methods after "main" take
     <numpy>1.26</numpy>
     <scipy>1.12</scipy>
     <scikit-learn>1.1</scikit-learn>
-    <pyvista>0.4</pyvista>
+    <pyvista source="pip" optional='True'>0.4</pyvista>
     <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray/>
