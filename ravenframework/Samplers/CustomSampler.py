@@ -209,7 +209,7 @@ class CustomSampler(Sampler):
         self.infoFromCustom['ProbabilityWeight'] = data[:, 0,headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
-      
+
       temp = utils.first(self.pointsToSample.values())
       if isinstance(temp, Iterable) and not isinstance(temp,(str,bytes)):
         self.limit = len(temp)
