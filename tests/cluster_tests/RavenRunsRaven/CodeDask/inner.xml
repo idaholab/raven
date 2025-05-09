@@ -5,7 +5,7 @@
     <WorkingDir>Inner</WorkingDir>
     <Sequence>sample, aggregate, print</Sequence>
     <parallelMethod>dask</parallelMethod>
-    <batchSize>4</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Steps>
