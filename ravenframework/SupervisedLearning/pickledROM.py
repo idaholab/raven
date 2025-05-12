@@ -170,3 +170,5 @@ class pickledROM(SupervisedLearning):
       @ In, targetVals, np.ndarray, target values
     """
     self.raiseAnError(RuntimeError, 'PickledROM has not been loaded from file yet!  An IO step is required to perform this action.')
+
+pickledROM.getInputSpecification()
