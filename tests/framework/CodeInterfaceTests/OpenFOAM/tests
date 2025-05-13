@@ -8,6 +8,7 @@
    rel_err = 0.0001
    max_time = 100
    test_interface_only = True
+   required_libraries='pyvista'
  [../]
 
  [./allVariablesAndCentroids]
@@ -19,6 +20,7 @@
    rel_err = 0.0001
    max_time = 100
    test_interface_only = True
+   required_libraries='pyvista'
  [../]
 
 []
