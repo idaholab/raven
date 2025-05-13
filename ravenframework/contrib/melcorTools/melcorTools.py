@@ -1,8 +1,8 @@
 """
-  DISCLAIMER: 
+  DISCLAIMER:
     THIS MODULE IS AN EXTERNAL MODULE NOT MAINTAINED BY RAVEN TEAM.
     ORIGINAL MODULE AVAILABLE AT: https://github.com/mattdon/MELCOR_pyPlot
-  
+
   MELCOR FORMAT SUPPORT MODULE
   Created on March 28, 2017
   Last update on October 14, 2022
