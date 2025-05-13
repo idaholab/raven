@@ -1,5 +1,6 @@
 <dependencies>
   <main>
-    <foamlib source="forge"/>
+    <pyvista source="pip"/>
+    <binaryornot source="pip">
   </main>
 </dependencies>

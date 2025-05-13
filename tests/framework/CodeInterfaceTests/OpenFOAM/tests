@@ -1,0 +1,24 @@
+[Tests]
+ 
+ [./basic]
+   type = 'RavenFramework'
+   input = 'test_OpenFOAM_sampling_basic.xml'
+   csv = 'basic/samplesHS_0.csv basic/samplesHS_3.csv'
+   text = 'basic/sample/4/twoSimpleRotors/constant/thermophysicalProperties' 
+   rel_err = 0.0001
+   max_time = 100
+   test_interface_only = True
+ [../]
+
+ [./allVariablesAndCentroids]
+   type = 'RavenFramework'
+   input = 'test_OpenFOAM_sampling_all_vars_and_centroids.xml'
+   csv = 'all_variables_and_centroids/samplesHS_0.csv all_variables_and_centroids/samplesHS_3.csv'
+   output =  'all_variables_and_centroids/sample/1/centroids.csv all_variables_and_centroids/sample/2/centroids.csv all_variables_and_centroids/sample/3/centroids.csv all_variables_and_centroids/sample/4/centroids.csv'
+   text = 'all_variables_and_centroids/sample/1/twoSimpleRotors/constant/thermophysicalProperties' 
+   rel_err = 0.0001
+   max_time = 100
+   test_interface_only = True
+ [../]
+
+[]

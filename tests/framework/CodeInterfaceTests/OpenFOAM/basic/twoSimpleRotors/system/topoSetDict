@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    {
+        name    c0;
+        type    cellSet;
+        action  new;
+        source  regionsToCell;
+        insidePoints ((0.001 0.001 0.001));
+    }
+
+    {
+        name    c1;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        set     c0;
+    }
+
+    {
+        name    c1;
+        type    cellSet;
+        action  invert;
+    }
+
+    {
+        name    c2;
+        type    cellSet;
+        action  new;
+        source  regionsToCell;
+        insidePoints ((0.0116 0.00151 0.001));//((0.0076 0.00151 0.001));
+        set     c1;
+    }
+
+    {
+        name    c1;
+        type    cellSet;
+        action  subtract;
+        source  cellToCell;
+        set     c2;
+    }
+
+    // Select box to remove from region 1 and 2
+
+    {
+        name    box;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        set     c1;
+    }
+
+    {
+        name    box;
+        type    cellSet;
+        action  add;
+        source  cellToCell;
+        set     c2;
+    }
+
+    {
+        name    box;
+        type    cellSet;
+        action  subset;
+        source  boxToCell;
+        boxes
+        (
+            (0.0025 0.0045 -100)(0.0075 0.0055 100)
+            //(0.0085 0.0025 -100)(0.0095 0.0075 100)
+            (0.0125 0.0025 -100)(0.0135 0.0075 100)
+        );
+    }
+
+    {
+        name    box;
+        type    cellSet;
+        action  invert;
+    }
+);
+
+// ************************************************************************* //
