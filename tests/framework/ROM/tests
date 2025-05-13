@@ -31,4 +31,9 @@
     csv = 'TimeDepSKL/innerHS_0.csv TimeDepSKL/innerHS_1.csv TimeDepSKL/innerHS_2.csv'
   [../]
 
+  [./kan]
+     type = 'RavenFramework'
+     input = 'kan2.xml'
+     csv = 'KAN2/out_resampled.csv'
+  [../]
 []
