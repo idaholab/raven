@@ -114,7 +114,6 @@ This project is supported by [Idaho National Laboratory](https://www.inl.gov/).
 
 [Unsupported Open Source Software](https://github.com/IdahoLabCuttingBoard)
 
-
 ### License
 
 Files in crow/contrib, src/contrib and framework/contrib are third party libraries that are not part of Raven and are provided here for covenience. These are under their own, seperate licensing which is described in those directories.
