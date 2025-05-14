@@ -12,9 +12,10 @@
        is a different concept since several inputs can be provided
        and consequentially the user must provide the folder that contains the standard
        subfolders used by openFOAM (i.e. 0 (or 0.orig), constant, system). The provided folder
-       here MUST contain the ``Allrun'' bash script used to pre-process and run the case, which
+       here MUST contain the ``Allrun'' bash script used to pre-process and run the case.
+       In addition, the folder must contain the ".foam" case file (empty file), which
        is the INPUT FILE that will be provided to RAVEN.
-       The \\xmlNode{executable} MUST be set to the ``Allrun'' script.
+       The \\xmlNode{executable} MUST be set to the ``Allrun'' script (or any other bash script to run OpenFOAM).
        The \\xmlNode{preexec} can be used to run a command or script to set up the enviroment
        for the correct execution of OpenFOAM (e.g. set up the bash, enviroment variables, etc.).
        In this test, we sample 2 variables: 1) pressure, the pressure field (See file ``p'' in ``0.orig''
@@ -23,7 +24,7 @@
  
   </TestInfo>
   <RunInfo>
-    <JobName>openfoam_sampling_bc</JobName>
+    <JobName>openfoam_sampling_basic</JobName>
     <Sequence>sample</Sequence>
     <WorkingDir>basic</WorkingDir>
     <batchSize>1</batchSize>
@@ -34,10 +35,11 @@
       OpenFOAM input file is a different concept since several inputs can be provided
       and consequentially the user must indicate the folder that contains the standard
       subfolders used by openFOAM (i.e. 0 (or 0.orig), constant, system), in the 'subDirectory'
-      attribute. The folder than MUST contain the "Allrun" bash script used to pre-process and run the case, and
+      attribute. The folder than MUST contain the "Allrun" bash script used to pre-process and run the case.
+      in addition, the ".foam" file must be provided (used to locate the folder) and
       that, in RAVEN context, represents the Input File.
     -->
-    <Input name="twoSimpleRotors_Allrun" type="openfoam" subDirectory="twoSimpleRotors">Allrun</Input>
+    <Input name="twoSimpleRotors_FoamCaseFile" type="openfoam" subDirectory="twoSimpleRotors">twoSimpleRotors.foam</Input>
   </Files>
 
   <Models>
@@ -95,7 +97,7 @@
 
   <Steps>
     <MultiRun name="sample" clearRunDir="False">
-      <Input   class="Files" type="opefoam">twoSimpleRotors_Allrun</Input>
+      <Input   class="Files" type="opefoam">twoSimpleRotors_FoamCaseFile</Input>
       <Model   class="Models" type="Code">openFoam_code</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output  class="DataObjects" type="HistorySet">samplesHS</Output>
