@@ -96,7 +96,7 @@ class DTW(MetricInterface):
         and the second dimension is the pivotParameter if HistorySet is provided.
       @ In, kwargs, dict, dictionary of parameters characteristic of each metric
       @ Out, value, float (if returnPath=False), DTW distance value
-      @ Out, value, tuple=(distance,path) (if returnPath=True), tuple containing: 1) DTW distance value, 2) DTW path along the distance matrix 
+      @ Out, value, tuple=(distance,path) (if returnPath=True), tuple containing: 1) DTW distance value, 2) DTW path along the distance matrix
     """
     assert (isinstance(x, np.ndarray))
     assert (isinstance(x, np.ndarray))
