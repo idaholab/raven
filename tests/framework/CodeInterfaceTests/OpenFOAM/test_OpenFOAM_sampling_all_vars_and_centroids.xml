@@ -56,7 +56,7 @@
       
       <!--
            Pre-exec here is used to open the openfoam shell
-           (with all the enviroment variable set)
+           (with all the environment variable set)
       -->
       <preexec>openfoam</preexec>
       <!--

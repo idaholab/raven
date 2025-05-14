@@ -57,6 +57,7 @@ class OpenFOAM(CodeInterfaceBase):
                         "See User Manual for additiona details!")
     self._pyvista = pyvista
     self._caseDirectoryName = None
+    self._caseFileName = None
     self.variables = None
     self.writeCentroids = False
     self.directoriesPerturbableInputs = None # eg. ['0.orig', 'constant', 'system', '0']
@@ -94,7 +95,7 @@ class OpenFOAM(CodeInterfaceBase):
         found = True
         break
     if not found:
-      raise Exception('No "Allrun" file has been found. OpenFOAM input must be of type "openfoam". Got: '+' '.join(inputFiles))
+      raise Exception('ERROR OpenFOAM: No ".foam" file has been found. OpenFOAM input must be of type "openfoam" and have the extension ".foam". Got: '+' '.join(inputFiles))
     return inputFile
 
   def getInputExtension(self):
@@ -102,9 +103,9 @@ class OpenFOAM(CodeInterfaceBase):
       Return input extensions
       for OpenFOAM, not extensions are used
       @ In, None
-      @ Out, getInputExtension, tuple(str), the ext of the code input file (empty string here)
+      @ Out, getInputExtension, tuple(str), the ext of the code input file (.foam here)
     """
-    return ("",)
+    return ("foam",)
 
   def _scanDirectoryAndListFiles(self, caseDir, directoryToScan = None):
     """
@@ -143,9 +144,9 @@ class OpenFOAM(CodeInterfaceBase):
     if 'dynamiceventtree' in str(samplerType).lower():
       raise IOError("Dynamic Event Tree-based samplers not supported by OpenFOAM interface yet!")
 
-    allrun = self.findInputFile(origInputFiles)
+    caseFile = self.findInputFile(origInputFiles)
     # 1 get directory of original file, scan for all the files and clone it
-    caseDir = os.path.join(Kwargs['BASE_WORKING_DIR'], allrun.subDirectory)
+    caseDir = os.path.join(Kwargs['BASE_WORKING_DIR'], caseFile.subDirectory)
     # 2 copy all the case files
     shutil.copytree(caseDir, self.findInputFile(currentInputFiles).getPath(), dirs_exist_ok=True)
     # 3 get original inputs
@@ -173,11 +174,12 @@ class OpenFOAM(CodeInterfaceBase):
     super().initialize(runInfo, oriInputFiles)
     # the initialize here makes sure that the input file is the "Allrun"
     # we just run a Dry run of the method 'findInputFile'
-    allrun = self.findInputFile(oriInputFiles)
-    if len(allrun.subDirectory.strip()) == 0:
-      raise Exception("OpenFOAM input file (Allrun) MUST have a 'subDirectory' "
+    caseFile = self.findInputFile(oriInputFiles)
+    if len(caseFile.subDirectory.strip()) == 0:
+      raise Exception(f"OpenFOAM input file (.foam) '{str(caseFile)}' MUST have a 'subDirectory' "
                       "associated with it (containing all the input files required by OpenFOAM)")
-    self._caseDirectoryName = allrun.subDirectory.strip()
+    self._caseDirectoryName = caseFile.subDirectory.strip()
+    self._caseFileName = caseFile.getFilename()
 
   def generateCommand(self, inputFiles, executable, clargs=None,fargs=None,preExec=None):
     """
@@ -194,18 +196,23 @@ class OpenFOAM(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
             run the code (string), returnCommand[1] is the name of the output root
     """
-    inputFile = self.findInputFile(inputFiles)
+    caseFile = self.findInputFile(inputFiles)
+    executableName = pathlib.Path(executable).name
+    executableAbsPath = str(pathlib.Path(caseFile.getPath()) / pathlib.Path(executableName))
+    if not os.path.exists(executableAbsPath):
+      raise RuntimeError(f"the executable {executableName} not found in OpenFOAM "
+                         f"data/input directory (indicated by the .foam file '{str(caseFile)}'): {executableAbsPath}")
+
     #Creates the output file that saves information that is outputted to the command prompt
     #The output file name of the Neutrino results
     outputfile = f"log_openfoam"
-    # since HTPIPE uses an interactive approach to inquire for the input file,
-    #  we are using the run_htpipe.py script to run it with pre-defined options
-    commandToRun = f'{inputFile.getAbsFile()}'
+    # since OpenFOAM uses, in most of the workflows, several executables to
+    # run preprocessors (e.g. meshing), kernel, postprocessing, we run the bash script (in most of the case, Allrun)
+    commandToRun = f'{executableAbsPath}'
     commandFirstElement = []
     if preExec is not None:
       #commandFirstElement.append(('serial',preExec))
-      commandToRun = f"openfoam bash -lc {commandToRun}"
-    commandToRun += " && touch case.foam"
+      commandToRun = f"openfoam bash -lc {str(pathlib.Path(caseFile.getPath()) / pathlib.Path(executableName))}"
     commandFirstElement.append(('parallel', commandToRun))
     returnCommand = commandFirstElement, outputfile
     return returnCommand
@@ -218,8 +225,8 @@ class OpenFOAM(CodeInterfaceBase):
     """
     valid = False
     if inputFile.getType().lower() == 'openfoam':
-      inputFile.getBase()
-      if inputFile.getBase().lower() == 'allrun':
+      inputFile.getExt()
+      if inputFile.getExt() in self.getInputExtension():
         valid = True
     return valid
 
@@ -254,7 +261,7 @@ class OpenFOAM(CodeInterfaceBase):
       @ In, workDir, string, working directory path
       @ Out, None
     """
-    outputParser = op.openfoamOutputParser(os.path.join(workDir, self._caseDirectoryName), variables=self.variables, writeCentroids=self.writeCentroids)
+    outputParser = op.openfoamOutputParser(os.path.join(workDir, self._caseDirectoryName), self._caseFileName, variables=self.variables, writeCentroids=self.writeCentroids)
     results = outputParser.processOutputs()
     return results
 

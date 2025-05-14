@@ -67,11 +67,13 @@ class openfoamOutputParser(object):
   """
   def __init__(self,
                caseDirectory: str | pathlib.Path,
+               caseFileName: str | pathlib.Path,
                variables: List[str] = None, writeCentroids: bool = False,
                checkAccessAndWait: bool = False):
     """
      Constructor
      @ In, caseDirectory, str or Path, the case directory containing the time stamps and results
+     @ In, caseFileName, str or Path, the case file name (.foam)
      @ In, variables, list, optional, list of the variables to retrieve. If None, all the variables
                                       that are supported by this parser (see _AVAILABLE_FILE_TYPES)
                                       will be retrieved. If the list of variables contain a file type (class)
@@ -91,6 +93,7 @@ class openfoamOutputParser(object):
     self._variables = variables
     self._writeCentroids = writeCentroids
     self._caseDirectory = caseDirectory
+    self._caseFileName = caseFileName
     self._checkAccessAndWait = checkAccessAndWait
     self._data = {}
 
@@ -122,7 +125,8 @@ class openfoamOutputParser(object):
     for i, var in enumerate(fieldVars):
       if var not in producedFieldVariables:
         continue
-      _, v, c = self.aggregateFieldNumpy(field=var)
+      foamFile = pathlib.Path(self._caseDirectory).expanduser().resolve() / pathlib.Path(self._caseFileName)
+      _, v, c = self.aggregateFieldNumpy(field=var, foamCasefile=foamFile)
       if v is not None:
         expanded = self._expandVariablesFromVectorToScalar({var: v})
         results.update(expanded)
@@ -386,7 +390,7 @@ class openfoamOutputParser(object):
     caseDir = pathlib.Path(self._caseDirectory).expanduser().resolve()
     foamfile = (
         pathlib.Path(foamCasefile)
-          if foamCasefile
+          if foamCasefile is not None
           else caseDir / (caseDir.name + ".foam")
       )
 
