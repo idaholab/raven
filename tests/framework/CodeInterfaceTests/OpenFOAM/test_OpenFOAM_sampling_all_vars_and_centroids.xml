@@ -99,7 +99,7 @@
     <Grid name="grid">
       <variable name="MixCp">
         <distribution>Cp</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.1 0.9</grid>
+        <grid construction="custom" type="CDF">0.1</grid>
       </variable>
       <variable name="pressure">
         <distribution>pressure</distribution>
