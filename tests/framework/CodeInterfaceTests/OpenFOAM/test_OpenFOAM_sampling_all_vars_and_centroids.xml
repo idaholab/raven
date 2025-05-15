@@ -79,7 +79,7 @@
            the the outputVariables node is not present, all the variables are collected
       
       <outputVariables>cumulativeContErr, average(p), average(U)|x, average(U)|y, average(U)|z,
-                       T|12, cellTypes|12, U|12|x, U|12|y, U|12|z, p|12</outputVariables>
+                       T|12, U|12|x, U|12|y, U|12|z, p|12</outputVariables>
       -->
     </Code>
   </Models>
@@ -123,9 +123,9 @@
       <Input>MixCp,pressure</Input>
       <Output>cumulativeContErr, average(p),
           average(U)|x, average(U)|y, average(U)|z,
-          T|1000, cellTypes|1000, U|1000|x, U|1000|y, U|1000|z, p|1000,
-          T|2000, cellTypes|2000, U|2000|x, U|2000|y, U|2000|z, p|2000,
-          T|3000, cellTypes|3000, U|3000|x, U|3000|y, U|3000|z, p|3000,
+          T|1000, U|1000|x, U|1000|y, U|1000|z, p|1000,
+          T|2000, U|2000|x, U|2000|y, U|2000|z, p|2000,
+          T|3000, U|3000|x, U|3000|y, U|3000|z, p|3000,
       </Output>
       <options>
         <pivotParameter>time</pivotParameter>
