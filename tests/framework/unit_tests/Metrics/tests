@@ -1,0 +1,6 @@
+[Tests]
+  [./DTW]
+    type = 'RavenPython'
+    input = 'dtwTest.py'
+  [../]
+[]
