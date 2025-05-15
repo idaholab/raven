@@ -108,6 +108,12 @@ class openfoamOutputParser(object):
     results = {}
     # check the field variables (outputs) that have been generated
     producedFieldVariables = self.checkFieldVariables()
+    # if we need to check the access time we check it below
+    ready = True
+    if self._checkAccessAndWait:
+      ready = checkAccessAndWaitIfStillAccessed(self._caseDirectory)
+    if not ready:
+      raise ImportError(f'ERROR: OpenFOAM Interface | CASE DIRECTORY "{self._caseDirectory}" NOT READY TO BE READ!!!!')
     # we read the uniform folder (functionObjectProperties file (with user applied functions) and cumulativeContErr) if they exists
     results['time'], data = self.uniformFolderAggregate(self._caseDirectory)
     variablesFound.extend(data.keys())
@@ -136,7 +142,7 @@ class openfoamOutputParser(object):
                      np.c_[np.arange(c.shape[0]), c],   # prepend cell index
                      delimiter=",",
                      header="cell,x,y,z")
-
+      # else not found, so the following check will fail and we will return the missing variables
     if self._variables is not None and len(set(self._variables) - set(variablesFound)) > 0:
       raise RuntimeError(f" The variables {set(self._variables) - set(variablesFound)} "
                          "have not been found in OpenFOAM output")
@@ -402,7 +408,7 @@ class openfoamOutputParser(object):
       # we try to find the field in the "internalMesh" first
       times, values, centroids = self._collect(foamfile, field)
     except KeyError:
-      # we fall back to surface variables in case the "field" is not present
+      # we return None
       times, values, centroids = None, None, None
 
     return times, values, centroids
