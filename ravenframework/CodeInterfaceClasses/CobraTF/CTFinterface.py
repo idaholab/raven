@@ -90,20 +90,20 @@ class CTF(CodeInterfaceBase):
 
     # add inputs
     if len(CTF) > 0:
-       inputDict['CTF'] = CTF
+      inputDict['CTF'] = CTF
     else:
-       raise IOError("At least one CTF input is required")
+      raise IOError("At least one CTF input is required")
     if len(vuqParam) > 0:
-       inputDict['vuq_param'] = vuqParam
+      inputDict['vuq_param'] = vuqParam
     if len(vuqMult) > 0:
-       inputDict['vuq_mult'] = vuqMult
+      inputDict['vuq_mult'] = vuqMult
     if len(otherInp) > 0:
       inputDict['otherInp'] = otherInp
     return inputDict
 
   def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):
     """
-      Generates new perturbed input files for Scale sequences
+      Generates new perturbed input files for CTF sequences
       @ In, currentInputFiles, list,  list of current input files
       @ In, origInputFiles, list, list of the original input files
       @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)

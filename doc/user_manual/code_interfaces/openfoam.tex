@@ -1,0 +1,600 @@
+%%%%%%%%%%%%%%%%%%%%%
+%%% OpenFOAM INTERFACE %%%
+%%%%%%%%%%%%%%%%%%%%%
+\subsection{OpenFOAM Interface}
+This section presents the main aspects of the interface between RAVEN and OpenFOAM (\url{https://www.openfoam.com}).
+OpenFOAM (Open Source Field Operation and Manipulation) is a free, open-source CFD toolbox written in modern C++ 
+that provides a modular set of libraries and more than 100 ready-to-run solvers for fluid flow, heat transfer, multiphase, 
+turbulence, chemical reactions, electro-magnetics, solid mechanics, and coupled multi-physics problems. Built on a flexible 
+finite-volume framework, it supports arbitrary polyhedral meshes, dynamic mesh motion, and high-order discretization schemes; 
+users can extend or compose functionality simply by adding new classes without altering the core. Native MPI parallelization, 
+in-situ post-processing, and integration with ParaView enable scalable simulations from workstations to HPC clusters, while 
+command-line utilities (e.g., mesh generation, field manipulation, data conversion) and Python/PyVista bindings streamline 
+pre- and post-processing workflows. Maintained under the GPL (version 3), OpenFOAM enjoys an active international community that 
+contributes tutorials, documentation, and continuous releases, making it a widely adopted platform for both academic 
+research and industrial engineering analysis.
+
+\nb \textcolor{red}{OpenFOAM outputs are parsed using the external library \href{https://pyvista.org}{ \textcolor{red}{pyvista}}, 
+                             which \textbf{IS NOT} a default RAVEN library and consequentially \textbf{REQUIRES} to install RAVEN libraries
+                             (as detailed in Sections~\ref{sec:clone raven} and ~\ref{subsec:installPythonLibs} )
+                             using the ``--code-interface-deps'' command line option.} 
+
+In this section, the OpenFOAM-specific RAVEN input adjustments and the modifications of the OpenFOAM
+input files are reported. \noindent
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Sequence}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the \xmlNode{Sequence} section, the names of the steps declared in the
+\xmlNode{Steps} block should be specified.
+%
+As an example, if we called the first MultiRun ``MC\_Sample'' and the second
+MultiRun ``plotResults'' in the sequence section we should see this:
+
+\begin{lstlisting}[style=XML]
+<Sequence>MC_Sampler,plotResults</Sequence>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{batchSize and mode}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+For the \xmlNode{batchSize} and \xmlNode{mode} sections please refer to the
+\xmlNode{RunInfo} block in the previous chapters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RunInfo}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+After all of these blocks are filled out, a standard example RunInfo block may
+look like the example below: \\
+
+\begin{lstlisting}[style=XML]
+<RunInfo>
+  <WorkingDir>~/workingDir</WorkingDir>
+  <Sequence>MC_Sampler,plotResults</Sequence>
+  <batchSize>8</batchSize>
+</RunInfo>
+\end{lstlisting}
+In this example, the \xmlNode{batchSize} is set to $8$; this means that 8 simultaneous (parallel) instances
+of OpenFOAM are going to be executed when a sampling strategy is employed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+\label{subsub:OpenFOAMModels}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+As any other Code, in order to activate the OpenFOAM interface, a \xmlNode{Code} XML node needs to be inputted, within the
+main XML node \xmlNode{Models}.
+\\The  \xmlNode{Code} XML node contains the
+information needed to execute the specific External Code.
+
+\attrsIntro
+%
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, specifies the
+  code that needs to be associated to this Model. To use OpenFOAM, the \xmlAttr{subType} needs to be set to ``OpenFOAM'' 
+  %
+\end{itemize}
+
+
+\subnodesIntro
+%
+\begin{itemize}
+  \item \xmlNode{executable}, \xmlDesc{string, required field} specifies the NAME
+  of the executable (bash script) to be used. For the OpenFOAM interface, the ``executable'' node must contain the ``Allrun'' file (or similar), which is the bash script file
+  that will be used to run OpenFOAM commands (e.g. meshing, kernel, postprocessing). The ``Allrun'' (or similar) is MANDATORY.
+  %
+  \nb In this node only the FILE NAME must be indicated. The ``Allrun'' (or similar) bash script MUST be located in the folder containing the ``\textbf{.foam}'' FILE (see section ~\ref{subsub:OpenFOAMfiles} for details about this file). The interface will use such location 
+   \item \xmlNode{preexec}, \xmlDesc{string, optional field} specifies the name of a command (if in the SYSTEM PATH), executable or bash script that is executed before invoking the \xmlNode{executable} command. 
+                                                    Generally, the pre-exec here can be used to open the openfoam shell, with all the environment variable set (e.g. invoking the command ``openfoam'' before executing the ``Allrun'' script).
+                                                    \default{None}
+
+   \item \xmlNode{directoriesPerturbableInputs}, \xmlDesc{comma separated list, required field} specifies the  list of directories that contains OpenFOAM input files and that, consequentially, will be ``candidate'' of perturbable input files. For example,
+                                                                             the common folders are ``constant'', ``system'' and ``0'' or ``0.orig''.
+                                                                             \nb If other folders are present in the case directory, they will still be copied into the run working directories  (e.g. ``stepName/1'', ``stepName/2'', etc.) in order for 
+                                                                                   OpenFOAM to execute successfully but the files that are there contained will not be parsed to perturb variables. Consequentially, this list should contain all the folders whose
+                                                                                   input files must be perturbed.
+    \item \xmlNode{writeCentroids}, \xmlDesc{bool, optional field} boolean flag to request (to the interface) to write the mesh cell centroids in a dedicated CSV file (that will be written in the realization
+                                                                                  subfolder (e.g. stepName/1)/                                                       
+                                                                              \default{False}
+   \item \xmlNode{outputVariables}, \xmlDesc{comma separated list, optional field} specifies the  list of variables that are collected from the OpenFOAM outputs and that will be made available to RAVEN for storage in DataObjects or Databases. 
+                                                                      The  \xmlNode{outputVariables} serves as a ``speed up'' tool, since it constraints the amount of data collected from OpenFOAM. Indeed, if it is not present, all the OpenFOAM variables are collected.
+                                                                       \default{None}
+   \item \xmlNode{onlineStopCriteriaTimeInterval}, \xmlDesc{float, optional parameter}, time frequency (in seconds)) at which  the stopping function (if inputted)
+                                                            is inquired (stoppingCriteriaFunction).
+                                                            For time-dep calculation, a good time frequency (time interval) is of the order of a the CPU time
+                                                            required for an iteration calculation. \default{5}.
+   \item \xmlNode{StoppingFunction}, \xmlDesc{XML node, optional node},   the
+                                                           body of this XML node must contain the name of an appropriate \textbf{Function} defined in the
+                                                            \xmlNode{Functions} block (see Section~\ref{sec:functions}).  It is used as a
+                                                           ``stopping'' function tool for online simulation monitoring. Indeed, for time-dep calculation, the user can provide a
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through the external RAVEN python function linked here through this XML node. 
+                                                            The function must return a ``bool'':
+                                                            \begin{itemize}
+                                                              \item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item True, if the simulation must STOP (i.e. the criteria are met)
+                                                            \end{itemize}
+                                                            %    
+                                                            Each variable defined in the \xmlNode{StoppingFunction} block is available in the
+                                                            function as a python \texttt{raven.} member (\nb Since the OpenFOAM output variables are returned to RAVEN with not Python-variable-compatible characters in it (e.g. $($, $)$, $|$, etc.), 
+                                                            the user should use the Alias System (as explained in the following bullet) to alias all the variables that are required to be used in \xmlNode{StoppingFunction}). 
+                                                            In the following, an example of a
+                                                            user-defined stopping condition function is reported (using the ``raven.cumulativeContErr'' output variable).
+                                                            \nb if this function is used, the user can monitor the reason of a stop exporting the variable ``StoppingReason'' if requested in RAVEN DataObjects.
+                                                            
+\begin{lstlisting}[language=python]
+def criteria(raven):
+
+  if raven.cumulativeContErr[-1] > 1e-2:
+    return True
+  else:
+    return False
+\end{lstlisting}
+
+  \item \aliasSystemDescription{Code}
+  %
+\end{itemize}
+
+An example is shown  below:
+
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name="MyOpenFOAMcode" subType="OpenFOAM">
+      <!--
+           Pre-exec here is used to open the openfoam shell
+           (with all the environment variable set)
+      -->
+      <preexec>openfoam</preexec>
+      <!--
+        The executable is ALWAYS the Allrun script that the user must provide
+        (this is a typical workflow in OpenFOAM simulations)
+      -->
+      <executable>Allrun</executable>
+      
+      <!--
+        List of directories that contains OpenFOAM input files for this case
+      -->
+      <directoriesPerturbableInputs>0.orig, constant, system</directoriesPerturbableInputs>
+      
+      <!-- we ask the interface to write the centroids in a dedicated CSV file (that will be written in the realization
+      subfolder (E.g. stepName/1) -->
+      <writeCentroids>True</writeCentroids>
+      <!-- in the following we collect 
+           some function processed variables (e.g. average(p), average(U) )
+           and mesh variables (e.g. T_12, p_12, etc.)
+           the the outputVariables node is not present, all the variables are collected-->
+      
+      <outputVariables>cumulativeContErr, average(p), average(U)|x, average(U)|y, average(U)|z,
+                       T|12, cellTypes|12, U|12|x, U|12|y, U|12|z, p|12</outputVariables>
+      
+      
+        <!--
+        For time-dependent calculation, the user can provide a
+        function to halt the simulation if a certain condition is
+        met. The criterion or criteria is or are defined through
+        an external RAVEN python function (e.g. ``criteria'' in the
+        following example). The time frequency of the check is defined
+        by the node onlineStopCriteriaTimeInterval. By default, the output
+        is checked every 5 seconds.
+       -->
+      <onlineStopCriteriaTimeInterval>
+        15.0
+      </onlineStopCriteriaTimeInterval>
+      <StoppingFunction class="Functions" type="External">
+             criteria
+      </StoppingFunction>
+    </Code>
+</Models>
+
+<Functions>
+    <External file="stoppingCriteria.py" name="criteria">
+         <!-- 
+           variables below must be retrievable
+           from the one of the OpenFOAM Outputs (see Output Files Conversion section)
+         -->
+        <variables>cumulativeContErr</variables>
+    </External>
+</Functions>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+\label{subsub:OpenFOAMfiles}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Files} XML node in the OpenFOAM interface has a different meaning with respect other Code Interfaces. Indeed,  since to run OpenFOAM, 
+several inputs can be provided in multiple subfolders, which are listed using the \xmlNode{directoriesPerturbableInputs} XML node, (e.g. \textbf{constant}, \textbf{system}, \textbf{0} or \textbf{0.orig}.), the OpenFOAM interface accepts
+only a single ``\textbf{.foam}'' file (as input), which  is simply used to ``mark'' the folder containing all the OpenFOAM data/inputs, including the running script  (e.g. \textbf{\textit{Allrun}}).
+\\The interface will use such file to identify the path to the OpenFOAM data/input directory and it will scan for all the input files (perturbable) contained in the  \xmlNode{directoriesPerturbableInputs} sub-directories. 
+The sub-folders listed in \xmlNode{directoriesPerturbableInputs} are identified starting from the location of the ``\textbf{.foam}'' input file provided.
+\\In summary, for RAVEN coupled with OpenFOAM, only one file is required (the ``.foam'' input file) for RAVEN to be aware of, while the remaining ones are automatically detected by the interface. 
+The  \xmlNode{Files} XML node contains the information needed to execute OpenFOAM.
+
+\attrsIntro
+%
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+  \item \xmlAttr{type}, \xmlDesc{required string attribute}, specifies the
+  input type used by OpenFOAM (interface). The only accepted type (and required to be inputted) is: 
+  \begin{itemize}
+    \item openfoam, \xmlDesc{required string attribute}, identifies the OpenFOAM case file and the code currently accept any name for input as long as with the ``.foam'' extension. This \xmlAttr{type} (openfoam) is REQUIRED.
+  \end{itemize}
+  \item \xmlAttr{subDirectory}, \xmlDesc{required string attribute}, specifies the
+   OpenFOAM case directory (directory containing all the OpenFOAM files, including this ``.foam'' file and the  \xmlNode{executable} (e.g. Allrun).
+\end{itemize}
+
+Example:
+
+\begin{lstlisting}[style=XML]
+<Files>
+  <Input name="myFOAMcaseFile" type="openfoam" subDirectory="caseDirectory">case.foam</Input>
+</Files>
+\end{lstlisting}
+The file mentioned in this section
+need, then, to be placed into the ``subDirectory'' within the working directory specified
+by the \xmlNode{workingDir} node in the \xmlNode{RunInfo} XML node. For example,
+if the \xmlNode{workingDir} is ``myOpenFOAMsamplingAnalysis'' and the ``subDirectory'' is ``caseDirectory'', the file
+must be placed in ``myOpenFOAMsamplingAnalysis/caseDirectory''.
+
+
+
+\subsubsection{Output Files Conversion}
+\label{subsubsec:openfoamInterfaceOutputConversion}
+
+The \textbf{OpenFOAM/RAVEN output parser}\footnote{Implemented in \texttt{OpenFOAMoutputParser.py}.}
+automates the extraction of the most common OpenFOAM post-processing files
+and converts them into variables that can be consumed directly by RAVEN.
+The OpenFOAM parser reads native OpenFOAM dictionaries and \texttt{vol*/surface*Field} files
+via \texttt{PyVista}'s \texttt{POpenFOAMReader}.
+The parser currently recognizes the file types listed in
+Table~\ref{tab:ofAvailableFileTypes}.
+
+\begin{table}[ht]
+\centering
+\caption{OpenFOAM output file categories handled by the parser.}
+\label{tab:ofAvailableFileTypes}
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{File type} & \textbf{Typical location / contents} \\ \hline
+\texttt{functionObjectProperties}          & Time-directory subfolder \texttt{uniform / functionObjectProperties}; contains scalar or vector reductions written by OpenFOAM function objects (e.g.\ \texttt{average(p)}, \texttt{max(U)}). \\ \hline
+\texttt{cumulativeContErr} & Optional continuity–error monitor in \texttt{uniform/}; treated as scalar or vector depending on the solver. \\ \hline
+\texttt{volScalarField}                    & Volume-centered scalar fields (e.g.\ \texttt{p}, \texttt{T}). \\ \hline
+\texttt{volVectorField}                    & Volume-centered vector fields (e.g.\ \texttt{U}). \\ \hline
+\end{tabular}
+\end{table}
+
+\paragraph{General mechanics.}
+The parser receives the case directory (i.e. ``stepName/sampleNumber/\xmlAttr{subDirectory}''), 
+the \texttt{.foam} file (The \xmlNode{Input} of the OpenFOAM interface (see section ~\ref{subsub:OpenFOAMfiles}), 
+an optional list of variables to extract (the variables optionally listed in \xmlNode{outputVariables}; see section ~\ref{subsub:OpenFOAMModels}), and a flag that forces the export of cell
+centroids (\texttt{centroids.csv}) when vector- or tensor-valued fields are
+requested (flag that can be set via the \xmlNode{writeCentroids}).  Internally it
+\begin{enumerate}
+  \item scans all time directories (skipping ``\texttt{0}’’ by default),
+  \item builds a single \texttt{POpenFOAMReader} instance restricted to the
+        \texttt{internalMesh},
+  \item reads every requested field at every time step and returns the data
+        as stacked \texttt{NumPy} arrays.
+\end{enumerate}
+A one-dimensional array is always aligned with the automatically generated
+\texttt{time} vector, so that the row index corresponds to the OpenFOAM
+time directory.
+
+\paragraph{Variable-naming convention.}
+All OpenFOAM names are preserved \emph{verbatim}; the parser merely flattens
+compound entities (vectors, tensors) into separate scalar variables using a
+vertical bar (\texttt{|}).
+
+\begin{itemize}
+\item \emph{Scalars}: remain unchanged  
+  (e.g.\ \texttt{p} $\rightarrow$ \texttt{p}).
+\item \emph{Vectors of length~3}:  
+  \texttt{U} $\rightarrow$ \texttt{U|x}, \texttt{U|y}, \texttt{U|z}.
+\item \emph{Vectors of length $\neq3$}:  
+  \texttt{gradT} ($N\!=\!4$) $\rightarrow$ \texttt{gradT|1}, \dots, \texttt{gradT|4}.
+\item \emph{Rank-2 arrays} (e.g.\ stress $\sigma_{ij}$, size $3\times3$):  
+  \texttt{sigma|i|j} where the first bar indexes the row, the second bar
+  indexes the column  
+  (e.g.\ \texttt{sigma|y|x} represents~$\sigma_{21}$).
+\end{itemize}
+
+\noindent
+\textbf{Example.}  
+Assume the case writes a vector field \texttt{U} and a function-object
+average pressure:
+
+\begin{lstlisting}[language=bash]
+1.0/uniform/functionObjectProperties
+------------------------------------
+average(U)  (2.50 1.20 0.00);
+average(p)  101325;
+
+1.0/U # internal field excerpt
+------------------------------
+internalField   nonuniform List<vector>
+3
+(2.50 1.20 0.00)
+(2.40 1.22 0.05)
+(2.48 1.19 0.02)
+...
+\end{lstlisting}
+
+The parser produces the variables summarized in
+Table~\ref{tab:ofVariableExample}.
+
+\begin{table}[ht]
+\centering
+\caption{Example of variables generated by the OpenFOAM parser.}
+\label{tab:ofVariableExample}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\texttt{time} & \texttt{average(p)} & \texttt{average(U|x)} & \texttt{average(U|y)} & \texttt{average(U|z)} \\
+\hline
+1.0 & 101325 & 2.5 & 1.2 & 0.0 \\ \hline
+\end{tabular}
+
+\vspace{0.3cm}
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Cell} & \texttt{U|x} & \texttt{U|y} & \texttt{U|z} & \texttt{centroids.csv} \\
+\hline
+0 & 2.50 & 1.20 & 0.00 & $(x_0,y_0,z_0)$ \\
+1 & 2.40 & 1.22 & 0.05 & $(x_1,y_1,z_1)$ \\
+2 & 2.48 & 1.19 & 0.02 & $(x_2,y_2,z_2)$ \\
+\vdots & \vdots & \vdots & \vdots & \vdots \\ \hline
+\end{tabular}
+\end{table}
+
+\paragraph{Restrictions to user-defined lists.}
+If the \xmlNode{outputVariables} argument is supplied, the parser keeps only the
+requested prefixes (e.g.\ \texttt{``U''}, \texttt{``average(p)''}).  
+An exception is raised if one or more requested variables cannot be found.
+
+\paragraph{Optional centroid export.}
+Setting \texttt{writeCentroids=True} instructs the parser to dump a
+comma-separated file named \texttt{centroids.csv} in the parent folder of the
+case, containing the mapping
+\[
+\texttt{cellID},x,y,z .
+\]
+This file can be post-processed in RAVEN to build spatially resolved meta-models.
+
+\bigskip
+In summary, the OpenFOAM parser delivers a flat, time-aligned table of
+RAVEN-friendly variables while retaining the original field semantics and
+component ordering, making the integration of CFD outputs into
+uncertainty-quantification or optimization workflows seamless.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \xmlNode{Distribution} block defines the distributions that are going
+to be used for the sampling of the variables defined in the \xmlNode{Samplers} block.
+%
+For all the possible distributions and all their possible inputs please see the
+chapter about Distributions (Section~\ref{sec:distributions}).
+%
+Here we report an example of a Normal and Uniform distributions (for sampling the heat capacity (Cp) and pressure, respectively):
+
+\begin{lstlisting}[style=XML,morekeywords={name,debug}]
+<Distributions verbosity='debug'>
+    <Normal name="Cp">
+      <mean>1005</mean>
+      <sigma>2.0</sigma>
+      <lowerBound>1000</lowerBound>
+      <upperBound>1010</upperBound>
+    </Normal>
+    <Uniform name="pressure">
+      <lowerBound>1e5</lowerBound>
+      <upperBound>2e5</upperBound>
+    </Uniform>
+ </Distributions>
+\end{lstlisting}
+
+\noindent
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the \xmlNode{Samplers} block we want to define the variables that are going to be sampled.
+
+\noindent The perturbation or optimization of the input of any OpenFOAM sequence is performed using the approach detailed in the \textit{Generic Interface} section (see \ref{subsec:genericInterface}). 
+Briefly, this approach uses
+ ``wild-cards'' (placed in the original input files) for injecting the perturbed values.
+
+\textbf{Example}:
+
+We want to do the sampling of 2 variable:
+\begin{itemize}
+  \item Heat capacity ``Cp'';
+  \item Pressure boundary condition ``pressure'';
+\end{itemize}
+
+\noindent We are going to sample this variable using a MonteCarlo method.
+The RAVEN input is then written as follows:
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <MonteCarlo name='MC_Sampler'>
+     <samplerInit> <limit>10</limit> </samplerInit>
+    <variable name='MixCp'>
+      <distribution>Cp</distribution>
+    </variable>
+    <variable name='pressure'>
+      <distribution>pressure</distribution>
+    </variable>
+  </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+
+The ``Cp''  (MixCp) is reported in the OpenFoam file ``thermophysicalProperties'' located within the ``constant'' folder of the OpenFOAM case directory.
+Such input file has be be modified with wild-cards in the following way.
+\begin{lstlisting}[basicstyle=\tiny]
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       sutherland;
+    thermo          hConst;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+mixture
+{
+    specie
+    {
+        molWeight       28.9;
+    }
+    thermodynamics
+    {
+        Cp              $RAVEN-MixCp$;
+        Hf              0;
+    }
+    transport
+    {
+        As              1.4792e-06;
+        Ts              116;
+    }
+}
+
+dpdt    true;
+
+// ************************************************************************* //
+\end{lstlisting}
+
+On the other hand, the ``pressure'' boundary condition is reported in the OpenFoam file ``p'' located within the ``0.orig'' folder of the OpenFOAM case directory.
+Such input file has be be modified with wild-cards in the following way.
+\begin{lstlisting}[basicstyle=\tiny]
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform $RAVEN-pressure$;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    "(walls|hole|outlet|inlet)"
+    {
+        type            zeroGradient;
+    }
+
+    overset
+    {
+        type            overset;
+    }
+}
+
+// ************************************************************************* //
+\end{lstlisting}
+
+\noindent It can be seen that each variable is connected with a proper distribution
+defined in the \xmlNode{Distributions} block (from the previous example).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+For a OpenFOAM interface, the \xmlNode{MultiRun} step type will most likely be
+used. But \xmlNode{SingleRun} step can also be used for plotting and data extraction purposes.
+%
+First, the step needs to be named: this name will be one of the names used in
+the \xmlNode{sequence} block.
+%
+In our example,  \texttt{MC\_Sampler}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='MC_Sampler' verbosity='debug'>
+\end{lstlisting}
+
+With this step, we need to import the ``.foam'' case file that is needed by the interface to locate the case folder and then expose all the perturbable input files in the \xmlNode{directoriesPerturbableInputs} directories:
+\begin{itemize}
+  \item ``openfoam'' input file (extension ``.foam'')
+\end{itemize}
+\begin{lstlisting}[style=XML,morekeywords={name,class,type}]
+    <Input class="Files" type="openfoam">myFOAMcaseFile</Input>
+\end{lstlisting}
+
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+    <Model  class='Models' type='Code'>MyOpenFOAMcode</Model>
+\end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='MonteCarlo'>MC_Sampler</Sampler>
+\end{lstlisting}
+And lastly, we need to specify what kind of output the user wants.
+%
+For example the user might want to make a database (in RAVEN the database
+created is an HDF5 file).
+%
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+    <Output  class='Databases' type='HDF5'>MC_out</Output>
+\end{lstlisting}
+
+Following is the example of two MultiRun step, which uses the MonteCarlo sampling
+method, and create a database storing the results:
+\begin{lstlisting}[style=XML]
+<Steps verbosity='debug'>
+  <MultiRun name='MC_Sampler' verbosity='debug' re-seeding='210491'>
+    <Input   class='Files' type='openfoam'>
+      myFOAMcaseFile
+     </Input>
+    <Model   class='Models' type='Code'>
+      MyOpenFOAMcode
+    </Model>
+    <Sampler class='Samplers'  type='MonteCarlo'>
+      MC_Sampler
+    </Sampler>
+    <Output  class='Databases' type='HDF5' >
+      MC_out
+    </Output>
+    <Output  class='DataObjects' type='PointSet'>
+      MonteCarloHTPIPEPointSet
+    </Output>
+    <Output  class='DataObjects' type='HistorySet'>
+      MonteCarloHTPIPEHistorySet
+    </Output>
+  </MultiRun>
+</Steps>
+\end{lstlisting}
+
