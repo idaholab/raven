@@ -1,0 +1,425 @@
+                 MM      MM  FFFFFFFFFF    IIIIII    XX      XX
+                 MM      MM  FFFFFFFFFF    IIIIII    XX      XX
+                 MMMM  MMMM  FF              II      XX      XX
+                 MMMM  MMMM  FF              II      XX      XX
+                 MM  MM  MM  FF              II        XX  XX  
+                 MM  MM  MM  FF              II        XX  XX  
+                 MM      MM  FFFFFFFF        II          XX    
+                 MM      MM  FFFFFFFF        II          XX    
+                 MM      MM  FF              II        XX  XX  
+                 MM      MM  FF              II        XX  XX  
+                 MM      MM  FF              II      XX      XX
+                 MM      MM  FF              II      XX      XX
+                 MM      MM  FF            IIIIII    XX      XX
+                 MM      MM  FF            IIIIII    XX      XX
+
+                    Multiphase Flow with Interphase eXchanges
+                                  Version: 24.1.1    
+                    Time:  9: 5                    Date:  5- 5-2025
+
+       Computer : wr11n36                                           
+ _______________________________________________________________________________
+
+
+   1. RUN CONTROL
+
+       Run name(RUN_NAME): ROUNDBOTTOMRETORT_TEST                                      
+       Brief description of the run (DESCRIPTION) :
+         MFIX SIMULATION                                             
+       Units (UNITS) : SI              
+       Start-time (TIME) =   0.0000    
+       Stop_time (TSTOP) =  0.20000E-01
+       Time step (DT) =  0.10000E-04
+       Max time step (DT_MAX) =  0.10000E-03
+       Min time step (DT_MIN) =  0.10000E-07
+       Time step adjustment factor (DT_FAC) =  0.90000    
+       Type of run (RUN_TYPE) : NEW             
+                              (Initial conditions from the input (.DAT) file)
+
+       * Gas momentum equation-X is solved.
+
+       * Gas momentum equation-Y is solved.
+
+       * Gas momentum equation-Z is solved.
+
+       * Energy equations are NOT solved.
+
+       * Gas Species equations are NOT solved.
+
+       * Solids- 1 Species equations are NOT solved.
+
+       * User-defined subroutines are NOT called.
+
+
+   2. PHYSICAL AND NUMERICAL PARAMETERS
+
+       Coefficient of restitution (C_e) =  0.95000    
+       Coefficient of friction (C_f) =  0.10000    
+       Angle of internal friction (Phi) =   30.000    
+       Angle of wall_particle friction (Phi_w) =   11.300    
+       Reference pressure (P_ref) =   0.0000    
+       Pressure scale-factor (P_scale) =   1.0000    
+       Gravitational acceleration (GRAVITY) =   9.8066    
+       Underrelaxation (UR_FAC) and Iterations in Leq solver (LEQ_IT):
+                                 UR_FAC  LEQ_IT  LEQ_METHOD  LEQ_SWEEP  LEQ_TOL    LEQ_PC  DISCRETIZE
+         Fluid cont.  and P_g  =  0.800    20      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         Solids cont. and P_s  =  0.500    20      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         U velocity            =  0.500     5      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         V velocity            =  0.500     5      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         W velocity            =  0.500     5      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         Energy                =  1.000    15      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         Species               =  1.000    15      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         Granular Energy       =  0.500    15      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+         User scalar           =  0.800    15      BiCGSTAB     RSRS     0.1000E-03   LINE   FOUP        
+
+
+
+   3. GEOMETRY AND DISCRETIZATION
+
+       Coordinates: CARTESIAN       
+
+       X-direction cell sizes (DX) and East face locations:
+         I        1            2            3            4            5
+        DX   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       X_E    0.0000      0.16250E-02  0.32500E-02  0.48750E-02  0.65000E-02
+
+         I        6            7            8            9           10
+        DX   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       X_E   0.81250E-02  0.97500E-02  0.11375E-01  0.13000E-01  0.14625E-01
+
+         I       11           12           13           14           15
+        DX   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       X_E   0.16250E-01  0.17875E-01  0.19500E-01  0.21125E-01  0.22750E-01
+
+         I       16           17           18           19           20
+        DX   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       X_E   0.24375E-01  0.26000E-01  0.27625E-01  0.29250E-01  0.30875E-01
+
+         I       21           22           23           24           25
+        DX   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       X_E   0.32500E-01  0.34125E-01  0.35750E-01  0.37375E-01  0.39000E-01
+
+         I       26           27           28           29           30
+        DX   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       X_E   0.40625E-01  0.42250E-01  0.43875E-01  0.45500E-01  0.47125E-01
+
+         I       31           32           33           34
+        DX   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       X_E   0.48750E-01  0.50375E-01  0.52000E-01  0.53625E-01
+       Number of cells in X, or R, direction (IMAX) =   32
+       Reactor length in X, or R, direction (XLENGTH) = 0.52000E-01
+
+
+       Y-direction cell sizes (DY) and North face locations:
+         J        1            2            3            4            5
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N    0.0000      0.18783E-02  0.37565E-02  0.56348E-02  0.75130E-02
+
+         J        6            7            8            9           10
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.93913E-02  0.11270E-01  0.13148E-01  0.15026E-01  0.16904E-01
+
+         J       11           12           13           14           15
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.18783E-01  0.20661E-01  0.22539E-01  0.24417E-01  0.26296E-01
+
+         J       16           17           18           19           20
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.28174E-01  0.30052E-01  0.31930E-01  0.33809E-01  0.35687E-01
+
+         J       21           22           23           24           25
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.37565E-01  0.39443E-01  0.41322E-01  0.43200E-01  0.45078E-01
+
+         J       26           27           28           29           30
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.46957E-01  0.48835E-01  0.50713E-01  0.52591E-01  0.54470E-01
+
+         J       31           32           33           34           35
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.56348E-01  0.58226E-01  0.60104E-01  0.61983E-01  0.63861E-01
+
+         J       36           37           38           39           40
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.65739E-01  0.67617E-01  0.69496E-01  0.71374E-01  0.73252E-01
+
+         J       41           42           43           44           45
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.75130E-01  0.77009E-01  0.78887E-01  0.80765E-01  0.82643E-01
+
+         J       46           47           48           49           50
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.84522E-01  0.86400E-01  0.88278E-01  0.90157E-01  0.92035E-01
+
+         J       51           52           53           54           55
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.93913E-01  0.95791E-01  0.97670E-01  0.99548E-01  0.10143    
+
+         J       56           57           58           59           60
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.10330      0.10518      0.10706      0.10894      0.11082    
+
+         J       61           62           63           64           65
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.11270      0.11457      0.11645      0.11833      0.12021    
+
+         J       66           67           68           69           70
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.12209      0.12397      0.12584      0.12772      0.12960    
+
+         J       71           72           73           74           75
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.13148      0.13336      0.13523      0.13711      0.13899    
+
+         J       76           77           78           79           80
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.14087      0.14275      0.14463      0.14650      0.14838    
+
+         J       81           82           83           84           85
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.15026      0.15214      0.15402      0.15590      0.15777    
+
+         J       86           87           88           89           90
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.15965      0.16153      0.16341      0.16529      0.16717    
+
+         J       91           92           93           94           95
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.16904      0.17092      0.17280      0.17468      0.17656    
+
+         J       96           97           98           99          100
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.17843      0.18031      0.18219      0.18407      0.18595    
+
+         J      101          102          103          104          105
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.18783      0.18970      0.19158      0.19346      0.19534    
+
+         J      106          107          108          109          110
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.19722      0.19910      0.20097      0.20285      0.20473    
+
+         J      111          112          113          114          115
+        DY   0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02  0.18783E-02
+       Y_N   0.20661      0.20849      0.21037      0.21224      0.21412    
+
+         J      116          117
+        DY   0.18783E-02  0.18783E-02
+       Y_N   0.21600      0.21788    
+       Number of cells in Y direction (JMAX) =  115
+       Reactor length in Y direction (YLENGTH) = 0.21600    
+
+
+       Z-direction cell sizes (DZ) and Top face locations:
+         K        1            2            3            4            5
+        DZ   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       Z_T    0.0000      0.16250E-02  0.32500E-02  0.48750E-02  0.65000E-02
+
+         K        6            7            8            9           10
+        DZ   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       Z_T   0.81250E-02  0.97500E-02  0.11375E-01  0.13000E-01  0.14625E-01
+
+         K       11           12           13           14           15
+        DZ   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       Z_T   0.16250E-01  0.17875E-01  0.19500E-01  0.21125E-01  0.22750E-01
+
+         K       16           17           18           19           20
+        DZ   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       Z_T   0.24375E-01  0.26000E-01  0.27625E-01  0.29250E-01  0.30875E-01
+
+         K       21           22           23           24           25
+        DZ   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       Z_T   0.32500E-01  0.34125E-01  0.35750E-01  0.37375E-01  0.39000E-01
+
+         K       26           27           28           29           30
+        DZ   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       Z_T   0.40625E-01  0.42250E-01  0.43875E-01  0.45500E-01  0.47125E-01
+
+         K       31           32           33           34
+        DZ   0.16250E-02  0.16250E-02  0.16250E-02  0.16250E-02
+       Z_T   0.48750E-01  0.50375E-01  0.52000E-01  0.53625E-01
+       Number of cells in Z, or theta, direction (KMAX) =   32
+       Reactor length in Z, or theta, direction (ZLENGTH) = 0.52000E-01
+
+
+   4. GAS PHASE
+
+       Gas density (RO_g0) =   1.6337      (A constant value is used everywhere)
+       Viscosity (MU_g0) =  0.22433E-04  (A constant value is used everywhere)
+
+
+   5. SOLIDS PHASE
+
+       Number of particulate phases (MMAX) =  1
+
+       M    Model     Diameter        Density      Close_Packed
+       1    CGP      0.50311E-03     13890.             T
+
+       Gas/Solids Coupling Information:
+          Use cell averaging to calculate gas/particle drag.
+          Use cell averaging to calculate dispersed phase scalar fields.
+
+       Use Linear spring-dashpot collision model.
+
+          Spring Coefficients:      Normal       Tangential
+            Particle-particle       1000.0         285.71    
+            Particle-wall           1000.0         285.71    
+
+          Damping Coefficients:     Normal       Tangential
+            Phase 1-Phase 1 =      0.14426E-02    0.72130E-03
+                   -Wall    =      0.20401E-02    0.10201E-02
+
+
+   6. INITIAL CONDITIONS
+
+       Initial condition no :    1
+                                                 Specified        Simulated  
+         X coordinate of west face   (IC_X_w) = -0.26000E-01     -0.26000E-01
+         X coordinate of east face   (IC_X_e) =  0.26000E-01      0.26000E-01
+         Y coordinate of south face  (IC_Y_s) = -0.22000E-01     -0.22000E-01
+         Y coordinate of north face  (IC_Y_n) =  0.19400          0.19400    
+         Z coordinate of bottom face (IC_Z_b) =  -17.754          -17.754    
+         Z coordinate of top face    (IC_Z_t) =  -17.702          -17.702    
+         I index of cell at west   (IC_I_w) =    2
+         I index of cell at east   (IC_I_e) =   33
+         J index of cell at south  (IC_J_s) =    2
+         J index of cell at north  (IC_J_n) =  116
+         K index of cell at bottom (IC_K_b) =    2
+         K index of cell at top    (IC_K_t) =   33
+         Void fraction (IC_EP_g) =   1.0000    
+         Gas temperature (IC_T_g) =   298.00    
+         X-component of gas velocity (IC_U_g) =   0.0000    
+         Y-component of gas velocity (IC_V_g) =   0.0000    
+         Z-component of gas velocity (IC_W_g) =   0.0000    
+         Solids phase- 1 Density x Volume fr. (IC_ROP_s) =   0.0000    
+         Solids phase- 1 temperature (IC_T_s) =   293.15    
+         X-component of solids phase- 1 velocity (IC_U_s) =  0.0000    
+         Y-component of solids phase- 1 velocity (IC_V_s) =  0.0000    
+         Z-component of solids phase- 1 velocity (IC_W_s) =  0.0000    
+         Turbulence length scale (IC_L_scale) =  0.12000E-03
+
+       Initial condition no :    2
+                                                 Specified        Simulated  
+         X coordinate of west face   (IC_X_w) = -0.26000E-01     -0.26000E-01
+         X coordinate of east face   (IC_X_e) =  0.26000E-01      0.26000E-01
+         Y coordinate of south face  (IC_Y_s) = -0.15000E-01     -0.14487E-01
+         Y coordinate of north face  (IC_Y_n) =  0.30000E-01      0.30591E-01
+         Z coordinate of bottom face (IC_Z_b) =  -17.754          -17.754    
+         Z coordinate of top face    (IC_Z_t) =  -17.702          -17.702    
+         I index of cell at west   (IC_I_w) =    2
+         I index of cell at east   (IC_I_e) =   33
+         J index of cell at south  (IC_J_s) =    6
+         J index of cell at north  (IC_J_n) =   29
+         K index of cell at bottom (IC_K_b) =    2
+         K index of cell at top    (IC_K_t) =   33
+         Void fraction (IC_EP_g) =  0.98765E+32
+         Gas temperature (IC_T_g) =   298.00    
+         X-component of gas velocity (IC_U_g) =   0.0000    
+         Y-component of gas velocity (IC_V_g) =   0.0000    
+         Z-component of gas velocity (IC_W_g) =   0.0000    
+         Solids phase- 1 Density x Volume fr. (IC_ROP_s) =  0.98765E+32
+         Solids phase- 1 temperature (IC_T_s) =   293.15    
+         X-component of solids phase- 1 velocity (IC_U_s) =  0.0000    
+         Y-component of solids phase- 1 velocity (IC_V_s) =  0.0000    
+         Z-component of solids phase- 1 velocity (IC_W_s) =  0.0000    
+         Turbulence length scale (IC_L_scale) =  0.12000E-03
+
+
+   7. BOUNDARY CONDITIONS
+
+       Boundary condition no :    1
+         Type of boundary condition : CG_NSW          
+           (Velocity is zero at wall)
+         Boundary area =  0.31820E-01
+ 
+
+       Boundary condition no :    2
+         Type of boundary condition : MI              
+           (Inlet with specified gas and solids mass flux)
+                                                 Specified        Simulated  
+         X coordinate of west face   (BC_X_w) = -0.26000E-01     -0.26000E-01
+         X coordinate of east face   (BC_X_e) =  0.26000E-01      0.26000E-01
+         Y coordinate of south face  (BC_Y_s) = -0.22000E-01     -0.23878E-01
+         Y coordinate of north face  (BC_Y_n) = -0.22000E-01     -0.22000E-01
+         Z coordinate of bottom face (BC_Z_b) =  -17.754          -17.754    
+         Z coordinate of top face    (BC_Z_t) =  -17.702          -17.702    
+         I index of cell at west   (BC_I_w) =    2
+         I index of cell at east   (BC_I_e) =   33
+         J index of cell at south  (BC_J_s) =    1
+         J index of cell at north  (BC_J_n) =    1
+         K index of cell at bottom (BC_K_b) =    2
+         K index of cell at top    (BC_K_t) =   33
+         Boundary area =  0.12130E-05
+         Void fraction (BC_EP_g) =   1.0000    
+         Gas pressure (BC_P_g) =  0.10132E+06
+         Gas temperature (BC_T_g) =   293.15    
+         Gas mass flow rate (BC_MASSFLOW_g) =  0.18652E-03
+         X-component of gas velocity (BC_U_g) =   0.0000    
+         Z-component of gas velocity (BC_W_g) =   0.0000    
+ 
+         Solids phase- 1 Density x Volume fr. (BC_ROP_s) =   0.0000    
+         Solids phase- 1 temperature (BC_T_s) =   298.00    
+ 
+         X-component of solids phase- 1 velocity (BC_U_s) =  0.0000    
+         Y-component of solids phase- 1 velocity (BC_V_s) =  0.0000    
+         Z-component of solids phase- 1 velocity (BC_W_s) =  0.0000    
+
+       Boundary condition no :    3
+         Type of boundary condition : PO              
+           (Outlet with specified gas pressure)
+                                                 Specified        Simulated  
+         X coordinate of west face   (BC_X_w) = -0.26000E-01     -0.26000E-01
+         X coordinate of east face   (BC_X_e) =  0.26000E-01      0.26000E-01
+         Y coordinate of south face  (BC_Y_s) =  0.19400          0.19400    
+         Y coordinate of north face  (BC_Y_n) =  0.19400          0.19588    
+         Z coordinate of bottom face (BC_Z_b) =  -17.754          -17.754    
+         Z coordinate of top face    (BC_Z_t) =  -17.702          -17.702    
+         I index of cell at west   (BC_I_w) =    2
+         I index of cell at east   (BC_I_e) =   33
+         J index of cell at south  (BC_J_s) =  117
+         J index of cell at north  (BC_J_n) =  117
+         K index of cell at bottom (BC_K_b) =    2
+         K index of cell at top    (BC_K_t) =   33
+         Boundary area =  0.20252E-02
+         Gas pressure (BC_P_g) =  0.10132E+06
+ 
+
+
+   8. INTERNAL SURFACES
+
+
+   9. POINT SOURCES
+
+
+   10. OUTPUT DATA FILES:
+       Extension Description                              Interval for writing
+       .OUT      This file (ASCII)                           0.98765E+32
+       .LOG      Log file containing messages (ASCII)        0.98765E+32
+       .RES      Restart file (Binary)                       0.10000    
+       .SP1      EP_g (Binary, single precision)             0.10000    
+       .SP2      P_g, P_star (Binary, single precision)      0.10000    
+       .SP3      U_g, V_g, W_g (Binary, single precision)    0.10000    
+       .SP4      U_s, V_s, W_s (Binary, single precision)    0.10000    
+       .SP5      ROP_s (Binary, single precision)            0.10000    
+       .SP6      T_g, T_s (Binary, single precision)         0.10000    
+       .SP7      X_g, X_s (Binary, single precision)         0.10000    
+       .SP8      Theta_m (Binary, single precision)          0.10000    
+       .SP9      User Scalar (Binary, single precision)      0.10000    
+       .SPA      ReactionRates (Binary, single precision)    0.10000E+33
+       .SPB      K and Epsilon (Binary, single precision)    0.10000E+33
+
+
+   11. TOLERANCES
+       The following values are specified in the file TOLERANCE.INC.
+
+       Minimum value of EP_s tracked (ZERO_EP_s) =  0.10000E-07
+       Maximum average residual (TOL_RESID) =  0.10000E-02
+       Maximum average residual (TOL_RESID_T) =  0.10000E-03
+       Maximum average residual (TOL_RESID_X) =  0.10000E-03
+       Minimum residual at divergence (TOL_DIVERGE) =   10000.    
+       Tolerance for species and energy balances (TOL_COM) =  0.10000E-03
+
+
+   12. MONITORS
+
+ 

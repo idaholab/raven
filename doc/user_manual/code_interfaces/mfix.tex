@@ -1,0 +1,119 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% MFiX  INTERFACE  %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{MFiX Interface}
+MFiX - Multiphase Flow with Interphase eXchanges - is a computational fluid dynamics (CFD) code developed at the National Energy Technology Laboratory (NETL).
+RAVEN now supports MFiX for input parameter perturbation, job submission on HPC using SLURM, and post-processing for data analytics.
+This section primarily aims to describe the interface related to its application. The following subsections provide a brief explanation of the files required for running MFiX in RAVEN and the necessary XML nodes.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{RunInfo}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Several information regarding to job submission to HPC is required in the \xmlNode{RunInfo}.
+The number of HPC nodes running in parallel to execute multiple MFiX simulations should be specified in \xmlNode{batchSize}.
+A user can define the number of meshes in the i, j, and k dimensions within the MFiX input file (i.e., MFiX_file_name.mfx).
+The value in \xmlNode{NumThreads} must correspond to the product of i, j, and k. The number of threads represents the CPU cores that will be utilized for running a single MFiX simulation.
+The value in \xmlNode{NumThreads} should always be 1.
+The argument "--hostfile" needs to be placed in \xmlNode{NodeParameter}.
+\xmlNode{<expectedTime>} is used to set the duration for running simulations when submitting a job to the HPC. It should be formatted as either HH:MM:SS or D-HH:MM.
+The file \texttt{raven_ec_qsub_command.sh} should be specified in \xmlNode{<RemoteRunCommand>}. Since \texttt{raven_ec_qsub_command.sh} is already located within \texttt{raven/ravenframework}, there is no need to provide the absolute path.
+After all of these blocks are filled out, a standard example RunInfo block may look like the example below:
+\begin{lstlisting}[style=XML]
+  <RunInfo>
+    <WorkingDir>MFiX_Sampling_Submission_Postprocess</WorkingDir>
+    <Sequence>Run</Sequence>
+    <batchSize>2</batchSize>
+    <NumThreads>28</NumThreads>
+    <NumMPI>1</NumMPI>
+    <expectedTime>00:10:00</expectedTime>
+    <JobName>MFIX_Run</JobName>
+    <NodeParameter> --hostfile</NodeParameter>
+    <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
+    <clusterParameters>--wckey=lwrs --mem=0</clusterParameters>
+    <mode>
+       slurm
+      <runSbatch />
+      <noprecommand/>
+      <MPIParam>--bind-to none</MPIParam>
+    </mode>
+  </RunInfo>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+For a MFiX interface, the \xmlNode{MultiRun} step type will most likely be used.
+First, the step needs to be named: this name will be one of the names used in the \xmlNode{Sequence} block.
+In our example, \texttt{Run}.
+%
+\begin{lstlisting}[style=XML,morekeywords={name,debug,re-seeding}]
+     <MultiRun name='Run'>
+\end{lstlisting}
+
+With this step, we need to import four files needed for the simulation:
+\begin{itemize}
+  \item Input deck
+  \item Geometry file
+  \item Mesh file
+  \item mpirun shell script file
+\end{itemize}
+Note that users need to have a shell script file that loads the openmpi and mfix modules on the HPC.
+The \texttt{mpirun} command must be properly specified in the shell script, and users must include the \texttt{--oversubscribe} argument in the \texttt{mpirun} command.
+A standard example of a shell script for running MFiX using MPI is shown below:
+
+\begin{lstlisting}[style=sh, morekeywords={name, debug, re-seeding}]
+  file_path=$RAVEN_FRAMEWORK_DIR/../tests/framework/CodeInterfaceTests/MFiX/MFiX_Sampling_Submission_Postprocess/Run/$2/MFIX_RAVEN_Temp.mfx
+
+  module load openmpi
+  module load mfix
+
+  mpirun --oversubscribe -mca mpi_warn_on_fork 0 -mca mca_base_component_show_load_errors 0 -np $SLURM_CPUS_PER_TASK /apps/local/miniforge/23.3.1/envs/mfix-24.1.1/bin/mfixsolver_dmp -s -f $file_path
+\end{lstlisting}
+
+We then need to define which model will be used:
+\begin{lstlisting}[style=XML]
+  <Model class="Models" type="Code">mfix</Model>
+\end{lstlisting}
+
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+  <Sampler class="Samplers" type="Stratified">lhs</Sampler>
+\end{lstlisting}
+
+And lastly, we need to specify what kind of output the user wants.
+Here is a classical example:
+\begin{lstlisting}[style=XML,morekeywords={class,type}]
+  <Output class="DataObjects" type="PointSet">stories</Output>
+  <Output class="OutStreams" type="Print">samples</Output>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the \xmlNode{Files} section, all of the files needed for the code to run should be specified.
+Here is a classical example:
+
+\begin{lstlisting}[style=XML]
+  <Files>
+    <Input name="mfix_inputDeck" type="">../MFIX_RAVEN_Temp.mfx</Input>
+    <Input name="mfix_geo" type="">../geometry_0001.stl</Input>
+    <Input name="mfix_mesh" type="">../RoundBottomRetort.stl</Input>
+    <Input name="mfix_run" type="">../mfix_run.sh</Input>
+  </Files>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\label{subsubsection:Relap5Models}
+For the \xmlNode{Models} block here is a standard example of how it would look:
+
+\begin{lstlisting}[style=XML]
+  <Models>
+    <Code name="mfix" subType="MFIX">
+      <executable> bash %FRAMEWORK_DIR%/../tests/framework/CodeInterfaceTests/MFiX/mfix_run.sh</executable>
+      <clargs extension=".mfx" type="input"/>
+      <clargs type="postpend" arg="%CURRENT_ID1%"/>
+    </Code>
+  </Models>
+\end{lstlisting}
