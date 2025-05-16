@@ -182,7 +182,6 @@ class CustomSampler(Sampler):
       csvFile = self.assemblerDict['Source'][0][3]
       csvFile.open(mode='r')
       headers = [x.replace("\n","").strip() for x in csvFile.readline().split(",")]
-      #data = np.loadtxt(self.assemblerDict['Source'][0][3], dtype=np.float64, delimiter=',', skiprows=1, ndmin=2)
       data = np.genfromtxt(self.assemblerDict['Source'][0][3], delimiter=',',dtype=None, encoding=None, names=True, ndmin=2)
       data = np.array(data.tolist())
       data = data.reshape(-1,data.shape[-1])

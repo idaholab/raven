@@ -1,0 +1,6 @@
+x,str,OutputPlaceHolder,ProbabilityWeight,prefix
+0.725675246,abc,1.0,1.0,1
+0.565949127,xyz,2.0,1.0,2
+0.72567754,a1v3,3.0,1.0,3
+0.565951633,this_is_alpha,4.0,1.0,4
+0.725968307,dummy,5.0,1.0,5
