@@ -64,7 +64,6 @@ def scrambleMutator(offSprings, distDict, **kwargs):
     This method performs the scramble mutator. For each child, a subset of genes is chosen
     and their values are shuffled randomly.
     @ In, offSprings, xr.DataArray, offsprings after crossover
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           chromosome, numpy.array, the chromosome that will mutate to the new child
           locs, list, the locations of the genes to be randomly scrambled
@@ -102,7 +101,6 @@ def bitFlipMutator(offSprings, distDict, **kwargs):
     The gene to be flipped is completely random.
     The new value of the flipped gene is is completely random.
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
@@ -128,7 +126,6 @@ def randomMutator(offSprings, distDict, **kwargs):
   """
     This method is designed to randomly mutate a single gene in each chromosome with probability = mutationProb.
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
@@ -155,7 +152,6 @@ def inversionMutator(offSprings, distDict, **kwargs):
     E.g. given chromosome C = [0,1,2,3,4,5,6,7,8,9] and sampled locL=2 locU=6;
          New chromosome  C' = [0,1,6,5,4,3,2,7,8,9]
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offSprings, xr.DataArray, children resulting from the crossover process
@@ -170,7 +166,7 @@ def inversionMutator(offSprings, distDict, **kwargs):
       seq = np.arange(locL,locU+1)
       allElems = []
       for i,elem in enumerate(seq):
-        allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
+         allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
 
       mirrSeq = allElems[::-1]
       mirrElems = []
@@ -194,6 +190,26 @@ def locationsGenerator(offSprings,locs):
   loc1 = np.minimum(locs[0], locs[1])
   loc2 = np.maximum(locs[0], locs[1])
   return loc1, loc2
+
+def getLinearMutationProbability(iter, limit):
+  """
+  This method is designed to DHM(Decreasing High Mutation) adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(iteration / limit) as mutation rate
+  """
+  return 1-(iter/limit)
+
+def getQuadraticMutationProbability(iter, limit):
+  """
+  This method is designed to Quadratic adaptive mutation methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, 1-(((1+iteration)/limit))^2 as mutation rate
+  """
+  if(iter == 0):
+    mutationProb = 1
+  else:
+    mutationProb = 1-(((iter+1)/(limit))**2)
+  return mutationProb
 
 __mutators = {}
 __mutators['swapMutator']       = swapMutator

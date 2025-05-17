@@ -34,6 +34,8 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
     </IOStep>
   </Steps>
 
@@ -55,7 +57,7 @@
       <samplerInit>
         <limit>20</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
+        <writeSteps>every</writeSteps>
         <type>min, max</type>
       </samplerInit>
       <GAparams>
@@ -69,8 +71,7 @@
             <mutationProb>0.8</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst">
-        </fitness>
+        <fitness type="feasibleFirst"></fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
       <convergence>
@@ -111,7 +112,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,obj1,obj2,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
+      <Output>x,y,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
     </PointSet>
   </DataObjects>
 
@@ -125,5 +126,15 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
+    <Plot name = "opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x, y , obj1, obj2</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source> opt_export</source>
+      <vars>x, y , obj1, obj2</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
   </OutStreams>
 </Simulation>

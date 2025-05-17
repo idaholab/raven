@@ -189,6 +189,10 @@
                                                                 | batch                              |
                                                                 | batchId                            |
                                                                 | bestFitness                        |
+<<<<<<< HEAD
+=======
+                                                                | bestObjective                      |
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
                                                                 | bestPoint                          |
                                                                 | constraintsV                       |
                                                                 | convergenceOptions                 |
@@ -231,6 +235,11 @@
                                                                 | _popDist                           |
                                                                 | _rejectOptPoint                    |
                                                                 | _resolveNewGeneration              |
+<<<<<<< HEAD
+=======
+                                                                | _resolveNewGenerationMulti         |
+                                                                | _solutionExportUtilityUpdate       |
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
                                                                 | _submitRun                         |
                                                                 | _updateConvergence                 |
                                                                 | _updatePersistence                 |
@@ -260,10 +269,17 @@ from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
+from .crossOverOperators.crossovers import getLinearCrossoverProbability
+from .crossOverOperators.crossovers import getQuadraticCrossoverProbability
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
+from .mutators.mutators import getLinearMutationProbability
+from .mutators.mutators import getQuadraticMutationProbability
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .survivorSelection import survivorSelection as survivorSelectionProcess
+<<<<<<< HEAD
 from .constraintHandling.constraintHandling import constraintHandling
+=======
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
 # Internal Modules End------------------------------------------------------------------------------
@@ -659,22 +675,35 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
+    if self._crossoverType not in ['onePointCrossover','twoPointsCrossover','uniformCrossover']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support onePointCrossover, twoPointsCrossover and uniformCrossover as a crossover, whereas provided crossover is {self._crossoverType}')
     if crossoverNode.findFirst('points') is None:
       self._crossoverPoints = None
     else:
       self._crossoverPoints = crossoverNode.findFirst('points').value
+    crossoverProbNode = crossoverNode.findFirst('crossoverProb')
+    try:
+      self._crossoverProbType = crossoverProbNode.parameterValues['type']
+    except:
+      self._crossoverProbType = 'static'
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
-
     ####################################################################################
     # mutation node                                                                    #
     ####################################################################################
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
+    if self._mutationType not in ['swapMutator','scrambleMutator','inversionMutator','bitFlipMutator','randomMutator']:
+      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support swapMutator, scrambleMutator, inversionMutator, bitFlipMutator, and randomMutator as a mutator, whereas provided mutator is {self._mutationType}')
     if mutationNode.findFirst('locs') is None:
       self._mutationLocs = None
     else:
       self._mutationLocs = mutationNode.findFirst('locs').value
+    mutationProbNode = mutationNode.findFirst('mutationProb')
+    try:
+      self._mutationProbType = mutationProbNode.parameterValues['type']
+    except:
+      self._mutationProbType = 'static'
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
 
@@ -868,9 +897,9 @@ class GeneticAlgorithm(RavenSampled):
       # 7. Reproduction
       # 7.1 Crossover
       childrenXover = self._crossoverInstance(parents=parents,
-                                              variables=list(self.toBeSampled),
-                                              crossoverProb=self._crossoverProb,
-                                              points=self._crossoverPoints)
+                                                variables=list(self.toBeSampled),
+                                                crossoverProb=crossoverProb,
+                                                points=self._crossoverPoints)
 
       # 7.2 Mutation
       childrenMutated = self._mutationInstance(offSprings=childrenXover,

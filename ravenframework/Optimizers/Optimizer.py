@@ -80,8 +80,8 @@ class Optimizer(AdaptiveSampler):
     # objective variable
     specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringListType, strictMode=True,
         printPriority=90, # more important than <variable>
-        descr=r"""Name of the response variable (or ``objective function'') that should be optimized
-        (minimized or maximized)."""))
+        descr=r"""Name of the objective variable(s) (or ``objective function'') that should be optimized
+        (minimized or maximized). It can be a single string or a list of strings if it is a multi-objective problem. """))
 
     # modify Sampler variable nodes
     variable = specs.getSub('variable')
@@ -104,8 +104,10 @@ class Optimizer(AdaptiveSampler):
               so this seed must be changed to observe changed behavior. \default{RAVEN-determined}""")
     #Saddly, we don't have the below feature yet.
     #minMaxEnumList = InputTypes.makeEnumListType('MinMax', 'MinMaxType', ['min', 'max'])
+    ## TODO: maybe add makeEnumListType to InputTypes
+
     minMaxList = InputTypes.StringListType()
-    minMax = InputData.parameterInputFactory('type', contentType=minMaxList,
+    minMax = InputData.parameterInputFactory('type', contentType=list(minMaxList),
         descr=r"""the type of optimization to perform. \xmlString{min} will search for the lowest
               \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
         For multi-objective, this can be a list like min, max.""")

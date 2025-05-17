@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
+<<<<<<< HEAD
     <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_MinwoRepFeasibleFirst</name>
     <author>Mohammad Abdo</author>
     <created>2024-04-27</created>
@@ -11,6 +12,13 @@
     The design/serach variables are x1, through x3. Each of these variables are integers between 2, and 4.
     The problem is subjected to constraints: expConstr1, ixpConstr2, ixpConstr3 found at myCOnstraints.py
     </description>
+=======
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
+    <author>Mohammad Abdo</author>
+    <created>2024-04-27</created>
+    <classesTested/>
+    <description>NSGA-II min-min test </description>
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
   </TestInfo>
 
   <RunInfo>
@@ -67,13 +75,21 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
+<<<<<<< HEAD
         <limit>5</limit>
+=======
+        <limit>10</limit>
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min, max</type>
       </samplerInit>
       <GAparams>
+<<<<<<< HEAD
         <populationSize>10</populationSize>
+=======
+        <populationSize>5</populationSize>
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -103,13 +119,23 @@
       <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+<<<<<<< HEAD
+=======
+      <!-- <Constraint class='Functions' type='External'>expConstr1</Constraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint> -->
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
     </GeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
+<<<<<<< HEAD
         <limit>10</limit>
+=======
+        <limit>5</limit>
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -121,6 +147,18 @@
       <variable name="x3">
         <distribution>woRep_dist</distribution>
       </variable>
+<<<<<<< HEAD
+=======
+      <!-- <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable> -->
+>>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
     </MonteCarlo>
   </Samplers>
 

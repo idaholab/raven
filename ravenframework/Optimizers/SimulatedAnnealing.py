@@ -191,6 +191,7 @@ class SimulatedAnnealing(RavenSampled):
     self._coolingMethod = None                                  # initializing cooling method
     self._coolingParameters = {}                                # initializing the cooling schedule parameters
     self.info = {}
+    self._canHandleMultiObjective = False                       # Currently Simulated Annealing can only handle single objective
 
   def handleInput(self, paramInput):
     """
@@ -319,7 +320,7 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, None
     """
     traj = info['traj']
-    if len(self._objectiveVar) > 1:
+    if self._isMultiObjective:
       self.raiseAnError(IOError, 'Simulated Annealing does not support multiObjective yet! objective variable must be a single variable for now!')
     info['optVal'] = rlz[self._objectiveVar[0]]
     self.incrementIteration(traj)
