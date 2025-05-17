@@ -107,7 +107,7 @@ class Optimizer(AdaptiveSampler):
     ## TODO: maybe add makeEnumListType to InputTypes
 
     minMaxList = InputTypes.StringListType()
-    minMax = InputData.parameterInputFactory('type', contentType=list(minMaxList),
+    minMax = InputData.parameterInputFactory('type', contentType=minMaxList,
         descr=r"""the type of optimization to perform. \xmlString{min} will search for the lowest
               \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
         For multi-objective, this can be a list like min, max.""")

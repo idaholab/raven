@@ -366,6 +366,7 @@ class RavenSampled(Optimizer):
       # Raise debug message for the entire formatted string
       self.raiseADebug(templateNoValue.format(status='converged', traj=traj)+formattedValuesString.format(formattedValues))
       if bestValue is None or val < bestValue:
+        bestTraj = traj
         bestValue = val
 
     if bestValue is not None:

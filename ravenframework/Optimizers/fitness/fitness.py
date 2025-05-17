@@ -26,7 +26,6 @@ from ..parentSelectors.parentSelectors import countConstViolation
 # External Imports
 import numpy as np
 import xarray as xr
-import sys
 # Internal Imports
 from ... import MessageHandler # makes sure getMessageHandler is defined
 mh = getMessageHandler()

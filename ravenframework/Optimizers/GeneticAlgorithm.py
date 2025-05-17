@@ -189,10 +189,6 @@
                                                                 | batch                              |
                                                                 | batchId                            |
                                                                 | bestFitness                        |
-<<<<<<< HEAD
-=======
-                                                                | bestObjective                      |
->>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
                                                                 | bestPoint                          |
                                                                 | constraintsV                       |
                                                                 | convergenceOptions                 |
@@ -235,11 +231,6 @@
                                                                 | _popDist                           |
                                                                 | _rejectOptPoint                    |
                                                                 | _resolveNewGeneration              |
-<<<<<<< HEAD
-=======
-                                                                | _resolveNewGenerationMulti         |
-                                                                | _solutionExportUtilityUpdate       |
->>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
                                                                 | _submitRun                         |
                                                                 | _updateConvergence                 |
                                                                 | _updatePersistence                 |
@@ -276,10 +267,7 @@ from .mutators.mutators import getLinearMutationProbability
 from .mutators.mutators import getQuadraticMutationProbability
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .survivorSelection import survivorSelection as survivorSelectionProcess
-<<<<<<< HEAD
 from .constraintHandling.constraintHandling import constraintHandling
-=======
->>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 from .repairOperators.repair import returnInstance as repairReturnInstance
 # Internal Modules End------------------------------------------------------------------------------
@@ -304,7 +292,7 @@ class GeneticAlgorithm(RavenSampled):
                          at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$
                          For multiobjective problems, a comma separated list of objective
                          values should be provided instead of a single value.
-                        \default{1e-6}, if no criteria specified.""",
+                        \default{0.0} for all objectives, if no criteria specified.""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
                         'AHD': r""" provides the desired value for the Hausdorff Distance between populations""",
                         'HDSM': r""" provides the desired value for the Hausdorff Distance Similarity Measure between populations.
@@ -675,8 +663,6 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
-    if self._crossoverType not in ['onePointCrossover','twoPointsCrossover','uniformCrossover']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support onePointCrossover, twoPointsCrossover and uniformCrossover as a crossover, whereas provided crossover is {self._crossoverType}')
     if crossoverNode.findFirst('points') is None:
       self._crossoverPoints = None
     else:
@@ -693,8 +679,6 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
-    if self._mutationType not in ['swapMutator','scrambleMutator','inversionMutator','bitFlipMutator','randomMutator']:
-      self.raiseAnError(IOError, f'Currently constrained Genetic Algorithms only support swapMutator, scrambleMutator, inversionMutator, bitFlipMutator, and randomMutator as a mutator, whereas provided mutator is {self._mutationType}')
     if mutationNode.findFirst('locs') is None:
       self._mutationLocs = None
     else:
@@ -760,7 +744,7 @@ class GeneticAlgorithm(RavenSampled):
           self._convergenceCriteria[sub.name] = sub.value
     if not self._convergenceCriteria:
       self.raiseAWarning('No convergence criteria given; using defaults.')
-      self._convergenceCriteria['objective'] = 1e-6
+      self._convergenceCriteria['objective'] = [0.0] * len(self._objectiveVar)
     if self._requiredPersistence is None:
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
@@ -896,16 +880,33 @@ class GeneticAlgorithm(RavenSampled):
 
       # 7. Reproduction
       # 7.1 Crossover
+          # if crossover probability is a float, keep it as is. But, If it's a string, called appropriate function.
+      if(self._crossoverProbType == "static"):
+        crossoverProb = self._crossoverProb
+      elif(self._crossoverProb.lower() == "linear"):
+        crossoverProb = getLinearCrossoverProbability(self.getIteration(traj),self.limit)
+      elif(self._crossoverProb.lower() == "quadratic"):
+        crossoverProb = getQuadraticCrossoverProbability(self.getIteration(traj),self.limit)
+      else:
+        self.raiseAnError(IOError, "{} is not implemeted!. Currently only 'linear' and 'quadratic' are implemented".format(self._crossoverProb))
       childrenXover = self._crossoverInstance(parents=parents,
                                                 variables=list(self.toBeSampled),
                                                 crossoverProb=crossoverProb,
                                                 points=self._crossoverPoints)
 
       # 7.2 Mutation
+      if(self._mutationProbType == "static"):
+        mutationProb = self._mutationProb
+      elif(self._mutationProb.lower() == "linear"):
+        mutationProb = getLinearMutationProbability(self.getIteration(traj),self.limit)
+      elif(self._mutationProb.lower() == "quadratic"):
+        mutationProb = getQuadraticMutationProbability(self.getIteration(traj),self.limit)
+      else:
+        self.raiseAnError(IOError, "{} is not implemeted!. Currently only 'linear' and 'quadratic' are implemented".format(self._mutationProb))
       childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                distDict=self.distDict,
                                                locs=self._mutationLocs,
-                                               mutationProb=self._mutationProb,
+                                               mutationProb=mutationProb,
                                                variables=list(self.toBeSampled))
 
       # 8. repair/replacement

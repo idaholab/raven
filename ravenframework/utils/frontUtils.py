@@ -67,7 +67,6 @@ def nonDominatedFrontier(data, returnMask,minMask=None, isFitness=False):
     else:
       nondominatedPointMask = np.any(data > data[nextPointIndex], axis=1) | np.all(data == data[nextPointIndex], axis=1)
     nonDominatedFrontier = nonDominatedFrontier[nondominatedPointMask]
-
     data = data[nondominatedPointMask]
     nextPointIndex = np.sum(nondominatedPointMask[:nextPointIndex])+1
   if returnMask:
