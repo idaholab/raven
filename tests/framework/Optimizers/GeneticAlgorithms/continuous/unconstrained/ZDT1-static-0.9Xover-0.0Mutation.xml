@@ -122,11 +122,6 @@ obj_2     *                  o
         </fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
-
-      <convergence>
-        <AHDp>0.0</AHDp>
-      </convergence>
-
       <variable name="x1">
         <distribution>unifDist</distribution>
       </variable>
