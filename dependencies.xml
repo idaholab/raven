@@ -84,6 +84,8 @@ Note all install methods after "main" take
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools />
+    <!-- This is because liblapack 3.9.0 build 21 is broken (and can probably be removed if there ever is a build 22).  This can also be removed when scipy is updated to version 1.12 -->
+    <liblapack skip_check='True' os='windows' machine='x86_64'>3.9.0=20_win64_mkl</liblapack>
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <!-- mamba version 2.0.0 causes failures on mac: critical libmamba filesystem error: in permissions: Operation not permitted-->
     <mamba source="mamba" skip_check='True' os='mac'>1.5</mamba>

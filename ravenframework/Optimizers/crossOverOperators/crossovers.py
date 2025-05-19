@@ -153,6 +153,26 @@ def twoPointsCrossover(parents, **kwargs):
 
   return children
 
+def getLinearCrossoverProbability(iter, limit):
+  """
+  This method is designed to ILC(Increasing Low Crossover) adaptive crossover methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out, (iteration / limit) as crossover rate
+  """
+  return iter/limit
+
+def getQuadraticCrossoverProbability(iter, limit):
+  """
+  This method is designed to quadratic adaptive crossover methodology each iteration with probability.
+  @ In, Current iteration number, Total iteration number
+  @ Out,  (iteration+1/limit)^2 as crossover rate
+  """
+  if(iter == 0):
+    crossoverProb = 0
+  else:
+    crossoverProb = ((iter+1)/(limit))**2
+  return crossoverProb
+
 __crossovers = {}
 __crossovers['onePointCrossover']  = onePointCrossover
 __crossovers['twoPointsCrossover'] = twoPointsCrossover

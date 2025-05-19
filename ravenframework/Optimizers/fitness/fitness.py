@@ -26,7 +26,6 @@ from ..parentSelectors.parentSelectors import countConstViolation
 # External Imports
 import numpy as np
 import xarray as xr
-import sys
 # Internal Imports
 from ... import MessageHandler # makes sure getMessageHandler is defined
 mh = getMessageHandler()
@@ -187,6 +186,8 @@ __fitness = {}
 __fitness['invLinear'] = invLinear
 __fitness['logistic']  = logistic
 __fitness['feasibleFirst'] = feasibleFirst
+#NOTE hardConstraint method will be used later once constraintHandling is realized. Until then, it will be commented. @JunyungKim
+# __fitness['hardConstraint'] = hardConstraint
 
 
 def returnInstance(cls, name):
