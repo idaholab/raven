@@ -545,19 +545,18 @@ class Code(Model):
     fileExtensionsToDelete = kwargs['deleteOutExtension']
     deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
 
-
-    if self.outFileRoot is None:
+    codeLogFile = self.outFileRoot
+    if codeLogFile is None:
       codeLogFile = os.path.join(metaData['subDirectory'],'generalOut')
-    else:
-      codeLogFile = os.path.basename(self.outFileRoot)
+      
     ## Before we were temporarily changing directories in order to copy the
     ## correct directory to the subprocess. Instead, we can just set the
     ## directory after we copy it over. -- DPM 5/5/2017
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
-    print(sampleDirectory)
-    print(codeLogFile)
+    if not os.path.exists(os.path.dirname(os.path.join(sampleDirectory,codeLogFile))):
+      os.makedirs(os.path.dirname(os.path.join(sampleDirectory,codeLogFile)), exist_ok=True)
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
     found = False
