@@ -548,7 +548,7 @@ class Code(Model):
     codeLogFile = self.outFileRoot
     if codeLogFile is None:
       codeLogFile = os.path.join(metaData['subDirectory'],'generalOut')
-      
+
     ## Before we were temporarily changing directories in order to copy the
     ## correct directory to the subprocess. Instead, we can just set the
     ## directory after we copy it over. -- DPM 5/5/2017
