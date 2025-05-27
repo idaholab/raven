@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-<<<<<<< HEAD
     <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_ZDT1</name>
     <author>Junyung Kim</author>
     <created>2023-02-21</created>
@@ -53,15 +52,6 @@ obj_2     *                  o
 
     </description>
   </TestInfo>
-=======
-    <name>raven/tests/framework/Optimizers/GA.MultiObjZDT1</name>
-    <author>Junyung Kim</author>
-    <created>2023-02-21</created>
-    <classesTested/>
-    <description>ZDT1 test using NSGA-II</description>
-  </TestInfo>
-
->>>>>>> 3c6da212951e24c9ceb952e8fbe85829436d8e17
   <RunInfo>
     <WorkingDir>ZDT1</WorkingDir>
     <Sequence>optimize,print</Sequence>
