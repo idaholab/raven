@@ -10,7 +10,7 @@ fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 cd $SCRIPT_DIR
 
-VERB=0
+VERB=1
 for i in "$@"
 do
   if [[ $i == "--verbose" ]]
