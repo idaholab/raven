@@ -15,9 +15,9 @@
 
                     Multiphase Flow with Interphase eXchanges
                                   Version: 24.1.1    
-                    Time:  9: 5                    Date:  5- 5-2025
+                    Time: 14:33                    Date:  5-28-2025
 
-       Computer : wr11n36                                           
+       Computer : wr7n14                                            
  _______________________________________________________________________________
 
 
@@ -253,7 +253,7 @@
        Number of particulate phases (MMAX) =  1
 
        M    Model     Diameter        Density      Close_Packed
-       1    CGP      0.50311E-03     13890.             T
+       1    CGP      0.42072E-03     9764.0             T
 
        Gas/Solids Coupling Information:
           Use cell averaging to calculate gas/particle drag.
@@ -266,8 +266,8 @@
             Particle-wall           1000.0         285.71    
 
           Damping Coefficients:     Normal       Tangential
-            Phase 1-Phase 1 =      0.14426E-02    0.72130E-03
-                   -Wall    =      0.20401E-02    0.10201E-02
+            Phase 1-Phase 1 =      0.92493E-03    0.46246E-03
+                   -Wall    =      0.13080E-02    0.65402E-03
 
 
    6. INITIAL CONDITIONS
@@ -353,7 +353,7 @@
          Void fraction (BC_EP_g) =   1.0000    
          Gas pressure (BC_P_g) =  0.10132E+06
          Gas temperature (BC_T_g) =   293.15    
-         Gas mass flow rate (BC_MASSFLOW_g) =  0.18652E-03
+         Gas mass flow rate (BC_MASSFLOW_g) =  0.16232E-03
          X-component of gas velocity (BC_U_g) =   0.0000    
          Z-component of gas velocity (BC_W_g) =   0.0000    
  
