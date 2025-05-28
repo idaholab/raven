@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<VTKFile type="Collection" version="0.1" byte_order="BigEndian">
+<Collection>
+      <DataSet timestep=" 0.0000000E+00" group="" part="0" file="X_SLICE_0000.vtu"/>
+      <DataSet timestep=" 0.1000746E-01" group="" part="0" file="X_SLICE_0001.vtu"/>
+      <DataSet timestep=" 0.2002938E-01" group="" part="0" file="X_SLICE_0002.vtu"/>
+ </Collection>
+ </VTKFile>

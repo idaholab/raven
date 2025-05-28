@@ -1,0 +1,12 @@
+[Tests]
+
+ [./MFiX_Sampling_Submission_Postprocess]
+   type = 'RavenFramework'
+   input = 'MFIX_sampling_submission_postProcess.xml'
+   output = 'MFiX_Sampling_Submission_Postprocess/Run/1/out~MFIX_RAVEN_Temp.csv MFiX_Sampling_Submission_Postprocess/Run/2/out~MFIX_RAVEN_Temp.csv'
+   UnorderedCsv = 'samples.csv'
+   rel_err = 0.01
+   test_interface_only = True
+ [../]
+
+[]

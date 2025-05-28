@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>MFiX_Sampling_JubSubmission_Postprocessing</name>
+    <author>JunyungKim</author>
+    <created>2025-03-20</created>
+    <classesTested>MPISimulationMode</classesTested>
+    <description>
+      This tests running with mpi and a qsub and the MPIParam feature
+    </description>
+    <revisions>
+      <revision author="kimj5"  date="2025-03-20">Test of MFiX sampling, MPI-assisted job submission, and postprocessing using genetic codeInterface</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MFiX_Sampling_Submission_Postprocess</WorkingDir>
+    <Sequence>Run</Sequence>
+    <batchSize>2</batchSize>
+    <NumThreads>28</NumThreads>
+    <NumMPI>1</NumMPI>
+    <expectedTime>00:15:00</expectedTime>
+    <JobName>MFIX_Run</JobName>
+    <NodeParameter> --hostfile</NodeParameter>
+    <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
+    <clusterParameters>--wckey=lwrs --mem=0</clusterParameters>
+    <mode>
+       slurm
+      <runSbatch />
+      <noprecommand/>
+      <MPIParam>--bind-to none</MPIParam>
+    </mode>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="Run">
+      <Input class="Files" type="">mfix_inputDeck</Input>
+      <Input class="Files" type="">mfix_geo</Input>
+      <Input class="Files" type="">mfix_mesh</Input>
+      <Input class="Files" type="">mfix_run</Input>
+      <Model class="Models" type="Code">mfix</Model>
+      <Sampler class="Samplers" type="Stratified">lhs</Sampler>
+      <Output class="DataObjects" type="PointSet">stories</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="mfix_inputDeck" type="">../MFIX_RAVEN_Temp.mfx</Input>
+    <Input name="mfix_geo" type="">../geometry_0001.stl</Input>
+    <Input name="mfix_mesh" type="">../RoundBottomRetort.stl</Input>
+    <Input name="mfix_run" type="">../mfix_run.sh</Input>
+  </Files>
+
+  <Models>
+    <Code name="mfix" subType="MFIX">
+      <executable> bash %FRAMEWORK_DIR%/../tests/framework/CodeInterfaceTests/MFiX/mfix_run.sh</executable>
+      <clargs extension=".mfx" type="input"/>
+      <clargs type="postpend" arg="%CURRENT_ID1%"/>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="charge_size_dist"> <!--Total weight of particles in the system / Unit Kg-->
+      <lowerBound>0.05</lowerBound>
+      <upperBound>0.07</upperBound>
+    </Uniform>
+    <Uniform name="particle_density_dist"> <!-- / Unit Kg/m3-->
+      <lowerBound>5000</lowerBound>
+      <upperBound>16000</upperBound>
+    </Uniform>
+    <Uniform name="massflow_dist">  <!-- / Unit Kg/sec-->
+      <lowerBound>1.4867e-4</lowerBound>
+      <upperBound>2.0813e-4</upperBound>
+    </Uniform>
+    <Uniform name="particle_diameter_dist"> <!-- / Unit m -->
+      <lowerBound>2.5e-04</lowerBound>
+      <upperBound>5.0e-04</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Stratified name="lhs">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="var_charge_size">
+        <distribution>charge_size_dist</distribution>
+        <grid construction="equal" steps="2" type="value">0.05  0.07</grid>
+      </variable>
+      <variable name="var_particle_density">
+        <distribution>particle_density_dist</distribution>
+        <grid construction="equal" steps="2" type="value">5000  16000</grid>
+      </variable>
+      <variable name="var_massflow">
+        <distribution>massflow_dist</distribution>
+        <grid construction="equal" steps="2" type="value">1.4867e-4  2.0813e-4</grid>
+      </variable>
+      <variable name="var_particle_diameter">
+        <distribution>particle_diameter_dist</distribution>
+        <grid construction="equal" steps="2" type="value">2.5e-04  5e-04</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="stories">
+      <Input>
+        avg_part_bedEdge_vx,
+        avg_part_bedEdge_vy,
+        avg_part_bedEdge_vz
+      </Input>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name='samples'>
+      <type>csv</type>
+      <source>stories</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
