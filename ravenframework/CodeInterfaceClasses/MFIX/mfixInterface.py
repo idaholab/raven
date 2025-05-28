@@ -28,7 +28,7 @@ import pickle
 
 class MFIX(GenericCode):
   """
-    MFIX RAVEN interface
+    Barracuda RAVEN interface
   """
 
   def __init__(self):
