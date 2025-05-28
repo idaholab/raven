@@ -30,8 +30,7 @@
 
       $1 \geq obj_1 \geq 0$
 
-      \begin{filecontents*}{\jobname.art}
-
+    \begin{verbatim}
      1.0  *
           *
           *
@@ -56,7 +55,7 @@ obj_2     *                  o
           /.......................................................................
             0            0.2          0.4          0.6          0.8            1.0
                                           obj_1 = x_1
-\end{filecontents*}
+  \end{verbatim}
     </description>
   </TestInfo>
 
