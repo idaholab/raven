@@ -36,5 +36,6 @@
      input = 'kan2.xml'
      csv = 'KAN2/out_resampled.csv'
      rel_err = 5.0
+     zero_threshold = 0.5
   [../]
 []
