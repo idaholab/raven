@@ -102,6 +102,8 @@ Note all install methods after "main" take
     <python>remove</python>
     <nomkl>remove</nomkl>
     <liblapack>remove</liblapack>
+    <pytorch>remove</pytorch>
+    <torch/>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
