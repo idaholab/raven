@@ -89,20 +89,25 @@ class openfoamOutputParser(object):
                         "Install pyvista through pip/conda (conda-forge) or invoke RAVEN installation procedure "
                         "(i.e. establish_conda_env.sh script) with the additional command line option "
                         "'--code-interface-deps'. See User Manual for additiona details!")
+    # pointer to pyvista library
     self._pyvista = pyvista
+    # list of variables to collect
     self._variables = variables
+    # bool. Should the parser write in a dedicated csv file the centroids of the mesh?
     self._writeCentroids = writeCentroids
+    # name of the case directory (directory containing all the input and output folders/files)
     self._caseDirectory = caseDirectory
+    # case file name (OpenFOAM case file name)
     self._caseFileName = caseFileName
+    # bool. check the access time of the outputfiles and wait if too recent?
     self._checkAccessAndWait = checkAccessAndWait
-    self._data = {}
 
   def processOutputs(self):
     """
-      Method to process output files (self._fileTypes)
-      The results are stored in self._data
+      Method to process OpenFOAM output files
+      The results are returned in the results dictionary
       @ In, None
-      @ Out, None
+      @ Out, results, dict, dictionary of results ({'key':np.array}
     """
     variablesFound = []
     results = {}
@@ -146,7 +151,6 @@ class openfoamOutputParser(object):
     if self._variables is not None and len(set(self._variables) - set(variablesFound)) > 0:
       raise RuntimeError(f" The variables {set(self._variables) - set(variablesFound)} "
                          "have not been found in OpenFOAM output")
-
     return results
 
   def checkFieldVariables(self):
@@ -173,19 +177,15 @@ class openfoamOutputParser(object):
       fields = [f.name for f in dir0.iterdir()
         if f.is_file() and not f.name.startswith(".") and f.name not in ignore]
       return sorted(fields)
-
     # now read the variables
     caseDir = pathlib.Path(self._caseDirectory).expanduser().resolve()
     cdict = caseDir / "system" / "controlDict"
     if not cdict.is_file():
       raise FileNotFoundError(f"'system/controlDict' not found in {caseDir}")
-
     timedirs = sorted((d for d in caseDir.iterdir() if d.is_dir() and _TIME_DIR.match(d.name)),
                       key=lambda d: float(d.name))
     lastTimeDir = timedirs[-1].name
-
     fields = initialFields(caseDir, lastTimeDir)
-
     return fields
 
 
@@ -240,7 +240,6 @@ class openfoamOutputParser(object):
           if m:
             dimensions = [int(n) for n in m.group(1).split()]
             continue
-
         if value is None:
           # try vector first
           m = vecRe.search(line)
@@ -252,13 +251,10 @@ class openfoamOutputParser(object):
           if m:
             value = float(m.group(1))
             continue
-
         if dimensions is not None and value is not None:
           break
-
     if dimensions is None or value is None:
       raise RuntimeError(f"Could not find 'dimensions' or 'value' in {path}")
-
     return dimensions, value
 
   def _functionObjectPropertiesParseDict(self, path: pathlib.Path) -> Dict[str, object]:
@@ -315,16 +311,13 @@ class openfoamOutputParser(object):
       fpath = d / "uniform" / "functionObjects" / "functionObjectProperties"
       if not fpath.is_file():
         continue
-
       t = float(d.name)
       parsed.update(self._functionObjectPropertiesParseDict(fpath))
       times.append(t)
-
       # accumulate
       for key, val in parsed.items():
         store.setdefault(key, []).append(val)
-
-    # -- convert to ndarray
+    # convert to ndarray
     times = np.asarray(times)
     data = {k: np.stack(v) for k, v in store.items()}     # scalars become (N,); vectors (N,3)
     return times, data
@@ -345,6 +338,7 @@ class openfoamOutputParser(object):
     # we stay with cell data (no cell -> point interpolation needed here)
     rdr.cell_to_point_creation = False
     # (optional) reconstructed vs decomposed – auto-detect usually fine:
+    # NB. I leave it here in case a more granular control is requested in the future
     # rdr.case_type = "reconstructed"   # or "decomposed"
     return rdr
 
@@ -399,17 +393,14 @@ class openfoamOutputParser(object):
           if foamCasefile is not None
           else caseDir / (caseDir.name + ".foam")
       )
-
     if not foamfile.is_file():
       with open(foamfile, 'w'):
         print(f"OPENFoam Interface: Placeholder '.foam' file not found: {foamfile}. It has been created!")
-
     try:
       # we try to find the field in the "internalMesh" first
       times, values, centroids = self._collect(foamfile, field)
     except KeyError:
       # we return None
       times, values, centroids = None, None, None
-
     return times, values, centroids
 

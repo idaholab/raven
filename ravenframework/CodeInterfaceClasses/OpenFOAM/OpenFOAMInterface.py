@@ -209,12 +209,11 @@ class OpenFOAM(CodeInterfaceBase):
     # since OpenFOAM uses, in most of the workflows, several executables to
     # run preprocessors (e.g. meshing), kernel, postprocessing, we run the bash script (in most of the case, Allrun)
     commandToRun = f'{executableAbsPath}'
-    commandFirstElement = []
+    commandElement = []
     if preExec is not None:
-      #commandFirstElement.append(('serial',preExec))
-      commandToRun = f"openfoam bash -lc {str(pathlib.Path(caseFile.getPath()) / pathlib.Path(executableName))}"
-    commandFirstElement.append(('parallel', commandToRun))
-    returnCommand = commandFirstElement, outputfile
+      commandToRun = f"openfoam bash -lc {executableAbsPath}"
+    commandElement.append(('parallel', commandToRun))
+    returnCommand = commandElement, outputfile
     return returnCommand
 
   def _isValidInput(self, inputFile):
@@ -241,7 +240,7 @@ class OpenFOAM(CodeInterfaceBase):
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
     failure = False
-    badWords  = ['FATAL ERROR']
+    badWords  = ['fatal error']
     try:
       outputToRead = open(os.path.join(workingDir,'log_openfoam'),"r")
     except:
