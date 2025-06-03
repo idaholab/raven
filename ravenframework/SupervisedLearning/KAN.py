@@ -170,3 +170,28 @@ class KAN(SupervisedLearning):
       elif step == 'prune':
         self.model = self.model.prune()
     #XXX implement returning data
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Allows the SVE to put whatever it wants into an XML to print to file.
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, targets, list, optional, list of targets for whom information should be written
+      @ In, skip, list, optional, list of targets to skip
+      @ Out, None
+    """
+    def toWriteTo(value):
+      """
+        Converts to something that writeTo.addVector can use
+        @ In, value, tensor, the array to convert
+        @ Out, dictionary, the dictionary to use
+      """
+      value = value.detach().numpy()
+      return {"item_"+str(i): value[i] for i in range(len(value))}
+
+    for i in range(self.model.depth):
+      prefix = f"act_fun.{i}."
+      writeTo.addScalar("ROM", prefix+"k", self.model.act_fun[i].k)
+      writeTo.addVector("ROM", prefix+"coef", toWriteTo(self.model.act_fun[i].coef))
+      writeTo.addVector("ROM", prefix+"grid", toWriteTo(self.model.act_fun[i].grid))
+      writeTo.addVector("ROM", prefix+"mask", toWriteTo(self.model.act_fun[i].mask))

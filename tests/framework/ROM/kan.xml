@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity='quiet'>
   <TestInfo>
     <name>framework/ROM/kan</name>
     <author>@cogljj</author>
@@ -17,7 +17,7 @@
 
   <RunInfo>
     <WorkingDir>KAN</WorkingDir>
-    <Sequence>load, train_kan, load2, test_kan</Sequence>
+    <Sequence>load, train_kan, load2, test_kan, writemodel</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -31,7 +31,7 @@
       <Features>x1, x2</Features>
       <Target>fx</Target>
       <layers>5,2</layers>
-      <steps>50,prune</steps>
+      <steps>100,100,prune</steps>
       <seed>42</seed>
       <!-- 
       <loss>mean_squared_error</loss>
@@ -78,6 +78,11 @@
       <Output class="DataObjects" type="PointSet">resampled</Output>
       <Output class="OutStreams" type="Print">out_resampled</Output>
     </MultiRun>
+    <IOStep name="writemodel">
+      <Input class="Models" type="ROM">kanrom</Input>
+      <Output class="DataObjects" type="PointSet">modelOut</Output>
+      <Output class="OutStreams" type="Print">modelOut</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -92,12 +97,22 @@
       <Input>x1, x2</Input>
       <Output>fx</Output>
     </PointSet>
+    <PointSet name="modelOut">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
     <Print name="out_resampled">
       <type>csv</type>
       <source>resampled</source>
+    </Print>
+    <Print name="modelOut">
+      <type>csv</type>
+      <source>modelOut</source>
+      <what>input,output</what>
+      <filename>outModel</filename>
     </Print>
   </OutStreams>
 
