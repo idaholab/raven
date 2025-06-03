@@ -166,7 +166,7 @@ def inversionMutator(offSprings, distDict, **kwargs):
       seq = np.arange(locL,locU+1)
       allElems = []
       for i,elem in enumerate(seq):
-         allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
+        allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
 
       mirrSeq = allElems[::-1]
       mirrElems = []
@@ -194,16 +194,19 @@ def locationsGenerator(offSprings,locs):
 def getLinearMutationProbability(iter, limit):
   """
   This method is designed to DHM(Decreasing High Mutation) adaptive mutation methodology each iteration with probability.
-  @ In, Current iteration number, Total iteration number
-  @ Out, 1-(iteration / limit) as mutation rate
+  @ In, iter, integer, current iteration number
+  @ In, limit, integer, total iteration number
+  @ Out, mutationProb, float, the linear adaptive mutation probability
   """
-  return 1-(iter/limit)
+  mutationProb = 1-(iter/limit)
+  return mutationProb
 
 def getQuadraticMutationProbability(iter, limit):
   """
   This method is designed to Quadratic adaptive mutation methodology each iteration with probability.
-  @ In, Current iteration number, Total iteration number
-  @ Out, 1-(((1+iteration)/limit))^2 as mutation rate
+  @ In, iter, integer, current iteration number,
+  @ In, limit, integer, total iteration number
+  @ Out, mutationProb, float, the quadratic adaptive mutation probability
   """
   if(iter == 0):
     mutationProb = 1
