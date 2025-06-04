@@ -106,6 +106,7 @@ class KAN(SupervisedLearning):
     """
     tensorFeatureVals = torch.tensor(featureVals).to(self._device)
     prediction = {}
+    self.model.save_act = False #Decrease work forward calculation does.
     outcome = self.model.forward(tensorFeatureVals)
     npOutcome = outcome.detach().numpy()
     #handle multiple targets
