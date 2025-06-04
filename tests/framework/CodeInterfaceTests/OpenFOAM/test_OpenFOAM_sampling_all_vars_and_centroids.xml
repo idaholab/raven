@@ -20,7 +20,7 @@
        for the correct execution of OpenFOAM (e.g. set up the bash, enviroment variables, etc.).
        In this test, we sample 2 variables: 1) pressure, the pressure field (See file ``p'' in ``0.orig''
        folder), 2) the heat capacity ``Cp'' (see file ``thermophysicalProperties'' in ``constant'' folder).
-       This test is based on the ``framework.CodeInterfaceTests.OpenFOAM.basic'' with the addition
+       This test exercises the usage
        of the option to write centroids (of the field mesh). The centroids are written in a
        CSV file named ``centroids.csv'' and are located in the
        ``stepName/sampleNumber'' (e.g. sample/1, sample/2 etc).
@@ -102,7 +102,7 @@
       </variable>
       <variable name="pressure">
         <distribution>pressure</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.2 0.8</grid>
+        <grid construction="custom" type="CDF">0.2</grid>
       </variable>
     </Grid>
   </Samplers>
