@@ -23,7 +23,6 @@
 
   <Files>
     <Input name="kan_data">kan_data.csv</Input>
-    <!-- <Input name="sine_data_prev">sine_data_prev.csv</Input> -->
   </Files>
 
   <Models>
@@ -31,7 +30,7 @@
       <Features>x1, x2</Features>
       <Target>fx,fx2</Target>
       <layers>5,2</layers>
-      <steps>500,500,prune</steps>
+      <steps>250,250,prune</steps>
       <seed>42</seed>
     </ROM>
   </Models>
