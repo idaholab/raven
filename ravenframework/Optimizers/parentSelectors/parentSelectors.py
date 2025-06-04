@@ -97,6 +97,7 @@ def countConstViolation(const):
   count = sum(1 for i in const if i < 0)
   return count
 
+
 def tournamentSelection(population, **kwargs):
   """
     Tournament Selection mechanism for parent selection
