@@ -202,7 +202,7 @@ An example is shown  below:
 \subsubsection{Files}
 \label{subsub:OpenFOAMfiles}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The \xmlNode{Files} XML node in the OpenFOAM interface has a different meaning with respect other Code Interfaces. Indeed,  since to run OpenFOAM, 
+The \xmlNode{Files} XML node in the OpenFOAM interface has a different meaning with respect to other Code Interfaces. Indeed,  since to run OpenFOAM, 
 several inputs can be provided in multiple subfolders, which are listed using the \xmlNode{directoriesPerturbableInputs} XML node, (e.g. \textbf{constant}, \textbf{system}, \textbf{0} or \textbf{0.orig}.), the OpenFOAM interface accepts
 only a single ``\textbf{.foam}'' file (as input), which  is simply used to ``mark'' the folder containing all the OpenFOAM data/inputs, including the running script  (e.g. \textbf{\textit{Allrun}}).
 \\The interface will use such file to identify the path to the OpenFOAM data/input directory and it will scan for all the input files (perturbable) contained in the  \xmlNode{directoriesPerturbableInputs} sub-directories. 
