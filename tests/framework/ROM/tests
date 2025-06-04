@@ -43,7 +43,7 @@
      input = 'kan3.xml'
      output = 'KAN3/outModel.xml'
      csv = 'KAN3/out_resampled.csv'
-     #rel_err = 5.0
-     #zero_threshold = 0.5
+     rel_err = 0.01
+     zero_threshold = 0.01
   [../]
 []
