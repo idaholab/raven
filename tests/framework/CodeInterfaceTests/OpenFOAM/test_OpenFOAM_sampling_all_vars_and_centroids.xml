@@ -1,0 +1,143 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/OpenFOAM.allVariablesAndCentroids</name>
+    <author>alfoa</author>
+    <created>2025-05-10</created>
+    <classesTested>Models.Code.OpenFOAM</classesTested>
+    <description>
+       An example of using the interface with OpenFOAM for sampling boundary conditions.
+       The test case here used is from the OpenFOAM tutorial folder ``twoSimpleRotors''.
+       In this test it is shown that in the RAVEN context with OpenFOAM, the input file
+       is a different concept since several inputs can be provided
+       and consequentially the user must provide the folder that contains the standard
+       subfolders used by openFOAM (i.e. 0 (or 0.orig), constant, system). The provided folder
+       here MUST contain the ``Allrun'' bash script used to pre-process and run the case.
+       In addition, the folder must contain the ".foam" case file (empty file), which
+       is the INPUT FILE that will be provided to RAVEN.
+       The \\xmlNode{executable} MUST be set to the ``Allrun'' script (or any other bash script to run OpenFOAM).
+       The \\xmlNode{preexec} can be used to run a command or script to set up the enviroment
+       for the correct execution of OpenFOAM (e.g. set up the bash, enviroment variables, etc.).
+       In this test, we sample 2 variables: 1) pressure, the pressure field (See file ``p'' in ``0.orig''
+       folder), 2) the heat capacity ``Cp'' (see file ``thermophysicalProperties'' in ``constant'' folder).
+       This test exercises the usage
+       of the option to write centroids (of the field mesh). The centroids are written in a
+       CSV file named ``centroids.csv'' and are located in the
+       ``stepName/sampleNumber'' (e.g. sample/1, sample/2 etc).
+       In addition, in this test we retrieve all the variables from
+       the interface (basically avoiding to input the ``outputVariables'' in the relative xml node); this means
+       that all the variables from the OpenFOAM simulation are avaialable, but for the sake of this test
+       we collect just few of them (to speed up the regression test).
+    </description>
+ 
+  </TestInfo>
+  <RunInfo>
+    <JobName>openfoam_sampling_all_vars_and_centroids</JobName>
+    <Sequence>sample</Sequence>
+    <WorkingDir>all_variables_and_centroids</WorkingDir>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <!--
+      OpenFOAM input file is a different concept since several inputs can be provided
+      and consequentially the user must indicate the folder that contains the standard
+      subfolders used by openFOAM (i.e. 0 (or 0.orig), constant, system), in the 'subDirectory'
+      attribute. The folder than MUST contain the "Allrun" bash script used to pre-process and run the case.
+      In addition, the ".foam" file must be provided (used to locate the folder) and
+      that, in RAVEN context, represents the Input File.
+    -->
+    <Input name="twoSimpleRotors_FoamCaseFile" type="openfoam" subDirectory="twoSimpleRotors">twoSimpleRotors.foam</Input>
+  </Files>
+
+  <Models>
+    <Code name="openFoam_code" subType="OpenFOAM">
+      
+      <!--
+           Pre-exec here is used to open the openfoam shell
+           (with all the environment variable set)
+      -->
+      <preexec>openfoam</preexec>
+      <!--
+        The executable is ALWAYS the Allrun script that the user must provide
+        (this is a typical workflow in OpenFOAM simulations)
+      -->
+      <executable>Allrun</executable>
+      
+      <!--
+        List of directories that contains OpenFOAM input files for this case
+      -->
+      <directoriesPerturbableInputs>0.orig, constant, system</directoriesPerturbableInputs>
+      
+      <!-- we ask the interface to write the centroids in a dedicated CSV file (that will be written in the realization
+      subfolder (E.g. stepName/1) -->
+      <writeCentroids>True</writeCentroids>
+      <!-- in the following we collect 
+           some function processed variables (e.g. average(p), average(U) )
+           and mesh variables (e.g. T_12, p_12, etc.)
+           the the outputVariables node is not present, all the variables are collected
+      
+      <outputVariables>cumulativeContErr, average(p), average(U)|x, average(U)|y, average(U)|z,
+                       T|12, U|12|x, U|12|y, U|12|z, p|12</outputVariables>
+      -->
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="Cp">
+      <lowerBound>1000</lowerBound>
+      <upperBound>1010</upperBound>
+    </Uniform>
+    <Uniform name="pressure">
+      <lowerBound>1e5</lowerBound>
+      <upperBound>2e5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="MixCp">
+        <distribution>Cp</distribution>
+        <grid construction="custom" type="CDF">0.1</grid>
+      </variable>
+      <variable name="pressure">
+        <distribution>pressure</distribution>
+        <grid construction="custom" type="CDF">0.2</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample" clearRunDir="False">
+      <Input   class="Files" type="opefoam">twoSimpleRotors_FoamCaseFile</Input>
+      <Model   class="Models" type="Code">openFoam_code</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output  class="DataObjects" type="HistorySet">samplesHS</Output>
+      <Output  class="OutStreams" type="Print">samplesHS</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="samplesHS">
+      <Input>MixCp,pressure</Input>
+      <Output>cumulativeContErr, average(p),
+          average(U)|x, average(U)|y, average(U)|z,
+          T|1000, U|1000|x, U|1000|y, U|1000|z, p|1000,
+          T|2000, U|2000|x, U|2000|y, U|2000|z, p|2000,
+          T|3000, U|3000|x, U|3000|y, U|3000|z, p|3000,
+      </Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="samplesHS">
+      <type>csv</type>
+      <source>samplesHS</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -1,0 +1,15 @@
+[Tests]
+ 
+ [./allVariablesAndCentroids]
+   type = 'RavenFramework'
+   input = 'test_OpenFOAM_sampling_all_vars_and_centroids.xml'
+   csv = 'all_variables_and_centroids/samplesHS_0.csv'
+   output =  'all_variables_and_centroids/sample/1/centroids.csv'
+   text = 'all_variables_and_centroids/sample/1/twoSimpleRotors/constant/thermophysicalProperties' 
+   rel_err = 0.0001
+   max_time = 100
+   test_interface_only = True
+   required_libraries='pyvista'
+ [../]
+
+[]

@@ -48,6 +48,7 @@ from .SIMULATE3.SimulateInterface import Simulate
 from .Saphire.SaphireInterface import Saphire
 from .SIMULATE3.SimulateInterface import Simulate
 from .HTPIPE.HTPIPEInterface import HTPIPE
+from .OpenFOAM.OpenFOAMInterface import OpenFOAM
 from .WorkshopExamples.ProjectileInterface import Projectile
 from .WorkshopExamples.ProjectileInterfaceNoCSV import ProjectileNoCSV
 from .WorkshopExamples.BatemanInterface import BatemanSimple
