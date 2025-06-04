@@ -38,4 +38,12 @@
      rel_err = 5.0
      zero_threshold = 0.5
   [../]
+  [./kan_long]
+     type = 'RavenFramework'
+     input = 'kan3.xml'
+     output = 'KAN3/outModel.xml'
+     csv = 'KAN3/out_resampled.csv'
+     #rel_err = 5.0
+     #zero_threshold = 0.5
+  [../]
 []
