@@ -23,5 +23,6 @@ from .KerasRegression import KerasRegression
 from .KerasClassifier import KerasClassifier
 from .ROMCollection import Collection
 from .NDinterpolatorRom  import NDinterpolatorRom
+from .KAN import KAN
 
 from .Factory import factory
