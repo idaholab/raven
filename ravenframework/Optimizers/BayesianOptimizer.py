@@ -150,7 +150,6 @@ class BayesianOptimizer(RavenSampled):
     self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
     self._externalParamOptimizer = 'fmin_l_bfgs_b'                            # Optimizer for external hyperparameter selection
     self._resetModel = False                                                  # Reset regression model if True
-    self._canHandleMultiObjective = False                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
 
   def handleInput(self, paramInput):
     """
