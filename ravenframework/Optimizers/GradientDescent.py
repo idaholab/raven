@@ -212,7 +212,6 @@ class GradientDescent(RavenSampled):
     self._followerProximity = 1e-2   # distance at which annihilation can start occurring, in ?normalized? space
     self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
     self._functionalConstraintExplorationLimit = 500 # number of input-space explorations allowable for functional constraints
-    self._canHandleMultiObjective = False # Currently Gradient Descent cannot handle multiobjective optimization
     # __private
     # additional methods
     # register adaptive sample identification criteria
