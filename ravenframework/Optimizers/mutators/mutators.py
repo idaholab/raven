@@ -211,7 +211,7 @@ def getQuadraticMutationProbability(iter, limit):
   if(iter == 0):
     mutationProb = 1
   else:
-    mutationProb = 1-(((iter+1)/(limit))**2)
+    mutationProb = 1-(((iter)/(limit))**2)
   return mutationProb
 
 __mutators = {}
