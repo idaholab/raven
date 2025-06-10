@@ -50,7 +50,7 @@ class HTPIPE(GenericCode):
     self.geomType = None
     # variable conversion factors
     # pvap, pliq (Pressures) from d/cm2 to Pa
-    self.varConversion = {'pvap': 0.1, 'pvap': 0.1}
+    self.varConversion = {'pvap': 0.1, 'pliq': 0.1}
 
   def findInputFile(self, inputFiles):
     """

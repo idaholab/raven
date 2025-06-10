@@ -284,6 +284,53 @@ def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limitSour
   libs = _combineSources(sourceFiles, opSys, install, addOptional=addOptional, limitSources=limitSources)
   return libs
 
+def getOptionalLibsCodeInterfaces(useOS=None, installMethod=None,  addOptional=False, limitSources=None):
+  """
+    Assembles dictionary of optional libraries from RAVEN supported code interfaces.
+    @ In, useOS, str, optional, if provided then assume given operating system
+    @ In, installMethod, str, optional, if provided then assume given install method
+    @ In, addOptional, bool, optional, if True then add optional libraries to list
+    @ In, limitSources, list(str), optional, limit sections that are read in
+    @ Out, libs, dict, dictionary of libraries {name: version}
+  """
+  opSys = _getOperatingSystem(override=useOS)
+  install = _getInstallMethod(override=installMethod)
+  codeInterfaceClassesFolder = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
+                                                                   '..', 'ravenframework', 'CodeInterfaceClasses')))
+
+  sourceFiles = []
+  codeInterfaces = [x for x in os.listdir(codeInterfaceClassesFolder) if os.path.isdir(os.path.join(codeInterfaceClassesFolder,x))]
+  for codeInterface in codeInterfaces:
+    dep = os.path.join(codeInterfaceClassesFolder,codeInterface, 'dependencies.xml')
+    if os.path.exists(dep):
+      sourceFiles.append(dep)
+  libs = _combineSources(sourceFiles, opSys, install, addOptional=addOptional, limitSources=limitSources)
+  return libs
+
+def checkLibrariesCombatibilityBetweenTwoSets(libsRoot, libsAdditional):
+  """
+    Assembles dictionary of optional libraries from RAVEN supported code interfaces.
+    @ In, libsRoot, dict, dictionary of libraries (root or main) {name: version}
+    @ In, libsAdditional, dict, dictionary of libraries (additional) {name: version}
+    @ Out, None (it errors out if the libraries are not compatible (e.g. different versions of the same library))
+  """
+  libs = set(list(libsRoot.keys()))
+  alibs = set(list(libsAdditional.keys()))
+  if libs.isdisjoint(alibs):
+    # no common libraries between two sets
+    return
+  else:
+    # we need to check that the common libraries have the same version (or no version)
+    libsToCheck = list(libs.intersection(alibs))
+    for lib in libsToCheck:
+      libRootVer = libsRoot[lib]
+      libAdditionalVer = libsAdditional[lib]
+      if libRootVer is not None and libAdditionalVer is not None:
+        if libRootVer.strip() !=  libAdditionalVer.strip():
+          raise ValueError("Incompatible libraries detected between RAVEN and Plugins/Code Interfaces. "
+                           f"RAVEN version for lib '{lib}' is {libRootVer} while Plugins/Code Interfaces requires version {libAdditionalVer}!!")
+
+
 def getSkipCheckLibs(plugins=None):
   """
     Assembles dictionary of libraries that would not be checked.
@@ -477,7 +524,7 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, re
   if libRepo is not None:
     # check if the source is pip
     if libSource != 'pip':
-       raise KeyError('The "repo" ('+str(libRepo)+') attribute can be used in conjunction with source="pip" only! Got '+str(libSource)+'!')
+      raise KeyError('The "repo" ('+str(libRepo)+') attribute can be used in conjunction with source="pip" only! Got '+str(libSource)+'!')
   # otherwise, we have a valid request to handle
   text = libNode.text
   if text is not None:
@@ -540,6 +587,8 @@ if __name__ == '__main__':
         help='Lists the plugins (or none or all) whose libraries should be included. Default: all.')
   mainParser.add_argument('--optional', dest='addOptional', action='store_true',
         help='Include optional libraries in configuration.')
+  mainParser.add_argument('--code-interface-deps', dest='addCodeInterfaceDeps', action='store_true',
+        help='Include specific optional libraries in configuration, which are used in some RAVEN code interfaces.')
   subParsers = mainParser.add_subparsers(help='Choose library installer.', dest='installer')
 
   condaParser = subParsers.add_parser('conda', help='use conda as installer')
@@ -603,7 +652,15 @@ if __name__ == '__main__':
   if args.installer == 'manual':
     # compile the LaTeX lib list
     libs = getRequiredLibs(useOS=args.useOS, installMethod='conda',
-                           addOptional=args.addOptional, plugins=plugins)
+                           addOptional=args.addOptional,
+                           plugins=plugins)
+    if args.addCodeInterfaceDeps:
+      codesLibs = getOptionalLibsCodeInterfaces(useOS=args.useOS,
+                                    installMethod='conda',
+                                    addOptional=args.addOptional)
+      checkLibrariesCombatibilityBetweenTwoSets(libs, codesLibs)
+      libs.update(codesLibs)
+
     msg = '\\begin{itemize}\n'
     for lib, request in libs.items():
       version = request['version']
@@ -660,6 +717,13 @@ if __name__ == '__main__':
                              addOptional=addOptional,
                              limitSources=limit,
                              plugins=plugins)
+      if args.addCodeInterfaceDeps:
+        codesLibs = getOptionalLibsCodeInterfaces(useOS=args.useOS,
+                                      installMethod='conda',
+                                      addOptional=addOptional,
+                                      limitSources=limit)
+        checkLibrariesCombatibilityBetweenTwoSets(libs, codesLibs)
+        libs.update(codesLibs)
       # conda can create, install, or list
       if args.action == 'create':
         action = 'create'
@@ -679,6 +743,15 @@ if __name__ == '__main__':
                              addOptional=args.addOptional,
                              limitSources=None,
                              plugins=plugins)
+
+      if args.addCodeInterfaceDeps:
+        codesLibs = getOptionalLibsCodeInterfaces(useOS=args.useOS,
+                                      installMethod='pip',
+                                      addOptional=args.addOptional,
+                                      limitSources=None)
+        checkLibrariesCombatibilityBetweenTwoSets(libs, codesLibs)
+        libs.update(codesLibs)
+
       if args.action == 'install':
         action = 'install'
       elif args.action == 'list':

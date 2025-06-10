@@ -1,0 +1,5 @@
+<dependencies>
+  <main>
+     <serpentTools  source="pip"/>
+  </main>
+</dependencies>

@@ -105,7 +105,8 @@ class Grid(Sampler):
     for axis, value in grdInfo.items():
       self.gridInfo[axis] = value[0]
     if len(self.toBeSampled.keys()) != len(grdInfo.keys()):
-      self.raiseAnError(IOError, 'inconsistency between number of variables and grid specification')
+      self.raiseAnError(IOError, 'inconsistency between number of variables and grid specification. '
+                        f'Sampled Vars are: {self.toBeSampled.keys()}. Grids Specified for Vars: {grdInfo.keys()}')
     self.axisName = list(grdInfo.keys())
     self.axisName.sort()
     # check that grid in CDF contains values in the [0,1] interval
