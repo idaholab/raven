@@ -50,6 +50,7 @@ starting with \texttt{raven/}, we refer to the cloned directory.
 
 
 \subsubsection{Installing Python Libraries}
+\label{subsec:installPythonLibs}
 RAVEN depends heavily on Python, and uses conda to maintain a separate environment to prevent conflicts with
 other Python library installations.  This separate environment is called \texttt{raven\_libraries}.
 
@@ -98,7 +99,9 @@ include \texttt{--mamba} which uses the mamba instead of conda for
 resolving dependencies, \texttt{--load} which can be used with
 \verb'source ./scripts/establish_conda_env.sh --load' to switch to the
 raven environment in a shell, \texttt{--installation-manager PIP} which
-uses pip instead of conda.
+uses pip instead of conda, \texttt{--code-interface-deps} that installs additional dependencies (Code Interface specific) that might 
+be listed in the Code Interface ``\textbf{dependecies.xml}'' file.
+
 
 \subsubsection{Compiling RAVEN}
 Once Python libraries are established and the source code present, navigate to \texttt{raven} and run

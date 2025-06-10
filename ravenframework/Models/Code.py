@@ -555,6 +555,8 @@ class Code(Model):
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
+    if not os.path.exists(os.path.dirname(os.path.join(sampleDirectory,codeLogFile))):
+      os.makedirs(os.path.dirname(os.path.join(sampleDirectory,codeLogFile)), exist_ok=True)
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
     found = False
