@@ -89,6 +89,10 @@ Note all install methods after "main" take
     <mamba source="mamba" skip_check='True' os='mac'>1.5</mamba>
     <mamba source="mamba" skip_check='True' os='windows,linux' />
     <pydmd source="pip"/>
+    <!-- the next few are for pykan -->
+    <pykan source="pip"/>
+    <pytorch skip_check='True'/>
+    <!-- end pykan dependencies -->
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
@@ -97,6 +101,8 @@ Note all install methods after "main" take
     <python>remove</python>
     <nomkl>remove</nomkl>
     <liblapack>remove</liblapack>
+    <pytorch>remove</pytorch>
+    <torch/>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
