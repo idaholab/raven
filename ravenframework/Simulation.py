@@ -480,6 +480,19 @@ class Simulation(MessageUser):
           # block is specific input block: MonteCarlo, Uniform, PointSet, etc.
           for block in paramInput.subparts:
             blockName = block.getName()
+            # TODO: Design a way to load plugin modules
+            # Basically: check the attribute of block node and identify the corresponding plugins
+            # Examples:
+            # <Samplers>
+            #   <Plugin.MonteCarlo name="MC1">
+            #     <samplerInit>
+            #       <limit>3</limit>
+            #     </samplerInit>
+            #     <variable name="simple_var">
+            #       <distribution>simple</distribution>
+            #     </variable>
+            #   </Plugin.MonteCarlo>
+            # </Samplers>
             entity = module.factory.returnInstance(blockName)
             entity.applyRunInfo(self.runInfoDict)
             entity.handleInput(block, globalAttributes=globalAttributes)

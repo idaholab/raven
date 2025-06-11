@@ -92,3 +92,5 @@ class SamplerPlugin(PluginBase, Sampler):
       @ Out, None
     """
     super().flush()
+
+  # TODO: Identify Common Functions that will be used by Sampler Plugin
