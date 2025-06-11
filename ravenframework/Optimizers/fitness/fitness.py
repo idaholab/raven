@@ -26,7 +26,6 @@ from ..parentSelectors.parentSelectors import countConstViolation
 # External Imports
 import numpy as np
 import xarray as xr
-import sys
 # Internal Imports
 from ... import MessageHandler # makes sure getMessageHandler is defined
 mh = getMessageHandler()
@@ -187,7 +186,6 @@ __fitness = {}
 __fitness['invLinear'] = invLinear
 __fitness['logistic']  = logistic
 __fitness['feasibleFirst'] = feasibleFirst
-
 
 def returnInstance(cls, name):
   """
