@@ -33,6 +33,9 @@ from .Sobol import Sobol
 from .SparseGridCollocation import SparseGridCollocation
 from .EnsembleForward import EnsembleForward
 from .CustomSampler import CustomSampler
+# add EQ sampler montecarlo based
+from .EQMonteCarlo import EQMonteCarlo
+
 
 # Adaptive samplers
 from .LimitSurfaceSearch import LimitSurfaceSearch
@@ -50,6 +53,7 @@ from .MCMC import AdaptiveMetropolis
 
 factory = EntityFactory('Sampler')
 factory.registerType('MonteCarlo'              , MonteCarlo)
+factory.registerType('EQMonteCarlo'            , EQMonteCarlo)
 factory.registerType('Grid'                    , Grid)
 factory.registerType('Stratified'              , Stratified)
 factory.registerType('FactorialDesign'         , FactorialDesign)
