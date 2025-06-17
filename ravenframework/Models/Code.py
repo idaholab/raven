@@ -599,8 +599,10 @@ class Code(Model):
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
     command = command.replace("%PYTHON%", sys.executable)
 
-    if "raven_framework" in sys.executable:
+    if sys.executable.endswith("raven_framework"):
       ravenExecutable = sys.executable
+    elif sys.argv[0].endswith("raven_framework"):
+      ravenExecutable = sys.argv[0]
     elif "python" in os.path.basename(sys.executable) \
           and "raven_framework" in sys.argv[0] \
           and sys.argv[0].endswith(".py"):
