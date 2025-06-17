@@ -245,7 +245,9 @@ class MultiRun(SingleRun):
       # If all of the jobs given to the job handler have finished, and the sampler
       # has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
-        self.raiseADebug(f'Sampling finished with {jobHandler.numSubmitted()} runs submitted, {jobHandler.numRunning()} jobs running, and {len(jobHandler.getFinishedNoPop())} completed jobs waiting to be processed.')
+        self.raiseADebug(f'Sampling finished with {jobHandler.numSubmitted()} runs submitted, '
+                         f'{jobHandler.numRunning()} jobs running, and {len(jobHandler.getFinishedNoPop())} '
+                         'completed jobs waiting to be processed.')
         break
       currentTime = time.time()
       if currentTime > nextReportTime:

@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Samplers/CustomSampler.StringSampler</name>
+    <author>khnguy22</author>
+    <created>2025-05-15</created>
+    <classesTested>Samplers.CustomSampler, Files.Input</classesTested>
+    <description>
+       Test customsampler to sample either string or float then print out to output csv.
+    </description>
+    <revisions>
+      <revision author="khnguy22" date="2025-05-15">Initialized example</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>CustomSamplerString</WorkingDir>
+    <Sequence>CustomSampler</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <Files>
+    <Input name="samples.csv" type="PointSet">samples.csv</Input>
+  </Files>
+
+  <Samplers>
+    <CustomSampler name="customSamplerFile">
+      <Source class="Files" type="">samples.csv</Source>
+      <variable name="x"/>
+      <variable name="str"/>
+    </CustomSampler>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="outCustomSampler">
+      <Input>x,str</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>x,str</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outCustomSampler_dump">
+      <type>csv</type>
+      <source>outCustomSampler</source>
+      <what>input,output,metadata|ProbabilityWeight,metadata|prefix</what>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+    <MultiRun name="CustomSampler">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="CustomSampler">customSamplerFile</Sampler>
+      <Output class="DataObjects" type="PointSet">outCustomSampler</Output>
+      <Output class="Databases" type="HDF5">test_DummyModel_db</Output>
+      <Output class="OutStreams" type="Print">outCustomSampler_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_DummyModel_db" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

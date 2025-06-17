@@ -1,0 +1,21 @@
+[Tests]
+ 
+ [./htpipe_pressure_profile]
+   type = 'RavenFramework'
+   input = 'test_HTPIPE_pressure_profile.xml'
+   csv = 'pressureProfileHTPIPE/samplesHS_0.csv pressureProfileHTPIPE/samplesHS_3.csv'
+   rel_err = 0.0001
+   max_time = 100
+   test_interface_only = True
+ [../]
+
+ [./htpipe_qmax_vs_temperature]
+   type = 'RavenFramework'
+   input = 'test_HTPIPE_qmax_vs_temperature.xml'
+   csv = 'qmaxVsTemperatureHTPIPE/samplesHS_0.csv qmaxVsTemperatureHTPIPE/samplesHS_3.csv'
+   rel_err = 0.0001
+   max_time = 100
+   test_interface_only = True
+ [../]
+
+[]

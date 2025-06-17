@@ -555,6 +555,8 @@ class Code(Model):
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
+    if not os.path.exists(os.path.dirname(os.path.join(sampleDirectory,codeLogFile))):
+      os.makedirs(os.path.dirname(os.path.join(sampleDirectory,codeLogFile)), exist_ok=True)
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
     found = False
@@ -880,7 +882,10 @@ class Code(Model):
     """
     evaluation = finishedJob.getEvaluation()
     if not hasattr(evaluation, 'pop'):
-      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " for job " + str(finishedJob.identifier) + ":" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
+      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " of type " + str(type(evaluation)) + " for job " + str(finishedJob.identifier) + ":" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
+      if isinstance(evaluation, BaseException):
+        import traceback
+        traceback.print_exception(evaluation)
 
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)

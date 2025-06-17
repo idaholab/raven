@@ -20,6 +20,11 @@ where:
 \item  \texttt{ss} is the sub step id (if depletion with sub-steps is activated).
 \end{itemize}
 
+\nb \textcolor{red}{SERPENT outputs are parsed using the external library \href{https://serpent-tools.readthedocs.io/en/master/index.html}{ \textcolor{red}{serpentTools}}, 
+                             which \textbf{IS NOT} a default RAVEN library and consequentially \textbf{REQUIRES} to install RAVEN libraries (as detailed in Sections~\ref{sec:clone raven} and ~\ref{subsec:installPythonLibs} )
+                             using the ``--code-interface-deps'' command line option.} 
+
+
 The interface allows users to run SERPENT by varying values from a 
 template input file using the wildcard approach available through the
 generic code interface. In section \ref{subsec:genericInterface}  information
