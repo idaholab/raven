@@ -185,7 +185,7 @@ class Barracuda(GenericCode):
 
     # Iterate through partKeyText to find the columns with the relevant data in Raw.particle.* 
     for key_text in partKeyText:
-      number = find_text_in_file(partFiles[0], key_text)
+      number = self.find_text_in_file(partFiles[0], key_text)
       if number is not None:
         partCols.append(number)
       else:
@@ -195,7 +195,7 @@ class Barracuda(GenericCode):
     cellFile = self.cellPartFile.replace('*', partFiles[0].split('.')[-1])
     cellFile = os.path.join(workingDir, cellFile)
     for key_text in cellKeyText:
-      number = find_text_in_file(cellFile, key_text)
+      number = self.find_text_in_file(cellFile, key_text)
       if number is not None:
         cellCols.append(number)
       else:
