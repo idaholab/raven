@@ -25,8 +25,9 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from ravenframework.CodeInterfaceClasses.Generic.GenericCodeInterface import GenericCode
 import pickle
+from . import BarracudaParser
 
-class MFIX(GenericCode):
+class Barracuda(GenericCode):
   """
     Barracuda RAVEN interface
   """
@@ -38,8 +39,8 @@ class MFIX(GenericCode):
       @ Out, None
     """
     GenericCode.__init__(self)
-    self.inputExtensions = ['mfx']
-    self.outputExtensions = ['vtp', 'vtu']
+    self.inputExtensions = ['prj','stl', 'sff', 'lay', 'i', 'sty']
+    self.outputExtensions = []
     self.fixedOutFileName = None
     self.caseName = None
 
@@ -54,8 +55,10 @@ class MFIX(GenericCode):
     self.rHem = 0.0045  # radius of hemispherical section at the bottom of the cone
     self.hOff = self.rHem / np.tan(np.pi / 6)  # height of the cone at the bottom of the cone ( height of the hemispherical section)
     self.nYMesh = 115
-    self.basePartFile = 'BACKGROUND_IC_*.vtp' # Polygonal data, 2D grid, like the unstructured grid, but there are no polyhedra, but only flat polygons.
-    self.cellPartFile = 'X_SLICE_*.vtu' # Unstructured grid: 2D or 3D grid; for every grid point all three coordinates and for each grid cell all constituent points and the cell shape are given
+    # self.basePartFile = 'BACKGROUND_IC_*.vtp' # Polygonal data, 2D grid, like the unstructured grid, but there are no polyhedra, but only flat polygons.
+    self.basePartFile = 'Raw.particle.*' # Polygonal data, 2D grid, like the unstructured grid, but there are no polyhedra, but only flat polygons.
+    # self.cellPartFile = 'X_SLICE_*.vtu' # Unstructured grid: 2D or 3D grid; for every grid point all three coordinates and for each grid cell all constituent points and the cell shape are given
+    self.cellPartFile = 'Raw.cell.*' # Unstructured grid: 2D or 3D grid; for every grid point all three coordinates and for each grid cell all constituent points and the cell shape are given
     self.moveAgeWindow = 5
     self.errTol = 0.0001
     # self.heightBin = 0.01
@@ -79,34 +82,60 @@ class MFIX(GenericCode):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    super().initialize(runInfo, oriInputFiles)
-    with open(oriInputFiles[0].getAbsFile()) as mfix_inputFile: #NOTE: Rather than calling oriInputFiles[0], can we call MFiX input file?
-      lines = mfix_inputFile.readlines()
-      for line in lines:
-        if 'nodesi' in line:
-          try:
-            words = line.split()
-            nodesi = int(words[-1])
-          except ValueError:
-            raise IOError('The nodesi entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
-        if 'nodesj' in line:
-          try:
-            words = line.split()
-            nodesj = int(words[-1])
-          except ValueError:
-            raise IOError('The nodesj entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
-        if 'nodesk' in line:
-          try:
-            words = line.split()
-            nodesk = int(words[-1])
-          except ValueError:
-            raise IOError('The nodesk entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
+    # Delete remainder of section
+    # super().initialize(runInfo, oriInputFiles)
+    # with open(oriInputFiles[0].getAbsFile()) as mfix_inputFile: #NOTE: Rather than calling oriInputFiles[0], can we call MFiX input file?
+    #   lines = mfix_inputFile.readlines()
+    #   for line in lines:
+    #     if 'nodesi' in line:
+    #       try:
+    #         words = line.split()
+    #         nodesi = int(words[-1])
+    #       except ValueError:
+    #         raise IOError('The nodesi entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
+    #     if 'nodesj' in line:
+    #       try:
+    #         words = line.split()
+    #         nodesj = int(words[-1])
+    #       except ValueError:
+    #         raise IOError('The nodesj entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
+    #     if 'nodesk' in line:
+    #       try:
+    #         words = line.split()
+    #         nodesk = int(words[-1])
+    #       except ValueError:
+    #         raise IOError('The nodesk entry in the MFiX input file appears to be missing or not a numeric value. Please verify your MFiX input file.' )
 
-    if runInfo['NumThreads'] == nodesi*nodesj*nodesk:
-      pass
-    else:
-      raise IOError('The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file. Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )
+    # if runInfo['NumThreads'] == nodesi*nodesj*nodesk:
+    #   pass
+    # else:
+    #   raise IOError('The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file. Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )
 
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType,
+                     **Kwargs):
+
+    """
+      This method is used to generate an input based on the information passed in.
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+            where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
+
+    for inputFile in self.currentInputFiles:
+      if inputFile.getExt() == "prj":
+        infiles = inputFile
+        break
+    
+    BarracudaParser.BarracudaParser(infiles,**Kwargs)
+
+    # Not sure about the status or content of currentInputFiles. Is this needed for a later RAVEN step? 
+
+    return currentInputFiles  
+  
+  
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present).
@@ -146,41 +175,79 @@ class MFIX(GenericCode):
                     'avg_part_bedEdge_vy':[],
                     'avg_part_bedEdge_vz':[]
                     }
+    # From cell files I want cell file "Cell center x", "Cell center y","Cell center z", "Particle volume fraction"
+    # From part files I want "X position", "Y position", "Z position", "Particle u", "Particle v", "Particle w"
+    # Finding columns containing the data
+    partKeyText = ["X position", "Y position", "Z position", "Particle u", "Particle v", "Particle w"]
+    partCols = []
+    cellKeyText = ["Cell center x", "Cell center y","Cell center z", "Particle volume fraction"]
+    cellCols = []
+
+    # Iterate through partKeyText to find the columns with the relevant data in Raw.particle.* 
+    for key_text in partKeyText:
+      number = find_text_in_file(partFiles[0], key_text)
+      if number is not None:
+        partCols.append(number)
+      else:
+        print(f'Text "{key_text}" not found or the value is not an integer.')
+
+    # Iterate through cellKeyText to find the columns with the relevant data in Raw.cell.*
+    cellFile = self.cellPartFile.replace('*', partFiles[0].split('.')[-1])
+    cellFile = os.path.join(workingDir, cellFile)
+    for key_text in cellKeyText:
+      number = find_text_in_file(cellFile, key_text)
+      if number is not None:
+        cellCols.append(number)
+      else:
+        print(f'Text "{key_text}" not found or the value is not an integer.')
+
 
     for i, filename in enumerate(sorted(partFiles)):
-      num = filename.split('_')[-1].split('.')[0]
-      timeVar = int(num) / 100
+      # num = filename.split('_')[-1].split('.')[0]
+      # timeVar = int(num) / 100
+      postfix = filename.split('particle.')[-1]
+      num = postfix.split('_')[-1]
+      timeVar = float(num)
       cellFile = self.cellPartFile.replace('*', num)
       cellFile = os.path.join(workingDir, cellFile)
       try:
-        mesh = pv.read(cellFile)  # reading the cell file
+        mesh = pd.read_csv(cellFile, comment='#', sep='\s+', usecols=cellCols, names=cellKeyText)
+        # mesh = pv.read(cellFile)  # reading the cell file
         # mesh.plot()
       except:
         print('Skipping %s because %s does not exist' %(filename, cellFile))
 
       try:
-        partBase = pv.read(filename)  # reading the particle files
+        partBase = pd.read_csv(filename, comment='#', sep='\s+', usecols=partCols, names=partKeyText)
+        # partBase = pv.read(filename)  # reading the particle files
       except:
         print('Skipping %s because %s does not exist' %('The Code', filename))
 
-      part = partBase.points  # extracting the center locations for the particles
-      # Available variables in current model: ['Velocity Magnitude', 'Diameter', 'Velocity']
-      if 'Velocity' not in partBase.array_names:
-        raise IOError(f"Variable 'Velocity' is not present in file {filename}")
-      partVel = partBase.get_array("Velocity")  # extracting the velocity for the particles
-      centCoord = mesh.cell_centers().points  # extracting the cell center locations
-      # Available variables in current model: ['EP_G', 'U_G', 'V_G', 'W_G']
-      # EP_G: void fraction; U_G, V_G, and W_G: Gas velocity
-      if 'EP_G' not in mesh.array_names:
-        raise IOError(f"Variable 'EP_G' is not present in file {cellFile}")
-      volFrac = mesh.get_array('EP_G')  # extracting the cell volume fractions
+      part = partBase[["X position", "Y position", "Z position"]]
+      partVel = partBase[["Particle u", "Particle v", "Particle w"]]
+      centCoord = mesh[["Cell center x", "Cell center y","Cell center z"]]
+      volFrac = mesh[["Particle volume fraction"]]
 
-      yMinCell = np.min(centCoord[:, 1])  # finding the minimum y value for cells
-      yMaxCell = np.max(centCoord[:, 1])  # finding the maximum y value for cells
+      # part = partBase.points  # extracting the center locations for the particles
+      # # Available variables in current model: ['Velocity Magnitude', 'Diameter', 'Velocity']
+      # if 'Velocity' not in partBase.array_names:
+      #   raise IOError(f"Variable 'Velocity' is not present in file {filename}")
+      # partVel = partBase.get_array("Velocity")  # extracting the velocity for the particles
+      # centCoord = mesh.cell_centers().points  # extracting the cell center locations
+      # # Available variables in current model: ['EP_G', 'U_G', 'V_G', 'W_G']
+      # # EP_G: void fraction; U_G, V_G, and W_G: Gas velocity
+      # if 'EP_G' not in mesh.array_names:
+      #   raise IOError(f"Variable 'EP_G' is not present in file {cellFile}")
+      # volFrac = mesh.get_array('EP_G')  # extracting the cell volume fractions
+
+      yMinCell = centCoord["Cell center z"].min()
+      yMaxCell = centCoord["Cell center z"].max()
+      # yMinCell = np.min(centCoord[:, 1])  # finding the minimum y value for cells
+      # yMaxCell = np.max(centCoord[:, 1])  # finding the maximum y value for cells
       bins = np.linspace(yMinCell, yMaxCell, num=self.nYMesh, endpoint=True)  # creating a linspace with the same number of cells as the simulation
       # bins = np.linspace(yMinCell, yMaxCell, num=self.nYMesh)  # creating a linspace with the same number of cells as the simulation
       self._bins = bins
-      avgVolFrac = self.processVolumeFraction(centCoord, volFrac, bins)
+      avgVolFrac = self.processVolumeFraction(centCoord.to_numpy(), volFrac.to_numpy(), bins)
       # utilizing moving average to compute the average void fraction, and use it to determine the bed height
       cow = self.movingAvg(avgVolFrac[:, 3], self.moveAgeWindow)
       err, EPGBed, hBed = self.processError(avgVolFrac, cow)
@@ -190,17 +257,24 @@ class MFIX(GenericCode):
       avgVolFracDict[timeVar] = np.atleast_1d(avgVolFrac[:, 3])
       cowDict[timeVar] = np.atleast_1d(cow)
       #########################################################
+      
+      sizeVolFrac = len(volFrac["Particle volume fraction"])
+      sizeCoord = len(centCoord["Cell center x"])
 
-      sizeVolFrac = len(volFrac)  # finding the number of volume fractions
-      sizeCoord = len(centCoord[:, 0])  # finding the number of cell center coordinate locations
+      # sizeVolFrac = len(volFrac)  # finding the number of volume fractions
+      # sizeCoord = len(centCoord[:, 0])  # finding the number of cell center coordinate locations
 
       if sizeVolFrac == sizeCoord:  # check to make sure the number of volume fractions and cell centers is the same
 
         # move the bottom of the cone to (0, 0, 0)
-        normPart = part + self.translationVector
-        x = normPart[:, 0]
-        z = normPart[:, 1]
-        y = normPart[:, 2]
+        normPart = part
+        # normPart = part + self.translationVector
+        x = normPart["X position"].to_numpy()
+        z = normPart["Z position"].to_numpy()
+        y = normPart["Y position"].to_numpy()
+        # x = normPart[:, 0]
+        # z = normPart[:, 1]
+        # y = normPart[:, 2]
         # distance from the z-axis
         r = np.sqrt(x**2 + y**2)
 
@@ -222,16 +296,9 @@ class MFIX(GenericCode):
 
         # collected data: bedEdge, bedPart, spoutPart for each file
         outputResults['time'].append(timeVar)
-        # outputResults['bed_height'].append(hBed)
-        # outputResults['avg_part_bed_vx'].append(np.average(bedPart[:,3]))
-        # outputResults['avg_part_bed_vy'].append(np.average(bedPart[:,4]))
-        # outputResults['avg_part_bed_vz'].append(np.average(bedPart[:,5]))
         outputResults['avg_part_bedEdge_vx'].append(np.average(bedEdgePartVel[:,0]))
         outputResults['avg_part_bedEdge_vy'].append(np.average(bedEdgePartVel[:,1]))
         outputResults['avg_part_bedEdge_vz'].append(np.average(bedEdgePartVel[:,2]))
-        # outputResults['avg_part_spout_vx'].append(np.average(spoutPart[:,3]))
-        # outputResults['avg_part_spout_vy'].append(np.average(spoutPart[:,4]))
-        # outputResults['avg_part_spout_vz'].append(np.average(spoutPart[:,5]))
 
         # Save the void fraction data
         for i, bin in enumerate(bins):
@@ -250,58 +317,26 @@ class MFIX(GenericCode):
         bedEdgeVyData.append(avgBedEdgePartVel[:,1])
         bedEdgeVzData.append(avgBedEdgePartVel[:,2])
 
-    # voidFracData = xr.DataArray(np.asarray(voidFracData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
-    # bedEdgeVxData = xr.DataArray(np.asarray(bedEdgeVxData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
-    # bedEdgeVyData = xr.DataArray(np.asarray(bedEdgeVyData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
-    # bedEdgeVzData = xr.DataArray(np.asarray(bedEdgeVzData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
+    # commenting out this last section, unsure how it is used.
+    # # convert list to numpy array
+    # for key, val in outputResults.items():
+    #   outputResults[key] = np.asarray(val)
 
-    # self._dataSet['void_frac'] = voidFracData
-    # self._dataSet['bed_edge_vx'] = bedEdgeVxData
-    # self._dataSet['bed_edge_vy'] = bedEdgeVyData
-    # self._dataSet['bed_edge_vz'] = bedEdgeVzData
+    # # # TODO: update the calculation 'avg_part_bedEdge_vy'
+    # # outputResults['avg_edge_velocity'] = allEdgeSpaceAverage[:, 1]
 
-    # hBedAvg = np.average(heights[:,1])
-    # _, allEdgeSpaceAverage, avgAllEdgeSpaceAverage = self.calculateEdgeVelocityProfile(bedEdgeDict, hBedAvg)
+    # df = pd.DataFrame(outputResults)
+    # # df.to_csv(os.path.join(workingDir,r'out_with_edge.csv'))
+    # df.to_csv(os.path.join(workingDir,r'out~MFIX_RAVEN_Temp.csv'))
 
-    # convert list to numpy array
-    for key, val in outputResults.items():
-      outputResults[key] = np.asarray(val)
-
-    # # TODO: update the calculation 'avg_part_bedEdge_vy'
-    # outputResults['avg_edge_velocity'] = allEdgeSpaceAverage[:, 1]
-
-    df = pd.DataFrame(outputResults)
-    # df.to_csv(os.path.join(workingDir,r'out_with_edge.csv'))
-    df.to_csv(os.path.join(workingDir,r'out~MFIX_RAVEN_Temp.csv'))
-
-
-    file_path = workingDir + '/dataset.pkl'
-    # with open('dataset.pkl', 'wb') as f:
-    with open(file_path, 'wb') as f:
-      pickle.dump(self._dataSet, f, protocol=-1)
-
-    # df_avgVolFrac = pd.DataFrame(avgVolFracDict, index=bins)
-    # df_cow = pd.DataFrame(cowDict, index=bins[0:len(cow)])
-    # df_avgVolFrac.to_csv('average_void_fraction.csv')
-    # df_cow.to_csv('moving_average_void_fraction.csv')
-    # # df_avgVolFrac.plot(legend=False, style=['-']*len(avgVolFracDict))
-    # df_avgVolFrac.iloc[:,200:].plot(legend=False, style=['-']*len(avgVolFracDict))
-    # plt.show()
-    # df_cow.iloc[:,100:].plot(legend=False, style=['-']*len(avgVolFracDict))
-    # plt.show()
-
-    # Compute Edge Velocity Profile (in original code)
-    # First compute the bed average heights (average over all perturbations and time)
-    # Then call calculateEdgeVelocityProfile to compute the edge velocity profile
-    # return is (numSteps*numBins, 3) with columns: BedHeight, Average y-velocity, TimeVar
-
-    # Suggested way to compute:
-    # compute the bed average heights for each run
-    # Then calculateEdgeVelocityProfile and compute the average edge velocity profile over bins?
-    # return is (numSteps, 3) with columns: BedHeight, Average y-velocity, TimeVar
+    # file_path = workingDir + '/dataset.pkl'
+    # # with open('dataset.pkl', 'wb') as f:
+    # with open(file_path, 'wb') as f:
+    #   pickle.dump(self._dataSet, f, protocol=-1)
 
     # return output
     # return df
+    return
 
   def checkForOutputFailure(self, output, workingDir):
     """
@@ -502,3 +537,33 @@ class MFIX(GenericCode):
     # make sure the bed height does not exceed the maximum height in the bins
     hBed = min(hBed, np.max(avgVolFrac[:, 0])) if hBed is not None else np.max(avgVolFrac[:, 0])
     return err, EPGBed, hBed
+  
+  def find_text_in_file(file_path, search_text):
+    """
+    Searches the header lines in the Raw.cell.* and Raw.particle.* files to find the columns
+    that have the desired variable as defined in partKeyText and cellKeyText.
+    Returns the column that contains the desired variable. Subtracting 1 from the value to 
+    start index at 0.
+
+    Args:
+        file_path (string) Raw.cell.* or Raw.particle.* file location
+        search text (string) unique text to identify the desired property
+
+    Returns:
+        int: A column with the desired proptery, index starts at 0.
+    """
+    with open(file_path, 'r') as file:
+        for line_number, line in enumerate(file):
+            if line.startswith('#'):
+                if search_text in line:
+                    # Split the line into columns
+                    columns = line.split()
+                    if len(columns) >= 2:
+                        # Extract the 2nd column and convert it to an integer
+                        try:
+                            second_column_value = int(columns[1])
+                            return second_column_value-1
+                        except ValueError:
+                            print("The value in the 2nd column is not an integer.")
+                            return None
+    return None
