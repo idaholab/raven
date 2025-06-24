@@ -1,7 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation>
+  <TestInfo>
+    <name>test_barracuda</name>
+    <author></author>
+    <created>2025-06-23</created>
+    <classesTested>Models.Code.CodeInterfaceBase.Barracuda</classesTested>
+    <description>
+       An example of using Barracuda
+    </description>
+  </TestInfo>
+
   <RunInfo>
     <WorkingDir>r1</WorkingDir>
+    <Sequence>generate_data, print</Sequence>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
@@ -14,22 +26,26 @@
 
   <Steps>
     <MultiRun name="generate_data">
+      <Input class="Files" type="">prj_file</Input>
+      <Input class="Files" type="">stl_file</Input>
+      <Input class="Files" type="">Ar_sff</Input>
+      <Input class="Files" type="">lay_file</Input>
+      <Input class="Files" type="">grid_file</Input>
       <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
-      <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Model class="Models" type="Code">test_barracuda</Model>
       <Output class="DataObjects" type="PointSet">results</Output>
     </MultiRun>
-    <IOStep name="plot" pauseAtEnd="True">
+    <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">results</Input>
       <Output class="OutStreams" type="Print">to_file</Output>
-      <Output class="OutStreams" type="Plot">to_plot</Output>
     </IOStep>
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
-      <variables>v0,angle,r,t,timeOption</variables>
-    </ExternalModel>
+    <Code name="test_barracuda" subType="Barracuda">
+      <executable>path/to/barracuda</executable>
+
+    </Code>
   </Models>
 
   <Samplers>
@@ -38,36 +54,24 @@
         <limit>1000</limit>
         <initialSeed>42</initialSeed>
       </samplerInit>
-      <variable name="v0">
-        <distribution>vel_dist</distribution>
+      <variable name="temperature">
+        <distribution>T_dist</distribution>
       </variable>
-      <variable name="angle">
-        <distribution>angle_dist</distribution>
-      </variable>
-      <constant name="x0">0</constant>
-      <constant name="y0">0</constant>
-      <constant name="timeOption">1</constant>
+      <!-- <constant name="x0">0</constant> -->
     </MonteCarlo>
   </Samplers>
 
   <Distributions>
-    <Uniform name="vel_dist">
+    <Uniform name="T_dist">
       <lowerBound>1</lowerBound>
       <upperBound>60</upperBound>
-    </Uniform>
-    <Uniform name="angle_dist">
-      <lowerBound>5</lowerBound>
-      <upperBound>85</upperBound>
     </Uniform>
   </Distributions>
 
   <DataObjects>
-    <PointSet name="placeholder">
-      <Input>v0,angle</Input>
-    </PointSet>
     <PointSet name="results">
-      <Input>v0,angle</Input>
-      <Output>r,t</Output>
+      <Input>temperature</Input>
+      <Output>t</Output>
     </PointSet>
   </DataObjects>
 
@@ -76,23 +80,6 @@
       <type>csv</type>
       <source>results</source>
     </Print>
-    <Plot name="to_plot">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>results|Input|v0</x>
-          <y>results|Input|angle</y>
-          <z>results|Output|r</z>
-          <colorMap>results|Output|t</colorMap>
-        </plot>
-        <xlabel>v0</xlabel>
-        <ylabel>angle</ylabel>
-        <zlabel>r</zlabel>
-      </plotSettings>
-      <actions>
-        <how>screen, png</how>
-      </actions>
-    </Plot>
   </OutStreams>
 
 </Simulation>
