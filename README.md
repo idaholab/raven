@@ -1,7 +1,8 @@
-# Raven <div style="display: flex; align-items: right;">
-    <img src="./doc/misc/RAVEN_Logo.png" alt="RAVEN Logo" width="111" height="150">
-    <img src="https://www.rdworldonline.com/wp-content/uploads/2023/08/RD100_2023_Winner_Logo.png" alt="RD100 Logo" width="125" height="150">
-</div>
+# Raven
+
+<img src="https://www.rdworldonline.com/wp-content/uploads/2023/08/RD100_2023_Winner_Logo.png" align="right" style="margin-left: 20px; margin-bottom: 10px; width: 150px; height: 150px;"/>
+
+<img src="./doc/misc/RAVEN_Logo.png" alt="RAVEN Logo" align="right" style="margin-left: 20px; margin-bottom: 10px; width: 203px; height: 150px;" width="203" height="150">
 
 Risk Analysis Virtual Environment
 
