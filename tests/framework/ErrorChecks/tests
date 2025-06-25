@@ -2,7 +2,7 @@
  [./missingSteps]
         type = 'RavenErrors'
         input = 'test_noSteps.xml'
-        expect_err = 'Error: The step list:'
+        expect_err = 'Error: The <Sequence> list: ['FirstMRun'] contains steps that have not been declared in <Steps>. <Steps> only contains []'
  [../]
  [./MVNnotSquare]
         type = 'RavenErrors'
