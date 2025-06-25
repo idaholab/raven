@@ -15,7 +15,7 @@ import setuptools
 from setuptools import setup, Extension
 from setuptools.command.build_py import build_py
 import os
-import sys
+import subprocess
 
 
 # Replicating the methods used in the RAVEN Makefile to find CROW_DIR,
@@ -49,7 +49,7 @@ if eigen_flags.startswith("-I"):
   include_dirs.append(eigen_flags[2:].rstrip())
 long_description = open("README.md", "r").read()
 setup(name='raven_framework',
-      version='3.1',
+      version='3.2rc0',
       description='RAVEN (Risk Analysis Virtual Environment) is designed to perform parametric and probabilistic analysis based on the response of complex system codes. RAVEN C++ dependenciences including a library for computing the Approximate Morse-Smale Complex (AMSC) and Crow probability tools',
       long_description=long_description,
       url="https://raven.inl.gov/",
