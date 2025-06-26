@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='quiet'>
+  <TestInfo>
+    <name>framework/ROM/kan</name>
+    <author>@cogljj</author>
+    <created>2025-06-04</created>
+    <revisions>
+    </revisions>
+    <classesTested>KAN</classesTested>
+    <description>
+      Test the Kolmogorov-Arnold Networks using a sum of a cosine and a cube
+      root.
+      The data was generated in the spreadsheet KAN/kan_data.ods
+      Note that more training data would be better.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>KAN3</WorkingDir>
+    <Sequence>load, train_kan, load2, test_kan, writemodel</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="kan_data">kan_data.csv</Input>
+  </Files>
+
+  <Models>
+    <ROM name="kanrom" subType="KAN">
+      <Features>x1, x2</Features>
+      <Target>fx,fx2</Target>
+      <layers>5</layers>
+      <steps>250,250,prune</steps>
+      <seed>42</seed>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <CustomSampler name="hs_sample">
+      <Source class="DataObjects" type="PointSet">prev_samples</Source>
+      <variable name="x1" />
+      <variable name="x2" />
+    </CustomSampler>
+  </Samplers>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">kan_data</Input>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </IOStep>
+    <IOStep name="load2">
+      <Input class="Files" type="">kan_data</Input>
+      <Output class="DataObjects" type="PointSet">prev_samples</Output>
+    </IOStep> -->
+    <RomTrainer name="train_kan">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="Models" type="ROM">kanrom</Output>
+    </RomTrainer>
+    <MultiRun name="test_kan">
+      <Input class="DataObjects" type="PointSet">prev_samples</Input>
+      <Model class="Models" type="ROM">kanrom</Model>
+      <Sampler class="Samplers" type="CustomSampler">hs_sample</Sampler>
+      <Output class="DataObjects" type="PointSet">resampled</Output>
+      <Output class="OutStreams" type="Print">out_resampled</Output>
+    </MultiRun>
+    <IOStep name="writemodel">
+      <Input class="Models" type="ROM">kanrom</Input>
+      <Output class="DataObjects" type="PointSet">modelOut</Output>
+      <Output class="OutStreams" type="Print">modelOut</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samples">
+      <Input>x1,x2</Input>
+      <Output>fx,fx2</Output>
+    </PointSet>
+    <PointSet name="prev_samples">
+      <Input>x1,x2</Input>
+    </PointSet>
+    <PointSet name="resampled">
+      <Input>x1, x2</Input>
+      <Output>fx,fx2</Output>
+    </PointSet>
+    <PointSet name="modelOut">
+      <Input>InputPlaceHolder</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="out_resampled">
+      <type>csv</type>
+      <source>resampled</source>
+    </Print>
+    <Print name="modelOut">
+      <type>csv</type>
+      <source>modelOut</source>
+      <what>input,output</what>
+      <filename>outModel</filename>
+    </Print>
+  </OutStreams>
+
+</Simulation>
