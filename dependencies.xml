@@ -85,9 +85,7 @@ Note all install methods after "main" take
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools />
     <!-- source="mamba" are the ones installed when mamba is installed -->
-    <!-- mamba version 2.0.0 causes failures on mac: critical libmamba filesystem error: in permissions: Operation not permitted-->
-    <mamba source="mamba" skip_check='True' os='mac'>1.5</mamba>
-    <mamba source="mamba" skip_check='True' os='windows,linux' />
+    <mamba source='mamba' skip_check='True'/>
     <pydmd source="pip"/>
   </main>
   <alternate name="pip">

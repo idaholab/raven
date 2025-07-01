@@ -599,25 +599,38 @@ class Code(Model):
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
     command = command.replace("%PYTHON%", sys.executable)
 
-    if "raven_framework" in sys.executable:
+    # The %RAVENEXECUTABLE% placeholder can be used in a RAVEN-runs-RAVEN workflow to reuse the way the outer RAVEN was
+    # run to run the inner RAVEN workflow. There are a few ways that RAVEN could be run, including
+    #   1. From python: `python /path/to/raven_framework.py my_input.xml`
+    #   2. From script (source or pip-installed): `/path/to/raven/raven_framework my_input.xml`
+    #   3. From macOS/Linux executable: `/some/path/raven_framework my_input.xml`
+    #   4. From Windows executable: `/some/path/raven_framework.exe my_input.xml`
+    exec_name = os.path.basename(sys.executable)
+    arg_name = os.path.basename(sys.argv[0])
+    if "raven_framework" in exec_name:
+      # Was run from a pre-built executable (raven_framework or raven_framework.exe)
       ravenExecutable = sys.executable
-    elif "python" in os.path.basename(sys.executable) \
-          and "raven_framework" in sys.argv[0] \
-          and sys.argv[0].endswith(".py"):
-      # command was "python path/to/raven_framework.py ..."
+    elif arg_name == "raven_framework":
+      # Was run with `raven_framework` script
+      ravenExecutable = sys.argv[0]
+    elif "python" in exec_name and arg_name == "raven_framework.py":
+      # Was run with `python raven_framework.py`
       ravenExecutable = f"{sys.executable} {sys.argv[0]}"
+    # Couldn't infer how the outer RAVEN was run
     else:
-      ravenExecutable = ''
+      ravenExecutable = ""
 
-    if "%RAVENEXECUTABLE%" in command and ravenExecutable == '':
-      message = f"""The command contains %RAVENEXECUTABLE% but the way the outer framework was run
+    if "%RAVENEXECUTABLE%" in command and ravenExecutable == "":
+      message = """The command contains %RAVENEXECUTABLE% but the way the outer framework was run
       could not be inferred. Only using scripts or executables that contain 'raven_framework' or
       using python to run a .py file with 'raven_framework' in the name is supported. Possibilities
       considered were:
-      1. 'raven_framework' in sys.executable (received: {sys.executable})
-      2. 'raven_framework' or 'raven_framework.py' in sys.argv[0] (received: {sys.argv[0]})
-      Note that users may also directly specify the path to an appropriate raven_framework
-      executable instead of using the %RAVENEXECUTABLE% placeholder."""
+        1. RAVEN was run from the raven_framework.py script
+        2. RAVEN was run from a raven_framework script
+        3. RAVEN was run from a prebuilt executable (raven_framework on macOS and Linux, raven_framework.exe on Windows)
+      The path to a `raven_framework` script or executable can be specified directly instea of using the
+      %RAVENEXECUTABLE% placeholder if RAVEN is unable to infer how the RAVEN was initially run."""
+      self.raiseADebug(f"Failed to determine appropriate value for %RAVENEXECUTABLE%. {sys.executable=}, {sys.argv[0]=}")
       self.raiseAnError(IOError, message)
 
     command = command.replace("%RAVENEXECUTABLE%", ravenExecutable)
