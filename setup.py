@@ -14,6 +14,7 @@
 import setuptools
 from setuptools import setup, Extension
 from setuptools.command.build_py import build_py
+from setuptools.command.bdist_wheel import bdist_wheel
 import os
 import subprocess
 
@@ -37,6 +38,11 @@ class CustomBuild(build_py):
         self.run_command('build_ext')
         super().run()
 
+
+class CustomBDistWheel(bdist_wheel):
+    def initialize_options(self):
+        bdist_wheel.initialize_options(self)
+        self.keep_temp = True
 
 include_dirs=[RAVEN_INCLUDE_DIR,BOOST_INCLUDE_DIR, DIST_INCLUDE_DIR, UTIL_INCLUDE_DIR]
 swig_opts=['-c++','-I'+RAVEN_INCLUDE_DIR, '-I'+BOOST_INCLUDE_DIR,'-I'+DIST_INCLUDE_DIR, '-I'+UTIL_INCLUDE_DIR, '-py3']
@@ -87,4 +93,4 @@ setup(name='raven_framework',
                     include_dirs=include_dirs, swig_opts=swig_opts,extra_compile_args=extra_compile_args)],
       py_modules=['AMSC.amsc','crow_modules.distribution1D','crow_modules.randomENG','crow_modules.interpolationND', 'AMSC.AMSC_Object'],
       packages=['ravenframework.'+x for x in setuptools.find_packages('ravenframework')]+['ravenframework'],
-      cmdclass={'build_py': CustomBuild})
+      cmdclass={'build_py': CustomBuild, 'bdist_wheel': CustomBDistWheel})
