@@ -67,6 +67,12 @@ class GradientDescent(RavenSampled):
                         # TODO change in input space?
                         'objective': r"""provides the maximum relative change in the objective function for convergence.""",
                         'stepSize': r"""provides the maximum size in relative step size for convergence.""",
+                        'iterationLimit': r"""provides the maximum number of iterations at which the optimizer will terminate regardless of the status of any convergence criteria.
+                                              Note that for Gradient Descent this counts only the optimization sweeps not the gradient evaluations.
+                                              It is important to differentiate this from sampler'sinit <limit> node as the latter counts every model evaluation,
+                                              hence, if n variables we will have 2n gradient evaluation if using centeral difference, number of iteration will be <limit>/(2n). If is less than the <iterationlimit> the GA will honor this lower limit.
+                                              I.e., the termination (given all other covergence criteria are not met) will occur at min{<iterationLimit>, ceil(<limit>/gradient evaluations per variable/\# of variables) +1}
+                                              For instance: if the \# of Variables is 2, and we perform 2 evaluations per variable for gradients, and if <limit> = 20, and <iterationLimit> is 10, the termination will occur at min{ceiling(20/(2*2))+1,10} = 6."""
                        }
 
   ##########################
@@ -149,7 +155,6 @@ class GradientDescent(RavenSampled):
         descr=r"""provides the number of consecutive times a functional constraint boundary can be explored
               for an acceptable sampling point before aborting search. Only apples if using a
               \xmlNode{Constraint}. \default{500}"""))
-
     for name, descr in cls.convergenceOptions.items():
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType, descr=descr))
     terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType,
@@ -265,6 +270,8 @@ class GradientDescent(RavenSampled):
         elif sub.getName() == 'terminateFollowers':
           self._terminateFollowers = sub.value
           self._followerProximity = sub.parameterValues.get('proximity', 1e-2)
+        elif sub.getName() == 'iterationLimit':
+          self._convergenceCriteria['iterationLimit'] = sub.value
         elif sub.getName() == 'constraintExplorationLimit':
           self._functionalConstraintExplorationLimit = sub.value
         else:
@@ -621,6 +628,7 @@ class GradientDescent(RavenSampled):
       # if this is an opt point rerun, accept it without checking.
       elif self._acceptRerun[traj]:
         acceptable = 'rerun'
+        self.incrementIteration
         self._acceptRerun[traj] = False
         self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
       # check if same point
@@ -792,6 +800,13 @@ class GradientDescent(RavenSampled):
 
     return converged
 
+  def _checkConvIterationLimit(self,traj):
+    converged = self.getIteration(traj) >= self._convergenceCriteria['iterationLimit']
+    self.raiseADebug(self.convFormat.format(name='iterationLimit',
+                                            conv=str(converged),
+                                            got=int(self.getIteration(traj)),
+                                            req=int(self._convergenceCriteria['iterationLimit'])))
+    return converged
   def _checkConvStepSize(self, traj):
     """
       Checks the step size for convergence
