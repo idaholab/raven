@@ -36,6 +36,11 @@ from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
+from xml.etree import ElementTree as ET
+import random
+import copy
+import numpy as np
+from collections import Counter
 
 class Object(object):
   """
@@ -1084,3 +1089,410 @@ def which(cmd):
           return name
   return None
 
+### adding functions to share between EQsample.py and GA/crossover-mutation
+## create a class EQchecker
+class EQchecker:
+  """
+  EQ checker and genome generator 
+  """
+  def __init__(self,xmlinput, EQinput):
+    """
+      Initializing variables.
+      @ In, None
+      @ Out, None
+    """
+    self.xmlinput = xmlinput
+    self.EQinput = EQinput
+    ## extract data 
+    self.varDict, self.prefix, self.minfresh, self.maxfresh = self.getdecodemap()
+    self.countval = self.get_countval()
+    self.Nslot = len(self.countval)
+
+  def getdecodemap(self):
+    """
+      Function for get mapping from xml file to generate the logic and conditional distribution
+      @ In, None
+      @ Out, None
+    """
+    fullFile = self.xmlinput
+    dorm = ET.parse(fullFile)
+    root = dorm.getroot()
+    prefix = root.find('Prefix_indicator').text.strip(" \"'")
+    vartype = 'CAT' ## set default to be categorical type 
+    modeopt = 'S'
+    if  root.find('Var-type') is not None: 
+       vartype = root.find('Var-type').text.strip(" \"'")
+    if root.find('Mode') is not None:
+       modeopt = root.find('Mode').text.strip(" \"'").upper()
+    if 'CAT' in vartype.upper():
+       #check vartype if category, the dictionary for the category varible is required
+       varDict = []
+       for v in root.iter('Var'):
+         varDict.append(v.attrib)
+       if len(varDict)<1:
+          raise ValueError("no value is returned for category variable, please check the xml data file!")
+    ## extract more data 
+    prefix = root.find('Prefix_indicator').text.strip(" \"'") 
+    minfresh = root.find('MinFreshFA').text.strip(" \"'") 
+    maxfresh = root.find('MaxFreshFA').text.strip(" \"'") 
+    return varDict, prefix, int(minfresh), int(maxfresh)
+  
+  def get_countval(self):
+    """
+    Extract count FA for cor symmetry
+    """
+    with open(self.EQinput, 'r') as f:
+      coredata = f.readlines()
+    self.coredata = coredata
+    symdict_ = {}
+    replace = {self.prefix:'', '$':''}
+    for line in coredata:
+      if self.prefix in line:
+        temp = line.split()
+        for o,n in replace.items():
+          temp[-1] = temp[-1].replace(o,n)
+        self.append_to_dict(symdict_, temp[-1], temp[0]+' ') ## counting 
+    symdict = [val.split() for val in symdict_.values()]
+    countval = [len(u) for u in symdict]
+    countval = [x for _, x in sorted(zip([i for i in symdict_.keys()], countval), key=lambda pair: pair[0])]
+    return countval
+  
+  def append_to_dict(self, my_dict, key, value):
+    """
+    Assign value to a dictionary without key, if dict[key] !=None then append value else initiate dict[key]
+    """
+    if key in my_dict:
+      my_dict[key] += value
+    else:
+      my_dict[key] = value
+    return my_dict
+  
+  ## function for shuffling shcme logic 
+  def getminN(self, target):
+    """
+    Get the minium number of elements required to reach the the target score
+    """
+    values = sorted(self.countval, reverse=True)
+    total = 0
+    count = 0
+    for value in values:
+        total += value
+        count += 1
+        if total > target:
+            break
+    return count
+
+  def getmaxN(self, target):
+    """
+    Get the maximum number of elements required to reach the the target score
+    """
+    values = sorted(self.countval)
+    total = 0
+    count = 0
+    for value in values:
+      if total + value <= target:
+        total += value
+        count += 1
+      else:
+        # Check if adding this one will at least reach the target
+        if total < target:
+            total += value
+            count += 1
+        break
+    return count
+
+
+  def sortbat(self, batid):
+    """
+    Sort batid based on the count value 
+    """
+    idxlist = list(enumerate([self.countval[i] for i in batid]))
+    sorted_idxlist = sorted(idxlist, key=lambda x: x[1], reverse=True)
+    batid_sorted = [batid[i] for i,v in sorted_idxlist]
+    return batid_sorted
+  
+  def calculate_score(self, M):
+    """
+    Count all FAs base on the symetric dictionary when assigned to core
+    """
+    score = [self.countval[i] for i in M]
+    return sum(score)
+
+  def generate_sublist(self, A, Nmin, Nmax, min_FA, max_FA):
+    """
+    Generate a sublist of A size N to satisfy min_FA<=#FA<=max_FA
+    """
+    is_ok = False 
+    while not is_ok:
+      N = random.randint(Nmin, Nmax)
+      M = random.sample(A, N)
+      C = self.calculate_score(M)
+      # print('check M score', M, C)
+      if min_FA <= C <= max_FA:
+        is_ok = True
+        return M, C
+
+  def find_sublist_3batch(self, B, max_score):
+    """
+    Fidn N1 and N2 and get the score that:
+      - C1 <= max_score
+      - C2 <= C1
+      - N1 will be found by iteration over B so that C1<=maxscore
+    """
+    B_random = B
+    random.shuffle(B)
+    E = []
+    C1 = 0
+    for x in B_random:
+      if C1<=max_score:
+        E.append(x)
+        C1 = C1+self.countval[x]
+      else:
+        C1 = C1-self.countval[x]
+        E.pop()
+        break
+
+    F = [x for x in B if x not in E]
+    C1 = self.calculate_score(E)
+    C2 = self.calculate_score(F)
+    return E, F, C1, C2
+  
+  def get_genome(self, freshid, bat0id, bat1id, bat2id):
+    """
+    Function to generate genome after get N0,N1,N2 and index
+    """
+    N0=len(bat0id)
+    N1=len(bat1id)
+    N2=len(bat2id)
+    genbat0 = np.random.choice(freshid,size=N0, replace=False) 
+    bat0id_sorted = self.sortbat(bat0id)
+    bat1id_sorted = self.sortbat(bat1id)
+    bat2id_sorted = self.sortbat(bat2id)
+    genbat1 = list(genbat0[:min(N1,N0)]) ## get all possible fuel id
+    ## append to genbat1 
+    if N1>N0:
+       for _ in range(int(N1-N0)):
+          genbat1.append(genbat1[-1])
+    genbat0type = [self.varDict[int(kk)]['value'].split('-')[0] for kk in genbat0]
+    genbat1type = [self.varDict[int(kk)]['value'].split('-')[0] for kk in genbat1] ## initial assigned
+    availablechoice = [(i,j) for i,j in zip(genbat0type, [self.countval[i] for i in bat0id_sorted])]
+    temp =[]
+    for i in [self.countval[i] for i in bat1id_sorted]:
+      check = [a for a in availablechoice if a[1]>=i]
+      if len(check) <1:
+        flag = False ## no available FA to take 
+        break 
+      t = random.choice(check)
+      temp.append(t[0])
+      re = t[1]-i
+      availablechoice.remove(t)
+      if re>0:
+         availablechoice.append((t[0], re))
+      flag = True
+    ## next batch
+    ## get update gen1bat 
+    genbat1 = []
+    for kk in temp: 
+        for i in range(len(self.varDict)):
+            fueltype = self.varDict[i]['value'].split('-')[0]
+            fuelbat  = self.varDict[i]['value'].split('-')[1]
+            if fueltype == kk and fuelbat =='2':
+              genbat1.append(self.varDict[i]['ravenid']) ## for genome 
+    ## remove duplication 
+    genbat1type = [self.varDict[int(kk)]['value'].split('-')[0] for kk in genbat1]
+    availablechoice = [(i,j) for i,j in zip(genbat1type, [self.countval[i] for i in bat1id_sorted])]
+    availablechoice = [item for item in availablechoice if availablechoice.count(item)==1] ## only take with no duplication 
+    genbat2 = genbat1[:min(N1, N2)]
+    if N2>N1:
+      for _ in range(int(N2-N1)):
+         genbat2.append(genbat2[-1])
+    temp =[]
+    for i in [self.countval[i] for i in bat2id_sorted]:
+      check = [a for a in availablechoice if a[1]>=i]
+      if len(check)<1:
+         flag = False
+         break 
+      t = random.choice(check)
+      temp.append(t[0])
+      re = t[1]-i
+      availablechoice.remove(t)
+      if re>0:
+         availablechoice.append((t[0], re))
+      flag = True
+    genbat2 = []
+    for kk in temp: 
+       for i in range(len(self.varDict)):
+           fueltype = self.varDict[i]['value'].split('-')[0]
+           fuelbat  = self.varDict[i]['value'].split('-')[1]
+           if fueltype == kk and fuelbat =='3':
+             genbat2.append(self.varDict[i]['ravenid']) ## for genome 
+    genome = [0 for _ in range(self.Nslot)] # initialize
+    for i,j in  zip(bat0id_sorted, genbat0):
+      genome[i] = int(j)
+    for i,j in  zip(bat1id_sorted, genbat1):
+      genome[i] = int(j)
+    for i,j in  zip(bat2id_sorted, genbat2):
+      genome[i] = int(j)
+    flag = self.checkgennome(genome)
+    if len(genbat1)!= len(bat1id_sorted) or len(genbat2)!= len(bat2id_sorted):
+      flag = False
+    return flag, genome
+
+  def create_genome(self):
+    """
+    Create genome list for EQ calculation. This version works for 3 batch core.
+    Note: the output genome is sorted with variable name.  
+    """
+    flag = False 
+    bat0ravenid = [self.varDict[i]['ravenid'] for i in range(len(self.varDict)) if int(self.varDict[i]['value'].split('-')[1])==1]
+    maxiter = 100
+    iter = 0
+    genome = []
+    target_range = (self.minfresh, self.maxfresh)
+    Nmin = self.getminN(target_range[0])  # Minimum number of elements for score >= min fresh 
+    Nmax = self.getmaxN(target_range[1])  # Maximum number of elements for score <= max fresh
+    while not flag: ## 
+      index = list(range(self.Nslot))
+      N0 = random.randint(Nmin, Nmax)
+      bat0id, c0 = self.generate_sublist(index, Nmin, Nmax, *target_range)
+      index = [i for i in index if i not in bat0id]
+      bat1id, bat2id, c1, c2 = self.find_sublist_3batch(index, c0)
+      flag, genome = self.get_genome(bat0ravenid, bat0id, bat1id, bat2id)
+      iter+=1
+      if iter>maxiter:
+        raise KeyError(f"Failed to sample after {maxiter} iterations!")
+        break
+    return iter, genome
+
+  def selectburn(self, index, Nmin, Nmax):
+     N=random.randint(Nmin, Nmax)
+     selectindex = np.random.choice(index, size=N, replace=False).tolist()
+     return selectindex, N
+  
+  def loc_mul(self, children_i, parent_i):
+    """
+    Swap mutator select first location --> check its mutiplication --> select the 2nd loc with the same multiplicaiton
+    """
+    idxloc = list(range(len(children_i)))
+    random.shuffle(idxloc)
+    checkloc1 = False
+    for loc1 in idxloc:
+      availoc = [i for i,j in enumerate(self.countval) if j == self.countval[loc1]]
+      random.shuffle(availoc)
+      check = False
+      for loc2 in availoc:
+        children_i[loc1] = parent_i[loc2]
+        children_i[loc2] = parent_i[loc1]
+        # check = True ## let skip check here to test
+        check = self.checkgennome(children_i)
+        if check:
+          break
+      if check:
+        break ## break outer loop too 
+    if not check:
+      children_i = parent_i
+      print('no swaping after trying all loc1 loc2')
+    return loc2, children_i
+
+  def checkgennome(self,newgenome):
+    """`
+    Check validity of new genome 
+    """
+    out={}
+    for i in range(len(newgenome)):
+      out[i]=newgenome[i]
+    out = {key: out[key] for key in sorted(out)} ## sorted out 
+    decoder = []
+    for key,val in out.items():
+      fuelid_   = [self.varDict[i]['value'].split('-')[0] for i in range(len(self.varDict)) if int(self.varDict[i]['ravenid'])==val][0]
+      fuelbat_  = [self.varDict[i]['value'].split('-')[1] for i in range(len(self.varDict)) if int(self.varDict[i]['ravenid'])==val][0]
+      fueltype_ = [self.varDict[i]['type'] for i in range(len(self.varDict)) if int(self.varDict[i]['ravenid'])==val][0]
+      lab_  = [self.varDict[i]['label'] for i in range(len(self.varDict)) if int(self.varDict[i]['ravenid'])==val][0]
+      decoder.append((key, fuelid_, fuelbat_, fueltype_, lab_))
+    selectfuel_id = list(set([int(decoder[i][1]) for i in range(len(decoder))]))
+    check = []
+    sc1,sc2,sc3=0,0,0
+    for id_ in selectfuel_id:
+      ## 3 batch only
+      c1 = self.getcountfabat(decoder, id_,batnumber=1)
+      c2 = self.getcountfabat(decoder, id_,batnumber=2)
+      c3 = self.getcountfabat(decoder, id_,batnumber=3)
+      if c1>=c2 and c2>=c3:
+        check.append(True)
+        sc1+=c1
+        sc2+=c2
+        sc3+=c3
+      else:
+        # print(c1,c2,c3, id_)
+        check.append(False)
+    flag=all(check)
+    
+    return flag
+
+  def mutate2genome(self,parent1, parent2):
+    """
+    Mating 2 parents to generate 2 children
+    """
+    ## convert to int first if it not already
+    parent1 =[int(i) for i in parent1]
+    parent2 =[int(i) for i in parent2]
+    child1, child2 = parent1, parent2
+    idx1_1 = [[i,j] for i,j in enumerate(parent1) if int(self.varDict[j]['value'].split('-')[1])==1]
+    idx1_2 = [[i,j] for i,j in enumerate(parent1) if int(self.varDict[j]['value'].split('-')[1])==2]
+    idx1_3 = [[i,j] for i,j in enumerate(parent1) if int(self.varDict[j]['value'].split('-')[1])==3]
+    idx2_1 = [[i,j] for i,j in enumerate(parent2) if int(self.varDict[j]['value'].split('-')[1])==1]
+    idx2_2 = [[i,j] for i,j in enumerate(parent2) if int(self.varDict[j]['value'].split('-')[1])==2]
+    idx2_3 = [[i,j] for i,j in enumerate(parent2) if int(self.varDict[j]['value'].split('-')[1])==3]
+    ## 
+    Fresh_list1 = []
+    Fresh_list2 = []
+    for i in idx1_1:
+       Fresh_list1.append(i[1])
+    for i in idx2_1:
+       Fresh_list2.append(i[1])
+    N01 = len(Fresh_list1)
+    N02 = len(Fresh_list2)
+    combined = Fresh_list1 + Fresh_list2
+    random.shuffle(combined)
+    Fresh_list1 = combined[:N01]
+    Fresh_list2 = combined[N01:N01+N02]
+
+    ## select fresh for child1 
+    flag = False
+    maxiter = 1000
+    iter = 0
+    target_range = (self.minfresh, self.maxfresh)
+    bat0ravenid = [self.varDict[i]['ravenid'] for i in range(len(self.varDict)) if int(self.varDict[i]['value'].split('-')[1])==1]
+    Nmin = self.getminN(target_range[0])  # Minimum number of elements for score >= min fresh 
+    Nmax = self.getmaxN(target_range[1])  # Maximum number of elements for score <= max fresh
+    while not flag:
+	  # ILB approach
+      bat0id, c0 = [i[0] for i in idx1_1] , self.calculate_score([i[0] for i in idx1_1])
+      bat1id, c1 = [i[0] for i in idx1_2] , self.calculate_score([i[0] for i in idx1_2])
+      bat2id, c2 = [i[0] for i in idx1_3] , self.calculate_score([i[0] for i in idx1_3])
+      flag, child1 = self.get_genome(bat0ravenid, bat0id, bat1id, bat2id)
+      iter+=1
+      if iter>maxiter:
+        print(f"Failed to sample after {maxiter} iterations!")
+        break
+    ## select for child2 
+    flag = False
+    iter = 0
+    random.shuffle(bat0ravenid)
+    while not flag:
+      bat0id, c0 = [i[0] for i in idx2_1] , self.calculate_score([i[0] for i in idx2_1])
+      bat1id, c1 = [i[0] for i in idx2_2] , self.calculate_score([i[0] for i in idx2_2])
+      bat2id, c2 = [i[0] for i in idx2_3] , self.calculate_score([i[0] for i in idx2_3])
+      flag, child2 = self.get_genome(bat0ravenid, bat0id, bat1id, bat2id)
+      iter+=1
+      if iter>maxiter:
+        print(f"Failed to sample after {maxiter} iterations!")
+        break
+    return child1, child2
+  
+  def getcountfabat(self, decoder, fuelid, batnumber):
+    c=0
+    for i in range(len(decoder)):
+      if int(decoder[i][1])==fuelid and int(decoder[i][2])==batnumber:
+        c=c+self.countval[i]
+    return c
