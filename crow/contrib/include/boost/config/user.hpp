@@ -1,8 +1,8 @@
 //  boost/config/user.hpp  ---------------------------------------------------//
 
 //  (C) Copyright John Maddock 2001. 
-//  Use, modification and distribution are subject to the 
-//  Boost Software License, Version 1.0. (See accompanying file 
+//  Use, modification and distribution are subject to the
+//  Boost Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 //  Do not check in modified versions of this file,
@@ -85,8 +85,7 @@
 // (this macro is used to turn on __declspec(dllimport) modifiers, so that 
 // the compiler knows which symbols to look for in a dll rather than in a 
 // static library).  Note that there may be some libraries that can only 
-// be statically linked (Boost.Test for example) and others which may only 
-// be dynamically linked (Boost.Threads for example), in these cases this 
+// be linked in one way (statically or dynamically), in these cases this 
 // macro has no effect.
 // #define BOOST_ALL_DYN_LINK
  
@@ -97,9 +96,9 @@
 // BOOST_REGEX_DYN_LINK etc (this macro is used to turn on __declspec(dllimport) 
 // modifiers, so that the compiler knows which symbols to look for in a dll 
 // rather than in a static library).  
-// Note that there may be some libraries that can only be statically linked 
-// (Boost.Test for example) and others which may only be dynamically linked 
-// (Boost.Threads for example), in these cases this macro is unsupported.
+// Note that there may be some libraries that can only 
+// be linked in one way (statically or dynamically), 
+// in these cases this macro is unsupported.
 // #define BOOST_WHATEVER_DYN_LINK
  
 // BOOST_ALL_NO_LIB: Tells the config system not to automatically select 
@@ -120,5 +119,15 @@
 // that feature off.
 // #define BOOST_WHATEVER_NO_LIB
  
-
+// BOOST_LIB_BUILDID: Set to the same value as the value passed to Boost.Build's
+// --buildid command line option.  For example if you built using:
+//
+// bjam address-model=64 --buildid=amd64
+//
+// then compile your code with:
+//
+// -DBOOST_LIB_BUILDID = amd64
+//
+// to ensure the correct libraries are selected at link time.
+// #define BOOST_LIB_BUILDID amd64
 

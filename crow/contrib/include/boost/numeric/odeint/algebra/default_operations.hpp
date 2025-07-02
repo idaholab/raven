@@ -6,8 +6,8 @@
  Default operations. They work with the default numerical types, like float, double, complex< double> ...
  [end_description]
 
- Copyright 2009-2011 Karsten Ahnert
- Copyright 2009-2011 Mario Mulansky
+ Copyright 2010-2012 Karsten Ahnert
+ Copyright 2010-2013 Mario Mulansky
 
  Distributed under the Boost Software License, Version 1.0.
  (See accompanying file LICENSE_1_0.txt or
@@ -499,9 +499,6 @@ struct default_operations
     };
 
 
-
-
-
     template< class Fac1 = double >
     struct rel_error_max
     {
@@ -532,7 +529,7 @@ struct default_operations
         { }
 
         template< class Res , class T1 , class T2 , class T3 , class T4 >
-        Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &dxdt_old , const T4 &x_err )
+        Res operator()( Res r , const T1 &x_old , const T2 &/*x*/ , const T3 &dxdt_old , const T4 &x_err )
         {
             BOOST_USING_STD_MAX();
             using std::abs;
@@ -577,7 +574,7 @@ struct default_operations
         { }
 
         template< class Res , class T1 , class T2 , class T3 , class T4 >
-        Res operator()( Res r , const T1 &x_old , const T2 &x , const T3 &dxdt_old , const T4 &x_err )
+        Res operator()( Res r , const T1 &x_old , const T2 &/*x*/ , const T3 &dxdt_old , const T4 &x_err )
         {
             using std::abs;
             Res tmp = abs( get_unit_value( x_err ) ) /

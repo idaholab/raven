@@ -10,13 +10,13 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Id: common_name_wknd.hpp 49267 2008-10-11 06:19:02Z agurtovoy $
-// $Date: 2008-10-10 23:19:02 -0700 (Fri, 10 Oct 2008) $
-// $Revision: 49267 $
+// $Id$
+// $Date$
+// $Revision$
 
 #include <boost/mpl/aux_/config/workaround.hpp>
 
-#if BOOST_WORKAROUND(__BORLANDC__, < 0x561)
+#if BOOST_WORKAROUND(BOOST_BORLANDC, < 0x561)
 // agurt, 12/nov/02: to suppress the bogus "Cannot have both a template class 
 // and function named 'xxx'" diagnostic
 #   define BOOST_MPL_AUX_COMMON_NAME_WKND(name) \
@@ -29,6 +29,6 @@ template< typename > void name(); \
 
 #   define BOOST_MPL_AUX_COMMON_NAME_WKND(name) /**/
 
-#endif // __BORLANDC__
+#endif // BOOST_BORLANDC
 
 #endif // BOOST_MPL_AUX_COMMON_NAME_WKND_HPP_INCLUDED

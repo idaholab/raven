@@ -7,10 +7,16 @@
 #if !defined(BOOST_FUSION_SEGMENTED_SEQUENCE_HPP_INCLUDED)
 #define BOOST_FUSION_SEGMENTED_SEQUENCE_HPP_INCLUDED
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 #include <boost/fusion/support/tag_of.hpp>
 #include <boost/fusion/sequence/intrinsic_fwd.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion { namespace detail
 {
@@ -29,11 +35,15 @@ namespace boost { namespace fusion { namespace detail
         typedef Sequence sequence_type;
         sequence_type sequence;
 
-        explicit segment_sequence(Sequence const & seq)
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED explicit segment_sequence(Sequence const & seq)
             : sequence(seq)
         {}
     };
 }
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace extension
 {
@@ -60,6 +70,7 @@ namespace extension
         {
             typedef typename Sequence::sequence_type type;
 
+            BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
             static type call(Sequence & seq)
             {
                 return seq.sequence;
