@@ -72,6 +72,7 @@ Note all install methods after "main" take
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
+    <!-- <statsforecast source='pip'/> -->
     <statsforecast/>
     <pywavelets>1.4</pywavelets>
     <python-sensors source="pip"/>
