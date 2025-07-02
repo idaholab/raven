@@ -22,6 +22,7 @@ from ..utils.utils import Object
 #Internal Modules End-----------------------------------------------------------
 
 #External Modules---------------------------------------------------------------
+import functools
 # for internal parallel
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 _remote = None
