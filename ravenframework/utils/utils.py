@@ -1093,7 +1093,7 @@ def which(cmd):
 ## create a class EQchecker
 class EQchecker:
   """
-  EQ checker and genome generator 
+  EQ checker and genome generator
   """
   def __init__(self,xmlinput, EQinput):
     """
@@ -1101,9 +1101,9 @@ class EQchecker:
       @ In, None
       @ Out, None
     """
-    self.xmlinput = xmlinput
-    self.EQinput = EQinput
-    ## extract data 
+    self.xmlinput = os.path.abspath(xmlinput)
+    self.EQinput = os.path.abspath(EQinput)
+    ## extract data
     self.varDict, self.prefix, self.minfresh, self.maxfresh = self.getdecodemap()
     self.countval = self.get_countval()
     self.Nslot = len(self.countval)
@@ -1118,9 +1118,9 @@ class EQchecker:
     dorm = ET.parse(fullFile)
     root = dorm.getroot()
     prefix = root.find('Prefix_indicator').text.strip(" \"'")
-    vartype = 'CAT' ## set default to be categorical type 
+    vartype = 'CAT' ## set default to be categorical type
     modeopt = 'S'
-    if  root.find('Var-type') is not None: 
+    if  root.find('Var-type') is not None:
        vartype = root.find('Var-type').text.strip(" \"'")
     if root.find('Mode') is not None:
        modeopt = root.find('Mode').text.strip(" \"'").upper()
@@ -1131,12 +1131,12 @@ class EQchecker:
          varDict.append(v.attrib)
        if len(varDict)<1:
           raise ValueError("no value is returned for category variable, please check the xml data file!")
-    ## extract more data 
-    prefix = root.find('Prefix_indicator').text.strip(" \"'") 
-    minfresh = root.find('MinFreshFA').text.strip(" \"'") 
-    maxfresh = root.find('MaxFreshFA').text.strip(" \"'") 
+    ## extract more data
+    prefix = root.find('Prefix_indicator').text.strip(" \"'")
+    minfresh = root.find('MinFreshFA').text.strip(" \"'")
+    maxfresh = root.find('MaxFreshFA').text.strip(" \"'")
     return varDict, prefix, int(minfresh), int(maxfresh)
-  
+
   def get_countval(self):
     """
     Extract count FA for cor symmetry
@@ -1151,12 +1151,12 @@ class EQchecker:
         temp = line.split()
         for o,n in replace.items():
           temp[-1] = temp[-1].replace(o,n)
-        self.append_to_dict(symdict_, temp[-1], temp[0]+' ') ## counting 
+        self.append_to_dict(symdict_, temp[-1], temp[0]+' ') ## counting
     symdict = [val.split() for val in symdict_.values()]
     countval = [len(u) for u in symdict]
     countval = [x for _, x in sorted(zip([i for i in symdict_.keys()], countval), key=lambda pair: pair[0])]
     return countval
-  
+
   def append_to_dict(self, my_dict, key, value):
     """
     Assign value to a dictionary without key, if dict[key] !=None then append value else initiate dict[key]
@@ -1166,8 +1166,8 @@ class EQchecker:
     else:
       my_dict[key] = value
     return my_dict
-  
-  ## function for shuffling shcme logic 
+
+  ## function for shuffling shcme logic
   def getminN(self, target):
     """
     Get the minium number of elements required to reach the the target score
@@ -1204,13 +1204,13 @@ class EQchecker:
 
   def sortbat(self, batid):
     """
-    Sort batid based on the count value 
+    Sort batid based on the count value
     """
     idxlist = list(enumerate([self.countval[i] for i in batid]))
     sorted_idxlist = sorted(idxlist, key=lambda x: x[1], reverse=True)
     batid_sorted = [batid[i] for i,v in sorted_idxlist]
     return batid_sorted
-  
+
   def calculate_score(self, M):
     """
     Count all FAs base on the symetric dictionary when assigned to core
@@ -1222,7 +1222,7 @@ class EQchecker:
     """
     Generate a sublist of A size N to satisfy min_FA<=#FA<=max_FA
     """
-    is_ok = False 
+    is_ok = False
     while not is_ok:
       N = random.randint(Nmin, Nmax)
       M = random.sample(A, N)
@@ -1256,7 +1256,7 @@ class EQchecker:
     C1 = self.calculate_score(E)
     C2 = self.calculate_score(F)
     return E, F, C1, C2
-  
+
   def get_genome(self, freshid, bat0id, bat1id, bat2id):
     """
     Function to generate genome after get N0,N1,N2 and index
@@ -1264,12 +1264,12 @@ class EQchecker:
     N0=len(bat0id)
     N1=len(bat1id)
     N2=len(bat2id)
-    genbat0 = np.random.choice(freshid,size=N0, replace=False) 
+    genbat0 = np.random.choice(freshid,size=N0, replace=False)
     bat0id_sorted = self.sortbat(bat0id)
     bat1id_sorted = self.sortbat(bat1id)
     bat2id_sorted = self.sortbat(bat2id)
     genbat1 = list(genbat0[:min(N1,N0)]) ## get all possible fuel id
-    ## append to genbat1 
+    ## append to genbat1
     if N1>N0:
        for _ in range(int(N1-N0)):
           genbat1.append(genbat1[-1])
@@ -1280,8 +1280,8 @@ class EQchecker:
     for i in [self.countval[i] for i in bat1id_sorted]:
       check = [a for a in availablechoice if a[1]>=i]
       if len(check) <1:
-        flag = False ## no available FA to take 
-        break 
+        flag = False ## no available FA to take
+        break
       t = random.choice(check)
       temp.append(t[0])
       re = t[1]-i
@@ -1290,18 +1290,18 @@ class EQchecker:
          availablechoice.append((t[0], re))
       flag = True
     ## next batch
-    ## get update gen1bat 
+    ## get update gen1bat
     genbat1 = []
-    for kk in temp: 
+    for kk in temp:
         for i in range(len(self.varDict)):
             fueltype = self.varDict[i]['value'].split('-')[0]
             fuelbat  = self.varDict[i]['value'].split('-')[1]
             if fueltype == kk and fuelbat =='2':
-              genbat1.append(self.varDict[i]['ravenid']) ## for genome 
-    ## remove duplication 
+              genbat1.append(self.varDict[i]['ravenid']) ## for genome
+    ## remove duplication
     genbat1type = [self.varDict[int(kk)]['value'].split('-')[0] for kk in genbat1]
     availablechoice = [(i,j) for i,j in zip(genbat1type, [self.countval[i] for i in bat1id_sorted])]
-    availablechoice = [item for item in availablechoice if availablechoice.count(item)==1] ## only take with no duplication 
+    availablechoice = [item for item in availablechoice if availablechoice.count(item)==1] ## only take with no duplication
     genbat2 = genbat1[:min(N1, N2)]
     if N2>N1:
       for _ in range(int(N2-N1)):
@@ -1311,7 +1311,7 @@ class EQchecker:
       check = [a for a in availablechoice if a[1]>=i]
       if len(check)<1:
          flag = False
-         break 
+         break
       t = random.choice(check)
       temp.append(t[0])
       re = t[1]-i
@@ -1320,12 +1320,12 @@ class EQchecker:
          availablechoice.append((t[0], re))
       flag = True
     genbat2 = []
-    for kk in temp: 
+    for kk in temp:
        for i in range(len(self.varDict)):
            fueltype = self.varDict[i]['value'].split('-')[0]
            fuelbat  = self.varDict[i]['value'].split('-')[1]
            if fueltype == kk and fuelbat =='3':
-             genbat2.append(self.varDict[i]['ravenid']) ## for genome 
+             genbat2.append(self.varDict[i]['ravenid']) ## for genome
     genome = [0 for _ in range(self.Nslot)] # initialize
     for i,j in  zip(bat0id_sorted, genbat0):
       genome[i] = int(j)
@@ -1341,17 +1341,17 @@ class EQchecker:
   def create_genome(self):
     """
     Create genome list for EQ calculation. This version works for 3 batch core.
-    Note: the output genome is sorted with variable name.  
+    Note: the output genome is sorted with variable name.
     """
-    flag = False 
+    flag = False
     bat0ravenid = [self.varDict[i]['ravenid'] for i in range(len(self.varDict)) if int(self.varDict[i]['value'].split('-')[1])==1]
     maxiter = 100
     iter = 0
     genome = []
     target_range = (self.minfresh, self.maxfresh)
-    Nmin = self.getminN(target_range[0])  # Minimum number of elements for score >= min fresh 
+    Nmin = self.getminN(target_range[0])  # Minimum number of elements for score >= min fresh
     Nmax = self.getmaxN(target_range[1])  # Maximum number of elements for score <= max fresh
-    while not flag: ## 
+    while not flag: ##
       index = list(range(self.Nslot))
       N0 = random.randint(Nmin, Nmax)
       bat0id, c0 = self.generate_sublist(index, Nmin, Nmax, *target_range)
@@ -1368,7 +1368,7 @@ class EQchecker:
      N=random.randint(Nmin, Nmax)
      selectindex = np.random.choice(index, size=N, replace=False).tolist()
      return selectindex, N
-  
+
   def loc_mul(self, children_i, parent_i):
     """
     Swap mutator select first location --> check its mutiplication --> select the 2nd loc with the same multiplicaiton
@@ -1388,7 +1388,7 @@ class EQchecker:
         if check:
           break
       if check:
-        break ## break outer loop too 
+        break ## break outer loop too
     if not check:
       children_i = parent_i
       print('no swaping after trying all loc1 loc2')
@@ -1396,12 +1396,12 @@ class EQchecker:
 
   def checkgennome(self,newgenome):
     """`
-    Check validity of new genome 
+    Check validity of new genome
     """
     out={}
     for i in range(len(newgenome)):
       out[i]=newgenome[i]
-    out = {key: out[key] for key in sorted(out)} ## sorted out 
+    out = {key: out[key] for key in sorted(out)} ## sorted out
     decoder = []
     for key,val in out.items():
       fuelid_   = [self.varDict[i]['value'].split('-')[0] for i in range(len(self.varDict)) if int(self.varDict[i]['ravenid'])==val][0]
@@ -1426,7 +1426,7 @@ class EQchecker:
         # print(c1,c2,c3, id_)
         check.append(False)
     flag=all(check)
-    
+
     return flag
 
   def mutate2genome(self,parent1, parent2):
@@ -1443,7 +1443,7 @@ class EQchecker:
     idx2_1 = [[i,j] for i,j in enumerate(parent2) if int(self.varDict[j]['value'].split('-')[1])==1]
     idx2_2 = [[i,j] for i,j in enumerate(parent2) if int(self.varDict[j]['value'].split('-')[1])==2]
     idx2_3 = [[i,j] for i,j in enumerate(parent2) if int(self.varDict[j]['value'].split('-')[1])==3]
-    ## 
+    ##
     Fresh_list1 = []
     Fresh_list2 = []
     for i in idx1_1:
@@ -1457,13 +1457,13 @@ class EQchecker:
     Fresh_list1 = combined[:N01]
     Fresh_list2 = combined[N01:N01+N02]
 
-    ## select fresh for child1 
+    ## select fresh for child1
     flag = False
     maxiter = 1000
     iter = 0
     target_range = (self.minfresh, self.maxfresh)
     bat0ravenid = [self.varDict[i]['ravenid'] for i in range(len(self.varDict)) if int(self.varDict[i]['value'].split('-')[1])==1]
-    Nmin = self.getminN(target_range[0])  # Minimum number of elements for score >= min fresh 
+    Nmin = self.getminN(target_range[0])  # Minimum number of elements for score >= min fresh
     Nmax = self.getmaxN(target_range[1])  # Maximum number of elements for score <= max fresh
     while not flag:
 	  # ILB approach
@@ -1475,7 +1475,7 @@ class EQchecker:
       if iter>maxiter:
         print(f"Failed to sample after {maxiter} iterations!")
         break
-    ## select for child2 
+    ## select for child2
     flag = False
     iter = 0
     random.shuffle(bat0ravenid)
@@ -1489,7 +1489,7 @@ class EQchecker:
         print(f"Failed to sample after {maxiter} iterations!")
         break
     return child1, child2
-  
+
   def getcountfabat(self, decoder, fuelid, batnumber):
     c=0
     for i in range(len(decoder)):
