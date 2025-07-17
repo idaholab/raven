@@ -458,7 +458,7 @@ class GeneticAlgorithm(RavenSampled):
                     \item \textit{uniformCrossover} - It randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
                   \end{itemize}""")
     crossover.addParam("type",
-                       InputTypes.makeEnumType('crossover','crossoverType',['onePointCrossover','twoPointsCrossover','uniformCrossover']),
+                       InputTypes.makeEnumType('crossover','crossoverType',['onePointCrossover','twoPointsCrossover','uniformCrossover','EQCrossover']),
                        True,
                        descr="type of crossover operation to be used. See the list of options above.")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
@@ -487,7 +487,7 @@ class GeneticAlgorithm(RavenSampled):
                   \item \textit{randomMutator} - It randomly selects a gene within an chromosome and mutates the gene.
                 \end{itemize} """)
     mutation.addParam("type",
-                      InputTypes.makeEnumType('mutation','mutationType',['swapMutator','scrambleMutator','inversionMutator','randomMutator']),
+                      InputTypes.makeEnumType('mutation','mutationType',['swapMutator','scrambleMutator','inversionMutator','randomMutator','swapMutatorEQ']),
                       True,
                       descr="type of mutation operation to be used. See the list of options above.")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -796,6 +796,15 @@ class GeneticAlgorithm(RavenSampled):
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
     self.incrementIteration(traj)
 
+    files = self.assemblerDict['Files']
+    ## add checker/here 
+    EQflag = any("EQinput" in sublist for sublist in files)
+    if EQflag:
+      self._EQcheckfile = files
+    else:
+      self._EQcheckfile = None
+    
+
     population = datasetToDataArray(rlz, list(self.toBeSampled))
 
     objectiveVal = []
@@ -866,18 +875,19 @@ class GeneticAlgorithm(RavenSampled):
                                               )
 
       # 7. Reproduction
+	  ### Modified with EQ cycle
       # 7.1 Crossover
       childrenXover = self._crossoverInstance(parents=parents,
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
-                                              points=self._crossoverPoints)
+                                              points=self._crossoverPoints, EQfiles = self._EQcheckfile)
 
       # 7.2 Mutation
       childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                                distDict=self.distDict,
                                                locs=self._mutationLocs,
                                                mutationProb=self._mutationProb,
-                                               variables=list(self.toBeSampled))
+                                               variables=list(self.toBeSampled), EQfiles = self._EQcheckfile)
 
       # 8. repair/replacement
       # Repair should only happen if multiple genes in a single chromosome have the same values (),

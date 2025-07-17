@@ -27,6 +27,7 @@ import numpy as np
 import xarray as xr
 from operator import itemgetter
 from ...utils import utils, randomUtils
+from ...utils.utils import EQchecker
 
 def swapMutator(offSprings, distDict, **kwargs):
   """
@@ -56,6 +57,45 @@ def swapMutator(offSprings, distDict, **kwargs):
       cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
       children[i,loc1] = distDict[offSprings.coords['Gene'].values[loc1]].ppf(cdf2)
       children[i,loc2] = distDict[offSprings.coords['Gene'].values[loc2]].ppf(cdf1)
+  return children
+
+def swapMutatorEQ(offSprings, distDict, **kwargs):
+  """
+    This method performs the swap mutator for multiple locations for EQ. For each child, 
+    two genes are sampled and switched
+    E.g.:
+    child=[a,b,c,d,e] --> b and d are selected --> child = [a,d,c,b,e]
+    @ In, offSprings, xr.DataArray, children resulting from the crossover process
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          locs, list, the 2 locations of the genes to be swapped
+          mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+          variables, list, variables names.
+    @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
+  """
+  ## EQ check 
+  if kwargs['EQfiles'] is not None:
+    EQflag = True
+    tempfiles = kwargs['EQfiles']
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='simulatedata'][0]
+    xmlfile = temp.getPath()+ temp.getFilename()
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='EQinput'][0]
+    inpfile = temp.getPath()+temp.getFilename()
+    EQobject = EQchecker(xmlinput=xmlfile, EQinput=inpfile)
+  else:
+    EQflag = False 
+  # initializing children
+  children = xr.DataArray(np.zeros((np.shape(offSprings))),
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(np.shape(offSprings)[0]),
+                                  'Gene':kwargs['variables']})
+  for i in range(np.shape(offSprings)[0]):
+    children[i][:] = offSprings[i][:]
+    if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
+      # loc1, loc2 = locationsGenerator(offSprings, kwargs['locs'])
+      tempchild = children[i].T.values.tolist()
+      tempparent = offSprings[i].T.values.tolist()
+      loc2,child = EQobject.loc_mul(tempchild, tempparent) #swapping
+      children[i][:] = np.array(child)
   return children
 
 # @profile
@@ -197,6 +237,7 @@ def locationsGenerator(offSprings,locs):
 
 __mutators = {}
 __mutators['swapMutator']       = swapMutator
+__mutators['swapMutatorEQ']       = swapMutatorEQ
 __mutators['scrambleMutator']   = scrambleMutator
 __mutators['bitFlipMutator']    = bitFlipMutator
 __mutators['inversionMutator']  = inversionMutator

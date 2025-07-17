@@ -27,6 +27,7 @@ from scipy.special import comb
 from itertools import combinations
 import xarray as xr
 from ...utils import randomUtils
+from ...utils.utils import EQchecker
 
 
 # @profile
@@ -153,10 +154,62 @@ def twoPointsCrossover(parents, **kwargs):
 
   return children
 
+def EQCrossover(parents,**kwargs):
+  """
+    Method designed to perform crossover by mixing chromosome for EQ problem
+    @ In, parents, xr.DataArray, parents involved in the mating process.
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          crossoverProb, float, crossoverProb determines when child takes genes from a specific parent
+    @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
+  """
+  nParents,nGenes = np.shape(parents)
+  # Number of children = 2* (nParents choose 2)
+  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),nGenes)),
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                  'Gene':kwargs['variables']})
+
+
+  # defaults
+  if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
+    crossoverProb = randomUtils.random(dim=1, samples=1)
+  else:
+    crossoverProb = kwargs['crossoverProb']
+
+  # check EQ input 
+  if kwargs['EQfiles'] is None:
+    raise ValueError('EQ files is None, this is not allowed for this EQCrossOver type, please check!')
+  else:
+    tempfiles = kwargs['EQfiles']
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='simulatedata'][0]
+    xmlfile = temp.getPath()+ temp.getFilename()
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='EQinput'][0]
+    inpfile = temp.getPath()+temp.getFilename()
+    EQobject = EQchecker(xmlinput=xmlfile, EQinput=inpfile)
+  index = 0
+  parentsPairs = list(combinations(parents,2))
+  for parentPair in parentsPairs:
+    parent1 = parentPair[0].T.values.tolist()
+    parent2 = parentPair[1].T.values.tolist()
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+      children1,children2 = EQobject.mutate2genome(parent1,parent2)
+      if not EQobject.checkgennome(children1) or not EQobject.checkgennome(children2):
+        children1,children2 = parent1, parent2
+        print('Warning .... no crossover due to violation in both childrens ')
+    else:
+      children1,children2 = parent1, parent2
+    children[index][:]   = np.array(children1)
+    children[index+1][:] = np.array(children2)
+    index +=  2
+  
+  return children
+
+
 __crossovers = {}
 __crossovers['onePointCrossover']  = onePointCrossover
 __crossovers['twoPointsCrossover'] = twoPointsCrossover
 __crossovers['uniformCrossover']   = uniformCrossover
+__crossovers['EQCrossover']         = EQCrossover
 
 
 def returnInstance(cls, name):
