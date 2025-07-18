@@ -1,4 +1,0 @@
-time,ave_temp_interior,flux_from_clad,flux_from_fuel,gas_volume,initial_moles,input_rod_power,peak_clad_temp,peak_temp,plenum_pressure
-0,0,0,0,0,0,0,0,0,0
-0.001,293.15032168601,-0.057880544552719,-0.0020300541090725,2.1559867922124e-06,0.0017882557235788,0,293.42664996853,293.42664996853,2021620.3177187
-
