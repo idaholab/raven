@@ -29,7 +29,7 @@ except Exception as e:
   raise e
 sys.path.pop()
 
-from ravenframework.utils.InputData import wrapText
+from ravenframework.utils.InputData import wrapText, removeTrailingWhitespace
 
 # examples
 ndSpline = r"""
@@ -1493,10 +1493,10 @@ for name in orderedValidRom:
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'internalRom.tex'))
 with open(fName, 'w', encoding='utf-8') as f:
-  f.writelines(internalRom)
+  f.writelines(removeTrailingWhitespace(internalRom))
 print(f'\nSuccessfully wrote "{fName}"')
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'sklRom.tex'))
 with open(fName, 'w', encoding='utf-8') as f:
-  f.writelines(sklROM)
+  f.writelines(removeTrailingWhitespace(sklROM))
 print(f'\nSuccessfully wrote "{fName}"')

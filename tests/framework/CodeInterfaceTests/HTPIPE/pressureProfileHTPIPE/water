@@ -1,0 +1,14 @@
+         1               pressure profile  
+         3               geometry: wickless pipe    
+         5               working fluid: water     
+         1               input choice: power               
+         2               input choice: evap. exit temp.    
+         3               source coupling:does not apply      
+         3               sink coupling:does not apply      
+     $RAVEN-power|10.5f$         heat input rate (W)
+     $RAVEN-temperature|10.4f$         vapor temperature at evaporator exit (K)
+         0.00000         source temperature (K)
+         0.00000         sink temperature (K)                                             
+         0.00000         default value should be zero 
+
+         (...)           The remains of the input file is not reported for this test                                    

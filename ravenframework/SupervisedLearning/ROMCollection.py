@@ -2204,3 +2204,11 @@ class Decomposition(SupervisedLearning):
         associated with the corresponding points in featureVals
     """
     pass
+
+
+#magic to allow ROMCollection to be pickled, see utils.InputData.parameterInputFactory
+Collection.getInputSpecification()
+Segments.getInputSpecification()
+Clusters.getInputSpecification()
+Interpolated.getInputSpecification()
+Decomposition.getInputSpecification()

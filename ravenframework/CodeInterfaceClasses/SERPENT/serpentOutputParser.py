@@ -17,6 +17,7 @@ Created Feb 9th, 2024
 #External Modules--------------------begin
 import os
 import numpy as np
+import time
 #External Modules--------------------end
 
 #Internal Modules--------------------begin
@@ -34,6 +35,32 @@ outputExtensions = {'ResultsReader': '_res.m',
                     'DepmtxReader': '_depmtx_[mat]_[bu]_[ss].m',
                     'MicroXSReader': '_mdx[bu].m',
                     'HistoryReader': '_his[bu].m'}
+
+def checkAccessAndWaitIfStillAccessed(filename, gracePeriod=1., timeout=100.):
+  """
+    This utility method is aimed to check the timestamp of last access of the file
+    and wait (up to timeout+gracePeriod) if it is within the gracePeriod
+    @ In, filename, str, the file name that needs to be checked
+    @ In, gracePeriod, float, optional, the grace period (From last access)
+    @ In, timeout, float, optional, the timeout (maximum time to wait till exiting)
+    @ Out, ready, bool, ready to be accessed?
+  """
+  ready = True
+  currentTime = time.time()
+  lastAccessTime = os.path.getatime(filename)
+  if (currentTime - lastAccessTime) < gracePeriod:
+    ready = False
+    t = time.time()
+    while True:
+      time.sleep(gracePeriod/100.)
+      currentTime = time.time()
+      lastAccessTime = os.path.getatime(filename)
+      if (currentTime - lastAccessTime) >= gracePeriod:
+        ready = True
+        break
+      elif currentTime - t > gracePeriod + timeout:
+        break
+  return ready
 
 def checkCompatibilityFileTypesAndInputFile(inputFile, fileTypesToRead):
   """
@@ -90,25 +117,30 @@ class SerpentOutputParser(object):
   """
     Class to parse different serpent output files
   """
-  def __init__(self, fileTypes, fileRootName, eol = None):
+  def __init__(self, fileTypes, fileRootName, eol = None, checkAccessAndWait = False):
     """
      Constructor
      @ In, fileTypes, list-like, list of file types to process
      @ In, fileRootName, str, file root name (from which the file names
                               for the different file types are inferred)
-     @ In, eol, dict, dict of EOL targets {targetID1:value1,targetID2:value2, etc.}
+     @ In, eol, dict, optional, dict of EOL targets {targetID1:value1,targetID2:value2, etc.}
+     @ In, checkAccessAndWait, bool, optional, check the access time of the outputfiles and wait if too recent? Default= False
      @ Out, None
     """
     # import serpent tools
     try:
       st = __import__("serpentTools")
     except ImportError:
-      raise ImportError("serpentTools not found and SERPENT Interface has been invoked. Install serpentTools through pip!")
+      raise ImportError("serpentTools not found and SERPENT Interface has been invoked. "
+                        "Install serpentTools through pip or invoke RAVEN installation procedure (i.e. establish_conda_env.sh script) "
+                        "with the additional command line option '--code-interface-deps'. "
+                        "See User Manual for additiona details!")
     self._st = st
     self._fileTypes = fileTypes
     self._fileRootName =  fileRootName
     self._data = {}
     self._eol = eol
+    self._checkAccessAndWait = checkAccessAndWait
 
   def processOutputs(self):
     """
@@ -143,7 +175,14 @@ class SerpentOutputParser(object):
       @ Out, nSteps, int, the number of burn up steps (0 if no burn)
     """
     resultsResults = {}
-    res = self._st.read(f"{self._fileRootName}{outputExtensions['ResultsReader']}")
+    ready = True
+    fn = f"{self._fileRootName}{outputExtensions['ResultsReader']}"
+    if self._checkAccessAndWait:
+      ready = checkAccessAndWaitIfStillAccessed(fn)
+    if not ready:
+      raise ImportError(f"ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!")
+    res = self._st.read(fn)
+
     buSteps = res.get('burnStep')
     nSteps = 1 if buSteps is None else len(buSteps)
 
@@ -219,7 +258,13 @@ class SerpentOutputParser(object):
     """
     detectorResults = {}
     for bu in range(buSteps):
-      det = self._st.read(f"{self._fileRootName}{outputExtensions['DetectorReader']}".replace("[bu]", f"{bu}"))
+      ready = True
+      fn = f"{self._fileRootName}{outputExtensions['DetectorReader']}".replace("[bu]", f"{bu}")
+      if self._checkAccessAndWait:
+        ready = checkAccessAndWaitIfStillAccessed(fn)
+      if not ready:
+        raise ImportError(f'ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!')
+      det = self._st.read(fn)
       for detectorName, detectorContent in det.detectors.items():
         indeces = detectorContent.indexes
         if len(indeces) == 0:
@@ -260,7 +305,13 @@ class SerpentOutputParser(object):
       @ Out, depletionResults, dict, the result container
     """
     depletionResults = {}
-    dep = self._st.read(f"{self._fileRootName}{outputExtensions['DepletionReader']}")
+    ready = True
+    fn = f"{self._fileRootName}{outputExtensions['DepletionReader']}"
+    if self._checkAccessAndWait:
+      ready = checkAccessAndWaitIfStillAccessed(fn)
+    if not ready:
+      raise ImportError(f'ERROR: Serpent Interface | {fn} NOT READY TO BE READ!!!!')
+    dep = self._st.read(fn)
     depletionResults[f"time_days"] = dep.days
     depletionResults[f"burnup"] = dep.burnup
     for mat in dep.materials:

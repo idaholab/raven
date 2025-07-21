@@ -1,0 +1,5 @@
+<Simulation>
+  <RunInfo>
+    <clusterParameters>--wait</clusterParameters>
+  </RunInfo>
+</Simulation>

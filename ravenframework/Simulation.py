@@ -216,6 +216,7 @@ class Simulation(MessageUser):
                                     'suppressErrs': suppressErrs})
     # ensure messageHandler time has been reset (important if re-running simulation)
     self.messageHandler.starttime = time.time()
+    self.raiseAMessage('Initializing '+str(time.ctime()))
     sys.path.append(os.getcwd())
     # flag for checking if simulation has been run before
     self.ranPreviously = False
@@ -388,7 +389,7 @@ class Simulation(MessageUser):
       with open(fileName, 'w') as outFile:
         outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
     if not set(self.__stepSequenceList).issubset(set(self.stepsDict.keys())):
-      self.raiseAnError(IOError, f'The step list: {self.__stepSequenceList} contains steps that have not been declared: {list(self.stepsDict.keys())}')
+      self.raiseAnError(IOError, f'The <Sequence> list: {self.__stepSequenceList} contains steps that have not been declared in <Steps>. <Steps> only contains {list(self.stepsDict.keys())}')
 
   def setOptionalAttributes(self, xmlNode):
     """
@@ -402,7 +403,9 @@ class Simulation(MessageUser):
       for element in unknownAttribs:
         errorMsg += ' ' + element
       self.raiseAnError(IOError, errorMsg)
-    self.verbosity = xmlNode.attrib.get('verbosity', 'all').lower()
+    if  'verbosity' in xmlNode.attrib.keys():
+      #Note: verbosity default set at __init__
+      self.verbosity = xmlNode.attrib['verbosity'].lower()
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug(f'Setting "printTimeStamps" to {xmlNode.attrib["printTimeStamps"]}')
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
@@ -699,7 +702,12 @@ class Simulation(MessageUser):
         # parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
           self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
-          self.__modeHandler.XMLread(element)
+          if hasattr(self.__modeHandler,"handleInput"):
+            paramInput = self.__modeHandler.getInputSpecification()()
+            paramInput.parseNode(element)
+            self.__modeHandler.handleInput(paramInput)
+          else:
+            self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError, f"Unknown mode {self.runInfoDict['mode']}")
       elif element.tag == 'expectedTime':

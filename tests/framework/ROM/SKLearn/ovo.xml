@@ -43,11 +43,9 @@
       <Target>Z</Target>
       <estimator class="Models" type="ROM">estimator</estimator>
     </ROM>
-    <ROM name="estimator" subType="LinearRegression">
+    <ROM name="estimator" subType="GaussianNB">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
     </ROM>
   </Models>
 

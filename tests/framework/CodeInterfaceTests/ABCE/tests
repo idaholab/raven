@@ -1,0 +1,21 @@
+[Tests]
+
+ [./AbceInterfaceTest]
+   type = 'RavenFramework'
+   input = 'test_Abce_code_interface.xml'
+   csv = 'AbceInterfaceTest/grid_0.csv AbceInterfaceTest/grid_1.csv'
+   rel_err = 0.0001
+   required_executable = 'abce/run.py'
+   max_time = 600
+   heavy = true
+ [../]
+
+ [./AbceInterfaceOnlyTest]
+   type = 'RavenFramework'
+   input = 'test_Abce_code_interface_fake.xml'
+   csv = 'AbceInterfaceTest/grid_fake.csv'
+   text = 'AbceInterfaceTest/runAbceFake/1/settings.yml'
+   test_interface_only = true
+ [../]
+
+[]

@@ -63,6 +63,7 @@ The following table shows which base classes each currently implemented TSA algo
 | `Gaussianize`          |   &check;   |           |               |
 | `Differencing`         |   &check;   |           |               |
 | `PreserveCDF`          |   &check;   |           |               |
+| `BoundDomain`          |   &check;   |           |               |
 | `FilterBankDWT`        |             |           |    &check;    |
 
 

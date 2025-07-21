@@ -43,6 +43,9 @@ class TSAUser:
     spec.addSub(InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType,
         descr=r"""If a time-dependent ROM is requested, please specifies the pivot
         variable (e.g. time, etc) used in the input HistorySet.""", default='time'))
+    spec.addSub(InputData.parameterInputFactory('saveResiduals', contentType=InputTypes.BoolType,
+        descr=r"""If the residual of each algorithm in the SyntheticHistory model should be saved in the ROM
+        metadata. This can significantly inflate the size of the metadata file, if saved.""", default=False))
     for typ in factory.knownTypes():
       c = factory.returnClass(typ)
       if subset == 'characterize' and not c.canCharacterize():
@@ -71,6 +74,9 @@ class TSAUser:
     self._paramNames = None          # cached list of parameter names
     self._paramRealization = None    # cached dict of param variables mapped to values
     self._tsaTargets = None          # cached list of targets
+    self._saveResiduals = False      # switch for saving algorithm residuals at train time
+    self._residuals = {}             # residuals by algorithm and target
+    self._globalResiduals = {}       # residuals by algorithm and target for global algorithms
     self.target = None
 
   def readTSAInput(self, spec, hasClusters=False):
@@ -82,6 +88,9 @@ class TSAUser:
     """
     if self.pivotParameterID is None: # might be handled by parent
       self.pivotParameterID = spec.findFirst('pivotParameter').value
+    # Have we been asked to save the algorithm residuals in the ROM metadata?
+    self._saveResiduals = saveResidsSub.value if (saveResidsSub := spec.findFirst('saveResiduals')) else False
+    # Grab the provided TSA algorithms in order to create a pipeline of models and transformations
     for sub in spec.subparts:
       if sub.name in factory.knownTypes():
         algo = factory.returnInstance(sub.name)
@@ -146,6 +155,8 @@ class TSAUser:
     self._paramNames = None          # cached list of parameter names
     self._paramRealization = None    # cached dict of param variables mapped to values
     self._tsaTargets = None          # cached list of targets
+    self._residuals = {}             # algorithm training residuals
+    self._globalResiduals = {}       # global algorithm training residuals
 
   def getTargets(self):
     """
@@ -217,6 +228,7 @@ class TSAUser:
 
     # if NOT training globally, deep-ish copy, so we don't mod originals
     residual = targetVals if trainGlobal else targetVals[:, :, :]
+    savedResiduals = self._globalResiduals if trainGlobal else self._residuals
     # check if training globally, if so we only train global algos
     algorithms = self._tsaGlobalAlgorithms if trainGlobal else self._tsaAlgorithms
 
@@ -238,8 +250,10 @@ class TSAUser:
       # residual signal is not altered.
       if algo.canTransform():
         algoResidual = algo.getResidual(signal, params, pivots, settings)
-        residual[0, :, indices] = algoResidual.T # transpose, again because of indices
-      # TODO meta store signal, residual?
+        residual[0, :, indices] = algoResidual.T  # transpose, again because of indices
+      # Save the residuals if requested
+      if self._saveResiduals:
+        savedResiduals[algo.name] = {target: np.copy(resid) for target, resid in zip(self.target, residual[0].T)}
 
   def evaluateTSASequential(self, evalGlobal=False, evaluation=None, slicer=None):
     """
@@ -315,6 +329,23 @@ class TSAUser:
       algoNode = xmlUtils.newNode(algo.name)
       algo.writeXML(algoNode, self._tsaTrainedParams[algo])
       root.append(algoNode)
+    if self._saveResiduals:
+      self._writeResidualsToXML(root)
+
+  def _writeResidualsToXML(self, tsaNode):
+    """"
+      Write the signal residuals to the ROM XML
+      @ In, tsaNode, xml.etree.ElementTree.Element, the TSA model XML node
+      @ Out, None
+    """
+    residsNode = xmlUtils.newNode('residuals')
+    tsaNode.append(residsNode)
+    residsToWrite = self._residuals or self._globalResiduals  # Write global residuals if there's nothing in self._residuals. Depends on the global algorithms always being fitted, then written first.
+    for algo, residuals in residsToWrite.items():
+      algoNode = xmlUtils.newNode(algo)
+      for target, resids in residuals.items():
+        algoNode.append(xmlUtils.newNode(target, text=np.array2string(resids, separator=',').strip('[]')))
+      residsNode.append(algoNode)
 
   def getTSApointwiseData(self):
     """
@@ -369,3 +400,11 @@ class TSAUser:
       @ Out, tsaTrainedParams, dict, trained parameters for all TSA algorithms
     """
     return self._tsaTrainedParams
+
+  def setTsaTrainedParams(self, newTrainedParams):
+    """
+      Get dict of TSA trained parameters
+      @ In, None
+      @ Out, tsaTrainedParams, dict, trained parameters for all TSA algorithms
+    """
+    self._tsaTrainedParams= newTrainedParams

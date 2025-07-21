@@ -22,13 +22,7 @@
     <Sequence>sample, print</Sequence>
     <batchSize>8</batchSize>
     <NumMPI>8</NumMPI>
-    <mode>
-      mpi
-      <runQSUB/>
-      <memory>4gb</memory>
-    </mode>
     <expectedTime>0:10:0</expectedTime>
-    <clusterParameters>-P ops_gen -j oe</clusterParameters>
     <NodeParameter>--hostfile</NodeParameter>
     <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
     <parallelMethod>ray</parallelMethod>

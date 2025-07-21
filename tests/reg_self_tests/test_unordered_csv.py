@@ -53,7 +53,7 @@ def test_a_file(fname):
     @ In, fname, string, filename string
     @ Out, test_a_file, (same, message), (bool, str) result of test.
   """
-  differ = UCSV([fname], [f'gold/{fname}'], zeroThreshold=5e-14)
+  differ = UCSV([fname], [f'gold/{fname}'], zeroThreshold=1e-8)
   differ.diff()
   return differ._same, differ._message
 

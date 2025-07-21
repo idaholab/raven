@@ -20,6 +20,8 @@
       <revision author="alfoa" date="2019-12-05">Modified to check we can handle multiple words in the same card.</revision>
       <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
       <revision author="alfoa" date="2021-10-21">Removed clearRunDir flag since in case of interfaceCheck this is set to False automatically (see issue #1688)</revision>
+      <revision author="wangc" date="2025-01-17">Added operator card to test operator issue with continuation lines (see issue #2425)</revision>
+
     </revisions>
     <requirements>R-SI-1</requirements>
   </TestInfo>
@@ -40,6 +42,10 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <operator variables="13550801:6">
+        <expression> %card%+13550801:6</expression>
+        <cards>13550801:7</cards>
+      </operator>
       <!-- The following flag indicates that we will write a CSV with the data (by default we return the data directly to RAVEN) -->
       <csv>True</csv>
     </Code>

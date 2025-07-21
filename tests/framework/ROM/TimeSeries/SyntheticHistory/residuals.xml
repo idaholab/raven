@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.Fourier</name>
+    <author>j-bryan</author>
+    <created>2025-04-03</created>
+    <classesTested>SupervisedLearning.SyntheticHistory</classesTested>
+    <description>
+      Tests saving residuals from TSA algorithms to the ROM metadata
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Residuals</WorkingDir>
+    <Sequence>read, train, meta</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">infile</Input>
+      <Output class="DataObjects" type="HistorySet">indata</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">indata</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </RomTrainer>
+    <IOStep name="meta">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="infile">../TrainingData/FourierA.csv</Input>
+  </Files>
+
+  <Models>
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal1, signal2, seconds</Target>
+      <Features>scaling</Features>
+      <saveResiduals>True</saveResiduals>
+      <pivotParameter>seconds</pivotParameter>
+      <fourier target="signal1, signal2">
+        <periods>3, 5, 7, 10</periods> <!-- training signal also has period=2, left for the residual -->
+      </fourier>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="indata">
+      <Input>scaling</Input>
+      <Output>signal1, signal2</Output>
+      <options>
+        <pivotParameter>seconds</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>
