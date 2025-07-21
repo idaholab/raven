@@ -4,8 +4,8 @@
       <type>LinearRegression</type>
       <Features>X,Y</Features>
       <Targets>Z</Targets>
-      <coef_Z>-0.0426499542795,-5.43142021766e-05</coef_Z>
-      <intercept_Z>0.275851025262</intercept_Z>
+      <coef_Z>-0.0127275356916,-0.0313929649719</coef_Z>
+      <intercept_Z>0.1768517746</intercept_Z>
     </ROM>
   </modelUnderTest>
   
