@@ -40,7 +40,7 @@ Note all install methods after "main" take
     <h5py/>
     <numpy>1.26</numpy>
     <scipy>1.14</scipy>
-    <scikit-learn>1.1</scikit-learn>
+    <scikit-learn>1.3</scikit-learn>
     <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray/>
