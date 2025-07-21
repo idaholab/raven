@@ -1,0 +1,5 @@
+These tests are based on the OpenFOAM tutorial case twoSimpleRotors
+available at "$FOAM_TUTORIALS/incompressible/overPimpleDyMFoam/twoSimpleRotors" (https://develop.openfoam.com/Development/openfoam/-/tree/master/tutorials/incompressible/overPimpleDyMFoam/twoSimpleRotors).
+
+Most of the files (input) in these tests have been purged since are not needed for the executable-less tests.
+If a User wants to run an executable-active test, the twoSimpleRotors missing files should be collected from the link above and added in the tests' directories.

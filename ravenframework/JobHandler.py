@@ -726,11 +726,11 @@ class JobHandler(BaseType):
         clientQueue
       @ Out, None
     """
-    assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
+    assert "parallel_function" in dir(functionToRun), "to parallelize a function, it must be" \
            " decorated with RAVEN Parallel decorator"
     if self._server is None or forceUseThreads:
       internalJob = Runners.factory.returnInstance('SharedMemoryRunner', args,
-                                                   functionToRun.original_function,
+                                                   functionToRun,
                                                    identifier=identifier,
                                                    metadata=metadata,
                                                    uniqueHandler=uniqueHandler,
@@ -742,7 +742,7 @@ class JobHandler(BaseType):
         arguments = args
       if self._parallelLib == ParallelLibEnum.dask:
         internalJob = Runners.factory.returnInstance('DaskRunner', arguments,
-                                                     functionToRun.original_function,
+                                                     functionToRun,
                                                      identifier=identifier,
                                                      metadata=metadata,
                                                      uniqueHandler=uniqueHandler,
@@ -750,7 +750,7 @@ class JobHandler(BaseType):
 
       elif self._parallelLib == ParallelLibEnum.ray:
         internalJob = Runners.factory.returnInstance('RayRunner', arguments,
-                                                     functionToRun.remote,
+                                                     functionToRun.ray_function.remote,
                                                      identifier=identifier,
                                                      metadata=metadata,
                                                      uniqueHandler=uniqueHandler,

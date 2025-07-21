@@ -30,7 +30,7 @@ from .RWD import RWD
 from .STL import STL
 from .Transformers import ZeroFilter, LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \
                           OutTruncation, MaxAbsScaler, MinMaxScaler, StandardScaler, RobustScaler, \
-                          QuantileTransformer, Gaussianize, PreserveCDF, Differencing, FilterBankDWT
+                          QuantileTransformer, Gaussianize, PreserveCDF, Differencing, FilterBankDWT, BoundDomain
 
 factory = EntityFactory('TimeSeriesAnalyzer')
 # TODO map lower case to upper case, because of silly ROM namespace problems
@@ -54,5 +54,6 @@ aliases = {'Fourier': 'fourier',
            'Gaussianize': 'gaussianize',
            'PreserveCDF': 'preserveCDF',
            'Differencing': 'differencing',
-           'FilterBankDWT': 'filterbankdwt'}
+           'FilterBankDWT': 'filterbankdwt',
+           'BoundDomain': 'bounddomain'}
 factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)

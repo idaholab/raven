@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/OpenModelica.OpenModelicaInterfaceTestNoExecutable</name>
+    <author>@bobk</author>
+    <created>2015-06-11</created>
+    <revisions>
+      <revision date="2016-04-26" author="@talbpaul">Added check for pre-existing HDF5 backup files when validating</revision>
+    </revisions>
+    <classesTested>CodeInterfaces.OpenModelica</classesTested>
+    <description>
+       The purpose of this test is to exercise the OpenModelica external code interface without needing to have a built
+         executable.  It is directly modeled on the test_relap5_code_interface.xml test and works by making sure that
+         1) The input files are perturbed correctly
+         2) That the raw output CSV files are properly processed for reading by RAVEN
+    </description>
+  </TestInfo>
+  <Files>
+    <Input name="BouncingBall_init.xml" type="">BouncingBall_init.xml</Input>
+  </Files>
+  <RunInfo>
+    <WorkingDir>OMInterfaceTest</WorkingDir>
+    <Sequence>testDummyStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Code name="BouncingBall" subType="OpenModelica">
+      <executable>
+        <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
+      </executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="h_dist">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>5.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="h">
+        <distribution>h_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testDummyStep" re-seeding="1" clearRunDir="False">
+      <Input class="Files" type="">BouncingBall_init.xml</Input>
+      <Model class="Models" type="Code">BouncingBall</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="Databases" type="HDF5">DB_BouncingBall</Output>
+      <Output class="DataObjects" type="HistorySet">BBHistorySet</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="BBHistorySet">
+      <Input>h</Input>
+      <Output>time,v,flying,impact</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Databases>
+    <HDF5 name="DB_BouncingBall" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

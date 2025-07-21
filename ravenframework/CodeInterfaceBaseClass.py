@@ -24,7 +24,6 @@ import os
 #Internal Modules------------------------------------------------------------------------------------
 from . import CsvLoader
 from .BaseClasses import BaseInterface
-from .utils import InputTypes, InputData
 from .utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -56,12 +55,20 @@ class CodeInterfaceBase(BaseInterface):
       @ Out, None
     """
     super().__init__()
-    self.inputExtensions = []    # list of input extensions
-    self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
-    self._ravenWorkingDir = None # location of RAVEN's main working directory
-    self._csvLoadUtil = 'pandas' # utility to use to load CSVs
-    self.printFailedRuns = True  # whether to print failed runs to the screen
-    self._writeCSV = False       # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
+    self.inputExtensions = []                # list of input extensions
+    self._runOnShell = True                  # True if the specified command by the code interfaces will be executed through shell.
+    self._ravenWorkingDir = None             # location of RAVEN's main working directory
+    self._csvLoadUtil = 'pandas'             # utility to use to load CSVs
+    self.printFailedRuns = True              # whether to print failed runs to the screen
+    self._writeCSV = False                   # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
+    # has the underlying code interface a method to stop the simulation if a set of criteria is met?
+    onlineStopCriteria = getattr(self, "onlineStopCriteria", None)
+    self.hasOnlineStopCriteriaCheckMethod = callable(onlineStopCriteria)
+    # and, if so, is it active? (there is a function associated with it?)
+    self.hasOnlineStopCriteriaCheck = False
+    self.onlineStopCriteriaTimeInterval = 5.0  # 5 seconds interval by default (but it can be overwritten in the input file)
+    # function to be evaluated for the stopping condition if any
+    self.stoppingCriteriaFunction = None
 
   def _handleInput(self, paramInput):
     """
@@ -152,6 +159,13 @@ class CodeInterfaceBase(BaseInterface):
     # should we print CSV even if the data can be directly returned to RAVEN?
     csvLog = xmlNode.find("csv")
     self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
+    # onlineStopCriteriaTimeInterval (if any)
+    onlineStopCriteriaTimeInterval = xmlNode.find("onlineStopCriteriaTimeInterval")
+    if onlineStopCriteriaTimeInterval is not None:
+      self.onlineStopCriteriaTimeInterval = utils.floatConversion(onlineStopCriteriaTimeInterval.text)
+      if not self.hasOnlineStopCriteriaCheckMethod:
+        self.raiseAWarning(f"onlineStopCriteriaTimeInterval provided, but Code interface {self.type} "
+                           "does not have 'onlineStopCriteriaCheck' method! IGNORED!")
     super().readXML(xmlNode, workingDir=workingDir)
 
   def _readMoreXML(self, xmlNode):
@@ -232,6 +246,16 @@ class CodeInterfaceBase(BaseInterface):
     """
     self.addInputExtension(['i','inp','in'])
 
+  def addStoppingFunctionPointer(self,stoppingFunction):
+    """
+      This method adds a the stopping function pointer to the code interface to be used in onlineStopCriteria
+      if needed
+      @ In, stoppingFunction, instance, the stopping function pointer
+      @ Out, None
+    """
+    if self.hasOnlineStopCriteriaCheckMethod:
+      self.stoppingCriteriaFunction = stoppingFunction
+
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -241,6 +265,11 @@ class CodeInterfaceBase(BaseInterface):
     """
     # store working dir for future needs
     self._ravenWorkingDir = runInfo['WorkingDir']
+    if self.hasOnlineStopCriteriaCheckMethod and self.stoppingCriteriaFunction is not None:
+      if self.stoppingCriteriaFunction.name not in self.stoppingCriteriaFunction.availableMethods():
+        self.raiseAnError(ValueError, f"<stoppingCriteriaFunction> named '{self.stoppingCriteriaFunction.name}' "
+                          f"not found in file '{self.stoppingCriteriaFunction.functionFile}'!")
+      self.hasOnlineStopCriteriaCheck = True
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
@@ -270,6 +299,35 @@ class CodeInterfaceBase(BaseInterface):
     """
     failure = False
     return failure
+
+  def onlineStopCriteriaCheck(self, command, output, workingDir):
+    """
+      This method is called by RAVEN during the simulation.
+      It is intended to provide means for the code interface to monitor the execution of a run
+      and stop it if certain creteria are met (defined at the code interface level)
+      For example, the underlying code interface can check for a figure of merit in the output file
+      produced by the driven code and stop the simulation if that figure of merit is outside a certain interval
+      (e.g. Pressure > 2 bar, stop otherwise, continue).
+      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal execution) and
+      the 'checkForOutputFailure' method is not called. So the simulation is considered to be successful.
+
+      NOTE: This method is only called if 'onlineStopCriteria' is implemented in the underlying code interface
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, continueSim, bool, True if the job needs to continue being executed, False if it needs to be stopped
+    """
+    continueSim = self.onlineStopCriteria(command, output, workingDir)
+    assert isinstance(continueSim, bool), f"Return argument of 'onlineStopCriteria' (for code interface {self.type}) must be a boolean, got {type(continueSim)}!"
+    return continueSim
+
+  def getOnlineStopCriteriaTimeInterval(self):
+    """
+      Method to get the time interval (frequency) of how often the onlineStopCriteriaCheck needs to be inquired.
+      @ In, None
+      @ Out, onlineStopCriteriaTimeInterval, float, the time interval (seconds)
+    """
+    return self.onlineStopCriteriaTimeInterval
 
   # Function is required by the base class but not used in this and its subclass
   def run(self, *args, **kwargs):

@@ -14,7 +14,7 @@ The coupling procedure does not require modifying RAVEN itself. Instead, the dev
  in RAVEN at run-time (no need to introduce  hard-coded coupling statements).
  This interface needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:codeinterface}):
 \begin{lstlisting}[language=bash]
- path/to/raven/distribution/raven/framework/CodeInterfaces/
+ path/to/raven/distribution/raven/framework/CodeInterfaceClasses/
 \end{lstlisting}
 At the initialization stage, RAVEN imports all the Interfaces that are contained in this directory and performs some preliminary cross-checks.
 \\It is important to notice that the name of class in the Interface module is the one the user needs to specify when the new interface
@@ -32,7 +32,38 @@ needs to be used. For example, if the Interface module contains the class ``NewC
     ...
   </Models>
 \end{lstlisting}
-In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.
+
+\textcolor{red}{In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.}
+
+\subsection{How to specify additional Python dependencies.}
+\label{subsec:dependencies}
+Firstly, if the newly developped  \textbf{Code Interface} requires additional libraries (installable via PIP, CONDA or MAMBA), the 
+developer can indicate such dependencies in a file ``\textbf{dependecies.xml}'' located in the same folder containing the interface.
+Such  ``\textbf{dependecies.xml}''  file has the same structure of the RAVEN or RAVEN-based Plugins'  ``\textbf{dependecies.xml}'' file.
+For example, if the Interface requires the additional dependencies ``MyLibrary1'' and ``MyLibrary2'' available in ``conda-forge'', the
+``\textbf{dependecies.xml}'' would be the following:
+\begin{lstlisting}[style=XML]
+<dependencies>
+  <main>
+    <MyLibrary1 source="forge"/>
+    <MyLibrary2 source="forge"/>
+  </main>
+</dependencies>
+\end{lstlisting}
+If specific versions of those libraries are required, the file would change as follows:
+\begin{lstlisting}[style=XML]
+<dependencies>
+  <main>
+    <MyLibrary1 source="forge">1.2.3</MyLibrary1>
+    <MyLibrary2 source="forge">4.5.6</MyLibrary2>
+  </main>
+</dependencies>
+\end{lstlisting}
+
+\nb \textcolor{red}{\textbf{Those additional dependencies are not installed by default but they require to invoke RAVEN installation procedure using the ``--code-interface-deps'' command line option. For  more details, see Sections~\ref{sec:clone raven} and ~\ref{subsec:installPythonLibs}}}.
+
+
+
 \subsection{Pre-requisites.}
 \label{subsec:prerequisites}
 In order to couple a newer application to the RAVEN code, some pre-requisites need to be satisfied.
@@ -184,6 +215,7 @@ class NewCode(CodeInterfaceBase):
   ...
   def initialize(self, runInfoDict, oriInputFiles)
   def finalizeCodeOutput(self, command, output, workingDir)
+  def onlineStopCriteria(self, command, output, workingDir)
   def getInputExtension(self)
   def checkForOutputFailure(self, output, workingDir)
 \end{lstlisting}
@@ -353,6 +385,70 @@ def finalizeCodeOutput(self, command, output, workingDir):
     outfile = os.path.join(workingDir,output+".o")
     convertOutputFileToCSV(outfile)
  \end{lstlisting}
+
+\subsubsection{Method: \texttt{onlineStopCriteria}}
+\label{subsubsec:onlineStopCriteria}
+\begin{lstlisting}[language=python]
+def onlineStopCriteria(self, command, output, workingDir)
+\end{lstlisting}
+The \textbf{onlineStopCriteria} function is an optional method. If present, it is is called by RAVEN during the simulation.
+      It is intended to provide means for the code interface to monitor the execution of a run
+      and stop it if certain criteria are met (defined at the code interface level).
+      For example, the underlying code interface can check for a figure of merit in the output file
+      produced by the driven code and stop the simulation if that figure of merit is outside a certain interval
+      (e.g. $Pressure > 2 bar$, stop otherwise, continue).
+      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal termination) and
+      the ``checkForOutputFailure''  method (if present) is not called. So the simulation is considered to be successful.
+      This method can be used to inquire an external function (user-implemented) that can be used to implement
+      a stop logic based on one or multiple figure of merits (e.g. in the example below, an external function (implemented by the user) is inquired
+      with the partial results read by the code interface parser to check if the criteria are met)  
+      \nb This method \textbf{MUST} return a boolean:
+      \begin{itemize}
+        \item False, if the simulation can continue (i.e. the stopping criteria are not met)
+        \item True, if the simulation MUST stop (i.e. the criteria are met).
+      \end{itemize}
+RAVEN is going to call this function passing in the following arguments:
+\begin{itemize}
+  \item \textbf{\texttt{command}}, data type = string: the command used to run
+                    the just ended job;
+  \item \textbf{\texttt{output}}, data type = string, the Output name root;
+  \item  \textbf{\texttt{workingDir}}, data type = string, current working directory.
+\end{itemize}
+For the example referred in the previous section, this method would implemented as follows:
+\newline
+\begin{lstlisting}[language=python]
+def onlineStopCriteria(self, command, output, workingDir):
+    continueSim = True
+    if self.stoppingCriteriaFunction is not None:
+      if os.path.exists(os.path.join(workDir,output+".csv")):
+        outputParser = self.outputParser(os.path.join(workDir,output+".csv"))
+        results = outputParser.processOutputs()
+        continueSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
+    return continueSim
+ \end{lstlisting}
+ 
+ It is important to notice that this method can leverage any  external function defined in the  \xmlNode{Functions} block (see Section~\ref{sec:functions}) 
+ as long as it returns a boolean.
+ Within the \xmlNode{Code} XML node, the user can already link such function through the following XML node:
+ 
+ \begin{itemize}
+    \item \xmlNode{StoppingFunction}, \xmlDesc{XML node, optional node}, the
+                                                           body of this XML node must contain the name of an appropriate \textbf{Function} defined in the
+                                                            \xmlNode{Functions} block (see Section~\ref{sec:functions}). It is used as a
+                                                           ``stopping'' function tool for online simulation monitoring. Indeed, the user can provide a
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through the external RAVEN python function linked here through this XML node. 
+                                                            The function must return a ``bool'':
+                                                            \begin{itemize}
+                                                              \item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \item True, if the simulation must STOP (i.e. the criteria are met)
+                                                            \end{itemize}
+                                                            %
+                                                            Each variable defined in the \xmlNode{StoppingFunction} block is available in the
+                                                            function as a python \texttt{raven.} member. In the following, an example of a
+                                                            user-defined stopping condition function is reported.
+ 
+ \end{itemize}
 
  \subsubsection{Method: \texttt{checkForOutputFailure}}
 \label{subsubsec:checkForOutputFailure}

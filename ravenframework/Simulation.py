@@ -389,7 +389,7 @@ class Simulation(MessageUser):
       with open(fileName, 'w') as outFile:
         outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
     if not set(self.__stepSequenceList).issubset(set(self.stepsDict.keys())):
-      self.raiseAnError(IOError, f'The step list: {self.__stepSequenceList} contains steps that have not been declared: {list(self.stepsDict.keys())}')
+      self.raiseAnError(IOError, f'The <Sequence> list: {self.__stepSequenceList} contains steps that have not been declared in <Steps>. <Steps> only contains {list(self.stepsDict.keys())}')
 
   def setOptionalAttributes(self, xmlNode):
     """

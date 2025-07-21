@@ -122,21 +122,39 @@ def checkArray(comment, first, second, dtype, tol=1e-10, update=True):
 
   return res
 
+def checkDictSubset(comment, first, second, keys, update=True):
+  checkSame(
+    comment,
+    {k: first[k] for k in first.keys() & set(keys)},
+    {k: first[k] for k in second.keys() & set(keys)},
+    update
+  )
+
 ######################################
 #            CONSTRUCTION            #
 ######################################
-def createZeroFilter(targets):
+def createZeroFilter(targets, fill=None, tol=None):
   """
     Creates a ZeroFilter object
     @ In, targets, list(str), list of targets
+    @ In, fill, str | float | None, optional, fill value for masked elements
+    @ In, tol, float | None, optional, absolute tolerance
     @ Out, zeroFilter, ZeroFilter, zero filter object
+    @ Out, settings, dict, filter settings
   """
-  xml = xmlUtils.newNode('zerofilter', attrib={'target':','.join(targets)})
+  attribs = {
+    'target': ','.join(targets),
+  }
+  if fill is not None:
+    attribs['fill'] = str(fill)
+  if tol is not None:
+    attribs['tol'] = str(tol)
+  xml = xmlUtils.newNode('zerofilter', attrib=attribs)
   zeroFilter = ZeroFilter()
   inputSpec = ZeroFilter.getInputSpecification()()
   inputSpec.parseNode(xml)
-  zeroFilter.handleInput(inputSpec)
-  return zeroFilter
+  settings = zeroFilter.handleInput(inputSpec)
+  return zeroFilter, settings
 
 ###################
 #  Tests          #
@@ -150,11 +168,11 @@ signalB[0] = 0
 signals = np.vstack([signalA, signalB]).T
 
 # Test fit and getResidual
-zf = createZeroFilter(targets)
-settings = {}  # No additional settings required
+zf, settings = createZeroFilter(targets)
+defaultSettings = {'fillValue': np.nan, 'tol': 1e-8}
+checkDictSubset('Default settings', settings, defaultSettings, ['fill', 'tol'])
 params = zf.fit(signals, pivot, targets, settings)
 filteredSignals = zf.getResidual(signals, params, pivot, settings)
-
 okayResidual = signals.copy()
 okayResidual[okayResidual == 0] = np.nan
 
@@ -163,8 +181,31 @@ checkArray('Simple getResidual', filteredSignals.ravel(), okayResidual.ravel(), 
 # Test getComposite
 composite = np.ones_like(signals)
 composite = zf.getComposite(composite, params, pivot, settings)
-# composite should have zeros replaced where they were in the original signal
+# composite should have values replaced where they were in the original signal
 checkArray('Simple getComposite', composite.ravel(), signals.ravel(), float)
+
+# Test fill value setting
+targets = ['C']
+fillValue = 0.0
+tol = 1e-6
+signals = np.array([-1e-10, 0, 1e-7, 1e-5, 1]).reshape(-1, 1)
+okayResidual = np.array([fillValue, fillValue, fillValue, 1e-5, 1]).reshape(-1, 1)
+pivot = np.arange(signals.shape[0])
+
+zf, settings = createZeroFilter(targets, fill=fillValue, tol=tol)
+customSettings = {'fillValue': fillValue, 'tol': tol}
+checkDictSubset('Custom fill and tol settings', settings, customSettings, ['fill', 'tol'])
+params = zf.fit(signals, pivot, targets, settings)
+filteredSignals = zf.getResidual(signals, params, pivot, settings)
+
+checkArray('Custom fill and tol getResidual', filteredSignals.ravel(), okayResidual.ravel(), float)
+
+# Test getComposite
+# Input array can have any value in the place of the masked elements (indexes 0-2 in this case)
+composite = np.array([np.inf, np.nan, -1000, 1e-5, 1]).reshape(-1, 1)
+composite = zf.getComposite(composite, params, pivot, settings)
+# composite should have values replaced where they were in the original signal
+checkArray('Custom fill and tol getComposite', composite.ravel(), signals.ravel(), float)
 
 print(results)
 

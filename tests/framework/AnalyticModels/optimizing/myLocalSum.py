@@ -82,4 +82,3 @@ def constrain(self):
   """
   explicitConstrain = constraint(self)
   return explicitConstrain
-

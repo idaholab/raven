@@ -197,8 +197,8 @@ class LowerConfidenceBound(AcquisitionFunction):
     if self._optValue is None:
       converged = False
       return converged
-    optDiff = np.absolute(-1*self._optValue - bayesianOptimizer._optPointHistory[0][-1][0][bayesianOptimizer._objectiveVar])
-    optDiff /= np.absolute(bayesianOptimizer._optPointHistory[0][-1][0][bayesianOptimizer._objectiveVar])
+    optDiff = np.absolute(-1*self._optValue - bayesianOptimizer._optPointHistory[0][-1][0][bayesianOptimizer._objectiveVar[0]])
+    optDiff /= np.absolute(bayesianOptimizer._optPointHistory[0][-1][0][bayesianOptimizer._objectiveVar[0]])
     if optDiff <= bayesianOptimizer._acquisitionConv:
       converged = True
     else:

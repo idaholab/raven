@@ -5,26 +5,26 @@
     <created>2020-07-05</created>
     <classesTested>Models.PostProcessors.ParetoFrontier</classesTested>
     <description>
-      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space 
+      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space
       when value limit is specified.
     </description>
   </TestInfo>
-  
+
   <Files>
     <Input name="data" type="">data.csv</Input>
   </Files>
-  
+
   <RunInfo>
     <WorkingDir>ParetoFrontier</WorkingDir>
     <Sequence>LoadPS,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
       <objective goal='min'>cost</objective>
       <objective goal='max' lowerLimit='0.5'>value</objective>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
 
   <Steps>
@@ -46,7 +46,7 @@
       <source>paretoPoints</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="candidates">
       <Input>var1,var2</Input>
@@ -57,5 +57,5 @@
       <Output>cost,value</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

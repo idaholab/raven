@@ -71,6 +71,32 @@ class SyntheticHistory(SupervisedLearning, TSAUser):
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
 
+  def __getstate__(self):
+    """
+      Obtains state of object for pickling.
+      @ In, None
+      @ Out, d, dict, stateful dictionary
+    """
+    d = super().__getstate__()
+    d.pop("_saveResiduals", None)
+    d.pop("_residuals", None)
+    d.pop("_globalResiduals", None)
+    return d
+
+  def __setstate__(self, d: dict):
+    """
+      Sets state of object from pickling.
+      @ In, d, dict, stateful dictionary
+      @ Out, None
+    """
+    # For backwards compatibility with existing pickled SyntheticHistory ROMs, there are a few class attributes
+    # to look for. If they're not in the dict coming in for unpickling, we can add them in here before
+    # reconstructing the object.
+    d.setdefault("_saveResiduals", False)
+    d.setdefault("_residuals", {})
+    d.setdefault("_globalResiduals", {})
+    super().__setstate__(d)
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
