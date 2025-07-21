@@ -27,7 +27,6 @@
       <Features>x1,x2</Features>
       <Target>ans</Target>
       <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
       <SciKitLearn>

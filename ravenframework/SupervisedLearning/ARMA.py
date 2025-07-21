@@ -1192,7 +1192,7 @@ class ARMA(SupervisedLearning):
     #                 1:   cos(2pi*t/period[0]),
     #                 2:   sin(2pi*t/period[1]),
     #                 3:   cos(2pi*t/period[1]), ...
-    fourierEngine = sklearn.linear_model.LinearRegression(normalize=False)
+    fourierEngine = sklearn.linear_model.LinearRegression()
     fourierSignals = fourierSignalsFull[masks, :]
     values = values[masks]
     # check collinearity
@@ -1209,7 +1209,7 @@ class ARMA(SupervisedLearning):
       coeffs = np.zeros(F2)
       for fn in range(F2):
         fSignal = fourierSignals[:,fn]
-        eng = sklearn.linear_model.LinearRegression(normalize=False)
+        eng = sklearn.linear_model.LinearRegression()
         eng.fit(fSignal.reshape(H,1), signalToFit)
         thisIntercept = eng.intercept_
         thisCoeff = eng.coef_[0]
