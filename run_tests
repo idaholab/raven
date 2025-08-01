@@ -54,6 +54,7 @@ echo 'Loading libraries ...'
 if [[ "$INSTALLATION_MANAGER" != "PIP" ]]
 then
   INSTALLATION_MANAGER=CONDA
+fi
 
 if [[ $SKIP_LOAD_ENV == 1 ]];
 then
