@@ -50,6 +50,11 @@ for A in "$@"; do
     esac
 done
 echo 'Loading libraries ...'
+
+if [[ "$INSTALLATION_MANAGER" != "PIP" ]]
+then
+  INSTALLATION_MANAGER=CONDA
+
 if [[ $SKIP_LOAD_ENV == 1 ]];
 then
     echo Using currently active python environment, with command $(command -v python)
