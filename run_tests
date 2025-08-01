@@ -68,6 +68,7 @@ else
     then
         # check the RC file
         PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
+        echo Python Command Debug: $PYTHON_COMMAND
     fi
 fi
 
