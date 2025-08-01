@@ -64,8 +64,9 @@ function find_conda_defs ()
                   CONDA_DEFS="/c/ProgramData/Miniconda3/etc/profile.d/conda.sh";
         elif test -e "$HOME/AppData/Local/miniconda3/etc/profile.d/conda.sh"
         then
-            CONDA_DEFS="$HOME/AppData/Local/miniconda3/etc/profile.d/conda.sh
-    "
+            CONDA_DEFS="$HOME/AppData/Local/miniconda3/etc/profile.d/conda.sh"
+        elif test -e "/c/Users/runneradmin/Miniconda3/etc/profile.d/conda.sh"
+            CONDA_DEFS="/c/Users/runneradmin/Miniconda3/etc/profile.d/conda.sh"
         else
             echo Failed to find Conda at /c/ProgramData/Miniconda3/etc/profile.d/conda.sh and $HOME/AppData/Local/miniconda3/etc/profile.d/conda.sh
 
