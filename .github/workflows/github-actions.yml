@@ -129,6 +129,8 @@ jobs:
 
       - name: Set Python Environment and Build Raven
         run: |
+          bash command -v conda
+          bash conda info
           bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/Miniconda3/etc/profile.d/conda.sh
           bash ./build_raven
 
