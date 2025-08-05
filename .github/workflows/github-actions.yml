@@ -122,12 +122,6 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        if: ${{ false }}
-        run: |
-          bash -c "pwd"
-          python ./scripts/install_plugins.py -a
-
       - name: Set Python Environment
         run: |
           bash command -v conda
@@ -144,8 +138,3 @@ jobs:
           bash ./run_tests --library-report
           bash ./run_tests -j4 --raven
 
-      - name: Test Plugins
-        continue-on-error: true
-	if: ${{ false }}
-        run: |
-          bash ./run_tests -j4 --plugins
