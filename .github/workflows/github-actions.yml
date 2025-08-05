@@ -124,13 +124,13 @@ jobs:
 
       - name: Install Plugins
         run: |
-          bash pwd
+          bash -c "pwd"
           python ./scripts/install_plugins.py -a
 
       - name: Set Python Environment and Build Raven
         run: |
           bash command -v conda
-          bash conda info
+          bash -c "conda info"
           bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/Miniconda3/etc/profile.d/conda.sh
           bash ./build_raven
 
