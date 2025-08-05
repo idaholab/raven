@@ -149,6 +149,7 @@ function install_libraries()
       pyomo download-extensions || echo "Pyomo download failed"
       pyomo build-extensions || echo "Pyomo build failed"
     fi
+    conda info
   else
     # activate the enviroment
     activate_env

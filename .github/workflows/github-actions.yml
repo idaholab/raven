@@ -124,7 +124,7 @@ jobs:
 
       - name: Install Plugins
         run: |
-          pwd
+          bash pwd
           python ./scripts/install_plugins.py -a
 
       - name: Set Python Environment and Build Raven
