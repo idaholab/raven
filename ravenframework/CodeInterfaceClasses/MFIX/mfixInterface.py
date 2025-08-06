@@ -45,31 +45,6 @@ class MFIX(GenericCode):
     self._bins = None
     self._dataSet = xr.Dataset()
 
-    # Known, changable variables
-    # self.deltaH = 0.001                           # set value for the change in height
-    # self.deltaVol = 0.1                           # volume fraction assumed to be the upper limit for the bed
-    # self.slopeStop = self.deltaVol / self.deltaH  # calculate the limit on the change in slope to determine bed height
-    # self.dPart = 2.5e-4                           # particle volume (m)
-                                                  # particle diameter: d_p0(1) = 6.9e-4
-                                                  # self.rTol = self.dPart / 1000  # tolerance for particle diameter
-    self.rTol = 2.e-3                             # TODO read from MFIX input file d_p0(1) * 2
-    # self.rHem = 0.0045                            # radius of hemispherical section at the bottom of the cone
-    # self.hOff = self.rHem / np.tan(np.pi / 6)     # height of the cone at the bottom of the cone ( height of the hemispherical section)
-    # self.nYMesh = 115
-    # self.basePartFile = 'BACKGROUND_IC_*.vtp'     # Polygonal data, 2D grid, like the unstructured grid, but there are no polyhedra, but only flat polygons.
-    # self.cellPartFile = 'X_SLICE_*.vtu'           # Unstructured grid: 2D or 3D grid; for every grid point all three coordinates and for each grid cell all constituent points and the cell shape are given
-    # self.moveAgeWindow = 5
-    # self.errTol = 0.0001
-    # self.heightBin = 0.01
-    # self.numParticle = 3
-    # self.heightBin = self.numParticle * self.dPart
-    # self.coneRadius = 0.0254                      # unit: meters
-    # self.coneHeight = 0.045                       # unit: meters
-    # self.slantHeight = 0.0507204                  # unit: meters
-    # self.cylinderAboveConeHeight = 0.17780 + self.coneHeight
-    # self.translationVector1 = np.asarray([0, 0.022, 17.728])
-
-
   def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this class and initialize some members
@@ -127,9 +102,6 @@ class MFIX(GenericCode):
     self.heightBin = self.numParticle * self.dPart
     self.cylinderAboveConeHeight = 0.17780 + self.coneHeight
 
-    # if (len(self.boolOutputVariables)==0) and (len(self.contOutputVariables)==0):
-    #   raise IOError('At least one of two nodes <boolMaapOutputVariables> or <contMaapOutputVariables> has to be specified')
-
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -179,11 +151,6 @@ class MFIX(GenericCode):
     """
     if clargs==None:
       raise IOError('No input file was specified in clargs!')
-    #check for output either in clargs or fargs
-    #if len(fargs['output'])<1 and 'output' not in clargs.keys():
-    #  raise IOError('No output file was specified, either in clargs or fileargs!')
-    #check all required input files are there
-    #check for duplicate extension use
     extsClargs = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
     extsFargs  = list(ext[0] for ext in fargs['input'].values())
     usedExts = extsClargs + extsFargs
@@ -198,9 +165,8 @@ class MFIX(GenericCode):
     if len(usedExts) != 0:
       raise IOError('Input extension',','.join(usedExts),'listed in XML node Code, but not found in the list of Input of <Files>')
 
-    #TODO if any remaining, check them against valid inputs
+    self.rTol = 2.e-3                               # TODO read from MFIX input file d_p0(1) * 2
 
-    #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
     def getFileWithExtension(fileList,ext):
       """
       Just a script to get the file with extension ext from the fileList.

@@ -1,6 +1,6 @@
 Using /apps/local/miniforge/23.3.1/envs/mfix-24.1.1/lib/python3.11/site-packages/mfix_solver/mfixsolver_dmp.so
- MFiX (24.1.1) simulation on host: wr15n6
- Run name: ROUNDBOTTOMRETORT_TE  Time: 14:57                    Date:  8- 5-2025
+ MFiX (24.1.1) simulation on host: wr16n36
+ Run name: ROUNDBOTTOMRETORT_TE  Time: 13:20                    Date:  8- 6-2025
  Project version: 39
 ________________________________________________________________________
 
@@ -104,7 +104,7 @@ DESGRIDSEARCH_KMAX =       32
  NUMBER OF FLUID CELLS    =    83746 ( 71.12 % of Total)
  NUMBER OF BLOCKED CELLS  =    34014 ( 28.88 % of Total)
 ============================================================================
- CARTESIAN GRID PREPROCESSING COMPLETED IN     0.30 SECONDS.
+ CARTESIAN GRID PREPROCESSING COMPLETED IN     0.31 SECONDS.
 ============================================================================
 
 
@@ -166,2004 +166,1638 @@ DEM settling period complete.
  
    Recovered: Dt= 0.90000E-05 :-)
    Recovered: Dt= 0.81000E-05 :-)
- t=     0.0000 Dt= 0.8100E-05 NIT= 32 Sm=  0.0000    CPU=      3.s
-   Mass imbalance%(0,MMAX): -0.3617E-06
-Timestep walltime, fluid solver:    3.006 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 103.2
-Timestep walltime, DEM solver:      0.059 s
    Recovered: Dt= 0.72900E-05 :-)
-Timestep walltime, fluid solver:    1.158 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 94.79
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.170 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 92.24
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.123 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 94.84
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.215 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 92.42
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.145 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 95.42
-Timestep walltime, DEM solver:      0.063 s
-DT= 0.8100E-05   NIT/s=1646091
-Timestep walltime, fluid solver:    0.145 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 93.06
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.859 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 100.7
-Timestep walltime, DEM solver:      0.060 s
-Timestep walltime, fluid solver:    0.141 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 107.1
+   Recovered: Dt= 0.65610E-05 :-)
+ t=     0.0000 Dt= 0.6561E-05 NIT= 40 Sm=  0.0000    CPU=      3.s
+   Mass imbalance%(0,MMAX): -0.4426E-05
+Timestep walltime, fluid solver:    3.365 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 90.40
 Timestep walltime, DEM solver:      0.056 s
-Timestep walltime, fluid solver:    0.140 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 104.5
-Timestep walltime, DEM solver:      0.058 s
-Timestep walltime, fluid solver:    0.191 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 101.9
+   Recovered: Dt= 0.59049E-05 :-)
+Timestep walltime, fluid solver:    1.377 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 89.86
+Timestep walltime, DEM solver:      0.057 s
+Timestep walltime, fluid solver:    0.369 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 93.23
+Timestep walltime, DEM solver:      0.054 s
+Timestep walltime, fluid solver:    0.214 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 86.43
 Timestep walltime, DEM solver:      0.059 s
-Timestep walltime, fluid solver:    0.162 s
-DEM NITs: 6   Total PIP: 49669
-    NITs/SEC = 103.9
+Timestep walltime, fluid solver:    0.148 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 88.85
+Timestep walltime, DEM solver:      0.057 s
+Timestep walltime, fluid solver:    0.238 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 86.99
 Timestep walltime, DEM solver:      0.058 s
-DT= 0.9000E-05   NIT/s=1580247
-Timestep walltime, fluid solver:    0.140 s
+DT= 0.6561E-05   NIT/s=2404782
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 101.5
+Timestep walltime, DEM solver:      0.050 s
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 93.92
+Timestep walltime, DEM solver:      0.054 s
+Timestep walltime, fluid solver:    0.120 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 98.10
+Timestep walltime, DEM solver:      0.052 s
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 98.53
+Timestep walltime, DEM solver:      0.052 s
+Timestep walltime, fluid solver:    0.100 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 93.13
+Timestep walltime, DEM solver:      0.054 s
+Timestep walltime, fluid solver:    0.098 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 100.1
+Timestep walltime, DEM solver:      0.051 s
+DT= 0.7290E-05   NIT/s=701113
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 5   Total PIP: 49669
+    NITs/SEC = 97.95
+Timestep walltime, DEM solver:      0.052 s
+Timestep walltime, fluid solver:    0.098 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 95.24
+Timestep walltime, DEM solver:      0.064 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 106.1
+Timestep walltime, DEM solver:      0.057 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 101.0
+Timestep walltime, DEM solver:      0.060 s
+Timestep walltime, fluid solver:    0.100 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 98.06
+Timestep walltime, DEM solver:      0.062 s
+Timestep walltime, fluid solver:    0.095 s
 DEM NITs: 6   Total PIP: 49669
     NITs/SEC = 102.2
 Timestep walltime, DEM solver:      0.059 s
-Timestep walltime, fluid solver:    0.163 s
+DT= 0.8100E-05   NIT/s=548697
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 97.56
+Timestep walltime, DEM solver:      0.062 s
+Timestep walltime, fluid solver:    0.101 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 106.3
+Timestep walltime, DEM solver:      0.057 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 104.0
+Timestep walltime, DEM solver:      0.058 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 97.23
+Timestep walltime, DEM solver:      0.062 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 105.0
+Timestep walltime, DEM solver:      0.058 s
+Timestep walltime, fluid solver:    0.094 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 102.6
+Timestep walltime, DEM solver:      0.059 s
+DT= 0.9000E-05   NIT/s=493827
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 6   Total PIP: 49669
+    NITs/SEC = 100.6
+Timestep walltime, DEM solver:      0.060 s
+Elapsed time: 8.93s    Time remaining (est): 786.94s
+ t=     0.0002 Dt= 0.9000E-05 NIT=  3 Sm=  0.0000    CPU=      9.s
+   Mass imbalance%(0,MMAX): -0.2994E-05
+Timestep walltime, fluid solver:    0.074 s
 DEM NITs: 7   Total PIP: 49669
     NITs/SEC = 110.3
 Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.141 s
+Timestep walltime, fluid solver:    0.073 s
 DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 108.9
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.167 s
+    NITs/SEC = 103.6
+Timestep walltime, DEM solver:      0.068 s
+Timestep walltime, fluid solver:    0.073 s
 DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 111.4
-Timestep walltime, DEM solver:      0.063 s
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 108.8
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 108.0
-Timestep walltime, DEM solver:      0.065 s
-DT= 0.1000E-04   NIT/s=666667
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 111.5
-Timestep walltime, DEM solver:      0.063 s
-Timestep walltime, fluid solver:    0.118 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 107.4
+    NITs/SEC = 107.1
 Timestep walltime, DEM solver:      0.066 s
-Timestep walltime, fluid solver:    0.097 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 110.8
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 108.3
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 109.2
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.096 s
+Timestep walltime, fluid solver:    0.073 s
 DEM NITs: 7   Total PIP: 49669
     NITs/SEC = 110.2
 Timestep walltime, DEM solver:      0.064 s
-DT= 0.1111E-04   NIT/s=420000
-Timestep walltime, fluid solver:    0.095 s
+Timestep walltime, fluid solver:    0.074 s
 DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 108.2
-Timestep walltime, DEM solver:      0.065 s
-Elapsed time: 9.52s    Time remaining (est): 690.70s
- t=     0.0002 Dt= 0.1111E-04 NIT=  4 Sm=  0.0000    CPU=     10.s
-   Mass imbalance%(0,MMAX):  0.1346E-05
-Timestep walltime, fluid solver:    0.096 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 112.0
-Timestep walltime, DEM solver:      0.072 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 112.2
-Timestep walltime, DEM solver:      0.072 s
-Timestep walltime, fluid solver:    0.240 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 110.7
-Timestep walltime, DEM solver:      0.073 s
-Timestep walltime, fluid solver:    0.184 s
+    NITs/SEC = 105.2
+Timestep walltime, DEM solver:      0.067 s
+DT= 0.1000E-04   NIT/s=333333
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 7   Total PIP: 49669
+    NITs/SEC = 109.9
+Timestep walltime, DEM solver:      0.064 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 7   Total PIP: 49669
+    NITs/SEC = 107.3
+Timestep walltime, DEM solver:      0.066 s
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 7   Total PIP: 49669
+    NITs/SEC = 105.9
+Timestep walltime, DEM solver:      0.067 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 7   Total PIP: 49669
+    NITs/SEC = 105.7
+Timestep walltime, DEM solver:      0.067 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 7   Total PIP: 49669
+    NITs/SEC = 104.5
+Timestep walltime, DEM solver:      0.068 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 7   Total PIP: 49669
+    NITs/SEC = 107.9
+Timestep walltime, DEM solver:      0.066 s
+DT= 0.1111E-04   NIT/s=300000
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 7   Total PIP: 49669
+    NITs/SEC = 106.2
+Timestep walltime, DEM solver:      0.067 s
+Timestep walltime, fluid solver:    0.074 s
 DEM NITs: 8   Total PIP: 49669
     NITs/SEC = 112.1
 Timestep walltime, DEM solver:      0.072 s
-Timestep walltime, fluid solver:    0.432 s
+Timestep walltime, fluid solver:    0.073 s
 DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 111.5
-Timestep walltime, DEM solver:      0.072 s
-DT= 0.1000E-04   NIT/s=810000
-Timestep walltime, fluid solver:    0.275 s
+    NITs/SEC = 110.7
+Timestep walltime, DEM solver:      0.073 s
+Timestep walltime, fluid solver:    0.074 s
 DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 111.9
-Timestep walltime, DEM solver:      0.072 s
-Timestep walltime, fluid solver:    0.389 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 106.8
-Timestep walltime, DEM solver:      0.066 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 111.4
-Timestep walltime, DEM solver:      0.063 s
-Timestep walltime, fluid solver:    0.118 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 106.4
-Timestep walltime, DEM solver:      0.066 s
-   Recovered: Dt= 0.90000E-05 :-)
-Timestep walltime, fluid solver:    0.841 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 110.3
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.342 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 110.2
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.207 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 110.8
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.230 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 110.9
-Timestep walltime, DEM solver:      0.063 s
-Timestep walltime, fluid solver:    0.274 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 107.9
-Timestep walltime, DEM solver:      0.065 s
-DT= 0.1000E-04   NIT/s=1511111
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 109.7
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 110.5
-Timestep walltime, DEM solver:      0.064 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 7   Total PIP: 49669
     NITs/SEC = 109.8
-Timestep walltime, DEM solver:      0.064 s
+Timestep walltime, DEM solver:      0.074 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 8   Total PIP: 49669
+    NITs/SEC = 109.3
+Timestep walltime, DEM solver:      0.074 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 8   Total PIP: 49669
+    NITs/SEC = 108.6
+Timestep walltime, DEM solver:      0.074 s
+DT= 0.1235E-04   NIT/s=270000
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 8   Total PIP: 49669
+    NITs/SEC = 109.4
+Timestep walltime, DEM solver:      0.074 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 9   Total PIP: 49669
+    NITs/SEC = 112.1
+Timestep walltime, DEM solver:      0.081 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 9   Total PIP: 49669
+    NITs/SEC = 113.4
+Timestep walltime, DEM solver:      0.080 s
 Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 111.1
-Timestep walltime, DEM solver:      0.063 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 108.3
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 111.1
-Timestep walltime, DEM solver:      0.063 s
-DT= 0.1111E-04   NIT/s=340000
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 7   Total PIP: 49669
-    NITs/SEC = 107.8
-Timestep walltime, DEM solver:      0.065 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 114.6
-Timestep walltime, DEM solver:      0.070 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 113.2
-Timestep walltime, DEM solver:      0.071 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 112.2
-Timestep walltime, DEM solver:      0.072 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 114.3
-Timestep walltime, DEM solver:      0.070 s
-Elapsed time: 15.85s    Time remaining (est): 575.50s
- t=     0.0005 Dt= 0.1111E-04 NIT=  2 Sm=  0.0000    CPU=     16.s
-   Mass imbalance%(0,MMAX):  0.2986E-05
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 8   Total PIP: 49669
-    NITs/SEC = 112.0
-Timestep walltime, DEM solver:      0.072 s
-DT= 0.1235E-04   NIT/s=216000
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 8   Total PIP: 49669
+DEM NITs: 9   Total PIP: 49669
+    NITs/SEC = 111.5
+Timestep walltime, DEM solver:      0.081 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 9   Total PIP: 49669
+    NITs/SEC = 115.4
+Timestep walltime, DEM solver:      0.079 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 9   Total PIP: 49669
+    NITs/SEC = 110.9
+Timestep walltime, DEM solver:      0.082 s
+DT= 0.1372E-04   NIT/s=243000
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 9   Total PIP: 49669
     NITs/SEC = 114.4
-Timestep walltime, DEM solver:      0.070 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 9   Total PIP: 49669
-    NITs/SEC = 116.3
-Timestep walltime, DEM solver:      0.078 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 9   Total PIP: 49669
-    NITs/SEC = 114.3
-Timestep walltime, DEM solver:      0.079 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 9   Total PIP: 49669
-    NITs/SEC = 117.5
-Timestep walltime, DEM solver:      0.077 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 9   Total PIP: 49669
-    NITs/SEC = 114.8
 Timestep walltime, DEM solver:      0.079 s
 Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 9   Total PIP: 49669
-    NITs/SEC = 116.0
-Timestep walltime, DEM solver:      0.078 s
-DT= 0.1372E-04   NIT/s=194400
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 9   Total PIP: 49669
-    NITs/SEC = 116.4
-Timestep walltime, DEM solver:      0.078 s
-Timestep walltime, fluid solver:    0.072 s
 DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 119.9
-Timestep walltime, DEM solver:      0.084 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 118.8
-Timestep walltime, DEM solver:      0.085 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 118.6
-Timestep walltime, DEM solver:      0.085 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.084 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 116.8
-Timestep walltime, DEM solver:      0.086 s
-DT= 0.1524E-04   NIT/s=174960
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 118.7
-Timestep walltime, DEM solver:      0.085 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 118.4
-Timestep walltime, DEM solver:      0.093 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 121.2
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 117.6
-Timestep walltime, DEM solver:      0.094 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 121.0
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 117.6
-Timestep walltime, DEM solver:      0.094 s
-DT= 0.1694E-04   NIT/s=131220
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 121.3
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 119.4
-Timestep walltime, DEM solver:      0.101 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 122.5
-Timestep walltime, DEM solver:      0.098 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 121.4
-Timestep walltime, DEM solver:      0.099 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 122.4
-Timestep walltime, DEM solver:      0.099 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 122.4
-Timestep walltime, DEM solver:      0.098 s
-Elapsed time: 19.45s    Time remaining (est): 405.80s
- t=     0.0008 Dt= 0.1694E-04 NIT=  2 Sm=  0.0000    CPU=     19.s
-   Mass imbalance%(0,MMAX):  0.3137E-05
-DT= 0.1524E-04   NIT/s=153527
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 121.1
-Timestep walltime, DEM solver:      0.099 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 121.2
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.093 s
-Timestep walltime, fluid solver:    0.103 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.1
-Timestep walltime, DEM solver:      0.093 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 120.3
-Timestep walltime, DEM solver:      0.092 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 120.4
-Timestep walltime, DEM solver:      0.092 s
-DT= 0.1694E-04   NIT/s=183708
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 121.3
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 119.5
-Timestep walltime, DEM solver:      0.101 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 122.2
-Timestep walltime, DEM solver:      0.099 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 122.9
-Timestep walltime, DEM solver:      0.098 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 119.9
-Timestep walltime, DEM solver:      0.100 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 122.6
-Timestep walltime, DEM solver:      0.098 s
-DT= 0.1524E-04   NIT/s=212576
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 119.4
-Timestep walltime, DEM solver:      0.101 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 120.9
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 120.4
-Timestep walltime, DEM solver:      0.092 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 120.8
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 120.6
-Timestep walltime, DEM solver:      0.092 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.3
-Timestep walltime, DEM solver:      0.093 s
-DT= 0.1372E-04   NIT/s=170586
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 120.8
-Timestep walltime, DEM solver:      0.091 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 115.7
-Timestep walltime, DEM solver:      0.087 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 118.6
-Timestep walltime, DEM solver:      0.085 s
-Timestep walltime, fluid solver:    0.049 s
+    NITs/SEC = 113.2
+Timestep walltime, DEM solver:      0.089 s
+Elapsed time: 12.58s    Time remaining (est): 467.13s
+ t=     0.0004 Dt= 0.1372E-04 NIT=  3 Sm=  0.0000    CPU=     13.s
+   Mass imbalance%(0,MMAX): -0.1078E-05
+Timestep walltime, fluid solver:    0.077 s
 DEM NITs: 10   Total PIP: 49669
     NITs/SEC = 115.8
 Timestep walltime, DEM solver:      0.087 s
-Timestep walltime, fluid solver:    0.049 s
+Timestep walltime, fluid solver:    0.073 s
 DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 118.9
-Timestep walltime, DEM solver:      0.084 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 117.0
-Timestep walltime, DEM solver:      0.086 s
-DT= 0.1524E-04   NIT/s=174960
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.084 s
-Elapsed time: 23.46s    Time remaining (est): 333.97s
- t=     0.0012 Dt= 0.1524E-04 NIT= 21 Sm=  0.0000    CPU=     24.s
-   Mass imbalance%(0,MMAX):  0.1026E-04
-Timestep walltime, fluid solver:    0.479 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.9
-Timestep walltime, DEM solver:      0.092 s
-Timestep walltime, fluid solver:    0.278 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 117.8
-Timestep walltime, DEM solver:      0.094 s
-   Recovered: Dt= 0.13717E-04 :-)
-Timestep walltime, fluid solver:    0.659 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 117.0
-Timestep walltime, DEM solver:      0.086 s
-Timestep walltime, fluid solver:    0.345 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 117.2
-Timestep walltime, DEM solver:      0.086 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 116.7
-Timestep walltime, DEM solver:      0.086 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 117.6
-Timestep walltime, DEM solver:      0.085 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 114.2
+    NITs/SEC = 114.6
 Timestep walltime, DEM solver:      0.088 s
-DT= 0.1524E-04   NIT/s=612360
-Timestep walltime, fluid solver:    0.094 s
+Timestep walltime, fluid solver:    0.075 s
 DEM NITs: 10   Total PIP: 49669
-    NITs/SEC = 117.8
-Timestep walltime, DEM solver:      0.085 s
-Timestep walltime, fluid solver:    0.094 s
+    NITs/SEC = 112.3
+Timestep walltime, DEM solver:      0.090 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 10   Total PIP: 49669
+    NITs/SEC = 115.6
+Timestep walltime, DEM solver:      0.087 s
+DT= 0.1524E-04   NIT/s=204120
+Timestep walltime, fluid solver:    0.052 s
+DEM NITs: 10   Total PIP: 49669
+    NITs/SEC = 114.9
+Timestep walltime, DEM solver:      0.088 s
+Timestep walltime, fluid solver:    0.051 s
 DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 116.9
-Timestep walltime, DEM solver:      0.095 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.6
-Timestep walltime, DEM solver:      0.092 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.0
-Timestep walltime, DEM solver:      0.093 s
+    NITs/SEC = 118.1
+Timestep walltime, DEM solver:      0.094 s
 Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.8
-Timestep walltime, DEM solver:      0.092 s
-Timestep walltime, fluid solver:    0.072 s
+    NITs/SEC = 115.5
+Timestep walltime, DEM solver:      0.096 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 117.2
+    NITs/SEC = 113.3
+Timestep walltime, DEM solver:      0.098 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 11   Total PIP: 49669
+    NITs/SEC = 118.0
 Timestep walltime, DEM solver:      0.094 s
-DT= 0.1694E-04   NIT/s=209952
-Timestep walltime, fluid solver:    0.072 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 11   Total PIP: 49669
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.093 s
+    NITs/SEC = 114.9
+Timestep walltime, DEM solver:      0.096 s
+DT= 0.1694E-04   NIT/s=131220
+Timestep walltime, fluid solver:    0.053 s
+DEM NITs: 11   Total PIP: 49669
+    NITs/SEC = 118.4
+Timestep walltime, DEM solver:      0.094 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 117.8
+Timestep walltime, DEM solver:      0.103 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 115.1
+Timestep walltime, DEM solver:      0.105 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 119.5
+Timestep walltime, DEM solver:      0.101 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 115.7
+Timestep walltime, DEM solver:      0.104 s
+Timestep walltime, fluid solver:    0.052 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 120.3
+Timestep walltime, DEM solver:      0.100 s
+DT= 0.1882E-04   NIT/s=118098
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 117.6
+Timestep walltime, DEM solver:      0.103 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 117.9
+Timestep walltime, DEM solver:      0.119 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 121.2
+Timestep walltime, DEM solver:      0.116 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 118.4
+Timestep walltime, DEM solver:      0.119 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 123.8
+Timestep walltime, DEM solver:      0.114 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 120.1
+Timestep walltime, DEM solver:      0.117 s
+DT= 0.2091E-04   NIT/s=106288
+Timestep walltime, fluid solver:    0.052 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 122.4
+Timestep walltime, DEM solver:      0.115 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 120.2
+Timestep walltime, DEM solver:      0.126 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 122.2
+Timestep walltime, DEM solver:      0.124 s
+Elapsed time: 16.51s    Time remaining (est): 323.28s
+ t=     0.0009 Dt= 0.2091E-04 NIT=  2 Sm=  0.0000    CPU=     17.s
+   Mass imbalance%(0,MMAX):  0.7130E-06
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 120.3
+Timestep walltime, DEM solver:      0.125 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 119.5
+Timestep walltime, DEM solver:      0.126 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 122.5
+Timestep walltime, DEM solver:      0.123 s
+DT= 0.2323E-04   NIT/s=95659
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 117.5
+Timestep walltime, DEM solver:      0.128 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 124.3
+Timestep walltime, DEM solver:      0.137 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 121.1
+Timestep walltime, DEM solver:      0.141 s
 Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 123.7
+Timestep walltime, DEM solver:      0.138 s
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 122.2
+Timestep walltime, DEM solver:      0.140 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 123.8
+Timestep walltime, DEM solver:      0.138 s
+DT= 0.2091E-04   NIT/s=146359
+Timestep walltime, fluid solver:    0.076 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 123.3
+Timestep walltime, DEM solver:      0.139 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 124.6
+Timestep walltime, DEM solver:      0.121 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 119.0
+Timestep walltime, DEM solver:      0.127 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 121.5
+Timestep walltime, DEM solver:      0.124 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 119.5
+Timestep walltime, DEM solver:      0.126 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 122.9
+Timestep walltime, DEM solver:      0.123 s
+DT= 0.1882E-04   NIT/s=95659
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 119.0
+Timestep walltime, DEM solver:      0.127 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 122.6
+Timestep walltime, DEM solver:      0.115 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 116.7
+Timestep walltime, DEM solver:      0.121 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 121.4
+Timestep walltime, DEM solver:      0.116 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 119.2
+Timestep walltime, DEM solver:      0.118 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 117.0
+Timestep walltime, DEM solver:      0.120 s
+DT= 0.2091E-04   NIT/s=106288
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 122.2
+Timestep walltime, DEM solver:      0.115 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 117.2
+Timestep walltime, DEM solver:      0.129 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 123.4
+Timestep walltime, DEM solver:      0.122 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 117.1
+Timestep walltime, DEM solver:      0.129 s
+Elapsed time: 21.18s    Time remaining (est): 258.32s
+ t=     0.0014 Dt= 0.2091E-04 NIT=  3 Sm=  0.0000    CPU=     21.s
+   Mass imbalance%(0,MMAX): -0.2381E-05
+Timestep walltime, fluid solver:    0.076 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 123.1
+Timestep walltime, DEM solver:      0.123 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 117.9
+Timestep walltime, DEM solver:      0.128 s
+DT= 0.1882E-04   NIT/s=133923
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 122.9
+Timestep walltime, DEM solver:      0.123 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 119.8
+Timestep walltime, DEM solver:      0.118 s
+Timestep walltime, fluid solver:    0.052 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 117.4
+Timestep walltime, DEM solver:      0.120 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 122.0
+Timestep walltime, DEM solver:      0.115 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 114.6
+Timestep walltime, DEM solver:      0.123 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 121.7
+Timestep walltime, DEM solver:      0.116 s
+DT= 0.1694E-04   NIT/s=116917
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 118.7
+Timestep walltime, DEM solver:      0.119 s
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 115.9
+Timestep walltime, DEM solver:      0.104 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 119.6
+Timestep walltime, DEM solver:      0.101 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 110.7
+Timestep walltime, DEM solver:      0.109 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 12   Total PIP: 49669
+    NITs/SEC = 120.0
+Timestep walltime, DEM solver:      0.101 s
+Timestep walltime, fluid solver:    0.048 s
 DEM NITs: 12   Total PIP: 49669
     NITs/SEC = 118.7
 Timestep walltime, DEM solver:      0.102 s
-Timestep walltime, fluid solver:    0.072 s
+DT= 0.1882E-04   NIT/s=165337
+Timestep walltime, fluid solver:    0.052 s
 DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 121.4
-Timestep walltime, DEM solver:      0.099 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 120.2
-Timestep walltime, DEM solver:      0.100 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 120.7
-Timestep walltime, DEM solver:      0.100 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 120.8
-Timestep walltime, DEM solver:      0.100 s
-DT= 0.1882E-04   NIT/s=177147
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 12   Total PIP: 49669
-    NITs/SEC = 121.0
-Timestep walltime, DEM solver:      0.100 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 14   Total PIP: 49669
-    NITs/SEC = 123.2
-Timestep walltime, DEM solver:      0.114 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 14   Total PIP: 49669
-    NITs/SEC = 124.1
-Timestep walltime, DEM solver:      0.113 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 14   Total PIP: 49669
-    NITs/SEC = 122.8
-Timestep walltime, DEM solver:      0.114 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 14   Total PIP: 49669
-    NITs/SEC = 123.8
-Timestep walltime, DEM solver:      0.113 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 14   Total PIP: 49669
-    NITs/SEC = 123.9
-Timestep walltime, DEM solver:      0.113 s
-Elapsed time: 29.32s    Time remaining (est): 312.77s
- t=     0.0016 Dt= 0.1882E-04 NIT=  2 Sm=  0.0000    CPU=     29.s
-   Mass imbalance%(0,MMAX):  0.6085E-05
-DT= 0.2091E-04   NIT/s=170061
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 14   Total PIP: 49669
-    NITs/SEC = 123.8
-Timestep walltime, DEM solver:      0.113 s
+    NITs/SEC = 113.6
+Timestep walltime, DEM solver:      0.106 s
 Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 122.7
-Timestep walltime, DEM solver:      0.123 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 124.9
-Timestep walltime, DEM solver:      0.120 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 122.1
+Timestep walltime, DEM solver:      0.115 s
 Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 122.0
-Timestep walltime, DEM solver:      0.123 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 124.9
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 116.8
 Timestep walltime, DEM solver:      0.121 s
-Timestep walltime, fluid solver:    0.049 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 120.7
+Timestep walltime, DEM solver:      0.117 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 122.2
+Timestep walltime, DEM solver:      0.115 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 115.6
+Timestep walltime, DEM solver:      0.122 s
+DT= 0.2091E-04   NIT/s=106288
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 14   Total PIP: 49669
+    NITs/SEC = 121.8
+Timestep walltime, DEM solver:      0.116 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 122.7
+    NITs/SEC = 123.2
+Timestep walltime, DEM solver:      0.122 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 116.2
+Timestep walltime, DEM solver:      0.130 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 15   Total PIP: 49669
+    NITs/SEC = 122.9
 Timestep walltime, DEM solver:      0.123 s
-DT= 0.2323E-04   NIT/s=95659
-Timestep walltime, fluid solver:    0.049 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 125.3
-Timestep walltime, DEM solver:      0.120 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 124.9
-Timestep walltime, DEM solver:      0.136 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 127.0
-Timestep walltime, DEM solver:      0.134 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 125.8
-Timestep walltime, DEM solver:      0.136 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 126.8
-Timestep walltime, DEM solver:      0.135 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 126.0
-Timestep walltime, DEM solver:      0.135 s
-DT= 0.2581E-04   NIT/s=86093
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 127.2
-Timestep walltime, DEM solver:      0.134 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 128.4
-Timestep walltime, DEM solver:      0.148 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 127.9
-Timestep walltime, DEM solver:      0.149 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 127.5
-Timestep walltime, DEM solver:      0.149 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 127.6
-Timestep walltime, DEM solver:      0.149 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 127.5
-Timestep walltime, DEM solver:      0.149 s
-DT= 0.2323E-04   NIT/s=100729
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 126.6
-Timestep walltime, DEM solver:      0.150 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 117.4
-Timestep walltime, DEM solver:      0.145 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 112.5
-Timestep walltime, DEM solver:      0.152 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 115.1
-Timestep walltime, DEM solver:      0.148 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 114.6
-Timestep walltime, DEM solver:      0.149 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 115.5
-Timestep walltime, DEM solver:      0.148 s
-DT= 0.2091E-04   NIT/s=86093
-Timestep walltime, fluid solver:    0.052 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 114.9
-Timestep walltime, DEM solver:      0.148 s
-Elapsed time: 34.07s    Time remaining (est): 261.69s
- t=     0.0022 Dt= 0.2091E-04 NIT=  2 Sm=  0.0000    CPU=     34.s
-   Mass imbalance%(0,MMAX): -0.3540E-05
+    NITs/SEC = 122.9
+Timestep walltime, DEM solver:      0.123 s
+Elapsed time: 25.57s    Time remaining (est): 230.53s
+ t=     0.0019 Dt= 0.2091E-04 NIT=  2 Sm=  0.0000    CPU=     26.s
+   Mass imbalance%(0,MMAX): -0.7632E-06
 Timestep walltime, fluid solver:    0.052 s
 DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 113.9
-Timestep walltime, DEM solver:      0.132 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 113.0
-Timestep walltime, DEM solver:      0.133 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 111.7
-Timestep walltime, DEM solver:      0.135 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 113.0
-Timestep walltime, DEM solver:      0.133 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 109.9
-Timestep walltime, DEM solver:      0.137 s
+    NITs/SEC = 116.5
+Timestep walltime, DEM solver:      0.130 s
 DT= 0.2323E-04   NIT/s=95659
 Timestep walltime, fluid solver:    0.051 s
 DEM NITs: 15   Total PIP: 49669
-    NITs/SEC = 114.5
-Timestep walltime, DEM solver:      0.131 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 114.8
-Timestep walltime, DEM solver:      0.149 s
+    NITs/SEC = 123.0
+Timestep walltime, DEM solver:      0.123 s
 Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 120.3
-Timestep walltime, DEM solver:      0.142 s
-Timestep walltime, fluid solver:    0.051 s
+    NITs/SEC = 121.6
+Timestep walltime, DEM solver:      0.141 s
+Timestep walltime, fluid solver:    0.075 s
 DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 125.5
-Timestep walltime, DEM solver:      0.136 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 124.9
-Timestep walltime, DEM solver:      0.137 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 125.2
-Timestep walltime, DEM solver:      0.136 s
-DT= 0.2581E-04   NIT/s=86093
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 17   Total PIP: 49669
-    NITs/SEC = 122.8
+    NITs/SEC = 123.1
 Timestep walltime, DEM solver:      0.139 s
 Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 126.3
-Timestep walltime, DEM solver:      0.151 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 124.4
-Timestep walltime, DEM solver:      0.153 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 126.4
-Timestep walltime, DEM solver:      0.151 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 126.1
-Timestep walltime, DEM solver:      0.151 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 126.0
-Timestep walltime, DEM solver:      0.151 s
-DT= 0.2868E-04   NIT/s=77484
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 126.1
-Timestep walltime, DEM solver:      0.151 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 125.4
-Timestep walltime, DEM solver:      0.168 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 127.0
-Timestep walltime, DEM solver:      0.166 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 125.2
-Timestep walltime, DEM solver:      0.168 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 126.7
-Timestep walltime, DEM solver:      0.166 s
-Timestep walltime, fluid solver:    0.455 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 127.3
-Timestep walltime, DEM solver:      0.165 s
-DT= 0.2581E-04   NIT/s=195260
-Timestep walltime, fluid solver:    0.279 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 125.7
-Timestep walltime, DEM solver:      0.167 s
-Timestep walltime, fluid solver:    0.229 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 118.5
-Timestep walltime, DEM solver:      0.161 s
-Elapsed time: 39.85s    Time remaining (est): 232.51s
- t=     0.0028 Dt= 0.2581E-04 NIT=  5 Sm=  0.0000    CPU=     40.s
-   Mass imbalance%(0,MMAX):  0.4941E-05
-Timestep walltime, fluid solver:    0.125 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 125.8
-Timestep walltime, DEM solver:      0.151 s
-Timestep walltime, fluid solver:    0.144 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 123.5
-Timestep walltime, DEM solver:      0.154 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 124.3
-Timestep walltime, DEM solver:      0.153 s
-Timestep walltime, fluid solver:    0.120 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 122.5
-Timestep walltime, DEM solver:      0.155 s
-DT= 0.2868E-04   NIT/s=224704
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 19   Total PIP: 49669
-    NITs/SEC = 125.6
-Timestep walltime, DEM solver:      0.152 s
-Timestep walltime, fluid solver:    0.119 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 122.3
-Timestep walltime, DEM solver:      0.172 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 21   Total PIP: 49669
+DEM NITs: 17   Total PIP: 49669
     NITs/SEC = 123.8
+Timestep walltime, DEM solver:      0.138 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 118.8
+Timestep walltime, DEM solver:      0.144 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 123.5
+Timestep walltime, DEM solver:      0.138 s
+DT= 0.2581E-04   NIT/s=94703
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 17   Total PIP: 49669
+    NITs/SEC = 119.8
+Timestep walltime, DEM solver:      0.143 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 19   Total PIP: 49669
+    NITs/SEC = 125.4
+Timestep walltime, DEM solver:      0.152 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 19   Total PIP: 49669
+    NITs/SEC = 123.2
+Timestep walltime, DEM solver:      0.155 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 19   Total PIP: 49669
+    NITs/SEC = 122.2
+Timestep walltime, DEM solver:      0.156 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 19   Total PIP: 49669
+    NITs/SEC = 123.9
+Timestep walltime, DEM solver:      0.154 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 19   Total PIP: 49669
+    NITs/SEC = 124.7
+Timestep walltime, DEM solver:      0.153 s
+DT= 0.2868E-04   NIT/s=77484
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 19   Total PIP: 49669
+    NITs/SEC = 121.6
+Timestep walltime, DEM solver:      0.157 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 21   Total PIP: 49669
+    NITs/SEC = 125.1
+Timestep walltime, DEM solver:      0.169 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 21   Total PIP: 49669
+    NITs/SEC = 124.5
+Timestep walltime, DEM solver:      0.169 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 21   Total PIP: 49669
+    NITs/SEC = 124.0
 Timestep walltime, DEM solver:      0.170 s
-Timestep walltime, fluid solver:    0.075 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 124.5
+    NITs/SEC = 125.9
+Timestep walltime, DEM solver:      0.167 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 21   Total PIP: 49669
+    NITs/SEC = 122.1
+Timestep walltime, DEM solver:      0.173 s
+DT= 0.3187E-04   NIT/s=69736
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 21   Total PIP: 49669
+    NITs/SEC = 124.7
 Timestep walltime, DEM solver:      0.169 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 124.5
-Timestep walltime, DEM solver:      0.169 s
-Timestep walltime, fluid solver:    0.074 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 123.3
-Timestep walltime, DEM solver:      0.171 s
-DT= 0.3187E-04   NIT/s=132498
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 21   Total PIP: 49669
-    NITs/SEC = 123.1
-Timestep walltime, DEM solver:      0.171 s
-Timestep walltime, fluid solver:    0.052 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 23   Total PIP: 49669
     NITs/SEC = 126.0
 Timestep walltime, DEM solver:      0.183 s
-Timestep walltime, fluid solver:    0.071 s
+Timestep walltime, fluid solver:    0.049 s
 DEM NITs: 23   Total PIP: 49669
-    NITs/SEC = 125.1
-Timestep walltime, DEM solver:      0.184 s
-Timestep walltime, fluid solver:    0.075 s
+    NITs/SEC = 123.1
+Timestep walltime, DEM solver:      0.188 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 23   Total PIP: 49669
     NITs/SEC = 126.6
-Timestep walltime, DEM solver:      0.182 s
-Timestep walltime, fluid solver:    0.071 s
+Timestep walltime, DEM solver:      0.183 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 23   Total PIP: 49669
-    NITs/SEC = 125.3
-Timestep walltime, DEM solver:      0.184 s
-Timestep walltime, fluid solver:    0.074 s
+    NITs/SEC = 123.1
+Timestep walltime, DEM solver:      0.188 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 23   Total PIP: 49669
-    NITs/SEC = 126.9
-Timestep walltime, DEM solver:      0.182 s
-DT= 0.3541E-04   NIT/s=87867
-Timestep walltime, fluid solver:    0.072 s
+    NITs/SEC = 124.9
+Timestep walltime, DEM solver:      0.185 s
+Elapsed time: 30.82s    Time remaining (est): 199.80s
+ t=     0.0025 Dt= 0.3187E-04 NIT=  2 Sm=  0.0000    CPU=     31.s
+   Mass imbalance%(0,MMAX):  0.4179E-05
+DT= 0.3541E-04   NIT/s=62762
+Timestep walltime, fluid solver:    0.052 s
 DEM NITs: 23   Total PIP: 49669
-    NITs/SEC = 125.5
-Timestep walltime, DEM solver:      0.184 s
-Timestep walltime, fluid solver:    0.073 s
+    NITs/SEC = 124.0
+Timestep walltime, DEM solver:      0.186 s
+Timestep walltime, fluid solver:    0.049 s
 DEM NITs: 25   Total PIP: 49669
-    NITs/SEC = 120.3
-Timestep walltime, DEM solver:      0.208 s
-Timestep walltime, fluid solver:    0.072 s
+    NITs/SEC = 116.3
+Timestep walltime, DEM solver:      0.216 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 25   Total PIP: 49669
     NITs/SEC = 118.4
 Timestep walltime, DEM solver:      0.212 s
-Timestep walltime, fluid solver:    0.072 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 25   Total PIP: 49669
-    NITs/SEC = 119.6
-Timestep walltime, DEM solver:      0.209 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 25   Total PIP: 49669
-    NITs/SEC = 118.5
-Timestep walltime, DEM solver:      0.211 s
+    NITs/SEC = 117.5
+Timestep walltime, DEM solver:      0.213 s
 Timestep walltime, fluid solver:    0.049 s
 DEM NITs: 25   Total PIP: 49669
-    NITs/SEC = 119.0
+    NITs/SEC = 119.2
 Timestep walltime, DEM solver:      0.210 s
-DT= 0.3934E-04   NIT/s=79080
 Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 25   Total PIP: 49669
+    NITs/SEC = 119.3
+Timestep walltime, DEM solver:      0.210 s
+DT= 0.3934E-04   NIT/s=56486
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 25   Total PIP: 49669
+    NITs/SEC = 117.9
+Timestep walltime, DEM solver:      0.213 s
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 28   Total PIP: 49669
+    NITs/SEC = 120.2
+Timestep walltime, DEM solver:      0.234 s
+Timestep walltime, fluid solver:    0.049 s
+DEM NITs: 28   Total PIP: 49669
     NITs/SEC = 118.4
-Timestep walltime, DEM solver:      0.211 s
-Timestep walltime, fluid solver:    0.049 s
+Timestep walltime, DEM solver:      0.237 s
+Timestep walltime, fluid solver:    0.051 s
 DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 119.7
-Timestep walltime, DEM solver:      0.234 s
-Timestep walltime, fluid solver:    0.049 s
+    NITs/SEC = 108.8
+Timestep walltime, DEM solver:      0.258 s
+Timestep walltime, fluid solver:    0.051 s
 DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 119.5
-Timestep walltime, DEM solver:      0.235 s
-Elapsed time: 46.47s    Time remaining (est): 203.84s
- t=     0.0036 Dt= 0.3934E-04 NIT=  2 Sm=  0.0000    CPU=     47.s
-   Mass imbalance%(0,MMAX):  0.1333E-05
-Timestep walltime, fluid solver:    0.050 s
+    NITs/SEC = 109.7
+Timestep walltime, DEM solver:      0.256 s
+Timestep walltime, fluid solver:    0.052 s
 DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 119.6
-Timestep walltime, DEM solver:      0.234 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 120.1
-Timestep walltime, DEM solver:      0.233 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.235 s
+    NITs/SEC = 111.8
+Timestep walltime, DEM solver:      0.251 s
 DT= 0.4371E-04   NIT/s=50837
+Timestep walltime, fluid solver:    0.052 s
+DEM NITs: 28   Total PIP: 49669
+    NITs/SEC = 111.7
+Timestep walltime, DEM solver:      0.251 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 31   Total PIP: 49669
+    NITs/SEC = 113.4
+Timestep walltime, DEM solver:      0.274 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 31   Total PIP: 49669
+    NITs/SEC = 112.7
+Timestep walltime, DEM solver:      0.276 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 31   Total PIP: 49669
+    NITs/SEC = 112.3
+Timestep walltime, DEM solver:      0.277 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 31   Total PIP: 49669
+    NITs/SEC = 112.3
+Timestep walltime, DEM solver:      0.277 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 31   Total PIP: 49669
+    NITs/SEC = 112.2
+Timestep walltime, DEM solver:      0.277 s
+DT= 0.4857E-04   NIT/s=45754
+Timestep walltime, fluid solver:    0.052 s
+DEM NITs: 31   Total PIP: 49669
+    NITs/SEC = 112.3
+Timestep walltime, DEM solver:      0.277 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 113.1
+Timestep walltime, DEM solver:      0.301 s
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 120.0
+Timestep walltime, DEM solver:      0.284 s
 Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 121.0
-Timestep walltime, DEM solver:      0.232 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 120.5
-Timestep walltime, DEM solver:      0.258 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 122.3
-Timestep walltime, DEM solver:      0.254 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 121.0
-Timestep walltime, DEM solver:      0.257 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 121.5
-Timestep walltime, DEM solver:      0.256 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 121.8
-Timestep walltime, DEM solver:      0.255 s
-DT= 0.3934E-04   NIT/s=68630
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 121.1
-Timestep walltime, DEM solver:      0.256 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 120.5
-Timestep walltime, DEM solver:      0.233 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.235 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 28   Total PIP: 49669
+DEM NITs: 34   Total PIP: 49669
     NITs/SEC = 120.3
-Timestep walltime, DEM solver:      0.233 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 119.6
-Timestep walltime, DEM solver:      0.235 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 120.4
-Timestep walltime, DEM solver:      0.233 s
-DT= 0.4371E-04   NIT/s=96591
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 28   Total PIP: 49669
-    NITs/SEC = 120.1
-Timestep walltime, DEM solver:      0.234 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 122.1
-Timestep walltime, DEM solver:      0.254 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 121.9
-Timestep walltime, DEM solver:      0.255 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 121.9
-Timestep walltime, DEM solver:      0.255 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 120.9
-Timestep walltime, DEM solver:      0.257 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 120.8
-Timestep walltime, DEM solver:      0.257 s
-DT= 0.4857E-04   NIT/s=68630
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49669
-    NITs/SEC = 120.6
-Timestep walltime, DEM solver:      0.258 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49669
-    NITs/SEC = 121.7
-Timestep walltime, DEM solver:      0.280 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49669
-    NITs/SEC = 122.4
-Timestep walltime, DEM solver:      0.278 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49669
-    NITs/SEC = 120.5
 Timestep walltime, DEM solver:      0.283 s
-Elapsed time: 54.50s    Time remaining (est): 173.63s
- t=     0.0047 Dt= 0.4857E-04 NIT=  3 Sm=  0.0000    CPU=     55.s
-   Mass imbalance%(0,MMAX):  0.4439E-05
-Timestep walltime, fluid solver:    0.073 s
+Timestep walltime, fluid solver:    0.050 s
 DEM NITs: 34   Total PIP: 49669
-    NITs/SEC = 122.4
-Timestep walltime, DEM solver:      0.278 s
-Timestep walltime, fluid solver:    0.071 s
+    NITs/SEC = 120.8
+Timestep walltime, DEM solver:      0.282 s
+Timestep walltime, fluid solver:    0.051 s
 DEM NITs: 34   Total PIP: 49669
-    NITs/SEC = 121.1
-Timestep walltime, DEM solver:      0.281 s
-DT= 0.5397E-04   NIT/s=61767
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49669
-    NITs/SEC = 122.5
-Timestep walltime, DEM solver:      0.278 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 122.7
-Timestep walltime, DEM solver:      0.310 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 122.8
-Timestep walltime, DEM solver:      0.310 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 123.6
-Timestep walltime, DEM solver:      0.308 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 123.0
-Timestep walltime, DEM solver:      0.309 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 123.6
-Timestep walltime, DEM solver:      0.308 s
-DT= 0.5996E-04   NIT/s=59297
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 122.0
-Timestep walltime, DEM solver:      0.312 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49669
-    NITs/SEC = 124.5
-Timestep walltime, DEM solver:      0.338 s
-Timestep walltime, fluid solver:    0.139 s
-DEM NITs: 42   Total PIP: 49669
-    NITs/SEC = 123.6
-Timestep walltime, DEM solver:      0.340 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49669
-    NITs/SEC = 122.5
-Timestep walltime, DEM solver:      0.343 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49669
-    NITs/SEC = 124.0
-Timestep walltime, DEM solver:      0.339 s
-Timestep walltime, fluid solver:    0.097 s
-DEM NITs: 42   Total PIP: 49669
-    NITs/SEC = 123.1
-Timestep walltime, DEM solver:      0.342 s
-DT= 0.5397E-04   NIT/s=70044
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49669
-    NITs/SEC = 124.3
-Timestep walltime, DEM solver:      0.338 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 122.1
-Timestep walltime, DEM solver:      0.312 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 123.3
-Timestep walltime, DEM solver:      0.309 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 122.9
-Timestep walltime, DEM solver:      0.309 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 122.0
-Timestep walltime, DEM solver:      0.312 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 123.0
-Timestep walltime, DEM solver:      0.309 s
-DT= 0.4857E-04   NIT/s=63003
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49669
-    NITs/SEC = 121.9
-Timestep walltime, DEM solver:      0.312 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49669
-    NITs/SEC = 121.4
-Timestep walltime, DEM solver:      0.280 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.8
-Timestep walltime, DEM solver:      0.280 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.6
-Timestep walltime, DEM solver:      0.280 s
-Timestep walltime, fluid solver:    0.074 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.9
-Timestep walltime, DEM solver:      0.279 s
-Elapsed time: 64.25s    Time remaining (est): 145.63s
- t=     0.0060 Dt= 0.4857E-04 NIT=  3 Sm=  0.0000    CPU=     64.s
-   Mass imbalance%(0,MMAX): -0.3025E-05
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 34   Total PIP: 49668
     NITs/SEC = 120.7
 Timestep walltime, DEM solver:      0.282 s
-DT= 0.4371E-04   NIT/s=61767
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.9
-Timestep walltime, DEM solver:      0.279 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 31   Total PIP: 49668
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.260 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 31   Total PIP: 49668
-    NITs/SEC = 120.4
-Timestep walltime, DEM solver:      0.258 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 31   Total PIP: 49668
-    NITs/SEC = 119.2
-Timestep walltime, DEM solver:      0.260 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49668
-    NITs/SEC = 120.4
-Timestep walltime, DEM solver:      0.258 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 31   Total PIP: 49668
-    NITs/SEC = 120.6
-Timestep walltime, DEM solver:      0.257 s
-DT= 0.4857E-04   NIT/s=82356
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 31   Total PIP: 49668
-    NITs/SEC = 120.3
-Timestep walltime, DEM solver:      0.258 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.9
-Timestep walltime, DEM solver:      0.279 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 120.4
-Timestep walltime, DEM solver:      0.283 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.6
-Timestep walltime, DEM solver:      0.280 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 120.5
+DT= 0.5397E-04   NIT/s=41178
+Timestep walltime, fluid solver:    0.051 s
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 120.9
 Timestep walltime, DEM solver:      0.282 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.5
-Timestep walltime, DEM solver:      0.280 s
-DT= 0.5397E-04   NIT/s=74121
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 121.6
-Timestep walltime, DEM solver:      0.280 s
-Timestep walltime, fluid solver:    0.098 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 121.8
-Timestep walltime, DEM solver:      0.312 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
+Elapsed time: 38.40s    Time remaining (est): 168.51s
+ t=     0.0036 Dt= 0.5397E-04 NIT=  2 Sm=  0.0000    CPU=     38.s
+   Mass imbalance%(0,MMAX): -0.5135E-05
+Timestep walltime, fluid solver:    0.052 s
+DEM NITs: 38   Total PIP: 49669
     NITs/SEC = 122.0
 Timestep walltime, DEM solver:      0.312 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 121.6
-Timestep walltime, DEM solver:      0.313 s
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 122.3
-Timestep walltime, DEM solver:      0.311 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 120.2
-Timestep walltime, DEM solver:      0.316 s
-DT= 0.4857E-04   NIT/s=77827
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 122.2
-Timestep walltime, DEM solver:      0.311 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 34   Total PIP: 49668
+Timestep walltime, fluid solver:    0.050 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 121.1
+Timestep walltime, DEM solver:      0.315 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 120.8
+Timestep walltime, DEM solver:      0.315 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 38   Total PIP: 49669
     NITs/SEC = 119.4
+Timestep walltime, DEM solver:      0.319 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 120.3
+Timestep walltime, DEM solver:      0.317 s
+DT= 0.4857E-04   NIT/s=48179
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 120.2
+Timestep walltime, DEM solver:      0.317 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 119.6
 Timestep walltime, DEM solver:      0.285 s
 Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 120.9
-Timestep walltime, DEM solver:      0.282 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 119.9
-Timestep walltime, DEM solver:      0.284 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 120.4
-Timestep walltime, DEM solver:      0.283 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 120.6
-Timestep walltime, DEM solver:      0.282 s
-Elapsed time: 73.55s    Time remaining (est): 127.06s
- t=     0.0072 Dt= 0.4857E-04 NIT=  4 Sm=  0.0000    CPU=     74.s
-   Mass imbalance%(0,MMAX): -0.4593E-05
-DT= 0.5397E-04   NIT/s=78239
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 118.4
+Timestep walltime, DEM solver:      0.288 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 119.8
+Timestep walltime, DEM solver:      0.285 s
 Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 34   Total PIP: 49668
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 118.5
+Timestep walltime, DEM solver:      0.288 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 34   Total PIP: 49669
     NITs/SEC = 119.2
 Timestep walltime, DEM solver:      0.286 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 122.1
-Timestep walltime, DEM solver:      0.312 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 119.8
-Timestep walltime, DEM solver:      0.318 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 38   Total PIP: 49668
+DT= 0.5397E-04   NIT/s=74121
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 34   Total PIP: 49669
+    NITs/SEC = 118.0
+Timestep walltime, DEM solver:      0.289 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 38   Total PIP: 49669
     NITs/SEC = 121.0
-Timestep walltime, DEM solver:      0.314 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
+Timestep walltime, DEM solver:      0.315 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 119.7
+Timestep walltime, DEM solver:      0.318 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 121.0
+Timestep walltime, DEM solver:      0.315 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 119.4
+Timestep walltime, DEM solver:      0.319 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 38   Total PIP: 49669
     NITs/SEC = 120.5
 Timestep walltime, DEM solver:      0.316 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 120.1
-Timestep walltime, DEM solver:      0.317 s
-DT= 0.5996E-04   NIT/s=74121
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 120.6
-Timestep walltime, DEM solver:      0.315 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 120.6
-Timestep walltime, DEM solver:      0.349 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 121.2
-Timestep walltime, DEM solver:      0.347 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 120.3
-Timestep walltime, DEM solver:      0.349 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 121.2
-Timestep walltime, DEM solver:      0.347 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 119.9
-Timestep walltime, DEM solver:      0.351 s
-DT= 0.6662E-04   NIT/s=73380
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 120.9
+DT= 0.5996E-04   NIT/s=63003
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 38   Total PIP: 49669
+    NITs/SEC = 118.8
+Timestep walltime, DEM solver:      0.321 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 121.0
 Timestep walltime, DEM solver:      0.348 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 121.9
-Timestep walltime, DEM solver:      0.386 s
-Timestep walltime, fluid solver:    0.115 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 121.3
-Timestep walltime, DEM solver:      0.388 s
-Timestep walltime, fluid solver:    0.115 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 120.7
-Timestep walltime, DEM solver:      0.390 s
-Timestep walltime, fluid solver:    0.115 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 119.9
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 118.9
+Timestep walltime, DEM solver:      0.354 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 120.2
+Timestep walltime, DEM solver:      0.350 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 118.8
+Timestep walltime, DEM solver:      0.354 s
+Timestep walltime, fluid solver:    0.049 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 120.2
+Timestep walltime, DEM solver:      0.350 s
+DT= 0.6662E-04   NIT/s=46696
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 120.1
+Timestep walltime, DEM solver:      0.350 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 121.7
+Timestep walltime, DEM solver:      0.387 s
+Elapsed time: 48.28s    Time remaining (est): 142.03s
+ t=     0.0049 Dt= 0.6662E-04 NIT=  3 Sm=  0.0000    CPU=     48.s
+   Mass imbalance%(0,MMAX): -0.8781E-05
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 121.1
+Timestep walltime, DEM solver:      0.389 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 120.4
+Timestep walltime, DEM solver:      0.391 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 120.4
+Timestep walltime, DEM solver:      0.391 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 120.1
 Timestep walltime, DEM solver:      0.392 s
-Timestep walltime, fluid solver:    0.116 s
+DT= 0.5996E-04   NIT/s=48030
+Timestep walltime, fluid solver:    0.100 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 121.6
+Timestep walltime, DEM solver:      0.387 s
+Timestep walltime, fluid solver:    0.099 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 119.6
+Timestep walltime, DEM solver:      0.352 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 120.2
+Timestep walltime, DEM solver:      0.350 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 118.4
+Timestep walltime, DEM solver:      0.355 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 119.2
+Timestep walltime, DEM solver:      0.353 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 117.3
+Timestep walltime, DEM solver:      0.359 s
+DT= 0.6662E-04   NIT/s=66709
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 42   Total PIP: 49669
+    NITs/SEC = 118.5
+Timestep walltime, DEM solver:      0.355 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 118.3
+Timestep walltime, DEM solver:      0.398 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 119.9
+Timestep walltime, DEM solver:      0.393 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 118.8
+Timestep walltime, DEM solver:      0.397 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 47   Total PIP: 49669
+    NITs/SEC = 120.5
+Timestep walltime, DEM solver:      0.391 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 119.3
+Timestep walltime, DEM solver:      0.395 s
+DT= 0.7403E-04   NIT/s=51032
+Timestep walltime, fluid solver:    0.102 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 121.5
+Timestep walltime, DEM solver:      0.388 s
+Timestep walltime, fluid solver:    0.100 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 117.6
+Timestep walltime, DEM solver:      0.443 s
+Timestep walltime, fluid solver:    0.123 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 119.1
+Timestep walltime, DEM solver:      0.437 s
+Timestep walltime, fluid solver:    0.124 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 119.1
+Timestep walltime, DEM solver:      0.437 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 118.4
+Timestep walltime, DEM solver:      0.440 s
+Timestep walltime, fluid solver:    0.123 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 119.6
+Timestep walltime, DEM solver:      0.435 s
+DT= 0.6662E-04   NIT/s=62139
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 118.2
+Timestep walltime, DEM solver:      0.441 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 122.6
+Timestep walltime, DEM solver:      0.384 s
+Timestep walltime, fluid solver:    0.099 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 121.6
+Timestep walltime, DEM solver:      0.387 s
+Elapsed time: 60.48s    Time remaining (est): 119.18s
+ t=     0.0066 Dt= 0.6662E-04 NIT=  4 Sm=  0.0000    CPU=     61.s
+   Mass imbalance%(0,MMAX): -0.4428E-05
+Timestep walltime, fluid solver:    0.099 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 121.2
+Timestep walltime, DEM solver:      0.388 s
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 121.0
+Timestep walltime, DEM solver:      0.389 s
+Timestep walltime, fluid solver:    0.123 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 121.0
+Timestep walltime, DEM solver:      0.389 s
+DT= 0.7403E-04   NIT/s=66042
+Timestep walltime, fluid solver:    0.124 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 121.4
+Timestep walltime, DEM solver:      0.388 s
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 117.8
+Timestep walltime, DEM solver:      0.442 s
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 118.4
+Timestep walltime, DEM solver:      0.440 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 118.0
+Timestep walltime, DEM solver:      0.442 s
+Timestep walltime, fluid solver:    0.120 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 117.9
+Timestep walltime, DEM solver:      0.442 s
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 118.1
+Timestep walltime, DEM solver:      0.441 s
+DT= 0.6662E-04   NIT/s=67543
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 118.6
+Timestep walltime, DEM solver:      0.439 s
+Timestep walltime, fluid solver:    0.120 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 119.7
+Timestep walltime, DEM solver:      0.393 s
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 119.4
+Timestep walltime, DEM solver:      0.394 s
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 119.0
+Timestep walltime, DEM solver:      0.396 s
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 119.6
+Timestep walltime, DEM solver:      0.394 s
+Timestep walltime, fluid solver:    0.099 s
+DEM NITs: 47   Total PIP: 49668
+    NITs/SEC = 118.4
+Timestep walltime, DEM solver:      0.398 s
+DT= 0.7403E-04   NIT/s=72045
+Timestep walltime, fluid solver:    0.100 s
 DEM NITs: 47   Total PIP: 49668
     NITs/SEC = 119.5
 Timestep walltime, DEM solver:      0.394 s
-DT= 0.5996E-04   NIT/s=75047
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 117.8
-Timestep walltime, DEM solver:      0.399 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 117.9
-Timestep walltime, DEM solver:      0.357 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 117.6
-Timestep walltime, DEM solver:      0.357 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 119.1
-Timestep walltime, DEM solver:      0.353 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 118.7
-Timestep walltime, DEM solver:      0.354 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 118.8
-Timestep walltime, DEM solver:      0.354 s
-DT= 0.5397E-04   NIT/s=60038
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 118.7
-Timestep walltime, DEM solver:      0.354 s
-Elapsed time: 84.75s    Time remaining (est): 107.59s
- t=     0.0087 Dt= 0.5397E-04 NIT=  2 Sm=  0.0000    CPU=     85.s
-   Mass imbalance%(0,MMAX): -0.3587E-05
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 116.5
-Timestep walltime, DEM solver:      0.327 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 117.3
-Timestep walltime, DEM solver:      0.324 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 117.0
-Timestep walltime, DEM solver:      0.325 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 116.9
-Timestep walltime, DEM solver:      0.325 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 117.2
-Timestep walltime, DEM solver:      0.325 s
-DT= 0.4857E-04   NIT/s=37060
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 117.0
-Timestep walltime, DEM solver:      0.325 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 115.7
-Timestep walltime, DEM solver:      0.294 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 114.5
-Timestep walltime, DEM solver:      0.297 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 115.7
-Timestep walltime, DEM solver:      0.294 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 115.3
-Timestep walltime, DEM solver:      0.295 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 114.6
-Timestep walltime, DEM solver:      0.297 s
-DT= 0.5397E-04   NIT/s=41178
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 115.1
-Timestep walltime, DEM solver:      0.296 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 38   Total PIP: 49668
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 115.0
+Timestep walltime, DEM solver:      0.453 s
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 116.6
+Timestep walltime, DEM solver:      0.447 s
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 115.5
+Timestep walltime, DEM solver:      0.451 s
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 52   Total PIP: 49668
     NITs/SEC = 116.4
-Timestep walltime, DEM solver:      0.327 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 115.5
-Timestep walltime, DEM solver:      0.330 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 38   Total PIP: 49668
+Timestep walltime, DEM solver:      0.448 s
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 52   Total PIP: 49668
     NITs/SEC = 115.7
-Timestep walltime, DEM solver:      0.329 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 116.2
-Timestep walltime, DEM solver:      0.327 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 114.9
-Timestep walltime, DEM solver:      0.331 s
-DT= 0.4857E-04   NIT/s=44472
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 115.5
-Timestep walltime, DEM solver:      0.329 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 114.9
-Timestep walltime, DEM solver:      0.296 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 114.8
-Timestep walltime, DEM solver:      0.297 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 113.5
-Timestep walltime, DEM solver:      0.300 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 114.2
-Timestep walltime, DEM solver:      0.298 s
-Timestep walltime, fluid solver:    0.052 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 104.9
-Timestep walltime, DEM solver:      0.324 s
-DT= 0.5397E-04   NIT/s=53532
-Timestep walltime, fluid solver:    0.052 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 105.5
-Timestep walltime, DEM solver:      0.323 s
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 108.9
-Timestep walltime, DEM solver:      0.349 s
-Elapsed time: 94.00s    Time remaining (est): 92.39s
- t=     0.0100 Dt= 0.5397E-04 NIT=  2 Sm=  0.0000    CPU=     94.s
-   Mass imbalance%(0,MMAX):  0.2409E-05
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 97.58
-Timestep walltime, DEM solver:      0.390 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 115.1
-Timestep walltime, DEM solver:      0.330 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 113.8
-Timestep walltime, DEM solver:      0.334 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 114.8
-Timestep walltime, DEM solver:      0.331 s
-DT= 0.5996E-04   NIT/s=37060
-Timestep walltime, fluid solver:    0.051 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 114.5
-Timestep walltime, DEM solver:      0.332 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 114.6
-Timestep walltime, DEM solver:      0.367 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 115.4
-Timestep walltime, DEM solver:      0.364 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 115.3
-Timestep walltime, DEM solver:      0.365 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 115.1
-Timestep walltime, DEM solver:      0.365 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 114.1
-Timestep walltime, DEM solver:      0.368 s
-DT= 0.5397E-04   NIT/s=43361
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 114.1
-Timestep walltime, DEM solver:      0.369 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 113.9
-Timestep walltime, DEM solver:      0.334 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 113.3
-Timestep walltime, DEM solver:      0.336 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 113.3
-Timestep walltime, DEM solver:      0.336 s
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 113.5
-Timestep walltime, DEM solver:      0.335 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 112.2
-Timestep walltime, DEM solver:      0.339 s
-DT= 0.4857E-04   NIT/s=40766
-Timestep walltime, fluid solver:    0.050 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 113.1
-Timestep walltime, DEM solver:      0.336 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 111.5
-Timestep walltime, DEM solver:      0.305 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 110.7
-Timestep walltime, DEM solver:      0.308 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 110.6
-Timestep walltime, DEM solver:      0.308 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 110.9
-Timestep walltime, DEM solver:      0.307 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 110.3
-Timestep walltime, DEM solver:      0.309 s
-DT= 0.5397E-04   NIT/s=57650
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 34   Total PIP: 49668
-    NITs/SEC = 110.6
-Timestep walltime, DEM solver:      0.308 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 112.2
-Timestep walltime, DEM solver:      0.339 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 111.1
-Timestep walltime, DEM solver:      0.343 s
-Elapsed time: 103.96s    Time remaining (est): 78.01s
- t=     0.0113 Dt= 0.5397E-04 NIT=  3 Sm=  0.0000    CPU=    104.s
-   Mass imbalance%(0,MMAX):  0.4167E-06
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 110.6
-Timestep walltime, DEM solver:      0.344 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 110.6
-Timestep walltime, DEM solver:      0.344 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 110.7
-Timestep walltime, DEM solver:      0.344 s
-DT= 0.5996E-04   NIT/s=55591
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 38   Total PIP: 49668
-    NITs/SEC = 111.1
-Timestep walltime, DEM solver:      0.342 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 111.4
-Timestep walltime, DEM solver:      0.377 s
-Timestep walltime, fluid solver:    0.049 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 110.6
-Timestep walltime, DEM solver:      0.380 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 111.5
-Timestep walltime, DEM solver:      0.377 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 110.8
-Timestep walltime, DEM solver:      0.380 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 110.3
-Timestep walltime, DEM solver:      0.381 s
-DT= 0.6662E-04   NIT/s=46696
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 110.6
-Timestep walltime, DEM solver:      0.380 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 110.6
-Timestep walltime, DEM solver:      0.425 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 111.0
-Timestep walltime, DEM solver:      0.424 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 110.0
-Timestep walltime, DEM solver:      0.427 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 110.4
-Timestep walltime, DEM solver:      0.426 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 109.5
-Timestep walltime, DEM solver:      0.430 s
-DT= 0.7403E-04   NIT/s=45028
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 109.6
-Timestep walltime, DEM solver:      0.429 s
-Timestep walltime, fluid solver:    0.093 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 106.7
-Timestep walltime, DEM solver:      0.488 s
-Timestep walltime, fluid solver:    0.091 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 105.9
-Timestep walltime, DEM solver:      0.492 s
-Timestep walltime, fluid solver:    0.118 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 105.7
-Timestep walltime, DEM solver:      0.492 s
-Timestep walltime, fluid solver:    0.100 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 106.4
-Timestep walltime, DEM solver:      0.489 s
-Timestep walltime, fluid solver:    0.096 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 105.6
-Timestep walltime, DEM solver:      0.493 s
-DT= 0.6662E-04   NIT/s=56736
-Timestep walltime, fluid solver:    0.075 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 105.8
-Timestep walltime, DEM solver:      0.492 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 108.1
-Timestep walltime, DEM solver:      0.435 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 106.8
-Timestep walltime, DEM solver:      0.440 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 106.6
-Timestep walltime, DEM solver:      0.441 s
-Elapsed time: 116.33s    Time remaining (est): 62.23s
- t=     0.0130 Dt= 0.6662E-04 NIT=  3 Sm=  0.0000    CPU=    116.s
-   Mass imbalance%(0,MMAX): -0.9611E-06
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 105.6
-Timestep walltime, DEM solver:      0.446 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 106.7
-Timestep walltime, DEM solver:      0.441 s
-DT= 0.5996E-04   NIT/s=45028
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 105.5
-Timestep walltime, DEM solver:      0.446 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 104.5
-Timestep walltime, DEM solver:      0.402 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 104.3
-Timestep walltime, DEM solver:      0.403 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 103.0
-Timestep walltime, DEM solver:      0.408 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 104.5
-Timestep walltime, DEM solver:      0.402 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 104.2
-Timestep walltime, DEM solver:      0.404 s
-DT= 0.6662E-04   NIT/s=50032
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 104.9
-Timestep walltime, DEM solver:      0.401 s
-Timestep walltime, fluid solver:    0.078 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 105.7
-Timestep walltime, DEM solver:      0.445 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 104.0
-Timestep walltime, DEM solver:      0.452 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 104.5
 Timestep walltime, DEM solver:      0.450 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 103.2
-Timestep walltime, DEM solver:      0.456 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 103.5
-Timestep walltime, DEM solver:      0.455 s
-DT= 0.7403E-04   NIT/s=48030
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 103.5
-Timestep walltime, DEM solver:      0.454 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 100.4
-Timestep walltime, DEM solver:      0.518 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 101.1
-Timestep walltime, DEM solver:      0.515 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 100.8
-Timestep walltime, DEM solver:      0.516 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 101.5
-Timestep walltime, DEM solver:      0.513 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 100.4
-Timestep walltime, DEM solver:      0.518 s
-DT= 0.6662E-04   NIT/s=51332
-Timestep walltime, fluid solver:    0.096 s
-DEM NITs: 52   Total PIP: 49668
-    NITs/SEC = 100.7
-Timestep walltime, DEM solver:      0.517 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 102.4
-Timestep walltime, DEM solver:      0.460 s
-Timestep walltime, fluid solver:    0.073 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 101.5
-Timestep walltime, DEM solver:      0.464 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 101.5
-Timestep walltime, DEM solver:      0.463 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 100.4
-Timestep walltime, DEM solver:      0.469 s
-Elapsed time: 129.69s    Time remaining (est): 46.95s
- t=     0.0146 Dt= 0.6662E-04 NIT=  4 Sm=  0.0000    CPU=    130.s
-   Mass imbalance%(0,MMAX): -0.7161E-06
-Timestep walltime, fluid solver:    0.096 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 100.7
-Timestep walltime, DEM solver:      0.467 s
-DT= 0.5996E-04   NIT/s=48030
-Timestep walltime, fluid solver:    0.106 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 101.0
-Timestep walltime, DEM solver:      0.466 s
-Timestep walltime, fluid solver:    0.097 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 99.74
-Timestep walltime, DEM solver:      0.421 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 99.38
-Timestep walltime, DEM solver:      0.423 s
-Timestep walltime, fluid solver:    0.072 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 99.12
-Timestep walltime, DEM solver:      0.424 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 98.63
-Timestep walltime, DEM solver:      0.426 s
-Timestep walltime, fluid solver:    0.071 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 98.80
-Timestep walltime, DEM solver:      0.425 s
-DT= 0.6662E-04   NIT/s=60038
-Timestep walltime, fluid solver:    0.074 s
-DEM NITs: 42   Total PIP: 49668
-    NITs/SEC = 98.40
-Timestep walltime, DEM solver:      0.427 s
-Timestep walltime, fluid solver:    0.100 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 99.02
-Timestep walltime, DEM solver:      0.475 s
-Timestep walltime, fluid solver:    0.109 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 99.57
-Timestep walltime, DEM solver:      0.472 s
-Timestep walltime, fluid solver:    0.106 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 98.80
-Timestep walltime, DEM solver:      0.476 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 99.57
-Timestep walltime, DEM solver:      0.472 s
-Timestep walltime, fluid solver:    0.096 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 99.04
-Timestep walltime, DEM solver:      0.475 s
-DT= 0.7403E-04   NIT/s=60038
-Timestep walltime, fluid solver:    0.097 s
-DEM NITs: 47   Total PIP: 49668
-    NITs/SEC = 98.54
-Timestep walltime, DEM solver:      0.477 s
-Timestep walltime, fluid solver:    0.099 s
-DEM NITs: 52   Total PIP: 49667
-    NITs/SEC = 96.56
-Timestep walltime, DEM solver:      0.539 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 52   Total PIP: 49667
-    NITs/SEC = 96.46
-Timestep walltime, DEM solver:      0.539 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 52   Total PIP: 49667
-    NITs/SEC = 96.42
-Timestep walltime, DEM solver:      0.540 s
-Timestep walltime, fluid solver:    0.097 s
-DEM NITs: 52   Total PIP: 49667
-    NITs/SEC = 96.11
-Timestep walltime, DEM solver:      0.542 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 52   Total PIP: 49667
-    NITs/SEC = 95.68
-Timestep walltime, DEM solver:      0.544 s
-DT= 0.8225E-04   NIT/s=54034
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 52   Total PIP: 49667
-    NITs/SEC = 95.83
-Timestep walltime, DEM solver:      0.543 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 58   Total PIP: 49667
-    NITs/SEC = 95.76
-Timestep walltime, DEM solver:      0.606 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 58   Total PIP: 49667
-    NITs/SEC = 95.59
-Timestep walltime, DEM solver:      0.607 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 58   Total PIP: 49667
-    NITs/SEC = 95.11
-Timestep walltime, DEM solver:      0.610 s
-Timestep walltime, fluid solver:    0.098 s
-DEM NITs: 58   Total PIP: 49667
-    NITs/SEC = 95.41
-Timestep walltime, DEM solver:      0.608 s
-Timestep walltime, fluid solver:    0.105 s
-DEM NITs: 58   Total PIP: 49667
-    NITs/SEC = 95.30
-Timestep walltime, DEM solver:      0.609 s
-Elapsed time: 144.65s    Time remaining (est): 31.59s
- t=     0.0164 Dt= 0.8225E-04 NIT=  4 Sm=  0.0000    CPU=    145.s
-   Mass imbalance%(0,MMAX): -0.9043E-06
-DT= 0.9139E-04   NIT/s=48631
-Timestep walltime, fluid solver:    0.100 s
-DEM NITs: 58   Total PIP: 49667
-    NITs/SEC = 95.12
-Timestep walltime, DEM solver:      0.610 s
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 64   Total PIP: 49667
-    NITs/SEC = 95.47
-Timestep walltime, DEM solver:      0.671 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 64   Total PIP: 49667
-    NITs/SEC = 95.30
-Timestep walltime, DEM solver:      0.672 s
-Timestep walltime, fluid solver:    0.113 s
-DEM NITs: 64   Total PIP: 49666
-    NITs/SEC = 95.88
-Timestep walltime, DEM solver:      0.668 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 64   Total PIP: 49666
-    NITs/SEC = 95.40
-Timestep walltime, DEM solver:      0.671 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 64   Total PIP: 49666
-    NITs/SEC = 95.54
-Timestep walltime, DEM solver:      0.670 s
-DT= 0.1000E-03   NIT/s=45956
-Timestep walltime, fluid solver:    0.096 s
-DEM NITs: 64   Total PIP: 49666
-    NITs/SEC = 95.36
-Timestep walltime, DEM solver:      0.672 s
-Timestep walltime, fluid solver:    0.104 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 96.62
-Timestep walltime, DEM solver:      0.725 s
-Timestep walltime, fluid solver:    0.103 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 96.56
-Timestep walltime, DEM solver:      0.725 s
-Timestep walltime, fluid solver:    0.124 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 96.33
-Timestep walltime, DEM solver:      0.727 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 96.83
-Timestep walltime, DEM solver:      0.723 s
-Timestep walltime, fluid solver:    0.115 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 95.70
-Timestep walltime, DEM solver:      0.732 s
-DT= 0.9000E-04   NIT/s=46000
-Timestep walltime, fluid solver:    0.133 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 93.46
-Timestep walltime, DEM solver:      0.749 s
-Timestep walltime, fluid solver:    0.097 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 94.64
-Timestep walltime, DEM solver:      0.666 s
-Timestep walltime, fluid solver:    0.097 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 95.01
-Timestep walltime, DEM solver:      0.663 s
-Timestep walltime, fluid solver:    0.096 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 94.84
-Timestep walltime, DEM solver:      0.665 s
+DT= 0.8225E-04   NIT/s=67543
 Timestep walltime, fluid solver:    0.120 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 95.21
-Timestep walltime, DEM solver:      0.662 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 95.72
-Timestep walltime, DEM solver:      0.659 s
-DT= 0.1000E-03   NIT/s=46667
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 95.20
-Timestep walltime, DEM solver:      0.662 s
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 95.90
-Timestep walltime, DEM solver:      0.730 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 95.51
-Timestep walltime, DEM solver:      0.733 s
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 95.83
-Timestep walltime, DEM solver:      0.731 s
-Timestep walltime, fluid solver:    0.116 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 95.51
-Timestep walltime, DEM solver:      0.733 s
-Timestep walltime, fluid solver:    0.117 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 95.12
-Timestep walltime, DEM solver:      0.736 s
-DT= 0.9000E-04   NIT/s=50000
-Timestep walltime, fluid solver:    0.124 s
-DEM NITs: 70   Total PIP: 49666
-    NITs/SEC = 95.42
-Timestep walltime, DEM solver:      0.734 s
-Elapsed time: 164.70s    Time remaining (est): 10.85s
- t=     0.0188 Dt= 0.9000E-04 NIT=  4 Sm=  0.0000    CPU=    165.s
-   Mass imbalance%(0,MMAX): -0.6693E-06
-Timestep walltime, fluid solver:    0.109 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 94.09
-Timestep walltime, DEM solver:      0.670 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 94.45
-Timestep walltime, DEM solver:      0.667 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 94.44
-Timestep walltime, DEM solver:      0.667 s
+DEM NITs: 52   Total PIP: 49668
+    NITs/SEC = 115.7
+Timestep walltime, DEM solver:      0.450 s
+Timestep walltime, fluid solver:    0.144 s
+DEM NITs: 58   Total PIP: 49668
+    NITs/SEC = 116.8
+Timestep walltime, DEM solver:      0.497 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 58   Total PIP: 49668
+    NITs/SEC = 116.0
+Timestep walltime, DEM solver:      0.501 s
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 58   Total PIP: 49668
+    NITs/SEC = 116.8
+Timestep walltime, DEM solver:      0.497 s
+Elapsed time: 74.20s    Time remaining (est): 100.06s
+ t=     0.0084 Dt= 0.8225E-04 NIT=  6 Sm=  0.0000    CPU=     74.s
+   Mass imbalance%(0,MMAX): -0.5089E-05
+Timestep walltime, fluid solver:    0.143 s
+DEM NITs: 58   Total PIP: 49668
+    NITs/SEC = 114.9
+Timestep walltime, DEM solver:      0.506 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 58   Total PIP: 49668
+    NITs/SEC = 116.0
+Timestep walltime, DEM solver:      0.501 s
+DT= 0.9139E-04   NIT/s=63220
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 58   Total PIP: 49668
+    NITs/SEC = 114.7
+Timestep walltime, DEM solver:      0.506 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 64   Total PIP: 49668
+    NITs/SEC = 116.3
+Timestep walltime, DEM solver:      0.551 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 64   Total PIP: 49668
+    NITs/SEC = 115.1
+Timestep walltime, DEM solver:      0.557 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 64   Total PIP: 49668
+    NITs/SEC = 115.3
+Timestep walltime, DEM solver:      0.556 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 64   Total PIP: 49668
+    NITs/SEC = 114.9
+Timestep walltime, DEM solver:      0.558 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 64   Total PIP: 49668
+    NITs/SEC = 115.2
+Timestep walltime, DEM solver:      0.556 s
+DT= 0.1000E-03   NIT/s=35014
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 64   Total PIP: 49668
+    NITs/SEC = 114.5
+Timestep walltime, DEM solver:      0.560 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 115.2
+Timestep walltime, DEM solver:      0.608 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 115.1
+Timestep walltime, DEM solver:      0.609 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 115.2
+Timestep walltime, DEM solver:      0.608 s
 Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 94.08
-Timestep walltime, DEM solver:      0.670 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 94.11
-Timestep walltime, DEM solver:      0.670 s
-DT= 0.8100E-04   NIT/s=44444
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 93.55
-Timestep walltime, DEM solver:      0.674 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 57   Total PIP: 49666
-    NITs/SEC = 93.10
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 114.6
+Timestep walltime, DEM solver:      0.611 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 114.6
+Timestep walltime, DEM solver:      0.612 s
+DT= 0.1000E-03   NIT/s=34000
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 114.4
 Timestep walltime, DEM solver:      0.613 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 57   Total PIP: 49666
-    NITs/SEC = 92.85
-Timestep walltime, DEM solver:      0.614 s
-Timestep walltime, fluid solver:    0.095 s
-DEM NITs: 57   Total PIP: 49666
-    NITs/SEC = 92.41
-Timestep walltime, DEM solver:      0.617 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 57   Total PIP: 49666
-    NITs/SEC = 92.74
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 114.0
 Timestep walltime, DEM solver:      0.615 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 57   Total PIP: 49666
-    NITs/SEC = 92.43
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 113.6
 Timestep walltime, DEM solver:      0.617 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 96.09
+Timestep walltime, DEM solver:      0.729 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 103.6
+Timestep walltime, DEM solver:      0.677 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 104.6
+Timestep walltime, DEM solver:      0.670 s
+DT= 0.9000E-04   NIT/s=36000
+Timestep walltime, fluid solver:    0.098 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 104.1
+Timestep walltime, DEM solver:      0.673 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 111.9
+Timestep walltime, DEM solver:      0.564 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 111.8
+Timestep walltime, DEM solver:      0.564 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 111.8
+Timestep walltime, DEM solver:      0.564 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 111.4
+Timestep walltime, DEM solver:      0.566 s
+Elapsed time: 91.09s    Time remaining (est): 76.89s
+ t=     0.0107 Dt= 0.9000E-04 NIT=  4 Sm=  0.0000    CPU=     91.s
+   Mass imbalance%(0,MMAX):  0.2132E-05
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 111.9
+Timestep walltime, DEM solver:      0.564 s
+DT= 0.1000E-03   NIT/s=40000
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 111.4
+Timestep walltime, DEM solver:      0.566 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 111.7
+Timestep walltime, DEM solver:      0.627 s
+Timestep walltime, fluid solver:    0.094 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 111.3
+Timestep walltime, DEM solver:      0.630 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 111.0
+Timestep walltime, DEM solver:      0.631 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 111.1
+Timestep walltime, DEM solver:      0.631 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 110.0
+Timestep walltime, DEM solver:      0.637 s
+DT= 0.9000E-04   NIT/s=40000
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 109.7
+Timestep walltime, DEM solver:      0.639 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 108.7
+Timestep walltime, DEM solver:      0.580 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 108.2
+Timestep walltime, DEM solver:      0.583 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 108.3
+Timestep walltime, DEM solver:      0.582 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 107.2
+Timestep walltime, DEM solver:      0.588 s
+Timestep walltime, fluid solver:    0.074 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 108.0
+Timestep walltime, DEM solver:      0.584 s
+DT= 0.8100E-04   NIT/s=35556
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 106.8
+Timestep walltime, DEM solver:      0.590 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 106.7
+Timestep walltime, DEM solver:      0.535 s
+Timestep walltime, fluid solver:    0.075 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 105.0
+Timestep walltime, DEM solver:      0.543 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 106.2
+Timestep walltime, DEM solver:      0.537 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 105.2
+Timestep walltime, DEM solver:      0.543 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 104.2
+Timestep walltime, DEM solver:      0.548 s
+DT= 0.9000E-04   NIT/s=37037
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 105.2
+Timestep walltime, DEM solver:      0.543 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 104.8
+Timestep walltime, DEM solver:      0.602 s
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 105.3
+Timestep walltime, DEM solver:      0.599 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 104.3
+Timestep walltime, DEM solver:      0.605 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 104.7
+Timestep walltime, DEM solver:      0.602 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 103.6
+Timestep walltime, DEM solver:      0.609 s
+Elapsed time: 107.97s    Time remaining (est): 57.16s
+ t=     0.0130 Dt= 0.9000E-04 NIT=  4 Sm=  0.0000    CPU=    108.s
+   Mass imbalance%(0,MMAX):  0.5186E-05
+DT= 0.8100E-04   NIT/s=48889
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 104.1
+Timestep walltime, DEM solver:      0.606 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 102.3
+Timestep walltime, DEM solver:      0.558 s
+Timestep walltime, fluid solver:    0.094 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 101.5
+Timestep walltime, DEM solver:      0.562 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 102.7
+Timestep walltime, DEM solver:      0.556 s
+Timestep walltime, fluid solver:    0.073 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 100.5
+Timestep walltime, DEM solver:      0.568 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 101.9
+Timestep walltime, DEM solver:      0.560 s
+DT= 0.7290E-04   NIT/s=44444
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 100.6
+Timestep walltime, DEM solver:      0.568 s
+Timestep walltime, fluid solver:    0.072 s
+DEM NITs: 51   Total PIP: 49668
+    NITs/SEC = 99.95
+Timestep walltime, DEM solver:      0.511 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 51   Total PIP: 49668
+    NITs/SEC = 99.82
+Timestep walltime, DEM solver:      0.512 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 51   Total PIP: 49668
+    NITs/SEC = 98.77
+Timestep walltime, DEM solver:      0.517 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 51   Total PIP: 49668
+    NITs/SEC = 99.57
+Timestep walltime, DEM solver:      0.513 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 51   Total PIP: 49668
+    NITs/SEC = 99.62
+Timestep walltime, DEM solver:      0.513 s
+DT= 0.8100E-04   NIT/s=52126
+Timestep walltime, fluid solver:    0.098 s
+DEM NITs: 51   Total PIP: 49668
+    NITs/SEC = 98.01
+Timestep walltime, DEM solver:      0.521 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 99.89
+Timestep walltime, DEM solver:      0.571 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 98.16
+Timestep walltime, DEM solver:      0.581 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 99.89
+Timestep walltime, DEM solver:      0.571 s
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 99.04
+Timestep walltime, DEM solver:      0.576 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 98.97
+Timestep walltime, DEM solver:      0.577 s
 DT= 0.9000E-04   NIT/s=49383
+Timestep walltime, fluid solver:    0.103 s
+DEM NITs: 57   Total PIP: 49668
+    NITs/SEC = 98.52
+Timestep walltime, DEM solver:      0.579 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 98.53
+Timestep walltime, DEM solver:      0.640 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 98.25
+Timestep walltime, DEM solver:      0.642 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 98.36
+Timestep walltime, DEM solver:      0.641 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 97.09
+Timestep walltime, DEM solver:      0.650 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 97.78
+Timestep walltime, DEM solver:      0.645 s
+DT= 0.1000E-03   NIT/s=48889
+Timestep walltime, fluid solver:    0.120 s
+DEM NITs: 63   Total PIP: 49668
+    NITs/SEC = 96.93
+Timestep walltime, DEM solver:      0.651 s
+Elapsed time: 124.74s    Time remaining (est): 40.54s
+ t=     0.0150 Dt= 0.1000E-03 NIT=  5 Sm=  0.0000    CPU=    125.s
+   Mass imbalance%(0,MMAX):  0.1661E-05
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 97.69
+Timestep walltime, DEM solver:      0.717 s
+Timestep walltime, fluid solver:    0.094 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 97.52
+Timestep walltime, DEM solver:      0.718 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 96.75
+Timestep walltime, DEM solver:      0.724 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 96.72
+Timestep walltime, DEM solver:      0.724 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49668
+    NITs/SEC = 96.46
+Timestep walltime, DEM solver:      0.726 s
+DT= 0.1000E-03   NIT/s=46000
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 95.87
+Timestep walltime, DEM solver:      0.731 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 95.14
+Timestep walltime, DEM solver:      0.736 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 94.61
+Timestep walltime, DEM solver:      0.741 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 94.68
+Timestep walltime, DEM solver:      0.740 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 94.28
+Timestep walltime, DEM solver:      0.743 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 94.41
+Timestep walltime, DEM solver:      0.742 s
+DT= 0.1000E-03   NIT/s=40000
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 94.23
+Timestep walltime, DEM solver:      0.744 s
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 93.65
+Timestep walltime, DEM solver:      0.748 s
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 93.58
+Timestep walltime, DEM solver:      0.749 s
+Timestep walltime, fluid solver:    0.117 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 93.36
+Timestep walltime, DEM solver:      0.751 s
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 70   Total PIP: 49667
+    NITs/SEC = 94.20
+Timestep walltime, DEM solver:      0.744 s
+Timestep walltime, fluid solver:    0.121 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 92.99
+Timestep walltime, DEM solver:      0.754 s
+DT= 0.9000E-04   NIT/s=50000
+Timestep walltime, fluid solver:    0.119 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 92.61
+Timestep walltime, DEM solver:      0.757 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 92.41
+Timestep walltime, DEM solver:      0.682 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 92.37
+Timestep walltime, DEM solver:      0.683 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 93.30
+Timestep walltime, DEM solver:      0.676 s
+Timestep walltime, fluid solver:    0.101 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 93.23
+Timestep walltime, DEM solver:      0.676 s
+Timestep walltime, fluid solver:    0.101 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 92.44
+Timestep walltime, DEM solver:      0.682 s
+DT= 0.8100E-04   NIT/s=44444
+Timestep walltime, fluid solver:    0.102 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 92.89
+Timestep walltime, DEM solver:      0.679 s
 Timestep walltime, fluid solver:    0.095 s
 DEM NITs: 57   Total PIP: 49666
-    NITs/SEC = 91.71
-Timestep walltime, DEM solver:      0.622 s
-Timestep walltime, fluid solver:    0.094 s
+    NITs/SEC = 92.42
+Timestep walltime, DEM solver:      0.617 s
+Elapsed time: 145.32s    Time remaining (est): 20.85s
+ t=     0.0175 Dt= 0.8100E-04 NIT=  5 Sm=  0.0000    CPU=    145.s
+   Mass imbalance%(0,MMAX): -0.6200E-06
+Timestep walltime, fluid solver:    0.122 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 92.53
+Timestep walltime, DEM solver:      0.617 s
+Timestep walltime, fluid solver:    0.099 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 84.27
+Timestep walltime, DEM solver:      0.677 s
+Timestep walltime, fluid solver:    0.102 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 85.05
+Timestep walltime, DEM solver:      0.671 s
+Timestep walltime, fluid solver:    0.100 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 85.90
+Timestep walltime, DEM solver:      0.664 s
+DT= 0.9000E-04   NIT/s=51852
+Timestep walltime, fluid solver:    0.100 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 85.59
+Timestep walltime, DEM solver:      0.667 s
+Timestep walltime, fluid solver:    0.098 s
 DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 93.29
-Timestep walltime, DEM solver:      0.676 s
-Timestep walltime, fluid solver:    0.094 s
-DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 93.01
-Timestep walltime, DEM solver:      0.678 s
+    NITs/SEC = 90.98
+Timestep walltime, DEM solver:      0.693 s
 Timestep walltime, fluid solver:    0.095 s
 DEM NITs: 63   Total PIP: 49666
-    NITs/SEC = 83.76
+    NITs/SEC = 92.71
+Timestep walltime, DEM solver:      0.680 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 93.41
+Timestep walltime, DEM solver:      0.675 s
+Timestep walltime, fluid solver:    0.094 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 93.27
+Timestep walltime, DEM solver:      0.676 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 93.39
+Timestep walltime, DEM solver:      0.675 s
+DT= 0.1000E-03   NIT/s=44444
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 92.37
+Timestep walltime, DEM solver:      0.683 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 93.07
 Timestep walltime, DEM solver:      0.753 s
+Timestep walltime, fluid solver:    0.117 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 91.90
+Timestep walltime, DEM solver:      0.762 s
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 92.18
+Timestep walltime, DEM solver:      0.760 s
+Timestep walltime, fluid solver:    0.126 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 91.38
+Timestep walltime, DEM solver:      0.767 s
+Timestep walltime, fluid solver:    0.101 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 91.55
+Timestep walltime, DEM solver:      0.765 s
+DT= 0.9000E-04   NIT/s=48000
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 70   Total PIP: 49666
+    NITs/SEC = 91.50
+Timestep walltime, DEM solver:      0.766 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 90.81
+Timestep walltime, DEM solver:      0.694 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 91.14
+Timestep walltime, DEM solver:      0.692 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 90.90
+Timestep walltime, DEM solver:      0.694 s
+Timestep walltime, fluid solver:    0.100 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 90.41
+Timestep walltime, DEM solver:      0.698 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 90.86
+Timestep walltime, DEM solver:      0.694 s
+DT= 0.8100E-04   NIT/s=44444
+Timestep walltime, fluid solver:    0.118 s
+DEM NITs: 63   Total PIP: 49666
+    NITs/SEC = 89.86
+Timestep walltime, DEM solver:      0.702 s
+Timestep walltime, fluid solver:    0.095 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 89.85
+Timestep walltime, DEM solver:      0.635 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 89.54
+Timestep walltime, DEM solver:      0.637 s
+Elapsed time: 165.26s    Time remaining (est): 2.38s
+ t=     0.0197 Dt= 0.8100E-04 NIT=  4 Sm=  0.0000    CPU=    165.s
+   Mass imbalance%(0,MMAX): -0.7290E-06
+Timestep walltime, fluid solver:    0.097 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 89.76
+Timestep walltime, DEM solver:      0.636 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 89.07
+Timestep walltime, DEM solver:      0.641 s
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 89.53
+Timestep walltime, DEM solver:      0.637 s
+DT= 0.9000E-04   NIT/s=49383
+Timestep walltime, fluid solver:    0.096 s
+DEM NITs: 57   Total PIP: 49666
+    NITs/SEC = 78.22
+Timestep walltime, DEM solver:      0.730 s
  ======================================================================
- Final simulation time = 0.2005E-01 s
- Total CPU used = 175.8 s
- Total CPU IO used = 0.1406 s
- Total wall time used = 176.7 s
+ Final simulation time = 0.2004E-01 s
+ Total CPU used = 168.1 s
+ Total CPU IO used = 0.1748 s
+ Total wall time used = 169.2 s
  ======================================================================
