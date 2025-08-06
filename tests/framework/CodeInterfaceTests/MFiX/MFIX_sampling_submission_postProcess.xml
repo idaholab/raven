@@ -10,6 +10,7 @@
     </description>
     <revisions>
       <revision author="kimj5"  date="2025-03-20">Test of MFiX sampling, MPI-assisted job submission, and postprocessing using genetic codeInterface</revision>
+      <revision author="kimj5"  date="2025-08-04">Extra Nodes in Models Node. mfix_run.sh updated</revision>
     </revisions>
   </TestInfo>
 
@@ -19,9 +20,9 @@
     <batchSize>2</batchSize>
     <NumThreads>28</NumThreads>
     <NumMPI>1</NumMPI>
-    <expectedTime>00:15:00</expectedTime>
+    <expectedTime>00:10:00</expectedTime>
     <JobName>MFIX_Run</JobName>
-    <NodeParameter> --hostfile</NodeParameter>
+    <NodeParameter>--hostfile</NodeParameter>
     <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
     <clusterParameters>--wckey=lwrs --mem=0</clusterParameters>
     <mode>
@@ -37,7 +38,6 @@
       <Input class="Files" type="">mfix_inputDeck</Input>
       <Input class="Files" type="">mfix_geo</Input>
       <Input class="Files" type="">mfix_mesh</Input>
-      <Input class="Files" type="">mfix_run</Input>
       <Model class="Models" type="Code">mfix</Model>
       <Sampler class="Samplers" type="Stratified">lhs</Sampler>
       <Output class="DataObjects" type="PointSet">stories</Output>
@@ -49,7 +49,6 @@
     <Input name="mfix_inputDeck" type="">../MFIX_RAVEN_Temp.mfx</Input>
     <Input name="mfix_geo" type="">../geometry_0001.stl</Input>
     <Input name="mfix_mesh" type="">../RoundBottomRetort.stl</Input>
-    <Input name="mfix_run" type="">../mfix_run.sh</Input>
   </Files>
 
   <Models>
@@ -57,6 +56,20 @@
       <executable> bash %FRAMEWORK_DIR%/../tests/framework/CodeInterfaceTests/MFiX/mfix_run.sh</executable>
       <clargs extension=".mfx" type="input"/>
       <clargs type="postpend" arg="%CURRENT_ID1%"/>
+      <deltaH>0.001</deltaH>
+      <deltaVol>0.1</deltaVol>
+      <partVol>2.5e-4</partVol>
+      <radHemCon>0.0045</radHemCon>
+      <nYMesh>115</nYMesh>
+      <basePartFile>BACKGROUND_IC_*.vtp</basePartFile>
+      <cellPartFile>X_SLICE_*.vtu</cellPartFile>
+      <moveAgeWindow>5</moveAgeWindow>
+      <errTol>0.0001</errTol>
+      <numParticle>3</numParticle>
+      <coneRadius>0.0254</coneRadius>
+      <coneHeight>0.045</coneHeight>
+      <slantHeight>0.0507204</slantHeight>
+      <translationVector>0, 0.022, 17.728</translationVector>
     </Code>
   </Models>
 

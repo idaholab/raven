@@ -6,7 +6,7 @@
   run_name         = 'RoundBottomRetort_TEST'
   units            = 'SI'
   run_type         = 'new'
-  tstop            = .02
+  tstop            = 0.02
   dt               = 1.0000e-05
   dt_min           = 1.0000e-08
   dt_max           = 1.0000e-04

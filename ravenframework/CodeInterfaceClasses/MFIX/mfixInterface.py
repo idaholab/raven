@@ -42,35 +42,93 @@ class MFIX(GenericCode):
     self.outputExtensions = ['vtp', 'vtu']
     self.fixedOutFileName = None
     self.caseName = None
-
-    # Known, changable variables
-    self.deltaH = 0.001  # set value for the change in height
-    self.deltaVol = 0.1  # volume fraction assumed to be the upper limit for the bed
-    self.slopeStop = self.deltaVol / self.deltaH  # calculate the limit on the change in slope to determine bed height
-    self.dPart = 2.5e-4  # particle volume (m)
-    # particle diameter: d_p0(1) = 6.9e-4
-    # self.rTol = self.dPart / 1000  # tolerance for particle diameter
-    self.rTol = 2.e-3 # TODO read from MFIX input file d_p0(1) * 2
-    self.rHem = 0.0045  # radius of hemispherical section at the bottom of the cone
-    self.hOff = self.rHem / np.tan(np.pi / 6)  # height of the cone at the bottom of the cone ( height of the hemispherical section)
-    self.nYMesh = 115
-    self.basePartFile = 'BACKGROUND_IC_*.vtp' # Polygonal data, 2D grid, like the unstructured grid, but there are no polyhedra, but only flat polygons.
-    self.cellPartFile = 'X_SLICE_*.vtu' # Unstructured grid: 2D or 3D grid; for every grid point all three coordinates and for each grid cell all constituent points and the cell shape are given
-    self.moveAgeWindow = 5
-    self.errTol = 0.0001
-    # self.heightBin = 0.01
-    self.numParticle = 3
-    self.heightBin = self.numParticle * self.dPart
-    self.coneRadius = 0.0254 #meters
-    self.coneHeight = 0.045 #meters
-    self.slantHeight = 0.0507204 # meters
-    self.cylinderAboveConeHeight = 0.17780 + self.coneHeight
-    self.translationVector = np.asarray([0, 0.022, 17.728])
     self._bins = None
     self._dataSet = xr.Dataset()
 
-    # self.raiseAnError(ValueError, f"<stoppingCriteriaFunction> named '{self.stoppingCriteriaFunction.name}' "
-    #                               f"not found in file '{self.stoppingCriteriaFunction.functionFile}'!")
+    # Known, changable variables
+    # self.deltaH = 0.001                           # set value for the change in height
+    # self.deltaVol = 0.1                           # volume fraction assumed to be the upper limit for the bed
+    # self.slopeStop = self.deltaVol / self.deltaH  # calculate the limit on the change in slope to determine bed height
+    # self.dPart = 2.5e-4                           # particle volume (m)
+                                                  # particle diameter: d_p0(1) = 6.9e-4
+                                                  # self.rTol = self.dPart / 1000  # tolerance for particle diameter
+    self.rTol = 2.e-3                             # TODO read from MFIX input file d_p0(1) * 2
+    # self.rHem = 0.0045                            # radius of hemispherical section at the bottom of the cone
+    # self.hOff = self.rHem / np.tan(np.pi / 6)     # height of the cone at the bottom of the cone ( height of the hemispherical section)
+    # self.nYMesh = 115
+    # self.basePartFile = 'BACKGROUND_IC_*.vtp'     # Polygonal data, 2D grid, like the unstructured grid, but there are no polyhedra, but only flat polygons.
+    # self.cellPartFile = 'X_SLICE_*.vtu'           # Unstructured grid: 2D or 3D grid; for every grid point all three coordinates and for each grid cell all constituent points and the cell shape are given
+    # self.moveAgeWindow = 5
+    # self.errTol = 0.0001
+    # self.heightBin = 0.01
+    # self.numParticle = 3
+    # self.heightBin = self.numParticle * self.dPart
+    # self.coneRadius = 0.0254                      # unit: meters
+    # self.coneHeight = 0.045                       # unit: meters
+    # self.slantHeight = 0.0507204                  # unit: meters
+    # self.cylinderAboveConeHeight = 0.17780 + self.coneHeight
+    # self.translationVector1 = np.asarray([0, 0.022, 17.728])
+
+
+  def _readMoreXML(self, xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this class and initialize some members
+      based on inputs
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml element node
+      @ Out, None
+    """
+    GenericCode._readMoreXML(self, xmlNode)
+    for child in xmlNode:
+      if child.tag == 'deltaH':
+        if child.text != None:           self.deltaH = float(child.text)
+        else: pass
+      elif child.tag == 'deltaVol':
+        if child.text != None:           self.deltaVol =  float(child.text)
+        else: pass
+      elif child.tag == 'partVol':
+        if child.text != None:           self.dPart =  float(child.text)
+        else: pass
+      elif child.tag == 'radHemCon':
+        if child.text != None:           self.rHem =  float(child.text)
+        else: pass
+      elif child.tag == 'nYMesh':
+        if child.text != None:           self.nYMesh =  int(child.text)
+        else: pass
+      elif child.tag == 'basePartFile':
+        if child.text != None:           self.basePartFile =  child.text
+        else: pass
+      elif child.tag == 'cellPartFile':
+        if child.text != None:           self.cellPartFile =  child.text
+        else: pass
+      elif child.tag == 'moveAgeWindow':
+        if child.text != None:           self.moveAgeWindow =  int(child.text)
+        else: pass
+      elif child.tag == 'errTol':
+        if child.text != None:           self.errTol =  float(child.text)
+        else: pass
+      elif child.tag == 'numParticle':
+        if child.text != None:           self.numParticle =  int(child.text)
+        else: pass
+      elif child.tag == 'coneRadius':
+        if child.text != None:           self.coneRadius =  float(child.text)
+        else: pass
+      elif child.tag == 'coneHeight':
+        if child.text != None:           self.coneHeight =  float(child.text)
+        else: pass
+      elif child.tag == 'slantHeight':
+        if child.text != None:           self.slantHeight =  float(child.text)
+        else: pass
+      elif child.tag == 'translationVector':
+        if child.text != None:           self.translationVector =  np.array([float(i) for i in child.text.split(',')])
+        else: pass
+
+    self.slopeStop = self.deltaVol / self.deltaH
+    self.hOff = self.rHem / np.tan(np.pi / 6)
+    self.heightBin = self.numParticle * self.dPart
+    self.cylinderAboveConeHeight = 0.17780 + self.coneHeight
+
+    # if (len(self.boolOutputVariables)==0) and (len(self.contOutputVariables)==0):
+    #   raise IOError('At least one of two nodes <boolMaapOutputVariables> or <contMaapOutputVariables> has to be specified')
 
   def initialize(self, runInfo, oriInputFiles):
     """
@@ -105,7 +163,96 @@ class MFIX(GenericCode):
     if runInfo['NumThreads'] == nodesi*nodesj*nodesk:
       pass
     else:
-      raise IOError('The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file. Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )
+      raise IOError('\n''The number of thread in runInfo node of RAVEN input (i.e., <NumThreads>) MUST be identical with the multiplication of nodesi, nodesj, and nodesk in the MFiX input file. Please either verify your MFiX input file or adjust the number in <NumThreads> of <RunInfo>.' )
+
+  def generateCommand(self,inputFiles,executable,clargs=None, fargs=None, preExec=None):
+    """
+      See base class.  Collects all the clargs and the executable to produce the command-line call.
+      Returns tuple of commands and base file name for run.
+      Commands are a list of tuples, indicating parallel/serial and the execution command to use.
+      @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
+      @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
+      @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+      @ In, fargs, dict, optional, a dictionary containing the auxiliary input file variables the user can specify in the input (e.g. under the node < Code >< fileargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
+      @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
+    """
+    if clargs==None:
+      raise IOError('No input file was specified in clargs!')
+    #check for output either in clargs or fargs
+    #if len(fargs['output'])<1 and 'output' not in clargs.keys():
+    #  raise IOError('No output file was specified, either in clargs or fileargs!')
+    #check all required input files are there
+    #check for duplicate extension use
+    extsClargs = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
+    extsFargs  = list(ext[0] for ext in fargs['input'].values())
+    usedExts = extsClargs + extsFargs
+    if len(usedExts) != len(set(usedExts)):
+      raise IOError('GenericCodeInterface cannot handle multiple input files with the same extension.  You may need to write your own interface.')
+    for inf in inputFiles:
+      ext = '.' + inf.getExt() if inf.getExt() is not None else ''
+      try:
+        usedExts.remove(ext)
+      except ValueError:
+        pass
+    if len(usedExts) != 0:
+      raise IOError('Input extension',','.join(usedExts),'listed in XML node Code, but not found in the list of Input of <Files>')
+
+    #TODO if any remaining, check them against valid inputs
+
+    #PROBLEM this is limited, since we can't figure out which .xml goes to -i and which to -d, for example.
+    def getFileWithExtension(fileList,ext):
+      """
+      Just a script to get the file with extension ext from the fileList.
+      @ In, fileList, the string list of filenames to pick from.
+      @ Out, ext, the string extension that the desired filename ends with.
+      """
+      found = False
+      for index,inputFile in enumerate(fileList):
+        if inputFile.getExt() == ext:
+          found=True
+          break
+      if not found:
+        raise IOError('No InputFile with extension '+ext+' found!')
+      return index,inputFile
+
+    #prepend
+    todo = ''
+    todo += clargs['pre']+' '
+    todo += executable
+    # todo += inputFiles[0]
+    index=None
+    #inputs
+    for flag,elems in clargs['input'].items():
+      if flag == 'noarg':
+        for elem in elems:
+          ext, delimiter = elem[0], elem[1]
+          idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
+          todo += delimiter + fname.getAbsFile()
+          if index == None:
+            index = idx
+        continue
+      todo += ' '+flag
+      for elem in elems:
+        ext, delimiter = elem[0], elem[1]
+        idx,fname = getFileWithExtension(inputFiles,ext.strip('.'))
+        todo += delimiter + fname.getFilename()
+        if index == None:
+          index = idx
+    #outputs
+    #FIXME I think if you give multiple output flags this could result in overwriting
+    self.caseName = inputFiles[index].getBase()
+    outFile = 'out~'+self.caseName
+    if 'output' in clargs:
+      todo+=' '+clargs['output']+' '+outFile
+    if self.fixedOutFileName is not None:
+      outFile = self.fixedOutFileName
+    todo+=' '+clargs['text']
+    #postpend
+    todo+=' '+clargs['post']
+    returnCommand = [('parallel',todo)],outFile
+    print('Execution Command: '+str(returnCommand[0]))
+    return returnCommand
 
   def finalizeCodeOutput(self, command, output, workingDir):
     """
@@ -135,13 +282,6 @@ class MFIX(GenericCode):
     bedEdgeVzData = []
 
     outputResults = {'time':[],
-                    # 'avg_part_bed_vx':[],
-                    # 'avg_part_bed_vy':[],
-                    # 'avg_part_bed_vz':[],
-                    # 'avg_part_spout_vx':[],
-                    # 'avg_part_spout_vy':[],
-                    # 'avg_part_spout_vz':[],
-                    # 'bed_height':[],
                     'avg_part_bedEdge_vx':[],
                     'avg_part_bedEdge_vy':[],
                     'avg_part_bedEdge_vz':[]
@@ -164,6 +304,7 @@ class MFIX(GenericCode):
         print('Skipping %s because %s does not exist' %('The Code', filename))
 
       part = partBase.points  # extracting the center locations for the particles
+
       # Available variables in current model: ['Velocity Magnitude', 'Diameter', 'Velocity']
       if 'Velocity' not in partBase.array_names:
         raise IOError(f"Variable 'Velocity' is not present in file {filename}")
@@ -178,29 +319,26 @@ class MFIX(GenericCode):
       yMinCell = np.min(centCoord[:, 1])  # finding the minimum y value for cells
       yMaxCell = np.max(centCoord[:, 1])  # finding the maximum y value for cells
       bins = np.linspace(yMinCell, yMaxCell, num=self.nYMesh, endpoint=True)  # creating a linspace with the same number of cells as the simulation
+
       # bins = np.linspace(yMinCell, yMaxCell, num=self.nYMesh)  # creating a linspace with the same number of cells as the simulation
       self._bins = bins
       avgVolFrac = self.processVolumeFraction(centCoord, volFrac, bins)
+
       # utilizing moving average to compute the average void fraction, and use it to determine the bed height
       cow = self.movingAvg(avgVolFrac[:, 3], self.moveAgeWindow)
       err, EPGBed, hBed = self.processError(avgVolFrac, cow)
 
-      #########################################################
-      # Added by Congjian for explore average void fractions
-      avgVolFracDict[timeVar] = np.atleast_1d(avgVolFrac[:, 3])
-      cowDict[timeVar] = np.atleast_1d(cow)
-      #########################################################
-
-      sizeVolFrac = len(volFrac)  # finding the number of volume fractions
+      sizeVolFrac = len(volFrac)        # finding the number of volume fractions
       sizeCoord = len(centCoord[:, 0])  # finding the number of cell center coordinate locations
 
-      if sizeVolFrac == sizeCoord:  # check to make sure the number of volume fractions and cell centers is the same
+      if sizeVolFrac == sizeCoord:      # check to make sure the number of volume fractions and cell centers is the same
 
         # move the bottom of the cone to (0, 0, 0)
         normPart = part + self.translationVector
         x = normPart[:, 0]
         z = normPart[:, 1]
         y = normPart[:, 2]
+
         # distance from the z-axis
         r = np.sqrt(x**2 + y**2)
 
@@ -222,16 +360,9 @@ class MFIX(GenericCode):
 
         # collected data: bedEdge, bedPart, spoutPart for each file
         outputResults['time'].append(timeVar)
-        # outputResults['bed_height'].append(hBed)
-        # outputResults['avg_part_bed_vx'].append(np.average(bedPart[:,3]))
-        # outputResults['avg_part_bed_vy'].append(np.average(bedPart[:,4]))
-        # outputResults['avg_part_bed_vz'].append(np.average(bedPart[:,5]))
         outputResults['avg_part_bedEdge_vx'].append(np.average(bedEdgePartVel[:,0]))
         outputResults['avg_part_bedEdge_vy'].append(np.average(bedEdgePartVel[:,1]))
         outputResults['avg_part_bedEdge_vz'].append(np.average(bedEdgePartVel[:,2]))
-        # outputResults['avg_part_spout_vx'].append(np.average(spoutPart[:,3]))
-        # outputResults['avg_part_spout_vy'].append(np.average(spoutPart[:,4]))
-        # outputResults['avg_part_spout_vz'].append(np.average(spoutPart[:,5]))
 
         # Save the void fraction data
         for i, bin in enumerate(bins):
@@ -250,19 +381,6 @@ class MFIX(GenericCode):
         bedEdgeVyData.append(avgBedEdgePartVel[:,1])
         bedEdgeVzData.append(avgBedEdgePartVel[:,2])
 
-    # voidFracData = xr.DataArray(np.asarray(voidFracData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
-    # bedEdgeVxData = xr.DataArray(np.asarray(bedEdgeVxData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
-    # bedEdgeVyData = xr.DataArray(np.asarray(bedEdgeVyData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
-    # bedEdgeVzData = xr.DataArray(np.asarray(bedEdgeVzData).T, coords=[self._bins, outputResults['time']], dims=['height', 'time'])
-
-    # self._dataSet['void_frac'] = voidFracData
-    # self._dataSet['bed_edge_vx'] = bedEdgeVxData
-    # self._dataSet['bed_edge_vy'] = bedEdgeVyData
-    # self._dataSet['bed_edge_vz'] = bedEdgeVzData
-
-    # hBedAvg = np.average(heights[:,1])
-    # _, allEdgeSpaceAverage, avgAllEdgeSpaceAverage = self.calculateEdgeVelocityProfile(bedEdgeDict, hBedAvg)
-
     # convert list to numpy array
     for key, val in outputResults.items():
       outputResults[key] = np.asarray(val)
@@ -279,29 +397,6 @@ class MFIX(GenericCode):
     # with open('dataset.pkl', 'wb') as f:
     with open(file_path, 'wb') as f:
       pickle.dump(self._dataSet, f, protocol=-1)
-
-    # df_avgVolFrac = pd.DataFrame(avgVolFracDict, index=bins)
-    # df_cow = pd.DataFrame(cowDict, index=bins[0:len(cow)])
-    # df_avgVolFrac.to_csv('average_void_fraction.csv')
-    # df_cow.to_csv('moving_average_void_fraction.csv')
-    # # df_avgVolFrac.plot(legend=False, style=['-']*len(avgVolFracDict))
-    # df_avgVolFrac.iloc[:,200:].plot(legend=False, style=['-']*len(avgVolFracDict))
-    # plt.show()
-    # df_cow.iloc[:,100:].plot(legend=False, style=['-']*len(avgVolFracDict))
-    # plt.show()
-
-    # Compute Edge Velocity Profile (in original code)
-    # First compute the bed average heights (average over all perturbations and time)
-    # Then call calculateEdgeVelocityProfile to compute the edge velocity profile
-    # return is (numSteps*numBins, 3) with columns: BedHeight, Average y-velocity, TimeVar
-
-    # Suggested way to compute:
-    # compute the bed average heights for each run
-    # Then calculateEdgeVelocityProfile and compute the average edge velocity profile over bins?
-    # return is (numSteps, 3) with columns: BedHeight, Average y-velocity, TimeVar
-
-    # return output
-    # return df
 
   def checkForOutputFailure(self, output, workingDir):
     """
