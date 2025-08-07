@@ -96,6 +96,9 @@ class MFIX(GenericCode):
       elif child.tag == 'translationVector':
         if child.text != None:           self.translationVector =  np.array([float(i) for i in child.text.split(',')])
         else: pass
+      elif child.tag == 'particleRadiusTolerance':
+        if child.text != None:           self.rTol =  float(child.text)
+        else: pass
 
     self.slopeStop = self.deltaVol / self.deltaH
     self.hOff = self.rHem / np.tan(np.pi / 6)
@@ -164,8 +167,6 @@ class MFIX(GenericCode):
         pass
     if len(usedExts) != 0:
       raise IOError('Input extension',','.join(usedExts),'listed in XML node Code, but not found in the list of Input of <Files>')
-
-    self.rTol = 2.e-3                               # TODO read from MFIX input file d_p0(1) * 2
 
     def getFileWithExtension(fileList,ext):
       """
