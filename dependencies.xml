@@ -39,7 +39,8 @@ Note all install methods after "main" take
   <main>
     <h5py/>
     <numpy>1.26</numpy>
-    <scipy>1.12</scipy>
+    <!-- pip installs were overwritting the scipy version, so using pip -->
+    <scipy source="pip">1.12</scipy>
     <scikit-learn>1.1</scikit-learn>
     <pyvista source="pip">0.44</pyvista>
     <pandas/>
@@ -86,10 +87,7 @@ Note all install methods after "main" take
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
     <setuptools />
     <!-- source="mamba" are the ones installed when mamba is installed -->
-    <!-- mamba version 2.0.0 causes failures on mac: critical libmamba filesystem error: in permissions: Operation not permitted-->
-    <mamba source="mamba" skip_check='True' os='mac'>1.5</mamba>
-    <mamba source="mamba" skip_check='True' os='windows,linux' />
-    <serpentTools optional='True' source="pip"/>
+    <mamba source='mamba' skip_check='True'/>
     <pydmd source="pip"/>
   </main>
   <alternate name="pip">

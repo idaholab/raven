@@ -14,7 +14,7 @@ The coupling procedure does not require modifying RAVEN itself. Instead, the dev
  in RAVEN at run-time (no need to introduce  hard-coded coupling statements).
  This interface needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:codeinterface}):
 \begin{lstlisting}[language=bash]
- path/to/raven/distribution/raven/framework/CodeInterfaces/
+ path/to/raven/distribution/raven/framework/CodeInterfaceClasses/
 \end{lstlisting}
 At the initialization stage, RAVEN imports all the Interfaces that are contained in this directory and performs some preliminary cross-checks.
 \\It is important to notice that the name of class in the Interface module is the one the user needs to specify when the new interface
@@ -32,7 +32,38 @@ needs to be used. For example, if the Interface module contains the class ``NewC
     ...
   </Models>
 \end{lstlisting}
-In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.
+
+\textcolor{red}{In the following sub-sections, a step-by-step procedure for coupling a code to RAVEN is outlined.}
+
+\subsection{How to specify additional Python dependencies.}
+\label{subsec:dependencies}
+Firstly, if the newly developped  \textbf{Code Interface} requires additional libraries (installable via PIP, CONDA or MAMBA), the 
+developer can indicate such dependencies in a file ``\textbf{dependecies.xml}'' located in the same folder containing the interface.
+Such  ``\textbf{dependecies.xml}''  file has the same structure of the RAVEN or RAVEN-based Plugins'  ``\textbf{dependecies.xml}'' file.
+For example, if the Interface requires the additional dependencies ``MyLibrary1'' and ``MyLibrary2'' available in ``conda-forge'', the
+``\textbf{dependecies.xml}'' would be the following:
+\begin{lstlisting}[style=XML]
+<dependencies>
+  <main>
+    <MyLibrary1 source="forge"/>
+    <MyLibrary2 source="forge"/>
+  </main>
+</dependencies>
+\end{lstlisting}
+If specific versions of those libraries are required, the file would change as follows:
+\begin{lstlisting}[style=XML]
+<dependencies>
+  <main>
+    <MyLibrary1 source="forge">1.2.3</MyLibrary1>
+    <MyLibrary2 source="forge">4.5.6</MyLibrary2>
+  </main>
+</dependencies>
+\end{lstlisting}
+
+\nb \textcolor{red}{\textbf{Those additional dependencies are not installed by default but they require to invoke RAVEN installation procedure using the ``--code-interface-deps'' command line option. For  more details, see Sections~\ref{sec:clone raven} and ~\ref{subsec:installPythonLibs}}}.
+
+
+
 \subsection{Pre-requisites.}
 \label{subsec:prerequisites}
 In order to couple a newer application to the RAVEN code, some pre-requisites need to be satisfied.
