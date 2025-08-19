@@ -1,0 +1,6 @@
+<dependencies>
+  <main>
+    <pyvista source="pip"/>
+    <binaryornot source="pip"/>
+  </main>
+</dependencies>

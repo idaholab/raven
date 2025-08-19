@@ -43,7 +43,10 @@ class SERPENT(GenericCode):
     try:
       import serpentTools
     except ImportError:
-      raise ImportError("serpentTools not found and SERPENT Interface has been invoked. Install serpentTools through pip!")
+      raise ImportError("serpentTools not found and SERPENT Interface has been invoked. "
+                        "Install serpentTools through pip or invoke RAVEN installation procedure (i.e. establish_conda_env.sh script) "
+                        "with the additional command line option '--code-interface-deps'. "
+                        "See User Manual for additiona details!")
     # intialize code interface
     super().__init__()
     self.printTag         = 'SERPENT'         # Print Tag

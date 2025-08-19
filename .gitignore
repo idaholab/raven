@@ -62,6 +62,8 @@ tests/framework/htmlcov/
 tests/framework/CodeInterfaceTests/PARCS/PARCS-RAVEN-GA/sampleGA-PARCS/
 tests/framework/CodeInterfaceTests/Scale/SCALE_csas/sampleScale/
 tests/framework/CodeInterfaceTests/Simulate/Simulate_RAVEN-GA/sampleGA-Simulate/
+tests/framework/CodeInterfaceTests/OpenFOAM/all_variables_and_centroids/sample/
+tests/framework/CodeInterfaceTests/OpenFOAM/basic/sample/
 tests/framework/ROM/TimeSeries/ARMA/InterpolatedMaxCycles/
 tests/framework/ROM/TimeSeries/SyntheticHistory/LogARMA/
 tests/framework/ROM/TimeSeries/SyntheticHistory/VARMA/
