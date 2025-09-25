@@ -33,7 +33,7 @@ class LinearRegression(ScikitLearnBase):
   """
     Ordinary least squares Linear Regression.
   """
-  info = {'problemtype':'regression', 'normalize':False}
+  info = {'problemtype':'regression'}
 
   def __init__(self):
     """
@@ -70,9 +70,7 @@ class LinearRegression(ScikitLearnBase):
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
-                                                 descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
-                                                 the regressors X will be normalized before regression by subtracting the mean and
-                                                 dividing by the l2-norm.""", default=False))
+                                                 descr=r"""This parameter is deprecated and ignored."""))
     # New in sklearn version 0.24
     # specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
     #                                              descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
@@ -85,7 +83,12 @@ class LinearRegression(ScikitLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','normalize'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept'])
     # notFound must be empty
     assert(not notFound)
+    oldSettings, oldNotFound =  paramInput.findNodesAndExtractValues(['normalize'])
+    if not oldNotFound:
+      self.raiseAWarning("Deprecated setting found: "+str(oldSettings))
+      #When we remove normalize, change to an error:
+      #self.raiseAnError(IOError,"Deprecated setting found: "+str(oldSettings))
     self.initializeModel(settings)

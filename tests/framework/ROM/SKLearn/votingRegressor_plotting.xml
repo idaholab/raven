@@ -48,7 +48,6 @@
       <Features>X,Y</Features>
       <Target>ans</Target>
       <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
     </ROM>
     <ROM name="svr" subType="SVR">
       <Features>X,Y</Features>
