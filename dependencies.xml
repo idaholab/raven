@@ -42,6 +42,7 @@ Note all install methods after "main" take
     <!-- pip installs were overwritting the scipy version, so using pip -->
     <scipy source="pip">1.12</scipy>
     <scikit-learn>1.1</scikit-learn>
+    <pyvista source="pip">0.44</pyvista>
     <pandas/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray/>

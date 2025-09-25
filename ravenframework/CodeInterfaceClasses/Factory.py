@@ -50,6 +50,7 @@ from .OpenFOAM.OpenFOAMInterface import OpenFOAM
 from .WorkshopExamples.ProjectileInterface import Projectile
 from .WorkshopExamples.ProjectileInterfaceNoCSV import ProjectileNoCSV
 from .WorkshopExamples.BatemanInterface import BatemanSimple
+from .MFIX.mfixInterface import MFIX
 
 factory = EntityFactory('Code', needsRunInfo=True)
 factory.registerAllSubtypes(CodeInterfaceBase)
