@@ -34,7 +34,7 @@ _TIME_DIR = re.compile(r"^-?\d*\.?\d+(?:[eE][-+]?\d+)?$")
 
 _AVAILABLE_FILE_TYPES = ['functionObjectProperties', 'volScalarField', 'volVectorField','surfaceScalarField', 'surfaceVectorField']
 
-def checkAccessAndWaitIfStillAccessed(filename: str | pathlib.Path, gracePeriod: float = 1., timeout: float =100.):
+def checkAccessAndWaitIfStillAccessed(filename: Union[str, pathlib.Path], gracePeriod: float = 1., timeout: float =100.):
   """
     This utility method is aimed to check the timestamp of last access of the file
     and wait (up to timeout+gracePeriod) if it is within the gracePeriod
@@ -66,8 +66,8 @@ class openfoamOutputParser(object):
     Class to parse different openFOAM output files
   """
   def __init__(self,
-               caseDirectory: str | pathlib.Path,
-               caseFileName: str | pathlib.Path,
+               caseDirectory: Union[str,pathlib.Path],
+               caseFileName: Union[str,pathlib.Path],
                variables: List[str] = None, writeCentroids: bool = False,
                checkAccessAndWait: bool = False):
     """
@@ -218,7 +218,7 @@ class openfoamOutputParser(object):
         newData[var] = data[var]
     return newData
 
-  def _readCumulativeContErr(self, path: str | pathlib.Path) -> Tuple[List[int], Union[float, list]]:
+  def _readCumulativeContErr(self, path: Union[str,pathlib.Path]) -> Tuple[List[int], Union[float, list]]:
     """
       Method to read the cumulativeContErr file
       @ In, path, str | Path, Path to the OpenFOAM file (e.g. '0.1/uniform/cumulativeContErr').
@@ -282,7 +282,7 @@ class openfoamOutputParser(object):
           out[key] = vec
     return out
 
-  def uniformFolderAggregate(self, caseDir: str | pathlib.Path) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+  def uniformFolderAggregate(self, caseDir: Union[str,pathlib.Path]) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
     """
     Method to walk the case, read every time directory's functionObjectProperties and cumulativeContErr (if present)
     and collect the values into time-sorted NumPy arrays.
@@ -376,7 +376,7 @@ class openfoamOutputParser(object):
     return times, np.stack(values), centroids
 
   def aggregateFieldNumpy(self, field: str = "U",
-                foamCasefile: str | None = None
+                foamCasefile: Union[str, None] = None
                 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
       Aggregate 'field' over every available time step.
