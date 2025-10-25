@@ -113,7 +113,7 @@ capabilites.
     \textbf{Data Mining}, \textbf{Importance Rank}, \textbf{Safest Point}, and \textbf{Basic Statistics}.
   \item \textbf{Risk Management}: Available approaches in RAVEN include \textbf{Reduced order models},
     approaches used for sensitivity and uncertainty analysis, and \textbf{Dynamic Event Tree} methods.
-  \item \textbf{Validation}: Available approaches in RAVEN include \textbf{ROMs}, \textbf{Comparison Statistics} and \textbf{Validation Metrics} 
+  \item \textbf{Validation}: Available approaches in RAVEN include \textbf{ROMs}, \textbf{Comparison Statistics} and \textbf{Validation Metrics}
 \end{itemize}
 
 In addition, RAVEN includes a number of related advanced capabilities. \textbf{Surrogate or Reduced order models (ROMs)} are mathematical
@@ -130,14 +130,14 @@ employed.
 The procedure of coupling a new code/application with RAVEN is a straightforward process. The provided Application
 Programming Interfaces (APIs) allow RAVEN to interact with any code as long as all the parameters that need to be
 perturbed are accessible by input files or via python interfaces. For example, for all the codes currently
-supported by RAVEN (e.g. RELAP-7, RELAP-5D, BISON, MAMMOTH, etc.), the coupling is performed through a Python interface
+supported by RAVEN (e.g. RELAP-7, RELAP-5D, BISON, etc.), the coupling is performed through a Python interface
 that interprets the information coming from RAVEN and translates them into the input of the driven code. The couping procedure
 does not require modifying RAVEN itself. Instread, the developer creates a new Python interface that is going to
 be embedded in RAVEN at run-time (no need to introduce hard-coded coupling statements). In addition, RAVEN will
 manage concurrent executions of your simulations in parallel, whether on a local desktop or remote high-performance cluster.
 
 Figure.~\ref{fig:modelAPIs} depicts the different APIs between RAVEN and the computational models, i.e. the
-\textbf{ROM}, \textbf{External Models} and \textbf{External Code} APIs. 
+\textbf{ROM}, \textbf{External Models} and \textbf{External Code} APIs.
 
 \begin{figure}[h!]
   \includegraphics[width=\textwidth]{pics/modelAPIs.png}
