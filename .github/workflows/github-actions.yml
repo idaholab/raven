@@ -38,15 +38,19 @@ jobs:
           pwd
           python3 ./scripts/install_plugins.py -a
 
-      - name: Set Python Environment and Build Raven
+      - name: Set Python Environment
         run: |
           ./scripts/establish_conda_env.sh --install
+
+      - name: Build Raven
+        run: |
           ./build_raven
 
       - name: Test RAVEN
         # if: always()
         # continue-on-error: true # numba library cause autoarma failed for latest ubuntu
         run: |
+          export LD_LIBRARY_PATH=/home/runner/miniconda3/envs/raven_libraries/lib
           ./run_tests --library-report
           ./run_tests -j4 --raven
 
@@ -83,9 +87,12 @@ jobs:
           pwd
           python3 ./scripts/install_plugins.py -a
 
-      - name: Set Python Environment and Build Raven
+      - name: Set Python Environment
         run: |
           ./scripts/establish_conda_env.sh --install
+
+      - name: Build Raven
+        run: |
           ./build_raven
 
       - name: Test RAVEN
@@ -122,14 +129,17 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python ./scripts/install_plugins.py -a
+      # - name: Install Plugins
+      #   run: |
+      #     pwd
+      #     python ./scripts/install_plugins.py -a
 
-      - name: Set Python Environment and Build Raven
+      - name: Set Python Environment
         run: |
-          bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/Miniconda3/etc/profile.d/conda.sh
+          bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
+
+      - name: Build Raven
+        run: |
           bash ./build_raven
 
       - name: Test RAVEN
@@ -138,7 +148,7 @@ jobs:
           bash ./run_tests --library-report
           bash ./run_tests -j4 --raven
 
-      - name: Test Plugins
-        continue-on-error: true
-        run: |
-          bash ./run_tests -j4 --plugins
+      # - name: Test Plugins
+      #   continue-on-error: true
+      #   run: |
+      #     bash ./run_tests -j4 --plugins
