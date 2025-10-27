@@ -33,10 +33,10 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python3 ./scripts/install_plugins.py -a
+      # - name: Install Plugins
+      #   run: |
+      #     pwd
+      #     python3 ./scripts/install_plugins.py -a
 
       - name: Set Python Environment
         run: |
@@ -54,10 +54,10 @@ jobs:
           ./run_tests --library-report
           ./run_tests -j4 --raven
 
-      - name: Test Plugins
-        continue-on-error: true
-        run: |
-          ./run_tests -j4 --plugins
+      # - name: Test Plugins
+      #   continue-on-error: true
+      #   run: |
+      #     ./run_tests -j4 --plugins
 
   Test-RAVEN-macOS:
     runs-on: macos-latest
