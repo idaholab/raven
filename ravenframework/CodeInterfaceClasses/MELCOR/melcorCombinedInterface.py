@@ -37,7 +37,7 @@ class Melcor(CodeInterfaceBase):
       @ Out, None
     """
     self.melcOut = 'OUTPUT_MELCOR'
-    self.goodWord  = "Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
+    self.goodWord  = ["USER INPUT TEND (END OF PROBLEM)","Normal termination"]   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
 
 
   def _readMoreXML(self,xmlNode):
@@ -104,8 +104,8 @@ class Melcor(CodeInterfaceBase):
       precommand = executable + clargs['text']
     else:
       precommand = executable
-    melgCommand = str(preExec)    + ' ' + melcin.getFilename()
-    melcCommand = str(precommand) + ' ' + melcin.getFilename()
+    melgCommand = str(preExec)    + ' i=' + melcin.getFilename()
+    melcCommand = str(precommand) + ' i=' + melcin.getFilename()
     returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],self.melcOut
 
     return returnCommand
@@ -179,8 +179,8 @@ class Melcor(CodeInterfaceBase):
     failure = True
     with open(os.path.join(workingDir,self.melcorOutFile),"r") as outputToRead:
       readLines = outputToRead.readlines()
-      lastRow = readLines[-1]
-      if self.goodWord in lastRow:
-        failure = False
+      for lastRow in readLines[-4:]
+          if any([gw in lastRow for gw in self.goodWord]):
+            failure = False
       outputToRead.close()
       return failure
