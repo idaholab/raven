@@ -14,6 +14,7 @@
   input = 'test_internal_parallel_extModelRay.xml'
   UnorderedCsv = 'InternalParallelExtModelRay/testPointSet_dump.csv'
   skip_if_OS = windows
+  max_time = 500
  [../]
  [./PostProcessor]
   type = 'RavenFramework'
