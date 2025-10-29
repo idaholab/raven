@@ -37,12 +37,9 @@ jobs:
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s HERON
           python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-          python3 ./scripts/install_plugins.py -s DOVE
 
       - name: Set Python Environment
         run: |
@@ -139,12 +136,9 @@ jobs:
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s HERON
           python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-          python3 ./scripts/install_plugins.py -s DOVE
 
       - name: Set Python Environment
         run: |
