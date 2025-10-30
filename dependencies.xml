@@ -35,6 +35,16 @@ Note all install methods after "main" take
 
  end reading flow
 -->
+
+<!--
+1. ray can be updated to 2.51, however for mac test machine, only 2.49 is installed. In addition,
+ray have conflicts with grpcio, which sometime we need to pin the version of grpcio
+2. ray may also have issue with typing-extensions, which sometime we need to pin the version
+3. few libraries need to be updated in the near future, such as numpy, scikit-learn, scipy
+4. some libraries in plugins can cause library conflicts, such as FARM quadprog which can really
+limit our library choices.
+-->
+
 <dependencies>
   <main>
     <h5py source="pip"/>
@@ -72,7 +82,7 @@ Note all install methods after "main" take
     <dask source="pip" pip_extra="[complete]"/>
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <!-- <typing-extensions source="pip">4.14</typing-extensions> -->
-    <ray source="pip" pip_extra="[default]">2.51</ray>
+    <ray source="pip" pip_extra="[default]">2.49</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
