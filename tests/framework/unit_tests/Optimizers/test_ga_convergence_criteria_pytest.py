@@ -1,11 +1,11 @@
 import numpy as np
 import xarray as xr
 
-from ravenframework.Optimizers.GeneticAlgorithm import GeneticAlgorithm
+from ravenframework.Optimizers.GeneticAlgorithm import NSGAII
 
 
 def _make_ga_base():
-  ga = GeneticAlgorithm()
+  ga = NSGAII()
   ga.raiseADebug = lambda *args, **kwargs: None
   ga.raiseAWarning = lambda *args, **kwargs: None
   ga.convFormat = '{name}:{conv}:{got}:{req}'

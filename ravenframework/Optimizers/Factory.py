@@ -23,12 +23,13 @@ from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 from .SimulatedAnnealing import SimulatedAnnealing
-from .GeneticAlgorithm import GeneticAlgorithm
+from .GeneticAlgorithm import GeneticAlgorithm, NSGAII
 
 factory = EntityFactory('Optimizer')
 factory.registerType('GradientDescent', GradientDescent)
 factory.registerType('SimulatedAnnealing', SimulatedAnnealing)
 factory.registerType('GeneticAlgorithm', GeneticAlgorithm)
+factory.registerType('NSGA-II', NSGAII)
 
 try:
     from .BayesianOptimizer import BayesianOptimizer

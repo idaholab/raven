@@ -20,7 +20,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -69,7 +69,7 @@
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <NSGA-II name="GAopt">
       <samplerInit>
         <limit>50</limit>
         <initialSeed>42</initialSeed>
@@ -117,7 +117,7 @@
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
-    </GeneticAlgorithm>
+    </NSGA-II>
   </Optimizers>
 
   <Samplers>

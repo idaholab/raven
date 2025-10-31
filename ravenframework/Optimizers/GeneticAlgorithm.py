@@ -361,12 +361,22 @@ class GeneticAlgorithm(RavenSampled):
     self._penaltyCoeff = None                                    # weight coefficients corresponding to constraints and objectives for fitness calculation
     self._fitnessInstance = None                                 # instance of fitness
     self._repairInstance = None                                  # instance of repair
-    self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
+    self._canHandleMultiObjective = False                        # single-objective by default; subclasses can enable multi-objective support
     self._normalizeFitness = False
 
   ##########################
   # Initialization Methods #
   ##########################
+
+  def _validateObjectiveSupport(self):
+    """
+      Ensure the configured problem dimensionality is supported by this class.
+      @ In, None
+      @ Out, None
+    """
+    if self._isMultiObjective and not self._canHandleMultiObjective:
+      self.raiseAnError(IOError, 'GeneticAlgorithm supports only single-objective optimization. '
+                        'Please use the NSGA-II optimizer for multi-objective problems.')
 
   @classmethod
   def getInputSpecification(cls):
@@ -378,8 +388,8 @@ class GeneticAlgorithm(RavenSampled):
     specs = super(GeneticAlgorithm, cls).getInputSpecification()
     objective = specs.popSub('objective')
     objective.description = r"""Name of the objective variable(s) (or ``objective function'') that should be optimized
-        (minimized or maximized). It can be a single string or a list of strings if it is a multi-objective problem.
-        Note that only genetic algorithm supports multi-objective."""
+        (minimized or maximized). This optimizer supports a single objective. For multi-objective problems, please use
+        the \xmlNode{NSGAII} optimizer."""
     specs.addSub(objective)
     implicitConstraint = specs.popSub('ImplicitConstraint')
     implicitConstraint.description = r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
@@ -403,14 +413,13 @@ class GeneticAlgorithm(RavenSampled):
 
                             Holland, John H. ``Genetic algorithms.'' Scientific American 267.1 (1992): 66-73.\\\\
 
-                            Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
-                            NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set of
-                            non-dominated (Pareto-optimal) solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
-                            providing decision-makers with a comprehensive view of the problem's solution space. More information about NSGA-II can be found in:\\\\
+                            The \xmlNode{GeneticAlgorithm} optimizer targets single-objective problems. The \xmlNode{NSGAII} optimizer inherits from this class and implements the Non-dominated Sorting
+                            Genetic Algorithm II (NSGA-II) for multi-objective optimization. NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to
+                            maintain a diverse set of non-dominated (Pareto-optimal) solutions, providing decision-makers with a comprehensive view of the problem's trade-offs. More information about NSGA-II can be found in:\\\\
 
                             Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\\\
 
-                            GA in RAVEN supports for both single and multi-objective optimization problem."""
+                            RAVEN therefore provides both single- and multi-objective genetic optimization capabilities."""
 
     # GA Params
     GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
@@ -628,6 +637,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
+    self._validateObjectiveSupport()
     ####################################################################################
     # GAparams                                                                         #
     ####################################################################################
@@ -2443,3 +2453,32 @@ class GeneticAlgorithm(RavenSampled):
         new.append(template)
 
     return set(new)
+
+
+class NSGAII(GeneticAlgorithm):
+  """
+    Multi-objective Genetic Algorithm implementing the NSGA-II variant.
+  """
+  def __init__(self):
+    super().__init__()
+    self._canHandleMultiObjective = True
+    self.printTag = 'NSGA-II Genetic Algorithm'
+
+  @classmethod
+  def getInputSpecification(cls):
+    specs = super(NSGAII, cls).getInputSpecification()
+    specs.name = 'NSGAII'
+    specs.description = r"""The \xmlNode{NSGAII} optimizer extends \xmlNode{GeneticAlgorithm} to handle multi-objective problems using
+                            the Non-dominated Sorting Genetic Algorithm II (NSGA-II). It preserves all configuration options of the
+                            base genetic algorithm while enabling Pareto front ranking and crowding-distance based survivor selection
+                            to explore trade-offs between conflicting objectives."""
+    objective = specs.getSub('objective')
+    if objective is not None:
+      objective.description = r"""Name of the objective variable(s) to optimize. Provide at least two comma-separated variables
+      to define the Pareto front for NSGA-II."""
+    return specs
+
+  def handleInput(self, paramInput):
+    super().handleInput(paramInput)
+    if not self._isMultiObjective:
+      self.raiseAnError(IOError, 'NSGA-II requires at least two objectives. Use GeneticAlgorithm for single-objective problems.')
