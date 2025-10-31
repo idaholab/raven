@@ -297,7 +297,12 @@ class GeneticAlgorithm(RavenSampled):
                                      This convergence criterion is based on a normalized
                                      similarity metric that can be summurized as the normalized Hausdorff distance
                                      (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
-                                     which implies that values closer to 1.0 represents a tighter convergence criterion."""}
+                                     which implies that values closer to 1.0 represents a tighter convergence criterion.""",
+                        'hypervolume': r"""relative improvement in Pareto-front hypervolume""",
+                        'spread': r"""Deb’s spread/diversity metric""",
+                        'maxSpread': r"""stabilization of the maximum front extent""",
+                        'rank1Ratio': r"""percentage of population in rank 1""",
+                        }
   ##TODO: Explore MOEA/D (Multi-Objective Evolutionary Algorithm based on Decomposition) or
   # PESA-II (Pareto Envelope-Based Selection Algorithm II)
   # These algorithms can offer better performance and robustness in certain scenarios
@@ -1868,68 +1873,78 @@ class GeneticAlgorithm(RavenSampled):
     return  1. - ahd / normFactor
 
   def _checkConvHypervolume(self, traj, **kwargs):
-      """
-      Checks convergence based on relative hypervolume improvement.
-      @ In, traj, int, trajectory identifier
-      @ In, kwargs, dict, must contain 'new' and 'old' populations
-      @ Out, converged, bool, convergence state
-      """
-      if len(self._optPointHistory[traj]) < 2:
-          return False
+    """
+    Checks convergence based on relative hypervolume improvement.
+    @ In, traj, int, trajectory identifier
+    @ In, kwargs, dict, must contain 'new' and 'old' populations
+    @ Out, converged, bool, convergence state
+    """
+    if not getattr(self, '_isMultiObjective', False):
+      return False
+    if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
+      return False
+    if not hasattr(self, '_optPointHistory') or traj not in self._optPointHistory:
+      return False
+    if len(self._optPointHistory[traj]) < 2:
+      return False
 
-      # Extract current Pareto front (rank 1)
-      rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
-      if len(rank1_indices) == 0:
-          return False
+    # Extract current Pareto front (rank 1)
+    rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
+    if len(rank1_indices) == 0:
+      return False
 
-      current_front = []
-      for idx in rank1_indices:
-          point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
-          current_front.append(point)
+    current_front = []
+    for idx in rank1_indices:
+      point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
+      current_front.append(point)
 
-      # Extract previous Pareto front from history
-      prev_opt, _ = self._optPointHistory[traj][-2] if len(self._optPointHistory[traj]) >= 2 else (None, None)
-      if prev_opt is None:
-          return False
+    # Extract previous Pareto front from history
+    prev_opt, _ = self._optPointHistory[traj][-2]
+    if 'rank' not in prev_opt:
+      return False
+    prev_rank1_indices = np.where(np.array(prev_opt['rank']) == 1)[0]
+    if len(prev_rank1_indices) == 0:
+      return False
 
-      prev_rank1_indices = np.where(np.array(prev_opt['rank']) == 1)[0]
-      prev_front = []
-      for idx in prev_rank1_indices:
-          point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-          prev_front.append(point)
+    prev_front = []
+    for idx in prev_rank1_indices:
+      point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
+      prev_front.append(point)
 
-      # Calculate hypervolumes
-      # Reference point: slightly worse than nadir
-      all_points = current_front + prev_front
-      nadir = [max(p[i] for p in all_points) for i in range(len(self._objectiveVar))]
-      reference = [n * 1.1 for n in nadir]
+    # Calculate hypervolumes
+    # Reference point: slightly worse than nadir
+    all_points = current_front + prev_front
+    if not all_points:
+      return False
+    nadir = [max(p[i] for p in all_points) for i in range(len(self._objectiveVar))]
+    reference = [n * 1.1 for n in nadir]
 
-      current_hv = self._computeHypervolume(current_front, reference)
-      prev_hv = self._computeHypervolume(prev_front, reference)
+    current_hv = self._computeHypervolume(current_front, reference)
+    prev_hv = self._computeHypervolume(prev_front, reference)
 
-      # Store for tracking
-      if not hasattr(self, '_hvHistory'):
-          self._hvHistory = {}
-      if traj not in self._hvHistory:
-          self._hvHistory[traj] = []
-      self._hvHistory[traj].append(current_hv)
+    # Store for tracking
+    if not hasattr(self, '_hvHistory'):
+      self._hvHistory = {}
+    if traj not in self._hvHistory:
+      self._hvHistory[traj] = []
+    self._hvHistory[traj].append(current_hv)
 
-      # Check relative improvement
-      if prev_hv == 0:
-          rel_improvement = float('inf')
-      else:
-          rel_improvement = abs(current_hv - prev_hv) / prev_hv
+    # Check relative improvement
+    if mathUtils.compareFloats(prev_hv, 0.0, 1e-12):
+      rel_improvement = float('inf')
+    else:
+      rel_improvement = abs(current_hv - prev_hv) / prev_hv
 
-      converged = rel_improvement < self._convergenceCriteria.get('hypervolume', 0.01)
+    converged = rel_improvement < self._convergenceCriteria.get('hypervolume', 0.01)
 
-      self.raiseADebug(self.convFormat.format(
-          name='Hypervolume',
-          conv=str(converged),
-          got=rel_improvement,
-          req=self._convergenceCriteria.get('hypervolume', 0.01)
-      ))
+    self.raiseADebug(self.convFormat.format(
+        name='Hypervolume',
+        conv=str(converged),
+        got=rel_improvement,
+        req=self._convergenceCriteria.get('hypervolume', 0.01)
+    ))
 
-      return converged
+    return converged
 
   def _computeHypervolume(self, front, reference):
       """
@@ -2044,9 +2059,10 @@ class GeneticAlgorithm(RavenSampled):
     @ In, kwargs, dict, parameters
     @ Out, converged, bool, convergence state
     """
-    # Need at least rank-1 front
-    if not hasattr(self, 'matingPopRanks'):
-        return False
+    if not getattr(self, '_isMultiObjective', False):
+      return False
+    if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
+      return False
 
     rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
     if len(rank1_indices) < 3:
@@ -2134,8 +2150,14 @@ class GeneticAlgorithm(RavenSampled):
     @ In, kwargs, dict, parameters
     @ Out, converged, bool, convergence state
     """
+    if not getattr(self, '_isMultiObjective', False):
+      return False
+    if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
+      return False
+    if not hasattr(self, '_optPointHistory') or traj not in self._optPointHistory:
+      return False
     if len(self._optPointHistory[traj]) < 2:
-        return False
+      return False
 
     # Current front
     rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
@@ -2157,7 +2179,7 @@ class GeneticAlgorithm(RavenSampled):
     prev_ms = self._computeMaxSpread(prev_front)
 
     # Check relative change
-    if prev_ms == 0:
+    if mathUtils.compareFloats(prev_ms, 0.0, 1e-12):
         rel_change = float('inf')
     else:
         rel_change = abs(current_ms - prev_ms) / prev_ms
@@ -2200,8 +2222,12 @@ class GeneticAlgorithm(RavenSampled):
     @ In, kwargs, dict, parameters
     @ Out, converged, bool, convergence state
     """
+    if not getattr(self, '_isMultiObjective', False):
+      return False
     if not hasattr(self, 'matingPopRanks'):
-        return False
+      return False
+    if not hasattr(self, '_populationSize') or self._populationSize == 0:
+      return False
 
     # Count rank-1 solutions
     rank1_count = np.sum(self.matingPopRanks.data == 1)

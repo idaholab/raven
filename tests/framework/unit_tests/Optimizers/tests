@@ -102,6 +102,10 @@
     type = 'PyTest'
     input = 'test_survivor_selectors_pytest.py'
   [../]
+  [./pytestGaConvergenceCriteria]
+    type = 'PyTest'
+    input = 'test_ga_convergence_criteria_pytest.py'
+  [../]
   
 
 []
