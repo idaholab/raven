@@ -58,32 +58,32 @@ jobs:
           ./run_tests -j4 --raven
 
       - name: Test Plugins
-        continue-on-error: true
         run: |
           ./run_tests -j4 --plugins
+        continue-on-error: true
 
       - name: Install Additional Plugins
-        continue-on-error: true
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s HERON
           python3 ./scripts/install_plugins.py -s DOVE
+        continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
-        continue-on-error: true
         run: |
           ./scripts/establish_conda_env.sh --install
+        continue-on-error: true
 
       - name: Rebuild Raven
-        continue-on-error: true
         run: |
           ./build_raven
+        continue-on-error: true
 
       - name: Test Additional Plugins
-        continue-on-error: true
         run: |
           ./run_tests -j4 --plugins
+        continue-on-error: true
 
   Test-RAVEN-Ubuntu-22:
     # runs-on: ubuntu-latest
@@ -133,32 +133,32 @@ jobs:
           ./run_tests -j4 --raven
 
       - name: Test Plugins
-        continue-on-error: true
         run: |
           ./run_tests -j4 --plugins
+        continue-on-error: true
 
       - name: Install Additional Plugins
-        continue-on-error: true
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s HERON
           python3 ./scripts/install_plugins.py -s DOVE
+        continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
-        continue-on-error: true
         run: |
           ./scripts/establish_conda_env.sh --install
+        continue-on-error: true
 
       - name: Rebuild Raven
-        continue-on-error: true
         run: |
           ./build_raven
+        continue-on-error: true
 
       - name: Test Additional Plugins
-        continue-on-error: true
         run: |
           ./run_tests -j4 --plugins
+        continue-on-error: true
 
   Test-RAVEN-macOS-latest:
     runs-on: macos-latest
@@ -207,32 +207,32 @@ jobs:
           ./run_tests -j4 --raven
 
       - name: Test Plugins
-        continue-on-error: true
         run: |
-          ./run_tests -j4 --plugins
+          ./run_tests -j4 --plugins\
+        continue-on-error: true
 
       - name: Install Additional Plugins
-        continue-on-error: true
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s HERON
           python3 ./scripts/install_plugins.py -s DOVE
+        continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
-        continue-on-error: true
         run: |
           ./scripts/establish_conda_env.sh --install
+        continue-on-error: true
 
       - name: Rebuild Raven
-        continue-on-error: true
         run: |
           ./build_raven
+        continue-on-error: true
 
       - name: Test Additional Plugins
-        continue-on-error: true
         run: |
           ./run_tests -j4 --plugins
+        continue-on-error: true
 
   Test-RAVEN-macOS-14:
     # runs-on: macos-latest
@@ -281,12 +281,11 @@ jobs:
           ./run_tests -j4 --raven
 
       - name: Test Plugins
-        continue-on-error: true
         run: |
           ./run_tests -j4 --plugins
+        continue-on-error: true
 
       - name: Install Additional Plugins
-        continue-on-error: true
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
@@ -294,19 +293,19 @@ jobs:
           python3 ./scripts/install_plugins.py -s DOVE
 
       - name: Reset Python Environment with Plugins Libraries
-        continue-on-error: true
         run: |
           ./scripts/establish_conda_env.sh --install
+        continue-on-error: true
 
       - name: Rebuild Raven
-        continue-on-error: true
         run: |
           ./build_raven
+        continue-on-error: true
 
       - name: Test Additional Plugins
-        continue-on-error: true
         run: |
           ./run_tests -j4 --plugins
+        continue-on-error: true
 
   Test-RAVEN-Windows-Latest:
     runs-on: windows-latest
@@ -353,32 +352,33 @@ jobs:
           bash ./run_tests -j4 --raven
 
       - name: Test Plugins
-        continue-on-error: true
         run: |
           bash ./run_tests -j4 --plugins
+        continue-on-error: true
 
       - name: Install Additional Plugins
-        continue-on-error: true
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
-          python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
+        # Failed due to pyomo = 6.4
+        # python3 ./scripts/install_plugins.py -s HERON
+        # python3 ./scripts/install_plugins.py -s DOVE
+        continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
-        continue-on-error: true
         run: |
           bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
+        continue-on-error: true
 
       - name: Rebuild Raven
-        continue-on-error: true
         run: |
           bash ./build_raven
+        continue-on-error: true
 
       - name: Test Additional Plugins
-        continue-on-error: true
         run: |
           bash ./run_tests -j4 --plugins
+        continue-on-error: true
 
   Test-RAVEN-Windows-2022:
     runs-on: windows-2022
@@ -425,29 +425,30 @@ jobs:
           bash ./run_tests -j4 --raven
 
       - name: Test Plugins
-        continue-on-error: true
         run: |
           bash ./run_tests -j4 --plugins
+        continue-on-error: true
 
       - name: Install Additional Plugins
-        continue-on-error: true
         run: |
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
-          python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
+        # Failed due to pyomo = 6.4
+        # python3 ./scripts/install_plugins.py -s HERON
+        # python3 ./scripts/install_plugins.py -s DOVE
+        continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
-        continue-on-error: true
         run: |
           bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
+        continue-on-error: true
 
       - name: Rebuild Raven
-        continue-on-error: true
         run: |
           bash ./build_raven
+        continue-on-error: true
 
       - name: Test Additional Plugins
-        continue-on-error: true
         run: |
           bash ./run_tests -j4 --plugins
+        continue-on-error: true
