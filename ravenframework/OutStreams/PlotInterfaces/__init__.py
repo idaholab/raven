@@ -23,5 +23,10 @@ from .GeneralPlot import GeneralPlot as Plot
 from .OptPath import OptPath
 from .SyntheticCloud import SyntheticCloud
 from .PopulationPlot import PopulationPlot
-from. OptParallelCoordinate import OptParallelCoordinatePlot
+from .OptParallelCoordinate import OptParallelCoordinatePlot
+from .NSGAParetoFrontPlot import NSGAParetoFrontPlot
+from .NSGAFrontAnimation import NSGAFrontAnimation
+from .NSGARankHistoryPlot import NSGARankHistoryPlot
+from .NSGACrowdingDistancePlot import NSGACrowdingDistancePlot
+from .NSGAFrontRankAnimation import NSGAFrontRankAnimation
 from .Factory import factory

@@ -32,6 +32,13 @@
       <Output class="OutStreams" type="Print">optOut</Output>
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">pareto_front</Output>
+      <Output class="OutStreams" type="Plot">front_evolution</Output>
+      <Output class="OutStreams" type="Plot">front_evolution_gif</Output>
+      <Output class="OutStreams" type="Plot">rank_history</Output>
+      <Output class="OutStreams" type="Plot">crowding_distance</Output>
+      <Output class="OutStreams" type="Plot">front_rank_animation</Output>
+      <Output class="OutStreams" type="Plot">front_rank_animation_gif</Output>
     </IOStep>
   </Steps>
 
@@ -64,13 +71,13 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>500</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min, max, min</type>
       </samplerInit>
       <GAparams>
-        <populationSize>50</populationSize>
+        <populationSize>20</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -84,7 +91,7 @@
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
       <convergence>
-        <maxSpread>0.05</maxSpread>
+        <maxSpread>0.001</maxSpread>
       </convergence>
       <variable name="x1">
         <distribution>woRep_dist</distribution>
@@ -116,7 +123,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>50</limit>
+        <limit>20</limit>
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -171,6 +178,52 @@
       <vars>x1, x2, x3, x4, x5, x6, obj1, obj2, obj3</vars>
       <index>batchId</index>
       <how>png</how>
+    </Plot>
+    <Plot name="pareto_front" subType="NSGAParetoFrontPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <color>CD</color>
+      <rank>1</rank>
+    </Plot>
+    <Plot name="front_evolution" subType="NSGAFrontAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <fps>2.0</fps>
+      <format>html</format>
+    </Plot>
+    <Plot name="front_evolution_gif" subType="NSGAFrontAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <fps>2.0</fps>
+      <format>gif</format>
+    </Plot>
+    <Plot name="rank_history" subType="NSGARankHistoryPlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <normalize>true</normalize>
+    </Plot>
+    <Plot name="crowding_distance" subType="NSGACrowdingDistancePlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <percentiles>10, 50, 90</percentiles>
+    </Plot>
+    <Plot name="front_rank_animation" subType="NSGAFrontRankAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <fps>2.0</fps>
+      <format>html</format>
+    </Plot>
+    <Plot name="front_rank_animation_gif" subType="NSGAFrontRankAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <fps>2.0</fps>
+      <format>gif</format>
     </Plot>
   </OutStreams>
 </Simulation>

@@ -27,6 +27,11 @@ from .OptPath import OptPath
 from .PopulationPlot import PopulationPlot
 from .SyntheticCloud import SyntheticCloud
 from .OptParallelCoordinate import OptParallelCoordinatePlot
+from .NSGAParetoFrontPlot import NSGAParetoFrontPlot
+from .NSGAFrontAnimation import NSGAFrontAnimation
+from .NSGARankHistoryPlot import NSGARankHistoryPlot
+from .NSGACrowdingDistancePlot import NSGACrowdingDistancePlot
+from .NSGAFrontRankAnimation import NSGAFrontRankAnimation
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
@@ -35,3 +40,8 @@ factory.registerType('OptPath', OptPath)
 factory.registerType('SyntheticCloud', SyntheticCloud)
 factory.registerType('PopulationPlot', PopulationPlot)
 factory.registerType('OptParallelCoordinatePlot', OptParallelCoordinatePlot)
+factory.registerType('NSGAParetoFrontPlot', NSGAParetoFrontPlot)
+factory.registerType('NSGAFrontAnimation', NSGAFrontAnimation)
+factory.registerType('NSGARankHistoryPlot', NSGARankHistoryPlot)
+factory.registerType('NSGACrowdingDistancePlot', NSGACrowdingDistancePlot)
+factory.registerType('NSGAFrontRankAnimation', NSGAFrontRankAnimation)

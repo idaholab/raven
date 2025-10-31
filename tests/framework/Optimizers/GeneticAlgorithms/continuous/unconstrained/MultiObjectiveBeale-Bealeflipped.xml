@@ -34,6 +34,15 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">pareto_front</Output>
+      <Output class="OutStreams" type="Plot">front_evolution</Output>
+      <Output class="OutStreams" type="Plot">front_evolution_gif</Output>
+      <Output class="OutStreams" type="Plot">rank_history</Output>
+      <Output class="OutStreams" type="Plot">crowding_distance</Output>
+      <Output class="OutStreams" type="Plot">front_rank_animation</Output>
+      <Output class="OutStreams" type="Plot">front_rank_animation_gif</Output>
     </IOStep>
   </Steps>
 
@@ -55,7 +64,7 @@
       <samplerInit>
         <limit>20</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
+        <writeSteps>every</writeSteps>
         <type>min, max</type>
       </samplerInit>
       <GAparams>
@@ -111,7 +120,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,obj1,obj2,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
+      <Output>x,y,obj1,obj2,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
     </PointSet>
   </DataObjects>
 
@@ -125,5 +134,61 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
+    <Plot name = "opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x, y, obj1, obj2</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source> opt_export</source>
+      <vars>x, y, obj1, obj2</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+    <Plot name="pareto_front" subType="NSGAParetoFrontPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <color>CD</color>
+      <rank>1</rank>
+    </Plot>
+    <Plot name="front_evolution" subType="NSGAFrontAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <fps>2.0</fps>
+      <format>html</format>
+    </Plot>
+    <Plot name="front_evolution_gif" subType="NSGAFrontAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <fps>2.0</fps>
+      <format>gif</format>
+    </Plot>
+    <Plot name="rank_history" subType="NSGARankHistoryPlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <normalize>true</normalize>
+    </Plot>
+    <Plot name="crowding_distance" subType="NSGACrowdingDistancePlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <percentiles>10, 50, 90</percentiles>
+    </Plot>
+    <Plot name="front_rank_animation" subType="NSGAFrontRankAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <fps>2.0</fps>
+      <format>html</format>
+    </Plot>
+    <Plot name="front_rank_animation_gif" subType="NSGAFrontRankAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <fps>2.0</fps>
+      <format>gif</format>
+    </Plot>
   </OutStreams>
 </Simulation>
