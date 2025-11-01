@@ -195,7 +195,7 @@
     input = 'discrete/unconstrained/GA_discreteIntWithReplacement.xml'
     [./csv]
      type = OrderedCSV
-     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv ./discrete/unconstrained/discreteIntWithReplacement/PrintOptOut.csv'
+     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv'
      rel_err = 0.001
     [../]
   [../]
