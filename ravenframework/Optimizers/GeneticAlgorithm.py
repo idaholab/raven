@@ -192,19 +192,11 @@
                                                                 | bestPoint                          |
                                                                 | constraintsV                       |
                                                                 | convergenceOptions                 |
-                                                                | crowdingDistance                   |
                                                                 | fitness                            |
                                                                 | hdsm                               |
-                                                                | multiBestCD                        |
-                                                                | multiBestConstraint                |
-                                                                | multiBestFitness                   |
-                                                                | multiBestObjective                 |
-                                                                | multiBestPoint                     |
-                                                                | multiBestRank                      |
                                                                 | objectiveVal                       |
                                                                 | popAge                             |
                                                                 | population                         |
-                                                                | rank                               |
                                                                 |------------------------------------|
                                                                 | _GD                                |
                                                                 | _GDp                               |
@@ -297,7 +289,12 @@ class GeneticAlgorithm(RavenSampled):
                                      This convergence criterion is based on a normalized
                                      similarity metric that can be summurized as the normalized Hausdorff distance
                                      (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
-                                     which implies that values closer to 1.0 represents a tighter convergence criterion."""}
+                                     which implies that values closer to 1.0 represents a tighter convergence criterion.""",
+                        'hypervolume': r"""relative improvement in Pareto-front hypervolume""",
+                        'spread': r"""Deb’s spread/diversity metric""",
+                        'maxSpread': r"""stabilization of the maximum front extent""",
+                        'rank1Ratio': r"""percentage of population in rank 1""",
+                        }
   ##TODO: Explore MOEA/D (Multi-Objective Evolutionary Algorithm based on Decomposition) or
   # PESA-II (Pareto Envelope-Based Selection Algorithm II)
   # These algorithms can offer better performance and robustness in certain scenarios
@@ -316,24 +313,26 @@ class GeneticAlgorithm(RavenSampled):
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
     self.needDenormalized()                                      # the default in all optimizers is to normalize the data which is not the case here
     self.batchId = 0
-    self.population = None                                       # panda Dataset container containing the population at the beginning of each generation iteration
+    self.population = None                                       # pandas Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None                                           # population age
     self.fitness = None                                          # population fitness
-    self.rank = None                                             # population rank (for Multi-objective optimization only)
-    self.constraintsV = None                                     # calculated contraints value
-    self.crowdingDistance = None                                 # population crowding distance (for Multi-objective optimization only)
+    self.constraintsV = None                                     # calculated constraints value
+    self.objectiveVal = None                                     # objective values of solutions
+    # storage for the population that will seed the next generation
+    self.matingPopInputs = None
+    self.matingPopAges = None
+    self.matingPopFitness = None
+    self.matingPopObjVals = None
+    self.matingPop_g = None
+    self.currentPop_ages = None
+    self.prevPop_inputs = None
     self.ahdp = np.NaN                                           # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN                                           # Hausdorff Distance between populations
     self.hdsm = np.NaN                                           # Hausdorff Distance Similarity metric between populations
-    self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
+    self.bestPoint = None                                        # best chromosome found so far
     self.bestFitness = None                                      # fitness value of the best solution found
-    self.multiBestPoint = {}                                     # the best solutions (chromosomes) found among population in a specific batchId
-    self.multiBestFitness = {}                                   # fitness values of the best solutions found
-    self.multiBestObjective = {}                                 # objective values of the best solutions found
-    self.multiBestConstraint = {}                                # constraint values of the best solutions found
-    self.multiBestRank = {}                                      # rank values of the best solutions found
-    self.multiBestCD = {}                                        # crowding distance (CD) values of the best solutions found
-    self.objectiveVal = None                                     # objective values of solutions
+    self.bestObjective = None                                    # objective value of the best solution found
+    self.bestConstraints = None                                  # constraint evaluations associated with the best solution
     self._populationSize = None                                  # number of population size
     self._parentSelectionType = None                             # type of the parent selection process chosen
     self._parentSelectionInstance = None                         # instance of the parent selection process chosen
@@ -371,7 +370,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     if self._isMultiObjective and not self._canHandleMultiObjective:
       self.raiseAnError(IOError, 'GeneticAlgorithm supports only single-objective optimization. '
-                        'Please use the NSGA-II optimizer for multi-objective problems.')
+                        'Please use the MultiObjectiveGeneticAlgorithm family (e.g., NSGA-II) for multi-objective problems.')
 
   @classmethod
   def getInputSpecification(cls):
@@ -384,7 +383,7 @@ class GeneticAlgorithm(RavenSampled):
     objective = specs.popSub('objective')
     objective.description = r"""Name of the objective variable(s) (or ``objective function'') that should be optimized
         (minimized or maximized). This optimizer supports a single objective. For multi-objective problems, please use
-        the \xmlNode{NSGAII} optimizer."""
+        the \xmlNode{MultiObjectiveGeneticAlgorithm} hierarchy (for example the \xmlNode{NSGAII} optimizer)."""
     specs.addSub(objective)
     implicitConstraint = specs.popSub('ImplicitConstraint')
     implicitConstraint.description = r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
@@ -408,8 +407,8 @@ class GeneticAlgorithm(RavenSampled):
 
                             Holland, John H. ``Genetic algorithms.'' Scientific American 267.1 (1992): 66-73.\\\\
 
-                            The \xmlNode{GeneticAlgorithm} optimizer targets single-objective problems. The \xmlNode{NSGAII} optimizer inherits from this class and implements the Non-dominated Sorting
-                            Genetic Algorithm II (NSGA-II) for multi-objective optimization. NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to
+                            The \xmlNode{GeneticAlgorithm} optimizer targets single-objective problems. The \xmlNode{MultiObjectiveGeneticAlgorithm} abstraction builds upon this class to support Pareto-based
+                            searches, and concrete optimizers such as \xmlNode{NSGAII} implement the Non-dominated Sorting Genetic Algorithm II (NSGA-II) for multi-objective optimization. NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to
                             maintain a diverse set of non-dominated (Pareto-optimal) solutions, providing decision-makers with a comprehensive view of the problem's trade-offs. More information about NSGA-II can be found in:\\\\
 
                             Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\\\
@@ -611,8 +610,6 @@ class GeneticAlgorithm(RavenSampled):
     new = {}
     # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
-    new['rank'] = 'It refers to the sorting of solutions into non-dominated fronts based on their Pareto dominance relationships'
-    new['CD'] = 'Crowding Distance measures the density of solutions within each front to guide the selection of diverse individuals for the next generation'
     new['fitness'] = 'fitness of the current chromosome'
     new['age'] = 'age of current chromosome'
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
@@ -650,9 +647,6 @@ class GeneticAlgorithm(RavenSampled):
     parentSelectionNode = gaParamsNode.findFirst('parentSelection')
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
-
-    if self._isMultiObjective and self._parentSelectionType != 'tournamentSelection':
-      self.raiseAnError(IOError, f'Currently, "tournamentSelection" in the only <parentSelection> mechanism supported by the multi-objective Genetic Algorithms.')
 
     ####################################################################################
     # reproduction node                                                                #
@@ -699,8 +693,6 @@ class GeneticAlgorithm(RavenSampled):
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     if not self._isMultiObjective and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports Multi-objective Optimization (i.e., number of objectives in <objective> is greater than one).')
-    if self._isMultiObjective and self._survivorSelectionType != 'rankNcrowdingBased':
-      self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
 
     ####################################################################################
     # fitness node                                                                     #
@@ -1014,7 +1006,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # Step 3: Compute constraints for offspring Q(t)
     currentPop_g = constraintHandling(self, info, rlz, currentPopInputs,
-                                      currentPop_objvals, multiObjective=self._isMultiObjective)
+                                      currentPop_objvals, multiObjective=False)
 
     # Step 4: Normalize if requested
     norm_rlz = deepcopy(rlz)
@@ -1060,123 +1052,35 @@ class GeneticAlgorithm(RavenSampled):
         # We have parent population P(t) from previous iteration
         # Combine P(t) ∪ Q(t) → R(t)
 
-        if not self._isMultiObjective:
-          # -------------------- SINGLE OBJECTIVE --------------------
-          # For single objective, use ORIGINAL variable names for compatibility
-          survivorSelection.singleObjSurvivorSelect(self, info, rlz, traj,
-                                                     currentPopInputs,
-                                                     currentPopFitness,
-                                                     currentPop_objvals,
-                                                     currentPop_g)
-          # Copy to matingPop* names for consistency with rest of code (fallback for legacy attributes)
-          if getattr(self, 'matingPopInputs', None) is None:
-            population = getattr(self, 'population', None)
-            self.matingPopInputs = population if population is not None else currentPopInputs
-          if getattr(self, 'matingPopFitness', None) is None:
-            fitness = getattr(self, 'fitness', None)
-            self.matingPopFitness = fitness if fitness is not None else currentPopFitness
-          if getattr(self, 'matingPopObjVals', None) is None:
-            objective_val = getattr(self, 'objectiveVal', None)
-            self.matingPopObjVals = objective_val if objective_val is not None else currentPop_objvals[0]
-          if getattr(self, 'matingPopAges', None) is None:
-            pop_age = getattr(self, 'popAge', None)
-            self.matingPopAges = pop_age if pop_age is not None else [0] * len(currentPopInputs)
-          if getattr(self, 'matingPop_g', None) is None:
-            self.matingPop_g = currentPop_g
-
-        else:
-          # -------------------- MULTI-OBJECTIVE --------------------
-          # FIXED: Combine populations first, then rank, then select
-
-          # Combine parent and offspring inputs
-          combinedInputs = np.vstack([self.matingPopInputs.data, currentPopInputs.data])
-
-          # Combine objectives
-          combinedObjVals = [self.matingPopObjVals[i] + currentPop_objvals[i]
-                            for i in range(len(self._objectiveVar))]
-
-          # Combine ages (increment parent ages, offspring start at 0)
-          combinedAges = list(map(lambda x: x+1, self.matingPopAges)) + [0] * len(currentPopInputs)
-
-          # Combine fitness values
-          popFitArray = [self.matingPopFitness[key].data.tolist()
-                        for key in self.matingPopFitness.keys()]
-          offFitArray = [currentPopFitness[key].data.tolist()
-                        for key in currentPopFitness.keys()]
-          combinedFitness = np.array([i + j for i, j in zip(popFitArray, offFitArray)])
-          combinedFitnessPairs = [list(ele) for ele in list(zip(*combinedFitness))]
-
-          # Combine constraints
-          combinedConstraints = np.vstack([self.matingPop_g.data, currentPop_g.data])
-
-          # FIXED Step 1: Rank the COMBINED population R(t)
-          combinedRanks = frontUtils.rankNonDominatedFrontiers(
-              np.array(combinedFitnessPairs),
-              isFitness=True
-          )
-
-          # FIXED Step 2: Compute CD for the COMBINED population R(t)
-          combinedCD = frontUtils.crowdingDistance(
-              rank=np.array(combinedRanks),
-              popSize=len(combinedRanks),
-              fitness=np.array(combinedFitnessPairs)
-          )
-
-          # FIXED Step 3: NOW perform survivor selection with rank and CD already computed
-          self.matingPopInputs, self.matingPopRanks, \
-          self.matingPopAges, self.matingPopCD, \
-          self.matingPopObjVals, self.matingPopFitness, \
-          self.matingPop_g = self._survivorSelectionInstance(
-                                age=combinedAges,
-                                variables=list(self.toBeSampled),
-                                combinedInputs=combinedInputs,
-                                combinedRanks=combinedRanks,
-                                combinedCD=combinedCD,
-                                combinedObjectives=combinedObjVals,
-                                combinedFitness=combinedFitnessPairs,
-                                combinedConstraints=combinedConstraints,
-                                popSize=self._populationSize,
-                                objectiveNames=list(self.matingPopFitness.keys()))
+        survivorSelection.singleObjSurvivorSelect(self, info, rlz, traj,
+                                                  currentPopInputs,
+                                                  currentPopFitness,
+                                                  currentPop_objvals,
+                                                  currentPop_g)
+        # Copy to matingPop* names for consistency with rest of code (fallback for legacy attributes)
+        if getattr(self, 'matingPopInputs', None) is None:
+          population = getattr(self, 'population', None)
+          self.matingPopInputs = population if population is not None else currentPopInputs
+        if getattr(self, 'matingPopFitness', None) is None:
+          fitness = getattr(self, 'fitness', None)
+          self.matingPopFitness = fitness if fitness is not None else currentPopFitness
+        if getattr(self, 'matingPopObjVals', None) is None:
+          objective_val = getattr(self, 'objectiveVal', None)
+          self.matingPopObjVals = objective_val if objective_val is not None else currentPop_objvals[0]
+        if getattr(self, 'matingPopAges', None) is None:
+          pop_age = getattr(self, 'popAge', None)
+          self.matingPopAges = pop_age if pop_age is not None else [0] * len(currentPopInputs)
+        self.matingPop_g = currentPop_g
 
       else:
         # ============================================================
         # First generation: Q(t) becomes P(t+1) directly
         # ============================================================
-        if not self._isMultiObjective:
-          self.matingPopInputs = currentPopInputs
-          self.matingPopFitness = currentPopFitness
-          self.matingPopObjVals = rlz[self._objectiveVar[0]].data
-          self.matingPopAges = [0] * len(currentPopInputs)
-        else:
-          # For first generation multi-objective, still need to rank
-          currentPop_fitsbysoln = datasetToDataArray(currentPopFitness,
-                                                     self._objectiveVar).data.tolist()
-
-          # Rank first generation
-          currentPopRanks = frontUtils.rankNonDominatedFrontiers(
-              np.array(currentPop_fitsbysoln),
-              isFitness=True
-          )
-
-          # Compute crowding distance for first generation
-          currentPopCD = frontUtils.crowdingDistance(
-              rank=np.array(currentPopRanks),
-              popSize=len(currentPopRanks),
-              fitness=np.array(currentPop_fitsbysoln)
-          )
-
-          # Store as mating population
-          self.matingPopInputs = currentPopInputs
-          self.matingPopFitness = currentPopFitness
-          self.matingPopObjVals = currentPop_objvals
-          self.matingPopAges = [0] * len(currentPopInputs)
-          self.matingPopRanks = xr.DataArray(currentPopRanks,
-                                            dims=['rank'],
-                                            coords={'rank': np.arange(len(currentPopRanks))})
-          self.matingPopCD = xr.DataArray(currentPopCD,
-                                         dims=['CrowdingDistance'],
-                                         coords={'CrowdingDistance': np.arange(len(currentPopCD))})
-          self.matingPop_g = currentPop_g
+        self.matingPopInputs = currentPopInputs
+        self.matingPopFitness = currentPopFitness
+        self.matingPopObjVals = rlz[self._objectiveVar[0]].data
+        self.matingPopAges = [0] * len(currentPopInputs)
+        self.matingPop_g = currentPop_g
 
       # ============================================================
       # PART C: Update Ages for Display
@@ -1192,36 +1096,13 @@ class GeneticAlgorithm(RavenSampled):
       if not hasattr(self, 'prevPop_inputs') or self.prevPop_inputs is None:
         self.prevPop_inputs = None
 
-      if not self._isMultiObjective:
-        # Single-objective: collect single best point
-        constraint_data = self.matingPop_g if hasattr(self, 'matingPop_g') else currentPop_g
+      constraint_data = self.matingPop_g if isinstance(getattr(self, 'matingPop_g', None), xr.DataArray) else currentPop_g
 
-        self._collectOptPoint(rlz, self.matingPopFitness,
-                             self.matingPopObjVals, constraint_data)
-        self._resolveNewGeneration(traj, rlz, info, self.prevPop_inputs,
-                                  self.matingPopObjVals, self.matingPopFitness,
-                                  constraint_data)
-      else:
-        # Multi-objective: collect Pareto front (rank 1)
-        # FIXED: Use correct signature for _collectOptPointMulti
-        # def _collectOptPointMulti(self, rlz, population, rank, CD, objVal, fitness, constraintsV)
-        self._collectOptPointMulti(rlz,
-                                   self.matingPopInputs,
-                                   self.matingPopRanks,
-                                   self.matingPopCD,
-                                   self.matingPopObjVals,
-                                   self.matingPopFitness,
-                                   self.matingPop_g)
-        # Multi-objective version with ranks and CD
-        self._resolveNewGeneration(traj,
-                                   rlz,
-                                   info,
-                                   self.prevPop_inputs,
-                                   self.matingPopObjVals,  # objectiveVal
-                                   self.matingPopFitness,   # fitness
-                                   self.matingPop_g,        # g
-                                   self.matingPopRanks,     # ranks
-                                   self.matingPopCD)        # CD
+      self._collectOptPoint(rlz, self.matingPopFitness,
+                           self.matingPopObjVals, constraint_data)
+      self._resolveNewGeneration(traj, rlz, info, self.prevPop_inputs,
+                                self.matingPopObjVals, self.matingPopFitness,
+                                constraint_data)
 
       # ============================================================
       # PART E: Parent Selection from P(t+1)
@@ -1232,8 +1113,6 @@ class GeneticAlgorithm(RavenSampled):
                                               fitness=self.matingPopFitness,
                                               kSelection=self._kSelection,
                                               nParents=self._nParents,
-                                              rank=self.matingPopRanks if self._isMultiObjective else None,
-                                              crowdDistance=self.matingPopCD if self._isMultiObjective else None,
                                               objVar=self._objectiveVar,
                                               isMultiObjective=self._isMultiObjective)
 
@@ -1332,41 +1211,32 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     super().flush()
-    # Use new naming convention
     self.matingPopInputs = None
     self.matingPopAges = None
     self.matingPopFitness = None
-    self.matingPopRanks = None
-    self.matingPopCD = None
     self.matingPopObjVals = None
     self.matingPop_g = None
     self.currentPop_ages = None
+    self.prevPop_inputs = None
 
-    # Keep old names for backward compatibility (if needed)
     self.population = None
     self.popAge = None
     self.fitness = None
-    self.rank = None
-    self.crowdingDistance = None
-    self.objectiveVal = None
     self.constraintsV = None
+    self.objectiveVal = None
 
     self.ahdp = np.NaN
     self.ahd = np.NaN
     self.hdsm = np.NaN
     self.bestPoint = None
     self.bestFitness = None
-    self.multiBestPoint = None
-    self.multiBestFitness = None
-    self.multiBestObjective = None
-    self.multiBestConstraint = None
-    self.multiBestRank = None
-    self.multiBestCD = None
+    self.bestObjective = None
+    self.bestConstraints = None
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
 
-  def _resolveNewGeneration(self, traj, rlz, info, pastPop, objectiveVal, fitness, g, ranks=None, CD=None):
+  def _resolveNewGeneration(self, traj, rlz, info, pastPop, objectiveVal, fitness, g):
     """
       Store a new Generation after checking convergence
       @ In, traj, int, trajectory for this new point
@@ -1376,8 +1246,6 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
-      @ In, ranks, xr.DataArray, optional, ranks for multi-objective
-      @ In, CD, xr.DataArray, optional, crowding distance for multi-objective
     """
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new Generation (population) ...')
     # note the collection of the opt point
@@ -1386,81 +1254,53 @@ class GeneticAlgorithm(RavenSampled):
     old = pastPop  # FIXED: Use pastPop parameter instead of self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
-      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective)
+      self._closeTrajectory(traj, 'converge', 'converged', self.bestObjective)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
 
     if self._writeSteps == 'every':
       self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
-        if self._isMultiObjective:
-          # FIXED: Use matingPopInputs instead of self.population
-          rlzDict = self.matingPopInputs.isel(chromosome=i).to_series().to_dict()
-          for j in range(len(self._objectiveVar)):
-             # FIXED: Use matingPopObjVals instead of self.objectiveVal
-             rlzDict[self._objectiveVar[j]] = self.matingPopObjVals[j][i]
-          rlzDict['batchId'] = self.batchId
-          # FIXED: Use matingPopRanks instead of self.rank
-          rlzDict['rank'] = np.atleast_1d(ranks.data)[i] if ranks is not None else np.atleast_1d(self.matingPopRanks.data)[i]
-          # FIXED: Use matingPopCD instead of self.crowdingDistance
-          rlzDict['CD'] = np.atleast_1d(CD.data)[i] if CD is not None else np.atleast_1d(self.matingPopCD.data)[i]
-          # FIXED: Use matingPopFitness instead of self.fitness
-          for ind, fitName in enumerate(list(fitness.keys() if isinstance(fitness, dict) else self.matingPopFitness.keys())):
-            rlzDict['FitnessEvaluation_'+fitName] = (fitness if isinstance(fitness, dict) else self.matingPopFitness)[fitName].data[i]
-          # FIXED: Use matingPop_g instead of self.constraintsV
-          for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
-            rlzDict['ConstraintEvaluation_'+consName] = g.data[i,ind]
-        else:
-          rlzDict = self.matingPopInputs.isel(chromosome=i).to_series().to_dict()
-          rlzDict['batchId'] = self.batchId
-          objValArray = np.atleast_1d(self.matingPopObjVals)
-          rlzDict[self._objectiveVar[0]] = float(objValArray[i])
-          rlzDict['fitness'] = float(np.atleast_1d(self.matingPopFitness[self._objectiveVar[0]].data)[i])
-          sample_idx = i if i < rlz.sizes['RAVEN_sample_ID'] else None
-          if sample_idx is not None:
-            for var in self._solutionExport.getVars('input'):
-              if var not in rlzDict and var in rlz.data_vars and 'RAVEN_sample_ID' in rlz[var].dims:
-                axis = rlz[var].dims.index('RAVEN_sample_ID')
-                value = np.take(rlz[var].data, sample_idx, axis=axis)
-                rlzDict[var] = float(value) if np.isscalar(value) or np.ndim(value) == 0 else np.array(value)
-            for var in self._solutionExport.getVars('output'):
-              if var not in rlzDict and var in rlz.data_vars and 'RAVEN_sample_ID' in rlz[var].dims:
-                axis = rlz[var].dims.index('RAVEN_sample_ID')
-                value = np.take(rlz[var].data, sample_idx, axis=axis)
-                rlzDict[var] = float(value) if np.isscalar(value) or np.ndim(value) == 0 else np.array(value)
-            for var in self.dependentSample:
-              if var not in rlzDict and var in rlz.data_vars and 'RAVEN_sample_ID' in rlz[var].dims:
-                axis = rlz[var].dims.index('RAVEN_sample_ID')
-                value = np.take(rlz[var].data, sample_idx, axis=axis)
-                rlzDict[var] = float(value) if np.isscalar(value) or np.ndim(value) == 0 else np.array(value)
-          if hasattr(self, 'matingPop_g') and self.matingPop_g is not None and self.matingPop_g.size:
-            if 'Constraint' in self.matingPop_g.coords:
-              constraint_vals = np.atleast_2d(self.matingPop_g.data)
-              for ind, consName in enumerate(self.matingPop_g.coords['Constraint'].values):
-                rlzDict['ConstraintEvaluation_'+str(consName)] = float(constraint_vals[i, ind])
+        rlzDict = self.matingPopInputs.isel(chromosome=i).to_series().to_dict()
+        rlzDict['batchId'] = self.batchId
+        objValArray = np.atleast_1d(self.matingPopObjVals)
+        rlzDict[self._objectiveVar[0]] = float(objValArray[i])
+        rlzDict['fitness'] = float(np.atleast_1d(self.matingPopFitness[self._objectiveVar[0]].data)[i])
+        sample_idx = i if i < rlz.sizes['RAVEN_sample_ID'] else None
+        if sample_idx is not None:
+          for var in self._solutionExport.getVars('input'):
+            if var not in rlzDict and var in rlz.data_vars and 'RAVEN_sample_ID' in rlz[var].dims:
+              axis = rlz[var].dims.index('RAVEN_sample_ID')
+              value = np.take(rlz[var].data, sample_idx, axis=axis)
+              rlzDict[var] = float(value) if np.isscalar(value) or np.ndim(value) == 0 else np.array(value)
+          for var in self._solutionExport.getVars('output'):
+            if var not in rlzDict and var in rlz.data_vars and 'RAVEN_sample_ID' in rlz[var].dims:
+              axis = rlz[var].dims.index('RAVEN_sample_ID')
+              value = np.take(rlz[var].data, sample_idx, axis=axis)
+              rlzDict[var] = float(value) if np.isscalar(value) or np.ndim(value) == 0 else np.array(value)
+          for var in self.dependentSample:
+            if var not in rlzDict and var in rlz.data_vars and 'RAVEN_sample_ID' in rlz[var].dims:
+              axis = rlz[var].dims.index('RAVEN_sample_ID')
+              value = np.take(rlz[var].data, sample_idx, axis=axis)
+              rlzDict[var] = float(value) if np.isscalar(value) or np.ndim(value) == 0 else np.array(value)
+        if self.matingPop_g is not None and getattr(self.matingPop_g, 'size', 0):
+          if 'Constraint' in self.matingPop_g.coords:
+            constraint_vals = np.atleast_2d(self.matingPop_g.data)
+            for ind, consName in enumerate(self.matingPop_g.coords['Constraint'].values):
+              rlzDict['ConstraintEvaluation_'+str(consName)] = float(constraint_vals[i, ind])
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
     # decide what to do next
     if acceptable in ['accepted', 'first']:
-      # record history
       bestRlz = {}
-      if self._isMultiObjective:
-        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in list(self.toBeSampled.keys()))
-        for i in range(len(self._objectiveVar)):
-          bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
-        bestRlz['rank'] = self.multiBestRank
-        bestRlz['CD'] = self.multiBestCD
-        if len(self.multiBestConstraint) != 0: # No constraints
-          for ind, consName in enumerate(self.multiBestConstraint.Constraint):
-              bestRlz['ConstraintEvaluation_'+consName.values.tolist()] = self.multiBestConstraint[ind].values
-        for ind, fitName in enumerate(list(self.multiBestFitness.keys())):
-            bestRlz['FitnessEvaluation_'+ fitName] = self.multiBestFitness[fitName].data
-        bestRlz.update(self.multiBestPoint)
-      else:
-        bestRlz[self._objectiveVar[0]] = self.multiBestObjective[0]
-        bestRlz['fitness'] = self.bestFitness
+      if self.bestPoint:
         bestRlz.update(self.bestPoint)
+      if self.bestObjective is not None:
+        bestRlz[self._objectiveVar[0]] = self.bestObjective
+      if self.bestFitness is not None:
+        bestRlz['fitness'] = self.bestFitness
+      if self.bestConstraints:
+        bestRlz.update(self.bestConstraints)
       self._optPointHistory[traj].append((bestRlz, info))
 
   def _collectOptPoint(self, rlz, fitness, objectiveVal, g):
@@ -1554,11 +1394,18 @@ class GeneticAlgorithm(RavenSampled):
     if self.counter == 1:
       self.bestPoint = point
       self.bestFitness = currentFit
-      self.multiBestObjective = np.array([currentObj])
-    elif currentObj <= self.multiBestObjective[0] and currentFit >= self.bestFitness:
+      self.bestObjective = currentObj
+      self.bestConstraints = gOfBest
+    elif self.bestObjective is None:
       self.bestPoint = point
       self.bestFitness = currentFit
-      self.multiBestObjective = np.array([currentObj])
+      self.bestObjective = currentObj
+      self.bestConstraints = gOfBest
+    elif currentObj <= self.bestObjective and currentFit >= self.bestFitness:
+      self.bestPoint = point
+      self.bestFitness = currentFit
+      self.bestObjective = currentObj
+      self.bestConstraints = gOfBest
 
     return point
 
@@ -1575,31 +1422,6 @@ class GeneticAlgorithm(RavenSampled):
       if not hasattr(self, 'matingPopObjVals') or self.matingPopObjVals is None:
         return
 
-      if self._isMultiObjective:
-        def _as_array(values):
-          return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
-
-        pop_obj = np.column_stack([np.atleast_1d(_as_array(vals)) for vals in self.matingPopObjVals])
-        multipliers = np.array([self._objMult[obj] for obj in self._objectiveVar], dtype=float)
-        pop_obj = pop_obj * multipliers
-
-        try:
-          candidate_obj = np.array([float(np.atleast_1d(candidate[obj])[0]) for obj in self._objectiveVar], dtype=float)
-        except KeyError:
-          self.raiseADebug('Final-front validation skipped: candidate lacks objective entries.')
-          return
-        candidate_obj = candidate_obj * multipliers
-
-        combined = np.vstack([pop_obj, candidate_obj])
-        ranks = np.array(frontUtils.rankNonDominatedFrontiers(combined))
-        candidate_rank = ranks[-1]
-        best_rank = ranks[:-1].min() if combined.shape[0] > 1 else candidate_rank
-        if candidate_rank > best_rank:
-          self.raiseAWarning('Final export candidate is dominated by existing population members '
-                             f'(rank {candidate_rank} vs best rank {best_rank}).')
-        return
-
-      # Single-objective check
       fit_name = self._objectiveVar[0]
       if fit_name not in self.matingPopFitness:
         self.raiseADebug('Final-front validation skipped: fitness dataset missing objective key.')
@@ -1621,48 +1443,6 @@ class GeneticAlgorithm(RavenSampled):
 
     except Exception as exc:
       self.raiseADebug(f'Final-front validation encountered an exception: {exc}')
-
-  def _collectOptPointMulti(self, rlz, population, rank, CD, objVal, fitness, constraintsV):
-    """
-      Collects the point (dict) from a realization
-      @ In, population, Dataset, container containing the population
-      @ In, rank, xr.DataArray, rank values at each chromosome of the realization
-      @ In, CD (crowdingDistance), xr.DataArray, crowdingDistance values at each chromosome of the realization
-      @ In, objVal, list, objective values at each chromosome of the realization
-      @ In, fitness, dict, population fitness
-      @ In, constraintsV, xr.DataArray, calculated contraints value
-      @ Out, point, dict, point used in this realization
-    """
-    rankOneIDX = np.where(rank.data == 1)[0].tolist()
-    optPoints = population[rankOneIDX]
-    optObjVal = np.array(objVal)[:,rankOneIDX].T
-    count = 0
-    for i in list(fitness.keys()):
-      data = fitness[i][rankOneIDX]
-      if count == 0:
-        fitSet = data.to_dataset(name = i)
-      else:
-        fitSet[i] = data
-      count = count + 1
-    optConstraintsV = constraintsV.data[rankOneIDX]
-    optRank = rank.data[rankOneIDX]
-    optCD = CD.data[rankOneIDX]
-
-    optPointsDic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(population.Gene.data))
-    optConstNew = [list(y) for y in zip(*optConstraintsV)]
-    if len(optConstNew) > 0:
-      optConstNew = xr.DataArray(optConstNew,
-                            dims=['Constraint','Evaluation'],
-                            coords={'Constraint': [y.name for y in (self._constraintFunctions + self._impConstraintFunctions)],
-                                    'Evaluation': np.arange(np.shape(optConstNew)[1])})
-
-    self.multiBestPoint = optPointsDic
-    self.multiBestFitness = fitSet
-    self.multiBestObjective = optObjVal
-    self.multiBestConstraint = optConstNew
-    self.multiBestRank = optRank
-    self.multiBestCD = optCD
-    return optPointsDic
 
   def _checkAcceptability(self, traj):
     """
@@ -1714,7 +1494,8 @@ class GeneticAlgorithm(RavenSampled):
         bestObjective.append(currentObj*self._objMult[objVar])
         converged = (currentObj == self._convergenceCriteria['objective'][i]) and converged
       if converged:
-        self.multiBestObjective = np.array([bestObjective])
+        if bestObjective:
+          self.bestObjective = bestObjective[0]
         return converged
     return converged
 
@@ -1877,373 +1658,6 @@ class GeneticAlgorithm(RavenSampled):
       return 1.
     return  1. - ahd / normFactor
 
-  def _checkConvHypervolume(self, traj, **kwargs):
-      """
-      Checks convergence based on relative hypervolume improvement.
-      @ In, traj, int, trajectory identifier
-      @ In, kwargs, dict, must contain 'new' and 'old' populations
-      @ Out, converged, bool, convergence state
-      """
-      if len(self._optPointHistory[traj]) < 2:
-          return False
-
-      # Extract current Pareto front (rank 1)
-      rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
-      if len(rank1_indices) == 0:
-          return False
-
-      current_front = []
-      for idx in rank1_indices:
-          point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
-          current_front.append(point)
-
-      # Extract previous Pareto front from history
-      prev_opt, _ = self._optPointHistory[traj][-2] if len(self._optPointHistory[traj]) >= 2 else (None, None)
-      if prev_opt is None:
-          return False
-
-      prev_rank1_indices = np.where(np.array(prev_opt['rank']) == 1)[0]
-      prev_front = []
-      for idx in prev_rank1_indices:
-          point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-          prev_front.append(point)
-
-      # Calculate hypervolumes
-      # Reference point: slightly worse than nadir
-      all_points = current_front + prev_front
-      nadir = [max(p[i] for p in all_points) for i in range(len(self._objectiveVar))]
-      reference = [n * 1.1 for n in nadir]
-
-      current_hv = self._computeHypervolume(current_front, reference)
-      prev_hv = self._computeHypervolume(prev_front, reference)
-
-      # Store for tracking
-      if not hasattr(self, '_hvHistory'):
-          self._hvHistory = {}
-      if traj not in self._hvHistory:
-          self._hvHistory[traj] = []
-      self._hvHistory[traj].append(current_hv)
-
-      # Check relative improvement
-      if prev_hv == 0:
-          rel_improvement = float('inf')
-      else:
-          rel_improvement = abs(current_hv - prev_hv) / prev_hv
-
-      converged = rel_improvement < self._convergenceCriteria.get('hypervolume', 0.01)
-
-      self.raiseADebug(self.convFormat.format(
-          name='Hypervolume',
-          conv=str(converged),
-          got=rel_improvement,
-          req=self._convergenceCriteria.get('hypervolume', 0.01)
-      ))
-
-      return converged
-
-  def _computeHypervolume(self, front, reference):
-      """
-      Compute hypervolume indicator for a Pareto front.
-      Uses WFG algorithm (Walking Fish Group).
-
-      @ In, front, list of lists, Pareto front points
-      @ In, reference, list, reference point (must be dominated by all points)
-      @ Out, hv, float, hypervolume value
-      """
-      if not front:
-          return 0.0
-
-      n_objectives = len(front[0])
-
-      # 2D case: use efficient algorithm
-      if n_objectives == 2:
-          return self._hypervolume2D(front, reference)
-
-      # 3D case: use 3D algorithm
-      elif n_objectives == 3:
-          return self._hypervolume3D(front, reference)
-
-      # Higher dimensions: use recursive WFG
-      else:
-          return self._hypervolumeWFG(front, reference)
-
-  def _hypervolume2D(self, front, reference):
-      """
-      Efficient 2D hypervolume calculation.
-      @ In, front, list of lists, 2D points
-      @ In, reference, list, reference point [r1, r2]
-      @ Out, hv, float, hypervolume
-      """
-      # Sort by first objective
-      sorted_front = sorted(front, key=lambda p: p[0])
-
-      hv = 0.0
-      prev_x = reference[0]
-
-      for point in sorted_front:
-          width = prev_x - point[0]
-          height = reference[1] - point[1]
-          hv += width * height
-          prev_x = point[0]
-
-      return hv
-
-  def _hypervolume3D(self, front, reference):
-      """
-      Efficient 3D hypervolume calculation.
-      @ In, front, list of lists, 3D points
-      @ In, reference, list, reference point
-      @ Out, hv, float, hypervolume
-      """
-      # Sort by first objective
-      sorted_front = sorted(front, key=lambda p: p[0])
-
-      hv = 0.0
-
-      for i, point in enumerate(sorted_front):
-          # Slice for this point
-          x_extent = reference[0] - point[0]
-
-          # Project to 2D for remaining objectives
-          remaining_front = [p[1:] for p in sorted_front[:i+1]]
-          remaining_ref = reference[1:]
-
-          # 2D hypervolume for this slice
-          slice_hv = self._hypervolume2D(remaining_front, remaining_ref)
-
-          hv += x_extent * slice_hv
-
-      return hv
-
-  def _hypervolumeWFG(self, front, reference):
-      """
-      WFG algorithm for n-dimensional hypervolume (n > 3).
-      @ In, front, list of lists, n-D points
-      @ In, reference, list, reference point
-      @ Out, hv, float, hypervolume
-      """
-      # For simplicity, use approximation for high dimensions
-      # Or implement full WFG algorithm
-      # Here we use a simplified recursive approach
-
-      if len(reference) == 1:
-          return reference[0] - min(p[0] for p in front)
-
-      # Sort by last objective
-      sorted_front = sorted(front, key=lambda p: p[-1])
-
-      hv = 0.0
-      for i, point in enumerate(sorted_front):
-          # Project to lower dimension
-          lower_dim_front = [p[:-1] for p in sorted_front[:i+1]]
-          lower_dim_ref = reference[:-1]
-
-          # Recursive call
-          lower_hv = self._hypervolumeWFG(lower_dim_front, lower_dim_ref)
-
-          # Add contribution
-          height = reference[-1] - point[-1]
-          hv += height * lower_hv
-
-      return hv
-
-  def _checkConvSpread(self, traj, **kwargs):
-    """
-    Checks convergence based on spread (diversity) metric from Deb et al. (2002).
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    # Need at least rank-1 front
-    if not hasattr(self, 'matingPopRanks'):
-        return False
-
-    rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
-    if len(rank1_indices) < 3:
-        return False  # Need at least 3 points for meaningful spread
-
-    # Extract rank-1 objective values
-    front = []
-    for idx in rank1_indices:
-        point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
-        front.append(point)
-
-    spread = self._computeSpread(front)
-
-    converged = spread < self._convergenceCriteria.get('spread', 0.5)
-
-    self.raiseADebug(self.convFormat.format(
-        name='Spread',
-        conv=str(converged),
-        got=spread,
-        req=self._convergenceCriteria.get('spread', 0.5)
-    ))
-
-    return converged
-
-  def _computeSpread(self, front):
-    """
-    Compute spread metric (Δ) from Deb et al. (2002) NSGA-II paper.
-
-    Δ = (d_f + d_l + Σ|d_i - d̄|) / (d_f + d_l + (N-1)d̄)
-
-    @ In, front, list of lists, Pareto front points
-    @ Out, spread, float, spread value (0 = perfect distribution)
-    """
-    n = len(front)
-    if n < 2:
-        return 0.0
-
-    n_obj = len(front[0])
-
-    # Calculate Euclidean distances between consecutive solutions
-    distances = []
-
-    for obj in range(n_obj):
-        # Sort front by this objective
-        sorted_indices = sorted(range(n), key=lambda i: front[i][obj])
-        sorted_front = [front[i] for i in sorted_indices]
-
-        # Distance between consecutive points
-        for i in range(len(sorted_front) - 1):
-            dist = np.linalg.norm(np.array(sorted_front[i+1]) - np.array(sorted_front[i]))
-            distances.append(dist)
-
-    if len(distances) == 0:
-        return 0.0
-
-    # Extreme distances (distance to boundary solutions)
-    # For simplicity, use distance from first to ideal and last to nadir
-    ideal = [min(p[i] for p in front) for i in range(n_obj)]
-    nadir = [max(p[i] for p in front) for i in range(n_obj)]
-
-    sorted_by_first_obj = sorted(front, key=lambda p: p[0])
-    d_f = np.linalg.norm(np.array(sorted_by_first_obj[0]) - np.array(ideal))
-    d_l = np.linalg.norm(np.array(sorted_by_first_obj[-1]) - np.array(nadir))
-
-    # Mean distance
-    d_mean = np.mean(distances)
-
-    if d_mean == 0:
-        return 0.0
-
-    # Spread calculation
-    numerator = d_f + d_l + sum(abs(d - d_mean) for d in distances)
-    denominator = d_f + d_l + (len(distances)) * d_mean
-
-    if denominator == 0:
-        return 0.0
-
-    spread = numerator / denominator
-
-    return spread
-  def _checkConvMaxSpread(self, traj, **kwargs):
-    """
-    Checks convergence based on maximum spread stabilization.
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    if len(self._optPointHistory[traj]) < 2:
-        return False
-
-    # Current front
-    rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
-    current_front = []
-    for idx in rank1_indices:
-        point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
-        current_front.append(point)
-
-    # Previous front
-    prev_opt, _ = self._optPointHistory[traj][-2]
-    prev_rank1 = np.where(np.array(prev_opt['rank']) == 1)[0]
-    prev_front = []
-    for idx in prev_rank1:
-        point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-        prev_front.append(point)
-
-    # Compute MS
-    current_ms = self._computeMaxSpread(current_front)
-    prev_ms = self._computeMaxSpread(prev_front)
-
-    # Check relative change
-    if prev_ms == 0:
-        rel_change = float('inf')
-    else:
-        rel_change = abs(current_ms - prev_ms) / prev_ms
-
-    converged = rel_change < self._convergenceCriteria.get('maxSpread', 0.05)
-
-    self.raiseADebug(self.convFormat.format(
-        name='MaxSpread',
-        conv=str(converged),
-        got=rel_change,
-        req=self._convergenceCriteria.get('maxSpread', 0.05)
-    ))
-
-    return converged
-
-  def _computeMaxSpread(self, front):
-    """
-    Compute maximum spread metric.
-    @ In, front, list of lists, Pareto front
-    @ Out, ms, float, maximum spread
-    """
-    if len(front) < 2:
-        return 0.0
-
-    n_obj = len(front[0])
-    ranges = []
-
-    for obj in range(n_obj):
-        obj_values = [p[obj] for p in front]
-        ranges.append(max(obj_values) - min(obj_values))
-
-    ms = np.sqrt(sum(r**2 for r in ranges))
-
-    return ms
-
-  def _checkConvRank1Ratio(self, traj, **kwargs):
-    """
-    Checks convergence based on percentage of population in rank 1.
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    if not hasattr(self, 'matingPopRanks'):
-        return False
-
-    # Count rank-1 solutions
-    rank1_count = np.sum(self.matingPopRanks.data == 1)
-    ratio = rank1_count / self._populationSize
-
-    # Track history
-    if not hasattr(self, '_rank1History'):
-        self._rank1History = {}
-    if traj not in self._rank1History:
-        self._rank1History[traj] = []
-    self._rank1History[traj].append(ratio)
-
-    # Converged if ratio high and stable
-    threshold = self._convergenceCriteria.get('rank1Ratio', 0.5)
-    stable_generations = 3  # Require stability
-
-    if len(self._rank1History[traj]) < stable_generations:
-        converged = False
-    else:
-        recent_ratios = self._rank1History[traj][-stable_generations:]
-        all_above_threshold = all(r >= threshold for r in recent_ratios)
-        variation = max(recent_ratios) - min(recent_ratios)
-        converged = all_above_threshold and variation < 0.1
-
-    self.raiseADebug(self.convFormat.format(
-        name='Rank1Ratio',
-        conv=str(converged),
-        got=ratio,
-        req=threshold
-    ))
-
-    return converged
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -2381,10 +1795,6 @@ class GeneticAlgorithm(RavenSampled):
              'HDSM': self.hdsm
              }
 
-    if self._isMultiObjective:
-      toAdd['rank'] = rlz['rank']
-      toAdd['CD'] = rlz['CD']
-
     for var, val in self.constants.items():
       toAdd[var] = val
 
@@ -2429,7 +1839,637 @@ class GeneticAlgorithm(RavenSampled):
     return set(new)
 
 
-class NSGAII(GeneticAlgorithm):
+class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
+  """Shared functionality for multi-objective genetic algorithms."""
+
+  def __init__(self):
+    super().__init__()
+    self._canHandleMultiObjective = True
+    self.matingPopRanks = None
+    self.matingPopCD = None
+    self.multiBestPoint = None
+    self.multiBestFitness = None
+    self.multiBestObjective = None
+    self.multiBestConstraint = None
+    self.multiBestRank = None
+    self.multiBestCD = None
+
+  def flush(self):
+    super().flush()
+    self.matingPopRanks = None
+    self.matingPopCD = None
+    self.multiBestPoint = None
+    self.multiBestFitness = None
+    self.multiBestObjective = None
+    self.multiBestConstraint = None
+    self.multiBestRank = None
+    self.multiBestCD = None
+
+  @classmethod
+  def getInputSpecification(cls):
+    specs = super(MultiObjectiveGeneticAlgorithm, cls).getInputSpecification()
+    specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
+                            operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
+                            crowding-distance survivor selection, and multi-objective convergence metrics that are shared
+                            by concrete optimizers such as \xmlNode{NSGAII}."""
+    objective = specs.getSub('objective')
+    if objective is not None:
+      objective.description = r"""List the objective variables that jointly define the Pareto front. Two or more
+                                  objectives are required when using a multi-objective genetic algorithm."""
+    return specs
+
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    names = super(MultiObjectiveGeneticAlgorithm, cls).getSolutionExportVariableNames()
+    names['rank'] = 'Non-dominated sorting rank for each survivor in the population.'
+    names['CD'] = 'Crowding distance used to preserve solution diversity within a front.'
+    return names
+
+  def handleInput(self, paramInput):
+    super().handleInput(paramInput)
+    if not self._isMultiObjective:
+      self.raiseAnError(IOError, 'At least two objectives are required for a multi-objective genetic algorithm.')
+    if self._parentSelectionType != 'tournamentSelection':
+      self.raiseAnError(IOError, 'Multi-objective genetic algorithms currently support only "tournamentSelection" as <parentSelection>.')
+    if self._survivorSelectionType != 'rankNcrowdingBased':
+      self.raiseAnError(IOError, 'Multi-objective genetic algorithms require <survivorSelection> to be "rankNcrowdingBased".')
+
+  def _addToSolutionExport(self, traj, rlz, acceptable):
+    toAdd = super()._addToSolutionExport(traj, rlz, acceptable)
+    if 'rank' in rlz:
+      toAdd['rank'] = rlz['rank']
+    elif self.multiBestRank is not None:
+      toAdd['rank'] = np.atleast_1d(self.multiBestRank)
+    if 'CD' in rlz:
+      toAdd['CD'] = rlz['CD']
+    elif self.multiBestCD is not None:
+      toAdd['CD'] = np.atleast_1d(self.multiBestCD)
+    return toAdd
+
+  def _collectOptPointMulti(self, rlz, population, rank, CD, objVal, fitness, constraintsV):
+    rankOneIDX = np.where(rank.data == 1)[0].tolist()
+    optPoints = population[rankOneIDX]
+    optObjVal = np.array(objVal)[:, rankOneIDX].T
+
+    fitSet = None
+    for count, key in enumerate(fitness.keys()):
+      data = fitness[key][rankOneIDX]
+      if count == 0:
+        fitSet = data.to_dataset(name=key)
+      else:
+        fitSet[key] = data
+
+    optConstraintsV = constraintsV.data[rankOneIDX]
+    optRank = rank.data[rankOneIDX]
+    optCD = CD.data[rankOneIDX]
+
+    optPointsDic = {var: np.array(optPoints)[:, i] for i, var in enumerate(population.Gene.data)}
+    optConstNew = [list(y) for y in zip(*optConstraintsV)]
+    if len(optConstNew) > 0:
+      optConstNew = xr.DataArray(optConstNew,
+                                 dims=['Constraint', 'Evaluation'],
+                                 coords={'Constraint': [y.name for y in (self._constraintFunctions + self._impConstraintFunctions)],
+                                         'Evaluation': np.arange(np.shape(optConstNew)[1])})
+
+    self.multiBestPoint = optPointsDic
+    self.multiBestFitness = fitSet
+    self.multiBestObjective = optObjVal
+    self.multiBestConstraint = optConstNew
+    self.multiBestRank = optRank
+    self.multiBestCD = optCD
+    return optPointsDic
+
+  def _validateFinalFront(self, candidate):
+    try:
+      if not hasattr(self, 'matingPopFitness') or self.matingPopFitness is None:
+        return
+      if not hasattr(self, 'matingPopObjVals') or self.matingPopObjVals is None:
+        return
+
+      def _as_array(values):
+        return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
+
+      pop_obj = np.column_stack([np.atleast_1d(_as_array(vals)) for vals in self.matingPopObjVals])
+      multipliers = np.array([self._objMult[obj] for obj in self._objectiveVar], dtype=float)
+      pop_obj = pop_obj * multipliers
+
+      try:
+        candidate_obj = np.array([float(np.atleast_1d(candidate[obj])[0]) for obj in self._objectiveVar], dtype=float)
+      except KeyError:
+        self.raiseADebug('Final-front validation skipped: candidate lacks objective entries.')
+        return
+      candidate_obj = candidate_obj * multipliers
+
+      combined = np.vstack([pop_obj, candidate_obj])
+      ranks = np.array(frontUtils.rankNonDominatedFrontiers(combined))
+      candidate_rank = ranks[-1]
+      best_rank = ranks[:-1].min() if combined.shape[0] > 1 else candidate_rank
+      if candidate_rank > best_rank:
+        self.raiseAWarning('Final export candidate is dominated by existing population members '
+                           f'(rank {candidate_rank} vs best rank {best_rank}).')
+    except Exception as exc:
+      self.raiseADebug(f'Final-front validation encountered an exception: {exc}')
+
+  def _useRealization(self, info, rlz):
+    """Process evaluated offspring for multi-objective optimization."""
+    info['step'] = self.counter
+    traj = info['traj']
+    for t in self._activeTraj[1:]:
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
+    self.incrementIteration(traj)
+
+    files = self.assemblerDict['Files']
+    self._EQcheckfile = files if any("EQinput" in sublist for sublist in files) else None
+
+    currentPopInputs = datasetToDataArray(rlz, list(self.toBeSampled))
+    currentPop_objvals = [list(np.atleast_1d(rlz[obj].data)) for obj in self._objectiveVar]
+
+    currentPop_g = constraintHandling(self, info, rlz, currentPopInputs,
+                                      currentPop_objvals, multiObjective=True)
+
+    norm_rlz = deepcopy(rlz)
+    if self._normalizeFitness:
+      constrVarsList = self._constraintFunctions + self._impConstraintFunctions
+      varsToNormalize = []
+      for func in constrVarsList:
+        varsToNormalize += func.parameterNames()
+      varsToNormalize = set(varsToNormalize + self._objectiveVar)
+
+      self.normScores = {}
+      for var in varsToNormalize:
+        if self._normalizeFitness == 'zscore':
+          self.normScores[var] = (np.mean(rlz[var].to_dataframe().values),
+                                  np.std(rlz[var].to_dataframe().values))
+          for idx in range(len(rlz[var])):
+            norm_rlz[var][idx] = (rlz[var][idx] - self.normScores[var][0]) / self.normScores[var][1]
+            if np.isnan(norm_rlz[var][idx]):
+              norm_rlz[var][idx] = 0.0
+
+      for i in range(len(currentPop_g)):
+        for j in range(len(constrVarsList)):
+          denom = self.normScores[constrVarsList[j].parameterNames()[0]][1]
+          currentPop_g[i][j] = currentPop_g[i][j] / denom
+          if np.isnan(currentPop_g[i][j]):
+            currentPop_g[i][j] = 0.0
+
+    currentPopFitness = self._fitnessInstance(norm_rlz,
+                                              objVar=self._objectiveVar,
+                                              a=self._objCoeff,
+                                              b=self._penaltyCoeff,
+                                              penalty=None,
+                                              constraintFunction=currentPop_g,
+                                              constraintNum=self._numOfConst,
+                                              type=self._minMax)
+
+    if self._activeTraj:
+      if self.counter > 1:
+        combinedInputs = np.vstack([self.matingPopInputs.data, currentPopInputs.data])
+        combinedObjVals = [self.matingPopObjVals[i] + currentPop_objvals[i]
+                           for i in range(len(self._objectiveVar))]
+        combinedAges = list(map(lambda x: x + 1, self.matingPopAges)) + [0] * len(currentPopInputs)
+
+        popFitArray = [self.matingPopFitness[key].data.tolist()
+                       for key in self.matingPopFitness.keys()]
+        offFitArray = [currentPopFitness[key].data.tolist()
+                       for key in currentPopFitness.keys()]
+        combinedFitness = np.array([i + j for i, j in zip(popFitArray, offFitArray)])
+        combinedFitnessPairs = [list(pair) for pair in zip(*combinedFitness)]
+
+        combinedConstraints = np.vstack([self.matingPop_g.data, currentPop_g.data])
+
+        combinedRanks = frontUtils.rankNonDominatedFrontiers(
+            np.array(combinedFitnessPairs),
+            isFitness=True)
+
+        combinedCD = frontUtils.crowdingDistance(
+            rank=np.array(combinedRanks),
+            popSize=len(combinedRanks),
+            fitness=np.array(combinedFitnessPairs))
+
+        objectiveNames = list(self.matingPopFitness.keys())
+        self.matingPopInputs, self.matingPopRanks, \
+        self.matingPopAges, self.matingPopCD, \
+        self.matingPopObjVals, self.matingPopFitness, \
+        self.matingPop_g = self._survivorSelectionInstance(
+            age=combinedAges,
+            variables=list(self.toBeSampled),
+            combinedInputs=combinedInputs,
+            combinedRanks=combinedRanks,
+            combinedCD=combinedCD,
+            combinedObjectives=combinedObjVals,
+            combinedFitness=combinedFitnessPairs,
+            combinedConstraints=combinedConstraints,
+            popSize=self._populationSize,
+            objectiveNames=objectiveNames)
+      else:
+        currentPop_fitsbysoln = datasetToDataArray(currentPopFitness, self._objectiveVar).data.tolist()
+        currentPopRanks = frontUtils.rankNonDominatedFrontiers(
+            np.array(currentPop_fitsbysoln),
+            isFitness=True)
+        currentPopCD = frontUtils.crowdingDistance(
+            rank=np.array(currentPopRanks),
+            popSize=len(currentPopRanks),
+            fitness=np.array(currentPop_fitsbysoln))
+
+        self.matingPopInputs = currentPopInputs
+        self.matingPopFitness = currentPopFitness
+        self.matingPopObjVals = currentPop_objvals
+        self.matingPopAges = [0] * len(currentPopInputs)
+        self.matingPopRanks = xr.DataArray(currentPopRanks,
+                                           dims=['rank'],
+                                           coords={'rank': np.arange(len(currentPopRanks))})
+        self.matingPopCD = xr.DataArray(currentPopCD,
+                                        dims=['CrowdingDistance'],
+                                        coords={'CrowdingDistance': np.arange(len(currentPopCD))})
+        self.matingPop_g = currentPop_g
+
+      self.currentPop_ages = np.array(self.matingPopAges)
+
+      if not hasattr(self, 'prevPop_inputs') or self.prevPop_inputs is None:
+        self.prevPop_inputs = None
+
+      self._collectOptPointMulti(rlz,
+                                 self.matingPopInputs,
+                                 self.matingPopRanks,
+                                 self.matingPopCD,
+                                 self.matingPopObjVals,
+                                 self.matingPopFitness,
+                                 self.matingPop_g)
+
+      self._resolveNewGeneration(traj,
+                                 rlz,
+                                 info,
+                                 self.prevPop_inputs,
+                                 self.matingPopObjVals,
+                                 self.matingPopFitness,
+                                 self.matingPop_g,
+                                 self.matingPopRanks,
+                                 self.matingPopCD)
+
+      parents = self._parentSelectionInstance(self.matingPopInputs,
+                                              variables=list(self.toBeSampled),
+                                              fitness=self.matingPopFitness,
+                                              kSelection=self._kSelection,
+                                              nParents=self._nParents,
+                                              rank=self.matingPopRanks,
+                                              crowdDistance=self.matingPopCD,
+                                              objVar=self._objectiveVar,
+                                              isMultiObjective=True)
+
+      childrenXover = self._crossoverInstance(parents=parents,
+                                              variables=list(self.toBeSampled),
+                                              crossoverProb=self._crossoverProb,
+                                              points=self._crossoverPoints,
+                                              EQfiles=self._EQcheckfile)
+
+      childrenMutated = self._mutationInstance(offSprings=childrenXover,
+                                               distDict=self.distDict,
+                                               locs=self._mutationLocs,
+                                               mutationProb=self._mutationProb,
+                                               variables=list(self.toBeSampled))
+
+      needsRepair = False
+      for chrom in range(min(self._nChildren, len(childrenMutated))):
+        unique = set(childrenMutated.data[chrom, :])
+        if len(childrenMutated.data[chrom, :]) != len(unique):
+          for var in self.toBeSampled:
+            if (hasattr(self.distDict[var], 'strategy') and
+                self.distDict[var].strategy == 'withoutReplacement'):
+              needsRepair = True
+              break
+
+      if needsRepair:
+        children = self._repairInstance(childrenMutated, variables=list(self.toBeSampled),
+                                        distInfo=self.distDict)
+      else:
+        children = childrenMutated
+
+      children = children[:self._populationSize, :]
+
+      daChildren = xr.DataArray(children,
+                                dims=['chromosome', 'Gene'],
+                                coords={'chromosome': np.arange(np.shape(children)[0]),
+                                        'Gene': list(self.toBeSampled)})
+
+      for i in range(self.batch):
+        newRlz = {}
+        for _, var in enumerate(self.toBeSampled.keys()):
+          newRlz[var] = float(daChildren.loc[i, var].values)
+        self._submitRun(newRlz, traj, self.getIteration(traj))
+
+      self.prevPop_inputs = deepcopy(self.matingPopInputs)
+
+  def _resolveNewGeneration(self, traj, rlz, info, pastPop, objectiveVal, fitness, g, ranks, CD):
+    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new Generation (population) ...')
+    self._stepTracker[traj]['opt'] = (rlz, info)
+    acceptable = 'accepted' if self.counter > 1 else 'first'
+    old = pastPop
+    converged = self._updateConvergence(traj, rlz, old, acceptable)
+    if converged:
+      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective)
+
+    if self._writeSteps == 'every':
+      self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
+      for i in range(rlz.sizes['RAVEN_sample_ID']):
+        rlzDict = self.matingPopInputs.isel(chromosome=i).to_series().to_dict()
+        for j in range(len(self._objectiveVar)):
+          rlzDict[self._objectiveVar[j]] = self.matingPopObjVals[j][i]
+        rlzDict['batchId'] = self.batchId
+        rlzDict['rank'] = np.atleast_1d(ranks.data)[i]
+        rlzDict['CD'] = np.atleast_1d(CD.data)[i]
+        for fitName in fitness.keys():
+          rlzDict[f'FitnessEvaluation_{fitName}'] = fitness[fitName].data[i]
+        for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
+          rlzDict[f'ConstraintEvaluation_{consName}'] = g.data[i, ind]
+        self._updateSolutionExport(traj, rlzDict, acceptable, None)
+
+    if acceptable in ['accepted', 'first']:
+      bestRlz = {}
+      if self.multiBestPoint:
+        bestRlz.update({var: np.atleast_1d(val) for var, val in self.multiBestPoint.items()})
+      for i in range(len(self._objectiveVar)):
+        bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
+      bestRlz['rank'] = self.multiBestRank
+      bestRlz['CD'] = self.multiBestCD
+      if self.multiBestConstraint is not None and hasattr(self.multiBestConstraint, 'coords'):
+        for consName in self.multiBestConstraint.coords['Constraint'].values:
+          bestRlz[f'ConstraintEvaluation_{consName}'] = self.multiBestConstraint.sel(Constraint=consName).values
+      if self.multiBestFitness is not None:
+        for fitName in self.multiBestFitness.keys():
+          bestRlz[f'FitnessEvaluation_{fitName}'] = self.multiBestFitness[fitName].data
+      self._optPointHistory[traj].append((bestRlz, info))
+
+  def _checkConvHypervolume(self, traj, **kwargs):
+    if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
+      return False
+    if not hasattr(self, '_optPointHistory') or traj not in self._optPointHistory:
+      return False
+    if len(self._optPointHistory[traj]) < 2:
+      return False
+
+    rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
+    if len(rank1_indices) == 0:
+      return False
+
+    current_front = []
+    for idx in rank1_indices:
+      point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
+      current_front.append(point)
+
+    prev_opt, _ = self._optPointHistory[traj][-2]
+    if 'rank' not in prev_opt:
+      return False
+    prev_rank1_indices = np.where(np.array(prev_opt['rank']) == 1)[0]
+    if len(prev_rank1_indices) == 0:
+      return False
+
+    prev_front = []
+    for idx in prev_rank1_indices:
+      point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
+      prev_front.append(point)
+
+    all_points = current_front + prev_front
+    if not all_points:
+      return False
+    nadir = [max(p[i] for p in all_points) for i in range(len(self._objectiveVar))]
+    reference = [n * 1.1 for n in nadir]
+
+    current_hv = self._computeHypervolume(current_front, reference)
+    prev_hv = self._computeHypervolume(prev_front, reference)
+
+    if not hasattr(self, '_hvHistory'):
+      self._hvHistory = {}
+    if traj not in self._hvHistory:
+      self._hvHistory[traj] = []
+    self._hvHistory[traj].append(current_hv)
+
+    if mathUtils.compareFloats(prev_hv, 0.0, 1e-12):
+      rel_improvement = float('inf')
+    else:
+      rel_improvement = abs(current_hv - prev_hv) / prev_hv
+
+    threshold = self._convergenceCriteria.get('hypervolume', 0.01)
+    converged = rel_improvement < threshold
+
+    self.raiseADebug(self.convFormat.format(
+        name='Hypervolume',
+        conv=str(converged),
+        got=rel_improvement,
+        req=threshold))
+
+    return converged
+
+  def _computeHypervolume(self, front, reference):
+    if not front:
+      return 0.0
+    n_objectives = len(front[0])
+    if n_objectives == 2:
+      return self._hypervolume2D(front, reference)
+    if n_objectives == 3:
+      return self._hypervolume3D(front, reference)
+    return self._hypervolumeWFG(front, reference)
+
+  def _hypervolume2D(self, front, reference):
+    sorted_front = sorted(front, key=lambda p: p[0])
+    hv = 0.0
+    prev_x = reference[0]
+    for point in sorted_front:
+      width = prev_x - point[0]
+      height = reference[1] - point[1]
+      hv += width * height
+      prev_x = point[0]
+    return hv
+
+  def _hypervolume3D(self, front, reference):
+    sorted_front = sorted(front, key=lambda p: p[0])
+    hv = 0.0
+    for i, point in enumerate(sorted_front):
+      x_extent = reference[0] - point[0]
+      remaining_front = [p[1:] for p in sorted_front[:i+1]]
+      remaining_ref = reference[1:]
+      slice_hv = self._hypervolume2D(remaining_front, remaining_ref)
+      hv += x_extent * slice_hv
+    return hv
+
+  def _hypervolumeWFG(self, front, reference):
+    if len(reference) == 1:
+      return reference[0] - min(p[0] for p in front)
+
+    sorted_front = sorted(front, key=lambda p: p[-1])
+    hv = 0.0
+    for i, point in enumerate(sorted_front):
+      lower_dim_front = [p[:-1] for p in sorted_front[:i+1]]
+      lower_dim_ref = reference[:-1]
+      lower_hv = self._hypervolumeWFG(lower_dim_front, lower_dim_ref)
+      height = reference[-1] - point[-1]
+      hv += height * lower_hv
+    return hv
+
+  def _checkConvSpread(self, traj, **kwargs):
+    if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
+      return False
+    rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
+    if len(rank1_indices) < 3:
+      return False
+    front = []
+    for idx in rank1_indices:
+      point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
+      front.append(point)
+    spread = self._computeSpread(front)
+    threshold = self._convergenceCriteria.get('spread', 0.5)
+    converged = spread < threshold
+    self.raiseADebug(self.convFormat.format(
+        name='Spread',
+        conv=str(converged),
+        got=spread,
+        req=threshold))
+    return converged
+
+  def _computeSpread(self, front):
+    n = len(front)
+    if n < 2:
+      return 0.0
+    front = sorted(front, key=lambda x: x[0])
+    distances = []
+    for i in range(n - 1):
+      dist = np.linalg.norm(np.array(front[i+1]) - np.array(front[i]))
+      distances.append(dist)
+    ideal = np.array([min(p[i] for p in front) for i in range(len(front[0]))])
+    nadir = np.array([max(p[i] for p in front) for i in range(len(front[0]))])
+    d_f = np.linalg.norm(np.array(front[0]) - ideal)
+    d_l = np.linalg.norm(np.array(front[-1]) - nadir)
+    mean_d = np.mean(distances)
+    if mathUtils.compareFloats(mean_d, 0.0, 1e-14):
+      return 0.0
+    spread = (d_f + d_l + sum(abs(d - mean_d) for d in distances)) / (d_f + d_l + (len(distances)) * mean_d)
+    return spread
+
+  def _checkConvSpacing(self, traj, **kwargs):
+    if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
+      return False
+    rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
+    if len(rank1_indices) < 3:
+      return False
+    front = []
+    for idx in rank1_indices:
+      point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
+      front.append(point)
+    spacing = self._computeSpacing(front)
+    threshold = self._convergenceCriteria.get('spacing', 0.5)
+    converged = spacing < threshold
+    self.raiseADebug(self.convFormat.format(
+        name='Spacing',
+        conv=str(converged),
+        got=spacing,
+        req=threshold))
+    return converged
+
+  def _computeSpacing(self, front):
+    n = len(front)
+    if n < 2:
+      return 0.0
+    distances = []
+    for i in range(n):
+      point_i = np.array(front[i])
+      min_dist = float('inf')
+      for j in range(n):
+        if i == j:
+          continue
+        point_j = np.array(front[j])
+        dist = np.linalg.norm(point_i - point_j)
+        if dist < min_dist:
+          min_dist = dist
+      distances.append(min_dist)
+    mean_dist = np.mean(distances)
+    spacing = np.sqrt(np.mean([(d - mean_dist) ** 2 for d in distances]))
+    return spacing
+
+  def _checkConvMaxSpread(self, traj, **kwargs):
+    if len(self._optPointHistory[traj]) < 2:
+      return False
+    if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
+      return False
+
+    rank1_indices = np.where(self.matingPopRanks.data == 1)[0]
+    if len(rank1_indices) == 0:
+      return False
+    current_front = []
+    for idx in rank1_indices:
+      point = [self.matingPopObjVals[j][idx] for j in range(len(self._objectiveVar))]
+      current_front.append(point)
+
+    prev_opt, _ = self._optPointHistory[traj][-2]
+    if 'rank' not in prev_opt:
+      return False
+    prev_rank1 = np.where(np.array(prev_opt['rank']) == 1)[0]
+    if len(prev_rank1) == 0:
+      return False
+    prev_front = []
+    for idx in prev_rank1:
+      point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
+      prev_front.append(point)
+
+    current_ms = self._computeMaxSpread(current_front)
+    prev_ms = self._computeMaxSpread(prev_front)
+
+    if mathUtils.compareFloats(prev_ms, 0.0, 1e-14):
+      rel_change = float('inf')
+    else:
+      rel_change = abs(current_ms - prev_ms) / prev_ms
+
+    threshold = self._convergenceCriteria.get('maxSpread', 0.05)
+    converged = rel_change < threshold
+
+    self.raiseADebug(self.convFormat.format(
+        name='MaxSpread',
+        conv=str(converged),
+        got=rel_change,
+        req=threshold))
+
+    return converged
+
+  def _computeMaxSpread(self, front):
+    n = len(front)
+    if n < 2:
+      return 0.0
+    ranges = []
+    for i in range(len(front[0])):
+      obj_values = [point[i] for point in front]
+      ranges.append(max(obj_values) - min(obj_values))
+    ms = np.sqrt(sum(r ** 2 for r in ranges))
+    return ms
+
+  def _checkConvRank1Ratio(self, traj, **kwargs):
+    if not hasattr(self, 'matingPopRanks'):
+      return False
+    if not hasattr(self, '_populationSize') or self._populationSize == 0:
+      return False
+    rank1_count = np.sum(self.matingPopRanks.data == 1)
+    ratio = rank1_count / self._populationSize
+    if not hasattr(self, '_rank1History'):
+      self._rank1History = {}
+    if traj not in self._rank1History:
+      self._rank1History[traj] = []
+    self._rank1History[traj].append(ratio)
+    threshold = self._convergenceCriteria.get('rank1Ratio', 0.5)
+    stable_generations = 3
+    if len(self._rank1History[traj]) < stable_generations:
+      converged = False
+    else:
+      recent_ratios = self._rank1History[traj][-stable_generations:]
+      all_above_threshold = all(r >= threshold for r in recent_ratios)
+      variation = max(recent_ratios) - min(recent_ratios)
+      converged = all_above_threshold and variation < 0.1
+    self.raiseADebug(self.convFormat.format(
+        name='Rank1Ratio',
+        conv=str(converged),
+        got=ratio,
+        req=threshold))
+    return converged
+
+
+
+class NSGAII(MultiObjectiveGeneticAlgorithm):
   """
     Multi-objective Genetic Algorithm implementing the NSGA-II variant.
   """
