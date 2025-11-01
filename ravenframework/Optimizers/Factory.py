@@ -23,7 +23,7 @@ from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 from .SimulatedAnnealing import SimulatedAnnealing
-from .GeneticAlgorithm import GeneticAlgorithm, NSGAII
+from .GeneticAlgorithm import GeneticAlgorithm, MultiObjectiveGeneticAlgorithm, NSGAII
 
 factory = EntityFactory('Optimizer')
 factory.registerType('GradientDescent', GradientDescent)

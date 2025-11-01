@@ -66,7 +66,7 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, 
     self.matingPopObjVals = objectiveVal[0] if isinstance(objectiveVal, list) and len(objectiveVal) > 0 else rlz[self._objectiveVar[0]].data
     self.matingPopAges = [0] * len(offspring)
     # FIXED: Also initialize matingPop_g for first generation
-    self.matingPop_g = g
+  self.matingPop_g = g
 
 def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringsFitness, objectiveVal, g):
   """
