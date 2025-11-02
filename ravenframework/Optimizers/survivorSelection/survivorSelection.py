@@ -46,7 +46,7 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, 
     @ Out, None (updates self.matingPop* variables)
   """
   if self.counter > 1:
-    # FIXED: Use new variable names (matingPop* instead of old names)
+    # Survivor selection returns the new population; keep both legacy and new attributes in sync.
     self.matingPopInputs, self.matingPopFitness, \
     self.matingPopAges, self.matingPopObjVals = self._survivorSelectionInstance(
         age=self.matingPopAges,
@@ -62,11 +62,17 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, 
     # First generation: offspring becomes mating population
     self.matingPopInputs = offspring
     self.matingPopFitness = offspringFitness
-    # FIXED: Handle objectiveVal properly - it's a list of lists
-    self.matingPopObjVals = objectiveVal[0] if isinstance(objectiveVal, list) and len(objectiveVal) > 0 else rlz[self._objectiveVar[0]].data
+    baseObj = objectiveVal[0] if isinstance(objectiveVal, list) and len(objectiveVal) > 0 else rlz[self._objectiveVar[0]].data
+    self.matingPopObjVals = list(np.atleast_1d(baseObj))
     self.matingPopAges = [0] * len(offspring)
-    # FIXED: Also initialize matingPop_g for first generation
   self.matingPop_g = g
+
+  # Mirror legacy attribute names to keep downstream logic functional.
+  self.population = self.matingPopInputs
+  self.fitness = self.matingPopFitness
+  self.popAge = self.matingPopAges
+  self.objectiveVal = self.matingPopObjVals
+  self.constraintsV = self.matingPop_g
 
 def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringsFitness, objectiveVal, g):
   """

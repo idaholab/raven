@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from ravenframework.Optimizers.GeneticAlgorithm import NSGAII
+from ravenframework.Optimizers.NSGAII import NSGAII
 
 
 def _make_ga_base():

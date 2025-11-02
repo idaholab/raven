@@ -118,14 +118,14 @@ def fitnessBased(newRlz,**kwargs):
   if len(popAge) < popSize:
     popAge.extend([0] * (popSize - len(popAge)))
 
-  # Extract parent data
-  population = np.atleast_2d(kwargs['population'].data)
+  # Parent data
+  parentPopulation = np.atleast_2d(kwargs['population'].data)
   parentFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data.reshape(-1)
   parentObjectives = _to_numeric_array(kwargs.get('popObjectiveVal'), popSize)
 
-  # Extract offspring data
+  # Offspring data
   offspringFitness = datasetToDataArray(kwargs['offspringFitness'], list(kwargs['offspringFitness'].keys())).data.reshape(-1)
-  offspring = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
+  offspringPopulation = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   objVar = kwargs['objVar']
   offspringObjectives = np.asarray(newRlz[objVar].data).reshape(-1)
   if offspringObjectives.size < offspringFitness.size:
@@ -134,27 +134,21 @@ def fitnessBased(newRlz,**kwargs):
   elif offspringObjectives.size > offspringFitness.size:
     offspringObjectives = offspringObjectives[:offspringFitness.size]
 
-  # Build combined pool with lineage info
-  combined = []
-  for idx in range(popSize):
-    combined.append({'fitness': float(parentFitness[idx]),
-                     'age': popAge[idx] + 1,
-                     'inputs': np.array(population[idx], copy=True),
-                     'objective': float(parentObjectives[idx]) if not np.isnan(parentObjectives[idx]) else parentObjectives[idx]})
-  for idx in range(len(offspringFitness)):
-    combined.append({'fitness': float(offspringFitness[idx]),
-                     'age': 0,
-                     'inputs': np.array(offspring[idx], copy=True),
-                     'objective': float(offspringObjectives[idx]) if not np.isnan(offspringObjectives[idx]) else offspringObjectives[idx]})
+  # Merge parent and offspring pools
+  combinedPopulation = np.concatenate([parentPopulation, offspringPopulation])
+  combinedFitness = np.concatenate([parentFitness, offspringFitness])
+  combinedAge = [age + 1 for age in popAge] + [0] * len(offspringFitness)
+  combinedObjectives = np.concatenate([parentObjectives, offspringObjectives])
 
-  # Sort by fitness (desc), prefer younger age when tied
-  combined.sort(key=lambda rec: (rec['fitness'], -rec['age']), reverse=True)
-  survivors = combined[:popSize]
+  # Select the top popSize individuals by fitness (desc) with age tie-break
+  indices = list(range(len(combinedFitness)))
+  indices.sort(key=lambda idx: (combinedFitness[idx], -combinedAge[idx]), reverse=True)
+  selected = indices[:popSize]
 
-  newPopulationSorted = np.vstack([rec['inputs'] for rec in survivors])
-  newFitness = np.array([rec['fitness'] for rec in survivors])
-  newAge = [rec['age'] for rec in survivors]
-  newObjectiveVals = [rec['objective'] for rec in survivors]
+  newPopulationSorted = combinedPopulation[selected]
+  newFitness = combinedFitness[selected]
+  newAge = [combinedAge[idx] for idx in selected]
+  newObjectiveVals = [combinedObjectives[idx] for idx in selected]
 
   newPopulationArray = xr.DataArray(newPopulationSorted,
                                     dims=['chromosome','Gene'],

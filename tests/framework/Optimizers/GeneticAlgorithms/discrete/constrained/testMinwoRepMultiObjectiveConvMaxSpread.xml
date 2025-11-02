@@ -91,7 +91,7 @@
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
       <convergence>
-        <maxSpread>0.001</maxSpread>
+        <maxSpread>0.0001</maxSpread>
       </convergence>
       <variable name="x1">
         <distribution>woRep_dist</distribution>

@@ -16,6 +16,7 @@ Visual utility to render the rank-1 Pareto front produced by NSGA-II style optim
 """
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import is_color_like
 import numpy as np
 
 from .PlotInterface import PlotInterface
@@ -110,17 +111,34 @@ class NSGAParetoFrontPlot(PlotInterface):
           self.raiseAWarning('Color variable "{}" contains no samples; using uniform color.'.format(colorVar))
           colors = None
           colorVar = None
-        elif np.issubdtype(colors.dtype, np.number):
-          finite = colors.replace([np.inf, -np.inf], np.nan).dropna()
-          if finite.empty:
-            self.raiseAWarning('Color variable "{}" has no finite values; using uniform color.'.format(colorVar))
-            colors = None
-            colorVar = None
         else:
-          if not colors.dropna().size:
-            self.raiseAWarning('Color variable "{}" has no valid entries; using uniform color.'.format(colorVar))
-            colors = None
-            colorVar = None
+          numeric_series = None
+          if np.issubdtype(colors.dtype, np.number):
+            numeric_series = colors
+          else:
+            try:
+              numeric_series = colors.astype(float)
+            except Exception:
+              numeric_series = None
+          if numeric_series is not None:
+            sanitized = numeric_series.replace([np.inf, -np.inf], np.nan)
+            finite = sanitized.dropna()
+            if finite.empty:
+              self.raiseAWarning('Color variable "{}" has no finite values; using uniform color.'.format(colorVar))
+              colors = None
+              colorVar = None
+            else:
+              colors = sanitized
+          else:
+            valid_entries = colors.dropna()
+            if not valid_entries.size:
+              self.raiseAWarning('Color variable "{}" has no valid entries; using uniform color.'.format(colorVar))
+              colors = None
+              colorVar = None
+            elif not all(is_color_like(val) for val in valid_entries):
+              self.raiseAWarning('Color variable "{}" cannot be interpreted as numeric or color values; using uniform color.'.format(colorVar))
+              colors = None
+              colorVar = None
     scatterKwargs = {}
     if colors is not None:
       scatterKwargs.update({'c': colors, 'cmap': 'viridis'})
