@@ -59,7 +59,7 @@
   </Functions>
 
   <Files>
-    <Input name="my_smaples" type="">../samples.csv</Input>
+      <Input name="my_smaples" type="">../samples.csv</Input>
   </Files>
 
   <Distributions>

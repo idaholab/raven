@@ -8,6 +8,18 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacement/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacement/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacement/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./MinwReplacementConvAHDp]
@@ -18,6 +30,18 @@
       output = 'discrete/unconstrained/MinwReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvAHDp/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvAHDp/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvAHDp/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -30,6 +54,18 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvHDSM/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvHDSM/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvHDSM/1-parallel_coordinates.gif'
+    [../]
     [../]
 
   [./MinwReplacementConvAHDpUsingCode]
@@ -42,6 +78,18 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./MinwoReplacement]
@@ -52,6 +100,18 @@
       output = 'discrete/unconstrained/MinwoReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacement/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacement/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacement/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -64,6 +124,18 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/1-parallel_coordinates.gif'
+    [../]
   [../]
 
     [./MinwoReplacementConvHDSM]
@@ -75,6 +147,18 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacementConvHDSM/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacementConvHDSM/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MinwoReplacementConvHDSM/1-parallel_coordinates.gif'
+    [../]
     [../]
   [./MaxwReplacement]
     type = 'RavenFramework'
@@ -89,6 +173,14 @@
       type = Exists
       output = 'discrete/unconstrained/MaxwReplacement/opt_path.png'
     [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacement/population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacement/parallel_coordinates.gif'
+    [../]
   [../]
 
   [./MaxwReplacementCustomSampler]
@@ -99,6 +191,18 @@
       output = 'discrete/unconstrained/MaxwReplacement_customsampler/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacement_customsampler/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacement_customsampler/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacement_customsampler/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -111,6 +215,18 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementDiffDist/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementDiffDist/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementDiffDist/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./MaxwReplacementConvAHDp]
@@ -121,6 +237,18 @@
       output = 'discrete/unconstrained/MaxwReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -133,6 +261,18 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementConvHDSM/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementConvHDSM/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwReplacementConvHDSM/1-parallel_coordinates.gif'
+    [../]
     [../]
 
   [./MaxwoReplacement]
@@ -143,6 +283,18 @@
       output = 'discrete/unconstrained/MaxwoReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacement/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacement/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacement/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -155,6 +307,18 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementTwoPointsCrossover/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementTwoPointsCrossover/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementTwoPointsCrossover/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./MaxwoReplacementDiffDist]
@@ -165,6 +329,18 @@
       output = 'discrete/unconstrained/MaxwoReplacementDiffDist/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -177,6 +353,18 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/1-parallel_coordinates.gif'
+    [../]
   [../]
 
     [./MaxwoReplacementConvHDSM]
@@ -188,6 +376,18 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementConvHDSM/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementConvHDSM/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/MaxwoReplacementConvHDSM/1-parallel_coordinates.gif'
+    [../]
     [../]
 
   [./discreteIntWithReplacement]
@@ -197,6 +397,18 @@
      type = OrderedCSV
      output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/discreteIntWithReplacement/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/discreteIntWithReplacement/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/discreteIntWithReplacement/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -208,6 +420,18 @@
      output = 'discrete/unconstrained/simpleKnapsack/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsack/PrintOptOut.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsack/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsack/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsack/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./GA_knapsackBaseTournament]
@@ -218,6 +442,18 @@
      output = 'discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_export_1.csv discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_1.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsackTournament/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsackTournament/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsackTournament/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./GA_knapsackBaseUnifXover]
@@ -227,6 +463,18 @@
      type = OrderedCSV
      output = 'discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsackUnifXover/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsackUnifXover/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/simpleKnapsackUnifXover/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -239,6 +487,18 @@
      type = OrderedCSV
      output = 'discrete/constrained/MaxwReplacementSphereConstrained/opt_export_0.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MaxwReplacementSphereConstrained/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MaxwReplacementSphereConstrained/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/constrained/MaxwReplacementSphereConstrained/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -262,6 +522,18 @@
      output = 'continuous/constrained/mishraBirdConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/mishraBirdConstrained/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/mishraBirdConstrained/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/mishraBirdConstrained/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./mishraBirdConstrainedInvLin]
@@ -271,6 +543,18 @@
      type = OrderedCSV
      output = 'continuous/constrained/mishraBirdConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/mishraBirdConstrainedInvLin/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/mishraBirdConstrainedInvLin/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/mishraBirdConstrainedInvLin/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -282,6 +566,18 @@
      output = 'continuous/constrained/rosenbrockDiskConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/rosenbrockDiskConstrained/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/rosenbrockDiskConstrained/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/rosenbrockDiskConstrained/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./rosenbrockDiskConstrainedInvLin]
@@ -291,6 +587,18 @@
      type = OrderedCSV
      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -302,6 +610,18 @@
      output = 'continuous/constrained/simionescuConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/simionescuConstrained/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/simionescuConstrained/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/simionescuConstrained/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./simionescuConstrainedInvLin]
@@ -311,6 +631,18 @@
      type = OrderedCSV
      output = 'continuous/constrained/simionescuConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/simionescuConstrainedInvLin/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/simionescuConstrainedInvLin/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/simionescuConstrainedInvLin/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -322,6 +654,18 @@
      output = 'continuous/constrained/townsendConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/townsendConstrained/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/townsendConstrained/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/townsendConstrained/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./townsendConstrainedInvLin]
@@ -332,6 +676,18 @@
      output = 'continuous/constrained/townsendConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/constrained/townsendConstrainedInvLin/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/constrained/townsendConstrainedInvLin/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/constrained/townsendConstrainedInvLin/1-parallel_coordinates.gif'
+    [../]
   [../]
 
    [./knapsackMultipleDist]
@@ -341,6 +697,18 @@
      type = OrderedCSV
      output = 'discrete/unconstrained/knapsackMultipleDist/PrintOptOut.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/knapsackMultipleDist/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/knapsackMultipleDist/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/knapsackMultipleDist/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -353,6 +721,18 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/unconstrained/GA_PPF/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/unconstrained/GA_PPF/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/unconstrained/GA_PPF/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./failureOfRuns]
@@ -362,6 +742,18 @@
      type = OrderedCSV
      output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/failureOfRuns/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/failureOfRuns/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/constrained/failureOfRuns/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -373,6 +765,18 @@
      output = 'continuous/unconstrained/ensemble_withGA/metaModelOutputTestDump.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/ensemble_withGA/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/ensemble_withGA/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/unconstrained/ensemble_withGA/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./GAwithEnsembleModelHDSMconvergence]
@@ -383,6 +787,18 @@
      output = 'continuous/unconstrained/ensemble_withGA_HDSM/opt_export.csv'
      rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/ensemble_withGA_HDSM/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/ensemble_withGA_HDSM/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/unconstrained/ensemble_withGA_HDSM/1-parallel_coordinates.gif'
+    [../]
   [../]
 
   [./GAwithEnsembleModelIncludingCode]
@@ -392,6 +808,18 @@
      type = UnorderedCSV
      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/opt_export.csv'
      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -407,6 +835,14 @@
       output = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
       rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/Multi_MinwoReplacement/1-population.png'
+    [../]
   [../]
 
   [./NSGA-II_MinwoRepFeasibleFirst]
@@ -420,6 +856,14 @@
       type = UnorderedCSV
       output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/opt_export_0.csv'
       rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
     [../]
   [../]
 
@@ -435,6 +879,14 @@
       output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
       rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/ZDT1/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/ZDT1/1-population.png'
+    [../]
   [../]
 
   [./NSGA-II_Beale]
@@ -448,6 +900,14 @@
       type = UnorderedCSV
       output = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
       rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png'
     [../]
   [../]
 
@@ -463,6 +923,14 @@
       output = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/opt_export_0.csv'
       rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-population.png'
+    [../]
   [../]
 
   [./NSGA-II_MinwoRepConvMaxSpread]
@@ -476,6 +944,14 @@
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/opt_export_0.csv'
       rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-population.png'
     [../]
   [../]
 
@@ -491,6 +967,14 @@
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/opt_export_0.csv'
       rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-population.png'
+    [../]
   [../]
 
   [./NSGA-II_MinwoRepConvHypervolume]
@@ -504,6 +988,14 @@
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/opt_export_0.csv'
       rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-population.png'
     [../]
   [../]
 
@@ -519,6 +1011,14 @@
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/opt_export_0.csv'
       rel_err = 0.001
     [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-population.png'
+    [../]
   [../]
 
   [./TestConstrainedObjective]
@@ -528,6 +1028,18 @@
       type = UnorderedCSV
       output = 'discrete/constrained/MinwReplacementConstrained/opt_export_0.csv'
       rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/MinwReplacementConstrained/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/MinwReplacementConstrained/1-population.png'
+    [../]
+    [./plot_parallel_coordinates]
+      type = Exists
+      output = 'discrete/constrained/MinwReplacementConstrained/1-parallel_coordinates.gif'
     [../]
   [../]
 []

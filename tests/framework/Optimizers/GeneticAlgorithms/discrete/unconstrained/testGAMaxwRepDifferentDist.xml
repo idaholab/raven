@@ -18,7 +18,7 @@
 
   <RunInfo>
     <WorkingDir>MaxwReplacementDiffDist</WorkingDir>
-    <Sequence>optimize, print</Sequence>
+    <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -36,6 +36,12 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
     </IOStep>
   </Steps>
 
@@ -153,5 +159,21 @@
         <source>opt_export</source>
         <clusterLabel>trajID</clusterLabel>
       </Print>
+    
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>x1,x2,x3,ans</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>x1,x2,x3,ans</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <vars>x1,x2,x3</vars>
+        <index>batchId</index>
+      </Plot>
     </OutStreams>
 </Simulation>

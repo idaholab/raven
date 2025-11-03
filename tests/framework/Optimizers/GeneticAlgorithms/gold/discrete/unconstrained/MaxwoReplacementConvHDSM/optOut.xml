@@ -1,0 +1,12 @@
+<DataObjectMetadata name="optOut">
+  <DataSet type="Static">
+    <general>
+      <datasetName>optOut</datasetName>
+      <inputs>x1,x2,x3</inputs>
+      <outputs>ans</outputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight,ProbabilityWeight-x1,ProbabilityWeight-x2,ProbabilityWeight-x3,batchId,prefix</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
