@@ -1,0 +1,11 @@
+<DataObjectMetadata name="metaModelOutputTest">
+  <DataSet type="Static">
+    <general>
+      <datasetName>metaModelOutputTest</datasetName>
+      <inputs>leftTemperature,rightTemperature</inputs>
+      <outputs>k,solution</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
