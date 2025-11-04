@@ -24,7 +24,6 @@ from .AccelerateCFD.AccelerateCFD import AcceleratedCFD
 from .CobraTF.CTFinterface import CTF
 from .Dymola.DymolaInterface import Dymola
 from .MAAP5.MAAP5Interface import MAAP5
-from .MAMMOTH.MAMMOTHInterface import MAMMOTH
 from .MELCOR.melcorCombinedInterface import Melcor
 from .MooseBasedApp.BisonAndMeshInterface import BisonAndMesh
 from .MooseBasedApp.CubitInterface import Cubit
@@ -40,7 +39,6 @@ from .RAVEN.RAVENInterface import RAVEN
 from .RELAP5.Relap5Interface import Relap5
 from .RELAP5inssJp.Relap5inssJpInterface import Relap5inssJp
 from .RELAP7.RELAP7Interface import RELAP7
-from .Rattlesnake.RattlesnakeInterface import Rattlesnake
 from .SCALE.ScaleInterface import Scale
 from .PARCS.PARCSInterface import PARCS
 from .SERPENT.SerpentInterface import SERPENT
