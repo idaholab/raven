@@ -59,7 +59,7 @@ class Melcor(CodeInterfaceBase):
     if plotNode is None:
       raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
     if melNode is None:
-      raise IOError("Please enter MELCOR message file name")
+      raise IOError("Please enter MELCOR message (2.X) or diagnostic (1.8.X) file name")
 
     self.varList        = [var.strip() for var in varNode.text.split(",")]
     self.melcorPlotFile = plotNode.text
@@ -179,7 +179,7 @@ class Melcor(CodeInterfaceBase):
     failure = True
     with open(os.path.join(workingDir,self.melcorOutFile),"r") as outputToRead:
       readLines = outputToRead.readlines()
-      for lastRow in readLines[-4:]
+      for lastRow in readLines[-4:]:
           if any([gw in lastRow for gw in self.goodWord]):
             failure = False
       outputToRead.close()
