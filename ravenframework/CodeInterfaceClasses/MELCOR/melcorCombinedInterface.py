@@ -106,7 +106,7 @@ class Melcor(CodeInterfaceBase):
       precommand = executable
     melgCommand = str(preExec)    + ' i=' + melcin.getFilename()
     melcCommand = str(precommand) + ' i=' + melcin.getFilename()
-    returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],self.melcOut
+    returnCommand = [('parallel',melgCommand+' ow=o '),('parallel', melcCommand +' ow=o ')],self.melcOut
 
     return returnCommand
 
