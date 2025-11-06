@@ -45,6 +45,10 @@ class OptParallelCoordinatePlot(PlotInterface):
         descr=r"""Names of the variables from the DataObject whose optimization paths should be plotted."""))
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Names of the variable that refers to the batch index"""))
+    spec.addSub(InputData.parameterInputFactory('max_frames', contentType=InputTypes.IntegerType,
+        descr=r"""Optional cap on the number of generations rendered. If omitted, the plotter shows at most ten evenly spaced generations."""))
+    spec.addSub(InputData.parameterInputFactory('trail_generations', contentType=InputTypes.IntegerType,
+        descr=r"""Optional count of historical generations to overlay (with fading) in each frame. Older trails are drawn with lower opacity."""))
     return spec
 
   def __init__(self):
@@ -59,6 +63,8 @@ class OptParallelCoordinatePlot(PlotInterface):
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
     self.index = None       # index ID for each batch
+    self.maxFrames = None   # user-specified generation cap
+    self.trailGenerations = None  # number of trailing generations to overlay
 
   def handleInput(self, spec):
     """
@@ -75,6 +81,16 @@ class OptParallelCoordinatePlot(PlotInterface):
       self.sourceName = params['source']
       self.vars       = params['vars']
       self.index      = params['index']
+    maxNode = spec.findFirst('max_frames')
+    if maxNode is not None and maxNode.value is not None:
+      self.maxFrames = int(maxNode.value)
+      if self.maxFrames <= 0:
+        self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received non-positive <max_frames>.')
+    trailNode = spec.findFirst('trail_generations')
+    if trailNode is not None and trailNode.value is not None:
+      self.trailGenerations = int(trailNode.value)
+      if self.trailGenerations <= 0:
+        self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received non-positive <trail_generations>.')
 
 
   def initialize(self, stepEntities):
@@ -104,25 +120,79 @@ class OptParallelCoordinatePlot(PlotInterface):
       @ In, None
       @ Out, None
     """
-    data = self.source.asDataset().to_dataframe()
-    minGen = int(min(data[self.index]))
-    maxGen = int(max(data[self.index]))
+    data = self.source.asDataset().to_dataframe().copy()
+    if data.empty:
+      self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" received an empty dataset; no plot generated.')
+      return
+    data[self.index] = data[self.index].astype(float)
 
-    yMin = np.zeros(len(self.vars))
-    yMax = np.zeros(len(self.vars))
+    generations = sorted(data[self.index].unique())
+    if not generations:
+      self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" found no generations in "{self.index}".')
+      return
 
-    for idx,inp in enumerate(self.vars):
-      yMin[idx] = min(data[inp])
-      yMax[idx] = max(data[inp])
+    numeric = data[self.vars].astype(float)
+    yMin = numeric.min().to_numpy()
+    yMax = numeric.max().to_numpy()
+
+    def _select_generations(all_gens, limit):
+      if limit >= len(all_gens):
+        return list(all_gens)
+      positions = np.linspace(0, len(all_gens) - 1, limit, dtype=int)
+      selected_indices = []
+      for idx in positions:
+        if idx not in selected_indices:
+          selected_indices.append(idx)
+      # fill up if duplicates occurred
+      cursor = 0
+      while len(selected_indices) < limit and cursor < len(all_gens):
+        if cursor not in selected_indices:
+          selected_indices.append(cursor)
+        cursor += 1
+      selected_indices = sorted(selected_indices)
+      if selected_indices[-1] != len(all_gens) - 1:
+        selected_indices[-1] = len(all_gens) - 1
+      selected_indices = sorted(selected_indices)
+      return [all_gens[i] for i in selected_indices]
+
+    default_cap = min(len(generations), 10)
+    frame_cap = self.maxFrames if self.maxFrames is not None else default_cap
+    frame_cap = max(1, min(frame_cap, len(generations)))
+    gens_to_render = _select_generations(generations, frame_cap)
+    index_lookup = {gen: idx for idx, gen in enumerate(generations)}
+
+    trail_len = self.trailGenerations if self.trailGenerations is not None else min(5, len(generations))
+    trail_len = max(1, trail_len)
 
     filesID = []
 
-    for idx,genID in enumerate(range(minGen,maxGen+1,1)):
-      population = data[data[self.index]==genID]
-      ys = population[self.vars].values
-      fileID = f'{self.name}' + str(genID) + '.png'
-      plotUtils.generateParallelPlot(ys,genID,yMin,yMax,self.vars,fileID)
+    for genID in gens_to_render:
+      gen_position = index_lookup[genID]
+      trail_start = max(0, gen_position - trail_len + 1)
+      trail_gens = generations[trail_start:gen_position + 1]
+      if len(trail_gens) == 1:
+        alpha_values = np.array([1.0])
+      else:
+        alpha_values = np.linspace(0.3, 1.0, len(trail_gens))
+      line_blocks = []
+      alpha_blocks = []
+      for alpha, trail_gen in zip(alpha_values, trail_gens):
+        population = data[data[self.index] == trail_gen]
+        if population.empty:
+          continue
+        values = population[self.vars].astype(float).to_numpy()
+        line_blocks.append(values)
+        alpha_blocks.extend([alpha] * len(values))
+      if not line_blocks:
+        continue
+      stacked = np.vstack(line_blocks)
+      fileID = f'{self.name}_{genID}.png'
+      plotUtils.generateParallelPlot(stacked, genID, yMin, yMax, self.vars, fileID, line_alphas=alpha_blocks)
       filesID.append(fileID)
+
+    if not filesID:
+      self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" did not produce any frames.')
+      return
 
     # create filename
     giffilename = self._createFilename(defaultName=f'{self.name}.gif')
@@ -131,7 +201,4 @@ class OptParallelCoordinatePlot(PlotInterface):
       for filename in filesID:
         image = imageio.imread(filename)
         writer.append_data(image)
-
-
-
 

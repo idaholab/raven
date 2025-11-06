@@ -101,47 +101,54 @@ class NSGAParetoFrontPlot(PlotInterface):
       colorVar = 'CD'
 
     colors = None
+    useColorbar = False
     if colorVar is not None:
       if colorVar not in filtered.columns:
         self.raiseAWarning('Color variable "{}" not found; using uniform color.'.format(colorVar))
         colorVar = None
       else:
-        colors = filtered[colorVar]
-        if colors.empty:
+        series = filtered[colorVar]
+        if hasattr(series, 'to_numpy'):
+          raw_values = series.to_numpy()
+        else:
+          raw_values = np.asarray(series)
+        flat = np.asarray(raw_values).ravel()
+        if flat.size == 0:
           self.raiseAWarning('Color variable "{}" contains no samples; using uniform color.'.format(colorVar))
-          colors = None
           colorVar = None
         else:
-          numeric_series = None
-          if np.issubdtype(colors.dtype, np.number):
-            numeric_series = colors
-          else:
-            try:
-              numeric_series = colors.astype(float)
-            except Exception:
-              numeric_series = None
-          if numeric_series is not None:
-            sanitized = numeric_series.replace([np.inf, -np.inf], np.nan)
-            finite = sanitized.dropna()
-            if finite.empty:
-              self.raiseAWarning('Color variable "{}" has no finite values; using uniform color.'.format(colorVar))
-              colors = None
+          numeric_values = None
+          try:
+            numeric_values = flat.astype(float)
+          except (ValueError, TypeError):
+            numeric_values = None
+
+          if numeric_values is not None:
+            finite_mask = np.isfinite(numeric_values)
+            if not finite_mask.any():
+              self.raiseAWarning('Color variable "{}" has no finite numeric values; using uniform color.'.format(colorVar))
               colorVar = None
             else:
-              colors = sanitized
+              numeric_values = numeric_values.astype(float, copy=False)
+              numeric_values[~finite_mask] = np.nan
+              colors = numeric_values
+              useColorbar = True
           else:
-            valid_entries = colors.dropna()
-            if not valid_entries.size:
-              self.raiseAWarning('Color variable "{}" has no valid entries; using uniform color.'.format(colorVar))
-              colors = None
+            string_values = np.array([str(val).strip() for val in flat], dtype=object)
+            if not string_values.size:
+              self.raiseAWarning('Color variable "{}" has no usable categorical values; using uniform color.'.format(colorVar))
               colorVar = None
-            elif not all(is_color_like(val) for val in valid_entries):
-              self.raiseAWarning('Color variable "{}" cannot be interpreted as numeric or color values; using uniform color.'.format(colorVar))
-              colors = None
+            elif not all(val and val.lower() not in {'nan', 'none'} and is_color_like(val) for val in string_values):
+              self.raiseAWarning('Color variable "{}" cannot be interpreted as numeric or named colors; using uniform color.'.format(colorVar))
               colorVar = None
+            else:
+              colors = string_values
+
     scatterKwargs = {}
     if colors is not None:
-      scatterKwargs.update({'c': colors, 'cmap': 'viridis'})
+      scatterKwargs['c'] = colors
+      if useColorbar:
+        scatterKwargs['cmap'] = 'viridis'
 
     fig = plt.figure()
     if len(self.objectives) == 2:
@@ -152,7 +159,7 @@ class NSGAParetoFrontPlot(PlotInterface):
       ax.set_xlabel(self.objectives[0])
       ax.set_ylabel(self.objectives[1])
       ax.set_title(f'Pareto Front (rank={self.rank})')
-      if colorVar is not None and colors is not None:
+      if useColorbar and colorVar is not None and colors is not None:
         cbar = fig.colorbar(sc, ax=ax)
         cbar.set_label(colorVar)
     else:
@@ -167,7 +174,7 @@ class NSGAParetoFrontPlot(PlotInterface):
       ax.set_ylabel(self.objectives[1])
       ax.set_zlabel(self.objectives[2])
       ax.set_title(f'Pareto Front (rank={self.rank})')
-      if colorVar is not None and colors is not None:
+      if useColorbar and colorVar is not None and colors is not None:
         cbar = fig.colorbar(sc, ax=ax, shrink=0.6, aspect=12, pad=0.1)
         cbar.set_label(colorVar)
 

@@ -40,6 +40,7 @@
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
       <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+      <Output class="OutStreams" type="Plot">objective_contour_animation</Output>
     </IOStep>
   </Steps>
 
@@ -167,6 +168,15 @@
         <source>opt_export</source>
         <vars>x1,x2,x3</vars>
         <index>batchId</index>
+      </Plot>
+      <Plot name="objective_contour_animation" subType="ObjectiveContourAnimationPlot">
+        <source>opt_export</source>
+        <axes>x1, x3</axes>
+        <objective type="fitness">ans</objective>
+        <index>batchId</index>
+        <top>0.2</top>
+        <fps>2</fps>
+        <format>both</format>
       </Plot>
     </OutStreams>
 </Simulation>

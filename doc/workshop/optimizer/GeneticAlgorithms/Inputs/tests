@@ -2,7 +2,7 @@
   [./GA_MaxwRep]
     type = 'RavenFramework'
     input = '1_GA_MaxwRep.xml'
-    image = 'MaxwReplacement/plotter1.png'
+    image = 'MaxwReplacement/1-opt_path.png MaxwReplacement/1-population.png MaxwReplacement/1-plotter.gif'
     rel_err = 0.5
     output = 'MaxwReplacement/opt_export_0.csv'
   [../]

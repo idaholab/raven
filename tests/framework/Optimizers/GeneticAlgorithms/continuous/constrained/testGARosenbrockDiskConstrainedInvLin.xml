@@ -44,6 +44,8 @@
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
       <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+      <Output class="OutStreams" type="Plot">fitness_funnel</Output>
+      <Output class="OutStreams" type="Plot">sampling_coverage</Output>
     </IOStep>
   </Steps>
 
@@ -163,6 +165,19 @@
         <source>opt_export</source>
         <vars>x,y</vars>
         <index>batchId</index>
+      </Plot>
+      <Plot name="fitness_funnel" subType="FitnessFunnelPlot">
+        <source>opt_export</source>
+        <metric>fitness</metric>
+        <index>batchId</index>
+        <goal>min</goal>
+      </Plot>
+      <Plot name="sampling_coverage" subType="SamplingCoverageMapPlot">
+        <source>opt_export</source>
+        <variables>x, y</variables>
+        <index>batchId</index>
+        <format>both</format>
+        <fps>2.0</fps>
       </Plot>
     </OutStreams>
 </Simulation>

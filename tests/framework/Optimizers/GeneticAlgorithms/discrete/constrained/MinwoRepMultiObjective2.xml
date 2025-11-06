@@ -40,6 +40,11 @@
       <Output class="OutStreams" type="Plot">rank_history</Output>
       <Output class="OutStreams" type="Plot">crowding_distance</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation</Output>
+      <Output class="OutStreams" type="Plot">constraint_activity</Output>
+      <Output class="OutStreams" type="Plot">tradeoff_slices</Output>
+      <Output class="OutStreams" type="Plot">hypervolume_movie</Output>
+      <Output class="OutStreams" type="Plot">dominance_heatmap</Output>
+      <Output class="OutStreams" type="Plot">diversity_radar</Output>
     </IOStep>
   </Steps>
 
@@ -212,6 +217,42 @@
       <index>batchId</index>
       <fps>2.0</fps>
       <format>html</format>
+    </Plot>
+    <Plot name="constraint_activity" subType="ConstraintActivityTimelinePlot">
+      <source>opt_export</source>
+      <constraints>all</constraints>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+      <save_frames>true</save_frames>
+      <frames_max>10</frames_max>
+    </Plot>
+    <Plot name="tradeoff_slices" subType="TradeoffSlicePlot">
+      <source>opt_export</source>
+      <objectives>obj2, obj3</objectives>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+    <Plot name="hypervolume_movie" subType="HypervolumeMoviePlot">
+      <source>opt_export</source>
+      <objectives>obj2, obj3</objectives>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+    <Plot name="dominance_heatmap" subType="DominanceHeatMapPlot">
+      <source>opt_export</source>
+      <objectives>obj2, obj3</objectives>
+      <index>batchId</index>
+      <bins>60</bins>
+    </Plot>
+    <Plot name="diversity_radar" subType="DiversityRadarPlot">
+      <source>opt_export</source>
+      <metric>CD</metric>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
     </Plot>
   </OutStreams>
 </Simulation>

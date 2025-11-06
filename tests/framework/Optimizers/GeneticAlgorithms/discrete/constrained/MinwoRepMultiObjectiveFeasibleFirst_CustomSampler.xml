@@ -32,11 +32,14 @@
       <Output class="OutStreams" type="Plot">population</Output>
       <Output class="OutStreams" type="Plot">pareto_front</Output>
       <Output class="OutStreams" type="Plot">front_evolution</Output>
-      <Output class="OutStreams" type="Plot">front_evolution_gif</Output>
+      <Output class="OutStreams" type="Plot">objective_contour_animation</Output>
+      <Output class="OutStreams" type="Plot">objective_contour_animation2</Output>
       <Output class="OutStreams" type="Plot">rank_history</Output>
       <Output class="OutStreams" type="Plot">crowding_distance</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation</Output>
-      <Output class="OutStreams" type="Plot">front_rank_animation_gif</Output>
+      <Output class="OutStreams" type="Plot">constraint_activity</Output>
+      <Output class="OutStreams" type="Plot">tradeoff_slices</Output>
+      <Output class="OutStreams" type="Plot">diversity_radar</Output>
     </IOStep>
   </Steps>
 
@@ -165,15 +168,7 @@
       <index>batchId</index>
       <rank>1</rank>
       <fps>2.0</fps>
-      <format>html</format>
-    </Plot>
-    <Plot name="front_evolution_gif" subType="NSGAFrontAnimation">
-      <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
-      <index>batchId</index>
-      <rank>1</rank>
-      <fps>2.0</fps>
-      <format>gif</format>
+      <format>both</format>
     </Plot>
     <Plot name="rank_history" subType="NSGARankHistoryPlot">
       <source>opt_export</source>
@@ -190,14 +185,48 @@
       <objectives>obj1, obj2</objectives>
       <index>batchId</index>
       <fps>2.0</fps>
-      <format>html</format>
+      <format>both</format>
     </Plot>
-    <Plot name="front_rank_animation_gif" subType="NSGAFrontRankAnimation">
+    <Plot name="objective_contour_animation" subType="ObjectiveContourAnimationPlot">
       <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
+      <axes>x1, x3</axes>
+      <objective>all</objective>
       <index>batchId</index>
+      <top>0.2</top>
       <fps>2.0</fps>
-      <format>gif</format>
+      <format>both</format>
+    </Plot>
+    <Plot name="objective_contour_animation2" subType="ObjectiveContourAnimationPlot">
+      <source>opt_export</source>
+      <axes>x1, x2</axes>
+      <objective>all</objective>
+      <index>batchId</index>
+      <top>0.2</top>
+      <fps>2.0</fps>
+      <format>both</format>
+    </Plot>
+    <Plot name="constraint_activity" subType="ConstraintActivityTimelinePlot">
+      <source>opt_export</source>
+      <constraints>all</constraints>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+      <save_frames>true</save_frames>
+      <frames_max>10</frames_max>
+    </Plot>
+    <Plot name="tradeoff_slices" subType="TradeoffSlicePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+    <Plot name="diversity_radar" subType="DiversityRadarPlot">
+      <source>opt_export</source>
+      <metric>CD</metric>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
     </Plot>
   </OutStreams>
 </Simulation>
