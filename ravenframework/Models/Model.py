@@ -134,6 +134,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
   validateDict['Optimizer'][0]['type'] = ['GradientDescent',
                                           'GeneticAlgorithm',
                                           'NSGA-II',
+                                          'NSGA-III',
                                           'SimulatedAnnealing',
                                           'BayesianOptimizer']
 
