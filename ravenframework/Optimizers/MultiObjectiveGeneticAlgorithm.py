@@ -56,6 +56,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self.multiBestConstraint = None
     self.multiBestRank = None
     self.multiBestCD = None
+    self.multiBestOutputs = None
+    self._populationCache = {}
 
   def flush(self):
     super().flush()
@@ -67,6 +69,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self.multiBestConstraint = None
     self.multiBestRank = None
     self.multiBestCD = None
+    self.multiBestOutputs = None
+    self._populationCache = {}
 
   @classmethod
   def getInputSpecification(cls):
@@ -87,6 +91,219 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     names['rank'] = 'Non-dominated sorting rank for each survivor in the population.'
     names['CD'] = 'Crowding distance used to preserve solution diversity within a front.'
     return names
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    acceptable = super()._formatSolutionExportVariableNames(acceptable)
+    extras = set()
+    extraVars = set(self.dependentSample.keys())
+    if hasattr(self, '_targetEvaluation') and self._targetEvaluation is not None:
+      extraVars.update(self._targetEvaluation.getVars('output'))
+    if hasattr(self, '_solutionExport') and self._solutionExport is not None:
+      outputs = self._solutionExport.getVars('output') or []
+      for name in outputs:
+        if not isinstance(name, str):
+          continue
+        if name.startswith('FitnessEvaluation_'):
+          extras.add(name)
+          base = name[len('FitnessEvaluation_'):]
+          if base and not base.startswith('FitnessEvaluation_'):
+            extraVars.add(base)
+        else:
+          extraVars.add(name)
+    for var in extraVars:
+      if isinstance(var, str) and not var.startswith('FitnessEvaluation_'):
+        extras.add(f'FitnessEvaluation_{var}')
+    acceptable.update(extras)
+    return acceptable
+
+  def _normalizeKeyComponent(self, value):
+    """
+      Convert a decision-variable value into a hashable, comparable token.
+      @ In, value, object, raw value extracted from an evaluation
+      @ Out, normalized, object, comparable representation
+    """
+    if isinstance(value, (xr.DataArray, xr.Dataset)):
+      array = np.asarray(value.values)
+    else:
+      array = np.asarray(value)
+    if array.size == 0:
+      return None
+    scalar = array.flatten()[0]
+    if isinstance(scalar, (bytes, str)):
+      return str(scalar)
+    if isinstance(scalar, (np.bool_, bool)):
+      return bool(scalar)
+    if isinstance(scalar, (np.integer, int)):
+      return int(scalar)
+    try:
+      float_val = float(scalar)
+    except (TypeError, ValueError):
+      return str(scalar)
+    if np.isnan(float_val):
+      return 'nan'
+    return round(float_val, 12)
+
+  def _buildChromosomeKey(self, data):
+    """
+      Build a stable key for identifying chromosomes based on decision variables.
+      @ In, data, xr.Dataset or xr.DataArray or dict, container holding decision variables
+      @ Out, key, tuple, identifying key or None if incomplete
+    """
+    genes = list(self.toBeSampled.keys())
+    if not genes:
+      return None
+    key = []
+    for var in genes:
+      try:
+        if isinstance(data, xr.Dataset):
+          if var not in data.data_vars:
+            return None
+          val = data[var].values
+        elif isinstance(data, xr.DataArray):
+          if 'Gene' in data.coords and var in data.coords['Gene'].values:
+            val = data.sel(Gene=var).values
+          elif hasattr(data, 'loc'):
+            val = data.loc[var].values
+          else:
+            return None
+        elif isinstance(data, dict):
+          if var not in data:
+            return None
+          val = data[var]
+        else:
+          return None
+      except Exception:
+        return None
+      normalized = self._normalizeKeyComponent(val)
+      if normalized is None:
+        return None
+      key.append(normalized)
+    return tuple(key)
+
+  def _sampleToEntry(self, sample):
+    """
+      Convert an xr.Dataset sample to a plain dictionary of outputs.
+      @ In, sample, xr.Dataset, slice corresponding to a single chromosome evaluation
+      @ Out, entry, dict, mapping variable names to numpy/python scalars or arrays
+    """
+    entry = {}
+    for name, dataArray in sample.data_vars.items():
+      arr = np.asarray(dataArray.values)
+      if arr.ndim == 0:
+        entry[name] = arr.item()
+      else:
+        entry[name] = arr.copy()
+    return entry
+
+  def _cacheEvaluations(self, dataset):
+    """
+      Store raw evaluation outputs so survivors keep full data across generations.
+      @ In, dataset, xr.Dataset, collection of evaluated chromosomes for this batch
+      @ Out, None
+    """
+    if not isinstance(dataset, xr.Dataset):
+      return
+    sample_dim = 'RAVEN_sample_ID'
+    if sample_dim not in dataset.dims:
+      return
+    if self._populationCache is None:
+      self._populationCache = {}
+    count = dataset.sizes.get(sample_dim, 0)
+    for idx in range(count):
+      sample = dataset.isel({sample_dim: idx})
+      key = self._buildChromosomeKey(sample)
+      if key is None:
+        continue
+      self._populationCache[key] = self._sampleToEntry(sample)
+
+  def _retrieveCachedOutputs(self, data, dataset=None):
+    """
+      Fetch cached outputs for the given chromosome, optionally falling back to a dataset search.
+      @ In, data, xr.DataArray or dict, representation of the chromosome
+      @ In, dataset, xr.Dataset or None, optional search space for fallback matching
+      @ Out, outputs, dict, cached outputs (may be empty)
+    """
+    key = self._buildChromosomeKey(data)
+    if key is None:
+      return {}
+    if self._populationCache is None:
+      self._populationCache = {}
+    if key not in self._populationCache and isinstance(dataset, xr.Dataset):
+      sample_dim = 'RAVEN_sample_ID'
+      if sample_dim in dataset.dims:
+        count = dataset.sizes.get(sample_dim, 0)
+        for idx in range(count):
+          sample = dataset.isel({sample_dim: idx})
+          if self._buildChromosomeKey(sample) == key:
+            self._populationCache[key] = self._sampleToEntry(sample)
+            break
+    cached = self._populationCache.get(key)
+    if cached is None:
+      return {}
+    return {var: (val.copy() if isinstance(val, np.ndarray) else val) for var, val in cached.items()}
+
+  def _chromosomeDictFromPopulation(self, population, index):
+    """
+      Extract decision variables for a specific chromosome index from various containers.
+      @ In, population, xr.DataArray or dict, storage of chromosomes
+      @ In, index, int, chromosome position to extract
+      @ Out, chromo, dict, mapping decision variable -> value
+    """
+    chromo = {}
+    genes = list(self.toBeSampled.keys())
+    if isinstance(population, xr.DataArray):
+      slice_ = population.isel(chromosome=index)
+      for var in genes:
+        try:
+          if 'Gene' in slice_.coords and var in slice_.coords['Gene'].values:
+            val = slice_.sel(Gene=var).values
+          else:
+            val = slice_.loc[var].values
+        except Exception:
+          continue
+        arr = np.asarray(val)
+        if arr.size == 0:
+          continue
+        chromo[var] = arr.flatten()[0]
+    elif isinstance(population, dict):
+      for var in genes:
+        if var not in population:
+          continue
+        arr = np.asarray(population[var])
+        if arr.size <= index:
+          continue
+        chromo[var] = arr.flatten()[index]
+    return chromo
+
+  def _collectOutputsForPopulation(self, population, count, dataset=None):
+    """
+      Gather cached outputs for a collection of chromosomes.
+      @ In, population, xr.DataArray or dict, survivor representation
+      @ In, count, int, number of chromosomes to extract
+      @ In, dataset, xr.Dataset or None, fallback data source for matching
+      @ Out, outputs, dict(str -> list), collected outputs per requested variable
+    """
+    if count <= 0 or not hasattr(self, '_solutionExport') or self._solutionExport is None:
+      return {}
+    exportOutputs = self._solutionExport.getVars('output')
+    if not exportOutputs:
+      return {}
+    exportOutputs = [var for var in exportOutputs if var not in self.toBeSampled and var not in self._objectiveVar]
+    if not exportOutputs:
+      return {}
+    collected = {var: [] for var in exportOutputs}
+    for idx in range(count):
+      chromo = self._chromosomeDictFromPopulation(population, idx)
+      cached = self._retrieveCachedOutputs(chromo, dataset=dataset)
+      for var in exportOutputs:
+        value = cached.get(var, np.nan)
+        if isinstance(value, np.ndarray):
+          if value.size == 1:
+            value = value.item()
+          else:
+            value = value.copy()
+        collected[var].append(value)
+    return collected
 
   def handleInput(self, paramInput):
     super().handleInput(paramInput)
@@ -140,6 +357,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self.multiBestConstraint = optConstNew
     self.multiBestRank = optRank
     self.multiBestCD = optCD
+    self.multiBestOutputs = self._collectOutputsForPopulation(optPointsDic,
+                                                              len(optRank),
+                                                              dataset=rlz)
     return optPointsDic
 
   def _resolveNewGeneration(self, traj, rlz, info, pastPop, objectiveVal, fitness, g, ranks=None, CD=None):
@@ -177,8 +397,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if self._writeSteps == 'every':
       pop_size = rlz.sizes.get('RAVEN_sample_ID', 0)
       self.raiseADebug(f"### rlz.sizes['RAVEN_sample_ID'] = {pop_size}")
+      solutionExportVars = set()
+      solutionExportOutputs = []
+      if hasattr(self, '_solutionExport') and self._solutionExport is not None:
+        inputs = self._solutionExport.getVars('input') or []
+        solutionExportOutputs = self._solutionExport.getVars('output') or []
+        outputs = solutionExportOutputs
+        solutionExportVars.update(inputs)
+        solutionExportVars.update(outputs)
+      solutionExportVars.update(self.dependentSample.keys())
       for i in range(pop_size):
-        rlzDict = self.matingPopInputs.isel(chromosome=i).to_series().to_dict()
+        survivorSlice = self.matingPopInputs.isel(chromosome=i)
+        rlzDict = survivorSlice.to_series().to_dict()
         for j in range(len(self._objectiveVar)):
           rlzDict[self._objectiveVar[j]] = self.matingPopObjVals[j][i]
         rlzDict['batchId'] = self.batchId
@@ -191,11 +421,46 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
           rlzDict[f'FitnessEvaluation_{fitName}'] = fitnessContainer[fitName].data[i]
         for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
           rlzDict[f'ConstraintEvaluation_{consName}'] = g.data[i, ind]
+        cachedOutputs = self._retrieveCachedOutputs(survivorSlice, dataset=rlz)
+        for var in solutionExportVars:
+          if var in rlzDict:
+            continue
+          if isinstance(var, str) and var.startswith('FitnessEvaluation_'):
+            baseVar = var[len('FitnessEvaluation_'):]
+            value = None
+            if isinstance(fitnessContainer, dict) and baseVar in fitnessContainer:
+              value = fitnessContainer[baseVar].data[i]
+            elif hasattr(self.matingPopFitness, 'keys') and baseVar in self.matingPopFitness:
+              value = self.matingPopFitness[baseVar].data[i]
+            elif baseVar in cachedOutputs:
+              value = cachedOutputs[baseVar]
+            elif baseVar in rlz.data_vars:
+              baseArray = np.asarray(rlz[baseVar].data)
+              if baseArray.ndim == 0:
+                value = baseArray.item()
+              elif baseArray.shape[0] > i:
+                value = np.take(baseArray, i, axis=0)
+            if value is not None:
+              rlzDict[var] = value
+            continue
+          if var in cachedOutputs:
+            rlzDict[var] = cachedOutputs[var]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
     if acceptable in ('accepted', 'first'):
-      varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-      bestRlz = {var: np.atleast_1d(self.multiBestPoint[var]) for var in set(varList) if var in self.multiBestPoint}
+      exportInputs = self._solutionExport.getVars('input') if self._solutionExport is not None else []
+      exportOutputs = self._solutionExport.getVars('output') if self._solutionExport is not None else []
+      requestedInputs = set(exportInputs or []) | set(self.toBeSampled.keys())
+      requestedOutputs = set(exportOutputs or [])
+      bestRlz = {}
+      if isinstance(self.multiBestPoint, dict):
+        for var in requestedInputs:
+          if var in self.multiBestPoint:
+            bestRlz[var] = np.atleast_1d(self.multiBestPoint[var])
+      if isinstance(self.multiBestOutputs, dict):
+        for var, values in self.multiBestOutputs.items():
+          if var in requestedOutputs and var not in bestRlz:
+            bestRlz[var] = np.asarray(values)
       for i in range(len(self._objectiveVar)):
         bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
       bestRlz['rank'] = self.multiBestRank
@@ -206,6 +471,20 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
           bestRlz[f'ConstraintEvaluation_{name}'] = self.multiBestConstraint[ind].values
       for fitName in self.multiBestFitness.keys():
         bestRlz[f'FitnessEvaluation_{fitName}'] = self.multiBestFitness[fitName].data
+      if isinstance(self.multiBestOutputs, dict):
+        for name in requestedOutputs:
+          if isinstance(name, str) and name.startswith('FitnessEvaluation_') and name not in bestRlz:
+            baseVar = name[len('FitnessEvaluation_'):]
+            if baseVar in self.multiBestFitness:
+              bestRlz[name] = self.multiBestFitness[baseVar].data
+            elif baseVar in self.multiBestOutputs:
+              bestRlz[name] = np.asarray(self.multiBestOutputs[baseVar])
+      elif hasattr(self.multiBestFitness, 'keys'):
+        for name in requestedOutputs:
+          if isinstance(name, str) and name.startswith('FitnessEvaluation_') and name not in bestRlz:
+            baseVar = name[len('FitnessEvaluation_'):]
+            if baseVar in self.multiBestFitness:
+              bestRlz[name] = self.multiBestFitness[baseVar].data
       bestRlz.update(self.multiBestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
 
@@ -247,6 +526,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     for t in self._activeTraj[1:]:
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
     self.incrementIteration(traj)
+
+    self._cacheEvaluations(rlz)
 
     files = self.assemblerDict['Files']
     self._EQcheckfile = files if any("EQinput" in sublist for sublist in files) else None
