@@ -248,6 +248,8 @@
                                                                 +------------------------------------+
 """
 # External Modules----------------------------------------------------------------------------------
+import importlib
+import os
 from collections import deque, defaultdict
 import numpy as np
 from scipy.special import comb
@@ -352,6 +354,10 @@ class GeneticAlgorithm(RavenSampled):
     self._repairInstance = None                                  # instance of repair
     self._canHandleMultiObjective = False                        # base GA focuses on single-objective optimization by default
     self._normalizeFitness = False
+    self._seedFactoryConfig = None                               # configuration dictionary for optional initial seed factory
+    self._seedFactoryModule = None                               # dotted path for seed factory module
+    self._seedFactoryClass = None                                # class name for seed factory
+    self._seedFactoryInstance = None                             # cached seed factory instance
 
   ##########################
   # Initialization Methods #
@@ -562,6 +568,70 @@ class GeneticAlgorithm(RavenSampled):
     GAparams.addSub(fitness)
     specs.addSub(GAparams)
 
+    seedFactory = InputData.parameterInputFactory('initialSeedFactory', strictMode=False,
+        printPriority=109,
+        descr=r"""Optional configuration for template-driven population seeding. When provided, the GA
+                  calls the specified Python factory to expand a library of historical cores into the
+                  first generation.""")
+    seedFactory.addParam('module', InputTypes.StringType, required=False,
+        descr=r"""Python module containing the seed factory class. \default{plugins.PRLO.src.Seeding}""")
+    seedFactory.addParam('class', InputTypes.StringType, required=False,
+        descr=r"""Seed factory class name inside the module. \default{CoreTemplateSeeder}""")
+    seedFactory.addSub(InputData.parameterInputFactory('sim3Parameters', contentType=InputTypes.StringType,
+        descr=r"""Path to the SIMULATE parameter file (e.g., ``sim3-param3.xml``) describing raven IDs and
+                  assembly labels. Paths are resolved relative to the optimizer working directory."""))
+    seedFactory.addSub(InputData.parameterInputFactory('baseSample', contentType=InputTypes.StringType,
+        descr=r"""SIMULATE input (typically ``sample.inp``) containing ``$fa-locX$`` placeholders used to
+                  reconstruct geometry metadata."""))
+    templateEntry = InputData.parameterInputFactory('template', contentType=InputTypes.StringType,
+        descr=r"""Path to a materialized SIMULATE template (assemblies already substituted). May be provided
+                  multiple times.""")
+    templateEntry.addParam('profile', InputTypes.StringType, required=False,
+        descr=r"""Optional archetype label (e.g., ``low_leakage``, ``blanket``, ``checkerboard``) assigned to this template.""")
+    seedFactory.addSub(templateEntry)
+    templateDirEntry = InputData.parameterInputFactory('templateDirectory', contentType=InputTypes.StringType,
+        descr=r"""Directory containing one or more SIMULATE templates. Every ``*.inp`` file without placeholders
+                  will be considered.""")
+    templateDirEntry.addParam('profile', InputTypes.StringType, required=False,
+        descr=r"""Optional archetype label applied to every template within the directory.""")
+    seedFactory.addSub(templateDirEntry)
+    ringSwap = InputData.parameterInputFactory('ringSwap', contentType=InputTypes.StringType, strictMode=False,
+        descr=r"""Probability (node text) and optional attributes that govern ring-constrained swaps. Attributes:
+                  ``probability`` (float) and ``maxSwaps`` (int).""")
+    ringSwap.addParam('probability', InputTypes.FloatType, required=False,
+        descr=r"""Override probability of performing ring swaps.""")
+    ringSwap.addParam('maxSwaps', InputTypes.IntegerType, required=False,
+        descr=r"""Maximum number of ring swaps per mutation.""")
+    seedFactory.addSub(ringSwap)
+    familyJitter = InputData.parameterInputFactory('familyJitter', contentType=InputTypes.StringType, strictMode=False,
+        descr=r"""Probability (node text) and optional attributes that govern family-preserving jitters. Attributes:
+                  ``probability`` (float) and ``maxChanges`` (int).""")
+    familyJitter.addParam('probability', InputTypes.FloatType, required=False,
+        descr=r"""Override probability of performing family jitters.""")
+    familyJitter.addParam('maxChanges', InputTypes.IntegerType, required=False,
+        descr=r"""Maximum number of assembly replacements per jitter event.""")
+    seedFactory.addSub(familyJitter)
+    heuristicProfile = InputData.parameterInputFactory('heuristicProfile', contentType=InputTypes.StringType, strictMode=False,
+        descr=r"""Associate template-selection heuristics with file patterns (glob syntax). The node text provides the pattern to match.""")
+    heuristicProfile.addParam('name', InputTypes.StringType, required=True,
+        descr=r"""Archetype label (e.g., ``low_leakage``, ``blanket``, ``checkerboard``).""")
+    heuristicProfile.addParam('weight', InputTypes.FloatType, required=False,
+        descr=r"""Relative sampling weight when drawing directly from this archetype.""")
+    seedFactory.addSub(heuristicProfile)
+    seedFactory.addSub(InputData.parameterInputFactory('occupancySamplerWeight', contentType=InputTypes.FloatType,
+        descr=r"""Probability of drawing a knowledge-based seed from the learned occupancy map (0–1)."""))
+    seedFactory.addSub(InputData.parameterInputFactory('profileSamplerWeight', contentType=InputTypes.FloatType,
+        descr=r"""Probability of drawing a seed from one of the archetype-specific occupancy models (0–1)."""))
+    seedFactory.addSub(InputData.parameterInputFactory('randomInjection', contentType=InputTypes.FloatType,
+        descr=r"""Fraction of the first generation reserved for random repaired individuals."""))
+    seedFactory.addSub(InputData.parameterInputFactory('maxAttempts', contentType=InputTypes.IntegerType,
+        descr=r"""Maximum number of attempts allowed to synthesize the requested population."""))
+    seedFactory.addSub(InputData.parameterInputFactory('randomSeed', contentType=InputTypes.IntegerType,
+        descr=r"""Seed passed to the seed factory's RNG for reproducibility."""))
+    seedFactory.addSub(InputData.parameterInputFactory('lockedVariables', contentType=InputTypes.StringListType,
+        descr=r"""Comma-separated list of optimization variables that must retain their template assignments."""))
+    specs.addSub(seedFactory)
+
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
         printPriority=108,
@@ -621,6 +691,61 @@ class GeneticAlgorithm(RavenSampled):
     # GAparams                                                                         #
     ####################################################################################
     gaParamsNode = paramInput.findFirst('GAparams')
+
+    seedNode = paramInput.findFirst('initialSeedFactory')
+    self._seedFactoryInstance = None
+    self._seedFactoryConfig = None
+    self._seedFactoryModule = None
+    self._seedFactoryClass = None
+    if seedNode is not None:
+      module = seedNode.parameterValues.get('module', 'plugins.PRLO.src.Seeding')
+      clsName = seedNode.parameterValues.get('class', 'CoreTemplateSeeder')
+      config = {'templates': [], 'templateDirectories': [], 'heuristicProfiles': []}
+      for child in seedNode.subparts:
+        name = child.getName()
+        value = child.value
+        if name in ('sim3Parameters', 'baseSample'):
+          config[name] = value
+        elif name == 'template':
+          entry = {'path': value}
+          if hasattr(child, 'parameterValues') and 'profile' in child.parameterValues:
+            entry['profile'] = child.parameterValues['profile']
+          config['templates'].append(entry)
+        elif name == 'templateDirectory':
+          entry = {'path': value}
+          if hasattr(child, 'parameterValues') and 'profile' in child.parameterValues:
+            entry['profile'] = child.parameterValues['profile']
+          config['templateDirectories'].append(entry)
+        elif name == 'ringSwap':
+          payload = dict(child.parameterValues)
+          if value not in (None, ''):
+            payload.setdefault('value', value)
+          config['ringSwap'] = payload
+        elif name == 'familyJitter':
+          payload = dict(child.parameterValues)
+          if value not in (None, ''):
+            payload.setdefault('value', value)
+          config['familyJitter'] = payload
+        elif name == 'heuristicProfile':
+          entry = {'name': child.parameterValues.get('name') if hasattr(child, 'parameterValues') else None,
+                   'pattern': value,
+                   'weight': child.parameterValues.get('weight') if hasattr(child, 'parameterValues') else None}
+          config['heuristicProfiles'].append(entry)
+        elif name == 'occupancySamplerWeight':
+          config['occupancySamplerWeight'] = value
+        elif name == 'profileSamplerWeight':
+          config['profileSamplerWeight'] = value
+        elif name == 'randomInjection':
+          config['randomInjection'] = value
+        elif name == 'maxAttempts':
+          config['maxAttempts'] = value
+        elif name == 'randomSeed':
+          config['randomSeed'] = value
+        elif name == 'lockedVariables':
+          config['lockedVariables'] = value
+      self._seedFactoryModule = module
+      self._seedFactoryClass = clsName
+      self._seedFactoryConfig = config
 
     ####################################################################################
     # populationSize                                                                   #
@@ -731,6 +856,62 @@ class GeneticAlgorithm(RavenSampled):
     if self._requiredPersistence is None:
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
+
+  def _get_seed_factory(self):
+    """
+      Lazily import and instantiate the configured initial seed factory.
+    """
+    if self._seedFactoryConfig is None:
+      return None
+    if self._seedFactoryInstance is None:
+      module_name = self._seedFactoryModule or 'plugins.PRLO.src.Seeding'
+      class_name = self._seedFactoryClass or 'CoreTemplateSeeder'
+      try:
+        module = importlib.import_module(module_name)
+      except ImportError as exc:
+        self.raiseAnError(IOError, f'Unable to import seed factory module "{module_name}": {exc}')
+      try:
+        factory_class = getattr(module, class_name)
+      except AttributeError as exc:
+        self.raiseAnError(IOError, f'Module "{module_name}" does not define seed factory class "{class_name}": {exc}')
+      config = deepcopy(self._seedFactoryConfig) if self._seedFactoryConfig else {}
+      try:
+        self._seedFactoryInstance = factory_class(config=config,
+                                                  variables=list(self.toBeSampled),
+                                                  working_dir=os.getcwd())
+      except TypeError:
+        # Fall back to positional invocation for legacy factories.
+        try:
+          self._seedFactoryInstance = factory_class(config, list(self.toBeSampled), os.getcwd())
+        except Exception as exc:
+          self.raiseAnError(IOError, f'Unable to instantiate seed factory "{class_name}" '
+                                     f'from "{module_name}": {exc}')
+      except Exception as exc:
+        self.raiseAnError(IOError, f'Unable to instantiate seed factory "{class_name}" '
+                                   f'from "{module_name}": {exc}')
+    return self._seedFactoryInstance
+
+  def _initializeInitSampler(self, externalSeeding):
+    """
+      Override sampler initialization to allow template-driven seeding.
+    """
+    factory = self._get_seed_factory()
+    if factory is not None:
+      seeds = factory.generate_population(self._populationSize)
+      if len(seeds) != self._populationSize:
+        self.raiseAnError(IOError, f'Seed factory produced {len(seeds)} individuals while population '
+                                   f'size is {self._populationSize}.')
+      sanitized = []
+      for idx, seed in enumerate(seeds):
+        missing = [var for var in self.toBeSampled if var not in seed]
+        if missing:
+          self.raiseAnError(IOError, f'Seed #{idx} from factory is missing variables: {missing}')
+        sanitized.append({var: int(seed[var]) for var in self.toBeSampled})
+      self._initialValuesFromInput = deepcopy(sanitized)
+      self._initialValues = deepcopy(sanitized)
+      self.raiseADebug('Initial population supplied by template seed factory; skipping sampler-based seeding.')
+      return
+    super()._initializeInitSampler(externalSeeding)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -1390,7 +1571,7 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseADebug(f"### rlz.sizes['RAVEN_sample_ID'] = {pop_size}")
       for i in range(pop_size):
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        rlzDict = {var: float(np.atleast_1d(rlz[var].data)[i])
+        rlzDict = {var: np.atleast_1d(rlz[var].data)[i]
                    for var in set(varList) if var in rlz.data_vars}
 
         if self.matingPopInputs is not None:
