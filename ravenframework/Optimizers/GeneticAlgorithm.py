@@ -25,6 +25,13 @@
        [2] Z. Michalewicz, "Genetic Algorithms. + Data Structures. = Evolution Programs," Third, Revised and Extended Edition, Springer (1996).
        [3] Deb, Kalyanmoy, et al. "A fast and elitist multiobjective genetic algorithm: NSGA-II." IEEE transactions on evolutionary computation 6.2 (2002): 182-197.
        [4] Deb, Kalyanmoy. "An efficient constraint handling method for genetic algorithms." Computer methods in applied mechanics and engineering 186.2-4 (2000): 311-338.
+
+  Note
+  ----
+  The base :class:`GeneticAlgorithm` now encapsulates the single-objective
+  workflow only. Multi-objective extensions (e.g., NSGA-II style ranking and
+  crowding) live in :class:`MultiObjectiveGeneticAlgorithm`, keeping the
+  single-objective implementation easier to follow.
                                                                 +--------------------------+
                                                                 |     AdaptiveSampler      |
                                                                 |--------------------------|
@@ -192,19 +199,12 @@
                                                                 | bestPoint                          |
                                                                 | constraintsV                       |
                                                                 | convergenceOptions                 |
-                                                                | crowdingDistance                   |
                                                                 | fitness                            |
                                                                 | hdsm                               |
-                                                                | multiBestCD                        |
-                                                                | multiBestConstraint                |
-                                                                | multiBestFitness                   |
-                                                                | multiBestObjective                 |
-                                                                | multiBestPoint                     |
-                                                                | multiBestRank                      |
+                                                                | bestObjective                      |
                                                                 | objectiveVal                       |
                                                                 | popAge                             |
                                                                 | population                         |
-                                                                | rank                               |
                                                                 |------------------------------------|
                                                                 | _GD                                |
                                                                 | _GDp                               |
@@ -248,6 +248,8 @@
                                                                 +------------------------------------+
 """
 # External Modules----------------------------------------------------------------------------------
+import importlib
+import os
 from collections import deque, defaultdict
 import numpy as np
 from scipy.special import comb
@@ -319,21 +321,14 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None                                       # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None                                           # population age
     self.fitness = None                                          # population fitness
-    self.rank = None                                             # population rank (for Multi-objective optimization only)
     self.constraintsV = None                                     # calculated contraints value
-    self.crowdingDistance = None                                 # population crowding distance (for Multi-objective optimization only)
     self.ahdp = np.NaN                                           # p-Average Hausdorff Distance between populations
     self.ahd  = np.NaN                                           # Hausdorff Distance between populations
     self.hdsm = np.NaN                                           # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
     self.bestFitness = None                                      # fitness value of the best solution found
+    self.bestObjective = None                                    # objective value of the best solution found
     self._bestSnapshot = None                                    # cached survivor snapshot for final export alignment
-    self.multiBestPoint = {}                                     # the best solutions (chromosomes) found among population in a specific batchId
-    self.multiBestFitness = {}                                   # fitness values of the best solutions found
-    self.multiBestObjective = {}                                 # objective values of the best solutions found
-    self.multiBestConstraint = {}                                # constraint values of the best solutions found
-    self.multiBestRank = {}                                      # rank values of the best solutions found
-    self.multiBestCD = {}                                        # crowding distance (CD) values of the best solutions found
     self.objectiveVal = None                                     # objective values of solutions
     self._populationSize = None                                  # number of population size
     self._parentSelectionType = None                             # type of the parent selection process chosen
@@ -357,8 +352,12 @@ class GeneticAlgorithm(RavenSampled):
     self._penaltyCoeff = None                                    # weight coefficients corresponding to constraints and objectives for fitness calculation
     self._fitnessInstance = None                                 # instance of fitness
     self._repairInstance = None                                  # instance of repair
-    self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
+    self._canHandleMultiObjective = False                        # base GA focuses on single-objective optimization by default
     self._normalizeFitness = False
+    self._seedFactoryConfig = None                               # configuration dictionary for optional initial seed factory
+    self._seedFactoryModule = None                               # dotted path for seed factory module
+    self._seedFactoryClass = None                                # class name for seed factory
+    self._seedFactoryInstance = None                             # cached seed factory instance
 
   ##########################
   # Initialization Methods #
@@ -569,6 +568,70 @@ class GeneticAlgorithm(RavenSampled):
     GAparams.addSub(fitness)
     specs.addSub(GAparams)
 
+    seedFactory = InputData.parameterInputFactory('initialSeedFactory', strictMode=False,
+        printPriority=109,
+        descr=r"""Optional configuration for template-driven population seeding. When provided, the GA
+                  calls the specified Python factory to expand a library of historical cores into the
+                  first generation.""")
+    seedFactory.addParam('module', InputTypes.StringType, required=False,
+        descr=r"""Python module containing the seed factory class. \default{plugins.PRLO.src.Seeding}""")
+    seedFactory.addParam('class', InputTypes.StringType, required=False,
+        descr=r"""Seed factory class name inside the module. \default{CoreTemplateSeeder}""")
+    seedFactory.addSub(InputData.parameterInputFactory('sim3Parameters', contentType=InputTypes.StringType,
+        descr=r"""Path to the SIMULATE parameter file (e.g., ``sim3-param3.xml``) describing raven IDs and
+                  assembly labels. Paths are resolved relative to the optimizer working directory."""))
+    seedFactory.addSub(InputData.parameterInputFactory('baseSample', contentType=InputTypes.StringType,
+        descr=r"""SIMULATE input (typically ``sample.inp``) containing ``$fa-locX$`` placeholders used to
+                  reconstruct geometry metadata."""))
+    templateEntry = InputData.parameterInputFactory('template', contentType=InputTypes.StringType,
+        descr=r"""Path to a materialized SIMULATE template (assemblies already substituted). May be provided
+                  multiple times.""")
+    templateEntry.addParam('profile', InputTypes.StringType, required=False,
+        descr=r"""Optional archetype label (e.g., ``low_leakage``, ``blanket``, ``checkerboard``) assigned to this template.""")
+    seedFactory.addSub(templateEntry)
+    templateDirEntry = InputData.parameterInputFactory('templateDirectory', contentType=InputTypes.StringType,
+        descr=r"""Directory containing one or more SIMULATE templates. Every ``*.inp`` file without placeholders
+                  will be considered.""")
+    templateDirEntry.addParam('profile', InputTypes.StringType, required=False,
+        descr=r"""Optional archetype label applied to every template within the directory.""")
+    seedFactory.addSub(templateDirEntry)
+    ringSwap = InputData.parameterInputFactory('ringSwap', contentType=InputTypes.StringType, strictMode=False,
+        descr=r"""Probability (node text) and optional attributes that govern ring-constrained swaps. Attributes:
+                  ``probability`` (float) and ``maxSwaps`` (int).""")
+    ringSwap.addParam('probability', InputTypes.FloatType, required=False,
+        descr=r"""Override probability of performing ring swaps.""")
+    ringSwap.addParam('maxSwaps', InputTypes.IntegerType, required=False,
+        descr=r"""Maximum number of ring swaps per mutation.""")
+    seedFactory.addSub(ringSwap)
+    familyJitter = InputData.parameterInputFactory('familyJitter', contentType=InputTypes.StringType, strictMode=False,
+        descr=r"""Probability (node text) and optional attributes that govern family-preserving jitters. Attributes:
+                  ``probability`` (float) and ``maxChanges`` (int).""")
+    familyJitter.addParam('probability', InputTypes.FloatType, required=False,
+        descr=r"""Override probability of performing family jitters.""")
+    familyJitter.addParam('maxChanges', InputTypes.IntegerType, required=False,
+        descr=r"""Maximum number of assembly replacements per jitter event.""")
+    seedFactory.addSub(familyJitter)
+    heuristicProfile = InputData.parameterInputFactory('heuristicProfile', contentType=InputTypes.StringType, strictMode=False,
+        descr=r"""Associate template-selection heuristics with file patterns (glob syntax). The node text provides the pattern to match.""")
+    heuristicProfile.addParam('name', InputTypes.StringType, required=True,
+        descr=r"""Archetype label (e.g., ``low_leakage``, ``blanket``, ``checkerboard``).""")
+    heuristicProfile.addParam('weight', InputTypes.FloatType, required=False,
+        descr=r"""Relative sampling weight when drawing directly from this archetype.""")
+    seedFactory.addSub(heuristicProfile)
+    seedFactory.addSub(InputData.parameterInputFactory('occupancySamplerWeight', contentType=InputTypes.FloatType,
+        descr=r"""Probability of drawing a knowledge-based seed from the learned occupancy map (0–1)."""))
+    seedFactory.addSub(InputData.parameterInputFactory('profileSamplerWeight', contentType=InputTypes.FloatType,
+        descr=r"""Probability of drawing a seed from one of the archetype-specific occupancy models (0–1)."""))
+    seedFactory.addSub(InputData.parameterInputFactory('randomInjection', contentType=InputTypes.FloatType,
+        descr=r"""Fraction of the first generation reserved for random repaired individuals."""))
+    seedFactory.addSub(InputData.parameterInputFactory('maxAttempts', contentType=InputTypes.IntegerType,
+        descr=r"""Maximum number of attempts allowed to synthesize the requested population."""))
+    seedFactory.addSub(InputData.parameterInputFactory('randomSeed', contentType=InputTypes.IntegerType,
+        descr=r"""Seed passed to the seed factory's RNG for reproducibility."""))
+    seedFactory.addSub(InputData.parameterInputFactory('lockedVariables', contentType=InputTypes.StringListType,
+        descr=r"""Comma-separated list of optimization variables that must retain their template assignments."""))
+    specs.addSub(seedFactory)
+
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
         printPriority=108,
@@ -629,6 +692,61 @@ class GeneticAlgorithm(RavenSampled):
     ####################################################################################
     gaParamsNode = paramInput.findFirst('GAparams')
 
+    seedNode = paramInput.findFirst('initialSeedFactory')
+    self._seedFactoryInstance = None
+    self._seedFactoryConfig = None
+    self._seedFactoryModule = None
+    self._seedFactoryClass = None
+    if seedNode is not None:
+      module = seedNode.parameterValues.get('module', 'plugins.PRLO.src.Seeding')
+      clsName = seedNode.parameterValues.get('class', 'CoreTemplateSeeder')
+      config = {'templates': [], 'templateDirectories': [], 'heuristicProfiles': []}
+      for child in seedNode.subparts:
+        name = child.getName()
+        value = child.value
+        if name in ('sim3Parameters', 'baseSample'):
+          config[name] = value
+        elif name == 'template':
+          entry = {'path': value}
+          if hasattr(child, 'parameterValues') and 'profile' in child.parameterValues:
+            entry['profile'] = child.parameterValues['profile']
+          config['templates'].append(entry)
+        elif name == 'templateDirectory':
+          entry = {'path': value}
+          if hasattr(child, 'parameterValues') and 'profile' in child.parameterValues:
+            entry['profile'] = child.parameterValues['profile']
+          config['templateDirectories'].append(entry)
+        elif name == 'ringSwap':
+          payload = dict(child.parameterValues)
+          if value not in (None, ''):
+            payload.setdefault('value', value)
+          config['ringSwap'] = payload
+        elif name == 'familyJitter':
+          payload = dict(child.parameterValues)
+          if value not in (None, ''):
+            payload.setdefault('value', value)
+          config['familyJitter'] = payload
+        elif name == 'heuristicProfile':
+          entry = {'name': child.parameterValues.get('name') if hasattr(child, 'parameterValues') else None,
+                   'pattern': value,
+                   'weight': child.parameterValues.get('weight') if hasattr(child, 'parameterValues') else None}
+          config['heuristicProfiles'].append(entry)
+        elif name == 'occupancySamplerWeight':
+          config['occupancySamplerWeight'] = value
+        elif name == 'profileSamplerWeight':
+          config['profileSamplerWeight'] = value
+        elif name == 'randomInjection':
+          config['randomInjection'] = value
+        elif name == 'maxAttempts':
+          config['maxAttempts'] = value
+        elif name == 'randomSeed':
+          config['randomSeed'] = value
+        elif name == 'lockedVariables':
+          config['lockedVariables'] = value
+      self._seedFactoryModule = module
+      self._seedFactoryClass = clsName
+      self._seedFactoryConfig = config
+
     ####################################################################################
     # populationSize                                                                   #
     ####################################################################################
@@ -642,8 +760,9 @@ class GeneticAlgorithm(RavenSampled):
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
 
-    if self._isMultiObjective and self._parentSelectionType != 'tournamentSelection':
-      self.raiseAnError(IOError, f'Currently, "tournamentSelection" in the only <parentSelection> mechanism supported by the multi-objective Genetic Algorithms.')
+    if self._isMultiObjective and not self._canHandleMultiObjective:
+      self.raiseAnError(IOError, 'The base GeneticAlgorithm handles single-objective problems only. '
+                                 'Use MultiObjectiveGeneticAlgorithm (e.g., NSGA-II) when providing multiple objectives.')
 
     ####################################################################################
     # reproduction node                                                                #
@@ -690,8 +809,6 @@ class GeneticAlgorithm(RavenSampled):
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     if not self._isMultiObjective and self._survivorSelectionType == 'rankNcrowdingBased':
       self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports Multi-objective Optimization (i.e., number of objectives in <objective> is greater than one).')
-    if self._isMultiObjective and self._survivorSelectionType != 'rankNcrowdingBased':
-      self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
 
     ####################################################################################
     # fitness node                                                                     #
@@ -739,6 +856,62 @@ class GeneticAlgorithm(RavenSampled):
     if self._requiredPersistence is None:
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
+
+  def _get_seed_factory(self):
+    """
+      Lazily import and instantiate the configured initial seed factory.
+    """
+    if self._seedFactoryConfig is None:
+      return None
+    if self._seedFactoryInstance is None:
+      module_name = self._seedFactoryModule or 'plugins.PRLO.src.Seeding'
+      class_name = self._seedFactoryClass or 'CoreTemplateSeeder'
+      try:
+        module = importlib.import_module(module_name)
+      except ImportError as exc:
+        self.raiseAnError(IOError, f'Unable to import seed factory module "{module_name}": {exc}')
+      try:
+        factory_class = getattr(module, class_name)
+      except AttributeError as exc:
+        self.raiseAnError(IOError, f'Module "{module_name}" does not define seed factory class "{class_name}": {exc}')
+      config = deepcopy(self._seedFactoryConfig) if self._seedFactoryConfig else {}
+      try:
+        self._seedFactoryInstance = factory_class(config=config,
+                                                  variables=list(self.toBeSampled),
+                                                  working_dir=os.getcwd())
+      except TypeError:
+        # Fall back to positional invocation for legacy factories.
+        try:
+          self._seedFactoryInstance = factory_class(config, list(self.toBeSampled), os.getcwd())
+        except Exception as exc:
+          self.raiseAnError(IOError, f'Unable to instantiate seed factory "{class_name}" '
+                                     f'from "{module_name}": {exc}')
+      except Exception as exc:
+        self.raiseAnError(IOError, f'Unable to instantiate seed factory "{class_name}" '
+                                   f'from "{module_name}": {exc}')
+    return self._seedFactoryInstance
+
+  def _initializeInitSampler(self, externalSeeding):
+    """
+      Override sampler initialization to allow template-driven seeding.
+    """
+    factory = self._get_seed_factory()
+    if factory is not None:
+      seeds = factory.generate_population(self._populationSize)
+      if len(seeds) != self._populationSize:
+        self.raiseAnError(IOError, f'Seed factory produced {len(seeds)} individuals while population '
+                                   f'size is {self._populationSize}.')
+      sanitized = []
+      for idx, seed in enumerate(seeds):
+        missing = [var for var in self.toBeSampled if var not in seed]
+        if missing:
+          self.raiseAnError(IOError, f'Seed #{idx} from factory is missing variables: {missing}')
+        sanitized.append({var: int(seed[var]) for var in self.toBeSampled})
+      self._initialValuesFromInput = deepcopy(sanitized)
+      self._initialValues = deepcopy(sanitized)
+      self.raiseADebug('Initial population supplied by template seed factory; skipping sampler-based seeding.')
+      return
+    super()._initializeInitSampler(externalSeeding)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -1339,8 +1512,6 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None
     self.popAge = None
     self.fitness = None
-    self.rank = None
-    self.crowdingDistance = None
     self.objectiveVal = None
     self.constraintsV = None
     self._bestSnapshot = None
@@ -1350,19 +1521,31 @@ class GeneticAlgorithm(RavenSampled):
     self.hdsm = np.NaN
     self.bestPoint = None
     self.bestFitness = None
-    self.multiBestPoint = None
-    self.multiBestFitness = None
-    self.multiBestObjective = None
-    self.multiBestConstraint = None
-    self.multiBestRank = None
-    self.multiBestCD = None
+    self.bestObjective = None
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
 
   def _resolveNewGeneration(self, traj, rlz, info, pastPop, objectiveVal, fitness, g, ranks=None, CD=None):
     """
-      Store a new Generation after checking convergence
+      Store a new generation after checking convergence (single objective pathway).
+
+      Flowchart::
+
+            +---------------+
+            | update stats  |
+            +-------+-------+
+                    |
+                    v
+            +---------------+
+            | write export  |
+            +-------+-------+
+                    |
+                    v
+            +---------------+
+            | update best   |
+            +---------------+
+
       @ In, traj, int, trajectory for this new point
       @ In, rlz, dict, realized realization
       @ In, pastPop, previous population (for convergence checking)
@@ -1370,99 +1553,75 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitness, xr.DataArray, fitness values at each chromosome of the realization
       @ In, g, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
-      @ In, ranks, xr.DataArray, optional, ranks for multi-objective
-      @ In, CD, xr.DataArray, optional, crowding distance for multi-objective
+      @ In, ranks, unused for single objective
+      @ In, CD, unused for single objective
     """
-    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new Generation (population) ...')
-    # note the collection of the opt point
+    self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new generation ...')
     self._stepTracker[traj]['opt'] = (rlz, info)
     acceptable = 'accepted' if self.counter > 1 else 'first'
-    old = pastPop  # FIXED: Use pastPop parameter instead of self.population
-    converged = self._updateConvergence(traj, rlz, old, acceptable)
+    converged = self._updateConvergence(traj, rlz, pastPop, acceptable)
     if converged:
-      self._closeTrajectory(traj, 'converge', 'converged', self.multiBestObjective)
-    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
-    #       point history.
+      self._closeTrajectory(traj,
+                            'converge',
+                            'converged',
+                            None if self.bestObjective is None else np.asarray([self.bestObjective]))
 
     if self._writeSteps == 'every':
-      self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
-      for i in range(rlz.sizes['RAVEN_sample_ID']):
-        if self._isMultiObjective:
-          # FIXED: Use matingPopInputs instead of self.population
-          rlzDict = self.matingPopInputs.isel(chromosome=i).to_series().to_dict()
-          for j in range(len(self._objectiveVar)):
-             # FIXED: Use matingPopObjVals instead of self.objectiveVal
-             rlzDict[self._objectiveVar[j]] = self.matingPopObjVals[j][i]
-          rlzDict['batchId'] = self.batchId
-          # FIXED: Use matingPopRanks instead of self.rank
-          rlzDict['rank'] = np.atleast_1d(ranks.data)[i] if ranks is not None else np.atleast_1d(self.matingPopRanks.data)[i]
-          # FIXED: Use matingPopCD instead of self.crowdingDistance
-          rlzDict['CD'] = np.atleast_1d(CD.data)[i] if CD is not None else np.atleast_1d(self.matingPopCD.data)[i]
-          if self.matingPopAges is not None:
-            rlzDict['age'] = self.matingPopAges[i]
-          # FIXED: Use matingPopFitness instead of self.fitness
-          for ind, fitName in enumerate(list(fitness.keys() if isinstance(fitness, dict) else self.matingPopFitness.keys())):
-            rlzDict['FitnessEvaluation_'+fitName] = (fitness if isinstance(fitness, dict) else self.matingPopFitness)[fitName].data[i]
-          # FIXED: Use matingPop_g instead of self.constraintsV
-          for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
-            rlzDict['ConstraintEvaluation_'+consName] = g.data[i,ind]
-        else:
-          varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-          rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-          # Override sampled variables with the actual survivor values
-          if hasattr(self, 'matingPopInputs') and self.matingPopInputs is not None:
-            survInputs = self.matingPopInputs.isel(chromosome=i)
-            for var in self.toBeSampled.keys():
-              if 'Gene' in survInputs.coords:
-                rlzDict[var] = float(survInputs.sel(Gene=var).item())
+      pop_size = rlz.sizes.get('RAVEN_sample_ID', 0)
+      self.raiseADebug(f"### rlz.sizes['RAVEN_sample_ID'] = {pop_size}")
+      for i in range(pop_size):
+        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+        rlzDict = {var: np.atleast_1d(rlz[var].data)[i]
+                   for var in set(varList) if var in rlz.data_vars}
+
+        if self.matingPopInputs is not None:
+          survivorSlice = self.matingPopInputs.isel(chromosome=i)
+          for var in self.toBeSampled.keys():
+            try:
+              if 'Gene' in survivorSlice.coords:
+                rlzDict[var] = float(survivorSlice.sel(Gene=var).item())
               else:
-                rlzDict[var] = float(survInputs.loc[var].item())
-          # Override objective values with survivor objectives
-          survivorObjs = np.asarray(self.matingPopObjVals)
-          if survivorObjs.ndim == 0:
-            survivorObjs = np.asarray([survivorObjs])
-          if survivorObjs.ndim == 1:
-            rlzDict[self._objectiveVar[0]] = float(survivorObjs[i]) if survivorObjs.size > i else rlzDict.get(self._objectiveVar[0])
-          else:
-            for j, objName in enumerate(self._objectiveVar):
-              rlzDict[objName] = float(survivorObjs[j, i]) if survivorObjs.shape[1] > i else rlzDict.get(objName)
-          # Survivor fitness (single objective has a single fitness variable)
-          fitnessNames = list(self.matingPopFitness.keys()) if isinstance(self.matingPopFitness, xr.Dataset) else []
-          if fitnessNames:
-            rlzDict['fitness'] = float(self.matingPopFitness[fitnessNames[0]].data[i])
-          elif isinstance(self.matingPopFitness, dict):
-            firstKey = next(iter(self.matingPopFitness))
-            rlzDict['fitness'] = float(self.matingPopFitness[firstKey].data[i])
-          # Track survivor age and batchId if available
-          if self.matingPopAges is not None:
-            rlzDict['age'] = self.matingPopAges[i]
-          rlzDict['batchId'] = self.batchId
-          # Constraints
-          if hasattr(g, 'coords') and 'Constraint' in g.coords:
-            for ind, consName in enumerate(g['Constraint'].values):
-              rlzDict['ConstraintEvaluation_'+consName] = g.data[i,ind]
+                rlzDict[var] = float(survivorSlice.loc[var].item())
+            except Exception:
+              continue
+
+        survivorObjs = np.asarray(self.matingPopObjVals)
+        if survivorObjs.ndim == 0:
+          survivorObjs = np.asarray([survivorObjs])
+        if survivorObjs.ndim == 1:
+          if survivorObjs.size > i:
+            rlzDict[self._objectiveVar[0]] = float(survivorObjs[i])
+        else:
+          for j, objName in enumerate(self._objectiveVar):
+            if survivorObjs.shape[1] > i:
+              rlzDict[objName] = float(survivorObjs[j, i])
+
+        if isinstance(self.matingPopFitness, xr.Dataset):
+          first_key = next(iter(self.matingPopFitness.keys()))
+          rlzDict['fitness'] = float(self.matingPopFitness[first_key].data[i])
+        elif isinstance(self.matingPopFitness, dict):
+          first_key = next(iter(self.matingPopFitness))
+          rlzDict['fitness'] = float(self.matingPopFitness[first_key].data[i])
+
+        if self.matingPopAges is not None and len(self.matingPopAges) > i:
+          rlzDict['age'] = self.matingPopAges[i]
+        else:
+          rlzDict['age'] = 0
+        rlzDict['batchId'] = self.batchId
+
+        if hasattr(g, 'coords') and 'Constraint' in g.coords:
+          for ind, consName in enumerate(g['Constraint'].values):
+            rlzDict[f'ConstraintEvaluation_{consName}'] = g.data[i, ind]
+
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
-    # decide what to do next
-    if acceptable in ['accepted', 'first']:
-      # record history
+    if acceptable in ('accepted', 'first'):
       bestRlz = {}
-      if self._isMultiObjective:
-        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in list(self.toBeSampled.keys()))
-        for i in range(len(self._objectiveVar)):
-          bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
-        bestRlz['rank'] = self.multiBestRank
-        bestRlz['CD'] = self.multiBestCD
-        if len(self.multiBestConstraint) != 0: # No constraints
-          for ind, consName in enumerate(self.multiBestConstraint.Constraint):
-              bestRlz['ConstraintEvaluation_'+consName.values.tolist()] = self.multiBestConstraint[ind].values
-        for ind, fitName in enumerate(list(self.multiBestFitness.keys())):
-            bestRlz['FitnessEvaluation_'+ fitName] = self.multiBestFitness[fitName].data
-        bestRlz.update(self.multiBestPoint)
-      else:
-        bestRlz[self._objectiveVar[0]] = self.multiBestObjective[0]
+      if self.bestObjective is not None:
+        bestRlz[self._objectiveVar[0]] = self.bestObjective
+      if self.bestFitness is not None:
         bestRlz['fitness'] = self.bestFitness
+      if isinstance(self.bestPoint, dict):
         bestRlz.update(self.bestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
 
@@ -1568,30 +1727,20 @@ class GeneticAlgorithm(RavenSampled):
 
     currentFit = float(fitnessScalar[bestIdx])
 
-    if self.counter == 1:
+    should_update = False
+    if self.bestObjective is None:
+      should_update = True
+    elif currentObj < self.bestObjective:
+      should_update = True
+    elif mathUtils.compareFloats(currentObj, self.bestObjective, tol=1e-12) and currentFit >= (self.bestFitness or -np.inf):
+      should_update = True
+
+    if should_update:
       point.update(gOfBest)
       point['fitness'] = currentFit
       self.bestPoint = point
       self.bestFitness = currentFit
-      self.multiBestObjective = np.array([currentObj])
-      snapshot = {var: point[var] for var in geneNames}
-      if hasattr(self, '_solutionExport') and self._solutionExport is not None:
-        for outVar in self._solutionExport.getVars('output'):
-          if outVar in point:
-            snapshot[outVar] = point[outVar]
-      snapshot.update(gOfBest)
-      snapshot['fitness'] = currentFit
-      snapshot['objective'] = currentObj
-      snapshot['batchId'] = self.batchId
-      if self.matingPopAges is not None and len(self.matingPopAges) > bestIdx:
-        snapshot['age'] = self.matingPopAges[bestIdx]
-      self._bestSnapshot = snapshot.copy()
-    elif currentObj <= self.multiBestObjective[0] and currentFit >= self.bestFitness:
-      point.update(gOfBest)
-      point['fitness'] = currentFit
-      self.bestPoint = point
-      self.bestFitness = currentFit
-      self.multiBestObjective = np.array([currentObj])
+      self.bestObjective = currentObj
       snapshot = {var: point[var] for var in geneNames}
       if hasattr(self, '_solutionExport') and self._solutionExport is not None:
         for outVar in self._solutionExport.getVars('output'):
@@ -1606,48 +1755,6 @@ class GeneticAlgorithm(RavenSampled):
       self._bestSnapshot = snapshot.copy()
 
     return point
-
-  def _collectOptPointMulti(self, rlz, population, rank, CD, objVal, fitness, constraintsV):
-    """
-      Collects the point (dict) from a realization
-      @ In, population, Dataset, container containing the population
-      @ In, rank, xr.DataArray, rank values at each chromosome of the realization
-      @ In, CD (crowdingDistance), xr.DataArray, crowdingDistance values at each chromosome of the realization
-      @ In, objVal, list, objective values at each chromosome of the realization
-      @ In, fitness, dict, population fitness
-      @ In, constraintsV, xr.DataArray, calculated contraints value
-      @ Out, point, dict, point used in this realization
-    """
-    rankOneIDX = np.where(rank.data == 1)[0].tolist()
-    optPoints = population[rankOneIDX]
-    optObjVal = np.array(objVal)[:,rankOneIDX].T
-    count = 0
-    for i in list(fitness.keys()):
-      data = fitness[i][rankOneIDX]
-      if count == 0:
-        fitSet = data.to_dataset(name = i)
-      else:
-        fitSet[i] = data
-      count = count + 1
-    optConstraintsV = constraintsV.data[rankOneIDX]
-    optRank = rank.data[rankOneIDX]
-    optCD = CD.data[rankOneIDX]
-
-    optPointsDic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(population.Gene.data))
-    optConstNew = [list(y) for y in zip(*optConstraintsV)]
-    if len(optConstNew) > 0:
-      optConstNew = xr.DataArray(optConstNew,
-                            dims=['Constraint','Evaluation'],
-                            coords={'Constraint': [y.name for y in (self._constraintFunctions + self._impConstraintFunctions)],
-                                    'Evaluation': np.arange(np.shape(optConstNew)[1])})
-
-    self.multiBestPoint = optPointsDic
-    self.multiBestFitness = fitSet
-    self.multiBestObjective = optObjVal
-    self.multiBestConstraint = optConstNew
-    self.multiBestRank = optRank
-    self.multiBestCD = optCD
-    return optPointsDic
 
   def _checkAcceptability(self, traj):
     """
@@ -1699,7 +1806,8 @@ class GeneticAlgorithm(RavenSampled):
         bestObjective.append(currentObj*self._objMult[objVar])
         converged = (currentObj == self._convergenceCriteria['objective'][i]) and converged
       if converged:
-        self.multiBestObjective = np.array([bestObjective])
+        if bestObjective:
+          self.bestObjective = bestObjective[0]
         return converged
     return converged
 
@@ -2397,8 +2505,8 @@ class GeneticAlgorithm(RavenSampled):
           final_rlz[key] = val
 
     # objective value and fitness are stored separately from the population
-    if self.multiBestObjective is not None and 'objective' not in (self._bestSnapshot or {}):
-      final_rlz[self._objectiveVar[0]] = float(np.atleast_1d(self.multiBestObjective)[0])
+    if self.bestObjective is not None and 'objective' not in (self._bestSnapshot or {}):
+      final_rlz[self._objectiveVar[0]] = float(self.bestObjective)
     if self.bestFitness is not None and 'fitness' not in (self._bestSnapshot or {}):
       final_rlz['fitness'] = float(np.atleast_1d(self.bestFitness)[0])
 
