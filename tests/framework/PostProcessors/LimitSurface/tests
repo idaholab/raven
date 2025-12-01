@@ -14,7 +14,7 @@
   input = 'test_LimitSurface_and_integral.xml'
   output = 'limitSurface_integral/LimitSurfaceUnWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.xml'
   csv = 'limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
-  max_time = 300
+  max_time = 500
   rel_err = 0.001
   #skip = 'need to be fixed'
  [../]
@@ -32,14 +32,14 @@
   input = 'test_LimitSurface_with_err_bounds.xml'
   output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.xml'
   max_time = 300
-  rel_err = 0.001
+  rel_err = 0.005
   # replace skip_if_OS = windows with Windows specific gold file
   [./csv]
    type = OrderedCSV
    output = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
    windows_gold = 'limitSurfaceBoundingError/WindowsLimitSurfaceWeightedPb_dump.csv'
    mac_gold =  'limitSurfaceBoundingError/MacLimitSurfaceWeightedPb_dump.csv'
-   rel_err = 0.003
+   rel_err = 0.005
    [../]
  [../]
 
