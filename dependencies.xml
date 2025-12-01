@@ -35,30 +35,43 @@ Note all install methods after "main" take
 
  end reading flow
 -->
+
+<!--
+1. ray can be updated to 2.51, however for mac test machine, only 2.49 is installed. In addition,
+ray have conflicts with grpcio, which sometime we need to pin the version of grpcio
+2. ray may also have issue with typing-extensions, which sometime we need to pin the version
+3. few libraries need to be updated in the near future, such as numpy, scikit-learn, scipy
+4. some libraries in plugins can cause library conflicts, such as FARM quadprog which can really
+limit our library choices.
+-->
+
 <dependencies>
   <main>
-    <h5py/>
-    <numpy>1.26</numpy>
+    <h5py source="pip"/>
+    <numpy source="pip">1.26</numpy>
     <!-- pip installs were overwritting the scipy version, so using pip -->
     <scipy source="pip">1.12</scipy>
-    <scikit-learn>1.1</scikit-learn>
-    <pandas/>
+    <scikit-learn source="pip">1.1</scikit-learn>
+    <!-- Pin numba to 0.61 to avoid coverage issue: https://github.com/numba/numba/issues/10239 -->
+    <numba source="pip">0.61</numba>
+    <pandas source="pip"/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
-    <xarray/>
+    <xarray source="pip"/>
     <netcdf4 source="pip">1.6</netcdf4>
-    <matplotlib>3.6</matplotlib>
-    <statsmodels>0.13</statsmodels>
-    <cloudpickle/>
+    <matplotlib source="pip">3.6</matplotlib>
+    <statsmodels source="pip">0.13</statsmodels>
+    <cloudpickle source="pip"/>
     <tensorflow source="pip">2.14</tensorflow>
-    <grpcio source="pip" />
+    <!-- <grpcio source="pip">1.69</grpcio> -->
     <!-- conda is really slow on windows if the version is not specified.-->
     <python skip_check='True' os='windows'>3.11</python>
-    <python skip_check='True' os='mac,linux'>3</python>
+    <python skip_check='True' os='linux'>3</python>
+    <python skip_check='True' os='mac'>3.11</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
     <pylint/>
     <coverage/>
-    <lxml/>
+    <lxml source="pip"/>
     <psutil/>
     <pip/>
     <pyDOE3 source="pip"/>
@@ -67,14 +80,17 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
-    <ray source="pip" pip_extra="[default]">2.38</ray>
+    <!-- Pin typing-extensions to resolve some import issue in ray -->
+    <typing-extensions source="pip">4.14</typing-extensions>
+    <ray source="pip" pip_extra="[default]">2.49</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
-    <statsforecast/>
-    <pywavelets>1.4</pywavelets>
+    <!-- <statsforecast source='pip'/> -->
+    <statsforecast source="pip"/>
+    <pywavelets source="pip">1.4</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
@@ -84,7 +100,7 @@ Note all install methods after "main" take
     <ipopt skip_check='True' optional='True'/>
     <cyipopt optional='True'/>
     <pyomo-extensions source="pyomo" skip_check='True' optional='True'/>
-    <setuptools />
+    <setuptools source="pip"/>
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source='mamba' skip_check='True'/>
     <pydmd source="pip"/>

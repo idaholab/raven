@@ -50,6 +50,12 @@ for A in "$@"; do
     esac
 done
 echo 'Loading libraries ...'
+
+if [[ "$INSTALLATION_MANAGER" != "PIP" ]]
+then
+  INSTALLATION_MANAGER=CONDA
+fi
+
 if [[ $SKIP_LOAD_ENV == 1 ]];
 then
     echo Using currently active python environment, with command $(command -v python)
@@ -58,6 +64,7 @@ elif  [[ "$INSTALLATION_MANAGER" == "CONDA" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
     echo Loaded conda environment, with command $(command -v python)
+    PYTHON_COMMAND=$(command -v python)
 elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
@@ -68,6 +75,7 @@ else
     then
         # check the RC file
         PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
+        echo Python Command Debug: $PYTHON_COMMAND
     fi
 fi
 
