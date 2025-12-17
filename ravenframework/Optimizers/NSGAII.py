@@ -246,7 +246,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                                              distDict=self.distDict,
                                              locs=self._mutationLocs,
                                              mutationProb=self._mutationProb,
-                                             variables=list(self.toBeSampled))
+                                             variables=list(self.toBeSampled),
+                                             EQfiles=self._EQcheckfile)
 
     needsRepair = False
     for chrom in range(min(self._nChildren, len(childrenMutated))):
