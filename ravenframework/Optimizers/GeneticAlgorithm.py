@@ -456,13 +456,14 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a subnode containing the implemented crossover mechanisms. You can choose one of the crossover options listed below:
                   \begin{itemize}
-                    \item \textit{onePointCrossover} - It selects a random crossover point along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
-                    \item \textit{twoPointsCrossover} - It selects two random crossover points along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
-                    \item \textit{uniformCrossover} - It randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
-                    \item \textit{EQCrossover} - Only for equilibruim cycle optimization.
+                    \item \textit{onePointCrossover} - Selects a random crossover point along the chromosome of parent individuals and swaps the genetic material beyond that point to create offspring.
+                    \item \textit{twoPointsCrossover} - Selects two random crossover points along the chromosome of parent individuals and swaps the genetic material between those segments to create offspring.
+                    \item \textit{uniformCrossover} - Randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
+                    \item \textit{simulatedBinary} - Implements simulated binary crossover (SBX) in the normalized decision space with distribution index $\eta$ (default 20), as used in NSGA-II/III.
+                    \item \textit{EQCrossover} - Only for equilibrium cycle optimization.
                   \end{itemize}""")
     crossover.addParam("type",
-                       InputTypes.makeEnumType('crossover','crossoverType',['onePointCrossover','twoPointsCrossover','uniformCrossover','EQCrossover']),
+                       InputTypes.makeEnumType('crossover','crossoverType',['onePointCrossover','twoPointsCrossover','uniformCrossover','simulatedBinary','EQCrossover']),
                        True,
                        descr="type of crossover operation to be used. See the list of options above.")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
@@ -484,14 +485,15 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a subnode containing the implemented mutation mechanisms. You can choose one of the mutation options listed below:
                 \begin{itemize}
-                  \item \textit{swapMutator} - It randomly selects two genes within an chromosome and swaps their positions.
-                  \item \textit{scrambleMutator} - It randomly selects a subset of genes within an chromosome and shuffles their positions.
-                  \item \textit{inversionMutator} - It selects a contiguous subset of genes within an chromosome and reverses their order.
-                  \item \textit{bitFlipMutator} - It randomly selects genes within an chromosome and flips their values.
-                  \item \textit{randomMutator} - It randomly selects a gene within an chromosome and mutates the gene.
+                  \item \textit{swapMutator} - Randomly selects two genes within a chromosome and swaps their positions.
+                  \item \textit{scrambleMutator} - Randomly selects a subset of genes within a chromosome and shuffles their positions.
+                  \item \textit{inversionMutator} - Selects a contiguous subset of genes within a chromosome and reverses their order.
+                  \item \textit{bitFlipMutator} - Randomly selects genes within a chromosome and flips their values in the CDF domain.
+                  \item \textit{randomMutator} - Randomly selects a gene within a chromosome and mutates it to a new random sample from the associated distribution.
+                  \item \textit{polynomialMutator} - Applies Deb's polynomial mutation (default distribution index $\eta = 20$) in the normalized decision space.
                 \end{itemize} """)
     mutation.addParam("type",
-                      InputTypes.makeEnumType('mutation','mutationType',['swapMutator','scrambleMutator','inversionMutator','randomMutator','swapMutatorEQ']),
+                      InputTypes.makeEnumType('mutation','mutationType',['swapMutator','scrambleMutator','inversionMutator','bitFlipMutator','randomMutator','polynomialMutator','swapMutatorEQ']),
                       True,
                       descr="type of mutation operation to be used. See the list of options above.")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -1413,7 +1415,8 @@ class GeneticAlgorithm(RavenSampled):
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints,
-                                              EQfiles=self._EQcheckfile)
+                                              EQfiles=self._EQcheckfile,
+                                              distDict=self.distDict)
 
       # Mutation
       childrenMutated = self._mutationInstance(offSprings=childrenXover,

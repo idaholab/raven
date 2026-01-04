@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Static two-objective scatter plot that encodes a third metric as bubble size.
+Static two- or three-objective scatter plot that encodes an additional metric as bubble size.
 """
 
 import math
@@ -37,7 +37,7 @@ class BubbleTradeoffPlot(PlotInterface):
     spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringType,
         descr=r"""Name of the SolutionExport DataObject produced by the optimizer."""))
     objectives = InputData.parameterInputFactory('objectives', contentType=InputTypes.StringListType,
-        descr=r"""Two objective variable names to use for the scatter axes.""")
+        descr=r"""Two or three objective variable names to use for the scatter axes. Three objectives trigger a 3D scatter view.""")
     spec.addSub(objectives)
     spec.addSub(InputData.parameterInputFactory('size', contentType=InputTypes.StringType,
         descr=r"""Variable whose magnitude should be mapped to bubble size."""))
@@ -52,6 +52,8 @@ class BubbleTradeoffPlot(PlotInterface):
         descr=r"""Optional minimum and maximum marker areas (in points^2). Defaults to 50,500."""))
     spec.addSub(InputData.parameterInputFactory('normalize', contentType=InputTypes.BoolType,
         descr=r"""If true (default) bubble areas are normalized between the provided <size_bounds>."""))
+    spec.addSub(InputData.parameterInputFactory('view_angles', contentType=InputTypes.FloatListType,
+        descr=r"""Optional elevation and azimuth (degrees) for 3D mode. Defaults to 25,-60."""))
     return spec
 
   def __init__(self):
@@ -66,6 +68,7 @@ class BubbleTradeoffPlot(PlotInterface):
     self.generation = None
     self.sizeBounds = (50.0, 500.0)
     self.normalize = True
+    self.viewAngles = (25.0, -60.0)
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -76,10 +79,10 @@ class BubbleTradeoffPlot(PlotInterface):
 
     objNode = spec.findFirst('objectives')
     if objNode is None or not objNode.value:
-      self.raiseAnError(IOError, f'BubbleTradeoffPlot "{self.name}" requires two <objectives>.')
+      self.raiseAnError(IOError, f'BubbleTradeoffPlot "{self.name}" requires two or three <objectives>.')
     objectives = [entry for entry in objNode.value if entry]
-    if len(objectives) != 2:
-      self.raiseAnError(IOError, f'BubbleTradeoffPlot "{self.name}" expected exactly two objectives; got {len(objectives)}.')
+    if len(objectives) not in (2, 3):
+      self.raiseAnError(IOError, f'BubbleTradeoffPlot "{self.name}" expected two or three objectives; got {len(objectives)}.')
     self.objectives = objectives
 
     sizeNode = spec.findFirst('size')
@@ -112,6 +115,13 @@ class BubbleTradeoffPlot(PlotInterface):
     normalizeNode = spec.findFirst('normalize')
     if normalizeNode is not None and normalizeNode.value is not None:
       self.normalize = bool(normalizeNode.value)
+
+    viewNode = spec.findFirst('view_angles')
+    if viewNode is not None and viewNode.value:
+      values = [float(val) for val in viewNode.value]
+      if len(values) != 2:
+        self.raiseAnError(IOError, f'<view_angles> for BubbleTradeoffPlot "{self.name}" expects two floats (elevation, azimuth).')
+      self.viewAngles = (values[0], values[1])
 
   def initialize(self, stepEntities):
     super().initialize(stepEntities)
@@ -152,6 +162,10 @@ class BubbleTradeoffPlot(PlotInterface):
 
     x = subset[self.objectives[0]].astype(float).to_numpy()
     y = subset[self.objectives[1]].astype(float).to_numpy()
+    z = None
+    is3d = len(self.objectives) == 3
+    if is3d:
+      z = subset[self.objectives[2]].astype(float).to_numpy()
     sizeRaw = subset[self.sizeVar].astype(float).to_numpy()
     finite_mask = np.isfinite(sizeRaw)
     if not finite_mask.any():
@@ -183,15 +197,25 @@ class BubbleTradeoffPlot(PlotInterface):
       except (ValueError, TypeError):
         colorArg = series.astype(str).str.strip().replace('', np.nan).to_numpy()
 
-    fig, ax = plt.subplots(figsize=(6.4, 5.2))
+    if is3d:
+      fig = plt.figure(figsize=(6.4, 5.2))
+      ax = fig.add_subplot(111, projection='3d')
+      ax.view_init(elev=self.viewAngles[0], azim=self.viewAngles[1])
+    else:
+      fig, ax = plt.subplots(figsize=(6.4, 5.2))
     scatterKwargs = {'s': sizes, 'edgecolors': 'k', 'linewidths': 0.4, 'alpha': 0.85}
     if colorArg is not None:
       scatterKwargs['c'] = colorArg
       if cmap:
         scatterKwargs['cmap'] = cmap
-    sc = ax.scatter(x, y, **scatterKwargs)
+    if is3d:
+      sc = ax.scatter(x, y, z, **scatterKwargs)
+    else:
+      sc = ax.scatter(x, y, **scatterKwargs)
     ax.set_xlabel(self.objectives[0])
     ax.set_ylabel(self.objectives[1])
+    if is3d:
+      ax.set_zlabel(self.objectives[2])
     ax.set_title('Bubble trade-off')
     ax.grid(alpha=0.25)
 

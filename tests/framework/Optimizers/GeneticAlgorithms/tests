@@ -22,6 +22,76 @@
     [../]
   [../]
 
+  [./NSGA-III_DTLZ1]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/DTLZ1_NSGAIII.xml'
+    required_libraries = 'imageio'
+    image = 'continuous/unconstrained/DTLZ1_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ1_NSGAIII/1-population.png continuous/unconstrained/DTLZ1_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ1_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ1_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ1_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ1_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ1_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ1_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ1_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ1_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ1_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ1_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ1_NSGAIII/1-niching_heatmap.png'
+    text = 'continuous/unconstrained/DTLZ1_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ1_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ1_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ1_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ1_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ1_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ1_NSGAIII/1-hypervolume_movie.html'
+    rel_err = 0.5
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/DTLZ1_NSGAIII/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-III_DTLZ2]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/DTLZ2_NSGAIII.xml'
+    required_libraries = 'imageio'
+    image = 'continuous/unconstrained/DTLZ2_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ2_NSGAIII/1-population.png continuous/unconstrained/DTLZ2_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ2_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ2_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ2_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ2_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ2_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ2_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ2_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ2_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ2_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ2_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ2_NSGAIII/1-niching_heatmap.png'
+    text = 'continuous/unconstrained/DTLZ2_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ2_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ2_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ2_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ2_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ2_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ2_NSGAIII/1-hypervolume_movie.html'
+    rel_err = 0.5
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/DTLZ2_NSGAIII/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-III_DTLZ3]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/DTLZ3_NSGAIII.xml'
+    required_libraries = 'imageio'
+    image = 'continuous/unconstrained/DTLZ3_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ3_NSGAIII/1-population.png continuous/unconstrained/DTLZ3_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ3_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ3_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ3_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ3_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ3_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ3_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ3_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ3_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ3_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ3_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ3_NSGAIII/1-niching_heatmap.png'
+    text = 'continuous/unconstrained/DTLZ3_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ3_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ3_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ3_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ3_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ3_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ3_NSGAIII/1-hypervolume_movie.html'
+    rel_err = 0.5
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/DTLZ3_NSGAIII/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-III_DTLZ4]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/DTLZ4_NSGAIII.xml'
+    required_libraries = 'imageio'
+    image = 'continuous/unconstrained/DTLZ4_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ4_NSGAIII/1-population.png continuous/unconstrained/DTLZ4_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ4_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ4_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ4_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ4_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ4_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ4_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ4_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ4_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ4_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ4_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ4_NSGAIII/1-niching_heatmap.png'
+    text = 'continuous/unconstrained/DTLZ4_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ4_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ4_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ4_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ4_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ4_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ4_NSGAIII/1-hypervolume_movie.html'
+    rel_err = 0.5
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/DTLZ4_NSGAIII/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
+  [./NSGA-II_DTLZ2]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/DTLZ2_NSGAII.xml'
+    required_libraries = 'imageio'
+    image = 'continuous/unconstrained/DTLZ2_NSGAII/1-opt_path.png continuous/unconstrained/DTLZ2_NSGAII/1-population.png continuous/unconstrained/DTLZ2_NSGAII/1-pareto_front.png continuous/unconstrained/DTLZ2_NSGAII/1-rank_history.png continuous/unconstrained/DTLZ2_NSGAII/1-crowding_distance.png continuous/unconstrained/DTLZ2_NSGAII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ2_NSGAII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ2_NSGAII/1-vector_field.png continuous/unconstrained/DTLZ2_NSGAII/1-tube_trajectory.png continuous/unconstrained/DTLZ2_NSGAII/1-dominance_cones.png continuous/unconstrained/DTLZ2_NSGAII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ2_NSGAII/1-dominance_heatmap.png'
+    text = 'continuous/unconstrained/DTLZ2_NSGAII/1-front_evolution.html continuous/unconstrained/DTLZ2_NSGAII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ2_NSGAII/1-objective_contour_animation.html continuous/unconstrained/DTLZ2_NSGAII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ2_NSGAII/1-tradeoff_slices.html continuous/unconstrained/DTLZ2_NSGAII/1-preference_sweep.html continuous/unconstrained/DTLZ2_NSGAII/1-hypervolume_movie.html'
+    rel_err = 0.5
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/DTLZ2_NSGAII/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
   [./MinwReplacementConvAHDp]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMinwRepConvAHDp.xml'

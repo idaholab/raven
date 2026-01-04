@@ -57,6 +57,18 @@ class PreferenceSweepAnimationPlot(PlotInterface):
         descr=r"""When <index> supplied, reduce the animation to a specific generation."""))
     spec.addSub(InputData.parameterInputFactory('rank', contentType=InputTypes.IntegerType,
         descr=r"""Optional Pareto rank filter (e.g., 1 to consider only nondominated points)."""))
+    spec.addSub(InputData.parameterInputFactory('space', contentType=InputTypes.StringType,
+        descr=r"""Which columns define the preference space.
+              Options:
+                - objective (default): use the columns named in <objectives>.
+                - fitness: use FitnessEvaluation_<objective> columns.
+              Note: preference selection is performed on a minimization representation."""))
+    spec.addSub(InputData.parameterInputFactory('goals', contentType=InputTypes.StringListType,
+        descr=r"""Optional list of goal directions for each objective when <space> is 'objective'.
+              Provide as 'min,max' or 'min max'. Length must match <objectives>.
+              If omitted, assumes all objectives are minimized."""))
+    spec.addSub(InputData.parameterInputFactory('normalize', contentType=InputTypes.BoolType,
+        descr=r"""If true (default), min-max normalizes objectives before applying preference weights."""))
     spec.addSub(InputData.parameterInputFactory('frames', contentType=InputTypes.IntegerType,
         descr=r"""Number of preference weights to sweep across (default 15)."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,
@@ -78,6 +90,9 @@ class PreferenceSweepAnimationPlot(PlotInterface):
     self.index = None
     self.generation = None
     self.rank = None
+    self.space = 'objective'
+    self.goals = None
+    self.normalize = True
     self.frames = 15
     self.fps = 2.0
     self.formats = {'gif', 'html'}
@@ -108,6 +123,26 @@ class PreferenceSweepAnimationPlot(PlotInterface):
     if rankNode is not None and rankNode.value is not None:
       self.rank = int(rankNode.value)
 
+    spaceNode = spec.findFirst('space')
+    if spaceNode is not None and spaceNode.value is not None:
+      self.space = str(spaceNode.value).strip().lower()
+    if self.space not in ('objective', 'fitness'):
+      self.raiseAnError(IOError, f'Unsupported <space> "{self.space}" for PreferenceSweepAnimationPlot "{self.name}".')
+
+    goalsNode = spec.findFirst('goals')
+    if goalsNode is not None and goalsNode.value:
+      goals = [str(g).strip().lower() for g in goalsNode.value if str(g).strip()]
+      if len(goals) != len(self.objectives):
+        self.raiseAnError(IOError, f'<goals> must contain {len(self.objectives)} entries for PreferenceSweepAnimationPlot "{self.name}".')
+      for g in goals:
+        if g not in ('min', 'max'):
+          self.raiseAnError(IOError, f'Invalid goal "{g}" in PreferenceSweepAnimationPlot "{self.name}" (use min/max).')
+      self.goals = goals
+
+    normNode = spec.findFirst('normalize')
+    if normNode is not None and normNode.value is not None:
+      self.normalize = bool(normNode.value)
+
     frameNode = spec.findFirst('frames')
     if frameNode is not None and frameNode.value is not None:
       self.frames = max(3, int(frameNode.value))
@@ -136,7 +171,10 @@ class PreferenceSweepAnimationPlot(PlotInterface):
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" located for PreferenceSweepAnimationPlot "{self.name}".')
     available = src.getVars()
-    needed = set(self.objectives)
+    if self.space == 'fitness':
+      needed = set(f'FitnessEvaluation_{obj}' for obj in self.objectives)
+    else:
+      needed = set(self.objectives)
     if self.index:
       needed.add(self.index)
     if self.rank is not None:
@@ -146,14 +184,39 @@ class PreferenceSweepAnimationPlot(PlotInterface):
       self.raiseAnError(IOError, f'Source DataObject "{src.name}" is missing variable(s) {missing} required by PreferenceSweepAnimationPlot "{self.name}".')
     self.source = src
 
+  def _get_objective_columns(self):
+    if self.space == 'fitness':
+      return [f'FitnessEvaluation_{obj}' for obj in self.objectives]
+    return list(self.objectives)
+
+  def _to_minimization_space(self, values):
+    values = np.asarray(values, dtype=float).copy()
+    if self.space == 'fitness':
+      # Interpret fitness as "larger is better"; convert to minimization.
+      return -values
+    goals = self.goals or ['min'] * len(self.objectives)
+    for j, goal in enumerate(goals):
+      if goal == 'max':
+        values[:, j] = -values[:, j]
+    return values
+
+  @staticmethod
+  def _minmax_scale(values):
+    mins = np.nanmin(values, axis=0)
+    maxs = np.nanmax(values, axis=0)
+    ranges = maxs - mins
+    safe = np.where(ranges == 0.0, 1.0, ranges)
+    return (values - mins) / safe
+
   def run(self):
     df = self.source.asDataset().to_dataframe()
     if df.empty:
       self.raiseAWarning(f'PreferenceSweepAnimationPlot "{self.name}" received an empty dataset; nothing to animate.')
       return
     subset = df.copy()
-    for obj in self.objectives:
-      subset[obj] = subset[obj].astype(float)
+    obj_cols = self._get_objective_columns()
+    for col in obj_cols:
+      subset[col] = subset[col].astype(float)
     if self.index:
       subset[self.index] = subset[self.index].astype(float)
       if self.generation is not None:
@@ -164,13 +227,16 @@ class PreferenceSweepAnimationPlot(PlotInterface):
         subset = subset[subset[self.index] == max_gen]
     if self.rank is not None and 'rank' in subset.columns:
       subset = subset[subset['rank'].astype(float) == float(self.rank)]
-    subset = subset.dropna(subset=self.objectives)
+    subset = subset.dropna(subset=obj_cols)
     if subset.empty:
       self.raiseAWarning(f'PreferenceSweepAnimationPlot "{self.name}" has no samples after filtering.')
       return
 
     weights = np.linspace(0.0, 1.0, num=self.frames)
-    objectives_array = subset[self.objectives].to_numpy(dtype=float)
+    objectives_array = subset[obj_cols].to_numpy(dtype=float)
+    objectives_array = self._to_minimization_space(objectives_array)
+    if self.normalize:
+      objectives_array = self._minmax_scale(objectives_array)
     best_indices = []
     scores = []
     for w in weights:
@@ -182,7 +248,7 @@ class PreferenceSweepAnimationPlot(PlotInterface):
     best_indices = np.asarray(best_indices, dtype=int)
     scores = np.asarray(scores, dtype=float)
 
-    xy = subset[self.objectives].to_numpy(dtype=float)
+    xy = subset[obj_cols].to_numpy(dtype=float)
     fig, ax = plt.subplots(figsize=(6.4, 5.2))
     if 'gif' in self.formats:
       self._write_gif(weights, xy, best_indices, scores)
@@ -251,14 +317,15 @@ class PreferenceSweepAnimationPlot(PlotInterface):
     ax.scatter(xy[:, 0], xy[:, 1], c='#bbbbbb', edgecolor='k', linewidths=0.1, alpha=0.6, s=28, label='Samples')
     ax.scatter([xy[best_idx, 0]], [xy[best_idx, 1]], c='tab:red', s=80,
                edgecolors='black', linewidths=0.8, marker='*', label='Preferred')
-    ax.set_xlabel(self.objectives[0])
-    ax.set_ylabel(self.objectives[1])
-    ax.set_title('Preference sweep')
+    ax.set_xlabel(self.objectives[0] if self.space == 'objective' else f'FitnessEvaluation_{self.objectives[0]}')
+    ax.set_ylabel(self.objectives[1] if self.space == 'objective' else f'FitnessEvaluation_{self.objectives[1]}')
+    ax.set_title('Preference sweep (weighted, normalized)')
     ax.grid(alpha=0.2)
-    ax.legend(loc='best')
-    ax.text(0.02, 0.95,
+    # Keep legend and annotation from overlapping by separating their anchors.
+    ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0, frameon=True)
+    ax.text(0.02, 0.02,
             f'w = {weight:0.2f}\nscore = {score:0.4g}',
-            transform=ax.transAxes, va='top', fontsize=9,
+            transform=ax.transAxes, va='bottom', fontsize=9,
             bbox=dict(boxstyle='round,pad=0.35', facecolor='white', alpha=0.8, edgecolor='gray'))
 
   def _create_base_plot(self):

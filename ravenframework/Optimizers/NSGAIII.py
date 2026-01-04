@@ -251,7 +251,8 @@ class NSGAIII(MultiObjectiveGeneticAlgorithm):
                                             variables=list(self.toBeSampled),
                                             crossoverProb=self._crossoverProb,
                                             points=self._crossoverPoints,
-                                            EQfiles=self._EQcheckfile)
+                                            EQfiles=self._EQcheckfile,
+                                            distDict=self.distDict)
 
     childrenMutated = self._mutationInstance(offSprings=childrenXover,
                                              distDict=self.distDict,

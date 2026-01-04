@@ -15,7 +15,14 @@
 Plot diagnostic metrics (hypervolume, dominance counts) for multi-objective optimizers.
 two time-series views from the same optimizer run:
 
-Hypervolume progression (top panel). Each dot is the dominated space covered by the population at a generation. Rising, smooth growth means Pareto coverage is improving; a plateau signals convergence. Sharp drops usually mean the population lost good points (e.g., poor survivor selection or constraint tightening). Oscillations often coincide with large mutation or restarts.
+Hypervolume progression (top panel). Each dot is the dominated space covered by the population at a generation.
+Interpreting this curve depends on the space and objective directions:
+  - Hypervolume is computed on a *minimization* representation of the objectives.
+  - If your optimization contains maximization objectives, this plot must either (a) be told the goal
+    directions (min/max) or (b) use the optimizer's fitness columns and convert them back to a minimization
+    space.
+  - In "best-so-far archive" space, hypervolume should be non-decreasing; in "current generation" space it
+    can decrease (e.g., if elites are not preserved or constraints tighten).
 
 Dominance statistics (lower panel). The solid green line is the count of rank‑1 samples; the gray dashed line shows total evaluated samples that generation. If Rank‑1 climbs toward the population size, the front is densifying—good for exploitation, but watch for premature convergence. A shrinking total population combined with stable Rank‑1 suggests aggressive pruning that may hurt diversity. If Rank‑1 collapses suddenly, constraints or objective scaling likely shifted, pushing most samples off the front.
 
@@ -57,8 +64,24 @@ class ParetoDiagnosticsPlot(PlotInterface):
     spec.addSub(objectives)
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Name of the generation identifier column (e.g., batchId)."""))
+    spec.addSub(InputData.parameterInputFactory('space', contentType=InputTypes.StringType,
+        descr=r"""Which columns define the Pareto space and hypervolume computation.
+              Options:
+                - objective (default): use the columns named in <objectives>.
+                - fitness: use FitnessEvaluation_<objective> columns (and convert to a minimization space).
+              Note: Hypervolume is always computed on a minimization representation."""))
+    spec.addSub(InputData.parameterInputFactory('goals', contentType=InputTypes.StringListType,
+        descr=r"""Optional list of goal directions for each objective when <space> is 'objective'.
+              Provide as 'min,max' or 'min max'. Length must match <objectives>.
+              If omitted, assumes all objectives are minimized."""))
     spec.addSub(InputData.parameterInputFactory('reference_point', contentType=InputTypes.StringListType,
-        descr=r"""Optional comma-separated reference point used for hypervolume computation. If omitted, the plot uses the max objective values across the dataset plus a 5%% margin."""))
+        descr=r"""Optional comma-separated reference point used for hypervolume computation, expressed in the same space as selected by <space>.
+              If omitted, the plot auto-selects a conservative (worse-than-observed) reference point consistent with the minimization
+              representation used for hypervolume:
+                - for minimized objectives: max(value) + margin
+                - for maximized objectives: min(value) - margin
+                - for fitness space (larger is better): min(fitness) - margin
+              """))
     return spec
 
   def __init__(self):
@@ -67,8 +90,11 @@ class ParetoDiagnosticsPlot(PlotInterface):
     self.source = None
     self.sourceName = None
     self.index = None
-    self.objectives = []
+    self.objectives = []          # user-provided objective names
+    self._space_objectives = []   # actual dataframe columns used for hypervolume
     self.reference_point = None
+    self.space = 'objective'      # 'objective' or 'fitness'
+    self.goals = None             # list of 'min'/'max' or None
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -79,6 +105,20 @@ class ParetoDiagnosticsPlot(PlotInterface):
     self.objectives = [entry for entry in objNode.value if entry]
     if len(self.objectives) != 2:
       self.raiseAnError(IOError, 'ParetoDiagnosticsPlot "{}" currently supports exactly two objectives.'.format(self.name))
+    spaceNode = spec.findFirst('space')
+    if spaceNode is not None and spaceNode.value is not None:
+      self.space = str(spaceNode.value).strip().lower()
+    if self.space not in ('objective', 'fitness'):
+      self.raiseAnError(IOError, f'Unsupported <space> "{self.space}" in ParetoDiagnosticsPlot "{self.name}".')
+    goalsNode = spec.findFirst('goals')
+    if goalsNode is not None and goalsNode.value:
+      goals = [str(g).strip().lower() for g in goalsNode.value if str(g).strip()]
+      if len(goals) != len(self.objectives):
+        self.raiseAnError(IOError, f'<goals> must contain {len(self.objectives)} entries for ParetoDiagnosticsPlot "{self.name}".')
+      for g in goals:
+        if g not in ('min', 'max'):
+          self.raiseAnError(IOError, f'Invalid goal "{g}" in ParetoDiagnosticsPlot "{self.name}" (use min/max).')
+      self.goals = goals
     idxNode = spec.findFirst('index')
     if idxNode is None:
       self.raiseAnError(IOError, 'Missing <index> node in ParetoDiagnosticsPlot "{}".'.format(self.name))
@@ -99,20 +139,34 @@ class ParetoDiagnosticsPlot(PlotInterface):
     if self.source is None:
       self.raiseAnError(IOError, 'Source "{}" not found for ParetoDiagnosticsPlot "{}".'.format(self.sourceName, self.name))
     available = self.source.getVars()
-    needed = list(self.objectives) + [self.index]
+    if self.space == 'fitness':
+      self._space_objectives = [f'FitnessEvaluation_{name}' for name in self.objectives]
+      needed = list(self._space_objectives) + [self.index]
+    else:
+      self._space_objectives = list(self.objectives)
+      needed = list(self.objectives) + [self.index]
     missing = [var for var in needed if var not in available]
     if missing:
       self.raiseAnError(IOError, f'Source DataObject "{self.source.name}" is missing required variable(s) {missing} for ParetoDiagnosticsPlot "{self.name}".')
     if self.reference_point is None:
       df = self.source.asDataset().to_dataframe()
-      maxima = []
-      for obj in self.objectives:
+      ref_vals = []
+      for j, obj in enumerate(self._space_objectives):
         series = df[obj].astype(float)
-        maxima.append(series.max())
-      maxima = np.asarray(maxima, dtype=float)
-      delta = np.abs(maxima) * 0.05
-      delta[delta == 0.0] = 0.05
-      self.reference_point = maxima + delta
+        series_max = float(series.max())
+        series_min = float(series.min())
+        span = series_max - series_min
+        margin = 0.05 * abs(span) if span != 0.0 else 0.05 * max(abs(series_max), abs(series_min), 1.0)
+        margin = max(margin, 0.05)
+        if self.space == 'fitness':
+          ref_vals.append(series_min - margin)
+          continue
+        goal = (self.goals[j] if self.goals is not None else 'min')
+        if goal == 'max':
+          ref_vals.append(series_min - margin)
+        else:
+          ref_vals.append(series_max + margin)
+      self.reference_point = np.asarray(ref_vals, dtype=float)
 
   def run(self):
     df = self.source.asDataset().to_dataframe()
@@ -140,7 +194,8 @@ class ParetoDiagnosticsPlot(PlotInterface):
 
     axes[0].plot(generations, hv_series, marker='o', color='tab:blue', linewidth=1.5)
     axes[0].set_ylabel('Hypervolume')
-    axes[0].set_title('Hypervolume progression')
+    space_label = 'fitness' if self.space == 'fitness' else 'objective'
+    axes[0].set_title(f'Hypervolume progression ({space_label}: {", ".join(self.objectives)})')
     axes[0].grid(alpha=0.3)
 
     axes[1].plot(generations, pareto_counts, marker='o', color='tab:green', linewidth=1.5, label='Rank 1 count')
@@ -167,9 +222,9 @@ class ParetoDiagnosticsPlot(PlotInterface):
         y -= 0.05
 
     _write_tips(tip_axes[0], 'Hypervolume notes:', [
-        ('Steady rise -> Pareto set expanding (good exploitation balance).', 'green'),
-        ('Sharp drop -> lost elites (survivor selection or tighter constraints).', 'red'),
-        ('Large oscillation -> mutation or restart settings too aggressive.', 'red'),
+        ('Steady rise -> Pareto set expanding (often good exploration/exploitation balance).', 'green'),
+        ('Sharp drop -> can indicate lost elites OR changing feasibility/penalties; verify objective directions.', 'red'),
+        ('Large oscillation -> mutation/restart/constraint oscillations; check scaling and survivor selection.', 'red'),
     ])
 
     _write_tips(tip_axes[1], 'Dominance notes:', [
@@ -188,12 +243,26 @@ class ParetoDiagnosticsPlot(PlotInterface):
 
   def _compute_hypervolume(self, subset):
     """
-    Hypervolume computation for bi-objective problems (objectives minimized).
+    Hypervolume computation for bi-objective problems on a minimization representation.
+
+    - If <space> is "objective": uses <goals> (min/max) if provided, otherwise assumes all minimized.
+      Maximization objectives are multiplied by -1 before hypervolume computation.
+    - If <space> is "fitness": uses FitnessEvaluation_* columns and multiplies by -1 since fitness is
+      "larger is better" but hypervolume is computed on a minimization space.
     """
     if subset.empty:
       return 0.0
-    objs = subset[self.objectives].astype(float).to_numpy()
-    ref = self.reference_point
+    objs = subset[self._space_objectives].astype(float).to_numpy()
+    ref = np.asarray(self.reference_point, dtype=float).copy()
+    if self.space == 'fitness':
+      objs = -objs
+      ref = -ref
+    else:
+      goals = self.goals or ['min'] * len(self.objectives)
+      for j, g in enumerate(goals):
+        if g == 'max':
+          objs[:, j] = -objs[:, j]
+          ref[j] = -ref[j]
     # Sort by first objective ascending
     order = np.argsort(objs[:, 0])
     sorted_objs = objs[order]

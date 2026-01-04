@@ -213,11 +213,11 @@ class AttainmentSurfacePlot(PlotInterface):
       plt.close(fig)
       return
 
+    fig.tight_layout(rect=[0, 0, 0.94, 1])
     if contour_mappable is not None:
-      cbar = fig.colorbar(contour_mappable, ax=axes_with_data, fraction=0.035, pad=0.04)
-      cbar.set_label('P(attained)')
-
-    fig.tight_layout()
+      cbar = self._add_shared_colorbar(fig, axes_with_data, contour_mappable)
+      if cbar is not None:
+        cbar.set_label('P(attained)')
     filename = self._createFilename(defaultName=f'{self.name}.png')
     fig.savefig(filename, dpi=150)
     plt.close(fig)
@@ -230,3 +230,26 @@ class AttainmentSurfacePlot(PlotInterface):
     else:
       axes = axes.flatten().tolist()
     return fig, axes
+
+  @staticmethod
+  def _add_shared_colorbar(fig, axes, mappable):
+    if fig is None or mappable is None or not axes:
+      return None
+    axes_list = [ax for ax in axes if ax.get_visible()]
+    if not axes_list:
+      return None
+    fig.canvas.draw()
+    positions = [ax.get_position() for ax in axes_list]
+    max_right = max(pos.x1 for pos in positions)
+    min_bottom = min(pos.y0 for pos in positions)
+    max_top = max(pos.y1 for pos in positions)
+    pad = 0.025
+    width = 0.02
+    left = max_right + pad
+    if left + width > 0.98:
+      width = max(0.01, 0.98 - left)
+      left = 0.98 - width
+    if width <= 0:
+      return None
+    cax = fig.add_axes([left, min_bottom, width, max_top - min_bottom])
+    return fig.colorbar(mappable, cax=cax)

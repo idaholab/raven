@@ -55,14 +55,14 @@ class HypervolumeMoviePlot(PlotInterface):
     spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringType,
         descr=r"""Name of the optimizer SolutionExport DataObject."""))
     objectives = InputData.parameterInputFactory('objectives', contentType=InputTypes.StringListType,
-        descr=r"""Ordered list of objective columns (minimized). If more than two are provided, all pairwise combinations are animated in a subplot layout.""")
+        descr=r"""Ordered list of objective columns (minimized). Two objectives render a single curve; three objectives compute a true 3D hypervolume curve; more than three objectives fall back to animating all pairwise combinations.""")
     spec.addSub(objectives)
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Generation identifier column (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('reference_point', contentType=InputTypes.StringListType,
         descr=r"""Optional reference point for hypervolume computation. If omitted, the plot uses max objective values (+5%%)."""))
     spec.addSub(InputData.parameterInputFactory('max_frames', contentType=InputTypes.IntegerType,
-        descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 10)."""))
+        descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 20)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combinations."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,
@@ -80,6 +80,7 @@ class HypervolumeMoviePlot(PlotInterface):
     self.sourceName = None
     self.objectives = []
     self.objective_pairs = []
+    self._use_three_d = False
     self.index = None
     self.reference_point = None
     self._reference_points = {}
@@ -102,7 +103,8 @@ class HypervolumeMoviePlot(PlotInterface):
     self.objectives = [entry for entry in objNode.value if entry]
     if len(self.objectives) < 2:
       self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" requires at least two objectives.')
-    if len(self.objectives) == 2:
+    self._use_three_d = len(self.objectives) == 3
+    if len(self.objectives) == 2 or self._use_three_d:
       self.objective_pairs = [tuple(self.objectives)]
     else:
       self.objective_pairs = [tuple(pair) for pair in itertools.combinations(self.objectives, 2)]
@@ -117,8 +119,9 @@ class HypervolumeMoviePlot(PlotInterface):
         ref_vals = [float(val) for val in refNode.value]
       except ValueError as err:
         self.raiseAnError(IOError, f'Invalid <reference_point> values for HypervolumeMoviePlot "{self.name}": {err}')
-      if len(ref_vals) != 2:
-        self.raiseAnError(IOError, f'<reference_point> must contain exactly two values for HypervolumeMoviePlot "{self.name}".')
+      expected = 3 if self._use_three_d else 2
+      if len(ref_vals) != expected:
+        self.raiseAnError(IOError, f'<reference_point> must contain exactly {expected} values for HypervolumeMoviePlot "{self.name}".')
       self.reference_point = np.asarray(ref_vals, dtype=float)
 
     maxNode = spec.findFirst('max_frames')
@@ -196,7 +199,7 @@ class HypervolumeMoviePlot(PlotInterface):
       if series.size:
         self._global_hv_max = max(self._global_hv_max, float(np.max(series)))
 
-    frame_cap = self.maxFrames if self.maxFrames is not None else min(len(generations), 10)
+    frame_cap = self.maxFrames if self.maxFrames is not None else min(len(generations), 20)
     frame_cap = max(1, min(frame_cap, len(generations)))
     _, indices = self._sample_generations(generations, frame_cap)
 
@@ -210,6 +213,23 @@ class HypervolumeMoviePlot(PlotInterface):
   def _compute_hypervolume_series(self, df, generations):
     hv_by_pair = {}
     self._reference_points = {}
+    if self._use_three_d:
+      if self.reference_point is None:
+        maxima = df[self.objectives].max().to_numpy(dtype=float)
+        delta = np.abs(maxima) * 0.05
+        delta[delta == 0.0] = 0.05
+        ref_point = maxima + delta
+      else:
+        ref_point = np.asarray(self.reference_point, dtype=float)
+      key = tuple(self.objectives)
+      self._reference_points[key] = ref_point
+      hv_values = []
+      for gen in generations:
+        subset = df[df[self.index] == gen]
+        hv_values.append(self._compute_hypervolume(subset[self.objectives].to_numpy(dtype=float), ref_point))
+      hv_by_pair[key] = np.asarray(hv_values, dtype=float)
+      return hv_by_pair
+
     for pair in self.objective_pairs:
       if self.reference_point is None:
         maxima = df[list(pair)].max().to_numpy(dtype=float)
@@ -231,6 +251,16 @@ class HypervolumeMoviePlot(PlotInterface):
   def _compute_hypervolume(points, ref):
     if points.size == 0:
       return 0.0
+    if points.shape[1] != len(ref):
+      raise ValueError('Points dimensionality does not match reference point.')
+    if points.shape[1] == 2:
+      return HypervolumeMoviePlot._compute_hypervolume_2d(points, ref)
+    if points.shape[1] == 3:
+      return HypervolumeMoviePlot._compute_hypervolume_3d(points, ref)
+    raise ValueError('HypervolumeMoviePlot supports hypervolume up to 3 objectives.')
+
+  @staticmethod
+  def _compute_hypervolume_2d(points, ref):
     order = np.argsort(points[:, 0])
     sorted_pts = points[order]
     hv = 0.0
@@ -241,6 +271,22 @@ class HypervolumeMoviePlot(PlotInterface):
         width = 0.0
       height = max(0.0, ref[1] - y)
       hv += width * height
+      prev_x = x
+    return hv
+
+  @staticmethod
+  def _compute_hypervolume_3d(points, ref):
+    # Slice the 3D volume along the first objective and accumulate 2D slices.
+    sorted_idx = np.argsort(points[:, 0])
+    sorted_pts = points[sorted_idx]
+    hv = 0.0
+    prev_x = ref[0]
+    for i in range(len(sorted_pts) - 1, -1, -1):
+      x = sorted_pts[i, 0]
+      width = max(0.0, prev_x - x)
+      yz_slice = sorted_pts[:i + 1, 1:]
+      area = HypervolumeMoviePlot._compute_hypervolume_2d(yz_slice, ref[1:])
+      hv += width * area
       prev_x = x
     return hv
 
@@ -312,7 +358,8 @@ class HypervolumeMoviePlot(PlotInterface):
     ax.scatter([upto_gens[-1]], [upto_hv[-1]], color='tab:orange', edgecolor='black', s=60, zorder=3)
     ax.set_xlabel(self.index)
     ax.set_ylabel('Hypervolume')
-    ax.set_title(f'{pair[0]} vs {pair[1]} (Generation {self._format_generation(upto_gens[-1])})')
+    label = ' vs '.join(pair) if len(pair) == 2 else ', '.join(pair)
+    ax.set_title(f'{label} (Generation {self._format_generation(upto_gens[-1])})')
     ax.grid(alpha=0.3, linestyle='--')
     ax.set_xlim(min(generations), max(generations))
     ymax = self._global_hv_max if self._global_hv_max > 0.0 else (np.max(hv_series) if hv_series.size else 1.0)

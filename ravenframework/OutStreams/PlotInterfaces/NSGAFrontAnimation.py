@@ -26,6 +26,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from matplotlib import animation
+try:
+  from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 needed for 3D projections
+except ImportError:  # pragma: no cover
+  Axes3D = None
 
 from .PlotInterface import PlotInterface
 from ...utils import InputData, InputTypes
@@ -50,6 +54,8 @@ class NSGAFrontAnimation(PlotInterface):
         descr=r"""Frames per second to use for the animation GIF. Defaults to 2."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or a comma-separated list of formats."""))
+    spec.addSub(InputData.parameterInputFactory('connect', contentType=InputTypes.StringType,
+        descr=r"""How to connect Pareto front samples: "lines" (default), "none", or "surface" (3-objective only)."""))
     return spec
 
   def __init__(self):
@@ -62,6 +68,9 @@ class NSGAFrontAnimation(PlotInterface):
     self.rank = 1
     self.fps = 2.0
     self.formats = {'gif', 'html'}
+    self.connect_mode = 'lines'
+    self._connect_warning_emitted = False
+    self._surface_failure_warned = False
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -85,6 +94,9 @@ class NSGAFrontAnimation(PlotInterface):
       self.formats = self._parse_formats(fmtNode.value)
     else:
       self.formats = {'gif', 'html'}
+    connectNode = spec.findFirst('connect')
+    if connectNode is not None:
+      self.connect_mode = self._parse_connect_mode(connectNode.value)
 
   def initialize(self, stepEntities):
     super().initialize(stepEntities)
@@ -117,38 +129,52 @@ class NSGAFrontAnimation(PlotInterface):
 
     axis_limits = self._compute_axis_limits(df)
     cd_limits = self._determine_color_limits(df)
-    objective_pairs = list(combinations(self.objectives, 2)) if len(self.objectives) > 2 else [tuple(self.objectives[:2])]
+    views = self._build_views()
 
     for fmt in self.formats:
       if fmt == 'html':
-        self._write_html_animation(df, generations, objective_pairs, axis_limits, cd_limits,
+        self._write_html_animation(df, generations, views, axis_limits, cd_limits,
                                    filename_default=f'{self.name}.html')
       elif fmt == 'gif':
-        self._write_gif_animation(df, generations, objective_pairs, axis_limits, cd_limits,
+        self._write_gif_animation(df, generations, views, axis_limits, cd_limits,
                                   filename_default=f'{self.name}.gif')
 
-  def _write_gif_animation(self, df, generations, objective_pairs, axis_limits, cd_limits, filename_default):
+  def _write_gif_animation(self, df, generations, views, axis_limits, cd_limits, filename_default):
     filename = self._createFilename(defaultName=filename_default)
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=1) as writer:
       for gen in generations:
         subset = df[df[self.index] == gen]
-        fig, axes = self._make_axes(len(objective_pairs))
+        fig, axes = self._make_axes_for_views(views)
         scatterArgs, color_data = self._build_scatter_args(subset, cd_limits)
         scatter_handles = []
-        for ax, (xVar, yVar) in zip(axes, objective_pairs):
-          sc = ax.scatter(subset[xVar], subset[yVar], **scatterArgs)
+        for ax, view in zip(axes, views):
+          if view['dim'] == 3:
+            xVar, yVar, zVar = view['vars']
+            sc = ax.scatter(subset[xVar], subset[yVar], subset[zVar], **scatterArgs)
+            self._maybe_draw_connection_static(ax, view, subset)
+            xMin, xMax = axis_limits[xVar]
+            yMin, yMax = axis_limits[yVar]
+            zMin, zMax = axis_limits[zVar]
+            ax.set_xlim(xMin, xMax)
+            ax.set_ylim(yMin, yMax)
+            ax.set_zlim(zMin, zMax)
+            ax.set_xlabel(xVar)
+            ax.set_ylabel(yVar)
+            ax.set_zlabel(zVar)
+            ax.set_title(f'{xVar} vs {yVar} vs {zVar}')
+          else:
+            xVar, yVar = view['vars']
+            sc = ax.scatter(subset[xVar], subset[yVar], **scatterArgs)
+            self._maybe_draw_connection_static(ax, view, subset)
+            xMin, xMax = axis_limits[xVar]
+            yMin, yMax = axis_limits[yVar]
+            ax.set_xlim(xMin, xMax)
+            ax.set_ylim(yMin, yMax)
+            ax.set_xlabel(xVar)
+            ax.set_ylabel(yVar)
+            ax.set_title(f'{xVar} vs {yVar}')
           scatter_handles.append(sc)
-          if len(subset) > 1:
-            ordered = subset.sort_values(by=xVar)
-            ax.plot(ordered[xVar], ordered[yVar], color='k', linewidth=0.8, alpha=0.6)
-          xMin, xMax = axis_limits[xVar]
-          yMin, yMax = axis_limits[yVar]
-          ax.set_xlim(xMin, xMax)
-          ax.set_ylim(yMin, yMax)
-          ax.set_xlabel(xVar)
-          ax.set_ylabel(yVar)
-          ax.set_title(f'{xVar} vs {yVar}')
         fig.suptitle(f'Generation {gen}')
         fig.tight_layout(rect=[0, 0, 0.86, 0.95])
         if scatter_handles and color_data is not None and np.size(color_data) > 0:
@@ -161,28 +187,44 @@ class NSGAFrontAnimation(PlotInterface):
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html_animation(self, df, generations, objective_pairs, axis_limits, cd_limits, filename_default):
+  def _write_html_animation(self, df, generations, views, axis_limits, cd_limits, filename_default):
     filename = self._createFilename(defaultName=filename_default)
-    fig, axes = self._make_axes(len(objective_pairs))
+    fig, axes = self._make_axes_for_views(views)
     init_subset = df[df[self.index] == generations[0]]
     scatterArgs, color_data = self._build_scatter_args(init_subset, cd_limits)
-    scatterArgs.pop('c', None)
+    color_payload = scatterArgs.pop('c', None)
     scatterArgs.pop('vmin', None)
     scatterArgs.pop('vmax', None)
+    if color_payload is None:
+      scatterArgs.pop('cmap', None)
     scatters = []
-    lines = []
-    for ax, (xVar, yVar) in zip(axes, objective_pairs):
-      sc = ax.scatter([], [], **scatterArgs)
-      line, = ax.plot([], [], color='k', linewidth=0.8, alpha=0.6)
-      xMin, xMax = axis_limits[xVar]
-      yMin, yMax = axis_limits[yVar]
-      ax.set_xlim(xMin, xMax)
-      ax.set_ylim(yMin, yMax)
-      ax.set_xlabel(xVar)
-      ax.set_ylabel(yVar)
-      ax.set_title(f'{xVar} vs {yVar}')
+    connections = []
+    for ax, view in zip(axes, views):
+      if view['dim'] == 3:
+        xVar, yVar, zVar = view['vars']
+        sc = ax.scatter([], [], [], **scatterArgs)
+        xMin, xMax = axis_limits[xVar]
+        yMin, yMax = axis_limits[yVar]
+        zMin, zMax = axis_limits[zVar]
+        ax.set_xlim(xMin, xMax)
+        ax.set_ylim(yMin, yMax)
+        ax.set_zlim(zMin, zMax)
+        ax.set_xlabel(xVar)
+        ax.set_ylabel(yVar)
+        ax.set_zlabel(zVar)
+        ax.set_title(f'{xVar} vs {yVar} vs {zVar}')
+      else:
+        xVar, yVar = view['vars']
+        sc = ax.scatter([], [], **scatterArgs)
+        xMin, xMax = axis_limits[xVar]
+        yMin, yMax = axis_limits[yVar]
+        ax.set_xlim(xMin, xMax)
+        ax.set_ylim(yMin, yMax)
+        ax.set_xlabel(xVar)
+        ax.set_ylabel(yVar)
+        ax.set_title(f'{xVar} vs {yVar}')
       scatters.append(sc)
-      lines.append(line)
+      connections.append(self._init_connection_artist(ax, view))
     suptitle = fig.suptitle('')
     fig.tight_layout(rect=[0, 0, 0.86, 0.95])
     cbar = None
@@ -190,24 +232,35 @@ class NSGAFrontAnimation(PlotInterface):
       cbar = self._add_colorbar(fig, axes, scatters[0], cd_limits)
 
     def init():
-      for sc, line in zip(scatters, lines):
-        sc.set_offsets(np.empty((0, 2)))
-        sc.set_array(np.array([]))
-        line.set_data([], [])
+      artists = []
+      for sc, conn, view in zip(scatters, connections, views):
+        if view['dim'] == 3:
+          sc._offsets3d = (np.array([]), np.array([]), np.array([]))
+          sc.set_array(np.array([]))
+        else:
+          sc.set_offsets(np.empty((0, 2)))
+          sc.set_array(np.array([]))
+        self._reset_connection_artist(conn, view)
+        if conn['artist'] is not None:
+          artists.append(conn['artist'])
       suptitle.set_text('')
-      return tuple(scatters + lines)
+      return tuple(list(scatters) + artists)
 
     def update(gen):
       subset = df[df[self.index] == gen]
       _, frame_colors = self._build_scatter_args(subset, cd_limits)
-      for ax, sc, line, (xVar, yVar) in zip(axes, scatters, lines, objective_pairs):
-        offsets = np.column_stack((subset[xVar].to_numpy(), subset[yVar].to_numpy()))
-        sc.set_offsets(offsets)
-        if len(subset) > 1:
-          ordered = subset.sort_values(by=xVar)
-          line.set_data(ordered[xVar].to_numpy(), ordered[yVar].to_numpy())
+      artists = []
+      for ax, sc, conn, view in zip(axes, scatters, connections, views):
+        if view['dim'] == 3:
+          xVar, yVar, zVar = view['vars']
+          xs = subset[xVar].to_numpy()
+          ys = subset[yVar].to_numpy()
+          zs = subset[zVar].to_numpy()
+          sc._offsets3d = (xs, ys, zs)
         else:
-          line.set_data([], [])
+          xVar, yVar = view['vars']
+          offsets = np.column_stack((subset[xVar].to_numpy(), subset[yVar].to_numpy()))
+          sc.set_offsets(offsets)
         if frame_colors is not None and np.size(frame_colors) > 0:
           sc.set_array(np.asarray(frame_colors))
           sc.set_cmap('viridis')
@@ -215,10 +268,13 @@ class NSGAFrontAnimation(PlotInterface):
             sc.set_clim(*cd_limits)
         else:
           sc.set_array(np.array([]))
+        conn_artist = self._update_connection_artist(conn, ax, view, subset)
+        if conn_artist is not None:
+          artists.append(conn_artist)
       if cbar is not None and scatters:
         cbar.update_normal(scatters[0])
       suptitle.set_text(f'Generation {gen}')
-      return tuple(scatters + lines)
+      return tuple(list(scatters) + artists)
 
     anim = animation.FuncAnimation(fig, update, frames=generations, init_func=init,
                                    interval=1000.0 / self.fps, blit=False)
@@ -247,6 +303,100 @@ class NSGAFrontAnimation(PlotInterface):
       scatterArgs.update({'c': color_data, 'cmap': 'viridis', 'vmin': vmin, 'vmax': vmax})
     return scatterArgs, color_data
 
+  def _build_views(self):
+    if len(self.objectives) == 2:
+      return [{'vars': tuple(self.objectives[:2]), 'dim': 2, 'connect': self._resolve_connect_mode(2)}]
+    if len(self.objectives) == 3:
+      return [{'vars': tuple(self.objectives[:3]), 'dim': 3, 'connect': self._resolve_connect_mode(3)}]
+    pairs = list(combinations(self.objectives, 2))
+    return [{'vars': pair, 'dim': 2, 'connect': self._resolve_connect_mode(2)} for pair in pairs]
+
+  def _maybe_draw_connection_static(self, ax, view, subset):
+    mode = view.get('connect', 'lines')
+    if mode == 'lines':
+      self._draw_static_line(ax, view, subset)
+    elif mode == 'surface' and view['dim'] == 3:
+      self._build_surface(ax, subset, view['vars'], color='#555555', alpha=0.35)
+
+  @staticmethod
+  def _draw_static_line(ax, view, subset):
+    if len(subset) <= 1:
+      return
+    ordered = subset.sort_values(by=view['vars'][0])
+    if view['dim'] == 3:
+      xVar, yVar, zVar = view['vars']
+      ax.plot(ordered[xVar], ordered[yVar], ordered[zVar], color='k', linewidth=0.8, alpha=0.6)
+    else:
+      xVar, yVar = view['vars']
+      ax.plot(ordered[xVar], ordered[yVar], color='k', linewidth=0.8, alpha=0.6)
+
+  def _init_connection_artist(self, ax, view):
+    entry = {'mode': view.get('connect', 'lines'), 'artist': None}
+    if entry['mode'] == 'lines':
+      if view['dim'] == 3:
+        entry['artist'], = ax.plot([], [], [], color='k', linewidth=0.8, alpha=0.6)
+      else:
+        entry['artist'], = ax.plot([], [], color='k', linewidth=0.8, alpha=0.6)
+    return entry
+
+  def _reset_connection_artist(self, entry, view):
+    mode = entry['mode']
+    artist = entry.get('artist')
+    if mode == 'lines' and artist is not None:
+      artist.set_data([], [])
+      if view['dim'] == 3:
+        artist.set_3d_properties([])
+    elif mode == 'surface' and artist is not None:
+      artist.remove()
+      entry['artist'] = None
+
+  def _update_connection_artist(self, entry, ax, view, subset):
+    mode = entry['mode']
+    if mode == 'lines':
+      artist = entry.get('artist')
+      if artist is None:
+        return None
+      if len(subset) > 1:
+        ordered = subset.sort_values(by=view['vars'][0])
+        if view['dim'] == 3:
+          xVar, yVar, zVar = view['vars']
+          artist.set_data(ordered[xVar].to_numpy(), ordered[yVar].to_numpy())
+          artist.set_3d_properties(ordered[zVar].to_numpy())
+        else:
+          xVar, yVar = view['vars']
+          artist.set_data(ordered[xVar].to_numpy(), ordered[yVar].to_numpy())
+      else:
+        artist.set_data([], [])
+        if view['dim'] == 3:
+          artist.set_3d_properties([])
+      return artist
+    if mode == 'surface':
+      current = entry.get('artist')
+      if current is not None:
+        current.remove()
+        entry['artist'] = None
+      if view['dim'] != 3:
+        return None
+      surface = self._build_surface(ax, subset, view['vars'], color='#555555', alpha=0.35)
+      entry['artist'] = surface
+      return surface
+    return None
+
+  def _build_surface(self, ax, subset, variables, color, alpha=0.35):
+    if len(subset) < 3:
+      return None
+    xVals = subset[variables[0]].to_numpy()
+    yVals = subset[variables[1]].to_numpy()
+    zVals = subset[variables[2]].to_numpy()
+    try:
+      surface = ax.plot_trisurf(xVals, yVals, zVals, color=color, alpha=alpha, linewidth=0.2, edgecolor='none')
+    except (ValueError, RuntimeError) as err:
+      if not self._surface_failure_warned:
+        self.raiseAWarning(f'Unable to build trisurface for view {variables}: {err}. Falling back to scatter only.')
+        self._surface_failure_warned = True
+      return None
+    return surface
+
   def _compute_axis_limits(self, df):
     limits = {}
     for obj in self.objectives:
@@ -272,6 +422,15 @@ class NSGAFrontAnimation(PlotInterface):
       fig.delaxes(axes[idx])
     return fig, list(axes[:panels])
 
+  def _make_axes_for_views(self, views):
+    if len(views) == 1 and views[0]['dim'] == 3:
+      if Axes3D is None:
+        self.raiseAnError(RuntimeError, 'mpl_toolkits.mplot3d is not available but 3 objectives were requested for {}.'.format(self.name))
+      fig = plt.figure(figsize=(7, 6))
+      ax = fig.add_subplot(111, projection='3d')
+      return fig, [ax]
+    return self._make_axes(len(views))
+
   def _parse_formats(self, raw):
     if raw is None:
       return {'gif', 'html'}
@@ -287,6 +446,24 @@ class NSGAFrontAnimation(PlotInterface):
       bad = ', '.join(sorted(invalid))
       self.raiseAnError(IOError, f'Unsupported format(s) "{bad}" for NSGAFrontAnimation "{self.name}". Use "gif", "html", or "both".')
     return tokens
+
+  def _parse_connect_mode(self, raw):
+    if raw is None:
+      return 'lines'
+    text = raw.strip().lower()
+    allowed = {'lines', 'none', 'surface'}
+    if text not in allowed:
+      options = ', '.join(sorted(allowed))
+      self.raiseAnError(IOError, f'Unsupported connect mode "{raw}" for NSGAFrontAnimation "{self.name}". Choose from: {options}.')
+    return text
+
+  def _resolve_connect_mode(self, dim):
+    if self.connect_mode == 'surface' and dim != 3:
+      if not self._connect_warning_emitted:
+        self.raiseAWarning('connect="surface" is only available for three-objective views; disabling connections for lower-dimensional projections.')
+        self._connect_warning_emitted = True
+      return 'none'
+    return self.connect_mode
 
   @staticmethod
   def _scaled_bounds(min_val, max_val):
