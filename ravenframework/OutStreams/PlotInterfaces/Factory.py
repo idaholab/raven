@@ -60,6 +60,12 @@ from .ChordDiagramPlot import ChordDiagramPlot
 from .GlyphRadarPlot import GlyphRadarPlot
 from .CoreLayoutPlot import CoreLayoutPlot
 from .ShuffleArrowsPlot import ShufflingSchemePlot
+from .FeasibleRegionObjectiveContourPlot import FeasibleRegionObjectiveContourPlot
+from .DecisionObjectiveMappingPlot import DecisionObjectiveMappingPlot
+from .ParetoSurfacePlot import ParetoSurfacePlot
+from .FeasibilityRadarPlot import FeasibilityRadarPlot
+from .ParetoChartPlot import ParetoChartPlot
+from .AdjustedEpsilonOptimalPlot import AdjustedEpsilonOptimalPlot
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
@@ -101,3 +107,9 @@ factory.registerType('ChordDiagramPlot', ChordDiagramPlot)
 factory.registerType('GlyphRadarPlot', GlyphRadarPlot)
 factory.registerType('CoreLayoutPlot', CoreLayoutPlot)
 factory.registerType('ShufflingSchemePlot', ShufflingSchemePlot)
+factory.registerType('FeasibleRegionObjectiveContourPlot', FeasibleRegionObjectiveContourPlot)
+factory.registerType('DecisionObjectiveMappingPlot', DecisionObjectiveMappingPlot)
+factory.registerType('ParetoSurfacePlot', ParetoSurfacePlot)
+factory.registerType('FeasibilityRadarPlot', FeasibilityRadarPlot)
+factory.registerType('ParetoChartPlot', ParetoChartPlot)
+factory.registerType('AdjustedEpsilonOptimalPlot', AdjustedEpsilonOptimalPlot)
