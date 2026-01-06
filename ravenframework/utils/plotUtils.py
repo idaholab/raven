@@ -48,7 +48,7 @@ def errorFill(x, y, yerr, color=None, alphaFill=0.3, ax=None, logScale=False):
     ax.set_yscale('symlog')
 
 
-def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, line_alphas=None):
+def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, line_alphas=None, line_colors=None, line_widths=None, legend_entries=None):
   """
     Main run method to generate parallel coordinate plot
     @ In, zs, pandas dataset, batch containing the set of points to be plotted
@@ -57,6 +57,11 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, line_alphas=
     @ In, ymaxs, np.array, maximum value for each variable
     @ In, ynames, list, list of string containing the ID of each variable
     @ In, fileID, string, name of the file containing the plot
+    @ In, line_alphas, array-like, optional, alpha values for each polyline
+    @ In, line_colors, array-like, optional, colors for each polyline
+    @ In, line_widths, array-like, optional, linewidths for each polyline
+    @ In, legend_entries, list, optional, list of dicts describing legend line samples; expected keys:
+         label (str), color (str), linewidth (float), linestyle (str, optional)
     @ Out, None
   """
   if zs.size == 0:
@@ -117,14 +122,45 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, line_alphas=
     if line_alphas.size != N:
       raise ValueError(f'line_alphas length {line_alphas.size} does not match number of lines {N}.')
 
+  if line_colors is None:
+    line_colors = np.asarray(['tab:blue'] * N, dtype=object)
+  else:
+    line_colors = np.asarray(line_colors, dtype=object)
+    if line_colors.size != N:
+      raise ValueError(f'line_colors length {line_colors.size} does not match number of lines {N}.')
+
+  if line_widths is None:
+    line_widths = np.ones(N, dtype=float)
+  else:
+    line_widths = np.asarray(line_widths, dtype=float)
+    if line_widths.size != N:
+      raise ValueError(f'line_widths length {line_widths.size} does not match number of lines {N}.')
+
   for j in range(N):
-    host.plot(range(zs.shape[1]), zs[j,:], color='tab:blue', alpha=float(np.clip(line_alphas[j], 0.05, 1.0)))
+    host.plot(range(zs.shape[1]), zs[j,:],
+              color=line_colors[j],
+              linewidth=float(max(0.1, line_widths[j])),
+              alpha=float(np.clip(line_alphas[j], 0.05, 1.0)))
     '''verts = list(zip([x for x in np.linspace(0, len(zs) - 1, len(zs) * 3 - 2, endpoint=True)],
                      np.repeat(zs[j, :], 3)[1:-1]))
     codes = [Path.MOVETO] + [Path.CURVE4 for _ in range(len(verts) - 1)]
     path = Path(verts, codes)
     patch = patches.PathPatch(path, facecolor='none', lw=1)
     host.add_patch(patch)'''
+
+  if legend_entries:
+    from matplotlib.lines import Line2D
+    handles = []
+    for entry in legend_entries:
+      if not entry or 'label' not in entry:
+        continue
+      handles.append(Line2D([0], [0],
+                            color=entry.get('color', 'tab:blue'),
+                            linewidth=float(entry.get('linewidth', 1.5)),
+                            linestyle=entry.get('linestyle', '-'),
+                            label=entry['label']))
+    if handles:
+      host.legend(handles=handles, loc='upper right', frameon=True, fontsize=10)
 
   plt.tight_layout()
   plt.savefig(fileID)

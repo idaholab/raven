@@ -29,6 +29,7 @@ matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
 
 from .PlotInterface import PlotInterface
 from ...utils import InputData, InputTypes
@@ -57,6 +58,16 @@ class ProsectionMatrixPlot(PlotInterface):
         descr=r"""Optional generation identifier column (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('generation', contentType=InputTypes.FloatType,
         descr=r"""When <index> provided, limits the plot to the specified generation."""))
+    spec.addSub(InputData.parameterInputFactory('rows_per_fig', contentType=InputTypes.IntegerType,
+        descr=r"""Optional maximum number of subplot rows per output figure. If set, the matrix is split into
+                   multiple images named <filename>_1.png, <filename>_2.png, etc. This improves readability when
+                   many variable pairs are requested."""))
+    spec.addSub(InputData.parameterInputFactory('min_slice_points', contentType=InputTypes.IntegerType,
+        descr=r"""Minimum number of samples required to plot a slice. If the median-based slice contains fewer
+                   samples, the plot falls back to a nearest-to-median selection. Default 15."""))
+    spec.addSub(InputData.parameterInputFactory('fallback_points', contentType=InputTypes.IntegerType,
+        descr=r"""Number of nearest-to-median samples to plot when the median-based slice is empty or too small.
+                   Default 50."""))
     return spec
 
   def __init__(self):
@@ -69,6 +80,9 @@ class ProsectionMatrixPlot(PlotInterface):
     self.colorVar = None
     self.index = None
     self.generation = None
+    self.rowsPerFig = None
+    self.minSlicePoints = 15
+    self.fallbackPoints = 50
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -100,6 +114,27 @@ class ProsectionMatrixPlot(PlotInterface):
     if genNode is not None and genNode.value is not None:
       self.generation = float(genNode.value)
 
+    rpfNode = spec.findFirst('rows_per_fig')
+    if rpfNode is not None and rpfNode.value is not None:
+      rpf = int(rpfNode.value)
+      if rpf <= 0:
+        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <rows_per_fig>.')
+      self.rowsPerFig = rpf
+
+    mspNode = spec.findFirst('min_slice_points')
+    if mspNode is not None and mspNode.value is not None:
+      msp = int(mspNode.value)
+      if msp <= 0:
+        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <min_slice_points>.')
+      self.minSlicePoints = msp
+
+    fpNode = spec.findFirst('fallback_points')
+    if fpNode is not None and fpNode.value is not None:
+      fp = int(fpNode.value)
+      if fp <= 0:
+        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <fallback_points>.')
+      self.fallbackPoints = fp
+
   def initialize(self, stepEntities):
     super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
@@ -119,6 +154,7 @@ class ProsectionMatrixPlot(PlotInterface):
   def _select_slice(self, df, xVar, yVar, other_vars):
     """
     Returns indices of samples close to median in other variables (normalised by range).
+    If the slice is empty or too small, falls back to the nearest-to-median samples.
     """
     if not other_vars:
       return df.index
@@ -134,7 +170,16 @@ class ProsectionMatrixPlot(PlotInterface):
     median = norm.median(axis=0)
     distances = (norm - median).abs()
     mask = (distances <= self.tolerance).all(axis=1)
-    return norm[mask].index
+    selected = norm[mask].index
+    if selected.size >= self.minSlicePoints:
+      return selected
+
+    linf = distances.max(axis=1)
+    linf = linf.replace([np.inf, -np.inf], np.nan).dropna()
+    if linf.empty:
+      return pd.Index([])
+    k = min(int(self.fallbackPoints), len(linf))
+    return linf.nsmallest(k).index
 
   def run(self):
     df = self.source.asDataset().to_dataframe()
@@ -162,9 +207,11 @@ class ProsectionMatrixPlot(PlotInterface):
 
     combos = list(itertools.combinations(self.variables, 2))
     ncols = min(3, len(combos))
-    nrows = int(np.ceil(len(combos) / ncols))
-
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4.5 * ncols, 3.8 * nrows), squeeze=False)
+    total_rows = int(np.ceil(len(combos) / ncols))
+    rows_per_fig = self.rowsPerFig if self.rowsPerFig is not None else total_rows
+    rows_per_fig = max(1, int(rows_per_fig))
+    per_fig = rows_per_fig * ncols
+    n_figs = int(np.ceil(len(combos) / per_fig))
     color_series = None
     cmap = None
     if self.colorVar and self.colorVar in subset.columns:
@@ -172,39 +219,64 @@ class ProsectionMatrixPlot(PlotInterface):
       if np.issubdtype(color_series.dtype, np.number):
         cmap = 'viridis'
 
-    for ax, (xVar, yVar) in zip(axes.flat, combos):
-      others = [var for var in self.variables if var not in (xVar, yVar)]
-      slice_idx = self._select_slice(numeric, xVar, yVar, others)
-      if slice_idx.empty:
-        ax.text(0.5, 0.5, 'No slice\nselected', ha='center', va='center', transform=ax.transAxes)
+    for fig_idx in range(n_figs):
+      start = fig_idx * per_fig
+      end = min(len(combos), (fig_idx + 1) * per_fig)
+      page_combos = combos[start:end]
+      page_rows = int(np.ceil(len(page_combos) / ncols))
+
+      fig, axes = plt.subplots(page_rows, ncols, figsize=(4.5 * ncols, 3.8 * page_rows), squeeze=False)
+
+      for ax, (xVar, yVar) in zip(axes.flat, page_combos):
+        others = [var for var in self.variables if var not in (xVar, yVar)]
+        slice_idx = self._select_slice(numeric, xVar, yVar, others)
+        if slice_idx.empty:
+          ax.text(0.5, 0.5, 'No slice\nselected', ha='center', va='center', transform=ax.transAxes)
+          ax.set_xlabel(xVar)
+          ax.set_ylabel(yVar)
+          continue
+        x = numeric.loc[slice_idx, xVar]
+        y = numeric.loc[slice_idx, yVar]
+        color_values = None
+        if color_series is not None:
+          color_values = color_series.loc[slice_idx]
+          if not np.issubdtype(color_values.dtype, np.number):
+            color_values = color_values.astype(str)
+
+        scatter_kwargs = dict(alpha=0.8, edgecolors='k', linewidths=0.2, s=30)
+        if color_values is not None:
+          scatter_kwargs['c'] = color_values
+          if cmap and np.issubdtype(color_series.dtype, np.number):
+            scatter_kwargs['cmap'] = cmap
+        ax.scatter(x, y, **scatter_kwargs)
         ax.set_xlabel(xVar)
         ax.set_ylabel(yVar)
-        continue
-      x = numeric.loc[slice_idx, xVar]
-      y = numeric.loc[slice_idx, yVar]
-      color_values = None
-      if color_series is not None:
-        color_values = color_series.loc[slice_idx]
-        if not np.issubdtype(color_values.dtype, np.number):
-          color_values = color_values.astype(str)
+        ax.grid(alpha=0.2)
 
-      scatter_kwargs = dict(alpha=0.8, edgecolors='k', linewidths=0.2, s=30)
-      if color_values is not None:
-        scatter_kwargs['c'] = color_values
-        if cmap and np.issubdtype(color_series.dtype, np.number):
-          scatter_kwargs['cmap'] = cmap
-      ax.scatter(x, y, **scatter_kwargs)
-      ax.set_xlabel(xVar)
-      ax.set_ylabel(yVar)
-      ax.grid(alpha=0.2)
+      # Hide unused axes if page_combos < grid size
+      total_axes = page_rows * ncols
+      for idx in range(len(page_combos), total_axes):
+        axes.flat[idx].set_visible(False)
 
-    # Hide unused axes if combos < grid size
-    total_axes = nrows * ncols
-    for idx in range(len(combos), total_axes):
-      axes.flat[idx].set_visible(False)
+      title = 'Prosection matrix'
+      if n_figs > 1:
+        title += f' ({fig_idx + 1}/{n_figs})'
+      fig.suptitle(title)
+      fig.tight_layout()
+      # Respect <filename> if provided, but suffix per page to avoid overwriting.
+      # NOTE: PlotInterface._createFilename always prefers self.filename over defaultName,
+      # so we manually apply the same rules here using the per-page name.
+      base_name = self.filename if self.filename is not None else f'{self.name}.png'
+      root, ext = os.path.splitext(base_name)
+      ext = ext if ext else '.png'
+      page_name = f'{root}{ext}' if n_figs == 1 else f'{root}_{fig_idx + 1}{ext}'
 
-    fig.suptitle('Prosection matrix')
-    fig.tight_layout()
-    filename = self._createFilename(defaultName=f'{self.name}.png')
-    fig.savefig(filename, dpi=150)
-    plt.close(fig)
+      prefix = '' if self.overwrite else f'{self.counter}-'
+      filename = f'{prefix}{page_name}'
+      if self.subDirectory is not None:
+        filename = os.path.join(self.subDirectory, filename)
+      out_dir = os.path.dirname(filename)
+      if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+      fig.savefig(filename, dpi=150)
+      plt.close(fig)

@@ -322,10 +322,11 @@ class PreferenceSweepAnimationPlot(PlotInterface):
     ax.set_title('Preference sweep (weighted, normalized)')
     ax.grid(alpha=0.2)
     # Keep legend and annotation from overlapping by separating their anchors.
-    ax.legend(loc='upper left', bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0, frameon=True)
-    ax.text(0.02, 0.02,
+    legend_x = 1.02
+    ax.legend(loc='upper left', bbox_to_anchor=(legend_x, 1.0), borderaxespad=0.0, frameon=True)
+    ax.text(legend_x, 0.0,
             f'w = {weight:0.2f}\nscore = {score:0.4g}',
-            transform=ax.transAxes, va='bottom', fontsize=9,
+            transform=ax.transAxes, va='bottom', ha='left', fontsize=9, clip_on=False,
             bbox=dict(boxstyle='round,pad=0.35', facecolor='white', alpha=0.8, edgecolor='gray'))
 
   def _create_base_plot(self):

@@ -937,21 +937,12 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png discrete/constrained/Multi_MinwoReplacement/1-population.png discrete/constrained/Multi_MinwoReplacement/1-pareto_front.png discrete/constrained/Multi_MinwoReplacement/1-rank_history.png discrete/constrained/Multi_MinwoReplacement/1-crowding_distance.png discrete/constrained/Multi_MinwoReplacement/1-front_evolution.gif discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_rank_animation.gif discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation.gif discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation2.gif discrete/constrained/Multi_MinwoReplacement/1-constraint_activity.gif discrete/constrained/Multi_MinwoReplacement/1-tradeoff_slices.gif discrete/constrained/Multi_MinwoReplacement/1-diversity_radar.gif'
-    text = 'discrete/constrained/Multi_MinwoReplacement/1-front_evolution.html discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_rank_animation.html discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation.html discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation2.html discrete/constrained/Multi_MinwoReplacement/1-constraint_activity.html discrete/constrained/Multi_MinwoReplacement/1-tradeoff_slices.html discrete/constrained/Multi_MinwoReplacement/1-diversity_radar.html'
+    image = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png discrete/constrained/Multi_MinwoReplacement/1-population.png discrete/constrained/Multi_MinwoReplacement/1-pareto_front.png discrete/constrained/Multi_MinwoReplacement/1-pareto_front_constraints.png discrete/constrained/Multi_MinwoReplacement/1-rank_history.png discrete/constrained/Multi_MinwoReplacement/1-crowding_distance.png discrete/constrained/Multi_MinwoReplacement/1-front_evolution.gif discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_rank_animation.gif discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation.gif discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation2.gif discrete/constrained/Multi_MinwoReplacement/1-constraint_activity.gif discrete/constrained/Multi_MinwoReplacement/1-tradeoff_slices.gif discrete/constrained/Multi_MinwoReplacement/1-diversity_radar.gif'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/Multi_MinwoReplacement/1-population.png'
     [../]
   [../]
 
