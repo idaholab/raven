@@ -99,6 +99,8 @@ obj_2     *                  o
       <Output class="OutStreams" type="Plot">som_map</Output>
       <Output class="OutStreams" type="Plot">chord_diagram</Output>
       <Output class="OutStreams" type="Plot">glyph_profiles</Output>
+      <Output class="OutStreams" type="Plot">diversity_radar</Output>
+      <Output class="OutStreams" type="Plot">decision_objective_mapping</Output>
 
     </IOStep>
   </Steps>
@@ -384,6 +386,24 @@ obj_2     *                  o
       <label>trajID</label>
       <metric>obj1</metric>
       <index>batchId</index>
+    </Plot>
+    <Plot name="diversity_radar" subType="DiversityRadarPlot">
+      <source>opt_export</source>
+      <metric>CD</metric>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+    <Plot name="decision_objective_mapping" subType="DecisionObjectiveMappingPlot">
+      <source>opt_export</source>
+      <decisions>x1, x2</decisions>
+      <objectives>obj1, obj2</objectives>
+      <rank>1</rank>
+      <max_points>250</max_points>
+      <draw_links>true</draw_links>
+      <link_alpha>0.12</link_alpha>
+      <boundary_all>true</boundary_all>
+      <boundary_all_fill>true</boundary_all_fill>
     </Plot>
   </OutStreams>
 </Simulation>

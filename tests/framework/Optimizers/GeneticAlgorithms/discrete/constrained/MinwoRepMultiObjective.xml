@@ -36,12 +36,16 @@
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
       <Output class="OutStreams" type="Plot">pareto_front</Output>
+      <Output class="OutStreams" type="Plot">pareto_front_constraints</Output>
       <Output class="OutStreams" type="Plot">front_evolution</Output>
       <Output class="OutStreams" type="Plot">objective_contour_animation</Output>
       <Output class="OutStreams" type="Plot">objective_contour_animation2</Output>
       <Output class="OutStreams" type="Plot">rank_history</Output>
       <Output class="OutStreams" type="Plot">crowding_distance</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation</Output>
+      <Output class="OutStreams" type="Plot">vector_field</Output>
+      <Output class="OutStreams" type="Plot">tube_trajectory</Output>
+      <Output class="OutStreams" type="Plot">dominance_cones</Output>
       <Output class="OutStreams" type="Plot">constraint_activity</Output>
       <Output class="OutStreams" type="Plot">tradeoff_slices</Output>
       <Output class="OutStreams" type="Plot">diversity_radar</Output>
@@ -193,6 +197,18 @@
       <color>CD</color>
       <rank>1</rank>
     </Plot>
+    <Plot name="pareto_front_constraints" subType="NSGAParetoFrontPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <constraints>all</constraints>
+      <show_all>true</show_all>
+      <color_mode>violation</color_mode>
+      <violation_metric>sum</violation_metric>
+      <infeasible_style>cross</infeasible_style>
+      <active_constraints>true</active_constraints>
+      <active_tol>1e-3</active_tol>
+      <rank>1</rank>
+    </Plot>
     <Plot name="front_evolution" subType="NSGAFrontAnimation">
       <source>opt_export</source>
       <objectives>obj1, obj2</objectives>
@@ -258,6 +274,28 @@
       <index>batchId</index>
       <format>both</format>
       <fps>2.0</fps>
+    </Plot>
+    <Plot name="vector_field" subType="ThreeDVectorPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <scale>0.8</scale>
+    </Plot>
+    <Plot name="tube_trajectory" subType="ThreeDTubePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <line_width>3.5</line_width>
+    </Plot>
+    <Plot name="dominance_cones" subType="ThreeDConePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <top_k>10</top_k>
+      <angle>10.0</angle>
     </Plot>
   </OutStreams>
 </Simulation>

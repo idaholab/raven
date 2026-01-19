@@ -40,6 +40,9 @@
       <Output class="OutStreams" type="Plot">rank_history</Output>
       <Output class="OutStreams" type="Plot">crowding_distance</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation</Output>
+      <Output class="OutStreams" type="Plot">vector_field</Output>
+      <Output class="OutStreams" type="Plot">tube_trajectory</Output>
+      <Output class="OutStreams" type="Plot">dominance_cones</Output>
       <Output class="OutStreams" type="Plot">constraint_activity</Output>
       <Output class="OutStreams" type="Plot">tradeoff_slices</Output>
       <Output class="OutStreams" type="Plot">diversity_radar</Output>
@@ -238,6 +241,28 @@
       <index>batchId</index>
       <format>both</format>
       <fps>2.0</fps>
+    </Plot>
+    <Plot name="vector_field" subType="ThreeDVectorPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <scale>0.8</scale>
+    </Plot>
+    <Plot name="tube_trajectory" subType="ThreeDTubePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <line_width>3.5</line_width>
+    </Plot>
+    <Plot name="dominance_cones" subType="ThreeDConePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <top_k>10</top_k>
+      <angle>10.0</angle>
     </Plot>
   </OutStreams>
 </Simulation>
