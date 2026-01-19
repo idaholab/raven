@@ -1,17 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GeneticAlgorithms.NSGA-II_MinwoRepMultiObjective_ConvMaxSpread</name>
-    <author>Junyung Kim</author>
-    <created>2024-12-01</created>
-    <classesTested>GeneticAlgorithm</classesTested>
-    <description>
-      Multi-objective MinwoRep benchmark configured to converge on the maxSpread stabilization criterion.
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
+    <author>Mohammad Abdo @Jimmy-INL</author>
+    <created>2022-12-21</created>
+    <classesTested/>
+    <description>NSGA-II min-max-min test: This test is for a three objectives obj1, 2, and 3
+    objective1 is a weighted sum of the whole chromosome from myLocalSum_multi.py, where as objective 2 and 3
+    are partial sums (i.e., obj2 is the weighted sum of the first two genes, whereas obj3 is the weighted sume of the third and forth Genes), the goal is to minimize obj1, and 3, and maximize 2.
+    The design/serach variables are x1, through x6. Each of these variables are integers between 2, and 7.
+    The problem is subjected to constraints: expConstr1, ixpConstr2, ixpConstr3 found at myCOnstraints.py
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>MinwoRepMultiObjectiveConvMaxSpread</WorkingDir>
+    <WorkingDir>Multi_MinwoReplacement_convObjective</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -20,7 +23,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -34,11 +37,15 @@
       <Output class="OutStreams" type="Plot">population</Output>
       <Output class="OutStreams" type="Plot">pareto_front</Output>
       <Output class="OutStreams" type="Plot">front_evolution</Output>
-      <Output class="OutStreams" type="Plot">front_evolution_gif</Output>
       <Output class="OutStreams" type="Plot">rank_history</Output>
       <Output class="OutStreams" type="Plot">crowding_distance</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation</Output>
-      <Output class="OutStreams" type="Plot">front_rank_animation_gif</Output>
+      <Output class="OutStreams" type="Plot">vector_field</Output>
+      <Output class="OutStreams" type="Plot">tube_trajectory</Output>
+      <Output class="OutStreams" type="Plot">dominance_cones</Output>
+      <Output class="OutStreams" type="Plot">constraint_activity</Output>
+      <Output class="OutStreams" type="Plot">tradeoff_slices</Output>
+      <Output class="OutStreams" type="Plot">diversity_radar</Output>
     </IOStep>
   </Steps>
 
@@ -69,29 +76,31 @@
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <NSGA-II name="GAopt">
       <samplerInit>
-        <limit>100</limit>
+        <limit>5</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min, max, min</type>
       </samplerInit>
       <GAparams>
-        <populationSize>20</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
-          <mutation type="swapMutator">
+          <mutation type="swapMutator"> <!--swapMutator, scrambleMutator, bitFlipMutator, inversionMutator-->
             <mutationProb>0.8</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst"/>
-        <survivorSelection>rankNcrowdingBased</survivorSelection>
+        <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
+          <!--<b>50, 50, 100, 100, 100, 150</b> <!~~the number of wegith needs to same with the number of objectives multiplied by the number of constraints~~>-->
+        </fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
       </GAparams>
       <convergence>
-        <maxSpread>0.001</maxSpread>
+        <objective>78.0,19.0,32.0</objective>
       </convergence>
       <variable name="x1">
         <distribution>woRep_dist</distribution>
@@ -117,13 +126,13 @@
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
-    </GeneticAlgorithm>
+    </NSGA-II>
   </Optimizers>
 
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>20</limit>
+        <limit>10</limit>
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -155,7 +164,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3,ConstraintEvaluation_expConstr3,ConstraintEvaluation_impConstr3,accepted,conv_maxSpread</Output>
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted, conv_objective </Output>
     </PointSet>
   </DataObjects>
 
@@ -193,14 +202,6 @@
       <fps>2.0</fps>
       <format>html</format>
     </Plot>
-    <Plot name="front_evolution_gif" subType="NSGAFrontAnimation">
-      <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
-      <index>batchId</index>
-      <rank>1</rank>
-      <fps>2.0</fps>
-      <format>gif</format>
-    </Plot>
     <Plot name="rank_history" subType="NSGARankHistoryPlot">
       <source>opt_export</source>
       <index>batchId</index>
@@ -218,12 +219,50 @@
       <fps>2.0</fps>
       <format>html</format>
     </Plot>
-    <Plot name="front_rank_animation_gif" subType="NSGAFrontRankAnimation">
+    <Plot name="constraint_activity" subType="ConstraintActivityTimelinePlot">
       <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
+      <constraints>all</constraints>
       <index>batchId</index>
+      <format>both</format>
       <fps>2.0</fps>
-      <format>gif</format>
+      <save_frames>true</save_frames>
+      <frames_max>10</frames_max>
+    </Plot>
+    <Plot name="tradeoff_slices" subType="TradeoffSlicePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+    <Plot name="diversity_radar" subType="DiversityRadarPlot">
+      <source>opt_export</source>
+      <metric>CD</metric>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+    <Plot name="vector_field" subType="ThreeDVectorPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <scale>0.8</scale>
+    </Plot>
+    <Plot name="tube_trajectory" subType="ThreeDTubePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <line_width>3.5</line_width>
+    </Plot>
+    <Plot name="dominance_cones" subType="ThreeDConePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <top_k>10</top_k>
+      <angle>10.0</angle>
     </Plot>
   </OutStreams>
 </Simulation>

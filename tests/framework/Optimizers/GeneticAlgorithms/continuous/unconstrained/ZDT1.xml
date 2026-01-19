@@ -62,7 +62,7 @@ obj_2     *                  o
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">ZDT</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -77,10 +77,31 @@ obj_2     *                  o
       <Output class="OutStreams" type="Plot">pareto_front</Output>
       <Output class="OutStreams" type="Plot">front_evolution</Output>
       <Output class="OutStreams" type="Plot">front_evolution_gif</Output>
+      <Output class="OutStreams" type="Plot">objective_contour_animation</Output>
+      <Output class="OutStreams" type="Plot">objective_contour_animation2</Output>
+      <Output class="OutStreams" type="Plot">pareto_diagnostics</Output>
+      <Output class="OutStreams" type="Plot">dominance_heatmap</Output>
+      <Output class="OutStreams" type="Plot">parallel_trails</Output>
+      <Output class="OutStreams" type="Plot">tradeoff_slices</Output>
+      <Output class="OutStreams" type="Plot">hypervolume_movie</Output>
       <Output class="OutStreams" type="Plot">rank_history</Output>
       <Output class="OutStreams" type="Plot">crowding_distance</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation_gif</Output>
+      <Output class="OutStreams" type="Plot">bubble_tradeoff</Output>
+      <Output class="OutStreams" type="Plot">attainment_surface</Output>
+      <Output class="OutStreams" type="Plot">response_surface_overlay</Output>
+      <Output class="OutStreams" type="Plot">multi_run_uncertainty</Output>
+      <Output class="OutStreams" type="Plot">radviz_embedding</Output>
+      <Output class="OutStreams" type="Plot">prosection_matrix</Output>
+      <Output class="OutStreams" type="Plot">preference_sweep</Output>
+      <Output class="OutStreams" type="Plot">star_coordinates</Output>
+      <Output class="OutStreams" type="Plot">som_map</Output>
+      <Output class="OutStreams" type="Plot">chord_diagram</Output>
+      <Output class="OutStreams" type="Plot">glyph_profiles</Output>
+      <Output class="OutStreams" type="Plot">diversity_radar</Output>
+      <Output class="OutStreams" type="Plot">decision_objective_mapping</Output>
+
     </IOStep>
   </Steps>
 
@@ -98,16 +119,16 @@ obj_2     *                  o
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <NSGA-II name="GAopt">
       <samplerInit>
-        <limit>15</limit>
+        <limit>50</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min,min</type>
       </samplerInit>
 
       <GAparams>
-        <populationSize>10</populationSize>
+        <populationSize>20</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -138,14 +159,14 @@ obj_2     *                  o
       <objective>obj1, obj2 </objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </GeneticAlgorithm>
+    </NSGA-II>
   </Optimizers>
 
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>10</limit>
-        <initialSeed>050877</initialSeed>
+        <limit>20</limit>
+        <initialSeed>120504</initialSeed>
       </samplerInit>
       <variable name="x1">
         <distribution>unifDist</distribution>
@@ -236,6 +257,153 @@ obj_2     *                  o
       <index>batchId</index>
       <fps>2.0</fps>
       <format>gif</format>
+    </Plot>
+    <Plot name="objective_contour_animation" subType="ObjectiveContourAnimationPlot">
+      <source>opt_export</source>
+      <axes>x1, x3</axes>
+      <objective>all</objective>
+      <index>batchId</index>
+      <top>0.2</top>
+      <fps>2.0</fps>
+      <format>both</format>
+    </Plot>
+    <Plot name="objective_contour_animation2" subType="ObjectiveContourAnimationPlot">
+      <source>opt_export</source>
+      <axes>x1, x2</axes>
+      <objective>all</objective>
+      <index>batchId</index>
+      <top>0.2</top>
+      <fps>2.0</fps>
+      <format>both</format>
+    </Plot>
+    <Plot name="pareto_diagnostics" subType="ParetoDiagnosticsPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="parallel_trails" subType="OptParallelCoordinatePlot">
+      <source>opt_export</source>
+      <vars>x1, x2, x3, obj1, obj2</vars>
+      <index>batchId</index>
+      <trail_generations>5</trail_generations>
+    </Plot>
+    <Plot name="tradeoff_slices" subType="TradeoffSlicePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="bubble_tradeoff" subType="BubbleTradeoffPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <size>CD</size>
+      <color>rank</color>
+      <index>batchId</index>
+      <size_bounds>60, 420</size_bounds>
+    </Plot>
+    <Plot name="hypervolume_movie" subType="HypervolumeMoviePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="dominance_heatmap" subType="DominanceHeatMapPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <bins>60</bins>
+    </Plot>
+    <Plot name="attainment_surface" subType="AttainmentSurfacePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <run_id>batchId</run_id>
+      <levels>0.5, 0.9</levels>
+      <grid_size>80</grid_size>
+    </Plot>
+    <Plot name="response_surface_overlay" subType="ResponseSurfaceOverlayPlot">
+      <source>opt_export</source>
+      <axes>x1, x2</axes>
+      <response>obj1</response>
+      <index>batchId</index>
+      <levels>14</levels>
+      <cmap>plasma</cmap>
+    </Plot>
+    <Plot name="multi_run_uncertainty" subType="MultiRunUncertaintyPlot">
+      <source>opt_export</source>
+      <run_id>trajID</run_id>
+      <index>batchId</index>
+      <metric>obj1</metric>
+      <quantiles>0.1, 0.9</quantiles>
+      <goal>min</goal>
+    </Plot>
+    <Plot name="radviz_embedding" subType="RadvizEmbeddingPlot">
+      <source>opt_export</source>
+      <variables>x1, x2, x3, obj1, obj2</variables>
+      <label>rank</label>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="prosection_matrix" subType="ProsectionMatrixPlot">
+      <source>opt_export</source>
+      <variables>x1, x2, x3, obj1, obj2</variables>
+      <color>rank</color>
+      <index>batchId</index>
+      <tolerance>0.15</tolerance>
+    </Plot>
+    <Plot name="preference_sweep" subType="PreferenceSweepAnimationPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <frames>21</frames>
+      <fps>2.0</fps>
+      <format>both</format>
+      <save_frames>true</save_frames>
+      <frames_max>8</frames_max>
+    </Plot>
+    <Plot name="star_coordinates" subType="StarCoordinatesPlot">
+      <source>opt_export</source>
+      <variables>x1, x2, x3, obj1, obj2</variables>
+      <label>rank</label>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="som_map" subType="SelfOrganizingMapPlot">
+      <source>opt_export</source>
+      <variables>x1, x2, x3, obj1, obj2</variables>
+      <color>obj2</color>
+      <index>batchId</index>
+      <grid>12,12</grid>
+      <iterations>400</iterations>
+      <seed>13</seed>
+    </Plot>
+    <Plot name="chord_diagram" subType="ChordDiagramPlot">
+      <source>opt_export</source>
+      <variables>x1, x2, x3, obj1, obj2</variables>
+      <threshold>0.25</threshold>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="glyph_profiles" subType="GlyphRadarPlot">
+      <source>opt_export</source>
+      <variables>x1, x2, x3, obj1, obj2</variables>
+      <count>6</count>
+      <label>trajID</label>
+      <metric>obj1</metric>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="diversity_radar" subType="DiversityRadarPlot">
+      <source>opt_export</source>
+      <metric>CD</metric>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+    <Plot name="decision_objective_mapping" subType="DecisionObjectiveMappingPlot">
+      <source>opt_export</source>
+      <decisions>x1, x2</decisions>
+      <objectives>obj1, obj2</objectives>
+      <rank>1</rank>
+      <max_points>250</max_points>
+      <draw_links>true</draw_links>
+      <link_alpha>0.12</link_alpha>
+      <boundary_all>true</boundary_all>
+      <boundary_all_fill>true</boundary_all_fill>
     </Plot>
   </OutStreams>
 </Simulation>
