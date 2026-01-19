@@ -24,7 +24,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -39,10 +39,6 @@
       <Output class="OutStreams" type="Plot">pareto_front</Output>
       <Output class="OutStreams" type="Plot">front_evolution</Output>
       <Output class="OutStreams" type="Plot">front_evolution_gif</Output>
-      <Output class="OutStreams" type="Plot">objective_contour_animation</Output>
-      <Output class="OutStreams" type="Plot">objective_contour_animation2</Output>
-      <Output class="OutStreams" type="Plot">pareto_diagnostics</Output>
-      <Output class="OutStreams" type="Plot">dominance_heatmap</Output>
       <Output class="OutStreams" type="Plot">rank_history</Output>
       <Output class="OutStreams" type="Plot">crowding_distance</Output>
       <Output class="OutStreams" type="Plot">front_rank_animation</Output>
@@ -64,7 +60,7 @@
   </Distributions>
 
   <Optimizers>
-    <NSGA-II name="GAopt">
+    <GeneticAlgorithm name="GAopt">
       <samplerInit>
         <limit>20</limit>
         <initialSeed>42</initialSeed>
@@ -98,7 +94,7 @@
       <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </NSGA-II>
+    </GeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
@@ -193,35 +189,6 @@
       <index>batchId</index>
       <fps>2.0</fps>
       <format>gif</format>
-    </Plot>
-    <Plot name="objective_contour_animation" subType="ObjectiveContourAnimationPlot">
-      <source>opt_export</source>
-      <axes>x, y</axes>
-      <objective>all</objective>
-      <index>batchId</index>
-      <top>0.2</top>
-      <fps>2.0</fps>
-      <format>both</format>
-    </Plot>
-    <Plot name="objective_contour_animation2" subType="ObjectiveContourAnimationPlot">
-      <source>opt_export</source>
-      <axes>y, x</axes>
-      <objective>all</objective>
-      <index>batchId</index>
-      <top>0.2</top>
-      <fps>2.0</fps>
-      <format>both</format>
-    </Plot>
-    <Plot name="pareto_diagnostics" subType="ParetoDiagnosticsPlot">
-      <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
-      <index>batchId</index>
-    </Plot>
-    <Plot name="dominance_heatmap" subType="DominanceHeatMapPlot">
-      <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
-      <index>batchId</index>
-      <bins>50</bins>
     </Plot>
   </OutStreams>
 </Simulation>

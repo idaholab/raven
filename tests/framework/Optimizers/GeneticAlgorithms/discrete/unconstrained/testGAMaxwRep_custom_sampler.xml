@@ -6,7 +6,7 @@
     <created>2022-02-24</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
-      This test assesses the Genetic algorithm when a custom sampler (initialized by file) is used to 
+      This test assesses the Genetic algorithm when a custom sampler (initialized by file) is used to
       initialize the initial population
     </description>
     <analytic>
@@ -82,7 +82,7 @@
           </mutation>
         </reproduction>
         <fitness type="invLinear">
-          <a>2.0</a>
+          <a>1.0</a>
           <b>1.0</b>
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>

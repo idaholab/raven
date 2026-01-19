@@ -8,88 +8,6 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacement/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacement/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacement/1-parallel_coordinates.gif'
-    [../]
-  [../]
-
-  [./NSGA-III_DTLZ1]
-    type = 'RavenFramework'
-    input = 'continuous/unconstrained/DTLZ1_NSGAIII.xml'
-    required_libraries = 'imageio'
-    image = 'continuous/unconstrained/DTLZ1_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ1_NSGAIII/1-population.png continuous/unconstrained/DTLZ1_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ1_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ1_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ1_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ1_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ1_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ1_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ1_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ1_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ1_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ1_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ1_NSGAIII/1-niching_heatmap.png'
-    text = 'continuous/unconstrained/DTLZ1_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ1_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ1_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ1_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ1_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ1_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ1_NSGAIII/1-hypervolume_movie.html'
-    rel_err = 0.5
-    [./csv]
-      type = UnorderedCSV
-      output = 'continuous/unconstrained/DTLZ1_NSGAIII/opt_export_0.csv'
-      rel_err = 0.001
-    [../]
-  [../]
-
-  [./NSGA-III_DTLZ2]
-    type = 'RavenFramework'
-    input = 'continuous/unconstrained/DTLZ2_NSGAIII.xml'
-    required_libraries = 'imageio'
-    image = 'continuous/unconstrained/DTLZ2_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ2_NSGAIII/1-population.png continuous/unconstrained/DTLZ2_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ2_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ2_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ2_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ2_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ2_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ2_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ2_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ2_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ2_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ2_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ2_NSGAIII/1-niching_heatmap.png'
-    text = 'continuous/unconstrained/DTLZ2_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ2_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ2_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ2_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ2_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ2_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ2_NSGAIII/1-hypervolume_movie.html'
-    rel_err = 0.5
-    [./csv]
-      type = UnorderedCSV
-      output = 'continuous/unconstrained/DTLZ2_NSGAIII/opt_export_0.csv'
-      rel_err = 0.001
-    [../]
-  [../]
-
-  [./NSGA-III_DTLZ3]
-    type = 'RavenFramework'
-    input = 'continuous/unconstrained/DTLZ3_NSGAIII.xml'
-    required_libraries = 'imageio'
-    image = 'continuous/unconstrained/DTLZ3_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ3_NSGAIII/1-population.png continuous/unconstrained/DTLZ3_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ3_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ3_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ3_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ3_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ3_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ3_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ3_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ3_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ3_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ3_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ3_NSGAIII/1-niching_heatmap.png'
-    text = 'continuous/unconstrained/DTLZ3_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ3_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ3_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ3_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ3_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ3_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ3_NSGAIII/1-hypervolume_movie.html'
-    rel_err = 0.5
-    [./csv]
-      type = UnorderedCSV
-      output = 'continuous/unconstrained/DTLZ3_NSGAIII/opt_export_0.csv'
-      rel_err = 0.001
-    [../]
-  [../]
-
-  [./NSGA-III_DTLZ4]
-    type = 'RavenFramework'
-    input = 'continuous/unconstrained/DTLZ4_NSGAIII.xml'
-    required_libraries = 'imageio'
-    image = 'continuous/unconstrained/DTLZ4_NSGAIII/1-opt_path.png continuous/unconstrained/DTLZ4_NSGAIII/1-population.png continuous/unconstrained/DTLZ4_NSGAIII/1-pareto_front.png continuous/unconstrained/DTLZ4_NSGAIII/1-rank_history.png continuous/unconstrained/DTLZ4_NSGAIII/1-crowding_distance.png continuous/unconstrained/DTLZ4_NSGAIII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ4_NSGAIII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ4_NSGAIII/1-vector_field.png continuous/unconstrained/DTLZ4_NSGAIII/1-tube_trajectory.png continuous/unconstrained/DTLZ4_NSGAIII/1-dominance_cones.png continuous/unconstrained/DTLZ4_NSGAIII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ4_NSGAIII/1-dominance_heatmap.png continuous/unconstrained/DTLZ4_NSGAIII/1-reference_directions.png continuous/unconstrained/DTLZ4_NSGAIII/1-niching_heatmap.png'
-    text = 'continuous/unconstrained/DTLZ4_NSGAIII/1-front_evolution.html continuous/unconstrained/DTLZ4_NSGAIII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ4_NSGAIII/1-objective_contour_animation.html continuous/unconstrained/DTLZ4_NSGAIII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ4_NSGAIII/1-tradeoff_slices.html continuous/unconstrained/DTLZ4_NSGAIII/1-preference_sweep.html continuous/unconstrained/DTLZ4_NSGAIII/1-hypervolume_movie.html'
-    rel_err = 0.5
-    [./csv]
-      type = UnorderedCSV
-      output = 'continuous/unconstrained/DTLZ4_NSGAIII/opt_export_0.csv'
-      rel_err = 0.001
-    [../]
-  [../]
-
-  [./NSGA-II_DTLZ2]
-    type = 'RavenFramework'
-    input = 'continuous/unconstrained/DTLZ2_NSGAII.xml'
-    required_libraries = 'imageio'
-    image = 'continuous/unconstrained/DTLZ2_NSGAII/1-opt_path.png continuous/unconstrained/DTLZ2_NSGAII/1-population.png continuous/unconstrained/DTLZ2_NSGAII/1-pareto_front.png continuous/unconstrained/DTLZ2_NSGAII/1-rank_history.png continuous/unconstrained/DTLZ2_NSGAII/1-crowding_distance.png continuous/unconstrained/DTLZ2_NSGAII/1-front_evolution_gif.gif continuous/unconstrained/DTLZ2_NSGAII/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/DTLZ2_NSGAII/1-vector_field.png continuous/unconstrained/DTLZ2_NSGAII/1-tube_trajectory.png continuous/unconstrained/DTLZ2_NSGAII/1-dominance_cones.png continuous/unconstrained/DTLZ2_NSGAII/1-pareto_diagnostics.png continuous/unconstrained/DTLZ2_NSGAII/1-dominance_heatmap.png'
-    text = 'continuous/unconstrained/DTLZ2_NSGAII/1-front_evolution.html continuous/unconstrained/DTLZ2_NSGAII/1-front_rank_animation_rank_animation.html continuous/unconstrained/DTLZ2_NSGAII/1-objective_contour_animation.html continuous/unconstrained/DTLZ2_NSGAII/1-objective_contour_animation2.html continuous/unconstrained/DTLZ2_NSGAII/1-tradeoff_slices.html continuous/unconstrained/DTLZ2_NSGAII/1-preference_sweep.html continuous/unconstrained/DTLZ2_NSGAII/1-hypervolume_movie.html'
-    rel_err = 0.5
-    [./csv]
-      type = UnorderedCSV
-      output = 'continuous/unconstrained/DTLZ2_NSGAII/opt_export_0.csv'
-      rel_err = 0.001
-    [../]
   [../]
 
   [./MinwReplacementConvAHDp]
@@ -100,18 +18,6 @@
       output = 'discrete/unconstrained/MinwReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvAHDp/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvAHDp/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvAHDp/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -124,18 +30,6 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvHDSM/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvHDSM/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvHDSM/1-parallel_coordinates.gif'
-    [../]
     [../]
 
   [./MinwReplacementConvAHDpUsingCode]
@@ -148,18 +42,6 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MinwReplacementConvAHDpUsingCode/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./MinwoReplacement]
@@ -170,18 +52,6 @@
       output = 'discrete/unconstrained/MinwoReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacement/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacement/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacement/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -194,18 +64,6 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/1-parallel_coordinates.gif'
-    [../]
   [../]
 
     [./MinwoReplacementConvHDSM]
@@ -217,18 +75,6 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacementConvHDSM/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacementConvHDSM/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MinwoReplacementConvHDSM/1-parallel_coordinates.gif'
-    [../]
     [../]
   [./MaxwReplacement]
     type = 'RavenFramework'
@@ -243,14 +89,6 @@
       type = Exists
       output = 'discrete/unconstrained/MaxwReplacement/opt_path.png'
     [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacement/population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacement/parallel_coordinates.gif'
-    [../]
   [../]
 
   [./MaxwReplacementCustomSampler]
@@ -261,18 +99,6 @@
       output = 'discrete/unconstrained/MaxwReplacement_customsampler/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacement_customsampler/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacement_customsampler/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacement_customsampler/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -285,18 +111,6 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementDiffDist/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementDiffDist/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementDiffDist/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./MaxwReplacementConvAHDp]
@@ -307,18 +121,6 @@
       output = 'discrete/unconstrained/MaxwReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -331,18 +133,6 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementConvHDSM/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementConvHDSM/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwReplacementConvHDSM/1-parallel_coordinates.gif'
-    [../]
     [../]
 
   [./MaxwoReplacement]
@@ -353,26 +143,6 @@
       output = 'discrete/unconstrained/MaxwoReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacement/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacement/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacement/1-parallel_coordinates.gif'
-    [../]
-    [./plot_objective_contour_animation_gif]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacement/1-objective_contour_animation.gif'
-    [../]
-    [./plot_objective_contour_animation_html]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacement/1-objective_contour_animation.html'
     [../]
   [../]
 
@@ -385,18 +155,6 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementTwoPointsCrossover/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementTwoPointsCrossover/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementTwoPointsCrossover/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./MaxwoReplacementDiffDist]
@@ -407,18 +165,6 @@
       output = 'discrete/unconstrained/MaxwoReplacementDiffDist/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -431,18 +177,6 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/1-parallel_coordinates.gif'
-    [../]
   [../]
 
     [./MaxwoReplacementConvHDSM]
@@ -454,18 +188,6 @@
         rel_err = 1e-3
         zero_threshold = 1e-5
       [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementConvHDSM/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementConvHDSM/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/MaxwoReplacementConvHDSM/1-parallel_coordinates.gif'
-    [../]
     [../]
 
   [./discreteIntWithReplacement]
@@ -473,20 +195,8 @@
     input = 'discrete/unconstrained/GA_discreteIntWithReplacement.xml'
     [./csv]
      type = OrderedCSV
-     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv'
+     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv ./discrete/unconstrained/discreteIntWithReplacement/PrintOptOut.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/discreteIntWithReplacement/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/discreteIntWithReplacement/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/discreteIntWithReplacement/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -498,18 +208,6 @@
      output = 'discrete/unconstrained/simpleKnapsack/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsack/PrintOptOut.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsack/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsack/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsack/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./GA_knapsackBaseTournament]
@@ -520,18 +218,6 @@
      output = 'discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_export_1.csv discrete/unconstrained/simpleKnapsackTournament/PrintOptOut_1.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsackTournament/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsackTournament/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsackTournament/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./GA_knapsackBaseUnifXover]
@@ -541,18 +227,6 @@
      type = OrderedCSV
      output = 'discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsackUnifXover/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsackUnifXover/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/simpleKnapsackUnifXover/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -565,18 +239,6 @@
      type = OrderedCSV
      output = 'discrete/constrained/MaxwReplacementSphereConstrained/opt_export_0.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MaxwReplacementSphereConstrained/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MaxwReplacementSphereConstrained/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/constrained/MaxwReplacementSphereConstrained/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -600,18 +262,6 @@
      output = 'continuous/constrained/mishraBirdConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/mishraBirdConstrained/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/mishraBirdConstrained/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/mishraBirdConstrained/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./mishraBirdConstrainedInvLin]
@@ -621,18 +271,6 @@
      type = OrderedCSV
      output = 'continuous/constrained/mishraBirdConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/mishraBirdConstrainedInvLin/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/mishraBirdConstrainedInvLin/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/mishraBirdConstrainedInvLin/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -644,38 +282,6 @@
      output = 'continuous/constrained/rosenbrockDiskConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-parallel_coordinates.gif'
-    [../]
-    [./plot_objective_contour_animation]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-objective_contour_animation.gif'
-    [../]
-    [./plot_objective_contour_animation_html]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-objective_contour_animation.html'
-    [../]
-    [./plot_fitness_funnel]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-fitness_funnel.png'
-    [../]
-    [./plot_sampling_coverage_gif]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-sampling_coverage.gif'
-    [../]
-    [./plot_sampling_coverage_html]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrained/1-sampling_coverage.html'
-    [../]
   [../]
 
   [./rosenbrockDiskConstrainedInvLin]
@@ -685,30 +291,6 @@
      type = OrderedCSV
      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-parallel_coordinates.gif'
-    [../]
-    [./plot_fitness_funnel]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-fitness_funnel.png'
-    [../]
-    [./plot_sampling_coverage_gif]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-sampling_coverage.gif'
-    [../]
-    [./plot_sampling_coverage_html]
-      type = Exists
-      output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/1-sampling_coverage.html'
     [../]
   [../]
 
@@ -720,18 +302,6 @@
      output = 'continuous/constrained/simionescuConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/simionescuConstrained/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/simionescuConstrained/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/simionescuConstrained/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./simionescuConstrainedInvLin]
@@ -741,18 +311,6 @@
      type = OrderedCSV
      output = 'continuous/constrained/simionescuConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/simionescuConstrainedInvLin/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/simionescuConstrainedInvLin/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/simionescuConstrainedInvLin/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -764,18 +322,6 @@
      output = 'continuous/constrained/townsendConstrained/opt_export_0.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/townsendConstrained/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/townsendConstrained/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/townsendConstrained/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./townsendConstrainedInvLin]
@@ -786,18 +332,6 @@
      output = 'continuous/constrained/townsendConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/constrained/townsendConstrainedInvLin/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/constrained/townsendConstrainedInvLin/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/constrained/townsendConstrainedInvLin/1-parallel_coordinates.gif'
-    [../]
   [../]
 
    [./knapsackMultipleDist]
@@ -807,18 +341,6 @@
      type = OrderedCSV
      output = 'discrete/unconstrained/knapsackMultipleDist/PrintOptOut.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/knapsackMultipleDist/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/knapsackMultipleDist/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/knapsackMultipleDist/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -831,18 +353,6 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/unconstrained/GA_PPF/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/unconstrained/GA_PPF/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/unconstrained/GA_PPF/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./failureOfRuns]
@@ -852,18 +362,6 @@
      type = OrderedCSV
      output = 'discrete/constrained/failureOfRuns/opt_export_0.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/failureOfRuns/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/failureOfRuns/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/constrained/failureOfRuns/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -875,18 +373,6 @@
      output = 'continuous/unconstrained/ensemble_withGA/metaModelOutputTestDump.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/unconstrained/ensemble_withGA/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/unconstrained/ensemble_withGA/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/unconstrained/ensemble_withGA/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./GAwithEnsembleModelHDSMconvergence]
@@ -896,18 +382,6 @@
      type = OrderedCSV
      output = 'continuous/unconstrained/ensemble_withGA_HDSM/opt_export.csv'
      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/unconstrained/ensemble_withGA_HDSM/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/unconstrained/ensemble_withGA_HDSM/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/unconstrained/ensemble_withGA_HDSM/1-parallel_coordinates.gif'
     [../]
   [../]
 
@@ -919,25 +393,14 @@
      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/opt_export.csv'
      rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'continuous/unconstrained/metaModelWithCodeAndFunctionsAndGenetic/1-parallel_coordinates.gif'
-    [../]
   [../]
 
   [./NSGA-II_MinwoRepMultiObjective]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png discrete/constrained/Multi_MinwoReplacement/1-population.png discrete/constrained/Multi_MinwoReplacement/1-pareto_front.png discrete/constrained/Multi_MinwoReplacement/1-pareto_front_constraints.png discrete/constrained/Multi_MinwoReplacement/1-rank_history.png discrete/constrained/Multi_MinwoReplacement/1-crowding_distance.png discrete/constrained/Multi_MinwoReplacement/1-front_evolution.gif discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_rank_animation.gif discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation.gif discrete/constrained/Multi_MinwoReplacement/1-objective_contour_animation2.gif discrete/constrained/Multi_MinwoReplacement/1-constraint_activity.gif discrete/constrained/Multi_MinwoReplacement/1-tradeoff_slices.gif discrete/constrained/Multi_MinwoReplacement/1-diversity_radar.gif'
+    image = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png discrete/constrained/Multi_MinwoReplacement/1-population.png discrete/constrained/Multi_MinwoReplacement/1-pareto_front.png discrete/constrained/Multi_MinwoReplacement/1-rank_history.png discrete/constrained/Multi_MinwoReplacement/1-crowding_distance.png discrete/constrained/Multi_MinwoReplacement/1-front_evolution_gif.gif discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'discrete/constrained/Multi_MinwoReplacement/1-front_evolution.html discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
@@ -949,8 +412,8 @@
   [./NSGA-II_MinwoRepFeasibleFirst]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst.xml'
-    image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-pareto_front.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-rank_history.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-crowding_distance.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_evolution.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_rank_animation_rank_animation.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-objective_contour_animation.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-objective_contour_animation2.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-constraint_activity.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-tradeoff_slices.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-diversity_radar.gif'
-    text = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_evolution.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_rank_animation_rank_animation.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-objective_contour_animation.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-objective_contour_animation2.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-constraint_activity.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-tradeoff_slices.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-diversity_radar.html'
+    image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-pareto_front.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-rank_history.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-crowding_distance.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_evolution_gif.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_evolution.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_rank_animation_rank_animation.html'
     required_libraries = 'imageio'
     rel_err = 0.25
     [./csv]
@@ -958,21 +421,13 @@
       output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/opt_export_0.csv'
       rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
-    [../]
   [../]
 
   [./NSGA-II_ZDT1]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/ZDT1.xml'
-    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png continuous/unconstrained/ZDT1/1-pareto_front.png continuous/unconstrained/ZDT1/1-rank_history.png continuous/unconstrained/ZDT1/1-crowding_distance.png continuous/unconstrained/ZDT1/1-front_evolution.gif continuous/unconstrained/ZDT1/1-front_rank_animation_rank_animation.gif continuous/unconstrained/ZDT1/1-objective_contour_animation.gif continuous/unconstrained/ZDT1/1-objective_contour_animation2.gif continuous/unconstrained/ZDT1/1-pareto_diagnostics.png continuous/unconstrained/ZDT1/1-dominance_heatmap.png'
-    text = 'continuous/unconstrained/ZDT1/1-front_evolution.html continuous/unconstrained/ZDT1/1-front_rank_animation_rank_animation.html continuous/unconstrained/ZDT1/1-objective_contour_animation.html continuous/unconstrained/ZDT1/1-objective_contour_animation2.html'
+    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png continuous/unconstrained/ZDT1/1-pareto_front.png continuous/unconstrained/ZDT1/1-rank_history.png continuous/unconstrained/ZDT1/1-crowding_distance.png continuous/unconstrained/ZDT1/1-front_evolution_gif.gif continuous/unconstrained/ZDT1/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'continuous/unconstrained/ZDT1/1-front_evolution.html continuous/unconstrained/ZDT1/1-front_rank_animation_rank_animation.html'
     required_libraries = 'imageio'
     rel_err = 0.5
     [./csv]
@@ -980,35 +435,19 @@
       output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
       rel_err = 0.001
     [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/unconstrained/ZDT1/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/unconstrained/ZDT1/1-population.png'
-    [../]
   [../]
 
   [./NSGA-II_Beale]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'
     required_libraries = 'imageio'
-    image = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png continuous/unconstrained/Multi_beale_bealeFlipped/1-pareto_front.png continuous/unconstrained/Multi_beale_bealeFlipped/1-rank_history.png continuous/unconstrained/Multi_beale_bealeFlipped/1-crowding_distance.png continuous/unconstrained/Multi_beale_bealeFlipped/1-front_evolution.gif continuous/unconstrained/Multi_beale_bealeFlipped/1-front_rank_animation_rank_animation.gif continuous/unconstrained/Multi_beale_bealeFlipped/1-objective_contour_animation.gif continuous/unconstrained/Multi_beale_bealeFlipped/1-objective_contour_animation2.gif continuous/unconstrained/Multi_beale_bealeFlipped/1-pareto_diagnostics.png continuous/unconstrained/Multi_beale_bealeFlipped/1-dominance_heatmap.png'
-    text = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-front_evolution.html continuous/unconstrained/Multi_beale_bealeFlipped/1-front_rank_animation_rank_animation.html continuous/unconstrained/Multi_beale_bealeFlipped/1-objective_contour_animation.html continuous/unconstrained/Multi_beale_bealeFlipped/1-objective_contour_animation2.html'
+    image = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png continuous/unconstrained/Multi_beale_bealeFlipped/1-pareto_front.png continuous/unconstrained/Multi_beale_bealeFlipped/1-rank_history.png continuous/unconstrained/Multi_beale_bealeFlipped/1-crowding_distance.png continuous/unconstrained/Multi_beale_bealeFlipped/1-front_evolution_gif.gif continuous/unconstrained/Multi_beale_bealeFlipped/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-front_evolution.html continuous/unconstrained/Multi_beale_bealeFlipped/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png'
     [../]
   [../]
 
@@ -1016,21 +455,13 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst_CustomSampler.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-population.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-pareto_front.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-rank_history.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-crowding_distance.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_evolution.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_rank_animation_rank_animation.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-objective_contour_animation.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-objective_contour_animation2.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-constraint_activity.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-tradeoff_slices.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-diversity_radar.gif'
-    text = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_evolution.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_rank_animation_rank_animation.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-objective_contour_animation.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-objective_contour_animation2.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-constraint_activity.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-tradeoff_slices.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-diversity_radar.html'
+    image = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-population.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-pareto_front.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-rank_history.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-crowding_distance.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_evolution_gif.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_evolution.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-population.png'
     [../]
   [../]
 
@@ -1038,21 +469,13 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvMaxSpread.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_evolution.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_rank_animation_rank_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-objective_contour_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-objective_contour_animation2.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-constraint_activity.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-tradeoff_slices.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-diversity_radar.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_rank_animation_rank_animation.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-objective_contour_animation.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-objective_contour_animation2.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-constraint_activity.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-tradeoff_slices.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-diversity_radar.html'
+    image = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-population.png'
     [../]
   [../]
 
@@ -1060,21 +483,13 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvSpread.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_evolution.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_rank_animation_rank_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-objective_contour_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-objective_contour_animation2.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-constraint_activity.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-tradeoff_slices.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-diversity_radar.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_rank_animation_rank_animation.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-objective_contour_animation.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-objective_contour_animation2.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-constraint_activity.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-tradeoff_slices.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-diversity_radar.html'
+    image = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-population.png'
     [../]
   [../]
 
@@ -1082,21 +497,13 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvHypervolume.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_evolution.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_rank_animation_rank_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-objective_contour_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-objective_contour_animation2.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-constraint_activity.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-tradeoff_slices.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-diversity_radar.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_rank_animation_rank_animation.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-objective_contour_animation.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-objective_contour_animation2.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-constraint_activity.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-tradeoff_slices.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-diversity_radar.html'
+    image = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-population.png'
     [../]
   [../]
 
@@ -1104,21 +511,13 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvRank1Ratio.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_evolution.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_rank_animation_rank_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-objective_contour_animation.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-objective_contour_animation2.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-constraint_activity.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-tradeoff_slices.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-diversity_radar.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_rank_animation_rank_animation.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-objective_contour_animation.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-objective_contour_animation2.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-constraint_activity.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-tradeoff_slices.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-diversity_radar.html'
+    image = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_rank_animation_gif_rank_animation.gif'
+    text = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-population.png'
     [../]
   [../]
 
@@ -1129,18 +528,6 @@
       type = UnorderedCSV
       output = 'discrete/constrained/MinwReplacementConstrained/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MinwReplacementConstrained/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MinwReplacementConstrained/1-population.png'
-    [../]
-    [./plot_parallel_coordinates]
-      type = Exists
-      output = 'discrete/constrained/MinwReplacementConstrained/1-parallel_coordinates.gif'
     [../]
   [../]
 []

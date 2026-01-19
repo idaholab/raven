@@ -85,7 +85,7 @@
           </mutation>
         </reproduction>
         <fitness type="invLinear">
-          <a>2.0</a>
+          <a>1.0</a>
           <b>1.0</b>
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
