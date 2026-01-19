@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="MultiRun">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- driver split -->
+    <circle cx="78" cy="128" r="10" fill="rgba(231,237,247,0.90)" stroke="rgba(15,23,38,0.85)" stroke-width="3"/>
+    <path d="M88 128 H104" stroke="rgba(231,237,247,0.55)" stroke-width="4"/>
+    <path d="M104 128 C118 112 132 104 148 104" fill="none" stroke="rgba(231,237,247,0.40)" stroke-width="4"/>
+    <path d="M104 128 C118 144 132 152 148 152" fill="none" stroke="rgba(231,237,247,0.40)" stroke-width="4"/>
+
+    <!-- stacked runs -->
+    <g fill="rgba(121,198,255,0.16)" stroke="rgba(231,237,247,0.32)" stroke-width="2">
+      <rect x="148" y="84" width="74" height="32" rx="14"/>
+      <rect x="148" y="120" width="74" height="32" rx="14"/>
+      <rect x="148" y="156" width="74" height="32" rx="14"/>
+    </g>
+
+    <!-- merge indicator -->
+    <path d="M132 104 H148" stroke="rgba(231,237,247,0.40)" stroke-width="4"/>
+    <path d="M132 152 H148" stroke="rgba(231,237,247,0.40)" stroke-width="4"/>
+    <path d="M132 104 V152" stroke="rgba(231,237,247,0.22)" stroke-width="4"/>
+    <circle cx="132" cy="128" r="7" fill="rgba(121,198,255,0.85)" stroke="rgba(15,23,38,0.75)" stroke-width="3"/>
+  </g>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Steps">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- vertical timeline (orchestrator) -->
+    <path d="M92 76 V188" stroke="rgba(231,237,247,0.28)" stroke-width="4" fill="none"/>
+    <g fill="rgba(231,237,247,0.90)" stroke="rgba(15,23,38,0.85)" stroke-width="3">
+      <circle cx="92" cy="92" r="9"/>
+      <circle cx="92" cy="132" r="9"/>
+      <circle cx="92" cy="172" r="9"/>
+    </g>
+
+    <!-- step blocks controlled by the driver -->
+    <g fill="rgba(121,198,255,0.16)" stroke="rgba(231,237,247,0.32)" stroke-width="2">
+      <rect x="114" y="76" width="86" height="32" rx="12"/>
+      <rect x="114" y="116" width="86" height="32" rx="12"/>
+      <rect x="114" y="156" width="86" height="32" rx="12"/>
+    </g>
+
+    <!-- control lines (no arrows) -->
+    <g fill="none" stroke="rgba(231,237,247,0.55)" stroke-width="4">
+      <path d="M101 92 H114"/>
+      <path d="M101 132 H114"/>
+      <path d="M101 172 H114"/>
+    </g>
+
+    <!-- subtle "driver" crown/hub -->
+    <path d="M148 66 C156 58 170 58 178 66" stroke="rgba(121,198,255,0.70)" stroke-width="4" fill="none"/>
+    <path d="M148 198 C156 206 170 206 178 198" stroke="rgba(121,198,255,0.35)" stroke-width="3" fill="none"/>
+  </g>
+</svg>

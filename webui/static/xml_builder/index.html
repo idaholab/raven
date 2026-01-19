@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PRLO XML Builder</title>
+    <link rel="stylesheet" href="/static/xml_builder/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header__title">
+        <h1>PRLO XML Builder</h1>
+        <p>Assemble RAVEN input decks by inserting blocks from PRLO examples (Fulcrum-style: palette, configurable insert, validation, plotting).</p>
+      </div>
+      <div class="header__actions">
+        <button id="copyBtn" type="button">Copy XML</button>
+        <button id="downloadBtn" type="button">Download</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel panel--toolbox">
+        <div class="panel__row">
+          <h2>Toolbox</h2>
+        </div>
+        <div class="toolbox-wrap">
+          <div id="toolbox" class="toolbox toolbox--vertical" aria-label="Toolbox"></div>
+          <div id="toolboxOverlay" class="toolbox-overlay" hidden>
+            <div class="toolbox-overlay__header">
+              <button id="toolboxOverlayBack" type="button" class="toolbox-overlay__back">← Tools</button>
+              <div id="toolboxOverlayTitle" class="toolbox-overlay__title">Models</div>
+            </div>
+            <div id="toolboxOverlayList" class="toolbox-overlay__list"></div>
+            <div class="hint">Click to preview · Double click to insert · Drag into Workflow/Output.</div>
+          </div>
+        </div>
+        <div class="hint">Click to preview · Double click to insert · Drag into the Workflow strip.</div>
+      </section>
+
+      <section class="panel panel--left">
+        <h2>Workspace</h2>
+        <label class="field">
+          <span>Start From</span>
+          <select id="baseSelect"></select>
+        </label>
+        <label class="field field--checkbox">
+          <input id="replaceToggle" type="checkbox" checked />
+          <span>Replace matching blocks when inserting</span>
+        </label>
+        <div class="hint">
+          Matching uses section + tag and, when present, the <code>name</code> attribute. Use <code>Ctrl+Space</code> in the Output editor for the palette.
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="panel__row panel__row--palette">
+          <h2>Palette</h2>
+          <label class="field field--inline">
+            <span>Entity</span>
+            <select id="entitySelect" aria-label="RAVEN entity filter"></select>
+          </label>
+          <div class="palette__density">
+            <label for="densitySlider" title="Adjust palette spacing">Spacing</label>
+            <input id="densitySlider" type="range" min="0" max="4" step="1" value="2" aria-label="Palette spacing" />
+          </div>
+        </div>
+        <div id="snippetList" class="list list--grouped"></div>
+      </section>
+
+      <section class="panel panel--center">
+        <div class="panel__row">
+          <h2>Output</h2>
+          <div class="panel__row-actions">
+            <button id="runBtn" type="button">Run</button>
+            <button id="validateBtn" type="button">Validate</button>
+          </div>
+        </div>
+        <div class="workflow-strip" aria-label="Workflow builder">
+          <div class="workflow-strip__title">Workflow</div>
+          <div id="workflowStrip" class="workflow-strip__drop">
+            <div id="workflowItems" class="workflow-strip__items"></div>
+            <div class="workflow-strip__hint">Drag icons here to build</div>
+          </div>
+        </div>
+        <textarea id="outputXml" spellcheck="false" aria-label="Output XML editor"></textarea>
+        <div class="hint">Tip: Edit directly; insert blocks from the palette.</div>
+      </section>
+
+      <section class="panel panel--right">
+        <div class="panel__row">
+          <h2>Inspector</h2>
+          <div class="panel__row-actions">
+            <button id="insertBtn" type="button" disabled>Insert</button>
+          </div>
+        </div>
+        <div class="inspector">
+          <div>
+            <div id="previewTitle" class="preview__title">Select a block</div>
+            <div id="previewMeta" class="preview__meta"></div>
+          </div>
+
+          <div class="inspector__section">
+            <div class="inspector__label">Configurable fields</div>
+            <div id="configForm" class="config"></div>
+            <div class="hint">Edits update the preview and inserted XML.</div>
+          </div>
+
+          <div class="inspector__section inspector__section--fill">
+            <div class="inspector__label">Preview</div>
+            <textarea id="previewXml" spellcheck="false" placeholder="Block XML preview"></textarea>
+          </div>
+
+          <details class="inspector__section">
+            <summary>Plot CSV</summary>
+            <div class="plot">
+              <input id="plotFile" type="file" accept=".csv,text/csv" />
+              <div class="plot__row">
+                <label class="field">
+                  <span>X</span>
+                  <select id="plotX"></select>
+                </label>
+                <label class="field">
+                  <span>Y</span>
+                  <select id="plotY"></select>
+                </label>
+              </div>
+              <canvas id="plotCanvas" width="520" height="280"></canvas>
+              <div id="plotMeta" class="hint"></div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="panel panel--bottom">
+        <div class="panel__row">
+          <h2>Messages</h2>
+          <div class="panel__row-actions">
+            <button id="clearMessagesBtn" type="button">Clear</button>
+          </div>
+        </div>
+        <details class="runlog" open>
+          <summary>Run Log</summary>
+          <div id="runStatus" class="hint">Idle.</div>
+          <div id="runOutputsHint" class="hint"></div>
+          <pre id="runLog" class="runlog__output" aria-label="Run log output"></pre>
+          <div class="runlog__footer">
+            <a id="openDashboardBtn" class="runlog__btn" href="#" target="_blank" rel="noreferrer" hidden>Output Dashboard</a>
+          </div>
+        </details>
+        <details class="runlog">
+          <summary>Existing Runs</summary>
+          <div class="runlist__actions">
+            <button id="refreshRunsBtn" type="button">Refresh</button>
+          </div>
+          <div class="runlist__actions">
+            <input id="runsFilter" type="search" placeholder="Filter runs..." />
+          </div>
+          <div class="runlist__actions">
+            <input id="runNameInput" type="text" placeholder="Run folder name..." list="runsDatalist" />
+            <button id="openRunBtn" type="button">Open</button>
+            <datalist id="runsDatalist"></datalist>
+          </div>
+          <div id="runsList" class="runlist"></div>
+        </details>
+        <details class="runlog">
+          <summary>Open Output Folder</summary>
+          <div class="runlist__actions">
+            <input id="runPathInput" type="text" placeholder="Output folder path..." />
+            <button id="browseRunPathBtn" type="button">Browse</button>
+            <button id="openRunPathBtn" type="button">Open</button>
+          </div>
+          <div id="runPathHint" class="hint">
+            Point to a folder containing plot outputs to generate a dashboard.
+          </div>
+        </details>
+        <div id="messages" class="messages"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Backend: <code>/api/xml-builder/catalog</code> · <code>/api/xml-builder/example</code>
+    </footer>
+
+    <dialog id="paletteDialog" class="dialog">
+      <form method="dialog" class="dialog__form">
+        <div class="dialog__header">
+          <div>
+            <div class="dialog__title">Insert block</div>
+            <div id="paletteHint" class="dialog__hint"></div>
+          </div>
+          <button class="dialog__close" value="cancel" type="submit">Close</button>
+        </div>
+        <input id="paletteSearch" type="search" placeholder="Search blocks…" />
+        <div id="paletteList" class="list dialog__list"></div>
+        <div class="hint">Enter to insert · Esc to close · Double click inserts</div>
+      </form>
+    </dialog>
+
+    <dialog id="runPathDialog" class="dialog">
+      <div class="dialog__form">
+        <div class="dialog__header">
+          <div>
+            <div class="dialog__title">Select output folder</div>
+            <div class="dialog__hint">Choose a folder and open its dashboard.</div>
+          </div>
+          <button id="closeRunPathDialog" class="dialog__close" type="button">Close</button>
+        </div>
+        <div class="browse__toolbar">
+          <button id="browseUpBtn" type="button">Up</button>
+          <input id="browsePathInput" type="text" />
+          <button id="browseGoBtn" type="button">Go</button>
+        </div>
+        <div id="browseList" class="browse__list"></div>
+        <div class="dialog__footer">
+          <button id="browseUseBtn" type="button">Use folder</button>
+          <button id="browseOpenBtn" type="button">Open dashboard</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="/static/xml_builder/app.js" type="module"></script>
+  </body>
+</html>

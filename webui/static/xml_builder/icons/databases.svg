@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Databases">
+  <defs>
+    <linearGradient id="dbBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#79c6ff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#2c6bb3" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="dbTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8be9fd" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#5ea6ff" stop-opacity="0.95"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)">
+    <ellipse cx="128" cy="84" rx="62" ry="22" fill="url(#dbTop)" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+    <path d="M66 84 V176 C66 188 94 198 128 198 C162 198 190 188 190 176 V84"
+          fill="url(#dbBody)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+    <ellipse cx="128" cy="176" rx="62" ry="22" fill="rgba(15,23,38,0.20)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+    <ellipse cx="128" cy="130" rx="62" ry="22" fill="none" stroke="rgba(231,237,247,0.30)" stroke-width="2"/>
+  </g>
+
+  <g>
+    <rect x="162" y="174" width="50" height="28" rx="10" fill="rgba(15,23,38,0.80)" stroke="rgba(231,237,247,0.22)"/>
+    <text x="187" y="193" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#e7edf7" font-weight="700">DB</text>
+  </g>
+</svg>
+

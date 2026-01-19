@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="EnsembleModel">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- ensemble = multiple models combined (parallel + series) -->
+    <g fill="rgba(121,198,255,0.16)" stroke="rgba(231,237,247,0.32)" stroke-width="2">
+      <!-- parallel models -->
+      <rect x="56" y="78" width="72" height="34" rx="12"/>
+      <rect x="56" y="122" width="72" height="34" rx="12"/>
+      <!-- series stage -->
+      <rect x="156" y="100" width="64" height="34" rx="12"/>
+    </g>
+
+    <!-- connectors: parallel merge then series -->
+    <g fill="none" stroke="rgba(231,237,247,0.55)" stroke-width="4">
+      <path d="M128 95 H146"/>
+      <path d="M128 139 H146"/>
+      <path d="M146 95 V139"/>
+      <path d="M146 117 H156"/>
+    </g>
+
+    <!-- merge node -->
+    <circle cx="146" cy="117" r="9" fill="rgba(231,237,247,0.90)" stroke="rgba(15,23,38,0.85)" stroke-width="3"/>
+
+    <!-- mode hints: series / parallel / none -->
+    <g fill="none" stroke="rgba(121,198,255,0.65)" stroke-width="3">
+      <!-- parallel bars -->
+      <path d="M64 182 H92"/>
+      <path d="M64 190 H92"/>
+      <!-- series dots -->
+      <path d="M112 186 H144"/>
+      <circle cx="112" cy="186" r="3" fill="rgba(121,198,255,0.65)" stroke="none"/>
+      <circle cx="128" cy="186" r="3" fill="rgba(121,198,255,0.65)" stroke="none"/>
+      <circle cx="144" cy="186" r="3" fill="rgba(121,198,255,0.65)" stroke="none"/>
+      <!-- neither (dashed link) -->
+      <path d="M164 186 H200" stroke-dasharray="6 6"/>
+    </g>
+  </g>
+</svg>

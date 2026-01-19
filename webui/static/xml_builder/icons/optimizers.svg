@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Optimizers">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- axes -->
+    <path d="M74 184 H186" stroke="rgba(231,237,247,0.25)" stroke-width="3"/>
+    <path d="M86 196 V72" stroke="rgba(231,237,247,0.20)" stroke-width="3"/>
+
+    <!-- convex objective (parabola, concave up in screen coords) -->
+    <path d="M72 96 Q128 236 184 96" stroke="rgba(121,198,255,0.90)" stroke-width="6"/>
+
+    <!-- iterate points (all on the parabola) -->
+    <path d="M88.8 131.7 L150.4 154.8 L116.8 163.2 L128 166"
+          stroke="rgba(231,237,247,0.55)" stroke-width="4"/>
+    <circle cx="88.8" cy="131.7" r="7" fill="rgba(231,237,247,0.85)" stroke="rgba(15,23,38,0.8)" stroke-width="3"/>
+    <circle cx="150.4" cy="154.8" r="7" fill="rgba(231,237,247,0.78)" stroke="rgba(15,23,38,0.8)" stroke-width="3"/>
+    <circle cx="116.8" cy="163.2" r="7" fill="rgba(231,237,247,0.72)" stroke="rgba(15,23,38,0.8)" stroke-width="3"/>
+
+    <!-- minimum -->
+    <circle cx="128" cy="166" r="11" stroke="rgba(231,237,247,0.85)" stroke-width="4"/>
+    <circle cx="128" cy="166" r="4" fill="rgba(231,237,247,0.95)"/>
+  </g>
+</svg>

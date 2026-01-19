@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="HistorySet">
+  <defs>
+    <linearGradient id="faceTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8be9fd" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#5ea6ff" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="faceLeft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4aa3d1" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#1f5a7a" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="faceRight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#79c6ff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#2c6bb3" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)">
+    <path d="M128 56 L188 92 L128 128 L68 92 Z" fill="url(#faceTop)" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+    <path d="M68 92 L128 128 L128 200 L68 164 Z" fill="url(#faceLeft)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+    <path d="M188 92 L128 128 L128 200 L188 164 Z" fill="url(#faceRight)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+
+    <path d="M68 92 L128 128 L188 92" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="3"/>
+    <path d="M128 128 L128 200" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="3"/>
+    <path d="M68 92 L68 164 L128 200 L188 164 L188 92" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+  </g>
+
+  <!-- scalar input (left) -->
+  <g fill="#e7edf7" stroke="rgba(15,23,38,0.70)" stroke-width="2">
+    <circle cx="92" cy="140" r="7"/>
+  </g>
+  <g fill="none" stroke="rgba(231,237,247,0.75)" stroke-width="3" stroke-linecap="round">
+    <path d="M100 140 L138 140"/>
+  </g>
+
+  <!-- time series output (right face): simple sine with 3 points -->
+  <g fill="none" stroke="rgba(231,237,247,0.85)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M138 142 C154 126, 168 158, 184 142"/>
+  </g>
+  <g fill="#e7edf7" stroke="rgba(15,23,38,0.70)" stroke-width="2">
+    <circle cx="138" cy="142" r="6"/>
+    <circle cx="161" cy="126" r="6"/>
+    <circle cx="184" cy="142" r="6"/>
+  </g>
+
+  <!-- badge -->
+  <g>
+    <rect x="168" y="174" width="44" height="28" rx="10" fill="rgba(15,23,38,0.80)" stroke="rgba(231,237,247,0.22)"/>
+    <text x="190" y="193" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12" fill="#e7edf7" font-weight="700">HS</text>
+  </g>
+</svg>

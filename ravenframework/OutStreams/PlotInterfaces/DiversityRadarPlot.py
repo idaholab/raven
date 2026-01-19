@@ -187,18 +187,20 @@ class DiversityRadarPlot(PlotInterface):
       return
     limit = self.maxFrames if self.maxFrames is not None else min(len(generations), 10)
     limit = max(1, min(limit, len(generations)))
-    selected_generations, indices = self._sample_generations(generations, limit)
+    selected_generations, selected_positions = self._sample_generations(generations, limit)
 
     angles = self._compute_angles(len(self.quantiles))
     labels = [f'Q{int(q*100)}' for q in self.quantiles]
     norm_matrix = self._normalize(quant_matrix)
+    selected_matrix = norm_matrix[np.asarray(selected_positions, dtype=int)]
+    indices = list(range(len(selected_generations)))
 
     if 'gif' in self.formats:
-      self._write_gif(selected_generations, indices, angles, labels, norm_matrix)
+      self._write_gif(selected_generations, indices, angles, labels, selected_matrix)
     if 'html' in self.formats:
-      self._write_html(selected_generations, indices, angles, labels, norm_matrix)
+      self._write_html(selected_generations, indices, angles, labels, selected_matrix)
     if self.save_frames:
-      self._write_frames(selected_generations, indices, angles, labels, norm_matrix)
+      self._write_frames(selected_generations, indices, angles, labels, selected_matrix)
 
   def _compute_quantiles(self, df, generations):
     quantiles = []

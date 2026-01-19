@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="IOStep">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- IO step block -->
+    <rect x="76" y="82" width="148" height="92" rx="20" fill="rgba(121,198,255,0.12)" stroke="rgba(231,237,247,0.32)" stroke-width="2"/>
+
+    <!-- left input node -->
+    <circle cx="68" cy="114" r="9" fill="rgba(231,237,247,0.90)" stroke="rgba(15,23,38,0.85)" stroke-width="3"/>
+    <path d="M77 114 H92" stroke="rgba(231,237,247,0.55)" stroke-width="4"/>
+
+    <!-- right output node -->
+    <circle cx="232" cy="142" r="9" fill="rgba(231,237,247,0.90)" stroke="rgba(15,23,38,0.85)" stroke-width="3"/>
+    <path d="M208 142 H223" stroke="rgba(231,237,247,0.55)" stroke-width="4"/>
+
+    <!-- file icon inside -->
+    <path d="M124 102 H168 L182 116 V154 H124 Z" fill="rgba(15,23,38,0.45)" stroke="rgba(231,237,247,0.28)" stroke-width="3"/>
+    <path d="M168 102 V116 H182" fill="none" stroke="rgba(231,237,247,0.28)" stroke-width="3"/>
+    <path d="M136 130 H170" stroke="rgba(121,198,255,0.65)" stroke-width="4"/>
+    <path d="M136 144 H164" stroke="rgba(121,198,255,0.45)" stroke-width="4"/>
+  </g>
+</svg>

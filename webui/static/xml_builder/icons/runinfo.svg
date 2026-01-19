@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="RunInfo">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="72" y="76" width="112" height="120" rx="18" fill="rgba(121,198,255,0.18)" stroke="rgba(231,237,247,0.28)" stroke-width="2"/>
+    <g stroke="rgba(231,237,247,0.65)" stroke-width="4" stroke-linecap="round">
+      <path d="M92 112 H164"/>
+      <path d="M92 140 H164"/>
+      <path d="M92 168 H164"/>
+    </g>
+    <g fill="#e7edf7" stroke="rgba(15,23,38,0.70)" stroke-width="2">
+      <circle cx="120" cy="112" r="8"/>
+      <circle cx="152" cy="140" r="8"/>
+      <circle cx="108" cy="168" r="8"/>
+    </g>
+  </g>
+
+  <g>
+    <path d="M198 98 a16 16 0 1 1 -8 14" fill="none" stroke="rgba(231,237,247,0.75)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M192 92 L206 94 L198 106 Z" fill="rgba(231,237,247,0.75)"/>
+  </g>
+</svg>
+

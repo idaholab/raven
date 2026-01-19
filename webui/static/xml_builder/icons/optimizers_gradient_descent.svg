@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Gradient Descent">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="rgba(231,237,247,0.85)"/>
+    </marker>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- objective -->
+    <path d="M72 176 Q128 68 184 176" stroke="rgba(121,198,255,0.90)" stroke-width="6"/>
+
+    <!-- steps -->
+    <path d="M86 136 L104 150" stroke="rgba(231,237,247,0.70)" stroke-width="4" marker-end="url(#arrowHead)"/>
+    <path d="M106 156 L118 165" stroke="rgba(231,237,247,0.65)" stroke-width="4" marker-end="url(#arrowHead)"/>
+    <path d="M120 170 L126 174" stroke="rgba(231,237,247,0.55)" stroke-width="4" marker-end="url(#arrowHead)"/>
+
+    <!-- tangents -->
+    <path d="M72 122 L114 154" stroke="rgba(231,237,247,0.22)" stroke-width="3"/>
+    <path d="M100 166 L138 182" stroke="rgba(231,237,247,0.18)" stroke-width="3"/>
+
+    <!-- points -->
+    <circle cx="86" cy="136" r="7" fill="rgba(231,237,247,0.85)" stroke="rgba(15,23,38,0.8)" stroke-width="3"/>
+    <circle cx="106" cy="156" r="7" fill="rgba(231,237,247,0.75)" stroke="rgba(15,23,38,0.8)" stroke-width="3"/>
+    <circle cx="120" cy="170" r="7" fill="rgba(231,237,247,0.70)" stroke="rgba(15,23,38,0.8)" stroke-width="3"/>
+
+    <!-- minimum -->
+    <circle cx="128" cy="176" r="11" stroke="rgba(231,237,247,0.85)" stroke-width="4"/>
+    <circle cx="128" cy="176" r="4" fill="rgba(231,237,247,0.95)"/>
+  </g>
+</svg>

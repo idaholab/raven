@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="RomTrainer">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- training chart -->
+    <rect x="56" y="76" width="144" height="104" rx="18" fill="rgba(121,198,255,0.10)" stroke="rgba(231,237,247,0.28)" stroke-width="2"/>
+    <path d="M74 164 H188" stroke="rgba(231,237,247,0.22)" stroke-width="3"/>
+    <path d="M74 92 V164" stroke="rgba(231,237,247,0.18)" stroke-width="3"/>
+
+    <!-- loss curve (decreasing) -->
+    <path d="M76 108 C98 124 112 138 132 146 C150 154 168 154 186 156"
+          fill="none" stroke="rgba(121,198,255,0.85)" stroke-width="5"/>
+    <g fill="rgba(231,237,247,0.90)" stroke="rgba(15,23,38,0.8)" stroke-width="3">
+      <circle cx="76" cy="108" r="6"/>
+      <circle cx="132" cy="146" r="6"/>
+      <circle cx="186" cy="156" r="6"/>
+    </g>
+
+    <!-- small surrogate "network" badge -->
+    <g>
+      <rect x="156" y="176" width="64" height="44" rx="16" fill="rgba(18,26,43,0.75)" stroke="rgba(231,237,247,0.22)" stroke-width="2"/>
+      <g fill="rgba(121,198,255,0.80)" stroke="rgba(15,23,38,0.75)" stroke-width="3">
+        <circle cx="174" cy="190" r="6"/>
+        <circle cx="202" cy="190" r="6"/>
+        <circle cx="188" cy="208" r="6"/>
+      </g>
+      <g stroke="rgba(231,237,247,0.45)" stroke-width="3" fill="none">
+        <path d="M174 190 L188 208"/>
+        <path d="M202 190 L188 208"/>
+        <path d="M174 190 L202 190"/>
+      </g>
+    </g>
+  </g>
+</svg>

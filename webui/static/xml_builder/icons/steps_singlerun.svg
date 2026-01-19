@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="SingleRun">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect x="28" y="28" width="200" height="200" rx="32" fill="#0f1726" stroke="rgba(255,255,255,0.10)"/>
+
+  <g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+    <!-- single driver node -->
+    <circle cx="76" cy="128" r="11" fill="rgba(231,237,247,0.90)" stroke="rgba(15,23,38,0.85)" stroke-width="3"/>
+    <path d="M90 128 H108" stroke="rgba(231,237,247,0.55)" stroke-width="4"/>
+
+    <!-- single run block -->
+    <rect x="108" y="92" width="108" height="72" rx="18" fill="rgba(121,198,255,0.16)" stroke="rgba(231,237,247,0.32)" stroke-width="2"/>
+
+    <!-- play glyph -->
+    <path d="M150 112 L150 144 L176 128 Z" fill="rgba(121,198,255,0.85)" stroke="rgba(15,23,38,0.75)" stroke-width="3"/>
+
+    <!-- subtle baseline -->
+    <path d="M62 176 H194" stroke="rgba(231,237,247,0.18)" stroke-width="3"/>
+  </g>
+</svg>
