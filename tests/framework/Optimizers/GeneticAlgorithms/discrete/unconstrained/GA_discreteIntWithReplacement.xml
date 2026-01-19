@@ -59,7 +59,7 @@ un    <MultiRun name="opt" re-seeding="2286">
       <samplerInit>
         <limit>5</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
+        <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
