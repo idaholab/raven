@@ -54,7 +54,7 @@ class TradeoffSlicePlot(PlotInterface):
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Generation identifier column (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('max_frames', contentType=InputTypes.IntegerType,
-        descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 10)."""))
+        descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 20)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combinations."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,
@@ -182,7 +182,7 @@ class TradeoffSlicePlot(PlotInterface):
     if not generations:
       self.raiseAWarning(f'TradeoffSlicePlot "{self.name}" found no generations in column "{self.index}".')
       return
-    frame_cap = self.maxFrames if self.maxFrames is not None else min(len(generations), 10)
+    frame_cap = self.maxFrames if self.maxFrames is not None else min(len(generations), 20)
     frame_cap = max(1, min(frame_cap, len(generations)))
     gens_to_render = self._select_generations(generations, frame_cap)
     if not gens_to_render:

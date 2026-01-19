@@ -29,6 +29,8 @@ from .NSGAFrontAnimation import NSGAFrontAnimation
 from .NSGARankHistoryPlot import NSGARankHistoryPlot
 from .NSGACrowdingDistancePlot import NSGACrowdingDistancePlot
 from .NSGAFrontRankAnimation import NSGAFrontRankAnimation
+from .NSGAIIIReferenceDirectionPlot import NSGAIIIReferenceDirectionPlot
+from .NSGAIIINichingHeatmapPlot import NSGAIIINichingHeatmapPlot
 from .ObjectiveContourAnimation import ObjectiveContourAnimationPlot
 from .ParetoDiagnosticsPlot import ParetoDiagnosticsPlot
 from .DominanceHeatMapPlot import DominanceHeatMapPlot
@@ -39,6 +41,9 @@ from .DiversityRadarPlot import DiversityRadarPlot
 from .FitnessFunnelPlot import FitnessFunnelPlot
 from .SamplingCoverageMapPlot import SamplingCoverageMapPlot
 from .BubbleTradeoffPlot import BubbleTradeoffPlot
+from .ThreeDVectorPlot import ThreeDVectorPlot
+from .ThreeDTubePlot import ThreeDTubePlot
+from .ThreeDConePlot import ThreeDConePlot
 from .AttainmentSurfacePlot import AttainmentSurfacePlot
 from .ConstraintViolationHeatmapPlot import ConstraintViolationHeatmapPlot
 from .ResponseSurfaceOverlayPlot import ResponseSurfaceOverlayPlot
@@ -51,4 +56,5 @@ from .SelfOrganizingMapPlot import SelfOrganizingMapPlot
 from .ChordDiagramPlot import ChordDiagramPlot
 from .GlyphRadarPlot import GlyphRadarPlot
 from .CoreLayoutPlot import CoreLayoutPlot
+from .ShuffleArrowsPlot import ShufflingSchemePlot
 from .Factory import factory
