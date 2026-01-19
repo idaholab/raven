@@ -44,6 +44,11 @@
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
       <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+      <Output class="OutStreams" type="Plot">objective_contour_animation</Output>
+      <Output class="OutStreams" type="Plot">constraint_activity</Output>
+      <Output class="OutStreams" type="Plot">constraint_heatmap</Output>
+      <Output class="OutStreams" type="Plot">fitness_funnel</Output>
+      <Output class="OutStreams" type="Plot">sampling_coverage</Output>
     </IOStep>
   </Steps>
 
@@ -61,8 +66,8 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>30</limit>
-        <initialSeed>12052004</initialSeed>
+        <limit>20</limit>
+        <initialSeed>05081977</initialSeed><!--12052004-->
         <writeSteps>every</writeSteps>
       </samplerInit>
 
@@ -130,13 +135,13 @@
       <PointSet name="placeholder"/>
       <PointSet name="optOut">
         <Input>x,y</Input>
-        <Output>ans</Output>
-      </PointSet>
-      <PointSet name="opt_export">
-        <Input>trajID</Input>
-        <Output>x,y,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
-      </PointSet>
-    </DataObjects>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp,ConstraintEvaluation_constraint1</Output>
+    </PointSet>
+  </DataObjects>
 
     <OutStreams>
       <Print name="optOut">
@@ -148,7 +153,7 @@
         <source>opt_export</source>
         <clusterLabel>trajID</clusterLabel>
       </Print>
-    
+
       <Plot name="opt_path" subType="OptPath">
         <source>opt_export</source>
         <vars>x,y,ans</vars>
@@ -156,13 +161,55 @@
       <Plot name="population" subType="PopulationPlot">
         <source>opt_export</source>
         <vars>x,y,ans</vars>
-        <index>batchId</index>
-        <how>png</how>
-      </Plot>
-      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
-        <source>opt_export</source>
-        <vars>x,y</vars>
-        <index>batchId</index>
-      </Plot>
-    </OutStreams>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+    <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+      <source>opt_export</source>
+      <vars>x,y</vars>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="objective_contour_animation" subType="ObjectiveContourAnimationPlot">
+      <source>opt_export</source>
+      <axes>x, y</axes>
+      <objective>ans</objective>
+      <index>batchId</index>
+      <constraints>ConstraintEvaluation_constraint1</constraints>
+      <format>both</format>
+      <fps>2.0</fps>
+      <show_history>true</show_history>
+      <history_alpha>0.2</history_alpha>
+      <save_frames>true</save_frames>
+      <frames_max>10</frames_max>
+    </Plot>
+    <Plot name="constraint_activity" subType="ConstraintActivityTimelinePlot">
+      <source>opt_export</source>
+      <constraints>ConstraintEvaluation_constraint1</constraints>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+      <save_frames>true</save_frames>
+      <frames_max>10</frames_max>
+    </Plot>
+    <Plot name="constraint_heatmap" subType="ConstraintViolationHeatmapPlot">
+      <source>opt_export</source>
+      <axes>x, y</axes>
+      <constraints>ConstraintEvaluation_constraint1</constraints>
+      <!-- <index>batchId</index> -->
+      <bins>50</bins>
+    </Plot>
+    <Plot name="fitness_funnel" subType="FitnessFunnelPlot">
+      <source>opt_export</source>
+      <metric>fitness</metric>
+      <index>batchId</index>
+      <goal>min</goal>
+    </Plot>
+    <Plot name="sampling_coverage" subType="SamplingCoverageMapPlot">
+      <source>opt_export</source>
+      <variables>x, y</variables>
+      <index>batchId</index>
+      <format>both</format>
+      <fps>2.0</fps>
+    </Plot>
+  </OutStreams>
 </Simulation>
