@@ -50,4 +50,5 @@ from .StarCoordinatesPlot import StarCoordinatesPlot
 from .SelfOrganizingMapPlot import SelfOrganizingMapPlot
 from .ChordDiagramPlot import ChordDiagramPlot
 from .GlyphRadarPlot import GlyphRadarPlot
+from .CoreLayoutPlot import CoreLayoutPlot
 from .Factory import factory
