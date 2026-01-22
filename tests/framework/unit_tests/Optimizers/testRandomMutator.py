@@ -27,7 +27,7 @@ print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
-
+print(os.environ.get("CONDA_PREFIX","NO Prefix found"))
 from ravenframework.Optimizers.mutators.mutators import returnInstance
 import xml.etree.ElementTree as ET
 from ravenframework import MessageHandler
