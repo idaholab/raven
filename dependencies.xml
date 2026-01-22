@@ -59,7 +59,7 @@ limit our library choices.
     <xarray source="pip"/>
     <netcdf4 source="pip">1.6</netcdf4>
     <matplotlib source="pip">3.6</matplotlib>
-    <statsmodels source="pip">0.13</statsmodels>
+    <statsmodels source="pip">0.14</statsmodels>
     <cloudpickle source="pip"/>
     <tensorflow source="pip">2.14</tensorflow>
     <!-- <grpcio source="pip">1.69</grpcio> -->
