@@ -12,6 +12,8 @@ os.environ["PYTHONPATH"] = os.pathsep.join([
   os.path.join(RAVEN_DIR, 'ravenframework', 'contrib'),
   os.environ.get("PYTHONPATH", ""),
 ])
+sys.path.insert(0, RAVEN_DIR)
+sys.path.insert(0, os.path.join(RAVEN_DIR, 'ravenframework', 'contrib'))
 
 print("PYTHONPATH="+os.environ.get("PYTHONPATH",""))
 path = os.environ.get("PATH","")
