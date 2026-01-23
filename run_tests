@@ -65,6 +65,9 @@ then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
     echo Loaded conda environment, with command $(command -v python)
     PYTHON_COMMAND=$(command -v python)
+    if [[ "$(uname -s)" == "Linux" && -n "${CONDA_PREFIX:-}" ]]; then
+        export LD_LIBRARY_PATH="${CONDA_PREFIX}/lib:${LD_LIBRARY_PATH:-}"
+    fi
 elif [[ "$INSTALLATION_MANAGER" == "PIP" ]];
 then
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
@@ -224,4 +227,3 @@ else
   fi
   echo ... tests passed!
 fi
-
