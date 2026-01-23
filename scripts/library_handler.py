@@ -637,7 +637,7 @@ if __name__ == '__main__':
   pluginHandler = _get_plugin_handler()
   if 'all' in args.usePlugins:
     if pluginHandler is None:
-      print('WARNING (library_handler): plugin_handler unavailable; skipping plugin dependencies.')
+      print('WARNING (library_handler): plugin_handler unavailable; skipping plugin dependencies.', file=sys.stderr)
       plugins = []
     else:
       plugins = pluginHandler.getInstalledPlugins()
