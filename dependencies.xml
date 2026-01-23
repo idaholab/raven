@@ -54,7 +54,7 @@ limit our library choices.
     <scikit-learn source="pip">1.1</scikit-learn>
     <!-- Pin numba to 0.61 to avoid coverage issue: https://github.com/numba/numba/issues/10239 -->
     <numba source="pip">0.61</numba>
-    <pandas source="pip"/>
+    <pandas source="pip">1.5.3</pandas>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray source="pip"/>
     <netcdf4 source="pip">1.6</netcdf4>
@@ -73,14 +73,14 @@ limit our library choices.
     <coverage/>
     <lxml source="pip"/>
     <psutil/>
-    <pip/>
     <pytest source="pip"/>
+    <pip/>
     <pyDOE3 source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
-    <dask source="pip" pip_extra="[complete]"/>
+    <dask source="pip" pip_extra="[complete]">2023.3.2</dask>
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <typing-extensions source="pip">4.14</typing-extensions>
     <ray source="pip" pip_extra="[default]">2.49</ray>
@@ -90,7 +90,7 @@ limit our library choices.
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->
-    <statsforecast source="pip"/>
+    <statsforecast source="pip">1.5.0</statsforecast>
     <pywavelets source="pip">1.4</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
