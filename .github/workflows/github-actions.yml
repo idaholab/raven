@@ -33,6 +33,9 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
+      - name: Set Python Environment
+        run: |
+          ./scripts/establish_conda_env.sh --install
       - name: Install Plugins
         run: |
           pwd
@@ -40,10 +43,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s SR2ML
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-
-      - name: Set Python Environment
-        run: |
-          ./scripts/establish_conda_env.sh --install
 
       - name: Build Raven
         run: |
@@ -108,6 +107,9 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
+      - name: Set Python Environment
+        run: |
+          ./scripts/establish_conda_env.sh --install
       - name: Install Plugins
         run: |
           pwd
@@ -115,10 +117,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s SR2ML
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-
-      - name: Set Python Environment
-        run: |
-          ./scripts/establish_conda_env.sh --install
 
       - name: Build Raven
         run: |
@@ -183,6 +181,9 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
+      - name: Set Python Environment
+        run: |
+          ./scripts/establish_conda_env.sh --install
       - name: Install Plugins
         run: |
           pwd
@@ -190,10 +191,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s SR2ML
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-
-      - name: Set Python Environment
-        run: |
-          ./scripts/establish_conda_env.sh --install
 
       - name: Build Raven
         run: |
@@ -257,6 +254,9 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
+      - name: Set Python Environment
+        run: |
+          ./scripts/establish_conda_env.sh --install
       - name: Install Plugins
         run: |
           pwd
@@ -264,10 +264,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s SR2ML
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-
-      - name: Set Python Environment
-        run: |
-          ./scripts/establish_conda_env.sh --install
 
       - name: Build Raven
         run: |
@@ -329,6 +325,9 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
+      - name: Set Python Environment
+        run: |
+          bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
       - name: Install Plugins
         run: |
           pwd
@@ -336,10 +335,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s SR2ML
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-
-      - name: Set Python Environment
-        run: |
-          bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
 
       - name: Build Raven
         run: |
@@ -402,6 +397,9 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
+      - name: Set Python Environment
+        run: |
+          bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
       - name: Install Plugins
         run: |
           pwd
@@ -409,10 +407,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s SR2ML
           python3 ./scripts/install_plugins.py -s BayCal
           python3 ./scripts/install_plugins.py -s POEM
-
-      - name: Set Python Environment
-        run: |
-          bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
 
       - name: Build Raven
         run: |
