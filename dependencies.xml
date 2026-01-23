@@ -54,7 +54,7 @@ limit our library choices.
     <scikit-learn source="pip">1.1</scikit-learn>
     <!-- Pin numba to 0.61 to avoid coverage issue: https://github.com/numba/numba/issues/10239 -->
     <numba source="pip">0.61</numba>
-    <pandas source="pip"/>
+    <pandas source="pip">1.5.3</pandas>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray source="pip"/>
     <netcdf4 source="pip">1.6</netcdf4>
