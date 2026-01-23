@@ -597,7 +597,7 @@ def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
   #if "value" is smallest value in list...
   if index == 0:
     if len(sortedList)>0:
-    #check if current first matches
+      #check if current first matches
       if compareFloats(sortedList[0], value, tol=tol):
         match = sortedList[0]
         match_index = index
@@ -1466,7 +1466,7 @@ class EQchecker:
     Nmin = self.getminN(target_range[0])  # Minimum number of elements for score >= min fresh
     Nmax = self.getmaxN(target_range[1])  # Maximum number of elements for score <= max fresh
     while not flag:
-	  # ILB approach
+      # ILB approach
       bat0id, c0 = [i[0] for i in idx1_1] , self.calculate_score([i[0] for i in idx1_1])
       bat1id, c1 = [i[0] for i in idx1_2] , self.calculate_score([i[0] for i in idx1_2])
       bat2id, c2 = [i[0] for i in idx1_3] , self.calculate_score([i[0] for i in idx1_3])
