@@ -1516,6 +1516,10 @@ class GeneticAlgorithm(RavenSampled):
     if hasattr(self, '_solutionExport') and self._solutionExport is not None:
       extraVars = [var for var in self._solutionExport.getVars('output') if var not in point]
     def _match_realization_index():
+      """
+      _match_realization_index method.
+      @ Out, None.
+      """
       if not isinstance(rlz, xr.Dataset):
         return None
       try:
@@ -1780,6 +1784,13 @@ class GeneticAlgorithm(RavenSampled):
     return max(self._GDp(a, b, p), self._GDp(b, a, p))
 
   def _GDp(self, a, b, p):
+    """
+    _GDp method.
+    @ In, a, object, TODO.
+    @ In, b, object, TODO.
+    @ In, p, object, TODO.
+    @ Out, None.
+    """
     r"""
       Modified Generational Distance Indicator
       @ In, a, np.array, old population A
@@ -1795,6 +1806,13 @@ class GeneticAlgorithm(RavenSampled):
     return (1/n * s)**(1/p)
 
   def _popDist(self,ai,b,q=2):
+    """
+    _popDist method.
+    @ In, ai, object, TODO.
+    @ In, b, object, TODO.
+    @ In, q, object, TODO.
+    @ Out, None.
+    """
     r"""
       Minimum Minkowski distance from a_i to B (nearest point in B)
       @ In, ai, 1d array, the ith chromosome in the generation A
@@ -1818,6 +1836,12 @@ class GeneticAlgorithm(RavenSampled):
     return max(self._GD(a,b),self._GD(b,a))
 
   def _GD(self,a,b):
+    """
+    _GD method.
+    @ In, a, object, TODO.
+    @ In, b, object, TODO.
+    @ Out, None.
+    """
     r"""
       Generational Distance Indicator
       @ In, a, np.array, old population A
@@ -1832,6 +1856,12 @@ class GeneticAlgorithm(RavenSampled):
     return max(s)
 
   def _envelopeSize(self,a,b):
+    """
+    _envelopeSize method.
+    @ In, a, object, TODO.
+    @ In, b, object, TODO.
+    @ Out, None.
+    """
     r"""
       Compute hyper diagonal of envelope containing old and new population
       @ In, a, np.array, old population A

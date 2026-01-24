@@ -87,11 +87,19 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
   procedure.
   """
   def __init__(self):
+    """
+    __init__ method.
+    @ Out, None.
+    """
     super().__init__()
     self.printTag = 'NSGA-II Genetic Algorithm'
 
   @classmethod
   def getInputSpecification(cls):
+    """
+    getInputSpecification method.
+    @ Out, None.
+    """
     specs = super(NSGAII, cls).getInputSpecification()
     specs.name = 'NSGAII'
     specs.description = r"""The \xmlNode{NSGAII} optimizer extends \xmlNode{GeneticAlgorithm} to handle multi-objective problems using
@@ -105,6 +113,11 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     return specs
 
   def handleInput(self, paramInput):
+    """
+    handleInput method.
+    @ In, paramInput, object, TODO.
+    @ Out, None.
+    """
     super().handleInput(paramInput)
     if not self._isMultiObjective:
       self.raiseAnError(IOError, 'NSGA-II requires at least two objectives. Use GeneticAlgorithm for single-objective problems.')
