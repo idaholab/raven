@@ -111,8 +111,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _formatSolutionExportVariableNames(self, acceptable):
     """
     _formatSolutionExportVariableNames method.
-    @ In, acceptable, object, TODO.
-    @ Out, None.
+    @ In, acceptable, set(str), candidate variable names allowed for solution export.
+    @ Out, acceptable, set(str), updated acceptable solution export names.
     """
     acceptable = super()._formatSolutionExportVariableNames(acceptable)
     extras = set()
@@ -329,7 +329,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def handleInput(self, paramInput):
     """
     handleInput method.
-    @ In, paramInput, object, TODO.
+    @ In, paramInput, InputData.ParameterInput, input specification for this optimizer.
     @ Out, None.
     """
     super().handleInput(paramInput)
@@ -343,10 +343,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
     _addToSolutionExport method.
-    @ In, traj, object, TODO.
-    @ In, rlz, object, TODO.
-    @ In, acceptable, object, TODO.
-    @ Out, None.
+    @ In, traj, int, trajectory identifier for the current optimization run.
+    @ In, rlz, dict, realization dictionary for the current generation.
+    @ In, acceptable, set(str), candidate variable names allowed for solution export.
+    @ Out, toAdd, dict, solution export additions for this realization.
     """
     toAdd = super()._addToSolutionExport(traj, rlz, acceptable)
     if 'rank' in rlz:
@@ -362,14 +362,14 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _collectOptPointMulti(self, rlz, population, rank, CD, objVal, fitness, constraintsV):
     """
     _collectOptPointMulti method.
-    @ In, rlz, object, TODO.
-    @ In, population, object, TODO.
-    @ In, rank, object, TODO.
-    @ In, CD, object, TODO.
-    @ In, objVal, object, TODO.
-    @ In, fitness, object, TODO.
-    @ In, constraintsV, object, TODO.
-    @ Out, None.
+    @ In, rlz, dict, realization dictionary for the current generation.
+    @ In, population, xr.DataArray, population decision vectors (Gene dimension).
+    @ In, rank, xr.DataArray, non-dominated sorting ranks per individual.
+    @ In, CD, xr.DataArray, crowding distances per individual.
+    @ In, objVal, array-like, objective values per individual and objective.
+    @ In, fitness, dict, fitness values keyed by objective name.
+    @ In, constraintsV, xr.DataArray, constraint values per individual.
+    @ Out, optPointsDic, dict, rank-1 optimal points keyed by variable.
     """
     rankOneIDX = np.where(rank.data == 1)[0].tolist()
     optPoints = population[rankOneIDX]
@@ -535,7 +535,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _validateFinalFront(self, candidate):
     """
     _validateFinalFront method.
-    @ In, candidate, object, TODO.
+    @ In, candidate, dict, realization for the candidate final-front point.
     @ Out, None.
     """
     try:
@@ -547,8 +547,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       def _as_array(values):
         """
         _as_array method.
-        @ In, values, object, TODO.
-        @ Out, None.
+        @ In, values, array-like, values from a DataArray or list to cast to ndarray.
+        @ Out, array, np.ndarray, values converted to a float array.
         """
         return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
 
@@ -644,9 +644,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _checkConvHypervolume(self, traj, **kwargs):
     """
     _checkConvHypervolume method.
-    @ In, traj, object, TODO.
-    @ In, **kwargs, object, TODO.
-    @ Out, None.
+    @ In, traj, int, trajectory identifier for the current optimization run.
+    @ In, **kwargs, dict, additional convergence inputs (unused).
+    @ Out, converged, bool, True if hypervolume criterion is satisfied.
     """
     if len(self._optPointHistory[traj]) < 2:
       return False
@@ -708,9 +708,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _computeHypervolume(self, front, reference):
     """
     _computeHypervolume method.
-    @ In, front, object, TODO.
-    @ In, reference, object, TODO.
-    @ Out, None.
+    @ In, front, list(list(float)), Pareto front points in objective space.
+    @ In, reference, list(float), hypervolume reference point.
+    @ Out, hv, float, hypervolume of the front.
     """
     if not front:
       return 0.0
@@ -724,9 +724,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _hypervolume2D(self, front, reference):
     """
     _hypervolume2D method.
-    @ In, front, object, TODO.
-    @ In, reference, object, TODO.
-    @ Out, None.
+    @ In, front, list(list(float)), Pareto front points in objective space.
+    @ In, reference, list(float), hypervolume reference point.
+    @ Out, hv, float, 2D hypervolume of the front.
     """
     sorted_front = sorted(front, key=lambda p: p[0])
     hv = 0.0
@@ -741,9 +741,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _hypervolume3D(self, front, reference):
     """
     _hypervolume3D method.
-    @ In, front, object, TODO.
-    @ In, reference, object, TODO.
-    @ Out, None.
+    @ In, front, list(list(float)), Pareto front points in objective space.
+    @ In, reference, list(float), hypervolume reference point.
+    @ Out, hv, float, 3D hypervolume of the front.
     """
     sorted_front = sorted(front, key=lambda p: p[0])
     hv = 0.0
@@ -758,9 +758,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _hypervolumeWFG(self, front, reference):
     """
     _hypervolumeWFG method.
-    @ In, front, object, TODO.
-    @ In, reference, object, TODO.
-    @ Out, None.
+    @ In, front, list(list(float)), Pareto front points in objective space.
+    @ In, reference, list(float), hypervolume reference point.
+    @ Out, hv, float, hypervolume computed by recursive WFG method.
     """
     if len(reference) == 1:
       return reference[0] - min(p[0] for p in front)
@@ -778,9 +778,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _checkConvSpread(self, traj, **kwargs):
     """
     _checkConvSpread method.
-    @ In, traj, object, TODO.
-    @ In, **kwargs, object, TODO.
-    @ Out, None.
+    @ In, traj, int, trajectory identifier for the current optimization run.
+    @ In, **kwargs, dict, additional convergence inputs (unused).
+    @ Out, converged, bool, True if spread criterion is satisfied.
     """
     if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
       return False
@@ -804,8 +804,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _computeSpread(self, front):
     """
     _computeSpread method.
-    @ In, front, object, TODO.
-    @ Out, None.
+    @ In, front, list(list(float)), Pareto front points in objective space.
+    @ Out, spread, float, spread metric for the front.
     """
     n = len(front)
     if n < 2:
@@ -828,9 +828,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _checkConvSpacing(self, traj, **kwargs):
     """
     _checkConvSpacing method.
-    @ In, traj, object, TODO.
-    @ In, **kwargs, object, TODO.
-    @ Out, None.
+    @ In, traj, int, trajectory identifier for the current optimization run.
+    @ In, **kwargs, dict, additional convergence inputs (unused).
+    @ Out, converged, bool, True if spacing criterion is satisfied.
     """
     if not hasattr(self, 'matingPopRanks') or not hasattr(self, 'matingPopObjVals'):
       return False
@@ -854,8 +854,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _computeSpacing(self, front):
     """
     _computeSpacing method.
-    @ In, front, object, TODO.
-    @ Out, None.
+    @ In, front, list(list(float)), Pareto front points in objective space.
+    @ Out, spacing, float, spacing metric for the front.
     """
     n = len(front)
     if n < 2:
@@ -879,9 +879,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _checkConvMaxSpread(self, traj, **kwargs):
     """
     _checkConvMaxSpread method.
-    @ In, traj, object, TODO.
-    @ In, **kwargs, object, TODO.
-    @ Out, None.
+    @ In, traj, int, trajectory identifier for the current optimization run.
+    @ In, **kwargs, dict, additional convergence inputs (unused).
+    @ Out, converged, bool, True if max-spread criterion is satisfied.
     """
     if len(self._optPointHistory[traj]) < 2:
       return False
@@ -928,8 +928,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _computeMaxSpread(self, front):
     """
     _computeMaxSpread method.
-    @ In, front, object, TODO.
-    @ Out, None.
+    @ In, front, list(list(float)), Pareto front points in objective space.
+    @ Out, max_spread, float, max-spread metric for the front.
     """
     n = len(front)
     if n < 2:
@@ -944,9 +944,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   def _checkConvRank1Ratio(self, traj, **kwargs):
     """
     _checkConvRank1Ratio method.
-    @ In, traj, object, TODO.
-    @ In, **kwargs, object, TODO.
-    @ Out, None.
+    @ In, traj, int, trajectory identifier for the current optimization run.
+    @ In, **kwargs, dict, additional convergence inputs (unused).
+    @ Out, converged, bool, True if rank-1 ratio criterion is satisfied.
     """
     if not hasattr(self, 'matingPopRanks'):
       return False

@@ -298,9 +298,6 @@ class GeneticAlgorithm(RavenSampled):
                                      similarity metric that can be summurized as the normalized Hausdorff distance
                                      (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
                                      which implies that values closer to 1.0 represents a tighter convergence criterion."""}
-  ##TODO: Explore MOEA/D (Multi-Objective Evolutionary Algorithm based on Decomposition) or
-  # PESA-II (Pareto Envelope-Based Selection Algorithm II)
-  # These algorithms can offer better performance and robustness in certain scenarios
   def __init__(self):
     """
       Constructor.
@@ -784,136 +781,6 @@ class GeneticAlgorithm(RavenSampled):
   ######################################################################################
   # Run Methods                                                                        #
   ######################################################################################
-
-  ## TODO: We have to estimate the max number of unique chromosomes and make sure population size doesn't exceed that number. Or should it?
-  # def _useRealization(self, info, rlz):
-  #   """
-  #     Used to feedback the collected runs into actionable items within the sampler.
-  #     This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
-  #     @ In, info, dict, identifying information about the realization
-  #     @ In, rlz, xr.Dataset, new batched realizations
-  #     @ Out, None
-  #   """
-  #   info['step'] = self.counter
-  #   traj = info['traj']
-  #   for t in self._activeTraj[1:]:
-  #     self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
-  #   self.incrementIteration(traj)
-
-  #   population = datasetToDataArray(rlz, list(self.toBeSampled))
-
-  #   objectiveVal = []
-  #   for i in range(len(self._objectiveVar)):
-  #     objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
-
-  #   # 1. Check constraint violations and calculate the constraint function g (<0 if the constraint is violated)
-  #   g = constraintHandling(self, info, rlz, population, objectiveVal, multiObjective=self._isMultiObjective)
-
-  #   # 2. Compute fitness for the offspring
-  #   populationFitness = self._fitnessInstance(rlz,
-  #                                            objVar=self._objectiveVar,
-  #                                            a=self._objCoeff,
-  #                                            b=self._penaltyCoeff,
-  #                                            penalty=None,
-  #                                            constraintFunction=g,
-  #                                            constraintNum=self._numOfConst,
-  #                                            type=self._minMax)
-
-  #   # Single-objective post-processing (if needed)
-  #   if not self._isMultiObjective:
-  #       self._collectOptPoint(rlz, populationFitness, objectiveVal[0], g)
-  #       self._resolveNewGeneration(traj, rlz, info, objectiveVal[0], populationFitness, g)
-
-  #   # 3. Survivor selection
-  #   if self._activeTraj:
-
-  #     survivorSelection =  survivorSelectionProcess.multiObjSurvivorSelect if self._isMultiObjective else  survivorSelectionProcess.singleObjSurvivorSelect
-  #     survivorSelection(self, info, rlz, traj, population, populationFitness, objectiveVal, g)
-  #     if self._isMultiObjective:
-  #       if self.counter <= 1:
-  #         # offspringObjsVals for Rank and CD calculation
-  #         fitVal = datasetToDataArray(self.fitness, self._objectiveVar).data
-  #         offspringFitVals = fitVal.tolist()
-  #         # 4. Compute the rank of offspring
-  #         offSpringRank = frontUtils.rankNonDominatedFrontiers(np.array(offspringFitVals), isFitness=True)
-  #         self.rank = xr.DataArray(offSpringRank,
-  #                                      dims=['rank'],
-  #                                      coords={'rank': np.arange(np.shape(offSpringRank)[0])})
-  #         # 5. Compute the crowding distance of offspring
-  #         offSpringCD = frontUtils.crowdingDistance(rank=offSpringRank,
-  #                                                             popSize=len(offSpringRank),
-  #                                                             fitness=np.array(offspringFitVals))
-  #         self.crowdingDistance = xr.DataArray(offSpringCD,
-  #                                              dims=['CrowdingDistance'],
-  #                                              coords={'CrowdingDistance': np.arange(np.shape(offSpringCD)[0])})
-  #         self.objectiveVal = []
-  #         for i in range(len(self._objectiveVar)):
-  #           self.objectiveVal.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
-  #       self._collectOptPointMulti(self.population,
-  #                                  self.rank,
-  #                                  self.crowdingDistance,
-  #                                  self.objectiveVal,
-  #                                  self.fitness,
-  #                                  self.constraintsV)
-  #       self._resolveNewGeneration(traj, rlz, info)
-
-
-  #     # 6. Parent selection from population
-  #     parents = self._parentSelectionInstance(self.population,
-  #                                             variables=list(self.toBeSampled),
-  #                                             fitness=self.fitness,
-  #                                             kSelection=self._kSelection,
-  #                                             nParents=self._nParents,
-  #                                             rank=self.rank,
-  #                                             crowdDistance=self.crowdingDistance,
-  #                                             objVar=self._objectiveVar,
-  #                                             isMultiObjective = self._isMultiObjective,
-  #                                             )
-
-  #     # 7. Reproduction
-  #     # 7.1 Crossover
-  #     childrenXover = self._crossoverInstance(parents=parents,
-  #                                             variables=list(self.toBeSampled),
-  #                                             crossoverProb=self._crossoverProb,
-  #                                             points=self._crossoverPoints)
-
-  #     # 7.2 Mutation
-  #     childrenMutated = self._mutationInstance(offSprings=childrenXover,
-  #                                              distDict=self.distDict,
-  #                                              locs=self._mutationLocs,
-  #                                              mutationProb=self._mutationProb,
-  #                                              variables=list(self.toBeSampled))
-
-  #     # 8. repair/replacement
-  #     # Repair should only happen if multiple genes in a single chromosome have the same values (),
-  #     # and at the same time the sampling of these genes should be with Out replacement.
-  #     needsRepair = False
-  #     for chrom in range(self._nChildren):
-  #       unique = set(childrenMutated.data[chrom, :])
-  #       if len(childrenMutated.data[chrom,:]) != len(unique):
-  #         for var in self.toBeSampled: # TODO: there must be a smarter way to check if a variables strategy is without replacement
-  #           if (hasattr(self.distDict[var], 'strategy') and self.distDict[var].strategy == 'withoutReplacement'):
-  #             needsRepair = True
-  #             break
-  #     if needsRepair:
-  #       children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
-  #     else:
-  #       children = childrenMutated
-
-  #     # keeping the population size constant by ignoring the excessive children
-  #     children = children[:self._populationSize, :]
-  #     daChildren = xr.DataArray(children,
-  #                               dims=['chromosome','Gene'],
-  #                               coords={'chromosome': np.arange(np.shape(children)[0]),
-  #                                       'Gene':list(self.toBeSampled)})
-
-  #     # 9. Submit children batch
-    #     # Submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-    #     for i in range(self.batch):
-    #       newRlz = {}
-    #       for _, var in enumerate(self.toBeSampled.keys()):
-    #         newRlz[var] = float(daChildren.loc[i, var].values)
-    #       self._submitRun(newRlz, traj, self.getIteration(traj))
 
   def _useRealization(self, info, rlz):
     """
@@ -1786,10 +1653,10 @@ class GeneticAlgorithm(RavenSampled):
   def _GDp(self, a, b, p):
     """
     _GDp method.
-    @ In, a, object, TODO.
-    @ In, b, object, TODO.
-    @ In, p, object, TODO.
-    @ Out, None.
+    @ In, a, np.ndarray, population A (rows are individuals).
+    @ In, b, np.ndarray, population B (rows are individuals).
+    @ In, p, float, Minkowski norm order for distance calculation.
+    @ Out, gd_p, float, modified generational distance value.
     """
     r"""
       Modified Generational Distance Indicator
@@ -1808,10 +1675,10 @@ class GeneticAlgorithm(RavenSampled):
   def _popDist(self,ai,b,q=2):
     """
     _popDist method.
-    @ In, ai, object, TODO.
-    @ In, b, object, TODO.
-    @ In, q, object, TODO.
-    @ Out, None.
+    @ In, ai, np.ndarray, single individual from population A.
+    @ In, b, np.ndarray, population B (rows are individuals).
+    @ In, q, int, Minkowski norm order for distance calculation.
+    @ Out, distance, float, minimum distance from ai to population B.
     """
     r"""
       Minimum Minkowski distance from a_i to B (nearest point in B)
@@ -1838,9 +1705,9 @@ class GeneticAlgorithm(RavenSampled):
   def _GD(self,a,b):
     """
     _GD method.
-    @ In, a, object, TODO.
-    @ In, b, object, TODO.
-    @ Out, None.
+    @ In, a, np.ndarray, population A (rows are individuals).
+    @ In, b, np.ndarray, population B (rows are individuals).
+    @ Out, gd, float, generational distance value.
     """
     r"""
       Generational Distance Indicator
@@ -1858,9 +1725,9 @@ class GeneticAlgorithm(RavenSampled):
   def _envelopeSize(self,a,b):
     """
     _envelopeSize method.
-    @ In, a, object, TODO.
-    @ In, b, object, TODO.
-    @ Out, None.
+    @ In, a, np.ndarray, population A (rows are individuals).
+    @ In, b, np.ndarray, population B (rows are individuals).
+    @ Out, hyperDiagonal, float, envelope hyper-diagonal length.
     """
     r"""
       Compute hyper diagonal of envelope containing old and new population

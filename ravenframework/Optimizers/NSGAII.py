@@ -98,7 +98,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
   def getInputSpecification(cls):
     """
     getInputSpecification method.
-    @ Out, None.
+    @ Out, specs, InputData.ParameterInput, input specification for NSGA-II.
     """
     specs = super(NSGAII, cls).getInputSpecification()
     specs.name = 'NSGAII'
@@ -115,7 +115,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
   def handleInput(self, paramInput):
     """
     handleInput method.
-    @ In, paramInput, object, TODO.
+    @ In, paramInput, InputData.ParameterInput, input specification for this optimizer.
     @ Out, None.
     """
     super().handleInput(paramInput)
