@@ -91,6 +91,8 @@ Note all install methods after "main" take
     <mamba source="mamba" skip_check='True' os='windows,linux' />
     <serpentTools optional='True' source="pip"/>
     <pydmd source="pip"/>
+    <fastapi source="pip"/>
+    <uvicorn source="pip"/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>

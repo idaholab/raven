@@ -9,6 +9,7 @@ This repo includes a lightweight XML builder page that turns the example PRLO RA
 From the repository root:
 
 ```bash
+pip install -r webui/requirements.txt
 python -m webui.app --list
 python -m webui.app --reload
 ```
