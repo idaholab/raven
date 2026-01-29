@@ -124,7 +124,7 @@ function install_libraries()
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`" --no-deps"
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
@@ -194,7 +194,7 @@ function create_libraries()
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
-    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    local COMMAND=`echo $($WORKING_PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`" --no-deps"
     if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
