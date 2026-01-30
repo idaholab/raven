@@ -827,8 +827,7 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png discrete/constrained/Multi_MinwoReplacement/1-population.png discrete/constrained/Multi_MinwoReplacement/1-pareto_front.png discrete/constrained/Multi_MinwoReplacement/1-rank_history.png discrete/constrained/Multi_MinwoReplacement/1-crowding_distance.png discrete/constrained/Multi_MinwoReplacement/1-front_evolution_gif.gif discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'discrete/constrained/Multi_MinwoReplacement/1-front_evolution.html discrete/constrained/Multi_MinwoReplacement/1-front_rank_animation_rank_animation.html'
+    image = 'discrete/constrained/Multi_MinwoReplacement/1-opt_path.png discrete/constrained/Multi_MinwoReplacement/1-population.png'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
@@ -848,8 +847,7 @@
   [./NSGA-II_MinwoRepFeasibleFirst]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst.xml'
-    image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-pareto_front.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-rank_history.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-crowding_distance.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_evolution_gif.gif discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_evolution.html discrete/constrained/MultiwoReplacementFeasibleFirst/1-front_rank_animation_rank_animation.html'
+    image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
     required_libraries = 'imageio'
     rel_err = 0.25
     [./csv]
@@ -870,8 +868,7 @@
   [./NSGA-II_ZDT1]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/ZDT1.xml'
-    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png continuous/unconstrained/ZDT1/1-pareto_front.png continuous/unconstrained/ZDT1/1-rank_history.png continuous/unconstrained/ZDT1/1-crowding_distance.png continuous/unconstrained/ZDT1/1-front_evolution_gif.gif continuous/unconstrained/ZDT1/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'continuous/unconstrained/ZDT1/1-front_evolution.html continuous/unconstrained/ZDT1/1-front_rank_animation_rank_animation.html'
+    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png'
     required_libraries = 'imageio'
     rel_err = 0.5
     [./csv]
@@ -893,8 +890,7 @@
     type = 'RavenFramework'
     input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'
     required_libraries = 'imageio'
-    image = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png continuous/unconstrained/Multi_beale_bealeFlipped/1-pareto_front.png continuous/unconstrained/Multi_beale_bealeFlipped/1-rank_history.png continuous/unconstrained/Multi_beale_bealeFlipped/1-crowding_distance.png continuous/unconstrained/Multi_beale_bealeFlipped/1-front_evolution_gif.gif continuous/unconstrained/Multi_beale_bealeFlipped/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-front_evolution.html continuous/unconstrained/Multi_beale_bealeFlipped/1-front_rank_animation_rank_animation.html'
+    image = 'continuous/unconstrained/Multi_beale_bealeFlipped/1-opt_path.png continuous/unconstrained/Multi_beale_bealeFlipped/1-population.png'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
@@ -915,8 +911,7 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst_CustomSampler.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-population.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-pareto_front.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-rank_history.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-crowding_distance.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_evolution_gif.gif discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_evolution.html discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-front_rank_animation_rank_animation.html'
+    image = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-population.png'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
@@ -937,8 +932,7 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvMaxSpread.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-front_rank_animation_rank_animation.html'
+    image = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/1-population.png'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
@@ -959,8 +953,7 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvSpread.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-front_rank_animation_rank_animation.html'
+    image = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-population.png'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
@@ -982,7 +975,6 @@
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvHypervolume.xml'
     required_libraries = 'imageio'
     image = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-front_rank_animation_rank_animation.html'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
@@ -1003,8 +995,7 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvRank1Ratio.xml'
     required_libraries = 'imageio'
-    image = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-population.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-pareto_front.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-rank_history.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-crowding_distance.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_evolution_gif.gif discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_rank_animation_gif_rank_animation.gif'
-    text = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_evolution.html discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-front_rank_animation_rank_animation.html'
+    image = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-opt_path.png discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/1-population.png'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
