@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import socket
 import sys
 from pathlib import Path
 from typing import List, Optional, Sequence
@@ -629,9 +630,30 @@ def _configure_logging() -> None:
   )
 
 
+def _find_available_port(host: str, start_port: int, max_tries: int = 50) -> Optional[int]:
+  if start_port <= 0:
+    return None
+  for offset in range(max_tries):
+    port = start_port + offset
+    try:
+      with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind((host, port))
+      return port
+    except OSError:
+      continue
+  return None
+
+
 def main(argv: Optional[Sequence[str]] = None) -> None:
   _configure_logging()
   args = _parse_args(argv)
+  available_port = _find_available_port(args.host, args.port)
+  if available_port is None:
+    LOGGER.error("No available port found starting at %d.", args.port)
+    raise SystemExit(1)
+  if available_port != args.port:
+    LOGGER.warning("Port %d is in use. Using %d instead.", args.port, available_port)
+    args.port = available_port
   if args.reload:
     if args.projects:
       os.environ[_PROJECTS_ENV] = os.pathsep.join(str(path) for path in args.projects)
