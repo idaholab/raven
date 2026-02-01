@@ -34,6 +34,16 @@ class Phisics(CodeInterfaceBase):
   """
     Code interface for PHISICS
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(Phisics, cls).getInputSpecification()
+    spec.name = 'Phisics'
+    return spec
 
   def getNumberOfMpi(self, string):
     """

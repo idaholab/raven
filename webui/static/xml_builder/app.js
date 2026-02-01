@@ -10,6 +10,7 @@ const insertBtn = document.getElementById("insertBtn");
 const outputXml = document.getElementById("outputXml");
 const copyBtn = document.getElementById("copyBtn");
 const downloadBtn = document.getElementById("downloadBtn");
+const themeToggle = document.getElementById("themeToggle");
 const validateBtn = document.getElementById("validateBtn");
 const runBtn = document.getElementById("runBtn");
 const messagesEl = document.getElementById("messages");
@@ -54,6 +55,8 @@ const browseList = document.getElementById("browseList");
 const browseUseBtn = document.getElementById("browseUseBtn");
 const browseOpenBtn = document.getElementById("browseOpenBtn");
 
+const themeKey = "raven-xml-builder-theme";
+
 let catalog = null;
 let snippets = [];
 let selectedSnippetId = null;
@@ -75,6 +78,47 @@ let cachedRuns = [];
 let browseCurrentPath = "";
 
 const dynamicToolRegistry = new Map();
+
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  try {
+    localStorage.setItem(themeKey, theme);
+  } catch (_err) {
+    // ignore storage issues
+  }
+  if (themeToggle) {
+    const label = theme === "light" ? "Dark mode" : "Light mode";
+    themeToggle.innerHTML = `${themeIconSvg(theme)}${label}`;
+  }
+}
+
+function themeIconSvg(theme) {
+  if (theme === "dark") {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  }
+  return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M21 14.5A8.5 8.5 0 1 1 9.5 3a7 7 0 0 0 11.5 11.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+}
+
+function initTheme() {
+  let theme = "dark";
+  try {
+    const saved = localStorage.getItem(themeKey);
+    if (saved) {
+      theme = saved;
+    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+      theme = "light";
+    }
+  } catch (_err) {
+    // ignore storage issues
+  }
+  setTheme(theme);
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+      setTheme(next);
+    });
+  }
+}
 
 function makeInstanceId() {
   if (typeof crypto !== "undefined" && crypto && typeof crypto.randomUUID === "function") {
@@ -2519,6 +2563,7 @@ plotFile.addEventListener("change", async () => {
 plotX.addEventListener("change", () => renderPlot());
 plotY.addEventListener("change", () => renderPlot());
 
+initTheme();
 bootstrap().catch((error) => {
   console.error(error);
   logMessage("error", error.message);

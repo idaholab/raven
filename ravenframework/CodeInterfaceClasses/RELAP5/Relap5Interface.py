@@ -31,6 +31,16 @@ class Relap5(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(Relap5, cls).getInputSpecification()
+    spec.name = 'Relap5'
+    return spec
 
   def initialize(self, runInfo, oriInputFiles):
     """

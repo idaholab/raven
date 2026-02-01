@@ -63,6 +63,16 @@ class PointSet(DataSet):
   """
   # only a few changes from the base class; the external API is identical.
 
+  ### INPUT SPECIFICATION ###
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    return super(PointSet, cls).getInputSpecification()
+
   ### INITIALIZATION ###
   # These are the necessary functions to construct and initialize this data object
   def __init__(self):

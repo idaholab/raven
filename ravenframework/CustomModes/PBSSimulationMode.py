@@ -32,6 +32,17 @@ class PBSSimulationMode(Simulation.SimulationMode):
     PBSSimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol on PBS
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(PBSSimulationMode, cls).getInputSpecification()
+    spec.name = 'PBSSimulationMode'
+    return spec
+
   def __init__(self, *args):
     """
       Constructor

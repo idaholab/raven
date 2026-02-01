@@ -91,6 +91,27 @@ class DistributionsCollection(InputData.ParameterInput):
 DistributionsCollection.createClass("Distributions")
 
 
+def _categorical_state_input():
+  """
+    Build a shared state input spec for categorical distributions.
+  """
+  state_input = InputData.parameterInputFactory(
+    "state",
+    descr=r"""probability of this state's outcome""",
+    contentType=InputTypes.FloatOrStringType)
+  state_input.addParam(
+    "outcome",
+    InputTypes.FloatOrStringType,
+    True,
+    descr=r"""value of this state's outcome""")
+  state_input.addParam(
+    "index",
+    InputTypes.IntegerType,
+    False,
+    descr=r"""indexes steady state probabilities corresponding to the transition matrix""")
+  return state_input
+
+
 class Distribution(BaseEntity, InputDataUser):
   """
     A general class containing the distributions
@@ -1740,13 +1761,7 @@ class Categorical(Distribution):
       describes the result of a random variable that can have $K$ possible outcome states, with each outcome potentially
       having a distinct probability. These states can be numbers as well as strings.
       """
-    StatePartInput = InputData.parameterInputFactory("state",
-        descr=r"""probability of this state's outcome""",
-        contentType=InputTypes.FloatType)
-    StatePartInput.addParam("outcome",
-        InputTypes.FloatOrStringType,
-        True,
-        descr=r"""value of this state's outcome""")
+    StatePartInput = _categorical_state_input()
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
     inputSpecification.addSub(InputData.parameterInputFactory("rtol",
         contentType=InputTypes.FloatType,
@@ -2169,17 +2184,7 @@ class MarkovCategorical(Categorical):
       that can have $K$ possible outcomes, based on the steady state probilities provided by a Markov model.
       """
 
-    StatePartInput = InputData.parameterInputFactory("state",
-        descr=r"""probability of occurrance, or outcome 1.""",
-        contentType=InputTypes.StringType)
-    StatePartInput.addParam("outcome",
-        InputTypes.FloatType,
-        True,
-        descr=r"""value of this outcome""")
-    StatePartInput.addParam("index",
-        InputTypes.IntegerType,
-        True,
-        descr=r"""indexes steady state probabilities corresponding to the transition matrix""")
+    StatePartInput = _categorical_state_input()
     TransitionInput = InputData.parameterInputFactory("transition",
         descr=r"""transition matrix of the desired Markov model""",
         contentType=InputTypes.StringType)
@@ -2222,6 +2227,8 @@ class MarkovCategorical(Categorical):
     for child in paramInput.subparts:
       if child.getName() == "state":
         outcome = child.parameterValues["outcome"]
+        if "index" not in child.parameterValues:
+          self.raiseAnError(IOError, "Markov Categorical distribution requires 'index' on each state.")
         markovIndex = child.parameterValues["index"]
         self.mapping[outcome] = markovIndex
         if outcome in self.values:

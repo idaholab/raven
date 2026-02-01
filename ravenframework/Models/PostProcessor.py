@@ -36,7 +36,7 @@ class PostProcessor(Model):
   """
   interfaceFactory = factory
   @classmethod
-  def getInputSpecification(cls):
+  def getInputSpecification(cls, xml=None):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
@@ -45,10 +45,13 @@ class PostProcessor(Model):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    validClass = interfaceFactory.returnClass(self.subType)
     spec.addParam('subType', required=True, param_type=InputTypes.StringType)
-    validSpec = validClass.getInputSpecification()
-    spec.mergeSub(validSpec)
+    if xml is not None:
+      subType = xml.attrib.get('subType')
+      if subType is not None:
+        validClass = cls.interfaceFactory.returnClass(subType)
+        validSpec = validClass.getInputSpecification()
+        spec.mergeSub(validSpec)
     return spec
 
   @classmethod

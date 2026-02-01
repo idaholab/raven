@@ -110,6 +110,16 @@ class Dymola(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to Dymola
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(Dymola, cls).getInputSpecification()
+    spec.name = 'Dymola'
+    return spec
 
   def __init__(self):
     """

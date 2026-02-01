@@ -11,6 +11,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional
+from xml.etree import ElementTree as ET
 
 
 def _safe_import(path: str):
@@ -27,6 +28,99 @@ def _project_root() -> Path:
     if (parent / "ravenframework").is_dir():
       return parent
   return current.parents[1]
+
+
+def _generated_xsd_dir() -> Path:
+  return _project_root() / "developer_tools" / "XSDSchemas" / "generated"
+
+
+def _xsd_path(entity: str) -> Optional[Path]:
+  candidate = _generated_xsd_dir() / f"{entity}.xsd"
+  if candidate.exists():
+    return candidate
+  fallback = _project_root() / "developer_tools" / "XSDSchemas" / f"{entity}.xsd"
+  return fallback if fallback.exists() else None
+
+
+def _xsd_root_type(xsd_root: ET.Element, entity: str) -> Optional[str]:
+  for elem in xsd_root.iter():
+    if elem.tag.endswith("element") and elem.attrib.get("name") == entity:
+      return elem.attrib.get("type")
+  return None
+
+
+def _xsd_type_node(xsd_root: ET.Element, type_name: str) -> Optional[ET.Element]:
+  for elem in xsd_root.iter():
+    if elem.tag.endswith("complexType") and elem.attrib.get("name") == type_name:
+      return elem
+  return None
+
+
+def _xsd_direct_children(type_node: ET.Element) -> List[Dict[str, str]]:
+  options: List[Dict[str, str]] = []
+  for container in list(type_node):
+    if not (container.tag.endswith("sequence") or container.tag.endswith("choice")):
+      continue
+    for child in list(container):
+      if not child.tag.endswith("element"):
+        continue
+      name = child.attrib.get("name")
+      if not name:
+        continue
+      options.append({"name": name, "type": child.attrib.get("type", "")})
+  return options
+
+
+def _xsd_required_attrs(xsd_root: ET.Element, type_name: str) -> List[str]:
+  node = _xsd_type_node(xsd_root, type_name)
+  if node is None:
+    return []
+  required: List[str] = []
+  for attr in node.iter():
+    if attr.tag.endswith("attribute") and attr.attrib.get("use") == "required":
+      name = attr.attrib.get("name")
+      if name and name not in required:
+        required.append(name)
+  return required
+
+
+def _build_template_from_attrs(tag: str, required_attrs: List[str]) -> str:
+  attrs = required_attrs[:]
+  if "name" not in attrs:
+    attrs.insert(0, "name")
+  attrs_text = " ".join(f'{name}=""' for name in attrs)
+  return f"<{tag} {attrs_text}>\n</{tag}>"
+
+
+@lru_cache(maxsize=128)
+def _xsd_entity_options(entity: str) -> List[Dict[str, str]]:
+  xsd_path = _xsd_path(entity)
+  if xsd_path is None:
+    return []
+  try:
+    tree = ET.parse(str(xsd_path))
+  except ET.ParseError:
+    return []
+  root = tree.getroot()
+  root_type = _xsd_root_type(root, entity)
+  if root_type is None:
+    return []
+  type_node = _xsd_type_node(root, root_type)
+  if type_node is None:
+    return []
+  options: List[Dict[str, str]] = []
+  for item in _xsd_direct_children(type_node):
+    tag = item["name"]
+    type_name = item["type"]
+    required_attrs = _xsd_required_attrs(root, type_name) if type_name else []
+    options.append(
+      {
+        "tag": tag,
+        "description": "",
+        "template": _build_template_from_attrs(tag, required_attrs),
+      }
+    )
+  return sorted(options, key=lambda opt: opt["tag"])
 
 
 def _get_factory(entity: str):
@@ -142,6 +236,10 @@ def entity_options(entity: str) -> List[Dict[str, str]]:
   - description: short help text (best-effort)
   - template: insertable XML snippet
   """
+  xsd_options = _xsd_entity_options(entity)
+  if xsd_options:
+    return xsd_options
+
   # Fallback: read Factory.py without importing modules (avoids optional deps).
   factory_files = {
     "Samplers": _project_root() / "ravenframework" / "Samplers" / "Factory.py",

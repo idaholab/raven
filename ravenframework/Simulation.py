@@ -38,7 +38,7 @@ from . import Databases
 from . import Functions
 from . import OutStreams
 from .JobHandler import JobHandler
-from .utils import utils, TreeStructure, xmlUtils, mathUtils
+from .utils import utils, TreeStructure, xmlUtils, mathUtils, InputData
 from .utils.utils import ParallelLibEnum
 from . import Decorators
 from .Application import __QtAvailable
@@ -57,6 +57,16 @@ class SimulationMode(MessageUser):
     and other parameters.  remoteRunCommand lets a command to run RAVEN
     remotely be specified.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = InputData.parameterInputFactory(cls.__name__)
+    return spec
+
   def __init__(self, *args):
     """
       Constructor
@@ -192,6 +202,15 @@ class Simulation(MessageUser):
 
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = InputData.parameterInputFactory(cls.__name__)
+    return spec
 
   def __init__(self, frameworkDir, verbosity='all', interactive=Interaction.No):
     """

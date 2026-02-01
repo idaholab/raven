@@ -32,6 +32,17 @@ class Dummy(Model):
     This is a dummy model that just return the effect of the sampler. The values reported as input in the output
     are the output of the sampler and the output is the counter of the performed sampling
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = super(Dummy, cls).getInputSpecification()
+    spec.name = 'Dummy'
+    return spec
+
   def __init__(self):
     """
       Constructor

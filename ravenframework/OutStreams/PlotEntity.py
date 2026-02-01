@@ -37,6 +37,18 @@ class Plot(OutStreamEntity):
   defaultInterface = 'GeneralPlot'
   strictInput = False # GeneralPlot is not checked yet
 
+  @classmethod
+  def getInputSpecification(cls, xml=None):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, xml, xml.etree.ElementTree.Element, optional, if given then only get specs for
+          corresponding subType requested by the node
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = super(Plot, cls).getInputSpecification(xml=xml)
+    spec.name = 'Plot'
+    return spec
+
   def __init__(self):
     """
       Init of Base class

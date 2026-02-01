@@ -299,7 +299,7 @@ class ParameterInput(object):
     """
     cls.subs[sub] = None
     subsSet = cls._subDict.get(sub.getName(), set())
-    if __debug__:
+    if __debug__ and not SUPPRESS_INPUT_SPEC_WARNINGS:
       if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
         (len(subsSet) > 0 and sub._checkCanRead is not None):
         print("INPUT SPEC ERROR adding checked and unchecked to", sub.getName()," in ",
@@ -594,7 +594,7 @@ class ParameterInput(object):
     """
     #generate complexType
     complexType = ET.SubElement(xsdNode, 'xsd:complexType')
-    complexType.set('name', cls.getName()+'_type')
+    complexType.set('name', cls.__name__ + '_type')
     if cls.subs:
       #generate choice node
       if cls.subOrder is not None:
@@ -609,7 +609,7 @@ class ParameterInput(object):
       for sub, quantity in subList:
         subNode = ET.SubElement(listNode, 'xsd:element')
         subNode.set('name', sub.getName())
-        subNode.set('type', sub.getName()+'_type')
+        subNode.set('type', sub.__name__ + '_type')
         if cls.subOrder is not None:
           if quantity == Quantity.zero_to_one:
             occurs = ('0','1')
@@ -625,14 +625,15 @@ class ParameterInput(object):
           subNode.set('maxOccurs', occurs[1])
         else:
           subNode.set('minOccurs', '0')
-        if sub.getName() not in definedDict:
-          definedDict[sub.getName()] = sub
+        sub_key = sub.__name__
+        if sub_key not in definedDict:
+          definedDict[sub_key] = sub
           sub.generateXSD(xsdNode, definedDict)
-        elif definedDict[sub.getName()] != sub:
+        elif definedDict[sub_key] != sub:
           print('DEBUGG defined:')
           import pprint
           pprint.pprint(definedDict)
-          print("ERROR: multiple definitions ",sub.getName())
+          print("ERROR: multiple definitions ", sub_key)
     else:
       if cls.contentType is not None:
         contentNode = ET.SubElement(complexType, 'xsd:simpleContent')
@@ -759,6 +760,22 @@ DMDC.getInputSpecification()
 #unpickled before the class ever has getInputSpecification called.
 
 
+_parameter_input_cache = {}
+_parameter_input_name_cache = set()
+_assembly_input_cache = {}
+SUPPRESS_INPUT_SPEC_WARNINGS = False
+
+
+def _parameter_input_signature(paramList, paramDict):
+  """
+    Build a stable signature for parameterInputFactory calls to detect mismatches.
+  """
+  list_sig = tuple(repr(item) for item in paramList)
+  filtered = {key: val for key, val in paramDict.items() if key != 'descr'}
+  dict_sig = tuple(sorted((key, repr(val)) for key, val in filtered.items()))
+  return (list_sig, dict_sig)
+
+
 def parameterInputFactory(name, *paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
@@ -779,8 +796,23 @@ def parameterInputFactory(name, *paramList, **paramDict):
     #print(tb[i].filename,tb[i].lineno)
     uniquifier += os.path.basename(tb[i].filename[:-3])
   #print("for",name+'Spec'+uniquifier)
-  newClass = type(name+'Spec'+uniquifier, (ParameterInput,), {})
+  signature = _parameter_input_signature(paramList, paramDict)
+  cache_key = (name, uniquifier, signature)
+  cached = _parameter_input_cache.get(cache_key)
+  if cached is not None:
+    return cached
+  base_name = name + 'Spec' + uniquifier
+  class_name = base_name
+  if class_name in _parameter_input_name_cache:
+    suffix = abs(hash(signature)) % 1000000
+    class_name = f"{base_name}_{suffix}"
+    while class_name in _parameter_input_name_cache:
+      suffix += 1
+      class_name = f"{base_name}_{suffix}"
+  newClass = type(class_name, (ParameterInput,), {})
   newClass.createClass(name, *paramList, **paramDict)
+  _parameter_input_cache[cache_key] = newClass
+  _parameter_input_name_cache.add(class_name)
   return newClass
 
 def assemblyInputFactory(*paramList, **paramDict):
@@ -790,15 +822,35 @@ def assemblyInputFactory(*paramList, **paramDict):
     @ In, same parameters as ParameterInput.createClass
     @ Out, newClass, ParameterInput, the newly created class.
   """
-  class newClass(ParameterInput):
-    """
-      The new class to be created by the factory
-    """
+  name = paramList[0] if paramList else paramDict.get('name', 'Assembly')
+  uniquifier = ""
+  tb = traceback.extract_stack()
+  i = -1
+  while i >= -len(tb) and tb[i].name != 'getInputSpecification' and i > -5:
+    i -= 1
+  if i >= -len(tb):
+    uniquifier += os.path.basename(tb[i].filename[:-3])
+  signature = _parameter_input_signature(paramList, paramDict)
+  cache_key = (name, uniquifier, signature)
+  cached = _assembly_input_cache.get(cache_key)
+  if cached is not None:
+    return cached
+  base_name = f"{name}AssemblySpec{uniquifier}"
+  class_name = base_name
+  if class_name in _parameter_input_name_cache:
+    suffix = abs(hash(signature)) % 1000000
+    class_name = f"{base_name}_{suffix}"
+    while class_name in _parameter_input_name_cache:
+      suffix += 1
+      class_name = f"{base_name}_{suffix}"
+  newClass = type(class_name, (ParameterInput,), {})
   newClass.createClass(*paramList, **paramDict)
   newClass.addParam('class', param_type=InputTypes.StringType, required=True,
       descr=r"""RAVEN class for this entity (e.g. Samplers, Models, DataObjects)""")
   newClass.addParam('type', param_type=InputTypes.StringType, required=True,
       descr=r"""RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)""")
+  _assembly_input_cache[cache_key] = newClass
+  _parameter_input_name_cache.add(class_name)
   return newClass
 
 def parseFromList(node, inputList):
@@ -827,7 +879,7 @@ def createXSD(outerElement):
   outside = ET.Element('xsd:schema')
   outside.set('xmlns:xsd', 'http://www.w3.org/2001/XMLSchema')
   ET.SubElement(outside, 'xsd:element', {'name':outerElement.getName(),
-                                         'type':outerElement.getName()+'_type'})
+                                         'type':outerElement.__name__+'_type'})
   outerElement.generateXSD(outside, {})
   return outside
 

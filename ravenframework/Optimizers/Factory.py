@@ -33,10 +33,11 @@ factory.registerType('GradientDescent', GradientDescent)
 factory.registerType('SimulatedAnnealing', SimulatedAnnealing)
 factory.registerType('GeneticAlgorithm', GeneticAlgorithm)
 factory.registerType('MultiObjectiveGeneticAlgorithm', MultiObjectiveGeneticAlgorithm)
-factory.registerType('NSGA-II', NSGAII)
 factory.registerType('NSGAII', NSGAII)
-factory.registerType('NSGA-III', NSGAIII)
 factory.registerType('NSGAIII', NSGAIII)
+# Legacy aliases kept for backward compatibility; prefer NSGAII/NSGAIII in new inputs.
+factory.registerType('NSGA-II', NSGAII)
+factory.registerType('NSGA-III', NSGAIII)
 
 try:
     from .BayesianOptimizer import BayesianOptimizer

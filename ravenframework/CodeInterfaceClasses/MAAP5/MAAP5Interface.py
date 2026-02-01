@@ -33,6 +33,16 @@ class MAAP5(GenericCode):
   """
   Class for MAAP5 interface with RAVEN
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(MAAP5, cls).getInputSpecification()
+    spec.name = 'MAAP5'
+    return spec
 
   def _readMoreXML(self,xmlNode):
     """

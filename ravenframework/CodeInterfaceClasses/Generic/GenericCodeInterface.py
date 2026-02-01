@@ -31,6 +31,17 @@ class GenericCode(CodeInterfaceBase):
     use of the 'clargs', 'fileargs', 'prepend', 'text', and 'postpend' nodes in the input
     XML file.  See base class for more details.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(GenericCode, cls).getInputSpecification()
+    spec.name = 'GenericCode'
+    return spec
+
   def __init__(self):
     """
       Initializes the GenericCode Interface.

@@ -28,6 +28,17 @@ class Simulate(CodeInterfaceBase):
     Simulate Interface. Reading output from simulate then export to csv dat file.
     https://www.studsvik.com/what-we-do/products/simulate3-k/
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(Simulate, cls).getInputSpecification()
+    spec.name = 'Simulate'
+    return spec
+
   def __init__(self):
     """
       Constructor

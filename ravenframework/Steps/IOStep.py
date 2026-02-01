@@ -39,6 +39,17 @@ class IOStep(Step):
     This step is used to extract or push information from/into a Database,
     or from a directory, or print out the data to an OutStream
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = super(IOStep, cls).getInputSpecification()
+    spec.name = 'IOStep'
+    return spec
+
   def __init__(self):
     """
       Constructor

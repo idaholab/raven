@@ -34,6 +34,16 @@ class Assembler(MessageUser):
     Assembler class is used as base class for all the objects that need, for initialization purposes,
     to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = InputData.parameterInputFactory(cls.__name__)
+    return spec
+
   def __init__(self):
     """
       Constructor

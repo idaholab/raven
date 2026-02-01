@@ -29,6 +29,17 @@ class StatsTestMetric(MetricInterface):
   """
     Metric to compare two datasets using statistical tests.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(StatsTestMetric, cls).getInputSpecification()
+    spec.name = 'StatsTestMetric'
+    return spec
+
   available_tests = {}
   available_tests['full']['fTest'] = stats.fOneway
   available_tests['full']['chiSquare'] = stats.chiSquare
@@ -93,6 +104,5 @@ class StatsTestMetric(MetricInterface):
     else:
       self.raiseAnError(IOError, "Input data type is not correct!")
     return value
-
 
 

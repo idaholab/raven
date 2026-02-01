@@ -33,6 +33,17 @@ class SERPENT(GenericCode):
     serpentTools (https://serpent-tools.readthedocs.io/en/master/index.html)
     Multiple output formats are now processable (both for steady state and depletion)
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(SERPENT, cls).getInputSpecification()
+    spec.name = 'SERPENT'
+    return spec
+
   def __init__(self):
     """
       Initializes the SERPENT Interface.
@@ -192,4 +203,3 @@ class SERPENT(GenericCode):
         results = outputParser.processOutputs()
         stopSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
     return stopSim
-

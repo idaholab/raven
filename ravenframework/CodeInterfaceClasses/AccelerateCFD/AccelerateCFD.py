@@ -34,6 +34,17 @@ class AcceleratedCFD(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to AcceleratedCFD
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(AcceleratedCFD, cls).getInputSpecification()
+    spec.name = 'AcceleratedCFD'
+    return spec
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize

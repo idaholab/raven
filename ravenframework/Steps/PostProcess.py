@@ -30,3 +30,13 @@ class PostProcess(SingleRun):
   """
     This is an alternate name for SingleRun
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = super(PostProcess, cls).getInputSpecification()
+    spec.name = 'PostProcess'
+    return spec

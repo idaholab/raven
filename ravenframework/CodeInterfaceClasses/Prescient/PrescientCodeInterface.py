@@ -22,9 +22,9 @@ import os
 import re
 import warnings
 try:
-  import pkg_resources
-  prescient = pkg_resources.get_distribution("prescient")
-  prescientLocation = prescient.location
+  from importlib import metadata as importlib_metadata
+  prescient = importlib_metadata.distribution("prescient")
+  prescientLocation = str(prescient.locate_file(""))
 except Exception as inst:
   prescientLocation = None
   prescientException = inst
@@ -243,4 +243,3 @@ class Prescient(CodeInterfaceBase):
       @ Out, None
     """
     self.addInputExtension(['txt', 'dat'])
-

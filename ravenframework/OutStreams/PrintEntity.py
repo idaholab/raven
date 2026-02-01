@@ -29,6 +29,18 @@ class Print(OutStreamEntity):
   interfaceFactory = PrintFactory
   defaultInterface = 'FilePrint'
 
+  @classmethod
+  def getInputSpecification(cls, xml=None):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, xml, xml.etree.ElementTree.Element, optional, if given then only get specs for
+          corresponding subType requested by the node
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = super(Print, cls).getInputSpecification(xml=xml)
+    spec.name = 'Print'
+    return spec
+
   def __init__(self):
     """
       Init of Base class

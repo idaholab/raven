@@ -28,6 +28,17 @@ class RAVEN(CodeInterfaceBase):
   """
     this class is used as part of a code dictionary to specialize Model.Code for RAVEN
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(RAVEN, cls).getInputSpecification()
+    spec.name = 'RAVEN'
+    return spec
+
   def __init__(self):
     CodeInterfaceBase.__init__(self)
     self.preCommand = "python " # this is the precommand

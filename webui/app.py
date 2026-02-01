@@ -45,6 +45,7 @@ from .xml_builder import build_catalog, load_example_xml
 
 LOGGER = logging.getLogger("prlo.webui")
 _PROJECTS_ENV = "PRLO_WEBUI_PROJECTS"
+_MODE_ENV = "PRLO_WEBUI_MODE"
 _RUN_MANAGER: Optional[RunManager] = None
 _PRLO_DASHBOARD_DIR = Path("plugins/PRLO/examples/AP1000_nthcycle/opt_multiobjective_50iter_50pop_nthcycle")
 _PRLO_DASHBOARD_ENTRY = "dashboard_compact.html"
@@ -608,6 +609,12 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     type=Path,
     help="Project directory containing sim3-param*.xml (may be specified multiple times).",
   )
+  parser.add_argument(
+    "--mode",
+    choices=("auto", "local", "private", "public"),
+    default="auto",
+    help="Launch mode (auto detects host; local=127.0.0.1, private/public=0.0.0.0).",
+  )
   parser.add_argument("--host", default="127.0.0.1", help="Bind address for the server.")
   parser.add_argument("--port", type=int, default=8750, help="TCP port for the server.")
   parser.add_argument(
@@ -630,6 +637,33 @@ def _configure_logging() -> None:
   )
 
 
+def _host_provided(argv: Optional[Sequence[str]]) -> bool:
+  if not argv:
+    return False
+  return "--host" in argv
+
+
+def _resolve_launch_mode(args: argparse.Namespace, argv: Optional[Sequence[str]]) -> str:
+  host_locked = _host_provided(argv)
+  mode = (args.mode or "auto").lower()
+  if mode == "auto":
+    env_mode = os.environ.get(_MODE_ENV, "").strip().lower()
+    if env_mode in {"local", "private", "public"}:
+      mode = env_mode
+    elif host_locked:
+      mode = "custom"
+    elif os.environ.get("SSH_CONNECTION") or os.environ.get("SSH_TTY"):
+      mode = "local"
+    else:
+      mode = "local"
+  if not host_locked:
+    if mode == "local":
+      args.host = "127.0.0.1"
+    elif mode in {"private", "public"}:
+      args.host = "0.0.0.0"
+  return mode
+
+
 def _find_available_port(host: str, start_port: int, max_tries: int = 50) -> Optional[int]:
   if start_port <= 0:
     return None
@@ -647,6 +681,8 @@ def _find_available_port(host: str, start_port: int, max_tries: int = 50) -> Opt
 def main(argv: Optional[Sequence[str]] = None) -> None:
   _configure_logging()
   args = _parse_args(argv)
+  resolved_mode = _resolve_launch_mode(args, argv)
+  LOGGER.info("Launch mode: %s (host=%s, port=%d)", resolved_mode, args.host, args.port)
   available_port = _find_available_port(args.host, args.port)
   if available_port is None:
     LOGGER.error("No available port found starting at %d.", args.port)

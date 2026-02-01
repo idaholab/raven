@@ -33,6 +33,17 @@ class Scale(CodeInterfaceBase):
   """
     Scale Interface. It currently supports Triton and Origen sequences only.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(Scale, cls).getInputSpecification()
+    spec.name = 'Scale'
+    return spec
+
   def __init__(self):
     """
       Constructor

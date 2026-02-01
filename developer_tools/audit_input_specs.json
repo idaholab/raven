@@ -1,0 +1,296 @@
+{
+  "entities": [
+    {
+      "entity": "DataObjects",
+      "types": [
+        "DataSet",
+        "HistorySet",
+        "PointSet"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Databases",
+      "types": [
+        "Database",
+        "HDF5",
+        "NetCDF"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Distributions",
+      "types": [
+        "Bernoulli",
+        "Beta",
+        "Binomial",
+        "BoostDistribution",
+        "Categorical",
+        "Custom1D",
+        "Exponential",
+        "Gamma",
+        "Geometric",
+        "Laplace",
+        "LogNormal",
+        "LogUniform",
+        "Logistic",
+        "MarkovCategorical",
+        "MultivariateNormal",
+        "NDCartesianSpline",
+        "NDInverseWeight",
+        "NDimensionalDistributions",
+        "Normal",
+        "Poisson",
+        "Triangular",
+        "Uniform",
+        "UniformDiscrete",
+        "Weibull"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Files",
+      "types": [
+        "CSV",
+        "Input",
+        "RAVEN"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Functions",
+      "types": [
+        "External"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Metrics",
+      "types": [
+        "Metric"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Models",
+      "types": [
+        "Code",
+        "Dummy",
+        "EnsembleModel",
+        "ExternalModel",
+        "HybridModel",
+        "HybridModelBase",
+        "LogicalModel",
+        "PostProcessor",
+        "ROM"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Optimizers",
+      "types": [
+        "BayesianOptimizer",
+        "GeneticAlgorithm",
+        "GradientDescent",
+        "MultiObjectiveGeneticAlgorithm",
+        "NSGA-II",
+        "NSGA-III",
+        "NSGAII",
+        "NSGAIII",
+        "SimulatedAnnealing"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "OutStreams",
+      "types": [
+        "Plot",
+        "Print"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "PostProcessors",
+      "types": [],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": [
+        "factory not found"
+      ]
+    },
+    {
+      "entity": "Samplers",
+      "types": [
+        "AdaptiveDynamicEventTree",
+        "AdaptiveMetropolis",
+        "AdaptiveMonteCarlo",
+        "AdaptiveSobol",
+        "AdaptiveSparseGrid",
+        "CustomSampler",
+        "DynamicEventTree",
+        "EQMonteCarlo",
+        "EnsembleForward",
+        "FactorialDesign",
+        "Grid",
+        "LimitSurfaceSearch",
+        "Metropolis",
+        "MonteCarlo",
+        "ResponseSurfaceDesign",
+        "Sobol",
+        "SparseGridCollocation",
+        "Stratified"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    },
+    {
+      "entity": "Steps",
+      "types": [
+        "IOStep",
+        "MultiRun",
+        "PostProcess",
+        "RomTrainer",
+        "SingleRun"
+      ],
+      "missing_spec": [],
+      "unresolved": [],
+      "errors": []
+    }
+  ],
+  "manual_parsing": {
+    "ravenframework": {},
+    "plugins": {
+      "/Users/abdomg/projects/raven/plugins/FARM/src/RefGov_parameterized_SIMO.py": [
+        "RefGov_parameterized_SIMO"
+      ],
+      "/Users/abdomg/projects/raven/plugins/FARM/src/RefGov_unparameterized_SIMO.py": [
+        "RefGov_unparameterized_SIMO"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/ETModel.py": [
+        "ETModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/MaintenanceModel.py": [
+        "MaintenanceModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/MCSSolver.py": [
+        "MCSSolver"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/MarkovModel.py": [
+        "MarkovModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/GraphModel.py": [
+        "GraphModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/FTModel.py": [
+        "FTModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/MarginModel.py": [
+        "MarginModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/SR2ML/src/ReliabilityModel.py": [
+        "ReliabilityModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/FlowSense/src/MFiX/mfixInterface.py": [
+        "MFIX"
+      ],
+      "/Users/abdomg/projects/raven/plugins/BayCal/src/LikelihoodModel.py": [
+        "LikelihoodModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/LOGOS/src/CapitalInvestmentModel.py": [
+        "CapitalInvestmentModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/LOGOS/src/BatteryReplacementCashFlowModel.py": [
+        "BatteryReplacementCashFlowModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/LOGOS/src/IncrementalNPV.py": [
+        "IncrementalNPV"
+      ],
+      "/Users/abdomg/projects/raven/plugins/LOGOS/src/knapsack/MultipleKnapsackModel.py": [
+        "MultipleKnapsackModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/LOGOS/src/knapsack/SimpleKnapsackModel.py": [
+        "SimpleKnapsackModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/LOGOS/src/knapsack/BaseKnapsackModel.py": [
+        "BaseKnapsackModel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/LOGOS/src/CPM/BaseCPMmodel.py": [
+        "BaseCPMmodel"
+      ],
+      "/Users/abdomg/projects/raven/plugins/ExamplePlugin/src/SumOfExponential.py": [
+        "SumOfExponential"
+      ],
+      "/Users/abdomg/projects/raven/plugins/HERON/src/DispatchManager.py": [
+        "DispatchManager"
+      ],
+      "/Users/abdomg/projects/raven/plugins/TEAL/src/CashFlow_ExtMod.py": [
+        "CashFlow"
+      ]
+    }
+  },
+  "xsd_diff": {
+    "DataObjects": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Databases": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Distributions": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Files": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Functions": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Metrics": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Models": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Optimizers": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "OutStreams": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Samplers": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    },
+    "Steps": {
+      "missing_in_xsd": [],
+      "extra_in_xsd": []
+    }
+  }
+}

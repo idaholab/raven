@@ -30,6 +30,18 @@ class MetricEntity(utils.metaclass_insert(abc.ABCMeta, PluginReadyEntity)):
   """
   interfaceFactory = MetricFactory
 
+  @classmethod
+  def getInputSpecification(cls, xml=None):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, xml, xml.etree.ElementTree.Element, optional, if given then only get specs for
+          corresponding subType requested by the node
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = super(MetricEntity, cls).getInputSpecification(xml=xml)
+    spec.name = 'Metric'
+    return spec
+
   #######################
   #
   # Construction

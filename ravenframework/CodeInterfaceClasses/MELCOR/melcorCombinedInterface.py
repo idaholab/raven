@@ -29,6 +29,17 @@ class Melcor(CodeInterfaceBase):
     This class is used a part of a code dictionary to specialize Model. Code for different MELCOR versions
     like MELCOR 2.2x, MELCOR 1.86, MELCOR for fusion applications
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = super(Melcor, cls).getInputSpecification()
+    spec.name = 'Melcor'
+    return spec
+
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step

@@ -24,6 +24,11 @@
 import time
 import copy
 #External Modules End--------------------------------------------------------------------------------
+try:
+  from line_profiler import profile
+except Exception:
+  def profile(func):
+    return func
 
 #Internal Modules------------------------------------------------------------------------------------
 from .SingleRun import SingleRun
@@ -37,6 +42,17 @@ class MultiRun(SingleRun):
   """
     This class implements one step of the simulation where several runs are needed
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = super(MultiRun, cls).getInputSpecification()
+    spec.name = 'MultiRun'
+    return spec
+
   def __init__(self):
     """
       Constructor
