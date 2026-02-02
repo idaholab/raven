@@ -225,6 +225,9 @@ class Simulation(MessageUser):
       if module.factory.returnInputParameter:
         spec.addSub(module.returnInputParameter())
       else:
+        fakeSub = InputData.parameterInputFactory(moduleName,
+                                                  contentType=InputTypes.LegacyAnyType)
+        spec.addSub(fakeSub)
         print(f"WARNING: missing returnInputParameter for {module}")
     return spec
 

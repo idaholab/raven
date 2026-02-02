@@ -609,7 +609,10 @@ class ParameterInput(object):
       for sub, quantity in subList:
         subNode = ET.SubElement(listNode, 'xsd:element')
         subNode.set('name', sub.getName())
-        subNode.set('type', sub.getName()+'_type')
+        if sub.contentType == InputTypes.LegacyAnyType:
+          subNode.set('type', InputTypes.LegacyAnyType.xmlType)
+        else:
+          subNode.set('type', sub.getName()+'_type')
         if cls.subOrder is not None:
           if quantity == Quantity.zero_to_one:
             occurs = ('0','1')
@@ -634,7 +637,11 @@ class ParameterInput(object):
           pprint.pprint(definedDict)
           print("ERROR: multiple definitions ",sub.getName())
     else:
-      if cls.contentType is not None:
+      if cls.contentType is  None:
+        pass
+      elif cls.contentType == InputTypes.LegacyAnyType:
+        pass
+      else:
         contentNode = ET.SubElement(complexType, 'xsd:simpleContent')
         extensionNode = ET.SubElement(contentNode, 'xsd:extension')
         dataType = cls.contentType
