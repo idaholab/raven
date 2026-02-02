@@ -63,6 +63,13 @@ Note all install methods after "main" take
     <pip/>
     <pytest source="pip"/>
     <pyDOE3 source="pip"/>
+    <fastapi source="pip"/>
+    <annotated-doc source="pip"/>
+    <pydantic source="pip"/>
+    <starlette source="pip"/>
+    <anyio source="pip"/>
+    <h11 source="pip"/>
+    <uvicorn source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
