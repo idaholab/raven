@@ -199,6 +199,10 @@ def findLibAndVersion(lib, version=None):
       found = False
       foundVersion = None
       output = 'Library not found.'
+    except TypeError:
+      found = False
+      foundVersion = None
+      output = 'Library finding failed.'
   # bad actors
   ## FIXME: if updating pyside2, check if it can be found with importlib_metadata!
   ## Was not possible in version 5.13.1 - talbpaul
