@@ -23,6 +23,7 @@ import string
 import datetime
 import threading
 import time
+import xml.etree.ElementTree as ET
 import numpy as np
 
 from .BaseClasses import MessageUser
@@ -214,22 +215,49 @@ class Simulation(MessageUser):
   @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for class "cls".
+      Method to get a reference to a class that specifies the input data for class "cls". Warning, this class has missing sub input specifications.
       @ In, None
       @ Out, spec, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     spec = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.ParameterInput)
     verbs = InputTypes.makeEnumType('verbosity', 'verbosityType', ['silent', 'quiet', 'all', 'debug'])
     spec.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity')
+    toFake = ["TestInfo", "RunInfo"]
     for moduleName, module in cls.entityModules.items():
       if module.factory.returnInputParameter:
         spec.addSub(module.returnInputParameter())
       else:
-        fakeSub = InputData.parameterInputFactory(moduleName,
-                                                  contentType=InputTypes.LegacyAnyType)
-        spec.addSub(fakeSub)
+        toFake.append(moduleName)
         print(f"WARNING: missing returnInputParameter for {module}")
+    #XXX these should be handled by InputData, instead of faked.
+    for moduleName in toFake:
+      fakeSub = InputData.parameterInputFactory(moduleName,
+                                                contentType=InputTypes.LegacyAnyType)
+      spec.addSub(fakeSub)
     return spec
+
+  @classmethod
+  def getXSDSchema(cls):
+    """
+      Method to get a full xsd schema element for a RAVEN input.
+      This can be written to a file, such as:
+      ET.ElementTree(Simulation.getXSDSchema()).write("raven.xsd")
+      Warning, there are multiple unspecified (AnyType) elements in this because
+      parts of RAVEN do not yet implement InputData all the way down to Simulation.
+      @ In, None
+      @ Out, base, ElementTree.Element, the root element of the schema.
+    """
+    inputSpecification = cls.getInputSpecification()
+    #the things needed for a XSD schema
+    base = ET.Element("xsd:schema")
+    base.set("version","1.0")
+    base.set("xmlns:xsd","http://www.w3.org/2001/XMLSchema")
+    #Creat the simulation element
+    simElement = ET.SubElement(base, "xsd:element")
+    simElement.set("name", "Simulation")
+    simElement.set("type", "Simulation_type")
+    inputSpecification.generateXSD(base,{})
+    return base
 
   def __init__(self, frameworkDir, verbosity='all', interactive=Interaction.No):
     """
