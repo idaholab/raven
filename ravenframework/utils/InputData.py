@@ -592,9 +592,16 @@ class ParameterInput(object):
       @ In and Out, definedDict, dict, A dictionary that stores which names have been defined in the XSD already.
       @ Out, None
     """
+    definedTypeDict = definedDict #In case we want to split these later
+    simpleContent = False #If true, attributes are handled differently
     #generate complexType
     complexType = ET.SubElement(xsdNode, 'xsd:complexType')
-    complexType.set('name', cls.getName()+'_type')
+    complexTypeName = cls.getName()+'_type'
+    uniqueCount = 0
+    while complexTypeName in definedTypeDict:
+      uniqueCount += 1
+      complexTypeName = cls.getName()+str(uniqueCount)+'_type'
+    complexType.set('name', complexTypeName)
     if cls.subs:
       #generate choice node
       if cls.subOrder is not None:
@@ -643,6 +650,7 @@ class ParameterInput(object):
         pass
       else:
         contentNode = ET.SubElement(complexType, 'xsd:simpleContent')
+        simpleContent = True
         extensionNode = ET.SubElement(contentNode, 'xsd:extension')
         dataType = cls.contentType
         extensionNode.set('base', dataType.getXMLType())
@@ -650,7 +658,10 @@ class ParameterInput(object):
           dataType.generateXML(xsdNode)
     #generate attributes
     for parameter in cls.parameters:
-      attributeNode = ET.SubElement(complexType, 'xsd:attribute')
+      if simpleContent:
+        attributeNode = ET.SubElement(extensionNode, 'xsd:attribute')
+      else:
+        attributeNode = ET.SubElement(complexType, 'xsd:attribute')
       parameterData = cls.parameters[parameter]
       attributeNode.set('name', parameter)
       dataType = parameterData["type"]
