@@ -654,8 +654,9 @@ class ParameterInput(object):
         extensionNode = ET.SubElement(contentNode, 'xsd:extension')
         dataType = cls.contentType
         extensionNode.set('base', dataType.getXMLType())
-        if dataType.needsGenerating() and dataType.getName() not in definedDict:
+        if dataType.needsGenerating() and dataType.getXMLType() not in definedTypeDict:
           dataType.generateXML(xsdNode)
+          definedTypeDict[dataType.getXMLType()] = dataType
     #generate attributes
     for parameter in cls.parameters:
       if simpleContent:
@@ -665,8 +666,9 @@ class ParameterInput(object):
       parameterData = cls.parameters[parameter]
       attributeNode.set('name', parameter)
       dataType = parameterData["type"]
-      if dataType.needsGenerating() and dataType.getName() not in definedDict:
+      if dataType.needsGenerating() and dataType.getXMLType() not in definedTypeDict:
         dataType.generateXML(xsdNode)
+        definedTypeDict[dataType.getXMLType()] = dataType
       attributeNode.set('type', dataType.getXMLType())
       if parameterData["required"]:
         attributeNode.set('use','required')
