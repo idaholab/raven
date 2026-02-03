@@ -139,6 +139,8 @@ def checkSameVersion(expected, received):
   # if identical, they're the same
   if expected == received:
     return True
+  if expected is not None and received is None:
+    return False
   # A.B.C versioning -> 1.1.0 should match 1.1
   expected = expected.replace("dev0", "0")
   received = received.replace("dev0", "0")
