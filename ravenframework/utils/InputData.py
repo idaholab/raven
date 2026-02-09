@@ -592,9 +592,11 @@ class ParameterInput(object):
       @ In and Out, definedDict, dict, A dictionary that stores which names have been defined in the XSD already.
       @ Out, None
     """
+    definedTypeDict = definedDict
+    simpleContent = False
     #generate complexType
     complexType = ET.SubElement(xsdNode, 'xsd:complexType')
-    complexType.set('name', cls.__name__ + '_type')
+    complexType.set('name', _sanitize_xml_qname(cls.__name__) + '_type')
     if cls.subs:
       #generate choice node
       if cls.subOrder is not None:
@@ -609,7 +611,10 @@ class ParameterInput(object):
       for sub, quantity in subList:
         subNode = ET.SubElement(listNode, 'xsd:element')
         subNode.set('name', sub.getName())
-        subNode.set('type', sub.__name__ + '_type')
+        if sub.contentType == InputTypes.LegacyAnyType:
+          subNode.set('type', InputTypes.LegacyAnyType.xmlType)
+        else:
+          subNode.set('type', _sanitize_xml_qname(sub.__name__) + '_type')
         if cls.subOrder is not None:
           if quantity == Quantity.zero_to_one:
             occurs = ('0','1')
@@ -635,21 +640,31 @@ class ParameterInput(object):
           pprint.pprint(definedDict)
           print("ERROR: multiple definitions ", sub_key)
     else:
-      if cls.contentType is not None:
+      if cls.contentType is None:
+        pass
+      elif cls.contentType == InputTypes.LegacyAnyType:
+        pass
+      else:
         contentNode = ET.SubElement(complexType, 'xsd:simpleContent')
         extensionNode = ET.SubElement(contentNode, 'xsd:extension')
         dataType = cls.contentType
         extensionNode.set('base', dataType.getXMLType())
-        if dataType.needsGenerating() and dataType.getName() not in definedDict:
+        simpleContent = True
+        if dataType.needsGenerating() and dataType.getXMLType() not in definedTypeDict:
           dataType.generateXML(xsdNode)
+          definedTypeDict[dataType.getXMLType()] = dataType
     #generate attributes
     for parameter in cls.parameters:
-      attributeNode = ET.SubElement(complexType, 'xsd:attribute')
+      if simpleContent:
+        attributeNode = ET.SubElement(extensionNode, 'xsd:attribute')
+      else:
+        attributeNode = ET.SubElement(complexType, 'xsd:attribute')
       parameterData = cls.parameters[parameter]
       attributeNode.set('name', parameter)
       dataType = parameterData["type"]
-      if dataType.needsGenerating() and dataType.getName() not in definedDict:
+      if dataType.needsGenerating() and dataType.getXMLType() not in definedTypeDict:
         dataType.generateXML(xsdNode)
+        definedTypeDict[dataType.getXMLType()] = dataType
       attributeNode.set('type', dataType.getXMLType())
       if parameterData["required"]:
         attributeNode.set('use','required')
@@ -766,6 +781,29 @@ _assembly_input_cache = {}
 SUPPRESS_INPUT_SPEC_WARNINGS = False
 
 
+_XML_QNAME_SAFE_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
+
+
+def _sanitize_xml_qname(name):
+  """
+    Sanitize a string to a valid XML QName (NCName) for XSD type names.
+    @ In, name, string, raw name
+    @ Out, safe, string, sanitized name
+  """
+  if not name:
+    return "Unnamed"
+  safe = []
+  for char in name:
+    if char in _XML_QNAME_SAFE_CHARS:
+      safe.append(char)
+    else:
+      safe.append("_")
+  safe = "".join(safe)
+  if not (safe[0].isalpha() or safe[0] == "_"):
+    safe = "_" + safe
+  return safe
+
+
 def _parameter_input_signature(paramList, paramDict):
   """
     Build a stable signature for parameterInputFactory calls to detect mismatches.
@@ -879,7 +917,7 @@ def createXSD(outerElement):
   outside = ET.Element('xsd:schema')
   outside.set('xmlns:xsd', 'http://www.w3.org/2001/XMLSchema')
   ET.SubElement(outside, 'xsd:element', {'name':outerElement.getName(),
-                                         'type':outerElement.__name__+'_type'})
+                                         'type':_sanitize_xml_qname(outerElement.__name__) + '_type'})
   outerElement.generateXSD(outside, {})
   return outside
 
