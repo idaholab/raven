@@ -614,7 +614,11 @@ class ParameterInput(object):
         if sub.contentType == InputTypes.LegacyAnyType:
           subNode.set('type', InputTypes.LegacyAnyType.xmlType)
         else:
-          subNode.set('type', _sanitize_xml_qname(sub.__name__) + '_type')
+          if hasattr(sub, "__name__"):
+            subname = sub.__name__
+          else:
+            subname = type(sub).__name__
+          subNode.set('type', _sanitize_xml_qname(subname) + '_type')
         if cls.subOrder is not None:
           if quantity == Quantity.zero_to_one:
             occurs = ('0','1')
@@ -630,15 +634,18 @@ class ParameterInput(object):
           subNode.set('maxOccurs', occurs[1])
         else:
           subNode.set('minOccurs', '0')
-        sub_key = sub.__name__
-        if sub_key not in definedDict:
-          definedDict[sub_key] = sub
+        if hasattr(sub, "__name__"):
+          subKey = sub.__name__
+        else:
+          subKey = type(sub).__name__
+        if subKey not in definedDict:
+          definedDict[subKey] = sub
           sub.generateXSD(xsdNode, definedDict)
-        elif definedDict[sub_key] != sub:
+        elif definedDict[subKey] != sub:
           print('DEBUGG defined:')
           import pprint
           pprint.pprint(definedDict)
-          print("ERROR: multiple definitions ", sub_key)
+          print("ERROR: multiple definitions ", subKey)
     else:
       if cls.contentType is None:
         pass
