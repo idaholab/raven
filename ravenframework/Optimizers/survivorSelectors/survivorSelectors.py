@@ -100,7 +100,7 @@ def fitnessBased(newRlz,**kwargs):
     @ Out, newAge, list, Ages of each chromosome in the new population.
     @ Out, popObjectiveVal, list, floats of objective values
   """
-  def _to_numeric_array(values, default_size):
+  def _toNumericArray(values, default_size):
     """Convert incoming objective list into a 1-D numpy array of length >= default_size."""
     if values is None:
       return np.full(default_size, np.nan)
@@ -121,7 +121,7 @@ def fitnessBased(newRlz,**kwargs):
   # Parent data
   parentPopulation = np.atleast_2d(kwargs['population'].data)
   parentFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data.reshape(-1)
-  parentObjectives = _to_numeric_array(kwargs.get('popObjectiveVal'), popSize)
+  parentObjectives = _toNumericArray(kwargs.get('popObjectiveVal'), popSize)
 
   # Offspring data
   offspringFitness = datasetToDataArray(kwargs['offspringFitness'], list(kwargs['offspringFitness'].keys())).data.reshape(-1)
