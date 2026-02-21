@@ -15,7 +15,7 @@
   Implementation of survivorSelection step for new generation
   selection process in Genetic Algorithm.
 
-  Created Apr,3,2024
+  Created Apr 3, 2024
   @authors: Mohammad Abdo, Junyung Kim
 """
 # External Modules----------------------------------------------------------------------------------
@@ -32,14 +32,11 @@ from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
 def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, objectiveVal, g):
   """
     Process of selecting survivors for single objective problems.
-
-    FIXED: Now uses matingPop* variable names for consistency with multi-objective.
-
     @ In, self, Instance of GeneticAlgorithm
     @ In, info, dict, dictionary of information
     @ In, rlz, xr.Dataset, dictionary of realizations
     @ In, traj, int, trajectory identifier
-    @ In, offspring, xr.DataArray, offspring indiciduals
+    @ In, offspring, xr.DataArray, offspring individuals
     @ In, offspringFitness, xr.Dataset, fitness of offspring
     @ In, objectiveVal, list, objective values of offspring
     @ In, g, xr.DataArray, constraint data
@@ -65,44 +62,27 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, 
     baseObj = objectiveVal[0] if isinstance(objectiveVal, list) and len(objectiveVal) > 0 else rlz[self._objectiveVar[0]].data
     self.matingPopObjVals = list(np.atleast_1d(baseObj))
     self.matingPopAges = [0] * len(offspring)
-  self.matingPop_g = g
+  self.matingPopG = g
 
   # Mirror legacy attribute names to keep downstream logic functional.
   self.population = self.matingPopInputs
   self.fitness = self.matingPopFitness
   self.popAge = self.matingPopAges
   self.objectiveVal = self.matingPopObjVals
-  self.constraintsV = self.matingPop_g
+  self.constraintsV = self.matingPopG
 
 def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringsFitness, objectiveVal, g):
   """
-    process of selecting survivors for multi-objective problems
+    Process of selecting survivors for multi-objective problems.
+    Multi-objective survivor selection is handled by the GeneticAlgorithm flow;
+    this stub is kept for compatibility with older call sites.
     @ In, self, instance of GeneticAlgorithm. Also information to return is added to this
     @ In, info, dict, dictionary of information
     @ In, rlz, dict, dictionary of realizations (including values of all objectives)
     @ In, traj, dict, dictionary of trajectories
     @ In, offSprings, list, list of offspring individuals
-    @ In, offSpringFitness, list, list of fitness values for offspring individuals
+    @ In, offSpringsFitness, list, list of fitness values for offspring individuals
     @ In, objectiveVal, list, values of the objectives (for ranking and crowding distance calculation)
     @ In, g, xr.DataArray, constraint data
   """
-  # if self.counter > 1:
-  #   self.population,self.rank, \
-  #   self.popAge,self.crowdingDistance, \
-  #   self.objectiveVal,self.fitness, \
-  #   self.constraintsV                  = self._survivorSelectionInstance(age=self.popAge,
-  #                                                                        variables=list(self.toBeSampled),
-  #                                                                        population=self.population,
-  #                                                                        offspring=rlz,
-  #                                                                        popObjectiveVal=self.objectiveVal,
-  #                                                                        offObjectiveVal=objectiveVal,
-  #                                                                        popFit = self.fitness,
-  #                                                                        offFit = offSpringFitness,
-  #                                                                        popConstV = self.constraintsV,
-  #                                                                        direction=self._minMax,
-  #                                                                        offConstV = g)
-  # else:
-  #   self.population = offSprings
-  #   self.fitness = offSpringFitness
-  #   self.constraintsV = g
-pass
+  pass

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Implementation of survivorSelctors (Elitism) for new generation
+  Implementation of survivorSelectors (Elitism) for new generation
   selection process of Genetic Algorithm. Currently the implemented
-  survivorSelctors algorithms are:
+  survivorSelectors algorithms are:
   1.  ageBased
   2.  fitnessBased
 
-  Created June,16,2020
+  Created June 16, 2020
   @authors: Mohammad Abdo, Junyung Kim, Diego Mandelli, Andrea Alfonsi
 """
 # External Modules----------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ def ageBased(newRlz,**kwargs):
   """
     ageBased survivorSelection mechanism for new generation selection.
     It replaces the oldest parents with the new children regardless of the fitness.
-    @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
+    @ In, newRlz, xr.Dataset, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           age, list, age list for each chromosome of the previous population
           variables, list of variable names to be sampled
@@ -86,10 +86,10 @@ def ageBased(newRlz,**kwargs):
 def fitnessBased(newRlz,**kwargs):
   """
     fitnessBased survivorSelection mechanism for new generation selection
-    It combines the parents and children/offsprings then keeps the fittest individuals
+    It combines the parents and children/offspring then keeps the fittest individuals
     to revert to the same population size.
-    @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
-    @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
+    @ In, newRlz, xr.Dataset, containing either a single realization, or a batch of realizations.
+    @ In, kwargs, dict, dictionary of parameters for this survivor selection method:
           age, list, ages of each chromosome in the population of the previous generation
           offspringFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offspringFitness) = nChildren x nGenes
           variables
@@ -305,5 +305,5 @@ def returnInstance(cls, name):
     @ Out, __crossovers[name], instance of class
   """
   if name not in __survivorSelectors:
-    cls.raiseAnError (IOError, "{} is not an valid option for survivor selector. Please review the spelling of the survivor selector. ".format(name))
+    cls.raiseAnError (IOError, "{} is not a valid option for survivor selector. Please review the spelling of the survivor selector. ".format(name))
   return __survivorSelectors[name]

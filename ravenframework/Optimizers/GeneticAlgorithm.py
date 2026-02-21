@@ -263,7 +263,6 @@ from .parentSelectors.parentSelectors import returnInstance as parentSelectionRe
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
-# from .survivorSelection import survivorSelection as survivorSelectionProcess
 from .survivorSelection import survivorSelection
 from .constraintHandling.constraintHandling import constraintHandling
 from .fitness.fitness import returnInstance as fitnessReturnInstance
@@ -1064,7 +1063,6 @@ class GeneticAlgorithm(RavenSampled):
       else:
         # Multi-objective: collect Pareto front (rank 1)
         # FIXED: Use correct signature for _collectOptPointMulti
-        # def _collectOptPointMulti(self, rlz, population, rank, CD, objVal, fitness, constraintsV)
         self._collectOptPointMulti(rlz,
                                    self.matingPopInputs,
                                    self.matingPopRanks,
