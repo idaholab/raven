@@ -72,6 +72,7 @@
         <div class="panel__row">
           <h2>Output</h2>
           <div class="panel__row-actions">
+            <button id="nextTodoBtn" type="button" title="Jump to next TODO placeholder">Next TODO</button>
             <button id="runBtn" type="button">Run</button>
             <button id="validateBtn" type="button">Validate</button>
           </div>
@@ -83,7 +84,13 @@
             <div class="workflow-strip__hint">Drag icons here to build</div>
           </div>
         </div>
-        <textarea id="outputXml" spellcheck="false" aria-label="Output XML editor"></textarea>
+        <div class="code-editor">
+          <div id="codeGutter" class="code-editor__gutter" aria-hidden="true"></div>
+          <div class="code-editor__content">
+            <div id="outputXmlHighlight" class="code-editor__highlight" aria-hidden="true"></div>
+            <textarea id="outputXml" class="code-editor__textarea" spellcheck="false" aria-label="Output XML editor"></textarea>
+          </div>
+        </div>
         <div class="hint">Tip: Edit directly; insert blocks from the palette.</div>
       </section>
 

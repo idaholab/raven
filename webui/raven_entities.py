@@ -67,7 +67,15 @@ def _xsd_direct_children(type_node: ET.Element) -> List[Dict[str, str]]:
       name = child.attrib.get("name")
       if not name:
         continue
-      options.append({"name": name, "type": child.attrib.get("type", "")})
+      min_occurs = child.attrib.get("minOccurs", "1")
+      max_occurs = child.attrib.get("maxOccurs", "1")
+      options.append({
+        "name": name,
+        "type": child.attrib.get("type", ""),
+        "minOccurs": min_occurs,
+        "maxOccurs": max_occurs,
+        "required": min_occurs != "0"
+      })
   return options
 
 
@@ -82,6 +90,87 @@ def _xsd_required_attrs(xsd_root: ET.Element, type_name: str) -> List[str]:
       if name and name not in required:
         required.append(name)
   return required
+
+
+def _build_complete_template(
+  xsd_root: ET.Element,
+  tag: str,
+  type_name: str,
+  depth: int = 0,
+  max_depth: int = 3
+) -> str:
+  """
+  Recursively build a complete XML template with required child elements.
+
+  Args:
+    xsd_root: The XSD root element
+    tag: The XML tag name
+    type_name: The XSD type name
+    depth: Current recursion depth
+    max_depth: Maximum recursion depth to prevent infinite loops
+
+  Returns:
+    Complete XML template string with placeholders
+  """
+  if depth >= max_depth or not type_name:
+    # At max depth or no type, return simple element
+    return f"<{tag}><!-- TODO: Fill in --></{tag}>"
+
+  indent = "  " * depth
+  child_indent = "  " * (depth + 1)
+
+  # Get required attributes
+  required_attrs = _xsd_required_attrs(xsd_root, type_name)
+  attrs = required_attrs[:] if required_attrs else []
+  if "name" not in attrs and depth == 0:
+    # Only add name attribute at top level
+    attrs.insert(0, "name")
+
+  # Build attribute string with placeholders
+  attrs_text = ""
+  if attrs:
+    attr_parts = []
+    for attr_name in attrs:
+      if attr_name == "name":
+        attr_parts.append(f'{attr_name}="TODO_NAME"')
+      else:
+        attr_parts.append(f'{attr_name}="TODO_{attr_name.upper()}"')
+    attrs_text = " " + " ".join(attr_parts)
+
+  # Get type node and children
+  type_node = _xsd_type_node(xsd_root, type_name)
+  if type_node is None:
+    return f"{indent}<{tag}{attrs_text}><!-- TODO: Fill in --></{tag}>"
+
+  children_info = _xsd_direct_children(type_node)
+  required_children = [child for child in children_info if child.get("required", False)]
+
+  if not required_children:
+    # No required children, check if it's a simple type
+    return f"{indent}<{tag}{attrs_text}><!-- TODO: Fill in --></{tag}>"
+
+  # Build element with required children
+  lines = [f"{indent}<{tag}{attrs_text}>"]
+
+  for child in required_children:
+    child_tag = child["name"]
+    child_type = child["type"]
+
+    # Add comment hint for the child
+    lines.append(f"{child_indent}<!-- {child_tag}: Required -->")
+
+    if child_type and depth + 1 < max_depth:
+      # Recursively build child template
+      child_template = _build_complete_template(
+        xsd_root, child_tag, child_type, depth + 1, max_depth
+      )
+      lines.append(child_template)
+    else:
+      # Simple child element
+      lines.append(f"{child_indent}<{child_tag}><!-- TODO: Fill in --></{child_tag}>")
+
+  lines.append(f"{indent}</{tag}>")
+  return "\n".join(lines)
 
 
 def _build_template_from_attrs(tag: str, required_attrs: List[str]) -> str:
@@ -112,12 +201,18 @@ def _xsd_entity_options(entity: str) -> List[Dict[str, str]]:
   for item in _xsd_direct_children(type_node):
     tag = item["name"]
     type_name = item["type"]
-    required_attrs = _xsd_required_attrs(root, type_name) if type_name else []
+    # Build complete template with required children
+    if type_name:
+      template = _build_complete_template(root, tag, type_name, depth=0, max_depth=3)
+    else:
+      # Fallback to simple template
+      required_attrs = _xsd_required_attrs(root, type_name) if type_name else []
+      template = _build_template_from_attrs(tag, required_attrs)
     options.append(
       {
         "tag": tag,
         "description": "",
-        "template": _build_template_from_attrs(tag, required_attrs),
+        "template": template,
       }
     )
   return sorted(options, key=lambda opt: opt["tag"])
@@ -209,27 +304,116 @@ def _spec_description(entity_class) -> Optional[str]:
 
 
 def _build_entity_template(tag: str, entity_class=None) -> str:
+  """
+  Build a complete XML template from entity class InputSpecification.
+
+  Includes required attributes and child elements.
+  """
   required_attrs: List[str] = []
+  required_children: List[str] = []
+
   if entity_class is not None:
     getter = getattr(entity_class, "getInputSpecification", None)
     if getter is not None:
       try:
         spec = getter()
+        # Get required attributes (XML attributes)
         for name, info in getattr(spec, "parameters", {}).items():
           if info.get("required"):
             required_attrs.append(name)
+
+        # Get required subnodes (child elements)
+        subs = getattr(spec, "subs", None)
+        if subs:
+          for sub in subs:
+            # Check if subnode is required
+            sub_name = getattr(sub, "name", None)
+            min_occurs = getattr(sub, "min", 0)
+            if sub_name and min_occurs > 0:
+              required_children.append(sub_name)
       except Exception:
         required_attrs = []
+        required_children = []
+
   if not required_attrs:
     required_attrs = ["name"]
-  attrs = " ".join(f'{name}=""' for name in required_attrs)
-  return f"<{tag} {attrs}>\n</{tag}>"
+
+  # Build attribute string with placeholders
+  attr_parts = []
+  for attr_name in required_attrs:
+    if attr_name == "name":
+      attr_parts.append(f'{attr_name}="TODO_NAME"')
+    else:
+      attr_parts.append(f'{attr_name}="TODO_{attr_name.upper()}"')
+  attrs = " ".join(attr_parts)
+
+  # Build complete template with children
+  if not required_children:
+    return f"<{tag} {attrs}>\n  <!-- TODO: Fill in content -->\n</{tag}>"
+
+  lines = [f"<{tag} {attrs}>"]
+  for child_name in required_children:
+    lines.append(f"  <!-- {child_name}: Required -->")
+    lines.append(f"  <{child_name}><!-- TODO: Fill in --></{child_name}>")
+  lines.append(f"</{tag}>")
+
+  return "\n".join(lines)
+
+
+def _xsd_type_options(
+  entity: str,
+  type_suffix: str = "SpecInputDataUser_type"
+) -> List[Dict[str, str]]:
+  """
+  Look up options for a specific XSD type across all entity XSD files.
+
+  This handles sub-entities like "MultiRun" which are types within Steps.xsd.
+  """
+  # Try to find the type in various XSD files
+  xsd_files = list(_generated_xsd_dir().glob("*.xsd"))
+  type_name = f"{entity}{type_suffix}"
+
+  for xsd_path in xsd_files:
+    try:
+      tree = ET.parse(str(xsd_path))
+      root = tree.getroot()
+
+      # Look for the type definition
+      type_node = _xsd_type_node(root, type_name)
+      if type_node is None:
+        continue
+
+      # Found the type! Extract its children
+      options: List[Dict[str, str]] = []
+      for item in _xsd_direct_children(type_node):
+        tag = item["name"]
+        item_type = item["type"]
+        # Build template
+        if item_type:
+          template = _build_complete_template(
+            root, tag, item_type, depth=0, max_depth=3
+          )
+        else:
+          required_attrs = (
+            _xsd_required_attrs(root, item_type) if item_type else []
+          )
+          template = _build_template_from_attrs(tag, required_attrs)
+        options.append({
+          "tag": tag,
+          "description": "",
+          "template": template,
+        })
+      return sorted(options, key=lambda opt: opt["tag"])
+    except ET.ParseError:
+      continue
+
+  return []
 
 
 @lru_cache(maxsize=256)
 def entity_options(entity: str) -> List[Dict[str, str]]:
   """
-  Return autocomplete options for a given top-level RAVEN XML entity block.
+  Return autocomplete options for a given RAVEN XML entity or sub-entity.
 
   Each option includes:
   - tag: the XML tag to insert
@@ -239,6 +423,11 @@ def entity_options(entity: str) -> List[Dict[str, str]]:
   xsd_options = _xsd_entity_options(entity)
   if xsd_options:
     return xsd_options
+
+  # Try as a sub-entity type (e.g., "MultiRun" within Steps.xsd)
+  type_options = _xsd_type_options(entity)
+  if type_options:
+    return type_options
 
   # Fallback: read Factory.py without importing modules (avoids optional deps).
   factory_files = {

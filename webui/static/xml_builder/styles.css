@@ -384,7 +384,7 @@ button:hover:not(:disabled) {
   margin-top: 2px;
 }
 
-textarea {
+textarea:not(.code-editor__textarea) {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -402,6 +402,171 @@ textarea {
 
 .panel--center textarea {
   flex: 1 1 auto;
+}
+
+/* Code Editor with Syntax Highlighting */
+.code-editor {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-stronger);
+  overflow: hidden;
+}
+
+.code-editor__gutter {
+  flex-shrink: 0;
+  width: 40px;
+  background: var(--surface-strong);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  user-select: none;
+  padding: 10px 0;
+}
+
+.code-editor__content {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.code-editor__highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre;
+  overflow-x: auto;
+  pointer-events: none;
+  color: var(--text);
+  z-index: 0;
+}
+
+.code-editor__textarea {
+  position: relative;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  caret-color: var(--text);
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  overflow: auto;
+  white-space: pre;
+  -webkit-text-fill-color: transparent;
+  z-index: 1;
+}
+
+.gutter-line {
+  height: 16.8px; /* 12px font-size * 1.4 line-height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.gutter-line__number {
+  opacity: 0.5;
+  padding: 0 4px;
+}
+
+.gutter-line__fold {
+  position: absolute;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  font-size: 10px;
+  border-radius: 2px;
+}
+
+.gutter-line__fold:hover {
+  opacity: 1;
+  background: var(--surface-stronger);
+}
+
+.code-editor__textarea::selection {
+  background: rgba(125, 211, 252, 0.3);
+}
+
+.code-editor__textarea::-moz-selection {
+  background: rgba(125, 211, 252, 0.3);
+}
+
+/* XML Syntax Highlighting Colors */
+.xml-tag {
+  color: #569cd6;
+}
+
+.xml-attr-name {
+  color: #9cdcfe;
+}
+
+.xml-attr-value {
+  color: var(--text);
+}
+
+.xml-comment {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.xml-text {
+  color: var(--text);
+}
+
+.xml-todo {
+  color: #ff6b6b;
+  font-weight: 600;
+  background: rgba(255, 107, 107, 0.15);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Light theme colors */
+[data-theme="light"] .xml-tag {
+  color: #0000ff;
+}
+
+[data-theme="light"] .xml-attr-name {
+  color: #ff0000;
+}
+
+[data-theme="light"] .xml-attr-value {
+  color: var(--text);
+}
+
+[data-theme="light"] .xml-comment {
+  color: #008000;
+}
+
+[data-theme="light"] .xml-todo {
+  color: #d32f2f;
+  background: rgba(211, 47, 47, 0.1);
 }
 
 .toolbox {
@@ -445,6 +610,12 @@ textarea {
 
 .toolbox__item:hover {
   border-color: rgba(125, 211, 252, 0.5);
+}
+
+.toolbox__item--picked {
+  border-color: rgba(248, 200, 86, 0.9);
+  box-shadow: 0 0 18px rgba(248, 200, 86, 0.35);
+  transform: translateY(-1px) scale(1.02);
 }
 
 .toolbox__icon {
@@ -518,12 +689,15 @@ textarea {
   align-items: center;
   gap: 10px;
   overflow-x: auto;
+  scrollbar-gutter: stable;
 }
 
 .workflow-strip__items {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex: 0 0 auto;
+  width: max-content;
 }
 
 .workflow-strip__hint {
@@ -531,6 +705,106 @@ textarea {
   font-size: 12px;
   white-space: nowrap;
   margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.raven {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 120px;
+  height: 90px;
+  z-index: 10050;
+  pointer-events: none;
+  filter: drop-shadow(0 14px 18px rgba(2, 4, 12, 0.55));
+  transform: translate3d(0, 0, 0);
+}
+
+.raven__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 16px;
+  filter: drop-shadow(0 10px 14px rgba(2, 4, 12, 0.55));
+}
+
+.raven__cargo {
+  position: absolute;
+  left: 58px;
+  top: 28px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  transform: scale(0.6);
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+
+.raven__cargo--drop {
+  animation: raven-cargo-drop 280ms ease-out forwards;
+}
+
+.raven--fly .raven__img {
+  animation: raven-bob 520ms ease-in-out infinite;
+}
+
+.raven--peck .raven__img {
+  animation: raven-peck-img 220ms ease-in-out;
+}
+
+.raven--snatch .raven__img {
+  animation: raven-snatch-img 220ms ease-in-out;
+}
+
+.raven--exit {
+  opacity: 0.85;
+}
+
+@keyframes raven-bob {
+  0% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(3px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+}
+
+@keyframes raven-peck-img {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes raven-snatch-img {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes raven-cargo-drop {
+  0% {
+    transform: scale(0.6) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.2) translateY(18px);
+    opacity: 0;
+  }
 }
 
 .chip {
@@ -838,6 +1112,33 @@ textarea {
   border: 1px solid rgba(231, 237, 247, 0.1);
   border-radius: 14px;
   background: var(--surface);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* Compact autocomplete mode - appears at cursor */
+.dialog--autocomplete {
+  width: 400px;
+  max-width: 90vw;
+  position: fixed;
+  margin: 0;
+  top: var(--autocomplete-top, 50%);
+  left: var(--autocomplete-left, 50%);
+  transform: translate(-50%, -50%);
+}
+
+.dialog--autocomplete::backdrop {
+  background: transparent;
+  pointer-events: none;
+}
+
+.dialog--autocomplete .dialog__form {
+  max-height: none;
+}
+
+.dialog--autocomplete .dialog__list {
+  max-height: 180px; /* Show ~3-4 items */
+  overflow-y: auto;
 }
 
 .browse__toolbar {

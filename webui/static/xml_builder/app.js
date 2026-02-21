@@ -13,6 +13,7 @@ const downloadBtn = document.getElementById("downloadBtn");
 const themeToggle = document.getElementById("themeToggle");
 const validateBtn = document.getElementById("validateBtn");
 const runBtn = document.getElementById("runBtn");
+const nextTodoBtn = document.getElementById("nextTodoBtn");
 const messagesEl = document.getElementById("messages");
 const clearMessagesBtn = document.getElementById("clearMessagesBtn");
 const configForm = document.getElementById("configForm");
@@ -23,6 +24,7 @@ const toolboxOverlayTitle = document.getElementById("toolboxOverlayTitle");
 const toolboxOverlayList = document.getElementById("toolboxOverlayList");
 const workflowStrip = document.getElementById("workflowStrip");
 const workflowItems = document.getElementById("workflowItems");
+const workflowHint = document.querySelector(".workflow-strip__hint");
 const paletteDialog = document.getElementById("paletteDialog");
 const paletteSearch = document.getElementById("paletteSearch");
 const paletteList = document.getElementById("paletteList");
@@ -170,6 +172,10 @@ const toolboxItems = [
     icon: "/static/xml_builder/icons/testinfo.svg",
     kind: "section",
     section: "TestInfo",
+    xml: `<name>TODO_TEST_NAME</name>
+<author>TODO_AUTHOR</author>
+<created>TODO_DATE</created>
+<description>TODO_DESCRIPTION</description>`,
   },
   {
     id: "runinfo",
@@ -177,6 +183,15 @@ const toolboxItems = [
     icon: "/static/xml_builder/icons/runinfo.svg",
     kind: "section",
     section: "RunInfo",
+    xml: `<!-- WorkingDir: REQUIRED - Directory where RAVEN executes -->
+<WorkingDir>TODO_WORKING_DIR</WorkingDir>
+
+<!-- Sequence: REQUIRED - Ordered list of step names to execute -->
+<Sequence>TODO_STEP1, TODO_STEP2</Sequence>
+
+<!-- Optional: Uncomment and fill as needed -->
+<!-- <batchSize>1</batchSize> -->
+<!-- <JobName>TODO_JOB_NAME</JobName> -->`,
   },
   {
     id: "variablegroups",
@@ -184,6 +199,8 @@ const toolboxItems = [
     icon: "/static/xml_builder/icons/variablegroups.svg",
     kind: "section",
     section: "VariableGroups",
+    xml: `<!-- Define variable groups for reuse -->
+<Group name="TODO_GROUP_NAME">TODO_VAR1, TODO_VAR2</Group>`,
   },
   {
     id: "dataobjects",
@@ -509,6 +526,18 @@ function toolboxItemById(itemId) {
   return flattenToolboxItems(toolboxItems).find((item) => item.id === itemId) || null;
 }
 
+function toolboxItemForSection(section) {
+  if (!section) {
+    return null;
+  }
+  const items = flattenToolboxItems(toolboxItems);
+  const sectionItem = items.find((item) => item && item.kind === "section" && item.section === section);
+  if (sectionItem) {
+    return sectionItem;
+  }
+  return toolboxItems.find((item) => item && item.kind === "group" && item.entity === section) || null;
+}
+
 function registerDynamicToolItem(item) {
   if (!item || !item.id) {
     return;
@@ -630,6 +659,9 @@ function renderWorkflow() {
     chip.appendChild(remove);
     workflowItems.appendChild(chip);
   });
+  if (workflowHint) {
+    workflowHint.style.display = workflow.length ? "none" : "";
+  }
 }
 
 const ravenEntities = [
@@ -685,7 +717,51 @@ const densityPresets = [
 ];
 
 function skeletonXml() {
-  return `<?xml version="1.0" ?>\n<Simulation>\n</Simulation>\n`;
+  return `<?xml version="1.0" ?>
+<Simulation>
+  <!-- ============================================ -->
+  <!-- REQUIRED: Run Configuration -->
+  <!-- ============================================ -->
+  <RunInfo>
+    <!-- WorkingDir: REQUIRED - Directory where RAVEN executes -->
+    <WorkingDir>TODO_WORKING_DIR</WorkingDir>
+
+    <!-- Sequence: REQUIRED - Ordered list of step names to execute -->
+    <Sequence>TODO_STEP1</Sequence>
+
+    <!-- Optional: Uncomment and fill as needed -->
+    <!-- <batchSize>1</batchSize> -->
+  </RunInfo>
+
+  <!-- ============================================ -->
+  <!-- Files: Input/output files for the simulation -->
+  <!-- ============================================ -->
+  <Files>
+    <!-- Example: <Input name="TODO_INPUT_NAME">TODO_FILE_PATH</Input> -->
+  </Files>
+
+  <!-- ============================================ -->
+  <!-- Models: Code interfaces, ROMs, etc. -->
+  <!-- ============================================ -->
+  <Models>
+    <!-- Example: <Code name="TODO_MODEL_NAME" subType="TODO_CODE_TYPE"></Code> -->
+  </Models>
+
+  <!-- ============================================ -->
+  <!-- DataObjects: Where to store results -->
+  <!-- ============================================ -->
+  <DataObjects>
+    <!-- Example: <PointSet name="TODO_DATASET_NAME"></PointSet> -->
+  </DataObjects>
+
+  <!-- ============================================ -->
+  <!-- REQUIRED: Workflow Steps -->
+  <!-- ============================================ -->
+  <Steps>
+    <!-- Example: <MultiRun name="TODO_STEP1"></MultiRun> -->
+  </Steps>
+</Simulation>
+`;
 }
 
 function safeText(value) {
@@ -1260,16 +1336,26 @@ function insertToolboxItem(item) {
   if (outputDoc.documentElement.tagName !== "Simulation") {
     throw new Error(`Root tag must be <Simulation>, got <${outputDoc.documentElement.tagName}>`);
   }
-  const root = outputDoc.documentElement;
   const sectionNode = ensureSection(outputDoc, item.section);
 
   if (item.kind === "section") {
-    // Track the section with a comment marker so workflow strip can remove it later.
-    const instanceId = makeInstanceId();
-    root.insertBefore(outputDoc.createComment(workflowMarkerText(instanceId, item.id)), sectionNode);
+    // Section insertion - no workflow marker needed
+
+    // If the section has initial XML content, populate it
+    if (item.xml) {
+      const templateXml = stripXmlDeclaration(item.xml);
+      // Parse template and extract children
+      const tempDoc = parseXml(`<Temp>${templateXml}</Temp>`);
+      const children = Array.from(tempDoc.documentElement.childNodes);
+      for (const child of children) {
+        const imported = outputDoc.importNode(child, true);
+        sectionNode.appendChild(imported);
+      }
+    }
+
     outputXml.value = serializeXml(outputDoc);
     scheduleValidation();
-    return { instanceId, toolId: item.id };
+    return;
   }
 
   const snippetXml = stripXmlDeclaration(item.xml || "");
@@ -1287,14 +1373,10 @@ function insertToolboxItem(item) {
     }
     sectionNode.removeChild(existing);
   }
-  const instanceId = makeInstanceId();
-  const markerNode = outputDoc.createComment(workflowMarkerText(instanceId, item.id));
   const imported = outputDoc.importNode(blockNode, true);
-  sectionNode.appendChild(markerNode);
   sectionNode.appendChild(imported);
   outputXml.value = serializeXml(outputDoc);
   scheduleValidation();
-  return { instanceId, toolId: item.id };
 }
 
 function findMatching(sectionNode, blockNode, replaceMode) {
@@ -1490,6 +1572,24 @@ function syncWorkflowFromOutput() {
       workflow = found;
       persistWorkflow();
       renderWorkflow();
+      return;
+    }
+    if (workflow.length === 0) {
+      const inferred = [];
+      for (const child of Array.from(root.children)) {
+        if (!child || child.nodeType !== 1) {
+          continue;
+        }
+        const tool = toolboxItemForSection(child.tagName);
+        if (tool) {
+          inferred.push({ instanceId: null, toolId: tool.id });
+        }
+      }
+      if (inferred.length > 0) {
+        workflow = inferred;
+        persistWorkflow();
+        renderWorkflow();
+      }
     }
   } catch (_err) {
     // ignore invalid XML while typing
@@ -1651,12 +1751,60 @@ async function loadBase() {
   const path = baseSelect.value;
   if (!path) {
     outputXml.value = skeletonXml();
+    outputXml.dispatchEvent(new Event('input', { bubbles: true }));
     scheduleValidation();
     return;
   }
   const xmlText = await fetchExampleXml(path);
   outputXml.value = formatXml(xmlText);
+  outputXml.dispatchEvent(new Event('input', { bubbles: true }));
   scheduleValidation();
+}
+
+function jumpToNextTodo() {
+  const text = outputXml.value;
+  const currentPos = outputXml.selectionStart;
+
+  // Search for TODO patterns: "TODO", "TODO_NAME", "TODO: Fill in", etc.
+  const todoPattern = /TODO[_:]?[A-Z_]*/gi;
+
+  // Find all TODO occurrences
+  let match;
+  const todos = [];
+  while ((match = todoPattern.exec(text)) !== null) {
+    todos.push({
+      index: match.index,
+      text: match[0],
+      length: match[0].length
+    });
+  }
+
+  if (todos.length === 0) {
+    logMessage("info", "No TODO placeholders found in the XML.");
+    return;
+  }
+
+  // Find the next TODO after current cursor position
+  const nextTodo = todos.find(todo => todo.index > currentPos);
+
+  if (nextTodo) {
+    // Found a TODO after cursor - jump to it
+    outputXml.focus();
+    outputXml.setSelectionRange(nextTodo.index, nextTodo.index + nextTodo.length);
+    outputXml.scrollTop = Math.max(0,
+      (outputXml.scrollHeight / text.length) * nextTodo.index - outputXml.clientHeight / 2
+    );
+    logMessage("ok", `Jumped to: ${nextTodo.text}`);
+  } else {
+    // No TODO after cursor - wrap around to first one
+    const firstTodo = todos[0];
+    outputXml.focus();
+    outputXml.setSelectionRange(firstTodo.index, firstTodo.index + firstTodo.length);
+    outputXml.scrollTop = Math.max(0,
+      (outputXml.scrollHeight / text.length) * firstTodo.index - outputXml.clientHeight / 2
+    );
+    logMessage("ok", `Wrapped to first TODO: ${firstTodo.text}`);
+  }
 }
 
 function downloadXml() {
@@ -1680,7 +1828,6 @@ async function copyXml() {
 }
 
 function inferCurrentSection(xmlText, cursorIndex) {
-  const sectionNames = new Set(ravenEntities);
   const prefix = xmlText.slice(0, cursorIndex);
   const tagPattern = /<\s*(\/?)([A-Za-z0-9_:-]+)([^>]*?)(\/?)\s*>/g;
   const stack = [];
@@ -1689,9 +1836,12 @@ function inferCurrentSection(xmlText, cursorIndex) {
     const isClosing = match[1] === "/";
     const tagName = match[2];
     const isSelfClosing = match[4] === "/" || match[0].endsWith("/>");
-    if (!sectionNames.has(tagName)) {
+
+    // Skip XML declarations and non-entity tags, but track all structural tags
+    if (tagName === "Simulation" || tagName === "?xml") {
       continue;
     }
+
     if (isClosing) {
       if (stack.length > 0 && stack[stack.length - 1] === tagName) {
         stack.pop();
@@ -1707,6 +1857,8 @@ function inferCurrentSection(xmlText, cursorIndex) {
       stack.push(tagName);
     }
   }
+  // Return the most specific context (last item in stack)
+  // This will be the innermost tag like "MultiRun" instead of just "Steps"
   return stack.length > 0 ? stack[stack.length - 1] : null;
 }
 
@@ -1744,12 +1896,58 @@ function openAutocomplete(defaultSection, tagPrefixInfo) {
   const hint = defaultSection ? `Context: ${defaultSection}` : "Context: <Simulation>";
   paletteHint.textContent = hint;
   paletteSearch.value = tagPrefixInfo ? tagPrefixInfo.prefix : "";
+
+  // Add compact autocomplete styling
+  paletteDialog.classList.add('dialog--autocomplete');
+
+  // Position at cursor
+  if (outputXml) {
+    try {
+      // Get cursor position in the textarea
+      const cursorPos = outputXml.selectionStart;
+      const text = outputXml.value;
+      const textBeforeCursor = text.substring(0, cursorPos);
+      const lines = textBeforeCursor.split('\n');
+      const currentLine = lines.length;
+      const currentCol = lines[lines.length - 1].length;
+
+      // Calculate approximate pixel position
+      // Note: This is an approximation based on font metrics
+      const lineHeight = 16.8; // 12px font-size * 1.4 line-height
+      const charWidth = 7.2; // Approximate monospace character width
+      const padding = 12;
+
+      const textareaRect = outputXml.getBoundingClientRect();
+      const scrollTop = outputXml.scrollTop;
+      const scrollLeft = outputXml.scrollLeft;
+
+      const top = textareaRect.top + (currentLine - 1) * lineHeight + padding - scrollTop + lineHeight;
+      const left = textareaRect.left + currentCol * charWidth + padding - scrollLeft;
+
+      // Constrain to viewport
+      const maxTop = window.innerHeight - 250; // Leave room for dialog
+      const maxLeft = window.innerWidth - 220; // Leave room for dialog width
+
+      const finalTop = Math.min(Math.max(top, 50), maxTop);
+      const finalLeft = Math.min(Math.max(left, 20), maxLeft);
+
+      paletteDialog.style.setProperty('--autocomplete-top', `${finalTop}px`);
+      paletteDialog.style.setProperty('--autocomplete-left', `${finalLeft}px`);
+      paletteDialog.style.transform = 'none'; // Don't center, use exact position
+    } catch (err) {
+      // Fallback to center if positioning fails
+      paletteDialog.style.transform = '';
+    }
+  }
+
   renderAutocompleteList();
   paletteDialog.showModal();
   paletteSearch.focus();
 }
 
 function closePalette() {
+  paletteDialog.classList.remove('dialog--autocomplete');
+  paletteDialog.style.transform = '';
   paletteDialog.close();
 }
 
@@ -1788,21 +1986,31 @@ function renderAutocompleteList() {
           return;
         }
         const info = paletteReplaceRange;
-        const baseIndent = currentLineIndent(outputXml.value, info ? info.start : outputXml.selectionStart);
+        const insertStart = info ? info.start : outputXml.selectionStart;
+        const baseIndent = currentLineIndent(outputXml.value, insertStart);
         const lines = option.template.split("\n");
-        const lastIdx = lines.length - 1;
         const indented = lines
           .map((line, idx) => {
             if (idx === 0) {
-              return baseIndent + line;
+              // First line: don't add baseIndent (it's already in the text before the replacement)
+              return line;
             }
-            if (idx === lastIdx) {
-              return baseIndent + line;
-            }
-            return baseIndent + "  " + line;
+            // All subsequent lines: add baseIndent to match the parent's indentation
+            // (templates already have their own relative indentation built-in)
+            return baseIndent + line;
           })
           .join("\n");
         insertText(outputXml, indented, info);
+
+        // Jump to first TODO placeholder after insertion for easy editing
+        const textAfter = outputXml.value.substring(insertStart);
+        const todoMatch = textAfter.match(/TODO[_:]?[A-Z_]*/);
+        if (todoMatch) {
+          const todoStart = insertStart + todoMatch.index;
+          const todoEnd = todoStart + todoMatch[0].length;
+          outputXml.setSelectionRange(todoStart, todoEnd);
+        }
+
         scheduleValidation();
         logMessage("insert", `Inserted <${option.tag}>`);
         closePalette();
@@ -1904,7 +2112,443 @@ function scheduleValidation() {
   plotTimer = setTimeout(() => {
     syncWorkflowFromOutput();
     validateOutput();
+    updateSyntaxHighlighting();
+    autoCreateReferencedEntities();
+    // Note: updateGutter() is called separately via input event listener
   }, 400);
+}
+
+function groupIdForSection(section) {
+  if (!section) {
+    return null;
+  }
+  const group = toolboxItems.find((item) => item && item.kind === "group" && item.entity === section);
+  return group ? group.id : null;
+}
+
+function resolveSubtypeToolId(section, tag) {
+  if (!section || !tag) {
+    return null;
+  }
+  for (const item of flattenToolboxItems(toolboxItems)) {
+    if (!item || item.kind !== "child" || item.section !== section || !item.xml) {
+      continue;
+    }
+    try {
+      const tagName = parseSnippetElement(stripXmlDeclaration(item.xml)).tagName;
+      if (tagName === tag) {
+        return item.id;
+      }
+    } catch (_err) {
+      // ignore malformed snippet
+    }
+  }
+  const dynId = dynamicToolId(section, tag);
+  toolboxItemById(dynId);
+  return dynId;
+}
+
+/**
+ * Auto-create referenced entities when they're mentioned in Steps
+ * For example, if a step references a Sampler, auto-create the Samplers section
+ */
+function autoCreateReferencedEntities() {
+  try {
+    const outputDoc = parseXml(outputXml.value);
+    const root = outputDoc.documentElement;
+    if (!root || root.tagName !== "Simulation") {
+      return;
+    }
+
+    // Find the Steps section
+    const stepsNode = Array.from(root.children).find(child => child.tagName === "Steps");
+    if (!stepsNode) {
+      return;
+    }
+
+    // Map of step child elements to their corresponding entity sections
+    const stepToEntityMap = {
+      'Sampler': 'Samplers',
+      'Optimizer': 'Optimizers',
+      'Model': 'Models',
+      'DataObject': 'DataObjects',
+      'Output': 'OutStreams'
+    };
+
+    // Find all step children that reference entities
+    const referencedEntities = [];
+    for (const step of stepsNode.children) {
+      if (step.nodeType !== 1) continue; // Element nodes only
+
+      for (const child of step.children) {
+        if (child.nodeType !== 1) continue;
+
+        const childTag = child.tagName;
+        const classAttr = safeText(child.getAttribute("class"));
+        const typeAttr = safeText(child.getAttribute("type"));
+        const entitySection = classAttr || stepToEntityMap[childTag];
+        const entityTag = typeAttr || childTag;
+        if (!entitySection) {
+          continue;
+        }
+        const refName = child.textContent.trim();
+        if (refName && !refName.startsWith('TODO')) {
+          referencedEntities.push({
+            type: entityTag,
+            name: refName,
+            section: entitySection
+          });
+        }
+      }
+    }
+
+    if (referencedEntities.length === 0) {
+      return;
+    }
+
+    // Check which sections need to be created
+    let needsUpdate = false;
+    const entitiesToCreate = [];
+
+    for (const ref of referencedEntities) {
+      // Check if section exists
+      let sectionNode = Array.from(root.children).find(child => child.tagName === ref.section);
+
+      if (!sectionNode) {
+        // Section doesn't exist, we need to create it
+        entitiesToCreate.push({
+          ...ref,
+          createSection: true,
+          createEntity: true
+        });
+        needsUpdate = true;
+      } else {
+        // Section exists, check if the entity with this name exists
+        const existingEntity = Array.from(sectionNode.children).find(
+          child => child.nodeType === 1 &&
+                   child.tagName === ref.type &&
+                   child.getAttribute('name') === ref.name
+        );
+
+        if (!existingEntity) {
+          entitiesToCreate.push({
+            ...ref,
+            createSection: false,
+            createEntity: true
+          });
+          needsUpdate = true;
+        }
+      }
+    }
+
+    if (!needsUpdate) {
+      return;
+    }
+
+    // Collect sections that need animation and deduplicate
+    const sectionsToAnimate = [];
+    const createdSections = new Set();
+    const sectionToToolId = {
+      DataObjects: "dataobjects",
+      Models: "models",
+      Optimizers: "optimizers",
+      OutStreams: "outstreams",
+      Samplers: "samplers"
+    };
+    const animatedToolIds = new Set();
+
+    // Create missing sections and entities
+    for (const item of entitiesToCreate) {
+      if (item.createSection && !createdSections.has(item.section)) {
+        // Section hasn't been created yet in this run
+        createdSections.add(item.section);
+
+        // Find the right position to insert the section (before Steps)
+        const stepsNode = Array.from(root.children).find(child => child.tagName === "Steps");
+        const sectionNode = outputDoc.createElement(item.section);
+
+        root.insertBefore(outputDoc.createComment(` ${item.section} `), stepsNode);
+        root.insertBefore(sectionNode, stepsNode);
+
+        // Add the entity to the new section
+        const entityNode = outputDoc.createElement(item.type);
+        entityNode.setAttribute('name', item.name);
+        entityNode.appendChild(outputDoc.createComment(' TODO: Configure this '));
+        sectionNode.appendChild(entityNode);
+
+        // Mark for animation
+        const groupId = sectionToToolId[item.section] || groupIdForSection(item.section);
+        const subtypeToolId = resolveSubtypeToolId(item.section, item.type);
+        const animateId = subtypeToolId || groupId;
+        if (animateId && !animatedToolIds.has(animateId)) {
+          animatedToolIds.add(animateId);
+          sectionsToAnimate.push({
+            toolId: animateId,
+            groupId,
+            subtypeTag: item.type,
+            entitySection: item.section
+          });
+        }
+      } else if (item.createSection && createdSections.has(item.section)) {
+        // Section was already created in this run, just add the entity
+        const sectionNode = Array.from(root.children).find(child => child.tagName === item.section);
+        const entityNode = outputDoc.createElement(item.type);
+        entityNode.setAttribute('name', item.name);
+        entityNode.appendChild(outputDoc.createComment(' TODO: Configure this '));
+        sectionNode.appendChild(entityNode);
+      } else if (item.createEntity) {
+        // Section exists, just add the entity
+        const sectionNode = Array.from(root.children).find(child => child.tagName === item.section);
+        const entityNode = outputDoc.createElement(item.type);
+        entityNode.setAttribute('name', item.name);
+        entityNode.appendChild(outputDoc.createComment(' TODO: Configure this '));
+        sectionNode.appendChild(entityNode);
+        const groupId = sectionToToolId[item.section] || groupIdForSection(item.section);
+        const subtypeToolId = resolveSubtypeToolId(item.section, item.type);
+        const animateId = subtypeToolId || groupId;
+        if (animateId && !animatedToolIds.has(animateId)) {
+          animatedToolIds.add(animateId);
+          sectionsToAnimate.push({
+            toolId: animateId,
+            groupId,
+            subtypeTag: item.type,
+            entitySection: item.section
+          });
+        }
+      }
+    }
+
+    // Update the output
+    outputXml.value = serializeXml(outputDoc);
+    outputXml.dispatchEvent(new Event('input', { bubbles: true }));
+
+    if (entitiesToCreate.length > 0) {
+      logMessage("ok", `Auto-created ${entitiesToCreate.length} referenced entit${entitiesToCreate.length === 1 ? 'y' : 'ies'}`);
+    }
+
+    // Trigger animations after a brief delay to ensure DOM is updated
+    if (sectionsToAnimate.length > 0) {
+      setTimeout(() => {
+        sectionsToAnimate.forEach((item, index) => {
+          // Stagger animations slightly for multiple items
+          setTimeout(() => {
+            animateToolboxToWorkflow(item);
+          }, index * 800);
+        });
+      }, 200);
+    }
+  } catch (err) {
+    // Ignore errors during auto-creation
+  }
+}
+
+function prefersReducedMotion() {
+  return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function waitForOverlayItem(toolId, timeoutMs = 2500) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const check = () => {
+      const el = document.querySelector(`.toolbox-overlay__item[data-id="${toolId}"]`);
+      if (el) {
+        resolve(el);
+        return;
+      }
+      if (Date.now() - start >= timeoutMs) {
+        resolve(null);
+        return;
+      }
+      setTimeout(check, 60);
+    };
+    check();
+  });
+}
+
+function isItemVisibleInToolbox(toolbox, item, vertical) {
+  const container = toolbox.getBoundingClientRect();
+  const rect = item.getBoundingClientRect();
+  if (vertical) {
+    return rect.top >= container.top && rect.bottom <= container.bottom;
+  }
+  return rect.left >= container.left && rect.right <= container.right;
+}
+
+function computeTargetScroll(toolbox, item, vertical) {
+  const container = toolbox.getBoundingClientRect();
+  const rect = item.getBoundingClientRect();
+  if (vertical) {
+    const target = toolbox.scrollTop + (rect.top - container.top) - (container.height - rect.height) / 2;
+    const max = toolbox.scrollHeight - toolbox.clientHeight;
+    return clamp(target, 0, Math.max(0, max));
+  }
+  const target = toolbox.scrollLeft + (rect.left - container.left) - (container.width - rect.width) / 2;
+  const max = toolbox.scrollWidth - toolbox.clientWidth;
+  return clamp(target, 0, Math.max(0, max));
+}
+
+function createRavenElement() {
+  const raven = document.createElement("div");
+  raven.className = "raven raven--fly";
+  raven.setAttribute("aria-hidden", "true");
+  raven.innerHTML = `
+    <img
+      class="raven__img"
+      alt=""
+      src="/static/xml_builder/icons/raven.png"
+    />
+  `;
+  return raven;
+}
+
+async function animateToolboxToWorkflow(target) {
+  try {
+    const toolId = typeof target === "string" ? target : target && target.toolId;
+    const groupId = typeof target === "string" ? null : target && target.groupId;
+    const subtypeTag = typeof target === "string" ? null : target && target.subtypeTag;
+    const entitySection = typeof target === "string" ? null : target && target.entitySection;
+
+    const groupToolId = groupId || groupIdForSection(entitySection) || toolId;
+    if (!groupToolId) {
+      return;
+    }
+
+    const toolboxItems = document.querySelectorAll(".toolbox__item");
+    let toolboxItem = null;
+    for (const item of toolboxItems) {
+      if (item.getAttribute("data-id") === groupToolId) {
+        toolboxItem = item;
+        break;
+      }
+    }
+
+    if (!toolboxItem) {
+      return;
+    }
+
+    const toolbox = document.getElementById("toolbox");
+    const workflowStrip = document.getElementById("workflowStrip");
+    if (!toolbox || !workflowStrip) {
+      return;
+    }
+
+    if (prefersReducedMotion()) {
+      toolboxItem.scrollIntoView({ block: "nearest", inline: "nearest" });
+      toolboxItem.classList.add("toolbox__item--picked");
+      setTimeout(() => toolboxItem.classList.remove("toolbox__item--picked"), 600);
+      return;
+    }
+
+    const vertical = toolbox.classList.contains("toolbox--vertical");
+    const raven = createRavenElement();
+    document.body.appendChild(raven);
+
+    const ravenRect = raven.getBoundingClientRect();
+    const toolboxRect = toolbox.getBoundingClientRect();
+
+    const placeRaven = (x, y, duration = 0) => {
+      raven.style.transition = duration
+        ? `transform ${duration}ms cubic-bezier(0.2, 0.8, 0.2, 1)`
+        : "none";
+      raven.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    };
+
+    const centerRavenOn = (x, y) => {
+      return {
+        x: x - ravenRect.width / 2,
+        y: y - ravenRect.height / 2
+      };
+    };
+
+    const startPoint = centerRavenOn(toolboxRect.left + 20, toolboxRect.top + 40);
+    placeRaven(startPoint.x, startPoint.y);
+    await wait(50);
+
+    const scrollbarPoint = vertical
+      ? centerRavenOn(toolboxRect.right - 8, toolboxRect.top + toolboxRect.height * 0.4)
+      : centerRavenOn(toolboxRect.left + toolboxRect.width * 0.6, toolboxRect.bottom - 8);
+
+    placeRaven(scrollbarPoint.x, scrollbarPoint.y, 420);
+    await wait(450);
+
+    const targetScroll = computeTargetScroll(toolbox, toolboxItem, vertical);
+    const scrollAxis = vertical ? "scrollTop" : "scrollLeft";
+    const maxScroll = vertical
+      ? toolbox.scrollHeight - toolbox.clientHeight
+      : toolbox.scrollWidth - toolbox.clientWidth;
+
+    const scrollDistance = Math.abs(targetScroll - toolbox[scrollAxis]);
+    if (maxScroll > 4 && scrollDistance > 4) {
+      const stepCount = clamp(Math.ceil(scrollDistance / 70), 3, 10);
+      const stepDelta = (targetScroll - toolbox[scrollAxis]) / stepCount;
+      for (let i = 0; i < stepCount; i += 1) {
+        raven.classList.add("raven--peck");
+        toolbox[scrollAxis] = clamp(toolbox[scrollAxis] + stepDelta, 0, maxScroll);
+        await wait(180);
+        raven.classList.remove("raven--peck");
+        await wait(110);
+      }
+    }
+
+    if (!isItemVisibleInToolbox(toolbox, toolboxItem, vertical)) {
+      toolboxItem.scrollIntoView({ block: "nearest", inline: "nearest" });
+      await wait(150);
+    }
+
+    let pickupElement = toolboxItem;
+    if (subtypeTag || (toolId && toolId !== groupToolId)) {
+      const group = toolboxItemById(groupToolId);
+      if (group && group.kind === "group") {
+        openToolboxGroupOverlay(group);
+        const desiredToolId = toolId || resolveSubtypeToolId(entitySection || group.entity, subtypeTag);
+        if (desiredToolId) {
+          const overlayElement = await waitForOverlayItem(desiredToolId);
+          if (overlayElement) {
+            pickupElement = overlayElement;
+          }
+        }
+      }
+    }
+
+    const itemRect = pickupElement.getBoundingClientRect();
+    const itemPoint = centerRavenOn(itemRect.left + itemRect.width * 0.55, itemRect.top + itemRect.height * 0.25);
+    placeRaven(itemPoint.x, itemPoint.y, 380);
+    await wait(420);
+
+    toolboxItem.classList.add("toolbox__item--picked");
+    raven.classList.add("raven--snatch");
+    await wait(240);
+    raven.classList.remove("raven--snatch");
+
+    const cargo = pickupElement.cloneNode(true);
+    cargo.classList.add("raven__cargo");
+    cargo.setAttribute("aria-hidden", "true");
+    raven.appendChild(cargo);
+
+    const workflowRect = workflowStrip.getBoundingClientRect();
+    const workflowPoint = centerRavenOn(
+      workflowRect.left + workflowRect.width * 0.6,
+      workflowRect.top + workflowRect.height * 0.35
+    );
+    placeRaven(workflowPoint.x, workflowPoint.y, 620);
+    await wait(640);
+
+    cargo.classList.add("raven__cargo--drop");
+    await wait(280);
+
+    toolboxItem.classList.remove("toolbox__item--picked");
+    raven.classList.add("raven--exit");
+    placeRaven(workflowPoint.x + 140, workflowPoint.y - 120, 520);
+    await wait(540);
+
+    raven.remove();
+  } catch (err) {
+    console.error("Animation error:", err);
+  }
 }
 
 function parseCsv(text) {
@@ -2040,6 +2684,8 @@ function renderPlot() {
 
 async function bootstrap() {
   outputXml.value = skeletonXml();
+  // Trigger input event to update gutter and highlighting
+  outputXml.dispatchEvent(new Event('input', { bubbles: true }));
   catalog = await fetchCatalog();
   snippets = catalog.snippets || [];
   populateBaseSelect(catalog.examples || []);
@@ -2144,6 +2790,7 @@ function renderToolbox() {
         : null;
     const el = document.createElement("div");
     el.className = "toolbox__item";
+    el.setAttribute('data-id', item.id); // Add data-id for animation
     el.draggable = item.kind !== "group" || Boolean(groupSectionChild);
     if (item.kind === "group") {
       el.title = groupSectionChild
@@ -2317,6 +2964,7 @@ function createToolboxOverlayRow(child) {
   row.className = "toolbox-overlay__item";
   row.draggable = true;
   row.title = child.kind === "section" ? `Drag to insert <${child.section}>` : `Drag to insert ${child.label}`;
+  row.setAttribute("data-id", child.id);
 
     const img = document.createElement("img");
     img.alt = child.label;
@@ -2432,6 +3080,9 @@ copyBtn.addEventListener("click", async () => {
 });
 downloadBtn.addEventListener("click", () => downloadXml());
 validateBtn.addEventListener("click", () => validateOutput());
+if (nextTodoBtn) {
+  nextTodoBtn.addEventListener("click", () => jumpToNextTodo());
+}
 if (runBtn) {
   runBtn.addEventListener("click", async () => {
     try {
@@ -2475,8 +3126,8 @@ outputXml.addEventListener("drop", (event) => {
 
 if (workflowStrip) {
   workflowStrip.addEventListener("dragover", (event) => {
-    if (event.dataTransfer.types.includes("application/prlo-toolbox")) {
-      event.preventDefault();
+    event.preventDefault();
+    if (event.dataTransfer) {
       event.dataTransfer.dropEffect = "copy";
     }
   });
@@ -2562,6 +3213,424 @@ plotFile.addEventListener("change", async () => {
 });
 plotX.addEventListener("change", () => renderPlot());
 plotY.addEventListener("change", () => renderPlot());
+
+// XML Syntax Highlighting
+const outputXmlHighlight = document.getElementById("outputXmlHighlight");
+
+function highlightXML(xmlText) {
+  if (!xmlText) {
+    return "";
+  }
+
+  // Escape HTML entities first
+  const escapeHtml = (text) => {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  let highlighted = escapeHtml(xmlText);
+
+  // Highlight TODO markers
+  highlighted = highlighted.replace(/TODO[_A-Z0-9]*/g, (match) => {
+    return `<span class="xml-todo">${match}</span>`;
+  });
+
+  // Hide fold marker comments (make them invisible)
+  highlighted = highlighted.replace(/&lt;!--FOLD:[^>]+--&gt;/g, () => {
+    return '<span style="display:none;"></span>';
+  });
+
+  // Highlight XML comments (but not fold markers which are already handled)
+  highlighted = highlighted.replace(/&lt;!--(.*?)--&gt;/g, (_match, content) => {
+    return `<span class="xml-comment">&lt;!--${content}--&gt;</span>`;
+  });
+
+  // Highlight XML tags with attributes
+  highlighted = highlighted.replace(/(&lt;\/?)([\w:]+)(.*?)(\/?&gt;)/g, (match, openBracket, tagName, attrs, closeBracket) => {
+    // Skip if this is part of a comment
+    if (match.includes('xml-comment')) {
+      return match;
+    }
+
+    let highlightedAttrs = attrs;
+
+    // Highlight attributes: name="value"
+    highlightedAttrs = highlightedAttrs.replace(/([\w:]+)(=)(&quot;)(.*?)(&quot;)/g, (_attrMatch, attrName, equals, openQuote, attrValue, closeQuote) => {
+      // Check if attribute value contains TODO
+      let highlightedValue = attrValue;
+      if (attrValue.includes('TODO')) {
+        highlightedValue = attrValue.replace(/TODO[_A-Z0-9]*/g, (todoMatch) => {
+          return `<span class="xml-todo">${todoMatch}</span>`;
+        });
+      }
+      return `<span class="xml-attr-name">${attrName}</span>${equals}${openQuote}<span class="xml-attr-value">${highlightedValue}</span>${closeQuote}`;
+    });
+
+    return `${openBracket}<span class="xml-tag">${tagName}</span>${highlightedAttrs}${closeBracket}`;
+  });
+
+  return highlighted;
+}
+
+function updateSyntaxHighlighting() {
+  if (outputXmlHighlight && outputXml) {
+    outputXmlHighlight.innerHTML = highlightXML(outputXml.value);
+    // Set height to match the full scrollable content height
+    outputXmlHighlight.style.height = outputXml.scrollHeight + 'px';
+  }
+}
+
+function syncScroll() {
+  if (outputXmlHighlight && outputXml) {
+    const scrollTop = outputXml.scrollTop;
+    const scrollLeft = outputXml.scrollLeft;
+    outputXmlHighlight.style.transform = `translate(-${scrollLeft}px, -${scrollTop}px)`;
+  }
+}
+
+if (outputXml && outputXmlHighlight) {
+  // Update highlighting on input
+  outputXml.addEventListener("input", updateSyntaxHighlighting);
+
+  // Sync scrolling
+  outputXml.addEventListener("scroll", syncScroll);
+
+  // Tab key support for indentation
+  outputXml.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+
+      const start = outputXml.selectionStart;
+      const end = outputXml.selectionEnd;
+      const value = outputXml.value;
+
+      if (e.shiftKey) {
+        // Shift+Tab: Unindent
+        const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+        const lineEnd = value.indexOf("\n", end);
+        const endPos = lineEnd === -1 ? value.length : lineEnd;
+
+        const selectedLines = value.substring(lineStart, endPos);
+        const unindentedLines = selectedLines.split("\n").map(line => {
+          // Remove up to 2 spaces from the start of each line
+          if (line.startsWith("  ")) {
+            return line.substring(2);
+          } else if (line.startsWith(" ")) {
+            return line.substring(1);
+          }
+          return line;
+        }).join("\n");
+
+        outputXml.value = value.substring(0, lineStart) + unindentedLines + value.substring(endPos);
+        outputXml.selectionStart = start - (start > lineStart && value.charAt(lineStart) === " " ? (value.charAt(lineStart + 1) === " " ? 2 : 1) : 0);
+        outputXml.selectionEnd = lineStart + unindentedLines.length;
+      } else {
+        // Tab: Indent
+        if (start === end) {
+          // No selection - insert 2 spaces at cursor
+          outputXml.value = value.substring(0, start) + "  " + value.substring(end);
+          outputXml.selectionStart = outputXml.selectionEnd = start + 2;
+        } else {
+          // Selection - indent all selected lines
+          const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+          const lineEnd = value.indexOf("\n", end);
+          const endPos = lineEnd === -1 ? value.length : lineEnd;
+
+          const selectedLines = value.substring(lineStart, endPos);
+          const indentedLines = selectedLines.split("\n").map(line => "  " + line).join("\n");
+
+          outputXml.value = value.substring(0, lineStart) + indentedLines + value.substring(endPos);
+          outputXml.selectionStart = start + 2;
+          outputXml.selectionEnd = lineStart + indentedLines.length;
+        }
+      }
+
+      updateSyntaxHighlighting();
+      scheduleValidation();
+    }
+  });
+
+  // Initial highlighting
+  updateSyntaxHighlighting();
+}
+
+// ============================================================================
+// Code Folding
+// ============================================================================
+
+const codeGutter = document.getElementById("codeGutter");
+
+/**
+ * Find foldable regions in the XML text
+ * Returns array of {startLine, endLine, tagName, indent}
+ */
+function findFoldableRegions(text) {
+  const lines = text.split("\n");
+  const regions = [];
+  const stack = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Skip comments and empty lines
+    if (trimmed.startsWith("<!--") || trimmed === "") {
+      continue;
+    }
+
+    // Match opening tag: <TagName ...> but not self-closing <... /> or closing </...>
+    const openMatch = trimmed.match(/^<([a-zA-Z][\w:.-]*)[^>]*>$/);
+    if (openMatch && !trimmed.endsWith("/>") && !trimmed.startsWith("</") && !trimmed.startsWith("<?")) {
+      const tagName = openMatch[1];
+      const indent = line.length - line.trimStart().length;
+      stack.push({ tagName, startLine: i, indent });
+      continue;
+    }
+
+    // Match closing tag: </TagName>
+    const closeMatch = trimmed.match(/^<\/([a-zA-Z][\w:.-]*)>$/);
+    if (closeMatch) {
+      const tagName = closeMatch[1];
+      // Find matching opening tag from stack
+      for (let j = stack.length - 1; j >= 0; j--) {
+        if (stack[j].tagName === tagName) {
+          const opening = stack.splice(j, 1)[0];
+          // Only create fold region if there's content between tags (more than 1 line)
+          if (i - opening.startLine > 0) {
+            regions.push({
+              startLine: opening.startLine,
+              endLine: i,
+              tagName: tagName,
+              indent: opening.indent
+            });
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  return regions;
+}
+
+/**
+ * Render the gutter with line numbers and fold indicators
+ */
+function updateGutter() {
+  if (!codeGutter || !outputXml) return;
+
+  const text = outputXml.value;
+  const lines = text.split("\n");
+  const regions = findFoldableRegions(text);
+
+  // Create a map of startLine -> region for quick lookup
+  const regionMap = new Map();
+  regions.forEach(region => {
+    regionMap.set(region.startLine, region);
+  });
+
+  // Build gutter HTML
+  let gutterHTML = "";
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const region = regionMap.get(i);
+
+    // Check if this line is folded (contains the fold marker)
+    const isFolded = line.includes("⋯");
+
+    gutterHTML += '<div class="gutter-line">';
+
+    // Add fold indicator if this line starts a foldable region OR is a folded line
+    if (region || isFolded) {
+      const foldIcon = isFolded ? "▸" : "▾";
+      gutterHTML += `<span class="gutter-line__fold" data-line="${i}" title="${isFolded ? 'Unfold' : 'Fold'}">${foldIcon}</span>`;
+    }
+
+    // Line number
+    const lineNum = i + 1;
+    gutterHTML += `<span class="gutter-line__number">${lineNum}</span>`;
+
+    gutterHTML += '</div>';
+  }
+
+  codeGutter.innerHTML = gutterHTML;
+
+  // Attach click handlers to fold indicators
+  codeGutter.querySelectorAll(".gutter-line__fold").forEach(fold => {
+    fold.addEventListener("click", handleFoldClick);
+  });
+
+  // Sync scroll
+  syncGutterScroll();
+}
+
+/**
+ * Handle click on fold indicator
+ */
+function handleFoldClick(e) {
+  const lineNum = parseInt(e.target.getAttribute("data-line"), 10);
+
+  if (!outputXml) return;
+
+  const lines = outputXml.value.split("\n");
+  const line = lines[lineNum];
+
+  // Check if the line is currently folded (contains ⋯)
+  if (line && line.includes("⋯")) {
+    // Unfold
+    unfoldRegion(lineNum);
+  } else {
+    // Fold
+    foldRegion(lineNum);
+  }
+}
+
+/**
+ * Fold a region starting at the given line
+ */
+function foldRegion(startLine) {
+  if (!outputXml) return;
+
+  const text = outputXml.value;
+  const regions = findFoldableRegions(text);
+  const region = regions.find(r => r.startLine === startLine);
+
+  if (!region) return;
+
+  const lines = text.split("\n");
+  const startLineText = lines[region.startLine];
+  const endLineText = lines[region.endLine];
+
+  // Store the original folded content using opening tag as key
+  const foldedContent = lines.slice(region.startLine + 1, region.endLine).join("\n");
+  if (!window.foldedContentMap) {
+    window.foldedContentMap = new Map();
+  }
+  const openingTag = startLineText.trim();
+  const storageKey = `${openingTag}_${region.startLine}`;
+  window.foldedContentMap.set(storageKey, {
+    content: foldedContent,
+    openingTag: openingTag,
+    closingTag: endLineText.trim()
+  });
+
+  // Create folded text: opening tag with "..." and closing tag on same line
+  // Include storage key as a hidden marker
+  const closingTag = endLineText.trim();
+  const indentation = startLineText.substring(0, startLineText.length - openingTag.length);
+  const foldedLine = `${indentation}${openingTag} ⋯ ${closingTag} <!--FOLD:${storageKey}-->`;
+
+  // Reconstruct the text with the folded region
+  const newLines = [
+    ...lines.slice(0, region.startLine),
+    foldedLine,
+    ...lines.slice(region.endLine + 1)
+  ];
+
+  // Update textarea
+  const cursorPos = outputXml.selectionStart;
+  outputXml.value = newLines.join("\n");
+
+  // Restore cursor position (approximately)
+  outputXml.selectionStart = outputXml.selectionEnd = Math.min(cursorPos, outputXml.value.length);
+
+  // Update UI
+  updateSyntaxHighlighting();
+  updateGutter();
+  scheduleValidation();
+}
+
+/**
+ * Unfold a region at the given line (which should be a folded line)
+ */
+function unfoldRegion(foldedLineIndex) {
+  if (!outputXml || !window.foldedContentMap) return;
+
+  const text = outputXml.value;
+  const lines = text.split("\n");
+  const foldedLine = lines[foldedLineIndex];
+
+  if (!foldedLine || !foldedLine.includes("⋯")) {
+    return; // Not a folded line
+  }
+
+  // Extract the storage key from the comment marker
+  const keyMatch = foldedLine.match(/<!--FOLD:(.*?)-->/);
+  let storageKey = null;
+  let foldData = null;
+
+  if (keyMatch) {
+    storageKey = keyMatch[1];
+    foldData = window.foldedContentMap.get(storageKey);
+  }
+
+  // If no storage key or data not found, try to parse the line manually
+  if (!foldData) {
+    const match = foldedLine.match(/^(\s*<[^>]+>)\s*⋯\s*(<\/[^>]+>)/);
+    if (!match) {
+      return; // Malformed fold
+    }
+    // Can't unfold without stored content
+    return;
+  }
+
+  const indentation = foldedLine.substring(0, foldedLine.indexOf(foldData.openingTag));
+
+  // Reconstruct the unfolded text
+  const newLines = [
+    ...lines.slice(0, foldedLineIndex),
+    `${indentation}${foldData.openingTag}`,
+    ...foldData.content.split("\n"),
+    `${indentation}${foldData.closingTag}`,
+    ...lines.slice(foldedLineIndex + 1)
+  ];
+
+  // Update textarea
+  const cursorPos = outputXml.selectionStart;
+  outputXml.value = newLines.join("\n");
+
+  // Restore cursor position
+  outputXml.selectionStart = outputXml.selectionEnd = Math.min(cursorPos, outputXml.value.length);
+
+  // Clean up storage
+  if (storageKey) {
+    window.foldedContentMap.delete(storageKey);
+  }
+
+  // Update UI
+  updateSyntaxHighlighting();
+  updateGutter();
+  scheduleValidation();
+}
+
+/**
+ * Sync gutter scroll with textarea scroll
+ */
+function syncGutterScroll() {
+  if (codeGutter && outputXml) {
+    codeGutter.scrollTop = outputXml.scrollTop;
+  }
+}
+
+// Initialize gutter
+if (outputXml && codeGutter) {
+  // Update gutter on content changes
+  outputXml.addEventListener("input", () => {
+    // Clear folded regions when content changes significantly
+    // (to avoid stale fold state)
+    updateGutter();
+  });
+
+  // Sync gutter scroll with textarea scroll
+  outputXml.addEventListener("scroll", syncGutterScroll);
+
+  // Initial gutter render
+  updateGutter();
+}
 
 initTheme();
 bootstrap().catch((error) => {
