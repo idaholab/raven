@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2026 Battelle Energy Alliance, LLC
+# Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,11 +29,13 @@ except ModuleNotFoundError:
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     import ravenframework
 
+if len(sys.argv) != 2:
+  print("Invalid parameters")
+  print(sys.argv[0], "generated_filename.xsd")
+  sys.exit(1)
+
 builtins.profile = lambda f: f
 import ravenframework.Simulation
-
-if len(sys.argv) != 2:
-    print(sys.argv[0]," generated_filename.xsd")
 
 base = ravenframework.Simulation.Simulation.getXSDSchema()
 ET.ElementTree(base).write(sys.argv[1])
