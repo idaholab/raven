@@ -32,6 +32,40 @@ from .NSGAFrontAnimation import NSGAFrontAnimation
 from .NSGARankHistoryPlot import NSGARankHistoryPlot
 from .NSGACrowdingDistancePlot import NSGACrowdingDistancePlot
 from .NSGAFrontRankAnimation import NSGAFrontRankAnimation
+from .NSGAIIIReferenceDirectionPlot import NSGAIIIReferenceDirectionPlot
+from .NSGAIIINichingHeatmapPlot import NSGAIIINichingHeatmapPlot
+from .ObjectiveContourAnimation import ObjectiveContourAnimationPlot
+from .ParetoDiagnosticsPlot import ParetoDiagnosticsPlot
+from .DominanceHeatMapPlot import DominanceHeatMapPlot
+from .TradeoffSlicePlot import TradeoffSlicePlot
+from .HypervolumeMoviePlot import HypervolumeMoviePlot
+from .ConstraintActivityTimelinePlot import ConstraintActivityTimelinePlot
+from .DiversityRadarPlot import DiversityRadarPlot
+from .FitnessFunnelPlot import FitnessFunnelPlot
+from .SamplingCoverageMapPlot import SamplingCoverageMapPlot
+from .BubbleTradeoffPlot import BubbleTradeoffPlot
+from .ThreeDVectorPlot import ThreeDVectorPlot
+from .ThreeDTubePlot import ThreeDTubePlot
+from .ThreeDConePlot import ThreeDConePlot
+from .AttainmentSurfacePlot import AttainmentSurfacePlot
+from .ConstraintViolationHeatmapPlot import ConstraintViolationHeatmapPlot
+from .ResponseSurfaceOverlayPlot import ResponseSurfaceOverlayPlot
+from .MultiRunUncertaintyPlot import MultiRunUncertaintyPlot
+from .RadvizEmbeddingPlot import RadvizEmbeddingPlot
+from .ProsectionMatrixPlot import ProsectionMatrixPlot
+from .PreferenceSweepAnimationPlot import PreferenceSweepAnimationPlot
+from .StarCoordinatesPlot import StarCoordinatesPlot
+from .SelfOrganizingMapPlot import SelfOrganizingMapPlot
+from .ChordDiagramPlot import ChordDiagramPlot
+from .GlyphRadarPlot import GlyphRadarPlot
+from .CoreLayoutPlot import CoreLayoutPlot
+from .ShuffleArrowsPlot import ShufflingSchemePlot
+from .FeasibleRegionObjectiveContourPlot import FeasibleRegionObjectiveContourPlot
+from .DecisionObjectiveMappingPlot import DecisionObjectiveMappingPlot
+from .ParetoSurfacePlot import ParetoSurfacePlot
+from .FeasibilityRadarPlot import FeasibilityRadarPlot
+from .ParetoChartPlot import ParetoChartPlot
+from .AdjustedEpsilonOptimalPlot import AdjustedEpsilonOptimalPlot
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
@@ -45,3 +79,37 @@ factory.registerType('NSGAFrontAnimation', NSGAFrontAnimation)
 factory.registerType('NSGARankHistoryPlot', NSGARankHistoryPlot)
 factory.registerType('NSGACrowdingDistancePlot', NSGACrowdingDistancePlot)
 factory.registerType('NSGAFrontRankAnimation', NSGAFrontRankAnimation)
+factory.registerType('NSGAIIIReferenceDirectionPlot', NSGAIIIReferenceDirectionPlot)
+factory.registerType('NSGAIIINichingHeatmapPlot', NSGAIIINichingHeatmapPlot)
+factory.registerType('ObjectiveContourAnimationPlot', ObjectiveContourAnimationPlot)
+factory.registerType('ParetoDiagnosticsPlot', ParetoDiagnosticsPlot)
+factory.registerType('DominanceHeatMapPlot', DominanceHeatMapPlot)
+factory.registerType('TradeoffSlicePlot', TradeoffSlicePlot)
+factory.registerType('HypervolumeMoviePlot', HypervolumeMoviePlot)
+factory.registerType('ConstraintActivityTimelinePlot', ConstraintActivityTimelinePlot)
+factory.registerType('DiversityRadarPlot', DiversityRadarPlot)
+factory.registerType('FitnessFunnelPlot', FitnessFunnelPlot)
+factory.registerType('SamplingCoverageMapPlot', SamplingCoverageMapPlot)
+factory.registerType('BubbleTradeoffPlot', BubbleTradeoffPlot)
+factory.registerType('ThreeDVectorPlot', ThreeDVectorPlot)
+factory.registerType('ThreeDTubePlot', ThreeDTubePlot)
+factory.registerType('ThreeDConePlot', ThreeDConePlot)
+factory.registerType('AttainmentSurfacePlot', AttainmentSurfacePlot)
+factory.registerType('ConstraintViolationHeatmapPlot', ConstraintViolationHeatmapPlot)
+factory.registerType('ResponseSurfaceOverlayPlot', ResponseSurfaceOverlayPlot)
+factory.registerType('MultiRunUncertaintyPlot', MultiRunUncertaintyPlot)
+factory.registerType('RadvizEmbeddingPlot', RadvizEmbeddingPlot)
+factory.registerType('ProsectionMatrixPlot', ProsectionMatrixPlot)
+factory.registerType('PreferenceSweepAnimationPlot', PreferenceSweepAnimationPlot)
+factory.registerType('StarCoordinatesPlot', StarCoordinatesPlot)
+factory.registerType('SelfOrganizingMapPlot', SelfOrganizingMapPlot)
+factory.registerType('ChordDiagramPlot', ChordDiagramPlot)
+factory.registerType('GlyphRadarPlot', GlyphRadarPlot)
+factory.registerType('CoreLayoutPlot', CoreLayoutPlot)
+factory.registerType('ShufflingSchemePlot', ShufflingSchemePlot)
+factory.registerType('FeasibleRegionObjectiveContourPlot', FeasibleRegionObjectiveContourPlot)
+factory.registerType('DecisionObjectiveMappingPlot', DecisionObjectiveMappingPlot)
+factory.registerType('ParetoSurfacePlot', ParetoSurfacePlot)
+factory.registerType('FeasibilityRadarPlot', FeasibilityRadarPlot)
+factory.registerType('ParetoChartPlot', ParetoChartPlot)
+factory.registerType('AdjustedEpsilonOptimalPlot', AdjustedEpsilonOptimalPlot)
