@@ -592,9 +592,16 @@ class ParameterInput(object):
       @ In and Out, definedDict, dict, A dictionary that stores which names have been defined in the XSD already.
       @ Out, None
     """
+    definedTypeDict = definedDict #In case we want to split these later
+    simpleContent = False #If true, attributes are handled differently
     #generate complexType
     complexType = ET.SubElement(xsdNode, 'xsd:complexType')
-    complexType.set('name', cls.getName()+'_type')
+    complexTypeName = cls.getName()+'_type'
+    uniqueCount = 0
+    while complexTypeName in definedTypeDict:
+      uniqueCount += 1
+      complexTypeName = cls.getName()+str(uniqueCount)+'_type'
+    complexType.set('name', complexTypeName)
     if cls.subs:
       #generate choice node
       if cls.subOrder is not None:
@@ -609,7 +616,10 @@ class ParameterInput(object):
       for sub, quantity in subList:
         subNode = ET.SubElement(listNode, 'xsd:element')
         subNode.set('name', sub.getName())
-        subNode.set('type', sub.getName()+'_type')
+        if sub.contentType == InputTypes.LegacyAnyType:
+          subNode.set('type', InputTypes.LegacyAnyType.xmlType)
+        else:
+          subNode.set('type', sub.getName()+'_type')
         if cls.subOrder is not None:
           if quantity == Quantity.zero_to_one:
             occurs = ('0','1')
@@ -634,21 +644,31 @@ class ParameterInput(object):
           pprint.pprint(definedDict)
           print("ERROR: multiple definitions ",sub.getName())
     else:
-      if cls.contentType is not None:
+      if cls.contentType is  None:
+        pass
+      elif cls.contentType == InputTypes.LegacyAnyType:
+        pass
+      else:
         contentNode = ET.SubElement(complexType, 'xsd:simpleContent')
+        simpleContent = True
         extensionNode = ET.SubElement(contentNode, 'xsd:extension')
         dataType = cls.contentType
         extensionNode.set('base', dataType.getXMLType())
-        if dataType.needsGenerating() and dataType.getName() not in definedDict:
+        if dataType.needsGenerating() and dataType.getXMLType() not in definedTypeDict:
           dataType.generateXML(xsdNode)
+          definedTypeDict[dataType.getXMLType()] = dataType
     #generate attributes
     for parameter in cls.parameters:
-      attributeNode = ET.SubElement(complexType, 'xsd:attribute')
+      if simpleContent:
+        attributeNode = ET.SubElement(extensionNode, 'xsd:attribute')
+      else:
+        attributeNode = ET.SubElement(complexType, 'xsd:attribute')
       parameterData = cls.parameters[parameter]
       attributeNode.set('name', parameter)
       dataType = parameterData["type"]
-      if dataType.needsGenerating() and dataType.getName() not in definedDict:
+      if dataType.needsGenerating() and dataType.getXMLType() not in definedTypeDict:
         dataType.generateXML(xsdNode)
+        definedTypeDict[dataType.getXMLType()] = dataType
       attributeNode.set('type', dataType.getXMLType())
       if parameterData["required"]:
         attributeNode.set('use','required')
