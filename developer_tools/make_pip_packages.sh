@@ -26,13 +26,8 @@ conda create -y --name python311_pip python=3.11
 
 cd $RAVEN_DIR
 
-rm -f setup.cfg pyproject.toml
+rm -f setup.cfg
 python ./scripts/library_handler.py pip --action=setup.cfg > setup.cfg
-cat <<EOF > pyproject.toml
-[build-system]
-requires = ["setuptools", "wheel", "swig"]
-build-backend = "setuptools.build_meta"
-EOF
 
 conda activate python310_pip
 command -v python
