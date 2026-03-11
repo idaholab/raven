@@ -18,16 +18,21 @@ source $RAVEN_DIR/scripts/read_ravenrc.sh
 CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
 source ${CONDA_DEFS}
 
-conda env remove --name python310_pip
-conda create -y --name python310_pip python=3.10 swig
+conda env remove -y --name python310_pip
+conda create -y --name python310_pip python=3.10
 
-conda env remove --name python311_pip
-conda create -y --name python311_pip python=3.11 swig
+conda env remove -y --name python311_pip
+conda create -y --name python311_pip python=3.11
 
 cd $RAVEN_DIR
 
-rm -f setup.cfg
+rm -f setup.cfg pyproject.toml
 python ./scripts/library_handler.py pip --action=setup.cfg > setup.cfg
+cat <<EOF > pyproject.toml
+[build-system]
+requires = ["setuptools", "wheel", "swig"]
+build-backend = "setuptools.build_meta"
+EOF
 
 conda activate python310_pip
 command -v python
