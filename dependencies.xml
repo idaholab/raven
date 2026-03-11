@@ -107,7 +107,6 @@ limit our library choices.
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
-    <swig>remove</swig>
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
@@ -115,7 +114,6 @@ limit our library choices.
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
-    <swig>remove</swig>
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
