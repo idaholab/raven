@@ -104,6 +104,7 @@ limit our library choices.
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source='mamba' skip_check='True'/>
     <pydmd source="pip"/>
+    <libstdcxx-ng skip_check='True' os='linux'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
