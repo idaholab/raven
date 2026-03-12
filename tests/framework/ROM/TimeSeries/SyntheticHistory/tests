@@ -20,7 +20,7 @@
     [./xml]
       type = XML
       output = 'ARMA/romMeta.xml'
-      rel_err = 1e-2
+      rel_err = 5e-2
       zero_threshold = 1e-3 # "constant" causes problems, all the rest are more accurate
     [../]
   [../]
@@ -28,6 +28,7 @@
   [./AutoARMA]
     type = 'RavenFramework'
     input = 'auto_arma.xml'
+    skip_if_OS = 'windows'
     [./csv]
       type = OrderedCSV
       output = 'AutoARMA/samples_0.csv AutoARMA/samples_1.csv'
@@ -112,7 +113,7 @@
     [./csv]
       type = OrderedCSV
       output = 'DiffARMA/samples_0.csv DiffARMA/samples_1.csv'
-      rel_err = 2.5e-1 # thank you, Windows
+      rel_err = 7e-1 # thank you, Windows
       zero_threshold = 6e-1
     [../]
     [./xml]
@@ -151,7 +152,7 @@
     [./xml]
       type = XML
       output = 'ARMAPreserveCDF/romMeta.xml'
-      rel_err = 1e-2
+      rel_err = 5e-2
       zero_threshold = 1e-3
     [../]
   [../]

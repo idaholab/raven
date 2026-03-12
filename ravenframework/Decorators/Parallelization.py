@@ -26,7 +26,10 @@ from ..utils.utils import Object
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 _remote = None
 if im.isLibAvail("ray"):
-  from ray import remote as _remote
+  try:
+    from ray import remote as _remote
+  except ImportError:
+    print("failed to import ray, despite checking with isLibAvail")
 # end internal parallel module
 #External Modules End-----------------------------------------------------------
 

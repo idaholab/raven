@@ -116,7 +116,10 @@ newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=op
 print('*'*39)
 print('Fitness Based Selection')
 print('*'*39)
-print('1. New population:\n {}, \n2. New Fitness:\n {}, \n3. New age:\n'.format(newPop2.data,newFit2.to_dataarray(dim = 'variable', name = None)[0],newAge2))
+try:
+  print('1. New population:\n {}, \n2. New Fitness:\n {}, \n3. New age:\n'.format(newPop2.data,newFit2.to_dataarray(dim = 'variable', name = None)[0],newAge2))
+except AttributeError:
+  print('1. New population:\n {}, \n2. New Fitness:\n {}, \n3. New age:\n'.format(newPop2.data,newFit2.to_array(dim = 'variable', name = None)[0],newAge2))
 print('Note that the second and forth chromosome had the same age, but for the age based mechanism it omitted the one with the lowest fitness')
 expectedPop = xr.DataArray([[6,5,4,3,2,1],
                             [1,2,3,4,5,6],
