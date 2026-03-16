@@ -26,7 +26,6 @@ import xml.etree.ElementTree as ET
 # NOTE: DO NOT use xmlUtils here! we need to avoid importing any non-standard Python library!
 
 from update_install_data import loadRC
-import plugin_handler as pluginHandler
 
 # python changed the import error in 3.6
 if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
@@ -64,6 +63,18 @@ if os.path.isfile(rcFile):
 else:
   rcOptions = {}
 
+def _get_plugin_handler():
+  """
+    Try to import plugin_handler lazily to avoid importing ravenframework too early.
+    @ In, None
+    @ Out, pluginHandler, module or None
+  """
+  try:
+    import plugin_handler as pluginHandler
+  except Exception:
+    return None
+  return pluginHandler
+
 #############
 #    API    #
 #############
@@ -93,7 +104,8 @@ def checkLibraries(buildReport=False):
   """
   missing = []  # libraries that are not present, that should be
   notQA = []    # libraries that are not the correct version, but are present
-  plugins = pluginHandler.getInstalledPlugins()
+  pluginHandler = _get_plugin_handler()
+  plugins = pluginHandler.getInstalledPlugins() if pluginHandler is not None else []
   need = getRequiredLibs(plugins=plugins)
   messages = []
   for lib, request in need.items():
@@ -628,11 +640,18 @@ if __name__ == '__main__':
     args.usePlugins = ['all']
 
   plugins = [] # list of [(name, location), (name, location)] for each plugin
+  pluginHandler = _get_plugin_handler()
   if 'all' in args.usePlugins:
-    plugins = pluginHandler.getInstalledPlugins()
+    if pluginHandler is None:
+      print('WARNING (library_handler): plugin_handler unavailable; skipping plugin dependencies.', file=sys.stderr)
+      plugins = []
+    else:
+      plugins = pluginHandler.getInstalledPlugins()
   elif 'none' in args.usePlugins:
     pass # nothing to do
   else:
+    if pluginHandler is None:
+      raise IOError('During library installation, plugin_handler is unavailable; cannot resolve requested plugins.')
     # separate out comma-separated
     usePlugins = []
     for pluginArg in args.usePlugins:

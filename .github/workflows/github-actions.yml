@@ -33,17 +33,16 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s BayCal
-          python3 ./scripts/install_plugins.py -s POEM
-
       - name: Set Python Environment
         run: |
           ./scripts/establish_conda_env.sh --install
+      - name: Install Plugins
+        run: |
+          pwd
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s TEAL
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s SR2ML
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s BayCal
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s POEM
 
       - name: Build Raven
         run: |
@@ -65,9 +64,9 @@ jobs:
       - name: Install Additional Plugins
         run: |
           pwd
-          python3 ./scripts/install_plugins.py -s LOGOS
-          python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s LOGOS
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s HERON
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -108,17 +107,16 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s BayCal
-          python3 ./scripts/install_plugins.py -s POEM
-
       - name: Set Python Environment
         run: |
           ./scripts/establish_conda_env.sh --install
+      - name: Install Plugins
+        run: |
+          pwd
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s TEAL
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s SR2ML
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s BayCal
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s POEM
 
       - name: Build Raven
         run: |
@@ -140,9 +138,9 @@ jobs:
       - name: Install Additional Plugins
         run: |
           pwd
-          python3 ./scripts/install_plugins.py -s LOGOS
-          python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s LOGOS
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s HERON
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -183,17 +181,16 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s BayCal
-          python3 ./scripts/install_plugins.py -s POEM
-
       - name: Set Python Environment
         run: |
           ./scripts/establish_conda_env.sh --install
+      - name: Install Plugins
+        run: |
+          pwd
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s TEAL
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s SR2ML
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s BayCal
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s POEM
 
       - name: Build Raven
         run: |
@@ -214,9 +211,9 @@ jobs:
       - name: Install Additional Plugins
         run: |
           pwd
-          python3 ./scripts/install_plugins.py -s LOGOS
-          python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s LOGOS
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s HERON
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -257,17 +254,16 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s BayCal
-          python3 ./scripts/install_plugins.py -s POEM
-
       - name: Set Python Environment
         run: |
           ./scripts/establish_conda_env.sh --install
+      - name: Install Plugins
+        run: |
+          pwd
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s TEAL
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s SR2ML
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s BayCal
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s POEM
 
       - name: Build Raven
         run: |
@@ -288,9 +284,9 @@ jobs:
       - name: Install Additional Plugins
         run: |
           pwd
-          python3 ./scripts/install_plugins.py -s LOGOS
-          python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s LOGOS
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s HERON
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s DOVE
 
       - name: Reset Python Environment with Plugins Libraries
         run: |
@@ -329,17 +325,16 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s BayCal
-          python3 ./scripts/install_plugins.py -s POEM
-
       - name: Set Python Environment
         run: |
           bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
+      - name: Install Plugins
+        run: |
+          pwd
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s TEAL
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s SR2ML
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s BayCal
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s POEM
 
       - name: Build Raven
         run: |
@@ -359,10 +354,10 @@ jobs:
       - name: Install Additional Plugins
         run: |
           pwd
-          python3 ./scripts/install_plugins.py -s LOGOS
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s LOGOS
         # Failed due to pyomo = 6.4
-        # python3 ./scripts/install_plugins.py -s HERON
-        # python3 ./scripts/install_plugins.py -s DOVE
+        # conda run -n raven_libraries python ./scripts/install_plugins.py -s HERON
+        # conda run -n raven_libraries python ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -402,17 +397,16 @@ jobs:
       - name: Fetch and Branch
         uses: actions/checkout@v3
 
-      - name: Install Plugins
-        run: |
-          pwd
-          python3 ./scripts/install_plugins.py -s TEAL
-          python3 ./scripts/install_plugins.py -s SR2ML
-          python3 ./scripts/install_plugins.py -s BayCal
-          python3 ./scripts/install_plugins.py -s POEM
-
       - name: Set Python Environment
         run: |
           bash ./scripts/establish_conda_env.sh --install  --conda-defs $HOME/miniconda3/etc/profile.d/conda.sh
+      - name: Install Plugins
+        run: |
+          pwd
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s TEAL
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s SR2ML
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s BayCal
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s POEM
 
       - name: Build Raven
         run: |
@@ -432,10 +426,10 @@ jobs:
       - name: Install Additional Plugins
         run: |
           pwd
-          python3 ./scripts/install_plugins.py -s LOGOS
+          conda run -n raven_libraries python ./scripts/install_plugins.py -s LOGOS
         # Failed due to pyomo = 6.4
-        # python3 ./scripts/install_plugins.py -s HERON
-        # python3 ./scripts/install_plugins.py -s DOVE
+        # conda run -n raven_libraries python ./scripts/install_plugins.py -s HERON
+        # conda run -n raven_libraries python ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries

@@ -19,6 +19,7 @@
   3.  bitFlipMutator
   4.  inversionMutator
   5.  randomMutator
+  6.  polynomialMutator
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
@@ -27,6 +28,7 @@ import numpy as np
 import xarray as xr
 from operator import itemgetter
 from ...utils import utils, randomUtils
+from ...utils.utils import EQchecker
 
 def swapMutator(offSprings, distDict, **kwargs):
   """
@@ -56,6 +58,45 @@ def swapMutator(offSprings, distDict, **kwargs):
       cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
       children[i,loc1] = distDict[offSprings.coords['Gene'].values[loc1]].ppf(cdf2)
       children[i,loc2] = distDict[offSprings.coords['Gene'].values[loc2]].ppf(cdf1)
+  return children
+
+def swapMutatorEQ(offSprings, distDict, **kwargs):
+  """
+    This method performs the swap mutator for multiple locations for EQ. For each child,
+    two genes are sampled and switched
+    E.g.:
+    child=[a,b,c,d,e] --> b and d are selected --> child = [a,d,c,b,e]
+    @ In, offSprings, xr.DataArray, children resulting from the crossover process
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          locs, list, the 2 locations of the genes to be swapped
+          mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+          variables, list, variables names.
+    @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
+  """
+  ## EQ check
+  if kwargs['EQfiles'] is not None:
+    EQflag = True
+    tempfiles = kwargs['EQfiles']
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='simulatedata'][0]
+    xmlfile = temp.getPath()+ temp.getFilename()
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='EQinput'][0]
+    inpfile = temp.getPath()+temp.getFilename()
+    EQobject = EQchecker(xmlinput=xmlfile, EQinput=inpfile)
+  else:
+    EQflag = False
+  # initializing children
+  children = xr.DataArray(np.zeros((np.shape(offSprings))),
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(np.shape(offSprings)[0]),
+                                  'Gene':kwargs['variables']})
+  for i in range(np.shape(offSprings)[0]):
+    children[i][:] = offSprings[i][:]
+    if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
+      # loc1, loc2 = locationsGenerator(offSprings, kwargs['locs'])
+      tempchild = children[i].T.values.tolist()
+      tempparent = offSprings[i].T.values.tolist()
+      loc2,child = EQobject.loc_mul(tempchild, tempparent) #swapping
+      children[i][:] = np.array(child)
   return children
 
 # @profile
@@ -181,6 +222,52 @@ def inversionMutator(offSprings, distDict, **kwargs):
 
   return offSprings
 
+def polynomialMutator(offSprings, distDict, **kwargs):
+  """
+    Apply polynomial mutation (Deb, 2001) in the unit interval using the
+    cumulative distribution of each variable.
+
+    @ In, offSprings, xr.DataArray, children after crossover
+    @ In, distDict, dict, mapping variable -> distribution
+    @ In, kwargs, dict, parameters:
+          mutationProb, float
+          variables, list[str]
+          eta, float, distribution index (default 20)
+    @ Out, children, xr.DataArray, mutated offspring
+  """
+  if 'variables' not in kwargs or kwargs['variables'] is None:
+    raise ValueError('polynomialMutator requires "variables" list in kwargs.')
+  eta = kwargs.get('eta', 20.0)
+  if eta <= 0:
+    raise ValueError('Polynomial mutation requires eta > 0.')
+  children = offSprings.copy(deep=True)
+  mut_prob = kwargs.get('mutationProb', 0.0)
+  mut_pow = 1.0 / (eta + 1.0)
+
+  for chrom_idx in range(children.sizes['chromosome']):
+    for gene_idx, gene_name in enumerate(kwargs['variables']):
+      if float(randomUtils.random(dim=1, samples=1)) <= mut_prob:
+        dist = distDict.get(gene_name)
+        if dist is None:
+          raise ValueError(f'Distribution information missing for variable "{gene_name}".')
+        value = float(children[chrom_idx, gene_idx].values)
+        y = float(dist.cdf(value))
+        delta1 = y
+        delta2 = 1.0 - y
+        rand = float(randomUtils.random(dim=1, samples=1))
+        if rand <= 0.5:
+          xy = 1.0 - delta1
+          val = 2.0 * rand + (1.0 - 2.0 * rand) * (xy ** (eta + 1.0))
+          deltaq = val ** mut_pow - 1.0
+        else:
+          xy = 1.0 - delta2
+          val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (xy ** (eta + 1.0))
+          deltaq = 1.0 - val ** mut_pow
+        y_new = min(max(y + deltaq, 0.0), 1.0)
+        children[chrom_idx, gene_idx] = dist.ppf(y_new)
+
+  return children
+
 def locationsGenerator(offSprings,locs):
   """
   Methods designed to process the locations for the mutators. These locations can be either user specified or
@@ -197,10 +284,12 @@ def locationsGenerator(offSprings,locs):
 
 __mutators = {}
 __mutators['swapMutator']       = swapMutator
+__mutators['swapMutatorEQ']       = swapMutatorEQ
 __mutators['scrambleMutator']   = scrambleMutator
 __mutators['bitFlipMutator']    = bitFlipMutator
 __mutators['inversionMutator']  = inversionMutator
 __mutators['randomMutator']     = randomMutator
+__mutators['polynomialMutator'] = polynomialMutator
 
 
 def returnInstance(cls, name):

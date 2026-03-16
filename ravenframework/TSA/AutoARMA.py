@@ -189,15 +189,51 @@ class AutoARMA(TimeSeriesCharacterizer):
       mask = ~np.isnan(history)
 
       SFAA = AutoARIMA(**statsforecastParams)
-      fittedARIMA = SFAA.fit(y=history[mask])
-
-      arma_str = re.findall(r'\(([^\\)]+)\)', arima_string(fittedARIMA.model_))[0]
-      p_opt,d_opt,q_opt = [int(a) for a in arma_str.split(',')]
+      try:
+        fittedARIMA = SFAA.fit(y=history[mask])
+        arma_str = re.findall(r'\(([^\\)]+)\)', arima_string(fittedARIMA.model_))[0]
+        p_opt, d_opt, q_opt = [int(a) for a in arma_str.split(',')]
+        del SFAA, fittedARIMA
+      except Exception:
+        # statsforecast AutoARIMA can fail to return a best_fit; fall back to brute-force statsmodels
+        hist = history[mask]
+        if len(hist) < 3:
+          raise RuntimeError('AutoARMA requires at least 3 non-NaN samples to fit') from None
+        try:
+          from statsmodels.tsa.arima.model import ARIMA
+        except ModuleNotFoundError as exc:
+          raise ModuleNotFoundError('statsmodels is required for AutoARMA fallback') from exc
+        p_opt = 0
+        q_opt = 0
+        d_opt = 0
+        best_score = np.inf
+        for p in range(settings['P_upper'] + 1):
+          for q in range(settings['Q_upper'] + 1):
+            if p + q > maxOrder:
+              continue
+            try:
+              model = ARIMA(hist, order=(p, d_opt, q), trend='n',
+                            enforce_stationarity=False, enforce_invertibility=False)
+              res = model.fit()
+            except Exception:
+              continue
+            if settings['criterion'] == 'bic':
+              score = res.bic
+            elif settings['criterion'] == 'aic':
+              score = res.aic
+            else:
+              # AICc approximation for small samples
+              nobs = res.nobs
+              k = res.df_model
+              score = res.aic + (2 * k * (k + 1)) / max(nobs - k - 1, 1)
+            if score < best_score:
+              best_score = score
+              p_opt = p
+              q_opt = q
 
       params[target]['P_opt'] = p_opt
       params[target]['D_opt'] = d_opt
       params[target]['Q_opt'] = q_opt
-      del SFAA, fittedARIMA
 
     return params
 
@@ -228,4 +264,3 @@ class AutoARMA(TimeSeriesCharacterizer):
       base.append(xmlUtils.newNode('P_opt', text=f'{int(info["P_opt"]):d}'))
       base.append(xmlUtils.newNode('D_opt', text=f'{int(info["D_opt"]):d}'))
       base.append(xmlUtils.newNode('Q_opt', text=f'{int(info["Q_opt"]):d}'))
-

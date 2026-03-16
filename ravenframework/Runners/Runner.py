@@ -69,6 +69,9 @@ class Runner(MessageUser):
       @ In, None
       @ Out, None
     """
+    # During interpreter shutdown the import machinery disappears; avoid logging in that state.
+    if getattr(sys, 'meta_path', None) is None or getattr(self, 'messageHandler', None) is None:
+      return
     if self.__printTimings:
       # print timing history
       pairs = list(self.timings.items())

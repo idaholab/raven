@@ -25,10 +25,52 @@ import os
 import sys
 import time
 import argparse
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
+
 ravenDir = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(ravenDir)
 frameworkDir = os.path.join(ravenDir, 'ravenframework')
-from ravenframework.utils import xmlUtils
+
+def _new_node(tag, text=None):
+  """
+    Create a new XML node with optional text content.
+    @ In, tag, str, node tag
+    @ In, text, str, optional, node text
+    @ Out, node, xml.etree.ElementTree.Element, created node
+  """
+  node = ET.Element(tag)
+  if text is not None:
+    node.text = str(text)
+  return node
+
+def _load_to_tree(filename):
+  """
+    Load XML file into an element tree.
+    @ In, filename, str, XML file path
+    @ Out, root, xml.etree.ElementTree.Element, root element
+    @ Out, tree, xml.etree.ElementTree.ElementTree, parsed tree
+  """
+  tree = ET.parse(filename)
+  return tree.getroot(), tree
+
+def _to_file(filename, root, pretty=False):
+  """
+    Write XML tree to file.
+    @ In, filename, str, output path
+    @ In, root, xml.etree.ElementTree.Element, root element
+    @ In, pretty, bool, optional, pretty print XML
+    @ Out, None
+  """
+  if pretty:
+    raw = ET.tostring(root, encoding='utf-8')
+    parsed = minidom.parseString(raw)
+    content = parsed.toprettyxml(indent='  ')
+    with open(filename, 'w', encoding='utf-8') as fout:
+      fout.write(content)
+  else:
+    tree = ET.ElementTree(root)
+    tree.write(filename, encoding='utf-8', xml_declaration=False)
 
 # python changed the import error in 3.6
 if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
@@ -85,12 +127,12 @@ def writeNewPluginXML(name, location):
     @ In, location, str, directory of plugin
     @ Out, new, xml.etree.ElementTree.Element, new plugin information in xml
   """
-  new = xmlUtils.newNode('plugin')
-  new.append(xmlUtils.newNode('name', text=name))
-  new.append(xmlUtils.newNode('location', text=location))
+  new = _new_node('plugin')
+  new.append(_new_node('name', text=name))
+  new.append(_new_node('location', text=location))
   # TODO read a config file IN THE PLUGIN to determine what nodes it should include
   ## for example, executable, default excluded dirs, etc
-  new.append(xmlUtils.newNode('exclude'))
+  new.append(_new_node('exclude'))
   return new
 
 def updatePluginXML(root, name, location):
@@ -119,13 +161,13 @@ def tellPluginAboutRaven(loc):
   # check for config file; load up a root element either way
   configFile = os.path.join(loc, ravenConfigName)
   if os.path.isfile(configFile):
-    root, _ = xmlUtils.loadToTree(configFile)
+    root, _ = _load_to_tree(configFile)
   else:
-    root = xmlUtils.newNode('RavenConfig')
+    root = _new_node('RavenConfig')
   # add raven information
   ravenLoc = root.find('FrameworkLocation')
   if ravenLoc is None:
-    ravenLoc = xmlUtils.newNode('FrameworkLocation')
+    ravenLoc = _new_node('FrameworkLocation')
     root.append(ravenLoc)
   ravenFrameworkLoc = os.path.abspath(os.path.expanduser(frameworkDir))
   if ravenLoc.text != ravenFrameworkLoc:
@@ -133,7 +175,7 @@ def tellPluginAboutRaven(loc):
     # is not present (so, only one processor in case of RAVENrunningRAVEN
     # will write the file if not present
     ravenLoc.text = ravenFrameworkLoc
-    xmlUtils.toFile(configFile, root)
+    _to_file(configFile, root)
   return ravenLoc.text
 
 def loadPluginTree():
@@ -145,9 +187,9 @@ def loadPluginTree():
   """
   # load sources
   if os.path.isfile(pluginTreeFile):
-    root, _ = xmlUtils.loadToTree(pluginTreeFile)
+    root, _ = _load_to_tree(pluginTreeFile)
   else:
-    root = xmlUtils.newNode('plugins')
+    root = _new_node('plugins')
   return pluginTreeFile, root
 
 def writePluginTree(destination, root):
@@ -157,7 +199,7 @@ def writePluginTree(destination, root):
     @ In, root, xml.etree.ElementTree.Element, element to write
     @ Out, None
   """
-  xmlUtils.toFile(destination, root, pretty=True)
+  _to_file(destination, root, pretty=True)
 
 def getInstalledPlugins():
   """
