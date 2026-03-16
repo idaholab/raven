@@ -20,6 +20,9 @@ def stoppingCriteria(raven):
     @ In, raven, object, the raven container (variables are accesable via raven.VarName)
     @ Out, stoppingCriteria, bool, True if the simulation needs to be stopped, False otherwise
   """
+  if len(raven.poly) == 0:
+    #No lines written yet, so keep going
+    return False
   if raven.poly[-1] > 0.2:
     return True
   return False

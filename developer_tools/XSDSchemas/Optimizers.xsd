@@ -1,6 +1,6 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"  elementFormDefault="qualified">
-    <!-- *********************************************************************** -->
+<!-- *********************************************************************** -->
     <!--                                 Optimizers                              -->
     <!-- *********************************************************************** -->
     <xsd:complexType name="OptimizerData">
@@ -227,18 +227,78 @@
     </xsd:complexType>
     <xsd:complexType name="crossoverType">
       <xsd:all>
-        <xsd:element name="crossoverProb"   type="xsd:float" />
+        <xsd:element name="crossoverProb"   type="crossoverProbType" />
       </xsd:all>
       <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
 
+<!-- Define a new complex type for crossoverProbType -->
+<xsd:complexType name="crossoverProbType">
+  <xsd:simpleContent>
+      <xsd:extension base="crossoverProbValueType">
+          <xsd:attribute name="type" type="crossoverProbTypeAttr" use="optional"/>
+      </xsd:extension>
+  </xsd:simpleContent>
+</xsd:complexType>
+
+<!-- Define the simple type for the crossoverProb value -->
+<xsd:simpleType name="crossoverProbValueType">
+  <xsd:union memberTypes="xsd:float crossoverAdaptiveType"/>
+</xsd:simpleType>
+
+<!-- Define the simple type for the adaptive crossover probability -->
+<xsd:simpleType name="crossoverAdaptiveType">
+  <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="linear"/>
+      <xsd:enumeration value="quadratic"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<!-- Define the attribute type for the crossoverProb type -->
+<xsd:simpleType name="crossoverProbTypeAttr">
+  <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="static"/>
+      <xsd:enumeration value="adaptive"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
     <xsd:complexType name="mutationType">
       <xsd:all>
-        <xsd:element name="mutationProb"   type="xsd:float" />
+        <xsd:element name="mutationProb"   type="mutationProbType" />
         <xsd:element name="locs"           type="xsd:string" minOccurs="0" maxOccurs="1"/>
       </xsd:all>
       <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
+
+<!-- Define a new complex type for mutationProbType -->
+<xsd:complexType name="mutationProbType">
+  <xsd:simpleContent>
+      <xsd:extension base="mutationProbValueType">
+          <xsd:attribute name="type" type="mutationProbTypeAttr" use="optional"/>
+      </xsd:extension>
+  </xsd:simpleContent>
+</xsd:complexType>
+
+<!-- Define the simple type for the mutationProb value -->
+<xsd:simpleType name="mutationProbValueType">
+  <xsd:union memberTypes="xsd:float mutationAdaptiveType"/>
+</xsd:simpleType>
+
+<!-- Define the simple type for the adaptive mutation probability -->
+<xsd:simpleType name="mutationAdaptiveType">
+  <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="linear"/>
+      <xsd:enumeration value="quadratic"/>
+  </xsd:restriction>
+</xsd:simpleType>
+
+<!-- Define the attribute type for the mutationProb type -->
+<xsd:simpleType name="mutationProbTypeAttr">
+  <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="static"/>
+      <xsd:enumeration value="adaptive"/>
+  </xsd:restriction>
+</xsd:simpleType>
 
     <xsd:complexType name="reproductionType">
       <xsd:all>

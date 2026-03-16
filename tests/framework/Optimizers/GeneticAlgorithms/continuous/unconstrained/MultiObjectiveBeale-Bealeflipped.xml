@@ -69,8 +69,7 @@
             <mutationProb>0.8</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst">
-        </fitness>
+        <fitness type="feasibleFirst"></fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
       <convergence>
