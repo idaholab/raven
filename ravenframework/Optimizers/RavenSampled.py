@@ -25,11 +25,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abc
 from collections import deque
 import copy
+import numbers
 import numpy as np
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ..utils import InputData, InputTypes
+from ..utils import InputData, InputTypes, mathUtils
 from .Optimizer import Optimizer
 # Internal Modules End------------------------------------------------------------------------------
 
@@ -231,6 +232,94 @@ class RavenSampled(Optimizer):
 
     return ready
 
+  def _extractSampleValue(self, candidate, varName, dist):
+    """
+      Convert queued sampled values to a scalar understood by the sampler stack.
+      @ In, candidate, object, value drawn from the submission queue
+      @ In, varName, str, variable name used for error context
+      @ In, dist, Distribution, distribution governing this variable
+      @ Out, scalar, object, python scalar representation of candidate
+    """
+    if candidate is None:
+      self.raiseAnError(RuntimeError, f'No value available for sampled variable "{varName}"!')
+    if np.isscalar(candidate):
+      scalar = candidate.item() if hasattr(candidate, 'item') else candidate
+      return self._coerceSampleToDistribution(dist, scalar, varName)
+    if hasattr(candidate, 'data'):
+      candidate = candidate.data
+    try:
+      array = np.asarray(candidate)
+    except Exception:
+      scalar = candidate.item() if hasattr(candidate, 'item') else candidate
+      return self._coerceSampleToDistribution(dist, scalar, varName)
+    if array.size == 0:
+      self.raiseAnError(RuntimeError, f'Encountered empty array for sampled variable "{varName}".')
+    scalar = array.flat[0]
+    scalar = scalar.item() if hasattr(scalar, 'item') else scalar
+    return self._coerceSampleToDistribution(dist, scalar, varName)
+
+  def _coerceSampleToDistribution(self, dist, value, varName):
+    """
+      Align sampled values with the support of the associated distribution when possible.
+      @ In, dist, Distribution, distribution governing this variable
+      @ In, value, object, candidate scalar
+      @ In, varName, str, variable name for context
+      @ Out, coerced, object, potentially adjusted scalar compatible with distribution support
+    """
+    if dist is None:
+      return value
+    categorical = getattr(dist, 'categoricalDist', None)
+    if categorical is None or not getattr(categorical, 'values', None):
+      return value
+
+    # obtain the original outcome types in a deterministic order
+    if hasattr(categorical, 'mapping') and categorical.mapping:
+      outcomes = list(categorical.mapping.keys())
+    else:
+      outcomes = list(categorical.values)
+    processed = []
+    for outcome in outcomes:
+      processed.append(outcome.item() if hasattr(outcome, 'item') else outcome)
+
+    if all(isinstance(val, numbers.Number) for val in processed):
+      ordered = sorted((float(val), raw) for val, raw in zip(processed, outcomes))
+      tol = getattr(categorical, 'rtol', 1e-6)
+      numeric_value = float(value) if isinstance(value, numbers.Number) else value
+
+      for numeric, raw in ordered:
+        if isinstance(numeric_value, numbers.Number) and mathUtils.compareFloats(numeric_value, numeric, tol=tol):
+          coerced = raw.item() if hasattr(raw, 'item') else raw
+          return coerced
+
+      if isinstance(value, numbers.Integral):
+        idx = int(value)
+        if 0 <= idx < len(ordered):
+          raw = ordered[idx][1]
+          coerced = raw.item() if hasattr(raw, 'item') else raw
+          if not mathUtils.compareFloats(float(coerced), float(value), tol=max(tol, 1e-12)):
+            self.raiseADebug(f'Interpreting ordinal value "{value}" for variable "{varName}" as discrete outcome "{coerced}".')
+          return coerced
+      return value
+
+    # handle string or mixed categorical spaces
+    lookup = dict((str(proc), raw) for proc, raw in zip(processed, outcomes))
+    if isinstance(value, str):
+      raw = lookup.get(value)
+      if raw is not None:
+        return raw
+    if value in processed:
+      return value
+    if isinstance(value, numbers.Integral):
+      ordered = sorted(processed, key=str)
+      idx = int(value)
+      if 0 <= idx < len(ordered):
+        candidate = ordered[idx]
+        raw = lookup.get(str(candidate), candidate)
+        coerced = raw.item() if hasattr(raw, 'item') else raw
+        self.raiseADebug(f'Interpreting ordinal value "{value}" for variable "{varName}" as categorical outcome "{coerced}".')
+        return coerced
+    return value
+
   def localGenerateInput(self, model, inp):
     """
       Provides the next sample to take.
@@ -261,9 +350,13 @@ class RavenSampled(Optimizer):
       self._registerSample(prefix, info)
       # build the point in the way the Sampler expects
       for var in self.toBeSampled:  # , val in point.items():
-        val = point[var] if isinstance(point[var], float) else np.atleast_1d(point[var].data)[0]
+        dist = self.distDict[var]
+        val = self._extractSampleValue(point[var], var, dist)
         self.values[var] = val  # TODO should be np.atleast_1d?
-        ptProb = self.distDict[var].pdf(val)
+        try:
+          ptProb = dist.pdf(val)
+        except IOError as exc:
+          self.raiseAnError(IOError, f'Failed to evaluate pdf for variable "{var}" using value "{val}": {exc}')
         # sampler-required meta information # TODO should we not require this?
         inputInfo[f'ProbabilityWeight-{var}'] = ptProb
         inputInfo['SampledVarsPb'][var] = ptProb
@@ -405,6 +498,11 @@ class RavenSampled(Optimizer):
       self.raiseAMessage('*' * 80)
       # write final best solution to soln export
       if bestPoint not in self._finals:
+          if hasattr(self, '_validateFinalFront'):
+            try:
+              self._validateFinalFront(optElm)
+            except Exception as error:
+              self.raiseADebug(f'Final-front validation failed: {error}')
           self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
           self._finals.append(bestPoint)
 

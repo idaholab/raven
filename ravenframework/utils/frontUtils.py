@@ -22,8 +22,7 @@ import xarray as xr
 # Internal Imports
 
 
-
-def nonDominatedFrontier(data, returnMask,minMask=None, isFitness=False):
+def nonDominatedFrontier(data, returnMask, minMask=None, isFitness=False):
   """
     This method identifies the set of non-dominated points (nEfficientPoints).
 
@@ -52,9 +51,9 @@ def nonDominatedFrontier(data, returnMask,minMask=None, isFitness=False):
   elif minMask is not None and len(minMask) != data.shape[1]:
     raise IOError("nonDominatedFrontier method: Data features do not match minMask dimensions: data has shape " + str(data.shape) + " while minMask has shape " + str(minMask.shape))
   elif not isFitness:
-    for index,elem in enumerate(minMask):
+    for index, elem in enumerate(minMask):
       if not elem:
-        data[:,index] = -1. * data[:,index]
+        data[:, index] = -1. * data[:, index]
 
   nPoints = data.shape[0]
   nonDominatedFrontier = np.arange(nPoints)
@@ -68,22 +67,24 @@ def nonDominatedFrontier(data, returnMask,minMask=None, isFitness=False):
       nondominatedPointMask = np.any(data > data[nextPointIndex], axis=1) | np.all(data == data[nextPointIndex], axis=1)
     nonDominatedFrontier = nonDominatedFrontier[nondominatedPointMask]
     data = data[nondominatedPointMask]
-    nextPointIndex = np.sum(nondominatedPointMask[:nextPointIndex])+1
+    nextPointIndex = np.sum(nondominatedPointMask[:nextPointIndex]) + 1
+
   if returnMask:
-    nonDominatedFrontierMask = np.zeros(nPoints, dtype = bool)
+    nonDominatedFrontierMask = np.zeros(nPoints, dtype=bool)
     nonDominatedFrontierMask[nonDominatedFrontier] = True
     return nonDominatedFrontierMask
   else:
     return nonDominatedFrontier
 
-def rankNonDominatedFrontiers(data,isFitness=False):
+
+def rankNonDominatedFrontiers(data, isFitness=False):
   """
     This method ranks the non-dominated fronts by omitting the first front from the data
     and searching the remaining data for a new one recursively.
     @ In, data, np.array, data matrix (nPoints, nObjectives) containing the multi-objective
                           evaluations of each point/individual, element (i,j)
                           means jth objective/fitness function at the ith point/individual
-    @ out, nonDominatedRank, list, a list of length nPoints that has the ranking
+    @ Out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
   nonDominatedRank = np.zeros(data.shape[0], dtype=int)
@@ -106,9 +107,14 @@ def rankNonDominatedFrontiers(data,isFitness=False):
 
   return nonDominatedRank.tolist()
 
+
 def crowdingDistance(rank, popSize, fitness):
   """
     Method designed to calculate the crowding distance for each front.
+
+    FIXED: No longer assigns infinity to all points with boundary values.
+    Only actual boundary points (first and last after sorting) get infinity.
+
     @ In, rank, np.array or xr.DataArray, array which contains the front ID for each element of the population
     @ In, popSize, int, size of population
     @ In, fitness, np.array, matrix contains fitness values for each element of the population
@@ -116,6 +122,7 @@ def crowdingDistance(rank, popSize, fitness):
   """
   if isinstance(rank, xr.DataArray):
     rank = rank.data
+
   crowdDist = np.zeros(popSize)
   fronts = np.unique(rank)
   fronts = fronts[fronts != np.inf]
@@ -129,28 +136,33 @@ def crowdingDistance(rank, popSize, fitness):
     front = frontIndices[f]  # Get indices of current front
     numObjectives = fitness.shape[1]
     numPoints = len(front)
-    if numPoints <= 2:  # If front has 2 or fewer points, set to infinity
-      crowdDist[frontIndices[f]] = np.inf
+
+    # Special case: fronts with ≤2 points
+    if numPoints <= 2:
+      crowdDist[front] = np.inf
       continue
+
+    # For each objective, calculate crowding distance contribution
     for obj in range(numObjectives):
       # Sort points in current front by current objective
       sortedFront = [i for i in front]
-      sortedIndices = np.argsort(fitness[sortedFront, obj],kind='stable')
+      sortedIndices = np.argsort(fitness[sortedFront, obj], kind='stable')
       sortedFront = [sortedFront[i] for i in sortedIndices]
 
-      # Set boundary points to infinity
-      crowdDist[sortedFront[0]] = np.inf
-      crowdDist[sortedFront[-1]] = np.inf
+      # # To be removed
+      # # ================================================================
+      # # FIXED: Only set actual boundary points to infinity
+      # # Do NOT set interior points with same values to infinity
+      # # ================================================================
+      # crowdDist[sortedFront[0]] = np.inf   # Minimum boundary
+      # crowdDist[sortedFront[-1]] = np.inf  # Maximum boundary
 
-      # Ensure all repeated boundary points are set to infinity
-      boundaryValueMin = fitness[sortedFront[0], obj]
-      boundaryValueMax = fitness[sortedFront[-1], obj]
+      # # Skip normalization if all values are identical
 
-      for i in range(1, numPoints - 1):
-        if fitness[sortedFront[i], obj] == boundaryValueMin:
-          crowdDist[sortedFront[i]] = np.inf
-        if fitness[sortedFront[i], obj] == boundaryValueMax:
-          crowdDist[sortedFront[i]] = np.inf
+      # # FIXED: Only set actual boundary points to infinity
+      # # Do NOT set interior points with same values to infinity
+      crowdDist[sortedFront[0]] = np.inf   # Minimum boundary
+      crowdDist[sortedFront[-1]] = np.inf  # Maximum boundary
 
       # Skip normalization if all values are identical
       fMax = fitness[sortedFront, obj].max()
@@ -158,10 +170,13 @@ def crowdingDistance(rank, popSize, fitness):
       if fMax == fMin:
         continue
 
-      # Calculate normalized distances with epsilon protection
+      # Calculate normalized distances for interior points
       for i in range(1, numPoints - 1):
+        # Skip if already set to infinity (can happen if point is boundary in another objective)
         if crowdDist[sortedFront[i]] != np.inf:
           nextObjValue = fitness[sortedFront[i + 1], obj]
           prevObjValue = fitness[sortedFront[i - 1], obj]
+          # Add normalized distance for this objective
           crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (fMax - fMin)
+
   return crowdDist

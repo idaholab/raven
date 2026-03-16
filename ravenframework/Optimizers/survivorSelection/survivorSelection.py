@@ -29,35 +29,52 @@ from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
 # Internal Modules End------------------------------------------------------------------------------
 
 # @profile
-
-def singleObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
+def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, objectiveVal, g):
   """
-    process of selecting survivors for single objective problems
-    @ In, self, Instance of GeneticAlgorithm. Also information to return is added to this
+    Process of selecting survivors for single objective problems.
+
+    FIXED: Now uses matingPop* variable names for consistency with multi-objective.
+
+    @ In, self, Instance of GeneticAlgorithm
     @ In, info, dict, dictionary of information
-    @ In, rlz, dict, dictionary of realizations
-    @ In, traj, dict, dictionary of trajectories
-    @ In, offSprings, list, list of offsprings
-    @ In, offSpringFitness, list, list of offspring fitness
-    @ In, objectiveVal, list, floats of objective values
+    @ In, rlz, xr.Dataset, dictionary of realizations
+    @ In, traj, int, trajectory identifier
+    @ In, offspring, xr.DataArray, offspring indiciduals
+    @ In, offspringFitness, xr.Dataset, fitness of offspring
+    @ In, objectiveVal, list, objective values of offspring
     @ In, g, xr.DataArray, constraint data
+    @ Out, None (updates self.matingPop* variables)
   """
   if self.counter > 1:
-    self.population, self.fitness,\
-    self.popAge,self.objectiveVal = self._survivorSelectionInstance(age=self.popAge,
-                                                                    variables=list(self.toBeSampled),
-                                                                    population=self.population,
-                                                                    fitness=self.fitness,
-                                                                    objVar = self._objectiveVar[0],
-                                                                    newRlz=rlz,
-                                                                    offSpringsFitness=offSpringFitness,
-                                                                    popObjectiveVal=self.objectiveVal)
+    # Survivor selection returns the new population; keep both legacy and new attributes in sync.
+    self.matingPopInputs, self.matingPopFitness, \
+    self.matingPopAges, self.matingPopObjVals = self._survivorSelectionInstance(
+        age=self.matingPopAges,
+        variables=list(self.toBeSampled),
+        population=self.matingPopInputs,
+        fitness=self.matingPopFitness,
+        objVar=self._objectiveVar[0],
+        newRlz=rlz,
+        offspringFitness=offspringFitness,
+        popObjectiveVal=self.matingPopObjVals
+    )
   else:
-    self.population = offSprings
-    self.fitness = offSpringFitness
-    self.objectiveVal = rlz[self._objectiveVar[0]].data
+    # First generation: offspring becomes mating population
+    self.matingPopInputs = offspring
+    self.matingPopFitness = offspringFitness
+    baseObj = objectiveVal[0] if isinstance(objectiveVal, list) and len(objectiveVal) > 0 else rlz[self._objectiveVar[0]].data
+    self.matingPopObjVals = list(np.atleast_1d(baseObj))
+    self.matingPopAges = [0] * len(offspring)
+  self.matingPop_g = g
 
-def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, objectiveVal, g):
+  # Mirror legacy attribute names to keep downstream logic functional.
+  self.population = self.matingPopInputs
+  self.fitness = self.matingPopFitness
+  self.popAge = self.matingPopAges
+  self.objectiveVal = self.matingPopObjVals
+  self.constraintsV = self.matingPop_g
+
+def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringsFitness, objectiveVal, g):
   """
     process of selecting survivors for multi-objective problems
     @ In, self, instance of GeneticAlgorithm. Also information to return is added to this
@@ -69,22 +86,23 @@ def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringFitness, 
     @ In, objectiveVal, list, values of the objectives (for ranking and crowding distance calculation)
     @ In, g, xr.DataArray, constraint data
   """
-  if self.counter > 1:
-    self.population,self.rank, \
-    self.popAge,self.crowdingDistance, \
-    self.objectiveVal,self.fitness, \
-    self.constraintsV                  = self._survivorSelectionInstance(age=self.popAge,
-                                                                         variables=list(self.toBeSampled),
-                                                                         population=self.population,
-                                                                         offsprings=rlz,
-                                                                         popObjectiveVal=self.objectiveVal,
-                                                                         offObjectiveVal=objectiveVal,
-                                                                         popFit = self.fitness,
-                                                                         offFit = offSpringFitness,
-                                                                         popConstV = self.constraintsV,
-                                                                         direction=self._minMax,
-                                                                         offConstV = g)
-  else:
-    self.population = offSprings
-    self.fitness = offSpringFitness
-    self.constraintsV = g
+  # if self.counter > 1:
+  #   self.population,self.rank, \
+  #   self.popAge,self.crowdingDistance, \
+  #   self.objectiveVal,self.fitness, \
+  #   self.constraintsV                  = self._survivorSelectionInstance(age=self.popAge,
+  #                                                                        variables=list(self.toBeSampled),
+  #                                                                        population=self.population,
+  #                                                                        offspring=rlz,
+  #                                                                        popObjectiveVal=self.objectiveVal,
+  #                                                                        offObjectiveVal=objectiveVal,
+  #                                                                        popFit = self.fitness,
+  #                                                                        offFit = offSpringFitness,
+  #                                                                        popConstV = self.constraintsV,
+  #                                                                        direction=self._minMax,
+  #                                                                        offConstV = g)
+  # else:
+  #   self.population = offSprings
+  #   self.fitness = offSpringFitness
+  #   self.constraintsV = g
+pass

@@ -11,18 +11,16 @@
          #2304 (see \\url{https://github.com/idaholab/raven/issues/2304}).
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>metaModelWithCodeAndFunctionsAndGenetic</JobName>
-    <Sequence>
-        optimize
-    </Sequence>
+    <Sequence>optimize, plot_results</Sequence>
     <WorkingDir>metaModelWithCodeAndFunctionsAndGenetic</WorkingDir>
     <batchSize>2</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
+      <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
   </Files>
 
   <Models>
@@ -107,13 +105,13 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
-  
+
   <Functions>
       <External file="decayConstantB.py" name="decayConstantB">
         <variables>decay_A</variables>
       </External>
   </Functions>
-  
+
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
@@ -145,6 +143,12 @@
       <Output class="DataObjects" type="PointSet">finalResponses</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+    </IOStep>
   </Steps>
 
   <OutStreams>
@@ -153,7 +157,23 @@
       <source>opt_export</source>
       <what>input,output</what>
     </Print>
-  </OutStreams>
+
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>sigma-A,decay_A,sigma-B,decay_B,sum</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>sigma-A,decay_A,sigma-B,decay_B,sum</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <vars>sigma-A,decay_A,sigma-B,decay_B</vars>
+        <index>batchId</index>
+      </Plot>
+    </OutStreams>
 
   <DataObjects>
     <PointSet name="samplesMC">
