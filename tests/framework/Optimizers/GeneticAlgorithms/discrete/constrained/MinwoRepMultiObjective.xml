@@ -23,7 +23,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -35,6 +35,13 @@
       <Output class="OutStreams" type="Print">optOut</Output>
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">pareto_front</Output>
+      <Output class="OutStreams" type="Plot">front_evolution</Output>
+      <Output class="OutStreams" type="Plot">front_evolution_gif</Output>
+      <Output class="OutStreams" type="Plot">rank_history</Output>
+      <Output class="OutStreams" type="Plot">crowding_distance</Output>
+      <Output class="OutStreams" type="Plot">front_rank_animation</Output>
+      <Output class="OutStreams" type="Plot">front_rank_animation_gif</Output>
     </IOStep>
   </Steps>
 
@@ -65,7 +72,7 @@
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <NSGA-II name="GAopt">
       <samplerInit>
         <limit>500</limit>
         <initialSeed>42</initialSeed>
@@ -115,7 +122,7 @@
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
-    </GeneticAlgorithm>
+    </NSGA-II>
   </Optimizers>
 
   <Samplers>
@@ -176,6 +183,52 @@
       <vars>x1, x2, x3, x4, x5, x6, obj1, obj2, obj3</vars>
       <index>batchId</index>
       <how>png</how>
+    </Plot>
+    <Plot name="pareto_front" subType="NSGAParetoFrontPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <color>CD</color>
+      <rank>1</rank>
+    </Plot>
+    <Plot name="front_evolution" subType="NSGAFrontAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <fps>2.0</fps>
+      <format>html</format>
+    </Plot>
+    <Plot name="front_evolution_gif" subType="NSGAFrontAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <fps>2.0</fps>
+      <format>gif</format>
+    </Plot>
+    <Plot name="rank_history" subType="NSGARankHistoryPlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <normalize>true</normalize>
+    </Plot>
+    <Plot name="crowding_distance" subType="NSGACrowdingDistancePlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <percentiles>10, 50, 90</percentiles>
+    </Plot>
+    <Plot name="front_rank_animation" subType="NSGAFrontRankAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <fps>2.0</fps>
+      <format>html</format>
+    </Plot>
+    <Plot name="front_rank_animation_gif" subType="NSGAFrontRankAnimation">
+      <source>opt_export</source>
+      <objectives>obj1, obj2</objectives>
+      <index>batchId</index>
+      <fps>2.0</fps>
+      <format>gif</format>
     </Plot>
   </OutStreams>
 </Simulation>

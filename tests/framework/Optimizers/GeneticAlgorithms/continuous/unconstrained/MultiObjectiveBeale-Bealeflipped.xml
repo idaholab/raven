@@ -24,7 +24,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -51,7 +51,7 @@
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <NSGA-II name="GAopt">
       <samplerInit>
         <limit>20</limit>
         <initialSeed>42</initialSeed>
@@ -85,7 +85,7 @@
       <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </GeneticAlgorithm>
+    </NSGA-II>
   </Optimizers>
 
   <Samplers>

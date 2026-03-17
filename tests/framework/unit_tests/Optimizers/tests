@@ -65,6 +65,47 @@
     type = 'RavenPython'
     input = 'testRankSelection.py'
   [../]
+  #  GA: PyTest Unit Tests (one entry per module for detailed reporting)
+  [./pytestGaConstraintHandling]
+    type = 'PyTest'
+    input = 'test_constraint_handling_pytest.py'
+  [../]
+  [./pytestGaCrossovers]
+    type = 'PyTest'
+    input = 'test_crossovers_pytest.py'
+  [../]
+  [./pytestGaFitnessFunctions]
+    type = 'PyTest'
+    input = 'test_fitness_functions_pytest.py'
+  [../]
+  [./pytestGaFitnessSurvivor]
+    type = 'PyTest'
+    input = 'test_ga_fitness_pytest.py'
+  [../]
+  [./pytestGaUtils]
+    type = 'PyTest'
+    input = 'test_ga_utils_pytest.py'
+  [../]
+  [./pytestGaMutators]
+    type = 'PyTest'
+    input = 'test_mutators_pytest.py'
+  [../]
+  [./pytestGaRankCrowding]
+    type = 'PyTest'
+    input = 'test_rank_crowding_selector_pytest.py'
+  [../]
+  [./pytestGaRepair]
+    type = 'PyTest'
+    input = 'test_repair_operator_pytest.py'
+  [../]
+  [./pytestGaSurvivorSelectors]
+    type = 'PyTest'
+    input = 'test_survivor_selectors_pytest.py'
+  [../]
+  [./pytestGaConvergenceCriteria]
+    type = 'PyTest'
+    input = 'test_ga_convergence_criteria_pytest.py'
+  [../]
   
 
 []

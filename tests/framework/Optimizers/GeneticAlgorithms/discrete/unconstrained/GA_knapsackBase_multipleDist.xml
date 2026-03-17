@@ -13,7 +13,7 @@
 
   <RunInfo>
     <WorkingDir>knapsackMultipleDist</WorkingDir>
-    <Sequence>opt, print</Sequence>
+    <Sequence>opt, print, plot_results</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
@@ -31,6 +31,12 @@
       <Input  class="DataObjects"  type="PointSet"  >opt_export</Input>
       <Output class="OutStreams"   type="Print"     >PrintOptOut</Output>
       <Output class="OutStreams"   type="Print"     >PrintOptOut_export</Output>
+    </IOStep>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
     </IOStep>
   </Steps>
 
@@ -57,7 +63,7 @@
       <samplerInit>
         <limit>5</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
+        <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
@@ -117,8 +123,8 @@
       <Output>planValue,validPlan</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>proj1,proj2,proj3</Output>
+      <Input>batchId</Input>
+      <Output>proj1,proj2,proj3,accepted,planValue</Output>
     </PointSet>
   </DataObjects>
 
@@ -135,6 +141,22 @@
       <type>csv</type>
       <source>opt_export</source>
     </Print>
-  </OutStreams>
+
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>proj1,proj2,proj3,planValue</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>proj1,proj2,proj3,planValue</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <index>batchId</index>
+        <vars>proj1,proj2,proj3</vars>
+      </Plot>
+    </OutStreams>
 
 </Simulation>

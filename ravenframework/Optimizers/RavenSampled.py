@@ -405,6 +405,11 @@ class RavenSampled(Optimizer):
       self.raiseAMessage('*' * 80)
       # write final best solution to soln export
       if bestPoint not in self._finals:
+          if hasattr(self, '_validateFinalFront'):
+            try:
+              self._validateFinalFront(optElm)
+            except Exception as error:
+              self.raiseADebug(f'Final-front validation failed: {error}')
           self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
           self._finals.append(bestPoint)
 
