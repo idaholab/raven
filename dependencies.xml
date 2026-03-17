@@ -104,7 +104,6 @@ limit our library choices.
     <!-- source="mamba" are the ones installed when mamba is installed -->
     <mamba source='mamba' skip_check='True'/>
     <pydmd source="pip"/>
-    <libstdcxx-ng skip_check='True' os='linux'>13</libstdcxx-ng>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
@@ -112,13 +111,11 @@ limit our library choices.
     <python>remove</python>
     <nomkl>remove</nomkl>
     <liblapack>remove</liblapack>
-    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
-    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
 </dependencies>
