@@ -82,7 +82,7 @@ limit our library choices.
     <dask source="pip" pip_extra="[complete]"/>
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <typing-extensions source="pip">4.14</typing-extensions>
-    <ray source="pip" pip_extra="[default]">2.49</ray>
+    <ray source="pip" pip_extra="[default]">2.52</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
