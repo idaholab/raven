@@ -74,6 +74,7 @@ limit our library choices.
     <lxml source="pip"/>
     <psutil/>
     <pip/>
+    <pytest source="pip"/>
     <pyDOE3 source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>

@@ -42,7 +42,7 @@ def ageBased(newRlz,**kwargs):
           age, list, age list for each chromosome of the previous population
           variables, list of variable names to be sampled
           fitness, xr.DataArrays, fitness of the previous generation
-          offSpringsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offSpringsFitness) = nChildren x nGenes
+          offspringFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offspringFitness) = nChildren x nGenes
           population, xr.DataArray, population from previous generation
     @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
     @ Out, newFitness, xr.DataArray, fitness of the new population
@@ -54,8 +54,8 @@ def ageBased(newRlz,**kwargs):
     popAge = [0] * popSize
   else:
     popAge = kwargs['age']
-  offSpringsFitness = datasetToDataArray(kwargs['offSpringsFitness'], list(kwargs['offSpringsFitness'].keys())).data
-  offSprings = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
+  offspringFitness = datasetToDataArray(kwargs['offspringFitness'], list(kwargs['offspringFitness'].keys())).data
+  offspring = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
                             dims=['chromosome','Gene'],
                             coords={'chromosome':np.arange(np.shape(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()))[0]),
                                     'Gene': kwargs['variables']})
@@ -67,9 +67,9 @@ def ageBased(newRlz,**kwargs):
   newPopulation = sortedPopulation
   newFitness    = np.squeeze(sortedFitness)
   newAge = list(map(lambda x:x+1, sortedAge))
-  newPopulation[-1:-np.shape(offSprings)[0]-1:-1] = offSprings
-  newFitness[-1:-np.shape(offSprings)[0]-1:-1] = np.squeeze(offSpringsFitness)
-  newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0]
+  newPopulation[-1:-np.shape(offspring)[0]-1:-1] = offspring
+  newFitness[-1:-np.shape(offspring)[0]-1:-1] = np.squeeze(offspringFitness)
+  newAge[-1:-np.shape(offspring)[0]-1:-1] = [0]*np.shape(offspring)[0]
   # converting back to DataArrays
   newPopulation = xr.DataArray(newPopulation,
                                dims=['chromosome','Gene'],
@@ -91,7 +91,7 @@ def fitnessBased(newRlz,**kwargs):
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
           age, list, ages of each chromosome in the population of the previous generation
-          offSpringsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offSpringsFitness) = nChildren x nGenes
+          offspringFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offspringFitness) = nChildren x nGenes
           variables
           population
           fitness
@@ -100,157 +100,197 @@ def fitnessBased(newRlz,**kwargs):
     @ Out, newAge, list, Ages of each chromosome in the new population.
     @ Out, popObjectiveVal, list, floats of objective values
   """
+  def _to_numeric_array(values, default_size):
+    """Convert incoming objective list into a 1-D numpy array of length >= default_size."""
+    if values is None:
+      return np.full(default_size, np.nan)
+    array = np.asarray(values)
+    if array.size == 0:
+      return np.full(default_size, np.nan)
+    array = array.reshape(-1)
+    if array.size < default_size:
+      pad = np.full(default_size - array.size, np.nan)
+      array = np.concatenate([array, pad])
+    return array[:default_size]
+
   popSize = np.shape(kwargs['population'])[0]
-  if ('age' not in kwargs.keys() or kwargs['age'] is None):
-    popAge = [0] * popSize
-  else:
-    popAge = kwargs['age']
+  popAge = list(kwargs.get('age', [0] * popSize))
+  if len(popAge) < popSize:
+    popAge.extend([0] * (popSize - len(popAge)))
 
-  offSpringsFitness = datasetToDataArray(kwargs['offSpringsFitness'], list(kwargs['offSpringsFitness'].keys())).data
-  offSpringsFitness = np.array([item for sublist in offSpringsFitness for item in sublist])
-  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
-  population = np.atleast_2d(kwargs['population'].data)
-  popFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data
-  popFitness = popFitness.reshape((popFitness.size,))
-  newPopulation = population
-  newFitness = popFitness
-  newAge = list(map(lambda x:x+1, popAge))
-  newPopulationMerged = np.concatenate([newPopulation,offSprings])
-  newFitness = np.concatenate([newFitness,offSpringsFitness])
-  newAge.extend([0]*len(offSpringsFitness))
+  # Parent data
+  parentPopulation = np.atleast_2d(kwargs['population'].data)
+  parentFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data.reshape(-1)
+  parentObjectives = _to_numeric_array(kwargs.get('popObjectiveVal'), popSize)
 
-  # sort population, popFitness according to age
-  sortedFitness,sortedAge,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(newFitness,newAge,newPopulationMerged),reverse=True,key=lambda x: (x[0], -x[1]))])
-  sortedFitnessT,sortedAgeT,sortedPopulationT = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation))
-  newPopulationSorted = sortedPopulationT[:-len(offSprings)]
-  newFitness = sortedFitnessT[:-len(offSprings)]
-  newAge = sortedAgeT[:-len(offSprings)]
+  # Offspring data
+  offspringFitness = datasetToDataArray(kwargs['offspringFitness'], list(kwargs['offspringFitness'].keys())).data.reshape(-1)
+  offspringPopulation = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
+  objVar = kwargs['objVar']
+  offspringObjectives = np.asarray(newRlz[objVar].data).reshape(-1)
+  if offspringObjectives.size < offspringFitness.size:
+    pad = np.full(offspringFitness.size - offspringObjectives.size, np.nan)
+    offspringObjectives = np.concatenate([offspringObjectives, pad])
+  elif offspringObjectives.size > offspringFitness.size:
+    offspringObjectives = offspringObjectives[:offspringFitness.size]
+
+  # Merge parent and offspring pools
+  combinedPopulation = np.concatenate([parentPopulation, offspringPopulation])
+  combinedFitness = np.concatenate([parentFitness, offspringFitness])
+  combinedAge = [age + 1 for age in popAge] + [0] * len(offspringFitness)
+  combinedObjectives = np.concatenate([parentObjectives, offspringObjectives])
+
+  # Select the top popSize individuals by fitness (desc) with age tie-break
+  indices = list(range(len(combinedFitness)))
+  indices.sort(key=lambda idx: (combinedFitness[idx], -combinedAge[idx]), reverse=True)
+  selected = indices[:popSize]
+
+  newPopulationSorted = combinedPopulation[selected]
+  newFitness = combinedFitness[selected]
+  newAge = [combinedAge[idx] for idx in selected]
+  newObjectiveVals = [combinedObjectives[idx] for idx in selected]
 
   newPopulationArray = xr.DataArray(newPopulationSorted,
                                     dims=['chromosome','Gene'],
-                                    coords={'chromosome':np.arange(np.shape(newPopulationSorted)[0]),
+                                    coords={'chromosome': np.arange(np.shape(newPopulationSorted)[0]),
                                             'Gene': kwargs['variables']})
   newFitnessDS = xr.Dataset()
-  newFitnessDS[kwargs['objVar']] = xr.DataArray(newFitness,
-                            dims=['chromosome'],
-                            coords={'chromosome':np.arange(np.shape(newFitness)[0])})
-  return newPopulationArray,newFitnessDS,newAge,kwargs['popObjectiveVal']
+  newFitnessDS[objVar] = xr.DataArray(newFitness,
+                                      dims=['chromosome'],
+                                      coords={'chromosome': np.arange(np.shape(newFitness)[0])})
+  return newPopulationArray, newFitnessDS, newAge, newObjectiveVals
 
 # @profile
-def rankNcrowdingBased(offsprings, **kwargs):
+def rankNcrowdingBased(individuals=None, **kwargs):
   """
-    rankNcrowdingBased survivorSelection mechanism for new generation selection
-    It combines the parents and children/offsprings then calculates their rank and crowding distance.
-    After having ranks and crowding distance, it keeps the lowest ranks (and highest crowding distance if indivisuals have same rank.
-    @ In, offsprings, xr.DataSet, containing either a single realization, or a batch of realizations.
-    @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
-          variables
-          age
-          population
-          popObjectiveVal
-          offObjectiveVal
-          popFit
-          offFit
-          popConstV
-          offConstV
-    @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
-    @ Out, newRank, xr.DataArray, rank of each chromosome in the new population
-    @ Out, newAge, list, integer age of each chromosome
-    @ Out, newCD, xr.DataArray, crowding distance of each chromosome in the new population.
-    @ Out, newObjectivesP, list of lists, float value of the objectives
-    @ Out, newFitnessSet, xr.DataSet, objectives of the chromosome
-    @ Out, newConstV, xr.DataArray, includes the ConstEvaluation
+    FIXED: NSGA-II compliant survivor selection with proper elitism.
+    Now receives PRE-COMPUTED ranks and crowding distances for the combined population.
+    Selects the best N individuals based on these values.
+
+    Compatible with frontUtils.rankNonDominatedFrontiers and frontUtils.crowdingDistance
+
+    @ In, individuals, UNUSED (kept for compatibility)
+    @ In, kwargs, dict, must contain:
+          - combinedInputs: R(t) = P(t) ∪ Q(t) as np.array (nPoints, nGenes)
+          - combinedRanks: ranks for all individuals in R(t) as list
+          - combinedCD: crowding distances for all individuals in R(t) as np.array
+          - combinedObjectives: objective values for R(t) as list of lists
+          - combinedFitness: fitness values for R(t) as list of lists (nPoints, nObjectives)
+          - combinedConstraints: constraint values for R(t) as np.array
+          - age: ages for R(t) as list
+          - popSize: target population size (N)
+          - variables: variable names
+          - objectiveNames: names of objectives
+    @ Out, tuple: (newPopulation, newRank, newAge, newCD, newObjectives, newFitness, newConstV)
   """
-  popSize = np.shape(kwargs['population'])[0]
-  if ('age' not in kwargs or kwargs['age'] is None):
-    popAge = [0] * popSize
-  else:
-    popAge = kwargs['age']
 
-  population = np.atleast_2d(kwargs['population'].data)
-  offSprings = np.atleast_2d(offsprings[kwargs['variables']].to_array().transpose().data)
-  popObjectiveVal = kwargs['popObjectiveVal']
-  offObjectiveVal = kwargs['offObjectiveVal']
-  popFit = kwargs['popFit']
-  popFitArray = []
-  offFit = kwargs['offFit']
-  offFitArray = []
-  for i in list(popFit.keys()): #NOTE popFit.keys() and offFit.keys() must be same.
-    popFitArray.append(popFit[i].data.tolist())
-    offFitArray.append(offFit[i].data.tolist())
+  # Extract parameters
+  popSize = kwargs['popSize']
+  combinedInputs = kwargs['combinedInputs']
+  combinedRanks = kwargs['combinedRanks']  # list from frontUtils
+  combinedCD = kwargs['combinedCD']  # np.array from frontUtils
+  combinedObjectives = kwargs['combinedObjectives']
+  combinedFitness = kwargs['combinedFitness']
+  combinedConstraints = kwargs['combinedConstraints']
+  combinedAge = kwargs['age']
+  variables = kwargs['variables']
+  objectiveNames = kwargs.get('objectiveNames', [f'obj{i}' for i in range(len(combinedObjectives))])
 
-  #Combine parent and offspring data and population
-  newFitMerged      = np.array([i + j for i, j in zip(popFitArray, offFitArray)])
-  newFitMergedPair = [list(ele) for ele in list(zip(*newFitMerged))]
+  # ============================================================
+  # NSGA-II Elitist Selection
+  # ============================================================
 
-  popConstV = kwargs['popConstV'].data
-  offConstV = kwargs['offConstV'].data
-  newConstVMerged = np.vstack([popConstV, offConstV])
+  # Group individuals by rank (front)
+  fronts = {}
+  for idx, rank in enumerate(combinedRanks):
+    if rank not in fronts:
+      fronts[rank] = []
+    fronts[rank].append(idx)
 
-  newObjectivesMerged = np.array([i + j for i, j in zip(popObjectiveVal, offObjectiveVal)])
-  newObjectivesMergedPair = [list(ele) for ele in list(zip(*newObjectivesMerged))]
+  # Get sorted front numbers
+  sortedFrontNums = sorted(fronts.keys())
 
-  #calculate nondominated fronts
-  newPopRank = frontUtils.rankNonDominatedFrontiers(np.array(newFitMergedPair),isFitness=True)
-  newPopRank = xr.DataArray(newPopRank,
-                            dims=['rank'],
-                            coords={'rank': np.arange(np.shape(newPopRank)[0])})
+  # Select individuals front by front
+  selectedIndices = []
 
-  #calculate crowding distance
-  newPopCD = frontUtils.crowdingDistance(rank=newPopRank, popSize=len(newPopRank), fitness=np.array(newFitMergedPair))
-  newPopCD = xr.DataArray(newPopCD,
-                          dims=['CrowdingDistance'],
-                          coords={'CrowdingDistance': np.arange(np.shape(newPopCD)[0])})
+  for frontNum in sortedFrontNums:
+    currentFront = fronts[frontNum]
 
-  newAge = list(map(lambda x:x+1, popAge))
-  newPopulationMerged = np.concatenate([population,offSprings])
-  newAge.extend([0]*len(offSprings))
-
-  #sort in rank/crowd comparison order
-  sortedRank,sortedCD,sortedAge,sortedPopulation,sortedFit,sortedObjectives,sortedConstV = \
-    zip(*[(x,y,z,i,j,k,a) for x,y,z,i,j,k,a in \
-      sorted(zip(newPopRank.data, newPopCD.data, newAge, newPopulationMerged.tolist(), newFitMergedPair, newObjectivesMergedPair, newConstVMerged),reverse=False,key=lambda x: (x[0], -x[1], x[4], x[3]))])
-  _, _, sortedAgeT, sortedPopulationT, sortedFitT, sortedObjectivesT, sortedConstVT = \
-    np.atleast_1d(list(sortedRank)), list(sortedCD), list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFit)),np.atleast_1d(list(sortedObjectives)),np.atleast_1d(list(sortedConstV))
-
-  #choose the best elements
-  newPopulation = sortedPopulationT[:-len(offSprings)]
-  newObjectives = sortedObjectivesT[:-len(offSprings)]
-  newFit        = sortedFitT[:-len(offSprings)]
-
-  newRank = frontUtils.rankNonDominatedFrontiers(newFit, isFitness=True)
-  newRank = xr.DataArray(newRank,
-                         dims=['rank'],
-                         coords={'rank': np.arange(np.shape(newRank)[0])})
-
-  newObjectivesP = [list(ele) for ele in list(zip(*newObjectives))]
-  newCD = frontUtils.crowdingDistance(rank=newRank, popSize=len(newRank), fitness=newFit)
-  newCD = xr.DataArray(newCD,
-                       dims=['CrowdingDistance'],
-                       coords={'CrowdingDistance': np.arange(np.shape(newCD)[0])})
-
-  newAge = sortedAgeT[:-len(offSprings)]
-  newConstV = sortedConstVT[:-len(offSprings)]
-
-  for i in range(len(list(popFit.keys()))):
-    fitness = xr.DataArray(newFit[:,i],
-                           dims=['chromosome'],
-                           coords={'chromosome': np.arange(len(newFit[:,i]))})
-    if i == 0:
-      newFitnessSet = fitness.to_dataset(name = list(popFit.keys())[i])
+    if len(selectedIndices) + len(currentFront) <= popSize:
+      # Entire front fits - add all individuals
+      selectedIndices.extend(currentFront)
     else:
-      newFitnessSet[list(popFit.keys())[i]] = fitness
+      # Front doesn't fit entirely - select by crowding distance
+      remaining = popSize - len(selectedIndices)
 
-  newPopulationArray = xr.DataArray(newPopulation,
+      # Get crowding distances for this front
+      frontWithCD = [(idx, combinedCD[idx]) for idx in currentFront]
+
+      # Sort by crowding distance (descending - higher CD is better)
+      frontWithCD.sort(key=lambda x: x[1], reverse=True)
+
+      # Take top 'remaining' individuals
+      selectedIndices.extend([idx for idx, _ in frontWithCD[:remaining]])
+      break
+
+  # Ensure we have exactly popSize individuals
+  selectedIndices = selectedIndices[:popSize]
+
+  # ============================================================
+  # Extract Selected Population P(t+1)
+  # ============================================================
+
+  # Extract data for selected individuals
+  newInputs = combinedInputs[selectedIndices]
+  newRanks = [combinedRanks[i] for i in selectedIndices]
+  newCD = combinedCD[selectedIndices]
+  newAge = [combinedAge[i] for i in selectedIndices]
+  newConstraints = combinedConstraints[selectedIndices]
+
+  # Extract objectives
+  newObjectives = []
+  for objValues in combinedObjectives:
+    newObjectives.append([objValues[i] for i in selectedIndices])
+
+  # Extract fitness
+  newFitness = [combinedFitness[i] for i in selectedIndices]
+
+  # ============================================================
+  # Convert to xarray/Dataset Format
+  # ============================================================
+
+  # Population as DataArray
+  newPopulationArray = xr.DataArray(newInputs,
                                     dims=['chromosome','Gene'],
-                                    coords={'chromosome':np.arange(np.shape(newPopulation)[0]),
-                                            'Gene': kwargs['variables']})
-  newConstV = xr.DataArray(newConstV,
-                           dims=['chromosome','ConstEvaluation'],
-                           coords={'chromosome':np.arange(np.shape(newPopulation)[0]),
-                                   'ConstEvaluation':np.arange(np.shape(newConstV)[1])})
+                                    coords={'chromosome': np.arange(len(newInputs)),
+                                            'Gene': variables})
 
-  return newPopulationArray,newRank,newAge,newCD,newObjectivesP,newFitnessSet,newConstV
+  # Ranks as DataArray
+  newRankArray = xr.DataArray(newRanks,
+                              dims=['rank'],
+                              coords={'rank': np.arange(len(newRanks))})
+
+  # Crowding Distance as DataArray
+  newCDArray = xr.DataArray(newCD,
+                           dims=['CrowdingDistance'],
+                           coords={'CrowdingDistance': np.arange(len(newCD))})
+
+  # Fitness as Dataset
+  nObjectives = len(objectiveNames)
+  newFitnessSet = xr.Dataset()
+  for i, objName in enumerate(objectiveNames):
+    fitnessValues = [fit[i] for fit in newFitness]
+    newFitnessSet[objName] = xr.DataArray(fitnessValues,
+                                          dims=['chromosome'],
+                                          coords={'chromosome': np.arange(len(fitnessValues))})
+
+  # Constraints as DataArray
+  newConstVArray = xr.DataArray(newConstraints,
+                               dims=['chromosome','ConstEvaluation'],
+                               coords={'chromosome': np.arange(len(newConstraints)),
+                                       'ConstEvaluation': np.arange(newConstraints.shape[1]) if newConstraints.shape[1] > 0 else []})
+
+  return newPopulationArray, newRankArray, newAge, newCDArray, newObjectives, newFitnessSet, newConstVArray
 
 __survivorSelectors = {}
 __survivorSelectors['ageBased'] = ageBased

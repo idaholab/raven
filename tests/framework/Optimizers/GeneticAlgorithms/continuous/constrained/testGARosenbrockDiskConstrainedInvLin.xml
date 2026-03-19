@@ -20,7 +20,7 @@
 
   <RunInfo>
     <WorkingDir>rosenbrockDiskConstrainedInvLin</WorkingDir>
-    <Sequence>optimize, print</Sequence>
+    <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -38,6 +38,14 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+      <Output class="OutStreams" type="Plot">fitness_funnel</Output>
+      <Output class="OutStreams" type="Plot">sampling_coverage</Output>
     </IOStep>
   </Steps>
 
@@ -142,5 +150,34 @@
         <source>opt_export</source>
         <clusterLabel>trajID</clusterLabel>
       </Print>
+    
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>x,y,ans</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>x,y,ans</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <vars>x,y</vars>
+        <index>batchId</index>
+      </Plot>
+      <Plot name="fitness_funnel" subType="FitnessFunnelPlot">
+        <source>opt_export</source>
+        <metric>fitness</metric>
+        <index>batchId</index>
+        <goal>min</goal>
+      </Plot>
+      <Plot name="sampling_coverage" subType="SamplingCoverageMapPlot">
+        <source>opt_export</source>
+        <variables>x, y</variables>
+        <index>batchId</index>
+        <format>both</format>
+        <fps>2.0</fps>
+      </Plot>
     </OutStreams>
 </Simulation>

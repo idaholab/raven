@@ -17,6 +17,7 @@
   1.  onePointCrossover
   2.  uniformCrossover
   3.  twoPointsCrossover
+  4.  simulatedBinary
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
@@ -27,6 +28,7 @@ from scipy.special import comb
 from itertools import combinations
 import xarray as xr
 from ...utils import randomUtils
+from ...utils.utils import EQchecker
 
 
 # @profile
@@ -153,10 +155,150 @@ def twoPointsCrossover(parents, **kwargs):
 
   return children
 
+def EQCrossover(parents,**kwargs):
+  """
+    Method designed to perform crossover by mixing chromosome for EQ problem
+    @ In, parents, xr.DataArray, parents involved in the mating process.
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          crossoverProb, float, crossoverProb determines when child takes genes from a specific parent
+    @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
+  """
+  nParents,nGenes = np.shape(parents)
+  # Number of children = 2* (nParents choose 2)
+  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),nGenes)),
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                  'Gene':kwargs['variables']})
+
+
+  # defaults
+  if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
+    crossoverProb = randomUtils.random(dim=1, samples=1)
+  else:
+    crossoverProb = kwargs['crossoverProb']
+
+  # check EQ input
+  if kwargs['EQfiles'] is None:
+    raise ValueError('EQ files is None, this is not allowed for this EQCrossOver type, please check!')
+  else:
+    tempfiles = kwargs['EQfiles']
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='simulatedata'][0]
+    xmlfile = temp.getPath()+ temp.getFilename()
+    temp = [sublist[-1] for sublist in tempfiles if sublist[1]=='EQinput'][0]
+    inpfile = temp.getPath()+temp.getFilename()
+    EQobject = EQchecker(xmlinput=xmlfile, EQinput=inpfile)
+  index = 0
+  parentsPairs = list(combinations(parents,2))
+  for parentPair in parentsPairs:
+    parent1 = parentPair[0].T.values.tolist()
+    parent2 = parentPair[1].T.values.tolist()
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+      children1,children2 = EQobject.mutate2genome(parent1,parent2)
+      if not EQobject.checkgennome(children1) or not EQobject.checkgennome(children2):
+        children1,children2 = parent1, parent2
+        print('Warning .... no crossover due to violation in both childrens ')
+    else:
+      children1,children2 = parent1, parent2
+    children[index][:]   = np.array(children1)
+    children[index+1][:] = np.array(children2)
+    index +=  2
+
+  return children
+
+
+def simulatedBinary(parents, **kwargs):
+  """
+    Simulated binary crossover (SBX) operating in the unit interval using the
+    cumulative distribution of each variable. This aligns with the operator
+    recommended for NSGA-II/III in Deb et al. (2002, 2014).
+
+    @ In, parents, xr.DataArray, parent chromosomes.
+    @ In, kwargs, dict, expected keys:
+          crossoverProb, float, probability of applying SBX (default random draw)
+          variables, list[str], variable names
+          distDict, dict[str, Distribution], mapping to query cdf/ppf
+          eta, float, distribution index (default 20.0)
+    @ Out, children, xr.DataArray, offspring after SBX
+  """
+  required = ('variables', 'distDict')
+  for req in required:
+    if req not in kwargs or kwargs[req] is None:
+      raise ValueError(f'Simulated binary crossover requires "{req}" in kwargs.')
+
+  eta = kwargs.get('eta', 20.0)
+  if eta <= 0:
+    raise ValueError('SBX distribution index "eta" must be positive.')
+
+  nParents, nGenes = np.shape(parents)
+  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)), nGenes)),
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                  'Gene': kwargs['variables']})
+
+  if kwargs.get('crossoverProb') is None:
+    crossoverProb = float(randomUtils.random(dim=1, samples=1))
+  else:
+    crossoverProb = kwargs['crossoverProb']
+
+  distDict = kwargs['distDict']
+  parentsPairs = list(combinations(parents,2))
+  eps = 1e-14
+
+  def to_unit(var, value):
+    dist = distDict.get(var)
+    if dist is None:
+      raise ValueError(f'Distribution information missing for variable "{var}".')
+    return float(dist.cdf(float(value)))
+
+  def from_unit(var, value):
+    dist = distDict.get(var)
+    return float(dist.ppf(min(max(value, 0.0), 1.0)))
+
+  for ind, pair in enumerate(parentsPairs):
+    parent1 = pair[0].values.astype(float)
+    parent2 = pair[1].values.astype(float)
+    child1 = parent1.copy()
+    child2 = parent2.copy()
+
+    if float(randomUtils.random(dim=1, samples=1)) <= crossoverProb:
+      for gene_idx, gene_name in enumerate(kwargs['variables']):
+        u1 = to_unit(gene_name, parent1[gene_idx])
+        u2 = to_unit(gene_name, parent2[gene_idx])
+        if abs(u1 - u2) > eps:
+          if u1 > u2:
+            u1, u2 = u2, u1
+          rand = float(randomUtils.random(dim=1, samples=1))
+          beta = 1.0 + 2.0 * (u1 - 0.0) / (u2 - u1)
+          alpha = 2.0 - beta ** -(eta + 1.0)
+          if rand <= 1.0 / alpha:
+            betaq = (rand * alpha) ** (1.0 / (eta + 1.0))
+          else:
+            betaq = (1.0 / (2.0 - rand * alpha)) ** (1.0 / (eta + 1.0))
+          c1 = 0.5 * ((u1 + u2) - betaq * (u2 - u1))
+
+          rand = float(randomUtils.random(dim=1, samples=1))
+          beta = 1.0 + 2.0 * (1.0 - u2) / (u2 - u1)
+          alpha = 2.0 - beta ** -(eta + 1.0)
+          if rand <= 1.0 / alpha:
+            betaq = (rand * alpha) ** (1.0 / (eta + 1.0))
+          else:
+            betaq = (1.0 / (2.0 - rand * alpha)) ** (1.0 / (eta + 1.0))
+          c2 = 0.5 * ((u1 + u2) + betaq * (u2 - u1))
+          child1[gene_idx] = from_unit(gene_name, c1)
+          child2[gene_idx] = from_unit(gene_name, c2)
+        else:
+          child1[gene_idx] = parent1[gene_idx]
+          child2[gene_idx] = parent2[gene_idx]
+    children[2*ind] = child1
+    children[2*ind+1] = child2
+
+  return children
 __crossovers = {}
 __crossovers['onePointCrossover']  = onePointCrossover
 __crossovers['twoPointsCrossover'] = twoPointsCrossover
 __crossovers['uniformCrossover']   = uniformCrossover
+__crossovers['EQCrossover']        = EQCrossover
+__crossovers['simulatedBinary']    = simulatedBinary
 
 
 def returnInstance(cls, name):

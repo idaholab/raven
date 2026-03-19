@@ -24,6 +24,10 @@ from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 from .SimulatedAnnealing import SimulatedAnnealing
+from .GeneticAlgorithm import GeneticAlgorithm
+from .MultiObjectiveGeneticAlgorithm import MultiObjectiveGeneticAlgorithm
+from .NSGAII import NSGAII
+from .NSGAIII import NSGAIII
 try:
     from .BayesianOptimizer import BayesianOptimizer
 except ModuleNotFoundError as error:

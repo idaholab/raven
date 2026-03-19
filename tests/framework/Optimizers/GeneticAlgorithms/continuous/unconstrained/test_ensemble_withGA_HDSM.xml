@@ -16,7 +16,7 @@
   
   <RunInfo>
     <WorkingDir>ensemble_withGA_HDSM</WorkingDir>
-    <Sequence>testMetamodelHeatTransfer</Sequence>
+    <Sequence>testMetamodelHeatTransfer, plot_results</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -117,6 +117,12 @@
       <Output         class="DataObjects"  type="PointSet"         >metaModelOutputTest</Output>
       <Output         class="OutStreams"   type="Print"            >opt_export</Output>
     </MultiRun>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -157,7 +163,23 @@
       <type>csv</type>
       <source>opt_export</source>
     </Print>
-  </OutStreams>
+  
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>leftTemperature,rightTemperature,k</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>leftTemperature,rightTemperature,k</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <vars>leftTemperature,rightTemperature</vars>
+        <index>batchId</index>
+      </Plot>
+    </OutStreams>
 
 
 </Simulation>
