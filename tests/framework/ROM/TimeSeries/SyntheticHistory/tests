@@ -28,6 +28,7 @@
   [./AutoARMA]
     type = 'RavenFramework'
     input = 'auto_arma.xml'
+    skip_if_OS = 'windows'
     [./csv]
       type = OrderedCSV
       output = 'AutoARMA/samples_0.csv AutoARMA/samples_1.csv'
