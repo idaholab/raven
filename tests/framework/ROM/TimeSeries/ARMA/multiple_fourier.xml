@@ -13,7 +13,6 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
-      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -21,7 +20,6 @@
     <WorkingDir>MultipleFourier</WorkingDir>
     <Sequence>read,train,sample,write</Sequence>
     <batchSize>1</batchSize>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -80,6 +78,7 @@
         <periods>20,100</periods>
       </SpecificFourier>
       <Fourier>50 10</Fourier>
+      <!-- will apply to the rest (C,D) -->
       <P>3</P>
       <Q>1</Q>
     </ROM>

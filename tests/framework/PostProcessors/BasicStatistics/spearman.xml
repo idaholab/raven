@@ -4,7 +4,6 @@
     <WorkingDir>basicStatsSpearman</WorkingDir>
     <batchSize>1</batchSize>
     <Sequence>sample,PP</Sequence>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -18,9 +17,6 @@
       test allows for the comparison with the unweighted one that
       is available in scipy (since we are using a a MonteCarlo here).
     </description>
-    <revisions>
-      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
-    </revisions>
   </TestInfo>
 
   <DataObjects>

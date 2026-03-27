@@ -4,9 +4,7 @@
     <WorkingDir>mcPCA</WorkingDir>
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_grid/mcPCA</name>
     <author>wangc</author>
@@ -16,9 +14,6 @@
       Tests the MonteCarlo sampler combined with input reductions via PCA method,
       using multivariate normal distributions.
     </description>
-    <revisions>
-      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
-    </revisions>
   </TestInfo>
 
   <Files>

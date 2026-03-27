@@ -13,7 +13,6 @@
         As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
         the output data object will be renamed, and the variable name of labels will be explicitly defined.
       </revision>
-      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -21,7 +20,6 @@
     <WorkingDir>time_dep_meanshift</WorkingDir>
     <Sequence>FirstMRun,pp1,plotAllHists,filter0,filter1</Sequence>
     <batchSize>1</batchSize>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -47,6 +45,9 @@
       <Output class="OutStreams" type="Plot">plot5</Output>
       <Output class="OutStreams" type="Plot">plot6</Output>
       <Output class="OutStreams" type="Plot">plot7</Output>
+      <!--
+        <Output class="OutStreams" type="Print">print2</Output>
+      -->
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">outMC</Input>
@@ -220,6 +221,9 @@
           <x>outMC|Output|time</x>
           <y>outMC|Output|y</y>
           <colorMap>outMC|Output|MeanShiftLabels</colorMap>
+          <!--
+            <cmap>Dark2</cmap>
+          -->
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -238,6 +242,9 @@
           <y>outMC|Output|y</y>
           <z>outMC|Output|z</z>
           <colorMap>outMC|Output|MeanShiftLabels</colorMap>
+          <!--
+            <cmap>Dark2</cmap>
+          -->
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>

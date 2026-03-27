@@ -10,17 +10,14 @@
        SLAVE RAVEN runs. In this case, 3 simultaneous SLAVE RAVEN (batchSize=3) runs are going to be spawned, each of them using 2 processors (NumMPI=2).
        The NumMPI XML node MUST BE INPUTTED if the SLAVE RAVEN runs must run in multiple processors!
     </description>
-    <revisions>
-      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
-    </revisions>
   </TestInfo>
 
+  <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>Rom</WorkingDir>
     <Sequence>FirstMRun</Sequence>
     <batchSize>5</batchSize>
     <expectedTime>0:10:0</expectedTime>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -28,6 +25,7 @@
     <Input name="ext_dataobjects.xml" type="ExternalXML">ext_dataobjects.xml</Input>
   </Files>
 
+  <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="1">
       <Input class="Files" type="raven">test_rom_trainer.xml</Input>
@@ -41,6 +39,7 @@
     </MultiRun>
   </Steps>
 
+  <!-- MODELS -->
   <Models>
     <Code name="raven_running_rom" subType="RAVEN">
       <executable>%RAVENEXECUTABLE%</executable>
@@ -56,6 +55,7 @@
     </Code>
   </Models>
 
+  <!-- DISTRIBUTIONS -->
   <Distributions>
     <Normal name="C_distrib">
       <mean>4</mean>
@@ -71,6 +71,7 @@
     </Uniform>
   </Distributions>
 
+  <!-- SAMPLERS -->
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
@@ -88,6 +89,7 @@
     </MonteCarlo>
   </Samplers>
 
+  <!-- OUTSTREAMS -->
   <OutStreams>
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
@@ -101,6 +103,7 @@
     </Print>
   </OutStreams>
 
+  <!-- DATA OBJECTS -->
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>loss_factor,tollerance</Input>

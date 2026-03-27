@@ -12,7 +12,6 @@
     <WorkingDir>Results</WorkingDir>
     <Sequence>adaptive_sampling,plot</Sequence>
     <batchSize>10</batchSize>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

@@ -5,9 +5,7 @@
     <Sequence>model_MRun,test_rom_trainer,ROM_MRun,plot_data</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/ROM/timeDepRom</name>
     <author>talbpaul</author>
@@ -16,9 +14,6 @@
     <description>
       This tests using a general time-dependent reduced-order model.
     </description>
-    <revisions>
-      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
-    </revisions>
   </TestInfo>
 
   <Files>
@@ -104,7 +99,7 @@
       <type>csv</type>
       <source>HistorySet_ROM</source>
     </Print>
-    <Plot name="plot_model" overwrite="False">
+    <Plot   name="plot_model" overwrite="False">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -127,7 +122,7 @@
         </camera>
       </actions>
     </Plot>
-    <Plot name="plot_ROM" overwrite="False">
+    <Plot   name="plot_ROM" overwrite="False">
       <plotSettings>
         <plot>
           <type>scatter</type>

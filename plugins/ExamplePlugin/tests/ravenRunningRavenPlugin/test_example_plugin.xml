@@ -15,7 +15,6 @@
   <RunInfo>
     <WorkingDir>simpleTest</WorkingDir>
     <Sequence>MCrun,printTOfile</Sequence>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>

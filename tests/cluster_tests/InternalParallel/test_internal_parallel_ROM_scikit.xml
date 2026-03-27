@@ -7,7 +7,6 @@
     <internalParallel>True</internalParallel>
     <expectedTime>00:10:00</expectedTime>
     <JobName>test_qsub</JobName>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

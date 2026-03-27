@@ -25,7 +25,6 @@
     <batchSize>1</batchSize>
     <NumMPI>1</NumMPI>
     <parallelMethod>dask</parallelMethod>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
 <Files>

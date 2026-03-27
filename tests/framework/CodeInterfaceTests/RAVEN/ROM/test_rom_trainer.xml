@@ -12,7 +12,6 @@
       rom_MCHS
     </Sequence>
     <batchSize>1</batchSize>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <VariableGroups>

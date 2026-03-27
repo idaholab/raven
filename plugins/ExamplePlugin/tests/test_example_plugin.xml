@@ -21,7 +21,6 @@
   <RunInfo>
     <WorkingDir>simpleTest</WorkingDir>
     <Sequence>MCrun, trainROM, sampleROM, printTOfile</Sequence>
-    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
