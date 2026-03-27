@@ -17,6 +17,9 @@
        above 0.25, and multitask methods will additionally fit an additive
        model (x+y).
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -27,30 +30,31 @@
       resample,
       plot
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
     <MultiRun name="sample" sleepTime="1e-5">
-    <Input class="DataObjects" type="PointSet">dummyIN</Input>
-    <Model class="Models" type="ExternalModel">foo</Model>
-    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
-    <Output class="DataObjects" type="PointSet">trainingData</Output>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">foo</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">trainingData</Output>
     </MultiRun>
     <MultiRun name="resample" sleepTime="1e-5">
-    <Input class="DataObjects" type="PointSet">dummyIN</Input>
-    <Model class="Models" type="ROM">gpROM</Model>
-    <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
-    <Output class="DataObjects" type="PointSet">outData</Output>
-    <Output class="OutStreams" type="Print">outData</Output>
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ROM">gpROM</Model>
+      <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">outData</Output>
+      <Output class="OutStreams" type="Print">outData</Output>
     </MultiRun>
     <RomTrainer name="train">
-    <Input class="DataObjects" type="PointSet">trainingData</Input>
-    <Output class="Models" type="ROM">gpROM</Output>
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Output class="Models" type="ROM">gpROM</Output>
     </RomTrainer>
     <IOStep name="plot">
-    <Input class="DataObjects" type="PointSet">trainingData</Input>
-    <Input class="DataObjects" type="PointSet">outData</Input>
-    <Output class="OutStreams" type="Plot">plotGPCustom</Output>
+      <Input class="DataObjects" type="PointSet">trainingData</Input>
+      <Input class="DataObjects" type="PointSet">outData</Input>
+      <Output class="OutStreams" type="Plot">plotGPCustom</Output>
     </IOStep>
   </Steps>
 
@@ -72,14 +76,12 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
       <filename>outGPCustom</filename>
       <what>input,output,metadata</what>
     </Print>
-
     <Plot name="plotGPCustom">
       <plotSettings>
         <plot>

@@ -8,11 +8,15 @@
     <description>
       Tests using NetCDF as a readable database format.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Read</WorkingDir>
     <Sequence>read,write</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -47,7 +51,7 @@
         <pivotParameter>x</pivotParameter>
       </options>
     </HistorySet>
-    <DataSet name='nd_data'>
+    <DataSet name="nd_data">
       <Input>c</Input>
       <Output>f</Output>
       <Index var="x">f</Index>
@@ -75,4 +79,5 @@
       <source>nd_data</source>
     </Print>
   </OutStreams>
+
 </Simulation>

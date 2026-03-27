@@ -22,6 +22,7 @@
       </revision>
       <revision author="alfoa" date="2018-09-20">This test is now a requirement test.</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-RA-7</requirements>
   </TestInfo>
@@ -30,6 +31,7 @@
     <WorkingDir>limitSurface_integral</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -87,7 +89,6 @@
   </Models>
 
   <Functions>
-    <!--External file=&quot;limitSurface_integral/goalFunctionTest&quot; name=&quot;goalFunctionForLimitSurface&quot;-->
     <External file="goalFunctionTest" name="goalFunctionForLimitSurface">
       <variables>z</variables>
     </External>
@@ -140,20 +141,12 @@
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralWeighted</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceWeightedPb_dump</Output>
-      <!--
-         NOT ALLOWED ANYMORE:
-        <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output>
-      -->
     </PostProcess>
     <PostProcess name="ComputeLimitSurfaceIntegralUnWeighted">
       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralUnWeightedWithBounds</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceUnWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceUnWeightedPb_dump</Output>
-      <!--
-         NOT ALLOWED ANYMORE:
-        <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output>
-      -->
     </PostProcess>
   </Steps>
 

@@ -4,6 +4,7 @@
     <WorkingDir>scgpc</WorkingDir>
     <Sequence>makeG, trainG, testG, stats, printG, printRomG</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -21,6 +22,9 @@
         ans = x1 + x2 with analytic mean = 4.7, variance = 3.565
         ans = x1**2 + x2**2 with analytic mean = 14.655, variance = 215.638125
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Distributions>

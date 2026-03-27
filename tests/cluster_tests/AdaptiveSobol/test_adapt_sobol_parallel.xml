@@ -10,6 +10,7 @@
       pbs
       <runQSUB/>
     </mode>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

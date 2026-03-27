@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Samplers/ROM/tensorflow_keras.LSTMFromFile</name>
     <author>talbpaul</author>
@@ -10,11 +10,15 @@
       Uses sequential training, where three consecutive integers should yield the next
       consecutive integer, e.g. $f([4, 5, 6]) = 7$.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>loadTraining, train, loadTesting, sample, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -49,7 +53,6 @@
 
   <Models>
     <ROM name="lstm" subType="KerasLSTMClassifier">
-      <!-- Common setups -->
       <Features>presequence</Features>
       <Target>nextval</Target>
       <pivotParameter>t</pivotParameter>
@@ -69,7 +72,6 @@
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
-      <!-- Setups for LSTM -->
       <LSTM name="lstm1">
         <activation>tanh</activation>
         <dim_out>32</dim_out>
@@ -101,16 +103,16 @@
     <DataSet name="training">
       <Input>presequence</Input>
       <Output>nextval</Output>
-      <Index var='t'>presequence</Index>
+      <Index var="t">presequence</Index>
     </DataSet>
     <DataSet name="testing">
       <Input>presequence</Input>
-      <Index var='t'>presequence</Index>
+      <Index var="t">presequence</Index>
     </DataSet>
     <DataSet name="rom_samples">
       <Input>presequence</Input>
       <Output>nextval</Output>
-      <Index var='t'>presequence</Index>
+      <Index var="t">presequence</Index>
     </DataSet>
   </DataObjects>
 
@@ -120,4 +122,5 @@
       <source>rom_samples</source>
     </Print>
   </OutStreams>
+
 </Simulation>

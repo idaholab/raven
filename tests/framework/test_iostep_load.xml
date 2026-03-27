@@ -23,13 +23,16 @@
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="maljdan" date="2016-06-27">Adjusting the inputs and outputs of two test cases to match what the loaded files read.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-RA-2 R-F-6</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir runRelative="True">test_iostep_load</WorkingDir>
     <Sequence>test_read_in,test_rewrite</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

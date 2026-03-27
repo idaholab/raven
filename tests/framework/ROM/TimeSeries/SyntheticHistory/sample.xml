@@ -6,12 +6,16 @@
     <created>2022-06-29</created>
     <classesTested>SupervisedLearning.SyntheticHistory,TSA.ARMA</classesTested>
     <description>Tests the ability to load and sample ARMA created by SyntheticHistory ROM.</description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>ARMA</WorkingDir>
     <Sequence>read, sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

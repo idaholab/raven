@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="maljdan" date="2017-09-19">Adding a maxQueueSize for testing a new feature.</revision>
       <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-IS-8</requirements>
   </TestInfo>
@@ -27,6 +28,7 @@
     <batchSize>4</batchSize>
     <maxQueueSize>100</maxQueueSize>
     <internalParallel>True</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

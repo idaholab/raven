@@ -20,6 +20,7 @@
       <revision author="talbpaul" date="2016-09-15">    other test updates</revision>
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
       <revision author="wangc" date="2021-08-10">Replace subType of SciKitLearn ROM with SKLtype, and Remove SKLtype</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -30,6 +31,7 @@
       train,
       resample
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -37,7 +39,6 @@
       <variables>X,Y,Z</variables>
     </ExternalModel>
     <ROM name="modelUnderTest" subType="LassoCV">
-      <!-- Using all of the defaults -->
       <Features>X,Y</Features>
       <Target>Z</Target>
       <eps>1e-3</eps>
@@ -54,7 +55,6 @@
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>

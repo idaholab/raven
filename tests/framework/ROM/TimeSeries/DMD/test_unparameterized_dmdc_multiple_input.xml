@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.UnparameterizedDMDCMultipleInput</name>
@@ -9,12 +9,16 @@
       This test extends the UnparameterizedDMDC test by including multiple inputs (actuators). The
       structure of this test is the same as the UnparameterizedDMDC test.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>DMDC/UnparameterizedDMDCMultipleInput</WorkingDir>
     <Sequence>readTrainData,DMDCTrain,stats,writeOut,runDMDc,dumpROM</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -48,29 +52,19 @@
   </Steps>
 
   <Files>
-    <!-- We load synthetic data with 1 time, 2 actuators (u), 3 states (x) and 2 outputs (y) -->
-    <!-- Note: Adjacent rows should have constant time interval for DMDC -->
     <Input name="TrainDataFile">../trainingData/BOP_Data_index_unPara_multiple_U.csv</Input>
     <Input name="rom_pickle" type="">DMDrom.pk</Input>
   </Files>
 
   <Models>
     <ROM name="DMDrom" subType="DMDC">
-      <!-- Target contains Time, StateVariable Names (x) and OutputVariable Names (y) in training data -->
       <Target>Time,x1,x2,x3,y1,y2</Target>
-      <!-- Actuator Variable Names (u) -->
       <actuators>u1,u2</actuators>
-      <!-- State Variable Names -->
       <stateVariables>x1,x2,x3</stateVariables>
-      <!-- Pivot variable -->
       <pivotParameter>Time</pivotParameter>
-      <!-- rankSVD: -1 = No truncation, 0 = optimized truncation, positive integer = truncation level -->
       <rankSVD>-1</rankSVD>
-      <!-- SubtractNormUXY: True will subtract the initial values from U, X, Y -->
       <subtractNormUXY>True</subtractNormUXY>
-      <!-- Features are the variable names for predictions: Actuators "u" and initial states -->
       <Features>u1,u2,x1_init,x2_init,x3_init</Features>
-      <!-- Initialization Variables -->
       <initStateVariables>x1_init,x2_init,x3_init</initStateVariables>
     </ROM>
   </Models>
@@ -152,4 +146,5 @@
     </HistorySet>
     <DataSet name="rom_stats"/>
   </DataObjects>
+
 </Simulation>

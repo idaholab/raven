@@ -16,16 +16,20 @@
     <analytic>
       This test uses Rosenbrock function.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>rosenbrockDiskConstrainedInvLin</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" >
+    <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">rosenbrock</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
@@ -42,11 +46,11 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='rosenbrock_dist_x'>
+    <Uniform name="rosenbrock_dist_x">
       <lowerBound>-1.5</lowerBound>
       <upperBound>1.5</upperBound>
     </Uniform>
-    <Uniform name='rosenbrock_dist_y'>
+    <Uniform name="rosenbrock_dist_y">
       <lowerBound>-1.5</lowerBound>
       <upperBound>1.5</upperBound>
     </Uniform>
@@ -59,7 +63,6 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-
       <GAparams>
         <populationSize>30</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
@@ -71,25 +74,22 @@
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="invLinear"></fitness>
+        <fitness type="invLinear"/>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
-
       <convergence>
         <AHDp>0.0</AHDp>
       </convergence>
-
       <variable name="x">
         <distribution>rosenbrock_dist_x</distribution>
       </variable>
       <variable name="y">
         <distribution>rosenbrock_dist_y</distribution>
       </variable>
-
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    <Constraint class='Functions' type='External'>constraint1</Constraint>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Constraint class="Functions" type="External">constraint1</Constraint>
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -120,27 +120,28 @@
     </External>
   </Functions>
 
-    <DataObjects>
-      <PointSet name="placeholder"/>
-      <PointSet name="optOut">
-        <Input>x,y</Input>
-        <Output>ans</Output>
-      </PointSet>
-      <PointSet name="opt_export">
-        <Input>trajID</Input>
-        <Output>x,y,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
-      </PointSet>
-    </DataObjects>
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+    </PointSet>
+  </DataObjects>
 
-    <OutStreams>
-      <Print name="optOut">
-        <type>csv</type>
-        <source>optOut</source>
-      </Print>
-      <Print name="opt_export">
-        <type>csv</type>
-        <source>opt_export</source>
-        <clusterLabel>trajID</clusterLabel>
-      </Print>
-    </OutStreams>
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
 </Simulation>

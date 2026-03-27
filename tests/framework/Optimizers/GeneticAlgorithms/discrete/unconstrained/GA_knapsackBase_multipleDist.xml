@@ -9,6 +9,9 @@
       This test is designed to find the optimal solution of a heterogenous knapsack problem.
       This test is design to handle multiple distributions
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -16,21 +19,22 @@
     <Sequence>opt, print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
     <MultiRun name="opt" re-seeding="2286">
-      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
-      <Model          class="Models"      type="ExternalModel"    >hetKbase</Model>
-      <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet"         >opt_export</SolutionExport>
-      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">hetKbase</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAoptimizer</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input  class="DataObjects"  type="PointSet"  >optOut</Input>
-      <Input  class="DataObjects"  type="PointSet"  >opt_export</Input>
-      <Output class="OutStreams"   type="Print"     >PrintOptOut</Output>
-      <Output class="OutStreams"   type="Print"     >PrintOptOut_export</Output>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">PrintOptOut</Output>
+      <Output class="OutStreams" type="Print">PrintOptOut_export</Output>
     </IOStep>
   </Steps>
 
@@ -40,7 +44,7 @@
       <upperBound>4</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
-     <UniformDiscrete name="unif_dist_wRepl_med">
+    <UniformDiscrete name="unif_dist_wRepl_med">
       <lowerBound>10</lowerBound>
       <upperBound>14</upperBound>
       <strategy>withReplacement</strategy>
@@ -59,7 +63,6 @@
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
       </samplerInit>
-
       <GAparams>
         <populationSize>10</populationSize>
         <reproduction>
@@ -77,11 +80,9 @@
         <parentSelection>rouletteWheel</parentSelection>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
-
       <convergence>
         <objective>-1</objective>
       </convergence>
-
       <variable name="proj1">
         <distribution>unif_dist_wRepl_low</distribution>
         <initial>0,1,2,3,4,0,1,2,3,4</initial>
@@ -94,7 +95,6 @@
         <distribution>unif_dist_wRepl_high</distribution>
         <initial>101,102,103,104,100,101,102,103,104,100</initial>
       </variable>
-
       <objective>planValue</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GeneticAlgorithm>

@@ -9,6 +9,9 @@
       This test is designed to find the optimal solution of a basic knapsack problem using tournament select.
       optimal solution of the knapsack problem is: elements 2 8 and 10 which gives the value set to 11.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -16,29 +19,30 @@
     <Sequence>opt, print, printExport</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
     <MultiRun name="opt" re-seeding="2286">
-      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
-      <Model          class="Models"      type="ExternalModel"    >Kbase</Model>
-      <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet"         >opt_export</SolutionExport>
-      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">Kbase</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAoptimizer</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input  class="DataObjects"  type="PointSet"  >optOut</Input>
-      <Output class="OutStreams"   type="Print"     >PrintOptOut_1</Output>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">PrintOptOut_1</Output>
     </IOStep>
     <IOStep name="printExport">
-      <Input  class="DataObjects"  type="PointSet"  >opt_export</Input>
-      <Output class="OutStreams"   type="Print"     >PrintOptOut_export_1</Output>
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">PrintOptOut_export_1</Output>
     </IOStep>
   </Steps>
 
   <Distributions>
     <UniformDiscrete name="unif_dist_wRepl">
-      <lowerBound>0</lowerBound>   <!-- 0 implies not chosen -->
+      <lowerBound>0</lowerBound>
       <upperBound>1</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
@@ -51,7 +55,6 @@
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
       </samplerInit>
-
       <GAparams>
         <populationSize>14</populationSize>
         <reproduction>
@@ -69,11 +72,9 @@
         <parentSelection>tournamentSelection</parentSelection>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
-
       <convergence>
         <objective>-1</objective>
       </convergence>
-
       <variable name="proj1">
         <distribution>unif_dist_wRepl</distribution>
         <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
@@ -114,7 +115,6 @@
         <distribution>unif_dist_wRepl</distribution>
         <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
       </variable>
-
       <objective>planValue</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GeneticAlgorithm>

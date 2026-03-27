@@ -8,7 +8,6 @@
     <description>
        An example of using RFE feature selection exercising supervised sklearn methods,
        specifically the svm|SVR model is tested here.
-       
        Note, all of the tests in SKLearn operate on a 2D input domain with
        the goal of fitting a paraboloid function. The input dimensions are
        of largely different scales and one dimension is off-centered from
@@ -19,6 +18,7 @@
     </description>
     <revisions>
       <revision author="aalfonsi" date="2022-11-16">Added feature selection test for SKlearn model</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -30,6 +30,7 @@
       stats_rom,
       export_rom_stats
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -67,7 +68,6 @@
   <ExternalXML node="Samplers" xmlToLoad="sharedXMLblocks/sharedSamplers.xml"/>
   <ExternalXML node="Steps" xmlToLoad="sharedXMLblocks/sharedSteps.xml"/>
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>

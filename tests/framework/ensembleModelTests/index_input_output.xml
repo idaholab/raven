@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ensembleModelTests.indexInputOutput</name>
@@ -7,11 +8,15 @@
     <description>
       Tests that an index can be depended on by variables in both in input and output space of an ensembled model.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>IndexInputOutput</WorkingDir>
     <Sequence>sample,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -23,7 +28,7 @@
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">step_out</Input>
-      <Output class="OutStreams"  type="Print">step_out</Output>
+      <Output class="OutStreams" type="Print">step_out</Output>
     </IOStep>
   </Steps>
 

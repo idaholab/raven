@@ -28,6 +28,9 @@ sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
 
+from ravenframework.utils import randomUtils
+randomUtils.randomSeed(5489) #initialize numpy RNG with set seed
+
 from ravenframework.Optimizers.mutators.mutators import returnInstance
 import xml.etree.ElementTree as ET
 from ravenframework import MessageHandler

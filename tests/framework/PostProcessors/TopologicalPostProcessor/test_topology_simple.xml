@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/TopologicalPostProcessor.topology_simple</name>
     <author>maljdan</author>
@@ -20,8 +20,10 @@
       <revision author="talbpaul" date="2016-02-08">Converted failing tests.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
@@ -31,13 +33,13 @@
       decompose3,
       decompose4
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="../hill" name="testFunction" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <!-- 4 Clusters (no simplification) -->
     <PostProcessor name="AMSC1" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -48,7 +50,6 @@
       <weighted>True</weighted>
       <response>Z</response>
     </PostProcessor>
-    <!-- 3 Clusters -->
     <PostProcessor name="AMSC2" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -60,7 +61,6 @@
       <simplification>0.005</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
-    <!-- 2 Clusters -->
     <PostProcessor name="AMSC3" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -72,7 +72,6 @@
       <simplification>0.05</simplification>
       <persistence>difference</persistence>
     </PostProcessor>
-    <!-- 1 Clusters -->
     <PostProcessor name="AMSC4" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -106,14 +105,12 @@
   </Samplers>
 
   <Steps>
-    <!-- Sample the data from the test function -->
     <MultiRun name="sampleData" pauseAtEnd="false" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
       <Output class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
-    <!-- Perform the topological decomposition -->
     <PostProcess name="decompose1">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC1</Model>
@@ -141,7 +138,6 @@
   </Steps>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="myDump1">
       <type>csv</type>
       <source>outTPS1</source>
@@ -161,7 +157,6 @@
   </OutStreams>
 
   <DataObjects>
-    <!-- The input PointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
@@ -170,7 +165,6 @@
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <!-- The output PointSet objects -->
     <PointSet name="outTPS1">
       <Input>X,Y</Input>
       <Output>Z</Output>

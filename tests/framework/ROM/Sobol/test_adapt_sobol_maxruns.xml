@@ -10,7 +10,8 @@
       a specified number of samples (maxRuns in the sampler).
     </description>
     <revisions>
-      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+      <revision author="talbpaul" date="2018-12-20">moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -18,6 +19,7 @@
     <WorkingDir>AdaptSobolMax</WorkingDir>
     <Sequence>make,train,meta,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

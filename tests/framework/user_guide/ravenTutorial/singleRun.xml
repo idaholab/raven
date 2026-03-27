@@ -5,6 +5,7 @@
     <Sequence>single</Sequence>
     <WorkingDir>singleRunAnalysis</WorkingDir>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -16,10 +17,13 @@
       This test is an example for the user guide to draw from.  It demonstrates typical usage
       of SingleRun.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
-  
+
   <Files>
-      <Input name="referenceInput.xml" type="input">
+    <Input name="referenceInput.xml" type="input">
           ../commonFiles/referenceInput.xml
       </Input>
   </Files>
@@ -46,14 +50,15 @@
 
   <DataObjects>
     <HistorySet name="history">
-        <Input>InputPlaceHolder</Input>
-        <Output>A,B,C,D,time</Output>
+      <Input>InputPlaceHolder</Input>
+      <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
+
   <OutStreams>
     <Print name="print_history">
-        <type>csv</type>
-        <source>history</source>
+      <type>csv</type>
+      <source>history</source>
     </Print>
   </OutStreams>
 

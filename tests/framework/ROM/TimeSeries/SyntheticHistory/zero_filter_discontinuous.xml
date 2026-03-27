@@ -15,11 +15,15 @@
       Tests the ARMA model handling of zero filtering when filtered values fall in the middle of the array.
       This test duplicates the framework/ROM/TimeSeries/ARMA.ZeroFilterDiscontinuous using the TSA module
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>ZeroFilterDiscontinuous</WorkingDir>
     <Sequence>load, train, meta, serialize, sample</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
