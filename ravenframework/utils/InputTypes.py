@@ -639,3 +639,13 @@ def makeEnumType(name, xmlName, enumList):
 
   newEnum.createClass(name, xmlName, enumList)
   return newEnum
+
+
+class LegacyAnyType(InputType):
+  """
+    This is a class to allow anything. This should not be used for new code.
+    This is basically says InputData does not handle this.
+  """
+  pass
+
+LegacyAnyType.createClass("legacy_any_type", "xsd:anyType")

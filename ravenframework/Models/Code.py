@@ -82,6 +82,23 @@ class Code(Model):
     FileargsInput.addParam("extension", InputTypes.StringType, False)
     inputSpecification.addSub(FileargsInput)
     ## End file arguments tag
+    stoppingFunction = InputData.parameterInputFactory("StoppingFunction",
+                                                   contentType=InputTypes.StringType,
+                                                   printPriority=200,
+                                                   descr=r"""user provided
+                                                            function to halt the simulation if a certain condition is
+                                                            met. The criterion or criteria is or are defined through an external
+                                                            RAVEN python function (defined in the $<Functions>$ XML node).
+                                                            The function must return a ``bool'':
+                                                            \\begin{itemize}
+                                                              \\item False, if the simulation can continue (i.e. the criteria are not met)
+                                                              \\item True, if the simulation must STOP (i.e. the criteria are met)
+                                                            \\end{itemize}""")
+    stoppingFunction.addParam("class", InputTypes.StringType,
+        descr=r"""The RAVEN class for this source. Options include \xmlString{Functions}. """)
+    stoppingFunction.addParam("type", InputTypes.StringType,
+        descr=r"""The RAVEN type for this source. Options include only \xmlNode{External} type.""")
+    inputSpecification.addSub(stoppingFunction)
 
     return inputSpecification
 
@@ -122,6 +139,8 @@ class Code(Model):
     self._ravenWorkingDir = None # RAVEN's working dir
     self.commandSeparator = "&&" # command separator
     self._isThereACode = True    # it is a code
+    # assembler object for stopping condition
+    self.addAssemblerObject('StoppingFunction', InputData.Quantity.zero_to_one)
 
   def applyRunInfo(self, runInfo):
     """
@@ -310,6 +329,13 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
+    stoppingFunction = None
+    if 'StoppingFunction' in self.assemblerDict:
+      self.raiseADebug('StoppingFunction object: '+str(self.assemblerDict['StoppingFunction']))
+      stoppingFunction = self.assemblerDict['StoppingFunction'][0][3]
+    # add stopping function if any
+    self.code.addStoppingFunctionPointer(stoppingFunction)
+
     self.workingDir = os.path.join(runInfoDict['WorkingDir'], runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
@@ -529,6 +555,8 @@ class Code(Model):
     sampleDirectory = os.path.join(os.getcwd(),metaData['subDirectory'])
     localenv = dict(os.environ)
     localenv['PWD'] = str(sampleDirectory)
+    if not os.path.exists(os.path.dirname(os.path.join(sampleDirectory,codeLogFile))):
+      os.makedirs(os.path.dirname(os.path.join(sampleDirectory,codeLogFile)), exist_ok=True)
     outFileObject = open(os.path.join(sampleDirectory,codeLogFile), 'w', bufferSize)
 
     found = False
@@ -571,25 +599,38 @@ class Code(Model):
     command = command.replace("%NUM_CPUS%",kwargs['NUM_CPUS'])
     command = command.replace("%PYTHON%", sys.executable)
 
-    if "raven_framework" in sys.executable:
+    # The %RAVENEXECUTABLE% placeholder can be used in a RAVEN-runs-RAVEN workflow to reuse the way the outer RAVEN was
+    # run to run the inner RAVEN workflow. There are a few ways that RAVEN could be run, including
+    #   1. From python: `python /path/to/raven_framework.py my_input.xml`
+    #   2. From script (source or pip-installed): `/path/to/raven/raven_framework my_input.xml`
+    #   3. From macOS/Linux executable: `/some/path/raven_framework my_input.xml`
+    #   4. From Windows executable: `/some/path/raven_framework.exe my_input.xml`
+    exec_name = os.path.basename(sys.executable)
+    arg_name = os.path.basename(sys.argv[0])
+    if "raven_framework" in exec_name:
+      # Was run from a pre-built executable (raven_framework or raven_framework.exe)
       ravenExecutable = sys.executable
-    elif "python" in os.path.basename(sys.executable) \
-          and "raven_framework" in sys.argv[0] \
-          and sys.argv[0].endswith(".py"):
-      # command was "python path/to/raven_framework.py ..."
+    elif arg_name == "raven_framework":
+      # Was run with `raven_framework` script
+      ravenExecutable = sys.argv[0]
+    elif "python" in exec_name and arg_name == "raven_framework.py":
+      # Was run with `python raven_framework.py`
       ravenExecutable = f"{sys.executable} {sys.argv[0]}"
+    # Couldn't infer how the outer RAVEN was run
     else:
-      ravenExecutable = ''
+      ravenExecutable = ""
 
-    if "%RAVENEXECUTABLE%" in command and ravenExecutable == '':
-      message = f"""The command contains %RAVENEXECUTABLE% but the way the outer framework was run
+    if "%RAVENEXECUTABLE%" in command and ravenExecutable == "":
+      message = """The command contains %RAVENEXECUTABLE% but the way the outer framework was run
       could not be inferred. Only using scripts or executables that contain 'raven_framework' or
       using python to run a .py file with 'raven_framework' in the name is supported. Possibilities
       considered were:
-      1. 'raven_framework' in sys.executable (received: {sys.executable})
-      2. 'raven_framework' or 'raven_framework.py' in sys.argv[0] (received: {sys.argv[0]})
-      Note that users may also directly specify the path to an appropriate raven_framework
-      executable instead of using the %RAVENEXECUTABLE% placeholder."""
+        1. RAVEN was run from the raven_framework.py script
+        2. RAVEN was run from a raven_framework script
+        3. RAVEN was run from a prebuilt executable (raven_framework on macOS and Linux, raven_framework.exe on Windows)
+      The path to a `raven_framework` script or executable can be specified directly instea of using the
+      %RAVENEXECUTABLE% placeholder if RAVEN is unable to infer how the RAVEN was initially run."""
+      self.raiseADebug(f"Failed to determine appropriate value for %RAVENEXECUTABLE%. {sys.executable=}, {sys.argv[0]=}")
       self.raiseAnError(IOError, message)
 
     command = command.replace("%RAVENEXECUTABLE%", ravenExecutable)
@@ -609,18 +650,70 @@ class Code(Model):
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
-    process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-    if self.maxWallTime is not None:
-      timeout = time.time() + self.maxWallTime
+    process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(),
+                                              stdout=outFileObject, stderr=outFileObject,
+                                              cwd=localenv['PWD'], env=localenv)
+
+    # we create a variable that monitors the reason for the code stopping
+    # Options are:
+    # - Normal: Normal termination
+    # - Timeout: Timeout of the simulation in the driven code
+    # - StoppingCondtion: Normal Termination, Stopping condition triggered
+
+    # default is Normal
+    reasonStoppingCode = 'Normal'
+
+    # If we have either a wall time or an online stopping-criterion check, we need our custom loop.
+    if self.maxWallTime is not None or self.code.hasOnlineStopCriteriaCheck:
+      stoppingCriteriaTimeInterval = (
+            self.code.getOnlineStopCriteriaTimeInterval()
+            if self.code.hasOnlineStopCriteriaCheck else None
+      )
+      # If we have a maxWallTime, set up the "timeout" value
+      if self.maxWallTime is not None:
+        currentTime = time.time()
+        timeout = currentTime + self.maxWallTime
+      else:
+        timeout = None
+      # If we only have an online stop-criterion, give the underlying code
+      # some time to initialize before the first check
+      if self.maxWallTime is None and self.code.hasOnlineStopCriteriaCheck:
+        time.sleep(stoppingCriteriaTimeInterval)
+      # We'll record the last time we did a stop-criterion check
+      lastCheck = time.time()
       while True:
-        time.sleep(0.5)
+        # Decide how long to sleep this iteration:
+        #   - If we have a maxWallTime, we do short sleeps (0.5 sec)
+        #   - If no wallTime, we sleep the entire stop-check interval
+        sleepInterval = 0.5 if self.maxWallTime is not None else stoppingCriteriaTimeInterval
+        time.sleep(sleepInterval)
+        # Poll the subprocess to update its returncode if it finished
         process.poll()
-        if time.time() > timeout and process.returncode is None:
-          self.raiseAWarning('walltime exceeded in run in working dir: '+str(metaData['subDirectory'])+'. Killing the run...')
+        # 1) Check wall time, if applicable
+        if timeout is not None and time.time() > timeout and process.returncode is None:
+          self.raiseAWarning('walltime exceeded in run in working dir: '
+                             + str(metaData['subDirectory']) + '. Killing the run...')
           process.kill()
           process.returncode = -1
-        if process.returncode is not None or time.time() > timeout:
+          reasonStoppingCode = 'Timeout'
+        # 2) Check stop criteria, if applicable
+        #    We only check if we've gone at least `stoppingCriteriaTimeInterval`
+        #    since the last check
+        if (self.code.hasOnlineStopCriteriaCheck and stoppingCriteriaTimeInterval is not None):
+          if time.time() - lastCheck >= stoppingCriteriaTimeInterval:
+            stopSim = self.code.onlineStopCriteriaCheck(command, codeLogFile, metaData['subDirectory'])
+            if stopSim:
+              self.raiseAMessage(f'Code "{self.code.name}". Job ID: "{str(process.pid)}" '
+                                 f'(type: "{self.code.printTag}") triggered a stopping '
+                                 'criteria to halt the run. Return code is set to 0!')
+              process.kill()
+              process.returncode = 0
+              reasonStoppingCode = 'StoppingCondition'
+            lastCheck = time.time()
+        # 3) If the process has finished or we have (re-)exceeded the timeout, exit loop
+        if process.returncode is not None or (timeout is not None and time.time() > timeout):
           break
+    # Otherwise, if no special checks are needed, just wait for the process to complete
     else:
       process.wait()
 
@@ -687,6 +780,9 @@ class Code(Model):
           pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
+        # add stopping reason in the metadata realization
+        # (we dont add this in the raven case, because this flag will be implicitly inheritated from the inner raven)
+        returnDict.update({'StoppingReason': reasonStoppingCode})
         returnValue = (kwargs['SampledVars'],returnDict)
         exportDict = self.createExportDictionary(returnValue)
       else:
@@ -799,7 +895,10 @@ class Code(Model):
     """
     evaluation = finishedJob.getEvaluation()
     if not hasattr(evaluation, 'pop'):
-      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " for job " + str(finishedJob.identifier) + ":" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
+      self.raiseAWarning("No pop in evaluation " + repr(evaluation) + " of type " + str(type(evaluation)) + " for job " + str(finishedJob.identifier) + ":" + repr(finishedJob) + " with return code "+ repr(finishedJob.getReturnCode()))
+      if isinstance(evaluation, BaseException):
+        import traceback
+        traceback.print_exception(evaluation)
 
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)

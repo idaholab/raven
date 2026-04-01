@@ -10,11 +10,15 @@
       a functional constraint to reach the optimal point.
       The test is designed by @talbpaul and is applied to simulated annealing.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>optimize, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -35,7 +39,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='dist'>
+    <Uniform name="dist">
       <lowerBound>-1</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>
@@ -69,7 +73,7 @@
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-            <Constraint class='Functions' type='External'>goal</Constraint>
+      <Constraint class="Functions" type="External">goal</Constraint>
     </SimulatedAnnealing>
   </Optimizers>
 

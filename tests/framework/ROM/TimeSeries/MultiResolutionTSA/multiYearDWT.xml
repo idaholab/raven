@@ -9,12 +9,16 @@
       Tests the MultiResolutionTSA ROM using multiple macroSteps/years and the FilterBankDWT algorithm.
       An ARMA model is trained on each detail level.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>MultiYearDWT</WorkingDir>
     <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -62,7 +66,7 @@
       <fourier target="signal">
         <periods>4, 15</periods>
       </fourier>
-      <filterbankdwt target="signal" seed='42'>
+      <filterbankdwt target="signal" seed="42">
         <family>db10</family>
         <levels>2</levels>
       </filterbankdwt>
@@ -72,7 +76,7 @@
         <Features>scaling</Features>
         <pivotParameter>seconds</pivotParameter>
         <gaussianize target="signal"/>
-        <arma target="signal" seed='42'>
+        <arma target="signal" seed="42">
           <P>2</P>
           <Q>3</Q>
         </arma>

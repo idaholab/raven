@@ -9,11 +9,15 @@
       Tests the mechanics of clusterering the &quot;time&quot; subspace of the ARMA ROM, with
       a random choice of the clustered ROMs in the evaluation stage
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>ClusteredRand</WorkingDir>
     <Sequence>load, train, sample, write</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Samplers>

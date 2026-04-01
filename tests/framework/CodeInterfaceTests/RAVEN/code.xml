@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/RAVEN.Code</name>
@@ -14,6 +15,7 @@
       <revision author="ZHOUJ2" date="2019-10-17"> This test will run twice to
       make sure if a working directory is already exist, warning message will be
       shown up. Assures the results and the subdirectory generated are identical.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -21,6 +23,7 @@
     <WorkingDir>Code</WorkingDir>
     <batchSize>1</batchSize>
     <Sequence>sample,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -38,16 +41,16 @@
   </Steps>
 
   <Files>
-    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
-    <Input name="proj" type="exec" perturbable='False' >projectile.py</Input>
+    <Input name="inner_input" type="raven">inner_sample.xml</Input>
+    <Input name="proj" type="exec" perturbable="False">projectile.py</Input>
   </Files>
 
   <Models>
     <Code name="raven" subType="RAVEN">
-        <executable>%RAVENEXECUTABLE%</executable>
-        <outputExportOutStreams>inner_out</outputExportOutStreams>
-        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:v0_dist|lowerBound</alias>
-        <alias variable="innerUpperBound" type="input">Distributions|Uniform@name:v0_dist|upperBound</alias>
+      <executable>%RAVENEXECUTABLE%</executable>
+      <outputExportOutStreams>inner_out</outputExportOutStreams>
+      <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:v0_dist|lowerBound</alias>
+      <alias variable="innerUpperBound" type="input">Distributions|Uniform@name:v0_dist|upperBound</alias>
     </Code>
   </Models>
 
@@ -66,11 +69,11 @@
     <Grid name="grid">
       <variable name="innerLowerBound">
         <distribution>dist_lower</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="1">0 1</grid>
       </variable>
       <variable name="innerUpperBound">
         <distribution>dist_upper</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="1">0 1</grid>
       </variable>
     </Grid>
   </Samplers>

@@ -11,34 +11,38 @@
       on a time dependent surrogate model. The transformation is applied on the feature space, which
       is correlated since the sampling table (custom) has been generated via multi variate distributions.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>TimeDepSKL</WorkingDir>
     <Sequence>sample,train,resample,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
     <MultiRun name="sample">
-      <Input   class="DataObjects" type="PointSet">placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">projectile</Model>
-      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
-      <Output  class="DataObjects" type="HistorySet">train</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="CustomSampler">correlatedSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">train</Output>
     </MultiRun>
     <MultiRun name="resample">
-      <Input   class="DataObjects" type="PointSet">placeholder</Input>
-      <Model   class="Models"      type="ROM">knn</Model>
-      <Sampler class="Samplers"    type="CustomSampler">correlatedSampler</Sampler>
-      <Output  class="DataObjects" type="PointSet">innerPS</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">knn</Model>
+      <Sampler class="Samplers" type="CustomSampler">correlatedSampler</Sampler>
+      <Output class="DataObjects" type="PointSet">innerPS</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input  class="DataObjects" type="PointSet">innerPS</Input>
-      <Output class="OutStreams"  type="Print">skl_pca_samples</Output>
+      <Input class="DataObjects" type="PointSet">innerPS</Input>
+      <Output class="OutStreams" type="Print">skl_pca_samples</Output>
     </IOStep>
     <RomTrainer name="train">
-      <Input  class="DataObjects" type="PointSet">train</Input>
-      <Output class="Models"      type="ROM">knn</Output>
+      <Input class="DataObjects" type="PointSet">train</Input>
+      <Output class="Models" type="ROM">knn</Output>
     </RomTrainer>
   </Steps>
 
@@ -85,11 +89,11 @@
   <Files>
     <Input name="samples_custom_sampler.csv" type="">samples_custom_sampler.csv</Input>
   </Files>
-  
+
   <Samplers>
     <CustomSampler name="correlatedSampler">
       <Source class="Files" type="">samples_custom_sampler.csv</Source>
-      <variable name="v0" />
+      <variable name="v0"/>
       <variable name="ang"/>
       <variable name="y0"/>
     </CustomSampler>

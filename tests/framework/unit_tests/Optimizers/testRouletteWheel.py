@@ -25,6 +25,10 @@ print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
+
+from ravenframework.utils import randomUtils
+randomUtils.randomSeed(5489) #initialize numpy RNG with set seed
+
 from ravenframework.Optimizers.parentSelectors.parentSelectors import returnInstance
 
 
@@ -67,6 +71,8 @@ popFitness = [7.2,1.3,9.5,2.0]
 popFitness = xr.DataArray(popFitness,
              dims=['chromosome'],
              coords={'chromosome': np.arange(np.shape(popFitness)[0])})
+popFitness = popFitness.to_dataset(name = 'test_RouletteWheel')
+
 nParents = 2
 parents = rouletteWheel(population, variables=optVars, fitness=popFitness, nParents=nParents)
 print('Roulette Wheel Parent Selection')

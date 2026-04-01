@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/RAVEN.Basic</name>
@@ -10,18 +11,20 @@
       Inner raven runs 100 MC samples, does basic stats, and returns the mean, sigma to the outer raven.
     </description>
     <analytic>
-      Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
-      the "attenuate" analytic model documentation.
+      Each sample in this test converges towards the analytic solutions discussed in the &quot;changing lower, upper bounds&quot; section of
+      the &quot;attenuate&quot; analytic model documentation.
     </analytic>
     <revisions>
-      <revision author="talbpaul" date="2018-05-02">added "fully-correlated" variable for innerUpperBound as a test of the mechanic</revision>
+      <revision author="talbpaul" date="2018-05-02">added &quot;fully-correlated&quot; variable for innerUpperBound as a test of the mechanic</revision>
       <revision author="talbpaul" date="2018-11-06">modified inner run to use grid for speed, consistent results</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Basic</WorkingDir>
     <Sequence>sample,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -38,15 +41,15 @@
   </Steps>
 
   <Files>
-    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+    <Input name="inner_input" type="raven">inner_sample.xml</Input>
   </Files>
 
   <Models>
     <Code name="raven" subType="RAVEN">
-        <executable>%RAVENEXECUTABLE%</executable>
-        <outputExportOutStreams>inner_out</outputExportOutStreams>
-        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
-        <alias variable="innerUpperBound" type="input">
+      <executable>%RAVENEXECUTABLE%</executable>
+      <outputExportOutStreams>inner_out</outputExportOutStreams>
+      <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
+      <alias variable="innerUpperBound" type="input">
           Distributions|Uniform@name:dist|upperBound,
           Samplers|Grid|constant@name:testSecondAlias
         </alias>
@@ -68,11 +71,11 @@
     <Grid name="grid">
       <variable name="innerLowerBound">
         <distribution>dist_lower</distribution>
-        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="2">0 1</grid>
       </variable>
       <variable name="innerUpperBound">
         <distribution>dist_upper</distribution>
-        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="2">0 1</grid>
       </variable>
     </Grid>
   </Samplers>

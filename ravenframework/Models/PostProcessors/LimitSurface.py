@@ -410,9 +410,9 @@ class LimitSurface(PostProcessorInterface):
     if self.name != exceptionGrid:
       self.listSurfPointNegative, self.listSurfPointPositive = listSurfPoint[self.name][:nNegPoints-1],listSurfPoint[self.name][nNegPoints:]
     if merge == True:
-      evals = np.hstack(evaluations.values())
-      listSurfPoints = np.hstack(listSurfPoint.values())
-      surfPoint = np.hstack(self.surfPoint.values())
+      evals = np.hstack(tuple(evaluations.values()))
+      listSurfPoints = np.hstack(tuple(listSurfPoint.values()))
+      surfPoint = np.hstack(tuple(self.surfPoint.values()))
       returnSurface = (surfPoint, evals, listSurfPoints) if returnListSurfCoord else (surfPoint, evals)
     else:
       returnSurface = (self.surfPoint, evaluations, listSurfPoint) if returnListSurfCoord else (self.surfPoint, evaluations)

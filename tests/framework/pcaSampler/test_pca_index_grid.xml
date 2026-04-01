@@ -4,7 +4,9 @@
     <WorkingDir>gridPCAIndex</WorkingDir>
     <Sequence>gridRun,Dump</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pcaSampler/gridPCA</name>
     <author>wangc</author>
@@ -13,6 +15,9 @@
     <description>
       Tests use of the PCA method to sample in gridded surrogate input space.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -38,11 +43,6 @@
         </covariance>
     </MultivariateNormal>
   </Distributions>
-
-  <!-- This test is used to test the input flexibility for multivariate normal distribution.
-       One can choose a subset from the original input space, and then using the multivariate
-       normal distribution to generate the perturbed data
-  -->
 
   <Samplers>
     <Grid name="myGrid">

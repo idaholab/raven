@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Samplers/ROM/tensorflow_keras.tf_cnn1d</name>
     <author>wangc</author>
@@ -11,8 +11,11 @@
       input, and accept (timeSteps, Features) as prediction input. Ensemble model is used
       in order to generate time-dependent input for CNN models.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <NumThreads>1</NumThreads>
@@ -22,6 +25,7 @@
       resample,
       print
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -29,7 +33,6 @@
       <variables>x,y,time,index,seqLength</variables>
     </ExternalModel>
     <ROM name="con1dROM" subType="KerasConvNetClassifier">
-      <!-- Common setups -->
       <Features>x</Features>
       <Target>y</Target>
       <loss>categorical_crossentropy</loss>
@@ -49,7 +52,6 @@
         <decay>0.0</decay>
         <lr>0.001</lr>
       </optimizerSetting>
-      <!-- Setups for CNN -->
       <Conv1D name="firstConv1D">
         <activation>relu</activation>
         <strides>1</strides>
@@ -91,7 +93,7 @@
     </ROM>
     <EnsembleModel name="ensembleModel" subType="">
       <Model class="Models" type="ExternalModel">
-        learnAlphabet      
+        learnAlphabet
         <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="HistorySet">learnAlphabetDS</TargetEvaluation>
       </Model>
@@ -102,7 +104,7 @@
       </Model>
     </EnsembleModel>
   </Models>
-  
+
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
@@ -125,7 +127,7 @@
       <constant name="seqLength">8</constant>
     </MonteCarlo>
   </Samplers>
-  
+
   <Steps>
     <MultiRun name="sample" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
@@ -209,7 +211,7 @@
       <Input>x</Input>
       <Output>y</Output>
       <Index var="time">x</Index>
-    </DataSet> 
+    </DataSet>
   </DataObjects>
 
   <OutStreams>
@@ -220,4 +222,5 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
+
 </Simulation>

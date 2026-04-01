@@ -20,6 +20,7 @@
     <WorkingDir>RELAP5ensemble2relaps</WorkingDir>
     <Sequence>testEnsemble2Relaps</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

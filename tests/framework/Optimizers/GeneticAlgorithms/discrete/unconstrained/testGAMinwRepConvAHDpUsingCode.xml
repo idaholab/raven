@@ -1,5 +1,4 @@
 <?xml version="1.0" ?>
-
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
     <name>framework/Optimizers/GeneticAlgorithms.MinwReplacementConvAHDpUsingCode</name>
@@ -11,16 +10,20 @@
       employing Models.Code for the objective function evaluation.
       This test is mechanical test of the GA and Code (Models) functionality.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>MinwReplacementConvAHDpUsingCode</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-      <Input name="proj_inp">input.i</Input>
+    <Input name="proj_inp">input.i</Input>
   </Files>
 
   <Steps>
@@ -41,12 +44,12 @@
   </Steps>
 
   <Distributions>
-    <UniformDiscrete name='v0_dist'>
+    <UniformDiscrete name="v0_dist">
       <lowerBound>10.0</lowerBound>
       <upperBound>20.0</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
-    <UniformDiscrete name='angle_dist'>
+    <UniformDiscrete name="angle_dist">
       <lowerBound>30</lowerBound>
       <upperBound>60</upperBound>
       <strategy>withReplacement</strategy>
@@ -60,7 +63,6 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
@@ -78,22 +80,18 @@
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
-
       <convergence>
         <AHDp>0.0</AHDp>
       </convergence>
-
       <variable name="v0">
         <distribution>v0_dist</distribution>
       </variable>
-
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
-
       <objective>r</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -109,39 +107,39 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
-
     </MonteCarlo>
   </Samplers>
 
-    <Models>
-      <Code name="projectile" subType="GenericCode">
-            <executable>../../../../../../../AnalyticModels/projectile.py</executable>
-            <clargs arg="python" type="prepend"/>
-            <clargs arg="-i" extension=".i" type="input"/>
-            <clargs arg="-o" type="output"/>
-      </Code>
-    </Models>
+  <Models>
+    <Code name="projectile" subType="GenericCode">
+      <executable>../../../../../../../AnalyticModels/projectile.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+  </Models>
 
-    <DataObjects>
-      <PointSet name="optOut">
-        <Input>v0,angle</Input>
-        <Output>r,t</Output>
-      </PointSet>
-      <PointSet name="opt_export">
-        <Input>trajID</Input>
-        <Output>v0,angle,r,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
-      </PointSet>
-    </DataObjects>
+  <DataObjects>
+    <PointSet name="optOut">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>v0,angle,r,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+    </PointSet>
+  </DataObjects>
 
-    <OutStreams>
-      <Print name="optOut">
-        <type>csv</type>
-        <source>optOut</source>
-      </Print>
-      <Print name="opt_export">
-        <type>csv</type>
-        <source>opt_export</source>
-        <clusterLabel>trajID</clusterLabel>
-      </Print>
-    </OutStreams>
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
 </Simulation>

@@ -35,7 +35,7 @@ def constraint(x,y):
     Evaluates the constraint function @ a given point (x,y)
     @ In, x, float, value of the design variable x
     @ In, y, float, value of the design variable y
-    @ Out, g(x,y), float, $g(x, y) = 25 - ((x+5.)**2 + (y+5.)**2)$
+    @ Out, g(x,y), float, $g(x, y) = 25 - ((x+5.)^2 + (y+5.)^2)$
             the way the constraint is designed is that
             the constraint function has to be >= 0,
             so if:

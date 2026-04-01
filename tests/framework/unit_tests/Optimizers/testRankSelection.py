@@ -25,6 +25,10 @@ print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
+
+from ravenframework.utils import randomUtils
+randomUtils.randomSeed(5489) #initialize numpy RNG with set seed
+
 from ravenframework.Optimizers.parentSelectors.parentSelectors import returnInstance
 
 
@@ -99,9 +103,12 @@ popFitness = xr.DataArray(popFitness,
                           dims=['chromosome'],
                           coords={'chromosome': np.arange(np.shape(popFitness)[0])})
 nParents = 2
+popFitness = popFitness.to_dataset(name = 'test_RankSelection')
+
 parents = rankSelection(population, variables=optVars, fitness=popFitness, nParents=nParents)
+print('*'*39)
 print('Rank based Parent Selection')
-print('*'*19)
+print('*'*39)
 print('selected parents are: {}'.format(parents))
 expectedParents = xr.DataArray([[3,5,6,2,1,4],
                                 [1,2,3,4,5,6]],

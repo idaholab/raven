@@ -10,12 +10,15 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2021-10-29">Added test to testify the fix for issue #1700</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-IS-3</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>./HDF5_with_strings</WorkingDir>
     <Sequence>read_in,dump_in_hdf5,extract_from_hdf5,rewrite</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -44,7 +47,7 @@
   <Databases>
     <HDF5 name="db" readMode="overwrite"/>
   </Databases>
-  
+
   <DataObjects>
     <HistorySet name="hs">
       <Input>ID</Input>

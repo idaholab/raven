@@ -5,7 +5,13 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 # load raven libraries
 . scripts/establish_conda_env.sh --load
 
+#If anything after this fails, this test fails.
+set -o errexit
 $PYTHON_CMD ${SCRIPT_DIR}/validate_xml.py
+
+$PYTHON_CMD ${SCRIPT_DIR}/gen_xsd.py ${SCRIPT_DIR}/generated_raven.xsd
+
+xmllint --schema ${SCRIPT_DIR}/generated_raven.xsd ${SCRIPT_DIR}/../tests/framework/user_guide/ravenTutorial/singleRun.xml
 
 #  #BUILD_DIR=${BUILD_DIR:=$HOME/raven_libs/build}
 #  #INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}

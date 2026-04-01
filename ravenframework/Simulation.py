@@ -23,6 +23,7 @@ import string
 import datetime
 import threading
 import time
+import xml.etree.ElementTree as ET
 import numpy as np
 
 from .BaseClasses import MessageUser
@@ -38,8 +39,9 @@ from . import Databases
 from . import Functions
 from . import OutStreams
 from .JobHandler import JobHandler
-from .utils import utils, TreeStructure, xmlUtils, mathUtils
+from .utils import utils, TreeStructure, xmlUtils, mathUtils, InputData, InputTypes
 from .utils.utils import ParallelLibEnum
+from .utils.randomUtils import randomSeed
 from . import Decorators
 from .Application import __QtAvailable
 from .Interaction import Interaction
@@ -193,6 +195,71 @@ class Simulation(MessageUser):
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
+  # this dictionary contains the static factory that returns the instance of one of the allowed entities in the simulation
+  # the keys are the name of the module that contains the instance of that specific entity
+  #Note that this is a class variable, not an instance variable because
+  # getInputSpecification uses it.
+  entityModules  = {}
+  entityModules['Steps'        ] = Steps
+  entityModules['DataObjects'  ] = DataObjects
+  entityModules['Samplers'     ] = Samplers
+  entityModules['Optimizers'   ] = Optimizers
+  entityModules['Models'       ] = Models
+  entityModules['Distributions'] = Distributions
+  entityModules['Databases'    ] = Databases
+  entityModules['Functions'    ] = Functions
+  entityModules['Files'        ] = Files
+  entityModules['Metrics'      ] = Metrics
+  entityModules['OutStreams'   ] = OutStreams
+
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class "cls". Warning, this class has missing sub input specifications.
+      @ In, None
+      @ Out, spec, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.ParameterInput)
+    verbs = InputTypes.makeEnumType('verbosity', 'verbosityType', ['silent', 'quiet', 'all', 'debug'])
+    spec.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity')
+    toFake = ["TestInfo", "RunInfo"]
+    for moduleName, module in cls.entityModules.items():
+      if module.factory.returnInputParameter:
+        spec.addSub(module.returnInputParameter())
+      else:
+        toFake.append(moduleName)
+        print(f"WARNING: missing returnInputParameter for {module}")
+    #XXX these should be handled by InputData, instead of faked.
+    for moduleName in toFake:
+      fakeSub = InputData.parameterInputFactory(moduleName,
+                                                contentType=InputTypes.LegacyAnyType)
+      spec.addSub(fakeSub)
+    return spec
+
+  @classmethod
+  def getXSDSchema(cls):
+    """
+      Method to get a full xsd schema element for a RAVEN input.
+      This can be written to a file, such as:
+      ET.ElementTree(Simulation.getXSDSchema()).write("raven.xsd")
+      Warning, there are multiple unspecified (AnyType) elements in this because
+      parts of RAVEN do not yet implement InputData all the way down to Simulation.
+      @ In, None
+      @ Out, base, ElementTree.Element, the root element of the schema.
+    """
+    inputSpecification = cls.getInputSpecification()
+    #the things needed for a XSD schema
+    base = ET.Element("xsd:schema")
+    base.set("version","1.0")
+    base.set("xmlns:xsd","http://www.w3.org/2001/XMLSchema")
+    #Creat the simulation element
+    simElement = ET.SubElement(base, "xsd:element")
+    simElement.set("name", "Simulation")
+    simElement.set("type", "Simulation_type")
+    inputSpecification.generateXSD(base,{})
+    return base
+
   def __init__(self, frameworkDir, verbosity='all', interactive=Interaction.No):
     """
       Constructor
@@ -216,6 +283,7 @@ class Simulation(MessageUser):
                                     'suppressErrs': suppressErrs})
     # ensure messageHandler time has been reset (important if re-running simulation)
     self.messageHandler.starttime = time.time()
+    self.raiseAMessage('Initializing '+str(time.ctime()))
     sys.path.append(os.getcwd())
     # flag for checking if simulation has been run before
     self.ranPreviously = False
@@ -282,21 +350,6 @@ class Simulation(MessageUser):
 
     # Dictionary of mode handlers
     self.__modeHandlerDict = CustomModes.modeHandlers
-
-    # this dictionary contains the static factory that returns the instance of one of the allowed entities in the simulation
-    # the keys are the name of the module that contains the instance of that specific entity
-    self.entityModules  = {}
-    self.entityModules['Steps'        ] = Steps
-    self.entityModules['DataObjects'  ] = DataObjects
-    self.entityModules['Samplers'     ] = Samplers
-    self.entityModules['Optimizers'   ] = Optimizers
-    self.entityModules['Models'       ] = Models
-    self.entityModules['Distributions'] = Distributions
-    self.entityModules['Databases'    ] = Databases
-    self.entityModules['Functions'    ] = Functions
-    self.entityModules['Files'        ] = Files
-    self.entityModules['Metrics'      ] = Metrics
-    self.entityModules['OutStreams'   ] = OutStreams
 
     # Mapping between an entity type and the dictionary containing the instances for the simulation
     self.entities = {}
@@ -388,7 +441,7 @@ class Simulation(MessageUser):
       with open(fileName, 'w') as outFile:
         outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
     if not set(self.__stepSequenceList).issubset(set(self.stepsDict.keys())):
-      self.raiseAnError(IOError, f'The step list: {self.__stepSequenceList} contains steps that have not been declared: {list(self.stepsDict.keys())}')
+      self.raiseAnError(IOError, f'The <Sequence> list: {self.__stepSequenceList} contains steps that have not been declared in <Steps>. <Steps> only contains {list(self.stepsDict.keys())}')
 
   def setOptionalAttributes(self, xmlNode):
     """
@@ -402,7 +455,9 @@ class Simulation(MessageUser):
       for element in unknownAttribs:
         errorMsg += ' ' + element
       self.raiseAnError(IOError, errorMsg)
-    self.verbosity = xmlNode.attrib.get('verbosity', 'all').lower()
+    if  'verbosity' in xmlNode.attrib.keys():
+      #Note: verbosity default set at __init__
+      self.verbosity = xmlNode.attrib['verbosity'].lower()
     if 'printTimeStamps' in xmlNode.attrib.keys():
       self.raiseADebug(f'Setting "printTimeStamps" to {xmlNode.attrib["printTimeStamps"]}')
       self.messageHandler.setTimePrint(xmlNode.attrib['printTimeStamps'])
@@ -579,6 +634,7 @@ class Simulation(MessageUser):
       runInfoSkipIter = set()
     else:
       runInfoSkipIter = runInfoSkip
+    parsedSeed = False #log if globalSeed parameter if parsed and print to log accordingly
     for element in xmlNode:
       if element.tag in runInfoSkipIter:
         self.raiseAWarning(f"Skipped element {element.tag}")
@@ -699,7 +755,12 @@ class Simulation(MessageUser):
         # parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
           self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
-          self.__modeHandler.XMLread(element)
+          if hasattr(self.__modeHandler,"handleInput"):
+            paramInput = self.__modeHandler.getInputSpecification()()
+            paramInput.parseNode(element)
+            self.__modeHandler.handleInput(paramInput)
+          else:
+            self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError, f"Unknown mode {self.runInfoDict['mode']}")
       elif element.tag == 'expectedTime':
@@ -728,8 +789,15 @@ class Simulation(MessageUser):
         if modeName in self.__modeHandlerDict:
           self.raiseAWarning(f"duplicate mode definition {modeName}")
         self.__modeHandlerDict[modeName] = module.__dict__[modeClass]
+      elif element.tag == 'globalSeed': #this is needed for reproducibility in case the RNG is called before a standard seeding step.
+        parsedSeed = True
+        globalSeed = int(element.text) if "none" not in element.text.lower() else element.text
+        globalSeed = randomSeed(globalSeed) #Reinstance the global generator with the requested seed.
+        self.raiseAMessage(f"globalSeed recognized in RunInfo.\nSetting RAVEN RNG seed to: {globalSeed}")
       else:
         self.raiseAnError(IOError, f'RunInfo element "{element.tag}" unknown!')
+    if not parsedSeed:
+      self.raiseAMessage("No globalSeed specified in RunInfo.\nSetting RAVEN RNG seed to: 5489")
 
   def printDicts(self):
     """

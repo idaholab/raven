@@ -17,8 +17,10 @@ Created March 17th, 2015
 @author: talbpaul
 """
 import os
-import copy
+import pandas as pd
+import numpy as np
 from . import GenericParser
+
 from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 class GenericCode(CodeInterfaceBase):
@@ -54,9 +56,18 @@ class GenericCode(CodeInterfaceBase):
     self.fixedOutFileName = outFileName.text if outFileName is not None else None
     if self.fixedOutFileName is not None:
       if '.' in self.fixedOutFileName and self.fixedOutFileName.split(".")[-1] != 'csv':
-        raise IOError('user defined output extension "'+userExt+'" is not a "csv"!')
+        raise IOError('user defined output extension "'+self.fixedOutFileName.split(".")[-1]+'" is not a "csv"!')
       else:
         self.fixedOutFileName = '.'.join(self.fixedOutFileName.split(".")[:-1])
+
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    super().initialize(runInfo, oriInputFiles)
 
   def addDefaultExtension(self):
     """
@@ -84,7 +95,6 @@ class GenericCode(CodeInterfaceBase):
     #if len(fargs['output'])<1 and 'output' not in clargs.keys():
     #  raise IOError('No output file was specified, either in clargs or fileargs!')
     #check all required input files are there
-    inFiles=inputFiles[:]
     #check for duplicate extension use
     extsClargs = list(ext[0][0] for ext in clargs['input'].values() if len(ext) != 0)
     extsFargs  = list(ext[0] for ext in fargs['input'].values())
@@ -178,3 +188,28 @@ class GenericCode(CodeInterfaceBase):
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(infiles,origfiles)
     return currentInputFiles
+
+  def onlineStopCriteria(self, command, output, workDir):
+    """
+      This method is called by RAVEN during the simulation.
+      It is intended to provide means for the code interface to monitor the execution of a run
+      and stop it if certain criteria are met (defined at the code interface level)
+      For example, the underlying code interface can check for a figure of merit in the output file
+      produced by the driven code and stop the simulation if that figure of merit is outside a certain interval
+      (e.g. Pressure > 2 bar, stop otherwise, continue).
+      If the simulation is stopped because of this check, the return code is set artificially to 0 (normal termination) and
+      the 'checkForOutputFailure' method is not called. So the simulation is considered to be successful.
+
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, stopSim, bool, True if the job needs to stop being executed, False if it needs to continue to be executed
+    """
+    stopSim = False
+    if self.stoppingCriteriaFunction is not None:
+      outCsv = os.path.join(workDir,output+".csv")
+      if os.path.exists(outCsv):
+        df = pd.read_csv(outCsv)
+        results =  dict((header, np.array(df[header])) for header in df.columns)
+        stopSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
+    return stopSim

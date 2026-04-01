@@ -1,0 +1,21 @@
+[Tests]
+
+ [./PrescientInterfaceTest]
+   type = 'RavenFramework'
+   input = 'test_Prescient_code_interface.xml'
+   csv = 'PrescientInterfaceTest/out_prescient_0.csv PrescientInterfaceTest/out_prescient_1.csv'
+   rel_err = 0.0001
+   required_executable = 'runner.py'
+   max_time = 600
+   heavy = true
+ [../]
+
+ [./PrescientInterfaceOnlyTest]
+   type = 'RavenFramework'
+   input = 'test_Prescient_code_interface_fake.xml'
+   csv = 'PrescientInterfaceTest/out_prescient_fake_0.csv PrescientInterfaceTest/out_prescient_fake_1.csv'
+   text = 'PrescientInterfaceTest/runPrescientFake/1/deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/Scenario_actuals.dat PrescientInterfaceTest/runPrescientFake/2/deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/Scenario_actuals.dat '
+   test_interface_only = True
+ [../]
+
+[]

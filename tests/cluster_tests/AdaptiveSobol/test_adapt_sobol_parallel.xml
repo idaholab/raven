@@ -7,9 +7,10 @@
     <expectedTime>00:20:00</expectedTime>
     <JobName>test_qsub</JobName>
     <mode>
-      mpi
+      pbs
       <runQSUB/>
     </mode>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

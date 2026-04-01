@@ -6,12 +6,16 @@
     <created>2024-01-26</created>
     <classesTested>SupervisedLearning.SyntheticHistory,TSA.VARMA</classesTested>
     <description>Tests the ability to load and sample VARMA created by SyntheticHistory ROM.</description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>VARMA</WorkingDir>
     <Sequence>read, sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -47,7 +51,7 @@
       <Target>signal0, signal1, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <varma target="signal0, signal1" seed='42'>
+      <varma target="signal0, signal1" seed="42">
         <P>1</P>
         <Q>0</Q>
       </varma>

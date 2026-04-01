@@ -1,4 +1,10 @@
-include/contrib/* linguist-vendored
+* linguist-detectable=false
+*.py linguist-detectable=true
+*.ipynb filter=remove-notebook-output
+crow/contrib/include/Eigen/* linguist-vendored
+crow/contrib/include/boost/* linguist-vendored
+ravenframework/contrib/* linguist-vendored
 src/contrib/* linguist-vendored
-crow/contrib/* linguist-vendored
-framework/contrib/* linguist-vendored
+include/contrib/* linguist-vendored
+tests/framework/CodeInterfaceTests/* linguist-vendored
+doc/* linguist-documentation

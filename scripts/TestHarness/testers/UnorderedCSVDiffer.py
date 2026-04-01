@@ -54,7 +54,7 @@ class UnorderedCSVDiffer:
       @ In, relativeError, float, optional, relative error
       @ In, absoluteCheck, bool, optional, if True then check absolute
          differences in the values instead of relative differences
-      @ In, zeroThreshold, float, optional, if a number is less equal then
+      @ In, zeroThreshold, float, optional, if a number is less than or equal to
                                              abs(zeroThreshold), it will be considered 0
       @ In, ignoreSign, bool, optional, if True then the sign will be ignored during the comparison
       @ Out, None.
@@ -239,8 +239,8 @@ class UnorderedCSVDiffer:
       ## align columns
       testCsv = testCsv[goldCsv.columns.tolist()]
       ## set marginal values to zero, fix infinites
-      testCsv = self.prep_data_frame(testCsv, self._zero_threshold)
-      goldCsv = self.prep_data_frame(goldCsv, self._zero_threshold)
+      testCsv = self.prep_data_frame(testCsv)
+      goldCsv = self.prep_data_frame(goldCsv)
       ## check for matching rows
       for idx in goldCsv.index:
         find = goldCsv.iloc[idx].rename(None)
@@ -256,17 +256,14 @@ class UnorderedCSVDiffer:
       self.finalizeMessage(same, msg, testFilename)
     return self._same, self._message
 
-  def prep_data_frame(self, csv, tol):
+  def prep_data_frame(self, csv):
     """
       Does several prep actions:
         - For any columns that contain numbers, drop near-zero numbers to zero
         - replace infs and nans with symbolic values
       @ In, csv, pd.DataFrame, contents to reduce
-      @ In, tol, float, tolerance sufficently near zero
       @ Out, csv, converted dataframe
     """
-    # use absolute or relative?
-    key = {'atol':tol} if self._check_absolute_values else {'rtol':tol}
     # take care of infinites
     csv = csv.replace(np.inf, -sys.float_info.max)
     csv = csv.replace(np.nan, sys.float_info.max)
@@ -276,7 +273,7 @@ class UnorderedCSVDiffer:
       if not mathUtils.isAFloatOrInt(example):
         continue
       # flatten near-zeros
-      csv[col].values[np.isclose(csv[col].values, 0, **key)] = 0
+      csv[col].values[np.isclose(csv[col].values, 0, atol=self._zero_threshold)] = 0
     # TODO would like to sort here, but due to relative errors it doesn't do
     #  enough good.  Instead, sort in findRow.
     return csv

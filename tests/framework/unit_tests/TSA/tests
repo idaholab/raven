@@ -40,4 +40,8 @@
     type = 'RavenPython'
     input = 'testSTL.py'
   [../]
+  [./BoundDomain]
+    type = 'Unittest'
+    input = 'testBoundDomain.py'
+  [../]
 []

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.traditionalDMD</name>
@@ -16,6 +16,7 @@
       <revision author="alfoa" date="2018-10-01">This test is a requirement test now.</revision>
       <revision author="talbpaul" date="2019-01-09">moving from ROM-files to ROM-dataobjects</revision>
       <revision author="alfoa" date="2024-07-26">Modified test to point to new pydmd-based DMD model</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-F-5</requirements>
   </TestInfo>
@@ -31,10 +32,10 @@
              writeOut
     </Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-    <!--  we load the data from the PolyExponential database -->
     <Input name="rawDataFile">../../PolyExponential/data/decay_heat.csv</Input>
     <Input name="ROMpk" type="">ROMpk</Input>
   </Files>
@@ -140,6 +141,5 @@
     </HistorySet>
     <DataSet name="rom_stats"/>
   </DataObjects>
-  
 
 </Simulation>

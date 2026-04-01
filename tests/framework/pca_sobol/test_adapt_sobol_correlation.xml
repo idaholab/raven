@@ -10,11 +10,12 @@
       using correlated multivariate normal distributions.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the "attenuation" and "tensor polynomial" analytic models
+      This test is analytic in mean and variance using the &quot;attenuation&quot; and &quot;tensor polynomial&quot; analytic models
       documented in the analytic tests.
     </analytic>
     <revisions>
-      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobject</revision>
+      <revision author="talbpaul" date="2019-01-09">moving from ROM-file to ROM-dataobject</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -22,6 +23,7 @@
     <WorkingDir>AdaptSobol</WorkingDir>
     <Sequence>make,train,rom_stats,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

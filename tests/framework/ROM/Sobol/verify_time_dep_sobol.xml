@@ -9,11 +9,12 @@
       This analytic test checks that the time-dependent HDMRRom performs the same as the model it's representing.
     </description>
     <analytic>
-      This test uses "projectile.py" as documented in the analytic tests document, and makes several evaluations
+      This test uses &quot;projectile.py&quot; as documented in the analytic tests document, and makes several evaluations
       of position based on time.
     </analytic>
     <revisions>
       <revision author="wangc" date="2018-08-09">Add pivotParameter for time dependent ROM</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -21,6 +22,7 @@
     <WorkingDir>SobolTime</WorkingDir>
     <Sequence>load,sampleRom,sampleModel,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -112,14 +114,14 @@
       <Input>x0,y0</Input>
       <Output>t,x,y,r</Output>
       <options>
-          <pivotParameter>t</pivotParameter>
+        <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="modelSamples">
       <Input>x0,y0</Input>
       <Output>t,x,y,r</Output>
       <options>
-          <pivotParameter>t</pivotParameter>
+        <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

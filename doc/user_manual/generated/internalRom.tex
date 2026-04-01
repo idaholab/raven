@@ -2043,6 +2043,11 @@ Example:
       etc) used in the input HistorySet.
   \default{time}
 
+    \item \xmlNode{saveResiduals}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      If the residual of each algorithm in the SyntheticHistory model should be saved in the ROM
+      metadata. This can significantly inflate the size of the metadata file, if saved.
+  \default{False}
+
     \item \xmlNode{fourier}:
       TimeSeriesAnalysis algorithm for determining the strength and phase of
       specified Fourier periods within training signals. The Fourier signals take
@@ -2616,10 +2621,10 @@ Example:
       \end{itemize}
 
     \item \xmlNode{zerofilter}:
-      masks values that are near zero. The masked values are replaced with NaN     values. Caution
-      should be used when using this algorithm because not all algorithms can handle     NaN values!
-      A warning will be issued if NaN values are detected in the input of an algorithm that     does
-      not support them.
+      masks values that are near zero. The masked values are replaced with a fill     value
+      (defaults to NaN). Caution should be used when using this algorithm because not all algorithms
+      can handle NaN values! A warning will be issued if NaN values are detected in the input of an
+      algorithm     that does not support them.
       The \xmlNode{zerofilter} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required},
@@ -2634,6 +2639,12 @@ Example:
             E.g., some Fourier periods may be longer than the intended segment length, in
             which case the this 'global' parameter should be set to True for better
             fitting. \default{False}
+          \item \xmlAttr{fill}: \xmlDesc{float or string, optional},
+            fill strategy for masked values. May be one of 'drop' or a float value.
+            If 'drop', the masked values are dropped and replaced with NaN. If a float value,
+            that value is used to fill the masked values. \default{drop}
+          \item \xmlAttr{tol}: \xmlDesc{float, optional},
+            absolute tolerance about zero for which to apply the filter \default{1e-08}
       \end{itemize}
 
     \item \xmlNode{logtransformer}:
@@ -2731,6 +2742,38 @@ Example:
             fitting. \default{False}
           \item \xmlAttr{domain}: \xmlDesc{[positive, negative], required},
             -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{bounddomain}:
+      applies the transformation function       \begin{align}         f(x) = \begin{cases}
+      L & x < L \\           x & L \leq x \leq U \\           U & x > U         \end{cases}
+      \end{align}     for both the forward and inverse transformations to limit the training
+      signal and samples to the interval $[L, U]$.
+      The \xmlNode{bounddomain} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required},
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional},
+            sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional},
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
+      \end{itemize}
+
+      The \xmlNode{bounddomain} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{lowerBound}: \xmlDesc{float},
+          Bounding interval lower bound $L$
+  \default{-inf}
+
+        \item \xmlNode{upperBound}: \xmlDesc{float},
+          Bounding interval upper bound $U$
+  \default{inf}
       \end{itemize}
 
     \item \xmlNode{gaussianize}:
@@ -3039,6 +3082,11 @@ Example:
       etc) used in the input HistorySet.
   \default{time}
 
+    \item \xmlNode{saveResiduals}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      If the residual of each algorithm in the SyntheticHistory model should be saved in the ROM
+      metadata. This can significantly inflate the size of the metadata file, if saved.
+  \default{False}
+
     \item \xmlNode{fourier}:
       TimeSeriesAnalysis algorithm for determining the strength and phase of
       specified Fourier periods within training signals. The Fourier signals take
@@ -3612,10 +3660,10 @@ Example:
       \end{itemize}
 
     \item \xmlNode{zerofilter}:
-      masks values that are near zero. The masked values are replaced with NaN     values. Caution
-      should be used when using this algorithm because not all algorithms can handle     NaN values!
-      A warning will be issued if NaN values are detected in the input of an algorithm that     does
-      not support them.
+      masks values that are near zero. The masked values are replaced with a fill     value
+      (defaults to NaN). Caution should be used when using this algorithm because not all algorithms
+      can handle NaN values! A warning will be issued if NaN values are detected in the input of an
+      algorithm     that does not support them.
       The \xmlNode{zerofilter} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required},
@@ -3630,6 +3678,12 @@ Example:
             E.g., some Fourier periods may be longer than the intended segment length, in
             which case the this 'global' parameter should be set to True for better
             fitting. \default{False}
+          \item \xmlAttr{fill}: \xmlDesc{float or string, optional},
+            fill strategy for masked values. May be one of 'drop' or a float value.
+            If 'drop', the masked values are dropped and replaced with NaN. If a float value,
+            that value is used to fill the masked values. \default{drop}
+          \item \xmlAttr{tol}: \xmlDesc{float, optional},
+            absolute tolerance about zero for which to apply the filter \default{1e-08}
       \end{itemize}
 
     \item \xmlNode{logtransformer}:
@@ -3727,6 +3781,38 @@ Example:
             fitting. \default{False}
           \item \xmlAttr{domain}: \xmlDesc{[positive, negative], required},
             -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{bounddomain}:
+      applies the transformation function       \begin{align}         f(x) = \begin{cases}
+      L & x < L \\           x & L \leq x \leq U \\           U & x > U         \end{cases}
+      \end{align}     for both the forward and inverse transformations to limit the training
+      signal and samples to the interval $[L, U]$.
+      The \xmlNode{bounddomain} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{target}: \xmlDesc{comma-separated strings, required},
+            indicates the variables for which this algorithm will be used for characterization.
+          \item \xmlAttr{seed}: \xmlDesc{integer, optional},
+            sets a seed for the underlying random number generator, if present.
+          \item \xmlAttr{global}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional},
+            designates this algorithm to be used on full signal instead of per
+            segment. NOTE: because this is intended to be used when some algorithms are
+            applied segment-wise and others are applied globally, this is meant to be an
+            advanced feature and it is important to be mindful of the segments lengths.
+            E.g., some Fourier periods may be longer than the intended segment length, in
+            which case the this 'global' parameter should be set to True for better
+            fitting. \default{False}
+      \end{itemize}
+
+      The \xmlNode{bounddomain} node recognizes the following subnodes:
+      \begin{itemize}
+        \item \xmlNode{lowerBound}: \xmlDesc{float},
+          Bounding interval lower bound $L$
+  \default{-inf}
+
+        \item \xmlNode{upperBound}: \xmlDesc{float},
+          Bounding interval upper bound $U$
+  \default{inf}
       \end{itemize}
 
     \item \xmlNode{gaussianize}:
