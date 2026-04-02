@@ -77,23 +77,6 @@
         <pivotParameter>seconds</pivotParameter>
         <gaussianize target="signal"/>
         <arma target="signal" seed="42">
-      <Target>signal0, seconds</Target>
-      <Features>scaling</Features>
-      <pivotParameter>seconds</pivotParameter>
-      <fourier target="signal">
-        <periods>4, 15</periods>
-      </fourier>
-      <filterbankdwt target="signal" seed='42'>
-        <family>db10</family>
-        <levels>2</levels>
-      </filterbankdwt>
-      <Segment grouping="decomposition">
-        <Target>signal, seconds</Target>
-        <macroParameter>macro</macroParameter>
-        <Features>scaling</Features>
-        <pivotParameter>seconds</pivotParameter>
-        <gaussianize target="signal"/>
-        <arma target="signal0" seed='42'>
           <P>2</P>
           <Q>3</Q>
         </arma>
