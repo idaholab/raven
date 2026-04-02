@@ -23,7 +23,7 @@ from ..TimeSeriesAnalyzer import TimeSeriesTransformer
 from ...utils import xmlUtils, InputData, InputTypes
 
 
-class FilterBase(TransformerMixin):
+class FilterBase(TimeSeriesTransformer):
   """ Base class for transformers which filter or mask data """
 
   @classmethod
@@ -42,8 +42,9 @@ class FilterBase(TransformerMixin):
 
   def handleInput(self, spec):
     """
-      @ In, maskFill, float or None, value used to replace masked values; if maskFill=None,
-                                      the masked values will be dropped
+      Reads user inputs into this object.
+      @ In, spec, InputData.InputParams, input specifications
+      @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = super().handleInput(spec)
     fill = spec.parameterValues.get('fill', 'drop')
@@ -67,11 +68,17 @@ class FilterBase(TransformerMixin):
     """
     pass
 
-  def fit(self, X):
+  def fit(self, signal, pivot, targets, settings, trainedParams=None):
     """
-      Fits the mask to the array using the defined criterion
-      @ In, X, np.ndarray, array of data
-      @ Out, self, FilterBase, class instance
+      Fits the algorithm/model using the provided time series ("signal") using methods specific to
+      the algorithm.
+      @ In, signal, np.array, time-dependent series
+      @ In, pivot, np.array, time-like parameter
+      @ In, targets, list(str), names of targets
+      @ In, settings, dict, additional settings specific to algorithm
+      @ In, trainedParams, dict, running dict of trained algorithm params
+      @ Out, params, dict, characterization of signal; structure as:
+                           params[target variable][characteristic] = value
     """
     params = {}
     for tg, target in enumerate(targets):
@@ -82,11 +89,15 @@ class FilterBase(TransformerMixin):
       params[target] = {'mask': mask, 'hiddenValues': hiddenValues}
     return params
 
-  def transform(self, X):
+  def getResidual(self, initial, params, pivot, settings):
     """
-      Applies mask to data
-      @ In, X, np.ndarray, array of data
-      @ Out, xMasked, np.ndarray, array of masked data
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
     residual = initial.copy()
     for t, (target, data) in enumerate(params.items()):
@@ -94,14 +105,33 @@ class FilterBase(TransformerMixin):
       residual[:, t] = np.ma.MaskedArray(residual[:, t], mask=mask, fill_value=settings['fillValue']).filled()
     return residual
 
-  def inverse_transform(self, X):
+  def getComposite(self, initial, params, pivot, settings):
     """
-      Restores the masked values to the data array X
-      @ In, X, np.ndarray, array of data
-      @ Out, xUnmasked, np.ndarray, array of data with the masked values restored
+      Combines two component signals to form a composite signal. This is essentially the inverse
+      operation of the getResidual method.
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, composite, np.array, resulting composite signal
     """
-    xUnmasked = np.ma.MaskedArray(X, mask=self._mask).filled(0) + self._hiddenValues.filled(0)
-    return xUnmasked
+    composite = initial.copy()
+    for t, (target, data) in enumerate(params.items()):
+      # Put the hidden values back into the composite signal
+      composite[data['mask'], t] = data['hiddenValues']
+    return composite
+
+  def writeXML(self, writeTo, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, params, dict, parameters from training as from self.fit
+      @ Out, None
+    """
+    for target, info in params.items():
+      base = xmlUtils.newNode(target)
+      writeTo.append(base)
 
 
 class ZeroFilter(FilterBase):
@@ -116,10 +146,10 @@ class ZeroFilter(FilterBase):
     """
     specs = super().getInputSpecification()
     specs.name = 'zerofilter'
-    specs.description = r"""masks values that are near zero. The masked values are replaced with NaN
-    values. Caution should be used when using this algorithm because not all algorithms can handle
-    NaN values! A warning will be issued if NaN values are detected in the input of an algorithm that
-    does not support them."""
+    specs.description = r"""masks values that are near zero. The masked values are replaced with a fill
+    value (defaults to NaN). Caution should be used when using this algorithm because not all algorithms
+    can handle NaN values! A warning will be issued if NaN values are detected in the input of an algorithm
+    that does not support them."""
     specs.addParam('tol', param_type=InputTypes.FloatType, required=False, default=1e-8,
                    descr=r"""absolute tolerance about zero for which to apply the filter""")
     return specs
