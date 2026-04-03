@@ -1,6 +1,6 @@
 \subsubsection{SparseSensing}
 \label{SparseSensing}
-The \textbf{SparseSensing} post-processor incorporates ``PySensors'', a Scikit-learn style Python package for the sparse placement of sensors for reconstruction tasks and classification tasks which will be added here soon.
+The \textbf{SparseSensing} post-processor incorporates ``PySensors'', a Scikit-learn style Python package for the sparse placement of sensors for reconstruction and classification tasks.
 
 Sparse sensor placement concerns the problem of selecting a small subset of sensor or measurement locations in a way that allows one to perform some task nearly as well as if one had access to measurements at every location.
 
@@ -12,47 +12,144 @@ This post-processor provides objects designed for the tasks of reconstruction an
     \item de Silva, Brian M., et al. ``PySensors: A Python package for sparse sensor placement.'' arXiv preprint arXiv:2102.13476 (2021) contains a full literature review along with examples and additional tips for using PySensors effectively.
 \end{itemize}
 
-\ppType{SparseSensing }{SparseSensing}
+\ppType{SparseSensing}{SparseSensing}
 \begin{itemize}
+
 \item \xmlNode{Goal}, \xmlDesc{string, required field}, the goal of the sparse sensor optimization.
-User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field} representing the goal of the sparse sensing optimization; i.e., which goal function is used in the optimization? Examples for such goal functions are:
+The user must provide the \xmlAttr{subType} attribute (\xmlDesc{string, required}), which selects the goal function:
 \begin{itemize}
-    \item \textbf{Reconstruction} deals with predicting the values of a quantity of interest at different locations other than those where sensors are located. For example, one might predict the temperature at a point in the middle of a fuel rod based on readings taken at various other positions.
-
-    \item \textbf{Classification} is the problem of predicting which category an example belongs to, given a set of training data (e.g. determining whether digital photos are of dogs or cats).
+    \item \textbf{reconstruction} predicts the values of a quantity of interest at all locations given measurements at the selected sensor subset (Sparse Sensor Placement Optimization for Reconstruction, SSPOR).
+    \item \textbf{classification} predicts which category an example belongs to given measurements at the selected sensor subset (Sparse Sensor Placement Optimization for Classification, SSPOC).
 \end{itemize}
-\nb{Currently, only reconstruction is implemented.}
-In order to use the \xmlNode{Goal}, the user needs to provide the following subnodes:
+\nb{Currently, only \xmlString{reconstruction} is fully implemented.}
+
+In order to use \xmlNode{Goal}, the following sub-nodes must or may be provided:
 \begin{itemize}
-	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., possible sensor locations/IDs
-	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed.
-  \nb{Currently the algorithms can handle a single target}.
-	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{Random}. \default{SVD}
-	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
-	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
-	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR}, for the unconstrained case.
-        \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
-\end{itemize}
+  \item \xmlNode{features}, \xmlDesc{comma-separated strings, required field}, candidate sensor locations or IDs (the spatial coordinates or identifiers of every candidate measurement point).
+  \item \xmlNode{target}, \xmlDesc{string, required field}, the response variable to be reconstructed or classified.
+    \nb{Currently the algorithms can handle a single target.}
+  \item \xmlNode{basis}, \xmlDesc{string, optional field}, the type of basis onto which the data are projected before sensor selection:
+    \begin{itemize}
+      \item \xmlString{SVD} --- truncated Singular Value Decomposition (default).
+      \item \xmlString{Identity} --- no projection; sensors are selected directly in measurement space.
+      \item \xmlString{RandomProjection} --- random linear projection.
+    \end{itemize}
+    \default{SVD}
+  \item \xmlNode{nModes}, \xmlDesc{integer, required field}, the number of basis modes retained in the projection.
+  \item \xmlNode{nSensors}, \xmlDesc{integer, required field}, the number of sensors to select.
+  \item \xmlNode{optimizer}, \xmlDesc{string, optional field}, the algorithm used to choose sensor locations from the ranked basis. Available options:
+    \begin{itemize}
+      \item \xmlString{QR} --- standard QR-pivoting optimizer (default, unconstrained).
+      \item \xmlString{CCQR} --- cost-constrained QR; requires the \xmlNode{sensorCosts} sub-node.
+      \item \xmlString{GQR} --- greedy QR optimizer.
+      \item \xmlString{TPGR} --- two-phase greedy optimizer.
+    \end{itemize}
+    \default{QR}
+  \item \xmlNode{sensorCosts}, \xmlDesc{comma-separated floats, optional field}, a cost value for each candidate sensor location, required when \xmlNode{optimizer} is \xmlString{CCQR}. The vector must have the same length as the total number of candidate sensor locations.
+  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, random seed passed to the PySensors fit function. If not specified and more sensors are requested than basis modes, the selected locations may differ across runs.
 \end{itemize}
 
-\textbf{Example:}
+\item \xmlNode{Metric}, \xmlDesc{string, optional field}, name of a \textbf{Metric} object (defined in the \xmlNode{Metrics} block) used to quantify reconstruction error. This node may be repeated to request multiple metrics. Each assembled metric is evaluated by comparing the full-field data reconstructed from the selected sensor readings against the original training data; the result is a scalar value reported alongside the sensor locations in the output \xmlNode{DataSet}.
+  \nb{Metrics are only computed for the \xmlString{reconstruction} goal.}
+  \nb{When one or more \xmlNode{Metric} nodes are provided, the output \xmlNode{DataObject} must be a \xmlNode{DataSet} and the metric names must be listed in its \xmlNode{Output} node.}
+
+  Appropriate metric types for reconstruction error are the SKL regression metrics:
+  \xmlString{mean\_absolute\_error}, \xmlString{mean\_squared\_error}, \xmlString{r2\_score}, and \xmlString{explained\_variance\_score}.
+  Refer to Section~\ref{sec:Metrics} for a full description of available metrics.
+
+  In this xml-node, the following xml attributes need to be specified:
+  \begin{itemize}
+    \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric: \xmlString{Metrics}.
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, the entity type: \xmlString{Metric}.
+  \end{itemize}
+
+\end{itemize}
+
+\textbf{Example (sensor placement only):}
 \begin{lstlisting}[style=XML]
 <Simulation>
-   ...
-   <Models>
-      ...
-      <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+  ...
+  <Models>
+    ...
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
         <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
-        <basis>SVD</basis> <!--default: SVD-->
-        <nModes>4</nModes> <!--default: opt, allows the algorithm to pick nModes-->
-        <nSensors>4</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
-        <optimizer>QR</optimizer><!--default: QR-->
+        <basis>SVD</basis>        <!--default: SVD-->
+        <nModes>4</nModes>
+        <nSensors>4</nSensors>
+        <optimizer>QR</optimizer> <!--default: QR-->
       </Goal>
     </PostProcessor>
     ...
   </Models>
-   ...
+  ...
+</Simulation>
+\end{lstlisting}
+
+\textbf{Example (sensor placement with reconstruction error metrics):}
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Metrics>
+    <Metric name="mae" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+    </Metric>
+    <Metric name="mse" subType="SKL">
+      <metricType>regression|mean_squared_error</metricType>
+    </Metric>
+  </Metrics>
+
+  <Models>
+    ...
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <features>X (m),Y (m),Temperature (K)</features>
+        <target>Temperature (K)</target>
+        <basis>SVD</basis>
+        <nModes>4</nModes>
+        <nSensors>4</nSensors>
+        <optimizer>QR</optimizer>
+      </Goal>
+      <Metric class="Metrics" type="Metric">mae</Metric>
+      <Metric class="Metrics" type="Metric">mse</Metric>
+    </PostProcessor>
+    ...
+  </Models>
+
+  <DataObjects>
+    ...
+    <DataSet name="outPP">
+      <Input>InputPlaceHolder</Input>
+      <!--  mae and mse are scalar outputs; sensor-indexed vars carry the Index -->
+      <Output>Temperature (K), X (m), Y (m), mae, mse</Output>
+      <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
+    </DataSet>
+  </DataObjects>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\textbf{Example (cost-constrained sensor placement with CCQR):}
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <features>X (m),Y (m),Temperature (K)</features>
+        <target>Temperature (K)</target>
+        <basis>SVD</basis>
+        <nModes>4</nModes>
+        <nSensors>4</nSensors>
+        <optimizer>CCQR</optimizer>
+        <!-- one cost per candidate sensor location -->
+        <sensorCosts>1.0, 2.0, 1.5, 1.0, 3.0, ...</sensorCosts>
+      </Goal>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
 </Simulation>
 \end{lstlisting}
