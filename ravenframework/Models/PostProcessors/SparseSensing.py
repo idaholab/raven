@@ -82,10 +82,12 @@ class SparseSensing(PostProcessorReadyInterface):
                                                           TPGR: two-phase greedy.""",
                                                 default='QR')
     goal.addSub(optimizer)
-    sensorCosts = InputData.parameterInputFactory("sensorCosts", contentType=InputTypes.FloatListType,
+    sensorCosts = InputData.parameterInputFactory("sensorCosts", contentType=InputTypes.StringType,
                                                   printPriority=108,
-                                                  descr=r"""Per-sensor cost vector used by the CCQR optimizer.
-                                                            Must have length equal to the total number of candidate sensors.""")
+                                                  descr=r"""Name of a variable in the input DataObject whose values supply the
+                                                            per-sensor cost vector for the CCQR optimizer.
+                                                            The variable must have length equal to the total number of candidate
+                                                            sensor locations.""")
     goal.addSub(sensorCosts)
     seed = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
                                                            printPriority=108,
@@ -128,7 +130,8 @@ class SparseSensing(PostProcessorReadyInterface):
     self.sensingFeatures = None                              # The variable representing the features of the data i.e., X, Y, SensorID, etc.
     self.sensingTarget = None                                # The Response of interest to be reconstructed (or classify)
     self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
-    self.sensorCosts = None                                  # Optional cost vector for CCQR optimizer
+    self.sensorCosts = None                                  # Cost vector for CCQR optimizer, resolved at run time from the input DataObject
+    self.sensorCostsVariableName = None                      # Variable name in the input DataObject that holds the cost vector
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
     self.metricsDict = {}                                    # assembled Metric objects {name: instance}
     # Register optional Metric assembler objects
@@ -170,7 +173,8 @@ class SparseSensing(PostProcessorReadyInterface):
         seedNode = child.findFirst('seed')
         self.seed = seedNode.value if seedNode is not None else None
         costsNode = child.findFirst('sensorCosts')
-        self.sensorCosts = np.asarray(costsNode.value) if costsNode is not None else None
+        if costsNode is not None:
+          self.sensorCostsVariableName = costsNode.value.strip()
         if self.sparseSensingGoal not in self.goalsDict:
           self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(
             child.getName(), list(self.goalsDict.keys())))
@@ -234,6 +238,18 @@ class SparseSensing(PostProcessorReadyInterface):
       self.features.remove(self.pivotParameter)
 
     basis = self._buildBasis()
+
+    # Resolve sensor costs from the DataObject
+    if self.sensorCostsVariableName is not None:
+      if self.sensorCostsVariableName not in inputDS:
+        self.raiseAnError(IOError, 'sensorCosts variable "{}" not found in the input DataObject'.format(
+          self.sensorCostsVariableName))
+      rawCosts = inputDS[self.sensorCostsVariableName].data
+      if rawCosts.ndim > 1:
+        # Multi-dimensional: costs should be identical across samples, take the first row
+        rawCosts = rawCosts[0, :]
+      self.sensorCosts = np.asarray(rawCosts.flatten(), dtype=float)
+
     optimizer = self._buildOptimizer()
 
     features = {}

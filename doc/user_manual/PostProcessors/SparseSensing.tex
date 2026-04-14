@@ -45,7 +45,7 @@ In order to use \xmlNode{Goal}, the following sub-nodes must or may be provided:
       \item \xmlString{TPGR} --- two-phase greedy optimizer.
     \end{itemize}
     \default{QR}
-  \item \xmlNode{sensorCosts}, \xmlDesc{comma-separated floats, optional field}, a cost value for each candidate sensor location, required when \xmlNode{optimizer} is \xmlString{CCQR}. The vector must have the same length as the total number of candidate sensor locations.
+  \item \xmlNode{sensorCosts}, \xmlDesc{string, optional field}, the name of a variable in the input \xmlNode{DataObject} whose values provide the per-sensor cost vector, required when \xmlNode{optimizer} is \xmlString{CCQR}. The variable must have length equal to the total number of candidate sensor locations. Because the cost vector is typically as long as the spatial mesh (potentially thousands of entries), it is supplied through the \xmlNode{DataObject} rather than listed inline in the XML input. Positive costs discourage selection of the corresponding location; negative costs favour it.
   \item \xmlNode{seed}, \xmlDesc{integer, optional field}, random seed passed to the PySensors fit function. If not specified and more sensors are requested than basis modes, the selected locations may differ across runs.
 \end{itemize}
 
@@ -131,6 +131,12 @@ In order to use \xmlNode{Goal}, the following sub-nodes must or may be provided:
 \end{lstlisting}
 
 \textbf{Example (cost-constrained sensor placement with CCQR):}
+
+The per-sensor cost vector is provided via a variable in the input \xmlNode{DataObject}
+(here named \xmlString{sensorCost}).  That variable must be declared in the
+\xmlNode{Output} of the \xmlNode{HistorySet} and present in the snapshot CSV files
+as an additional column, one cost value per candidate sensor location.
+
 \begin{lstlisting}[style=XML]
 <Simulation>
   ...
@@ -144,12 +150,25 @@ In order to use \xmlNode{Goal}, the following sub-nodes must or may be provided:
         <nModes>4</nModes>
         <nSensors>4</nSensors>
         <optimizer>CCQR</optimizer>
-        <!-- one cost per candidate sensor location -->
-        <sensorCosts>1.0, 2.0, 1.5, 1.0, 3.0, ...</sensorCosts>
+        <!-- name of the DataObject variable that holds the cost vector -->
+        <sensorCosts>sensorCost</sensorCosts>
       </Goal>
     </PostProcessor>
     ...
   </Models>
+
+  <DataObjects>
+    ...
+    <HistorySet name="TwistDO">
+      <Input>Power (W), BCTemperature (K)</Input>
+      <!-- sensorCost column must be present in the snapshot CSV files -->
+      <Output>X (m),Temperature (K),Y (m),sensorCost</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    ...
+  </DataObjects>
   ...
 </Simulation>
 \end{lstlisting}

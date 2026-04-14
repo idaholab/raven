@@ -13,4 +13,10 @@
     csv = 'reconstructionOptiTwistError/outPP.csv'
     rel_err = 0.01
   [../]
+  [./testSPSLSensorCostOptiTwistReconstructionError]
+    type = 'RavenFramework'
+    input = 'testSPSLSensorCostOptiTwistReconstructionError.xml'
+    csv = 'reconstructionOptiTwistErrorCCQR/outPP.csv'
+    rel_err = 0.01
+  [../]
 []
