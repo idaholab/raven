@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Postprocessors/SparseSensing/Transient</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2026-04-18</created>
+    <classesTested>Models.Postprocessors.SparseSensing</classesTested>
+    <description>Single-trajectory transient: sensors from snapshot-stacked (time,space) data.</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>transient</WorkingDir>
+    <Sequence>sample, pp, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel name="genT" subType="" ModuleToLoad="genTransient">
+      <variables>alpha, time, pointID, x, T</variables>
+    </ExternalModel>
+    <PostProcessor name="mySPSL" subType="SparseSensing">
+      <Goal subType="reconstruction">
+        <features>x, T</features>
+        <target>T</target>
+        <basis>SVD</basis>
+        <nModes>2</nModes>
+        <nSensors>2</nSensors>
+        <optimizer>QR</optimizer>
+        <pivotParameter>time</pivotParameter>
+        <reshape>snapshot</reshape>
+        <seed>42</seed>
+      </Goal>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Uniform name="uniAlpha"><lowerBound>0.4</lowerBound><upperBound>0.6</upperBound></Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit><limit>1</limit><initialSeed>1</initialSeed></samplerInit>
+      <constant name="alpha">0.5</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">genT</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">dataDS</Output>
+    </MultiRun>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="DataSet">dataDS</Input>
+      <Model class="Models" type="PostProcessor">mySPSL</Model>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">outPP</Input>
+      <Output class="OutStreams" type="Print">outPP</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"><Input>alpha</Input><Output>OutputPlaceHolder</Output></PointSet>
+    <DataSet name="dataDS">
+      <Input>alpha</Input>
+      <Output>x, T</Output>
+      <Index var="time">T</Index>
+      <Index var="pointID">x, T</Index>
+    </DataSet>
+    <DataSet name="outPP">
+      <Output>x, T</Output>
+      <Index var="sensor">x, T</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPP"><type>csv</type><source>outPP</source><what>output</what></Print>
+  </OutStreams>
+</Simulation>

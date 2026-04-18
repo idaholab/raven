@@ -233,7 +233,7 @@ class SparseSensing(PostProcessorReadyInterface):
       model.fit(matrix, seed=self.seed)
     else:
       model.fit(matrix)
-    selectedSensors = model.get_selected_sensors()
+    selectedSensors = np.sort(model.get_selected_sensors())
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
     sensorData = {}

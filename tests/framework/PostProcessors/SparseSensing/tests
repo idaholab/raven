@@ -7,4 +7,10 @@
     required_libraries = 'imageio'
     rel_err = 0.01
   [../]
+  [./Transient]
+    type = 'RavenFramework'
+    input = 'testSPSLTransient.xml'
+    csv = 'transient/outPP.csv'
+    rel_err = 1e-6
+  [../]
 []
