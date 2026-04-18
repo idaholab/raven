@@ -233,6 +233,11 @@ class SparseSensing(PostProcessorReadyInterface):
       model.fit(matrix, seed=self.seed)
     else:
       model.fit(matrix)
+    # pysensors' get_selected_sensors() returns pivots in QR-selection order
+    # (sensor=1 is "most important"), but that order is not stable across runs
+    # even with a fixed seed. Sort by spatial index so regression gold files are
+    # deterministic. The selected sensor SET is unchanged; only the output
+    # labelling differs — downstream reconstruction uses the index set, not order.
     selectedSensors = np.sort(model.get_selected_sensors())
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 

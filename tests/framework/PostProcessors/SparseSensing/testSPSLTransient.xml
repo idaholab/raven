@@ -33,10 +33,6 @@
     </PostProcessor>
   </Models>
 
-  <Distributions>
-    <Uniform name="uniAlpha"><lowerBound>0.4</lowerBound><upperBound>0.6</upperBound></Uniform>
-  </Distributions>
-
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit><limit>1</limit><initialSeed>1</initialSeed></samplerInit>
