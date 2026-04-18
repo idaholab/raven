@@ -155,6 +155,21 @@ class SparseSensing(PostProcessorReadyInterface):
     # notFound must be empty
     assert not notFound, "Unexpected nodes in _handleInput"
 
+  def _reshapeForFit(self, data, pivotLen):
+    """Reshape a (sample, [time,] space) array into the 2-D matrix SSPOR.fit expects.
+
+    @ In, data, np.ndarray, shape (nSamples, nSpace) or (nSamples, nTime, nSpace).
+    @ In, pivotLen, int or None, length of the time axis if present.
+    @ Out, matrix, np.ndarray, 2-D matrix (rows=snapshots or samples, cols=sensor candidates).
+    """
+    if pivotLen is None or data.ndim == 2:
+      return data
+    if self.reshape == 'snapshot':
+      nSamples, nTime, nSpace = data.shape
+      # Row-major stack: row k·T + t holds sample k at time t.
+      return data.reshape(nSamples * nTime, nSpace)
+    raise NotImplementedError(f"reshape={self.reshape} not yet implemented")
+
   def run(self,inputIn):
     """
       This method executes the postprocessor action. In this case, it finds the optimal sensor locations to achieve a prescribed goal

@@ -50,3 +50,24 @@ def test_reshape_defaults_to_snapshot():
     pp._handleInput(_parse(xml))
     assert pp.reshape == 'snapshot'
     assert pp.pivotParameter is None
+
+import numpy as np
+
+def test_reshape_snapshot_2d_passthrough():
+    # Current steady-state case: (samples, space) → unchanged
+    pp = SparseSensing(); pp.reshape = 'snapshot'
+    X = np.random.RandomState(0).randn(4, 100)
+    out = pp._reshapeForFit(X, pivotLen=None)
+    assert out.shape == (4, 100)
+    np.testing.assert_array_equal(out, X)
+
+def test_reshape_snapshot_3d_stacks_samples_and_time():
+    # (samples=3, time=5, space=10) → (15, 10)
+    pp = SparseSensing(); pp.reshape = 'snapshot'
+    X = np.arange(3*5*10, dtype=float).reshape(3, 5, 10)
+    out = pp._reshapeForFit(X, pivotLen=5)
+    assert out.shape == (15, 10)
+    # Row k·T + t should equal sample k at time t.
+    np.testing.assert_array_equal(out[0], X[0, 0])
+    np.testing.assert_array_equal(out[5], X[1, 0])
+    np.testing.assert_array_equal(out[14], X[2, 4])
