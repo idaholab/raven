@@ -161,6 +161,7 @@ class NSGAFrontAnimation(PlotInterface):
     init_subset = df[df[self.index] == generations[0]]
     scatterArgs, color_data = self._build_scatter_args(init_subset, cd_limits)
     scatterArgs.pop('c', None)
+    scatterArgs.pop('cmap', None)
     scatterArgs.pop('vmin', None)
     scatterArgs.pop('vmax', None)
     sc = ax.scatter([], [], **scatterArgs)

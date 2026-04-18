@@ -2023,11 +2023,18 @@ class DataSet(DataObject):
     # TODO someday make KDTree too!
     assert(self._data is not None) # TODO check against collector entries?
     ds = self._data[varList] if var is not None else self._data
-    mean = ds.mean().variables
-    scale = ds.std().variables
-    for name in mean:
-      m = mean[name].values[()]
-      s = scale[name].values[()]
+    for name in ds.data_vars:
+      values = np.asarray(ds[name].values)
+      if not np.issubdtype(values.dtype, np.number):
+        continue
+      finite = values.astype(float, copy=False).ravel()
+      finite = finite[np.isfinite(finite)]
+      if finite.size == 0:
+        m = np.nan
+        s = np.nan
+      else:
+        m = float(np.mean(finite))
+        s = float(np.std(finite))
       self._scaleFactors[name] = (m,s)
 
   def _setStructureFromMetaXML(self, meta):

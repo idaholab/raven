@@ -19,7 +19,7 @@ Created on November 20th, 2021
 
 # External Imports
 import numpy as np
-import imageio
+from PIL import Image
 
 # Internal Imports
 import matplotlib.cm as cm
@@ -380,7 +380,9 @@ class OptParallelCoordinatePlot(PlotInterface):
     # create filename
     giffilename = self._createFilename(defaultName=f'{self.name}.gif')
 
-    with imageio.get_writer(giffilename, mode='I') as writer:
-      for filename in filesID:
-        image = imageio.imread(filename)
-        writer.append_data(image)
+    frames = []
+    for filename in filesID:
+      with Image.open(filename) as image:
+        frames.append(image.copy())
+    if frames:
+      frames[0].save(giffilename, save_all=True, append_images=frames[1:], duration=500, loop=0)
