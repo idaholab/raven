@@ -172,6 +172,15 @@ class SparseSensing(PostProcessorReadyInterface):
       features[var] = np.atleast_1d(inputDS[var].data)
     nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingTarget].data
+    # Data layout contract (confirmed via Task 1 probe on testSPSLOptiTwist):
+    #   - inputDS.dims == {'RAVEN_sample_ID': 4, 'index': 4051}
+    #   - inputDS[target].dims == ('RAVEN_sample_ID', 'index')
+    #   - shape == (nSamples, nPointsAlongPivot) = (4, 4051)
+    # When <pivotParameter> is NOT declared (current OPTI-TWIST case):
+    #   the pivot dim holds spatial indices; matrix is ready for SSPOR as-is.
+    # When <pivotParameter> IS declared (new transient/parametric cases, future tasks):
+    #   the pivot dim holds time; spatial dim comes from a separate feature axis
+    #   and we must reshape (see _reshapeForFit).
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
     assert np.shape(data) == (nSamples,nfeatures)
     if self.seed is not None:
