@@ -200,11 +200,18 @@ class SparseSensing(PostProcessorReadyInterface):
 
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
 
-    features = {}
-    for var in self.sensingFeatures:
-      features[var] = np.atleast_1d(inputDS[var].data)
-    nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingTarget].data
+
+    pivotLen = None
+    if self.pivotParameter is not None:
+      if self.pivotParameter not in inputDS.dims:
+        self.raiseAnError(IOError,
+          f"pivotParameter '{self.pivotParameter}' not found in input dims {list(inputDS.dims)}")
+      pivotLen = inputDS.sizes[self.pivotParameter]
+
+    # Expected shapes:
+    #   steady-state (pivotParameter=None): (nSamples, nSpace)
+    #   transient / param+time:              (nSamples, nTime, nSpace)
     # Data layout contract (confirmed via Task 1 probe on testSPSLOptiTwist):
     #   - inputDS.dims == {'RAVEN_sample_ID': 4, 'index': 4051}
     #   - inputDS[target].dims == ('RAVEN_sample_ID', 'index')
@@ -214,18 +221,33 @@ class SparseSensing(PostProcessorReadyInterface):
     # When <pivotParameter> IS declared (new transient/parametric cases, future tasks):
     #   the pivot dim holds time; spatial dim comes from a separate feature axis
     #   and we must reshape (see _reshapeForFit).
-    ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
-    assert np.shape(data) == (nSamples,nfeatures)
-    if self.seed is not None:
-      model.fit(data, seed=self.seed)
+    if pivotLen is None:
+      assert data.ndim == 2, f"Expected 2-D target for steady-state; got {data.shape}"
+      nSamples, nSpace = data.shape
     else:
-      model.fit(data)
+      assert data.ndim == 3, f"Expected 3-D target when pivotParameter is set; got {data.shape}"
+      nSamples, _nTime, nSpace = data.shape
+
+    matrix = self._reshapeForFit(data, pivotLen)
+    if self.seed is not None:
+      model.fit(matrix, seed=self.seed)
+    else:
+      model.fit(matrix)
     selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
     sensorData = {}
     for var in self.sensingFeatures:
-      sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data)
+      arr = inputDS[var].data
+      # Reduce arr to a (nSpace,) vector: drop sample axis (take index 0) and,
+      # when present, drop the pivot axis too (features are assumed space-only).
+      if arr.ndim == 2:
+        vec = arr[0, :]
+      elif arr.ndim == 3:
+        vec = arr[0, 0, :]
+      else:
+        vec = np.atleast_1d(arr)
+      sensorData[var] = ('sensor', vec[selectedSensors])
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays

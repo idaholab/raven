@@ -52,6 +52,7 @@ def test_reshape_defaults_to_snapshot():
     assert pp.pivotParameter is None
 
 import numpy as np
+import xarray as xr
 
 def test_reshape_snapshot_2d_passthrough():
     # Current steady-state case: (samples, space) → unchanged
@@ -71,3 +72,33 @@ def test_reshape_snapshot_3d_stacks_samples_and_time():
     np.testing.assert_array_equal(out[0], X[0, 0])
     np.testing.assert_array_equal(out[5], X[1, 0])
     np.testing.assert_array_equal(out[14], X[2, 4])
+
+def _fake_inputIn_3d(nSamples=3, nTime=5, nSpace=20, seed=0):
+    x = np.linspace(0, 1, nSpace)
+    params = np.linspace(0.1, 1.0, nSamples)
+    times = np.linspace(0, 1, nTime)
+    # Separable manufactured field: T(x,t; p) = exp(-p*t)*sin(k*x)
+    T = np.array([[np.exp(-p*t) * np.sin(3*np.pi*x) for t in times] for p in params])
+    coords = {'RAVEN_sample_ID': np.arange(nSamples),
+              'time': times,
+              'pointID': np.arange(nSpace)}
+    ds = xr.Dataset({'T': (('RAVEN_sample_ID','time','pointID'), T),
+                     'X': (('RAVEN_sample_ID','pointID'), np.broadcast_to(x, (nSamples,nSpace)).copy())},
+                    coords=coords)
+    return {'Data': [(None, None, ds)]}
+
+def test_run_snapshot_on_3d_input_returns_spatial_sensors():
+    pp = SparseSensing()
+    pp.name = 'spsl'
+    pp.sensingFeatures = ['X','T']
+    pp.sensingTarget = 'T'
+    pp.basis = 'SVD'
+    pp.nModes = 3
+    pp.nSensors = 3
+    pp.optimizer = 'QR'
+    pp.pivotParameter = 'time'
+    pp.reshape = 'snapshot'
+    pp.seed = 42
+    out = pp.run(_fake_inputIn_3d())
+    assert out.sizes['sensor'] == 3
+    assert 'time' not in out.dims
