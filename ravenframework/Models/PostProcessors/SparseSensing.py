@@ -103,7 +103,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.keepInputMeta(False)
     self.outputMultipleRealizations = True                   # True indicate multiple realizations are returned
     self.pivotParameter = None                               # time-dependent data pivot parameter. None if the problem is steady state
-    self.reshape = 'snapshot'                              # 'snapshot' | 'spatiotemporal'
+    self.reshape = 'snapshot'                                # 'snapshot' | 'spatiotemporal'
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
     self.sparseSensingGoal = None                            # The goal of the sensor selection. i.e., reconstruction or classification
     self.nSensors = None                                     # The number of the sensors required by the user.
