@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Postprocessors/SparseSensing/ParamTime</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2026-04-18</created>
+    <classesTested>Models.Postprocessors.SparseSensing</classesTested>
+    <description>Parameter+time snapshot reshape: 5 alpha values via Grid, producing a
+    3-D tensor (nSamples=5, nTime=8, nSpace=20). Tests SPSL sensor placement on
+    snapshot-stacked (sample*time, space) matrix.</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>paramTime</WorkingDir>
+    <Sequence>sample, pp, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel name="genT" subType="" ModuleToLoad="../transient/genTransient">
+      <variables>alpha, time, pointID, x, T</variables>
+    </ExternalModel>
+    <PostProcessor name="mySPSL" subType="SparseSensing">
+      <Goal subType="reconstruction">
+        <features>x, T</features>
+        <target>T</target>
+        <basis>SVD</basis>
+        <nModes>2</nModes>
+        <nSensors>2</nSensors>
+        <optimizer>QR</optimizer>
+        <pivotParameter>time</pivotParameter>
+        <reshape>snapshot</reshape>
+        <seed>42</seed>
+      </Goal>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Uniform name="uniAlpha">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="alphaGrid">
+      <variable name="alpha">
+        <distribution>uniAlpha</distribution>
+        <grid construction="equal" steps="4" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">genT</Model>
+      <Sampler class="Samplers" type="Grid">alphaGrid</Sampler>
+      <Output class="DataObjects" type="DataSet">dataDS</Output>
+    </MultiRun>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="DataSet">dataDS</Input>
+      <Model class="Models" type="PostProcessor">mySPSL</Model>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">outPP</Input>
+      <Output class="OutStreams" type="Print">outPP</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"><Input>alpha</Input><Output>OutputPlaceHolder</Output></PointSet>
+    <DataSet name="dataDS">
+      <Input>alpha</Input>
+      <Output>x, T</Output>
+      <Index var="time">T</Index>
+      <Index var="pointID">x, T</Index>
+    </DataSet>
+    <DataSet name="outPP">
+      <Output>x, T</Output>
+      <Index var="sensor">x, T</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPP"><type>csv</type><source>outPP</source><what>output</what></Print>
+  </OutStreams>
+</Simulation>

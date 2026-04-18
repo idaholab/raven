@@ -13,4 +13,10 @@
     csv = 'transient/outPP.csv'
     rel_err = 1e-6
   [../]
+  [./ParamTime]
+    type = 'RavenFramework'
+    input = 'testSPSLParamTime.xml'
+    csv = 'paramTime/outPP.csv'
+    rel_err = 1e-6
+  [../]
 []
