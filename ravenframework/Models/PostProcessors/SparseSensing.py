@@ -76,7 +76,20 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
     goal.addSub(seed)
-    inputSpecification.addSub(goal)
+    pivotParameter = InputData.parameterInputFactory('pivotParameter',
+                        contentType=InputTypes.StringType, printPriority=108,
+                        descr=r"""Name of the pivot dimension in the input data (e.g. 'time'). """
+                              r"""When supplied, the data is treated as time-dependent.""")
+    goal.addSub(pivotParameter)
+    reshape = InputData.parameterInputFactory('reshape',
+                        contentType=InputTypes.makeEnumType('reshape','reshapeType',
+                                                            ['snapshot','spatiotemporal']),
+                        printPriority=108,
+                        descr=r"""How to flatten a parameter/time tensor before sensor selection. """
+                              r"""'snapshot': stack (sample,time) pairs as rows (sensors = spatial points). """
+                              r"""'spatiotemporal': stack (space,time) pairs as columns (sensors = space-time pairs).""",
+                        default='snapshot')
+    goal.addSub(reshape)
     return inputSpecification
 
   def __init__(self):
@@ -90,6 +103,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.keepInputMeta(False)
     self.outputMultipleRealizations = True                   # True indicate multiple realizations are returned
     self.pivotParameter = None                               # time-dependent data pivot parameter. None if the problem is steady state
+    self.reshape = 'snapshot'                              # 'snapshot' | 'spatiotemporal'
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
     self.sparseSensingGoal = None                            # The goal of the sensor selection. i.e., reconstruction or classification
     self.nSensors = None                                     # The number of the sensors required by the user.
@@ -131,6 +145,10 @@ class SparseSensing(PostProcessorReadyInterface):
         self.seed = child.findFirst('seed').value
       else:
         self.seed = None
+      pivot = child.findFirst('pivotParameter')
+      self.pivotParameter = pivot.value if pivot is not None else None
+      reshape = child.findFirst('reshape')
+      self.reshape = reshape.value if reshape is not None else 'snapshot'
       if child.parameterValues['subType'] not in self.goalsDict.keys():
         self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
     _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','target'])
