@@ -17,15 +17,15 @@
   </RunInfo>
 
   <Models>
-    <ExternalModel name="genT" subType="" ModuleToLoad="../transient/genTransient">
+    <ExternalModel name="genT" subType="" ModuleToLoad="genParamTime">
       <variables>alpha, time, pointID, x, T</variables>
     </ExternalModel>
     <PostProcessor name="mySPSL" subType="SparseSensing">
       <Goal subType="reconstruction">
         <features>x, T</features>
         <target>T</target>
-        <basis>SVD</basis>
-        <nModes>2</nModes>
+        <basis>Identity</basis>
+        <nModes>40</nModes>
         <nSensors>2</nSensors>
         <optimizer>QR</optimizer>
         <pivotParameter>time</pivotParameter>
