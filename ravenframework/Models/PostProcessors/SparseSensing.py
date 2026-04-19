@@ -22,7 +22,6 @@ import xarray as xr
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from ...utils import InputData, InputTypes
-from ... import MetricDistributor
 
 class SparseSensing(PostProcessorReadyInterface):
   """
@@ -41,6 +40,7 @@ class SparseSensing(PostProcessorReadyInterface):
   optimizerOptions = ['QR', 'CCQR']
   optimizerAliases = {'qr': 'QR',
                       'ccqr': 'CCQR'}
+  reconstructionMetricOptions = ['rmse', 'mse', 'mae']
 
   @classmethod
   def getInputSpecification(cls):
@@ -85,18 +85,18 @@ class SparseSensing(PostProcessorReadyInterface):
                                                   descr=r"""Name of the variable in the input DataObject that stores
                                                         the per-sensor costs used by the CCQR optimizer.""")
     goal.addSub(sensorCosts)
+    reconstructionMetrics = InputData.parameterInputFactory("reconstructionMetrics", contentType=InputTypes.StringListType,
+                                                            printPriority=108,
+                                                            descr=r"""Comma-separated list of native pysensors
+                                                                  reconstruction metrics to evaluate on the fitted
+                                                                  SSPOR model. Currently supported:
+                                                                  \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}.""")
+    goal.addSub(reconstructionMetrics)
     seed = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
     goal.addSub(seed)
     inputSpecification.addSub(goal)
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType,
-                                                  printPriority=108,
-                                                  descr=r"""Name of a RAVEN Metric object used to evaluate
-                                                        steady-state reconstruction quality.""")
-    metricInput.addParam("class", InputTypes.StringType, True)
-    metricInput.addParam("type", InputTypes.StringType, True)
-    inputSpecification.addSub(metricInput)
     return inputSpecification
 
   def __init__(self):
@@ -120,10 +120,9 @@ class SparseSensing(PostProcessorReadyInterface):
     self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
     self.sensorCosts = None                                  # Optional per-sensor costs for CCQR
     self.sensorCostsVariableName = None                      # Input variable name holding the CCQR costs
+    self.reconstructionMetrics = []                          # Optional native pysensors reconstruction metrics
     self.seed = None                                         # The seed used by pysensors during sensor selection
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
-    self.metricsDict = {}                                    # Assembled Metric objects keyed by name
-    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -136,10 +135,6 @@ class SparseSensing(PostProcessorReadyInterface):
     super().initialize(runInfo, inputs, initDict)
     if len(inputs)>1:
       self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
-    for metricIn in self.assemblerDict.get('Metric', []):
-      self.metricsDict[metricIn[2]] = metricIn[3]
-    if self.metricsDict and self.sparseSensingGoal != 'reconstruction':
-      self.raiseAWarning('Metric objects are ignored unless SparseSensing is in reconstruction mode')
 
   def _handleInput(self, paramInput):
     """
@@ -159,15 +154,18 @@ class SparseSensing(PostProcessorReadyInterface):
         self.optimizer = self._normalizeOptimizer(child.findFirst('optimizer').value)
         sensorCosts = child.findFirst('sensorCosts')
         self.sensorCostsVariableName = sensorCosts.value if sensorCosts is not None else None
+        metricsNode = child.findFirst('reconstructionMetrics')
+        if metricsNode is not None:
+          self.reconstructionMetrics = [self._normalizeReconstructionMetric(metricName)
+                                        for metricName in metricsNode.value]
+        else:
+          self.reconstructionMetrics = []
         if child.findFirst('seed') is not None:
           self.seed = child.findFirst('seed').value
         else:
           self.seed = None
         if child.parameterValues['subType'] not in self.goalsDict.keys():
           self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
-      elif child.getName() == 'Metric':
-        if 'class' not in child.parameterValues or 'type' not in child.parameterValues:
-          self.raiseAnError(IOError, 'Metric nodes require "class" and "type" attributes')
     goalNode = paramInput.findFirst('Goal')
     _, notFound = goalNode.findNodesAndExtractValues(['nModes','nSensors','features','target'])
     # notFound must be empty
@@ -193,6 +191,17 @@ class SparseSensing(PostProcessorReadyInterface):
     normalized = self.optimizerAliases.get(str(optimizerName).lower())
     if normalized is None:
       self.raiseAnError(IOError, 'optimizer "{}" is not recognized'.format(optimizerName))
+    return normalized
+
+  def _normalizeReconstructionMetric(self, metricName):
+    """
+      Normalize supported native pysensors reconstruction metric names.
+      @ In, metricName, str, user-provided reconstruction metric name
+      @ Out, normalized, str, canonical lowercase metric name
+    """
+    normalized = str(metricName).strip().lower()
+    if normalized not in self.reconstructionMetricOptions:
+      self.raiseAnError(IOError, 'reconstruction metric "{}" is not recognized; allowed values are {}'.format(metricName, self.reconstructionMetricOptions))
     return normalized
 
   def _buildBasis(self):
@@ -235,6 +244,23 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.sparseSensingGoal == 'classification':
       self.raiseAnError(NotImplementedError, 'SparseSensing classification is not yet implemented in RAVEN')
     self.raiseAnError(IOError, 'goal "{}" is not recognized'.format(self.sparseSensingGoal))
+
+  def _computeReconstructionMetric(self, model, data, metricName):
+    """
+      Evaluate a native pysensors reconstruction metric on the fitted model.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, data, np.ndarray, full-state measurements with shape (samples, features)
+      @ In, metricName, str, canonical metric name
+      @ Out, metricValue, float, scalar metric value
+    """
+    if metricName == 'rmse':
+      # pysensors.score follows sklearn's "higher is better" convention, so RMSE is negated there.
+      return float(-model.score(data))
+    if metricName == 'mse':
+      return float(model.score(data, score_function=lambda yTrue, yPred: np.mean((yTrue - yPred) ** 2)))
+    if metricName == 'mae':
+      return float(model.score(data, score_function=lambda yTrue, yPred: np.mean(np.abs(yTrue - yPred))))
+    self.raiseAnError(IOError, 'reconstruction metric "{}" is not implemented'.format(metricName))
 
   def run(self,inputIn):
     """
@@ -285,15 +311,9 @@ class SparseSensing(PostProcessorReadyInterface):
     for var in self.sensingFeatures:
       sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data)
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
-    if self.sparseSensingGoal == 'reconstruction' and self.metricsDict:
-      sensorData = data[:, selectedSensors]
-      reconstructed = model.predict(sensorData)
-      weights = np.ones(nSamples)
-      pairedData = ((reconstructed, weights), (data, weights))
-      for metricName, metricInstance in self.metricsDict.items():
-        metricEngine = MetricDistributor.factory.returnInstance('MetricDistributor', metricInstance)
-        metricValue = np.atleast_1d(metricEngine.evaluate(pairedData, weights=None, multiOutput='mean'))[0]
-        outDS[metricName] = float(metricValue)
+    if self.sparseSensingGoal == 'reconstruction' and self.reconstructionMetrics:
+      for metricName in self.reconstructionMetrics:
+        outDS[metricName] = self._computeReconstructionMetric(model, data, metricName)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims(self.sampleTag)

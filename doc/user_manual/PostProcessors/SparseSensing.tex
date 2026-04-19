@@ -32,9 +32,9 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
 	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case or \xmlString{CCQR} when sensor costs are supplied. \default{QR}
         \item \xmlNode{sensorCosts}, \xmlDesc{string, optional field}, the name of the input variable that stores the per-sensor costs consumed by the \xmlString{CCQR} optimizer.
+        \item \xmlNode{reconstructionMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors reconstruction metrics to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}. These scalar values are written directly to the output \xmlNode{DataObject}.
         \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
 \end{itemize}
-\item \xmlNode{Metric}, \xmlDesc{string, optional field}, the name of a RAVEN \xmlNode{Metric} object with attributes \xmlAttr{class=\xmlString{Metrics}} and \xmlAttr{type=\xmlString{Metric}}. These metrics are evaluated on the reconstructed steady-state field and written as scalar outputs.
 \end{itemize}
 
 \textbf{Example:}
@@ -51,6 +51,7 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
         <nModes>4</nModes> <!--default: opt, allows the algorithm to pick nModes-->
         <nSensors>4</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
         <optimizer>QR</optimizer><!--default: QR-->
+        <reconstructionMetrics>rmse,mse</reconstructionMetrics>
       </Goal>
     </PostProcessor>
     ...

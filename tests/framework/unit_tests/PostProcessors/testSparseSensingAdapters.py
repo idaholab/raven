@@ -17,6 +17,7 @@
 import os
 import sys
 import xml.etree.ElementTree as ET
+import numpy as np
 
 ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 sys.path.append(ravenDir)
@@ -87,8 +88,8 @@ xmlCCQR = """<PostProcessor name='pp' subType='SparseSensing'>
     <nSensors>2</nSensors>
     <optimizer>CCQR</optimizer>
     <sensorCosts>sensorCost</sensorCosts>
+    <reconstructionMetrics>RMSE,mae</reconstructionMetrics>
   </Goal>
-  <Metric class='Metrics' type='Metric'>mae</Metric>
 </PostProcessor>"""
 
 ppCCQR = SparseSensing()
@@ -96,6 +97,7 @@ ppCCQR._handleInput(parse(xmlCCQR))
 ppCCQR.sensorCosts = [0.25, 0.75, 1.25]
 check("CCQR optimizer name is parsed", ppCCQR.optimizer == "CCQR")
 check("sensorCosts variable name is parsed", ppCCQR.sensorCostsVariableName == "sensorCost")
+check("reconstruction metrics are normalized", ppCCQR.reconstructionMetrics == ["rmse", "mae"])
 check("CCQR builder returns the right class",
       ppCCQR._buildOptimizer().__class__.__name__ == "CCQR")
 
@@ -121,6 +123,36 @@ ppClass.sparseSensingGoal = "classification"
 ppClass.nSensors = 2
 checkRaises("classification is rejected explicitly", NotImplementedError,
             lambda: ppClass._buildModel(None, None), "not yet implemented")
+
+checkRaises("unknown reconstruction metric is rejected", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <reconstructionMetrics>rmse,bogus</reconstructionMetrics>
+  </Goal>
+</PostProcessor>""")), "reconstruction metric")
+
+ppMetric = SparseSensing()
+ppMetric.sparseSensingGoal = "reconstruction"
+data = np.asarray([[1.0, 2.0], [1.5, 2.5], [2.0, 3.0]])
+ppMetric.nModes = 1
+ppMetric.nSensors = 1
+ppMetric.basis = "Identity"
+ppMetric.optimizer = "QR"
+model = ppMetric._buildModel(ppMetric._buildBasis(), ppMetric._buildOptimizer())
+model.fit(data)
+rmse = ppMetric._computeReconstructionMetric(model, data, "rmse")
+mse = ppMetric._computeReconstructionMetric(model, data, "mse")
+mae = ppMetric._computeReconstructionMetric(model, data, "mae")
+check("rmse metric is non-negative", rmse >= 0.0)
+check("mse metric is non-negative", mse >= 0.0)
+check("mae metric is non-negative", mae >= 0.0)
+check("rmse and mse remain numerically consistent", abs(rmse**2 - mse) < 1e-12)
 
 print("Results:", results)
 sys.exit(results["fail"])

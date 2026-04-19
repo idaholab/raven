@@ -40,27 +40,18 @@
     </IOStep>
   </Steps>
 
-  <Metrics>
-    <Metric name="mae" subType="SKL">
-      <metricType>regression|mean_absolute_error</metricType>
-    </Metric>
-    <Metric name="mse" subType="SKL">
-      <metricType>regression|mean_squared_error</metricType>
-    </Metric>
-  </Metrics>
-
   <Models>
     <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
       <Goal subType="reconstruction">
         <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
         <basis>SVD</basis>
-        <nModes>4</nModes>
-        <nSensors>4</nSensors>
+        <nModes>2</nModes>
+        <nSensors>2</nSensors>
         <optimizer>QR</optimizer>
+        <reconstructionMetrics>rmse,mae,mse</reconstructionMetrics>
+        <seed>0</seed>
       </Goal>
-      <Metric class="Metrics" type="Metric">mae</Metric>
-      <Metric class="Metrics" type="Metric">mse</Metric>
     </PostProcessor>
   </Models>
 
@@ -77,7 +68,7 @@
     </HistorySet>
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
-      <Output>Temperature (K), X (m), Y (m), mae, mse</Output>
+      <Output>Temperature (K), X (m), Y (m), rmse, mae, mse</Output>
       <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
     </DataSet>
   </DataObjects>
