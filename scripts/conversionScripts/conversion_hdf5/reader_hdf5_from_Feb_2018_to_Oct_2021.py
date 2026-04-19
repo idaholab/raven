@@ -318,10 +318,12 @@ class AfterFeb2018ToOct2021HDF5Database(InputDataUser, MessageUser):
       @ In, neg, bool, to use the "not" or not
       @ Out, check, bool, the check
     """
+    scalarNumpy = mathUtils.getNumpyTypes('float') + mathUtils.getNumpyTypes('int') + mathUtils.getNumpyTypes('uint')
+    scalarBuiltins = [float, int]
     if neg:
-      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] and type(value) not in [float,int]
+      check = type(value) == np.ndarray and value.dtype not in scalarNumpy and type(value) not in scalarBuiltins
     else:
-      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int]
+      check = type(value) == np.ndarray and value.dtype in scalarNumpy or type(value) in scalarBuiltins
     return check
 
   def __populateGroup(self, group, name,  rlz):
@@ -618,5 +620,4 @@ class AfterFeb2018ToOct2021HDF5Database(InputDataUser, MessageUser):
     else:
       parentGroupName = '/'
     return parentGroupName
-
 

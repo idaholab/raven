@@ -200,6 +200,21 @@ for e,entry in enumerate(convMat):
 checkType('convertNumpyToList.Array.type)',convAry,[])
 checkArray('convertNumpyToList.Array.values)',convAry,datAry)
 
+### check "getNumpyTypes"
+floatTypes = mathUtils.getNumpyTypes('float')
+intTypes = mathUtils.getNumpyTypes('int')
+uintTypes = mathUtils.getNumpyTypes('uint')
+complexTypes = mathUtils.getNumpyTypes('complex')
+otherTypes = mathUtils.getNumpyTypes('others')
+boolTypes = mathUtils.getNumpyTypes('bool')
+checkTrue('getNumpyTypes float includes float64',np.float64 in floatTypes,True)
+checkTrue('getNumpyTypes int includes int64',np.int64 in intTypes,True)
+checkTrue('getNumpyTypes uint includes uint64',np.uint64 in uintTypes,True)
+checkTrue('getNumpyTypes complex includes complex128',np.complex128 in complexTypes,True)
+checkTrue('getNumpyTypes others includes bool',np.bool_ in otherTypes,True)
+checkTrue('getNumpyTypes name lookup finds bool',np.bool_ in boolTypes,True)
+checkTrue('getNumpyTypes unknown is empty',mathUtils.getNumpyTypes('definitely_not_a_numpy_type') == [],True)
+
 
 ### check "interpolateFunction"
 # TODO some documentation missing

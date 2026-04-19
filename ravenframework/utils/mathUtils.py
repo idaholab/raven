@@ -34,6 +34,8 @@ mh = getMessageHandler()
 
 # dict of builtin types, filled by getBuiltinTypes
 _bTypes = None
+# dict of numpy scalar type groups, filled by getNumpyTypes
+_npTypes = None
 
 def normal(x, mu=0.0, sigma=1.0):
   """
@@ -1269,12 +1271,34 @@ def getNumpyTypes(typ):
     @ In, typ, str, the type to get
     @ Out, nTypes, list, the list of type instances
   """
-  nTypes = []
-  if typ in np.sctypes:
-    nTypes = np.sctypes[typ]
-  else:
-    for t in np.sctypes['others']:
-      if typ in t.__name__:
-        nTypes.append(t)
+  global _npTypes
+  if _npTypes is None:
+    _npTypes = {'int': [], 'uint': [], 'float': [], 'complex': [],
+                'others': [], 'datetime': [], 'timedelta': []}
+    numpyScalarTypes = []
+    for npType in np.sctypeDict.values():
+      if isinstance(npType, type) and issubclass(npType, np.generic) and npType not in numpyScalarTypes:
+        numpyScalarTypes.append(npType)
+    for npType in numpyScalarTypes:
+      kind = np.dtype(npType).kind
+      if kind == 'i':
+        bucket = 'int'
+      elif kind == 'u':
+        bucket = 'uint'
+      elif kind == 'f':
+        bucket = 'float'
+      elif kind == 'c':
+        bucket = 'complex'
+      elif kind == 'M':
+        bucket = 'datetime'
+      elif kind == 'm':
+        bucket = 'timedelta'
+      else:
+        bucket = 'others'
+      _npTypes[bucket].append(npType)
+    for key in _npTypes:
+      _npTypes[key].sort(key=lambda npType: npType.__name__)
 
-  return nTypes
+  if typ in _npTypes:
+    return _npTypes[typ]
+  return [npType for npType in _npTypes['others'] if typ in npType.__name__]
