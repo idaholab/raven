@@ -56,7 +56,8 @@ class SparseSensing(PostProcessorReadyInterface):
                                                 printPriority=108,
                                                 descr=r"""target of data model""")
     goal.addSub(target)
-    basis = InputData.parameterInputFactory("basis", contentType=InputTypes.makeEnumType("basis","basis Type",['Identity','SVD','RandomProjetion']),
+    basis = InputData.parameterInputFactory("basis", contentType=InputTypes.makeEnumType("basis","basis Type",
+                                                           ['Identity','SVD','RandomProjection','RandomProjetion','HOSVD']),
                                                            printPriority=108,
                                                            descr=r"""The type of basis onto which the data are projected""", default='SVD')
     goal.addSub(basis)
@@ -168,6 +169,10 @@ class SparseSensing(PostProcessorReadyInterface):
       nSamples, nTime, nSpace = data.shape
       # Row-major stack: row k·T + t holds sample k at time t.
       return data.reshape(nSamples * nTime, nSpace)
+    if self.reshape == 'spatiotemporal':
+      nSamples, nTime, nSpace = data.shape
+      # Column k·T + t holds one scheduled measurement at space k and time t.
+      return data.transpose(0, 2, 1).reshape(nSamples, nSpace * nTime)
     raise NotImplementedError(f"reshape={self.reshape} not yet implemented")
 
   def run(self,inputIn):
@@ -184,14 +189,22 @@ class SparseSensing(PostProcessorReadyInterface):
     # don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
+    data = inputDS[self.sensingTarget].data
+
     if self.basis.lower() == 'svd':
-      basis=ps.basis.SVD(n_basis_modes=self.nModes)
+      basis = ps.basis.SVD(n_basis_modes=self.nModes)
     elif self.basis.lower() == 'identity':
-      basis=ps.basis.Identity(n_basis_modes=self.nModes)
-    elif self.basis.lower() == 'randomprojection':
-      basis=ps.basis.RandomProjection(n_basis_modes=self.nModes)
+      basis = ps.basis.Identity(n_basis_modes=self.nModes)
+    elif self.basis.lower() in ('randomprojection', 'randomprojetion'):
+      basis = ps.basis.RandomProjection(n_basis_modes=self.nModes)
+    elif self.basis.lower() == 'hosvd':
+      if self.pivotParameter is None:
+        self.raiseAnError(IOError, "HOSVD basis requires <pivotParameter> (needs a 3-D input tensor)")
+      from .SparseSensingBases import HOSVDBasis
+      basis = HOSVDBasis(n_basis_modes=self.nModes)
+      basis.fit(data)
     else:
-      self.raiseAnError(IOError, 'basis are not recognized')
+      self.raiseAnError(IOError, f"basis '{self.basis}' not recognized")
 
     if self.optimizer.lower() == 'qr':
       optimizer = ps.optimizers.QR()
@@ -199,8 +212,6 @@ class SparseSensing(PostProcessorReadyInterface):
       self.raiseAnError(IOError, 'optimizer {} not implemented!!!'.format(self.optimizer))
 
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
-
-    data = inputDS[self.sensingTarget].data
 
     pivotLen = None
     if self.pivotParameter is not None:
@@ -240,6 +251,28 @@ class SparseSensing(PostProcessorReadyInterface):
     # labelling differs — downstream reconstruction uses the index set, not order.
     selectedSensors = np.sort(model.get_selected_sensors())
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
+
+    if self.pivotParameter is not None and self.reshape == 'spatiotemporal':
+      nTime = data.shape[1]
+      sensorSpace = selectedSensors // nTime
+      sensorTime = selectedSensors % nTime
+      pivotValues = np.asarray(inputDS[self.pivotParameter].data)
+      sensorData = {}
+      for var in self.sensingFeatures:
+        arr = inputDS[var].data
+        if arr.ndim == 3:
+          values = arr[0, sensorTime, sensorSpace]
+        elif arr.ndim == 2:
+          values = arr[0, sensorSpace]
+        else:
+          vec = np.atleast_1d(arr)
+          values = vec[sensorSpace]
+        sensorData[var] = ('sensor', values)
+      sensorData[self.pivotParameter] = ('sensor', pivotValues[sensorTime])
+      outDS = xr.Dataset(data_vars=sensorData, coords=coords)
+      outDS = outDS.expand_dims(self.sampleTag)
+      outDS[self.sampleTag] = [0]
+      return outDS
 
     sensorData = {}
     for var in self.sensingFeatures:
