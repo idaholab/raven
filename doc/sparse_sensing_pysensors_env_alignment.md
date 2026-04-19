@@ -16,7 +16,12 @@ The RAVEN `SparseSensing` code on this branch has already been aligned to a much
 - `TPGR`
 - `TPGR` one-point and two-point energy landscapes
 
-The remaining blocker is the package stack, not the RAVEN-side interface.
+The package stack is now largely aligned for the refreshed SparseSensing path.
+The remaining broad-suite blockers on this macOS machine are:
+
+- Tk/matplotlib plotting initialization failures in GUI-backed tests
+- any additional NumPy 2 compatibility issues that only appear outside the
+  currently focused validation slices
 
 ## What Was Verified
 
@@ -92,6 +97,8 @@ surface.
 Validated in that environment:
 
 - `tests/framework/unit_tests/PostProcessors/testSparseSensingAdapters.py`
+- `tests/framework/unit_tests/TSA/testWavelet.py`
+- `tests/framework/unit_tests/Distributions/TestDistributions.py`
 - focused SparseSensing XML regressions with
   `RAVEN_IGNORE_VERSIONS=1 ./run_tests --skip-load-env --re='...'`
 
@@ -116,7 +123,16 @@ Follow-on dependency work in the same env:
 - upgraded `opentelemetry-proto` so the new protobuf range no longer conflicts
 - removed the stale `tensorflow-macos 2.14.1` / `tensorflow-estimator 2.14.0`
   leftovers from the cloned env
+- upgraded `PyWavelets` to `1.8.0` so the TSA Wavelet unit test is compatible
+  with the NumPy 2 stack
 - `pip check` is now clean in `raven_spsl_043`
+
+Targeted numerical/test follow-up:
+
+- `tests/framework/unit_tests/Distributions/TestDistributions.py` now uses the
+  exact computed Poisson CDF values when checking the inverse `ppf(cdf(k))`
+  identity, avoiding a brittle jump-discontinuity failure caused by rounding a
+  discrete CDF value
 
 TensorFlow/Keras status:
 

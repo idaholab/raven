@@ -33,6 +33,8 @@ def _reprIfFloat(value):
     @ In, value, any, the value to convert to a string
     @ Out, _reprIfFloat, string, a string conversion of this
   """
+  if isinstance(value, np.generic):
+    value = value.item()
   if mathUtils.isAFloat(value):
     return repr(value)
   else:

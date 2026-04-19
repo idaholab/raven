@@ -94,7 +94,7 @@ limit our library choices.
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->
     <statsforecast source="pip"/>
-    <pywavelets source="pip">1.4</pywavelets>
+    <pywavelets source="pip">1.8</pywavelets>
     <!-- Validated with numpy 2.2, scipy 1.15, scikit-learn 1.7, matplotlib 3.10,
          and statsmodels 0.14 in the dedicated SparseSensing refresh env. -->
     <python-sensors source="pip">0.4.3</python-sensors>
