@@ -33,6 +33,14 @@ class SparseSensing(PostProcessorReadyInterface):
   """
   goalsDict = {'reconstruction':r"""Sparse sensor placement Optimization for Reconstruction (SSPOR)""",
           'classification':r"""Sparse sensor placement Optimization for Classification (SSPOC)"""}
+  basisOptions = ['Identity', 'SVD', 'RandomProjection', 'RandomProjetion']
+  basisAliases = {'identity': 'Identity',
+                  'svd': 'SVD',
+                  'randomprojection': 'RandomProjection',
+                  'randomprojetion': 'RandomProjection'}
+  optimizerOptions = ['QR']
+  optimizerAliases = {'qr': 'QR'}
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -47,7 +55,6 @@ class SparseSensing(PostProcessorReadyInterface):
                                                   printPriority=108,
                                                   descr=r"""The goal of the sparse sensor optimization (i.e., reconstruction or classification)""")
     goal.addParam("subType", InputTypes.makeEnumType("Goal", "GoalType", ['reconstruction','classification']), False, default='reconstruction')
-    inputSpecification.addSub(goal)
     features = InputData.parameterInputFactory("features", contentType=InputTypes.StringListType,
                                                 printPriority=108,
                                                 descr=r"""Features/inputs of the data model""")
@@ -56,7 +63,7 @@ class SparseSensing(PostProcessorReadyInterface):
                                                 printPriority=108,
                                                 descr=r"""target of data model""")
     goal.addSub(target)
-    basis = InputData.parameterInputFactory("basis", contentType=InputTypes.makeEnumType("basis","basis Type",['Identity','SVD','RandomProjetion']),
+    basis = InputData.parameterInputFactory("basis", contentType=InputTypes.makeEnumType("basis","basis Type", cls.basisOptions),
                                                            printPriority=108,
                                                            descr=r"""The type of basis onto which the data are projected""", default='SVD')
     goal.addSub(basis)
@@ -68,7 +75,7 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The number of sensors used""")
     goal.addSub(nSensors)
-    optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer","optimizer type",['QR']),
+    optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer","optimizer type", cls.optimizerOptions),
                                                            printPriority=108,
                                                            descr=r"""The type of optimizer used""",default='QR')
     goal.addSub(optimizer)
@@ -98,6 +105,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.sensingFeatures = None                              # The variable representing the features of the data i.e., X, Y, SensorID, etc.
     self.sensingTarget = None                                # The Response of interest to be reconstructed (or classify)
     self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
+    self.seed = None                                         # The seed used by pysensors during sensor selection
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
 
   def initialize(self, runInfo, inputs, initDict=None):
@@ -123,10 +131,10 @@ class SparseSensing(PostProcessorReadyInterface):
       self.sparseSensingGoal = child.parameterValues['subType']
       self.nSensors = child.findFirst('nSensors').value
       self.nModes = child.findFirst('nModes').value
-      self.basis = child.findFirst('basis').value
+      self.basis = self._normalizeBasis(child.findFirst('basis').value)
       self.sensingFeatures = child.findFirst('features').value
       self.sensingTarget = child.findFirst('target').value
-      self.optimizer = child.findFirst('optimizer').value
+      self.optimizer = self._normalizeOptimizer(child.findFirst('optimizer').value)
       if child.findFirst('seed') is not None:
         self.seed = child.findFirst('seed').value
       else:
@@ -136,6 +144,65 @@ class SparseSensing(PostProcessorReadyInterface):
     _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','target'])
     # notFound must be empty
     assert not notFound, "Unexpected nodes in _handleInput"
+
+  def _normalizeBasis(self, basisName):
+    """
+      Normalize basis names and tolerate the legacy RandomProjetion typo.
+      @ In, basisName, str, user-provided basis name
+      @ Out, normalized, str, canonical basis name
+    """
+    normalized = self.basisAliases.get(str(basisName).lower())
+    if normalized is None:
+      self.raiseAnError(IOError, 'basis "{}" is not recognized'.format(basisName))
+    return normalized
+
+  def _normalizeOptimizer(self, optimizerName):
+    """
+      Normalize optimizer names to the canonical spelling used internally.
+      @ In, optimizerName, str, user-provided optimizer name
+      @ Out, normalized, str, canonical optimizer name
+    """
+    normalized = self.optimizerAliases.get(str(optimizerName).lower())
+    if normalized is None:
+      self.raiseAnError(IOError, 'optimizer "{}" is not recognized'.format(optimizerName))
+    return normalized
+
+  def _buildBasis(self):
+    """
+      Construct the configured pysensors basis.
+      @ In, None
+      @ Out, basis, object, instantiated pysensors basis
+    """
+    if self.basis == 'SVD':
+      return ps.basis.SVD(n_basis_modes=self.nModes)
+    if self.basis == 'Identity':
+      return ps.basis.Identity(n_basis_modes=self.nModes)
+    if self.basis == 'RandomProjection':
+      return ps.basis.RandomProjection(n_basis_modes=self.nModes)
+    self.raiseAnError(IOError, 'basis "{}" is not recognized'.format(self.basis))
+
+  def _buildOptimizer(self):
+    """
+      Construct the configured pysensors optimizer.
+      @ In, None
+      @ Out, optimizer, object, instantiated pysensors optimizer
+    """
+    if self.optimizer == 'QR':
+      return ps.optimizers.QR()
+    self.raiseAnError(IOError, 'optimizer "{}" is not implemented'.format(self.optimizer))
+
+  def _buildModel(self, basis, optimizer):
+    """
+      Construct the configured pysensors model.
+      @ In, basis, object, instantiated pysensors basis
+      @ In, optimizer, object, instantiated pysensors optimizer
+      @ Out, model, object, instantiated pysensors sparse sensing model
+    """
+    if self.sparseSensingGoal == 'reconstruction':
+      return ps.SSPOR(basis=basis, n_sensors=self.nSensors, optimizer=optimizer)
+    if self.sparseSensingGoal == 'classification':
+      self.raiseAnError(NotImplementedError, 'SparseSensing classification is not yet implemented in RAVEN')
+    self.raiseAnError(IOError, 'goal "{}" is not recognized'.format(self.sparseSensingGoal))
 
   def run(self,inputIn):
     """
@@ -147,25 +214,13 @@ class SparseSensing(PostProcessorReadyInterface):
     _, _, inputDS = inputIn['Data'][0]
 
     ## identify features
-    self.features = self.sensingFeatures
+    self.features = list(self.sensingFeatures)
     # don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
-    if self.basis.lower() == 'svd':
-      basis=ps.basis.SVD(n_basis_modes=self.nModes)
-    elif self.basis.lower() == 'identity':
-      basis=ps.basis.Identity(n_basis_modes=self.nModes)
-    elif self.basis.lower() == 'randomprojection':
-      basis=ps.basis.RandomProjection(n_basis_modes=self.nModes)
-    else:
-      self.raiseAnError(IOError, 'basis are not recognized')
-
-    if self.optimizer.lower() == 'qr':
-      optimizer = ps.optimizers.QR()
-    else:
-      self.raiseAnError(IOError, 'optimizer {} not implemented!!!'.format(self.optimizer))
-
-    model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
+    basis = self._buildBasis()
+    optimizer = self._buildOptimizer()
+    model = self._buildModel(basis, optimizer)
 
     features = {}
     for var in self.sensingFeatures:

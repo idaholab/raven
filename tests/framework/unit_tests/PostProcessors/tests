@@ -1,0 +1,7 @@
+[Tests]
+  [./testSparseSensingAdapters]
+    type = 'RavenPython'
+    input = 'testSparseSensingAdapters.py'
+    required_libraries = 'pysensors'
+  [../]
+[]

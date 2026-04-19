@@ -91,6 +91,7 @@ limit our library choices.
     <!-- <statsforecast source='pip'/> -->
     <statsforecast source="pip"/>
     <pywavelets source="pip">1.4</pywavelets>
+    <!-- python-sensors 0.4.3 currently pulls a newer scientific stack than raven_libraries. -->
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
