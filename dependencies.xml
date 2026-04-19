@@ -41,7 +41,7 @@ Note all install methods after "main" take
 ray have conflicts with grpcio, which sometime we need to pin the version of grpcio
 2. ray may also have issue with typing-extensions, which sometime we need to pin the version
 3. SparseSensing/pysensors refresh validated a newer scientific stack on 2026-04-19.
-   TensorFlow/Keras still requires separate compatibility work before it can move with it.
+   TensorFlow/Keras now uses tf_keras legacy mode on top of the refreshed stack.
 4. some libraries in plugins can cause library conflicts, such as FARM quadprog which can really
 limit our library choices.
 -->
@@ -62,8 +62,8 @@ limit our library choices.
     <matplotlib source="pip">3.10</matplotlib>
     <statsmodels source="pip">0.14</statsmodels>
     <cloudpickle source="pip"/>
-    <!-- TensorFlow/Keras is temporarily out of the default stack while the
-         RAVEN Keras ROM interface is updated for the newer packaging/runtime. -->
+    <tensorflow source="pip">2.21</tensorflow>
+    <tf-keras source="pip">2.21</tf-keras>
     <!-- <grpcio source="pip">1.69</grpcio> -->
     <protobuf source="pip">6.33</protobuf>
     <!-- conda is really slow on windows if the version is not specified.-->

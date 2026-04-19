@@ -120,18 +120,24 @@ Follow-on dependency work in the same env:
 
 TensorFlow/Keras status:
 
-- `tensorflow 2.20.0` can be installed cleanly alongside the refreshed
-  scientific stack
-- but the current RAVEN Keras ROM path still does not run cleanly with that
-  runtime on macOS
-- the immediate runtime failures are around the TensorFlow/Keras packaging
-  layout used by the new wheel, not the SparseSensing path
+- the clean compatibility path is:
+  - `tensorflow 2.21.0`
+  - `tf_keras 2.21.0`
+  - `TF_USE_LEGACY_KERAS=1` before TensorFlow import
+- with that setup, `tf.keras` resolves to `tf_keras.api._v2.keras`, which
+  matches the current RAVEN Keras ROM implementation expectations
+- validated TensorFlow ROM coverage in `raven_spsl_043`:
+  - `tests/framework/ROM/tensorflow_keras/tf_cnn1d`
+  - `tests/framework/ROM/tensorflow_keras/tf_mlpc`
+  - `tests/framework/ROM/tensorflow_keras/tf_mlpr`
+  - `tests/framework/ROM/tensorflow_keras/tf_lstm`
+  - `tests/framework/ROM/tensorflow_keras/tf_lstm_regression`
 
 Repo implication:
 
 - the scientific stack and `python-sensors` can move forward now
-- TensorFlow should be taken out of the default dependency contract until the
-  Keras ROM interface is modernized separately
+- TensorFlow can move forward too, but only through `tf_keras` legacy mode for
+  now
 - after updating `dependencies.xml`, the focused SparseSensing regression set
   also passed in `raven_spsl_043` without `RAVEN_IGNORE_VERSIONS`
 
@@ -161,11 +167,24 @@ validated default scientific stack:
 
 TensorFlow was intentionally removed from the default dependency set for now.
 
+That temporary removal has now been replaced with the validated legacy-Keras
+compatibility path:
+
+```xml
+<tensorflow source="pip">2.21</tensorflow>
+<tf-keras source="pip">2.21</tf-keras>
+```
+
+RAVEN sets `TF_USE_LEGACY_KERAS=1` automatically before lazy-importing
+TensorFlow whenever `tf_keras` is available.
+
 ## Recommended Next Step
 
-Create a separate TensorFlow/Keras modernization effort that:
+Create a later TensorFlow/Keras modernization effort that:
 
-1. selects the supported TensorFlow distribution for macOS and other platforms,
-2. updates the RAVEN Keras ROM interface for that packaging/runtime,
+1. removes the dependency on `tf_keras` legacy mode,
+2. updates the RAVEN Keras ROM interface to run directly on the modern
+   TensorFlow/Keras packaging,
 3. reruns `tests/framework/ROM/tensorflow_keras`,
-4. only then restores TensorFlow to the default dependency contract.
+4. simplifies the TensorFlow import hook once the legacy bridge is no longer
+   needed.
