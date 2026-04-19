@@ -22,6 +22,7 @@ import xarray as xr
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from ...utils import InputData, InputTypes
+from ... import MetricDistributor
 
 class SparseSensing(PostProcessorReadyInterface):
   """
@@ -38,8 +39,9 @@ class SparseSensing(PostProcessorReadyInterface):
                   'svd': 'SVD',
                   'randomprojection': 'RandomProjection',
                   'randomprojetion': 'RandomProjection'}
-  optimizerOptions = ['QR']
-  optimizerAliases = {'qr': 'QR'}
+  optimizerOptions = ['QR', 'CCQR']
+  optimizerAliases = {'qr': 'QR',
+                      'ccqr': 'CCQR'}
 
   @classmethod
   def getInputSpecification(cls):
@@ -79,11 +81,23 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The type of optimizer used""",default='QR')
     goal.addSub(optimizer)
+    sensorCosts = InputData.parameterInputFactory("sensorCosts", contentType=InputTypes.StringType,
+                                                  printPriority=108,
+                                                  descr=r"""Name of the variable in the input DataObject that stores
+                                                        the per-sensor costs used by the CCQR optimizer.""")
+    goal.addSub(sensorCosts)
     seed = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
     goal.addSub(seed)
     inputSpecification.addSub(goal)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType,
+                                                  printPriority=108,
+                                                  descr=r"""Name of a RAVEN Metric object used to evaluate
+                                                        steady-state reconstruction quality.""")
+    metricInput.addParam("class", InputTypes.StringType, True)
+    metricInput.addParam("type", InputTypes.StringType, True)
+    inputSpecification.addSub(metricInput)
     return inputSpecification
 
   def __init__(self):
@@ -105,8 +119,12 @@ class SparseSensing(PostProcessorReadyInterface):
     self.sensingFeatures = None                              # The variable representing the features of the data i.e., X, Y, SensorID, etc.
     self.sensingTarget = None                                # The Response of interest to be reconstructed (or classify)
     self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
+    self.sensorCosts = None                                  # Optional per-sensor costs for CCQR
+    self.sensorCostsVariableName = None                      # Input variable name holding the CCQR costs
     self.seed = None                                         # The seed used by pysensors during sensor selection
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
+    self.metricsDict = {}                                    # Assembled Metric objects keyed by name
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -119,6 +137,10 @@ class SparseSensing(PostProcessorReadyInterface):
     super().initialize(runInfo, inputs, initDict)
     if len(inputs)>1:
       self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    for metricIn in self.assemblerDict.get('Metric', []):
+      self.metricsDict[metricIn[2]] = metricIn[3]
+    if self.metricsDict and self.sparseSensingGoal != 'reconstruction':
+      self.raiseAWarning('Metric objects are ignored unless SparseSensing is in reconstruction mode')
 
   def _handleInput(self, paramInput):
     """
@@ -128,20 +150,27 @@ class SparseSensing(PostProcessorReadyInterface):
     """
     self.name = paramInput.parameterValues['name']
     for child in paramInput.subparts:
-      self.sparseSensingGoal = child.parameterValues['subType']
-      self.nSensors = child.findFirst('nSensors').value
-      self.nModes = child.findFirst('nModes').value
-      self.basis = self._normalizeBasis(child.findFirst('basis').value)
-      self.sensingFeatures = child.findFirst('features').value
-      self.sensingTarget = child.findFirst('target').value
-      self.optimizer = self._normalizeOptimizer(child.findFirst('optimizer').value)
-      if child.findFirst('seed') is not None:
-        self.seed = child.findFirst('seed').value
-      else:
-        self.seed = None
-      if child.parameterValues['subType'] not in self.goalsDict.keys():
-        self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
-    _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','target'])
+      if child.getName() == 'Goal':
+        self.sparseSensingGoal = child.parameterValues['subType']
+        self.nSensors = child.findFirst('nSensors').value
+        self.nModes = child.findFirst('nModes').value
+        self.basis = self._normalizeBasis(child.findFirst('basis').value)
+        self.sensingFeatures = child.findFirst('features').value
+        self.sensingTarget = child.findFirst('target').value
+        self.optimizer = self._normalizeOptimizer(child.findFirst('optimizer').value)
+        sensorCosts = child.findFirst('sensorCosts')
+        self.sensorCostsVariableName = sensorCosts.value if sensorCosts is not None else None
+        if child.findFirst('seed') is not None:
+          self.seed = child.findFirst('seed').value
+        else:
+          self.seed = None
+        if child.parameterValues['subType'] not in self.goalsDict.keys():
+          self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
+      elif child.getName() == 'Metric':
+        if 'class' not in child.parameterValues or 'type' not in child.parameterValues:
+          self.raiseAnError(IOError, 'Metric nodes require "class" and "type" attributes')
+    goalNode = paramInput.findFirst('Goal')
+    _, notFound = goalNode.findNodesAndExtractValues(['nModes','nSensors','features','target'])
     # notFound must be empty
     assert not notFound, "Unexpected nodes in _handleInput"
 
@@ -189,6 +218,10 @@ class SparseSensing(PostProcessorReadyInterface):
     """
     if self.optimizer == 'QR':
       return ps.optimizers.QR()
+    if self.optimizer == 'CCQR':
+      if self.sensorCosts is None:
+        self.raiseAnError(IOError, 'CCQR requires sensorCosts to be resolved before building the optimizer')
+      return ps.optimizers.CCQR(sensor_costs=self.sensorCosts)
     self.raiseAnError(IOError, 'optimizer "{}" is not implemented'.format(self.optimizer))
 
   def _buildModel(self, basis, optimizer):
@@ -219,8 +252,6 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
     basis = self._buildBasis()
-    optimizer = self._buildOptimizer()
-    model = self._buildModel(basis, optimizer)
 
     features = {}
     for var in self.sensingFeatures:
@@ -229,6 +260,21 @@ class SparseSensing(PostProcessorReadyInterface):
     data = inputDS[self.sensingTarget].data
     ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
     assert np.shape(data) == (nSamples,nfeatures)
+    if self.sensorCostsVariableName is not None:
+      if self.sensorCostsVariableName not in inputDS:
+        self.raiseAnError(IOError, 'sensorCosts variable "{}" not found in the input DataObject'.format(self.sensorCostsVariableName))
+      rawCosts = np.asarray(inputDS[self.sensorCostsVariableName].data)
+      if rawCosts.ndim == 2:
+        if not np.allclose(rawCosts, rawCosts[0:1, :]):
+          self.raiseAnError(IOError, 'sensorCosts must be invariant across samples for steady-state SparseSensing')
+        rawCosts = rawCosts[0]
+      elif rawCosts.ndim != 1:
+        self.raiseAnError(IOError, 'sensorCosts must be a 1-D vector or a sample-invariant 2-D array')
+      self.sensorCosts = np.asarray(rawCosts, dtype=float).reshape(-1)
+      if len(self.sensorCosts) != nfeatures:
+        self.raiseAnError(IOError, 'sensorCosts has length {} but expected {}'.format(len(self.sensorCosts), nfeatures))
+    optimizer = self._buildOptimizer()
+    model = self._buildModel(basis, optimizer)
     if self.seed is not None:
       model.fit(data, seed=self.seed)
     else:
@@ -240,6 +286,15 @@ class SparseSensing(PostProcessorReadyInterface):
     for var in self.sensingFeatures:
       sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data)
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
+    if self.sparseSensingGoal == 'reconstruction' and self.metricsDict:
+      sensorData = data[:, selectedSensors]
+      reconstructed = model.predict(sensorData)
+      weights = np.ones(nSamples)
+      pairedData = ((reconstructed, weights), (data, weights))
+      for metricName, metricInstance in self.metricsDict.items():
+        metricEngine = MetricDistributor.factory.returnInstance('MetricDistributor', metricInstance)
+        metricValue = np.atleast_1d(metricEngine.evaluate(pairedData, weights=None, multiOutput='mean'))[0]
+        outDS[metricName] = float(metricValue)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims(self.sampleTag)

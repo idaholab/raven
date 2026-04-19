@@ -7,4 +7,10 @@
     required_libraries = 'imageio'
     rel_err = 0.01
   [../]
+  [./testSPSLOptiTwistReconstructionError]
+    type = 'RavenFramework'
+    input = 'testSPSLOptiTwistReconstructionError.xml'
+    csv = 'reconstructionOptiTwistError/outPP.csv'
+    rel_err = 0.01
+  [../]
 []

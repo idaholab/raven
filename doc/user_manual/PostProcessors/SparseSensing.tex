@@ -30,9 +30,11 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}. The legacy misspelling \xmlString{RandomProjetion} is still accepted for backward compatibility. \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
-	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR}, for the unconstrained case.
+	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case or \xmlString{CCQR} when sensor costs are supplied. \default{QR}
+        \item \xmlNode{sensorCosts}, \xmlDesc{string, optional field}, the name of the input variable that stores the per-sensor costs consumed by the \xmlString{CCQR} optimizer.
         \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
 \end{itemize}
+\item \xmlNode{Metric}, \xmlDesc{string, optional field}, the name of a RAVEN \xmlNode{Metric} object with attributes \xmlAttr{class=\xmlString{Metrics}} and \xmlAttr{type=\xmlString{Metric}}. These metrics are evaluated on the reconstructed steady-state field and written as scalar outputs.
 \end{itemize}
 
 \textbf{Example:}

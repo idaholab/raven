@@ -89,6 +89,27 @@ check("QR builder returns the right class",
 check("reconstruction builder returns SSPOR",
       pp._buildModel(pp._buildBasis(), pp._buildOptimizer()).__class__.__name__ == "SSPOR")
 
+xmlCCQR = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>CCQR</optimizer>
+    <sensorCosts>sensorCost</sensorCosts>
+  </Goal>
+  <Metric class='Metrics' type='Metric'>mae</Metric>
+</PostProcessor>"""
+
+ppCCQR = SparseSensing()
+ppCCQR._handleInput(parse(xmlCCQR))
+ppCCQR.sensorCosts = [0.25, 0.75, 1.25]
+check("CCQR optimizer name is parsed", ppCCQR.optimizer == "CCQR")
+check("sensorCosts variable name is parsed", ppCCQR.sensorCostsVariableName == "sensorCost")
+check("CCQR builder returns the right class",
+      ppCCQR._buildOptimizer().__class__.__name__ == "CCQR")
+
 ppLegacy = SparseSensing()
 ppLegacy._handleInput(parse(xmlLegacy))
 check("legacy RandomProjetion spelling is normalized", ppLegacy.basis == "RandomProjection")
