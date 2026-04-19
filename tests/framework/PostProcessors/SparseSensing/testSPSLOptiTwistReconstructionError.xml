@@ -46,8 +46,8 @@
         <features>X (m),Y (m),Temperature (K)</features>
         <target>Temperature (K)</target>
         <basis>SVD</basis>
-        <nModes>2</nModes>
-        <nSensors>2</nSensors>
+        <nModes>4</nModes>
+        <nSensors>4</nSensors>
         <optimizer>QR</optimizer>
         <reconstructionMetrics>rmse,mae,mse</reconstructionMetrics>
         <seed>0</seed>
