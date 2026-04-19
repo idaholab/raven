@@ -37,4 +37,34 @@
     csv = 'tpgr/outPP.csv'
     rel_err = 0.01
   [../]
+  [./testSPSLGQRDistance]
+    type = 'RavenFramework'
+    input = 'testSPSLGQRDistance.xml'
+    csv = 'gqrDistance/outPP.csv'
+    rel_err = 0.01
+  [../]
+  [./testSPSLGQRExactN]
+    type = 'RavenFramework'
+    input = 'testSPSLGQRExactN.xml'
+    csv = 'gqrExactN/outPP.csv'
+    rel_err = 0.01
+  [../]
+  [./testSPSLGQRPredetermined]
+    type = 'RavenFramework'
+    input = 'testSPSLGQRPredetermined.xml'
+    csv = 'gqrPredetermined/outPP.csv'
+    rel_err = 0.01
+  [../]
+  [./testSPSLTPGROnePtEnergy]
+    type = 'RavenFramework'
+    input = 'testSPSLTPGROnePtEnergy.xml'
+    csv = 'tpgrOnePtEnergy/outPP.csv'
+    rel_err = 0.01
+  [../]
+  [./testSPSLTPGRTwoPtEnergy]
+    type = 'RavenFramework'
+    input = 'testSPSLTPGRTwoPtEnergy.xml'
+    csv = 'tpgrTwoPtEnergy/outPP.csv'
+    rel_err = 0.01
+  [../]
 []

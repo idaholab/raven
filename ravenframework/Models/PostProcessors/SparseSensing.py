@@ -45,6 +45,7 @@ class SparseSensing(PostProcessorReadyInterface):
                       'tpgr': 'TPGR'}
   reconstructionMetricOptions = ['rmse', 'mse', 'mae']
   uncertaintyMetricOptions = ['std']
+  energyLandscapeMetricOptions = ['one_pt', 'two_pt']
   constraintStrategyOptions = ['max_n', 'exact_n', 'predetermined', 'distance']
   constraintShapeOptions = ['Circle', 'Cylinder', 'Line', 'Parabola', 'Ellipse', 'Polygon', 'UserDefined']
   constraintLocationOptions = ['in', 'out']
@@ -175,6 +176,20 @@ class SparseSensing(PostProcessorReadyInterface):
                                                                \xmlString{SSPOR} model. Currently supported:
                                                                \xmlString{std}.""")
     goal.addSub(uncertaintyMetrics)
+    energyLandscapeMetrics = InputData.parameterInputFactory("energyLandscapeMetrics", contentType=InputTypes.StringListType,
+                                                             printPriority=108,
+                                                             descr=r"""Comma-separated list of native pysensors
+                                                                   TPGR energy-landscape outputs to evaluate on the
+                                                                   fitted \xmlString{SSPOR} model. Currently
+                                                                   supported: \xmlString{one\_pt} and
+                                                                   \xmlString{two\_pt}.""")
+    goal.addSub(energyLandscapeMetrics)
+    energyLandscapeSensors = InputData.parameterInputFactory("energyLandscapeSensors", contentType=InputTypes.IntegerListType,
+                                                             printPriority=108,
+                                                             descr=r"""Optional zero-based sensor indices forwarded to
+                                                                   \xmlString{pysensors.SSPOR.two\_pt\_energy\_landscape}.
+                                                                   Required when requesting \xmlString{two\_pt}.""")
+    goal.addSub(energyLandscapeSensors)
     uncertaintyPrior = InputData.parameterInputFactory("uncertaintyPrior", contentType=InputTypes.StringType,
                                                        printPriority=108,
                                                        descr=r"""Prior covariance vector consumed by
@@ -228,6 +243,8 @@ class SparseSensing(PostProcessorReadyInterface):
     self.constraintSpec = None                               # Optional GQR constraint specification
     self.reconstructionMetrics = []                          # Optional native pysensors reconstruction metrics
     self.uncertaintyMetrics = []                             # Optional native pysensors uncertainty metrics
+    self.energyLandscapeMetrics = []                         # Optional TPGR energy-landscape outputs
+    self.energyLandscapeSensors = None                       # Optional zero-based sensor list for TPGR two-point landscape
     self.uncertaintyPrior = 'decreasing'                     # Prior covariance used by pysensors std()
     self.uncertaintyNoise = None                             # Optional noise magnitude used by pysensors std()
     self.reconstructionErrorRange = None                     # Optional sensor counts for reconstruction_error()
@@ -278,6 +295,17 @@ class SparseSensing(PostProcessorReadyInterface):
                                      for metricName in uncertaintyNode.value]
         else:
           self.uncertaintyMetrics = []
+        energyNode = child.findFirst('energyLandscapeMetrics')
+        if energyNode is not None:
+          self.energyLandscapeMetrics = [self._normalizeEnergyLandscapeMetric(metricName)
+                                         for metricName in energyNode.value]
+        else:
+          self.energyLandscapeMetrics = []
+        energySensorsNode = child.findFirst('energyLandscapeSensors')
+        if energySensorsNode is not None:
+          self.energyLandscapeSensors = self._normalizeEnergyLandscapeSensors(energySensorsNode.value)
+        else:
+          self.energyLandscapeSensors = None
         uncertaintyPriorNode = child.findFirst('uncertaintyPrior')
         if uncertaintyPriorNode is not None:
           self.uncertaintyPrior = self._parseUncertaintyPrior(uncertaintyPriorNode.value)
@@ -343,6 +371,28 @@ class SparseSensing(PostProcessorReadyInterface):
     normalized = str(metricName).strip().lower()
     if normalized not in self.uncertaintyMetricOptions:
       self.raiseAnError(IOError, 'uncertainty metric "{}" is not recognized; allowed values are {}'.format(metricName, self.uncertaintyMetricOptions))
+    return normalized
+
+  def _normalizeEnergyLandscapeMetric(self, metricName):
+    """
+      Normalize supported TPGR energy-landscape metric names.
+      @ In, metricName, str, user-provided energy-landscape metric name
+      @ Out, normalized, str, canonical lowercase metric name
+    """
+    normalized = str(metricName).strip().lower()
+    if normalized not in self.energyLandscapeMetricOptions:
+      self.raiseAnError(IOError, 'energyLandscape metric "{}" is not recognized; allowed values are {}'.format(metricName, self.energyLandscapeMetricOptions))
+    return normalized
+
+  def _normalizeEnergyLandscapeSensors(self, sensorIndices):
+    """
+      Validate the optional TPGR two-point energy sensor list.
+      @ In, sensorIndices, list[int], zero-based candidate sensor indices
+      @ Out, normalized, np.ndarray, validated zero-based indices
+    """
+    normalized = np.asarray(sensorIndices, dtype=int).reshape(-1)
+    if normalized.size == 0 or np.any(normalized < 0):
+      self.raiseAnError(IOError, 'energyLandscapeSensors must contain only zero-based non-negative integers')
     return normalized
 
   def _parseUncertaintyPrior(self, priorValue):
@@ -518,6 +568,36 @@ class SparseSensing(PostProcessorReadyInterface):
       return np.asarray(model.std(prior, noise=self.uncertaintyNoise), dtype=float)
     self.raiseAnError(IOError, 'uncertainty metric "{}" is not implemented'.format(metricName))
 
+  def _energyLandscapeVariableName(self, metricName):
+    """
+      Map internal energy-landscape metric names to output variable names.
+      @ In, metricName, str, canonical metric name
+      @ Out, outputName, str, dataset variable name
+    """
+    names = {'one_pt': 'onePtEnergyLandscape',
+             'two_pt': 'twoPtEnergyLandscape'}
+    return names[metricName]
+
+  def _computeEnergyLandscapeMetric(self, model, metricName):
+    """
+      Evaluate a native pysensors TPGR energy-landscape metric on the fitted model.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, metricName, str, canonical metric name
+      @ Out, metricValues, np.ndarray, vector metric values
+    """
+    if self.optimizer != 'TPGR':
+      self.raiseAnError(IOError, 'energyLandscapeMetrics require optimizer "TPGR"')
+    prior = self._resolveUncertaintyPrior(model)
+    if metricName == 'one_pt':
+      return np.asarray(model.one_pt_energy_landscape(prior=prior, noise=self.uncertaintyNoise), dtype=float)
+    if metricName == 'two_pt':
+      if self.energyLandscapeSensors is None:
+        self.raiseAnError(IOError, 'energyLandscapeSensors is required when requesting energyLandscapeMetrics="two_pt"')
+      return np.asarray(model.two_pt_energy_landscape(self.energyLandscapeSensors.tolist(),
+                                                      prior=prior,
+                                                      noise=self.uncertaintyNoise), dtype=float)
+    self.raiseAnError(IOError, 'energyLandscape metric "{}" is not implemented'.format(metricName))
+
   def _candidateVariableName(self, varName):
     """
       Build the output variable name used for full-state candidate-sensor data.
@@ -546,6 +626,28 @@ class SparseSensing(PostProcessorReadyInterface):
       if len(metricValues) != nfeatures:
         self.raiseAnError(IOError, 'uncertainty metric "{}" returned {} values but expected {}'.format(metricName, len(metricValues), nfeatures))
       outDS[metricName] = ('candidateSensor', metricValues)
+    return outDS
+
+  def _addEnergyLandscapeOutputs(self, outDS, inputDS, model, nfeatures):
+    """
+      Add TPGR energy-landscape outputs to the xarray dataset.
+      @ In, outDS, xr.Dataset, current output dataset
+      @ In, inputDS, xr.Dataset, original input dataset
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, nfeatures, int, number of candidate sensor locations
+      @ Out, outDS, xr.Dataset, augmented dataset
+    """
+    if not self.energyLandscapeMetrics:
+      return outDS
+    if 'candidateSensor' not in outDS.coords:
+      outDS = outDS.assign_coords(candidateSensor=np.arange(1, nfeatures + 1))
+      for var in self.sensingFeatures:
+        outDS[self._candidateVariableName(var)] = ('candidateSensor', np.asarray(inputDS[var][0], dtype=float))
+    for metricName in self.energyLandscapeMetrics:
+      metricValues = self._computeEnergyLandscapeMetric(model, metricName)
+      if len(metricValues) != nfeatures:
+        self.raiseAnError(IOError, 'energyLandscape metric "{}" returned {} values but expected {}'.format(metricName, len(metricValues), nfeatures))
+      outDS[self._energyLandscapeVariableName(metricName)] = ('candidateSensor', metricValues)
     return outDS
 
   def _addReconstructionErrorOutputs(self, outDS, model, data):
@@ -732,6 +834,7 @@ class SparseSensing(PostProcessorReadyInterface):
         outDS[metricName] = self._computeReconstructionMetric(model, data, metricName)
     if self.sparseSensingGoal == 'reconstruction':
       outDS = self._addUncertaintyOutputs(outDS, inputDS, model, nfeatures)
+      outDS = self._addEnergyLandscapeOutputs(outDS, inputDS, model, nfeatures)
       outDS = self._addReconstructionErrorOutputs(outDS, model, data)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays

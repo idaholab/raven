@@ -172,6 +172,46 @@ check("uncertainty noise is parsed", abs(ppUQ.uncertaintyNoise - 0.2) < 1e-14)
 check("reconstructionErrorRange is parsed",
       np.array_equal(ppUQ.reconstructionErrorRange, np.asarray([1, 2])))
 
+xmlTPGREnergy = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>TPGR</optimizer>
+    <energyLandscapeMetrics>one_pt,two_pt</energyLandscapeMetrics>
+    <energyLandscapeSensors>1,3</energyLandscapeSensors>
+    <uncertaintyNoise>0.2</uncertaintyNoise>
+  </Goal>
+</PostProcessor>"""
+
+ppTPGREnergy = SparseSensing()
+ppTPGREnergy._handleInput(parse(xmlTPGREnergy))
+check("energy-landscape metrics are normalized", ppTPGREnergy.energyLandscapeMetrics == ["one_pt", "two_pt"])
+check("energy-landscape sensor list is parsed",
+      np.array_equal(ppTPGREnergy.energyLandscapeSensors, np.asarray([1, 3])))
+
+xmlGQRExact = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>GQR</optimizer>
+    <constraint strategy='exact_n'>
+      <indices>4,8</indices>
+      <nConstSensors>1</nConstSensors>
+    </constraint>
+  </Goal>
+</PostProcessor>"""
+
+ppGQRExact = SparseSensing()
+ppGQRExact._handleInput(parse(xmlGQRExact))
+check("GQR exact_n strategy is parsed", ppGQRExact.constraintSpec["strategy"] == "exact_n")
+check("GQR exact_n indices are parsed", ppGQRExact.constraintSpec["indices"] == [4, 8])
+
 checkRaises("legacy RandomProjetion spelling is rejected", IOError,
             lambda: parse("""<PostProcessor name='pp' subType='SparseSensing'>
   <Goal subType='reconstruction'>
@@ -220,6 +260,19 @@ checkRaises("unknown uncertainty metric is rejected", IOError,
     <uncertaintyMetrics>bogus</uncertaintyMetrics>
   </Goal>
 </PostProcessor>""")), "uncertainty metric")
+
+checkRaises("unknown energyLandscape metric is rejected", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>TPGR</optimizer>
+    <energyLandscapeMetrics>bogus</energyLandscapeMetrics>
+  </Goal>
+</PostProcessor>""")), "energyLandscape metric")
 
 checkRaises("GQR max_n requires nConstSensors", IOError,
             lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
@@ -283,6 +336,20 @@ checkRaises("reconstructionErrorRange requires positive integers", IOError,
     <reconstructionErrorRange>0,2</reconstructionErrorRange>
   </Goal>
 </PostProcessor>""")), "positive integers")
+
+checkRaises("energyLandscapeSensors requires non-negative integers", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>TPGR</optimizer>
+    <energyLandscapeMetrics>two_pt</energyLandscapeMetrics>
+    <energyLandscapeSensors>-1</energyLandscapeSensors>
+  </Goal>
+</PostProcessor>""")), "non-negative")
 
 ppMetric = SparseSensing()
 ppMetric.sparseSensingGoal = "reconstruction"
@@ -348,6 +415,52 @@ tpgrCurveModel.fit(stdData, seed=0)
 checkRaises("TPGR reconstruction_error output is rejected explicitly", IOError,
             lambda: ppTPGRCurve._addReconstructionErrorOutputs(None, tpgrCurveModel, stdData),
             'not supported with optimizer "TPGR"')
+
+ppTPGREnergyRuntime = SparseSensing()
+ppTPGREnergyRuntime.sparseSensingGoal = "reconstruction"
+ppTPGREnergyRuntime.nModes = 2
+ppTPGREnergyRuntime.nSensors = 2
+ppTPGREnergyRuntime.basis = "SVD"
+ppTPGREnergyRuntime.optimizer = "TPGR"
+ppTPGREnergyRuntime.energyLandscapeMetrics = ["one_pt", "two_pt"]
+ppTPGREnergyRuntime.energyLandscapeSensors = np.asarray([1, 3])
+ppTPGREnergyRuntime.uncertaintyPrior = "decreasing"
+ppTPGREnergyRuntime.uncertaintyNoise = 0.2
+tpgrEnergyModel = ppTPGREnergyRuntime._buildModel(ppTPGREnergyRuntime._buildBasis(), ppTPGREnergyRuntime._buildOptimizer())
+tpgrEnergyModel.fit(stdData, seed=0)
+onePt = ppTPGREnergyRuntime._computeEnergyLandscapeMetric(tpgrEnergyModel, "one_pt")
+twoPt = ppTPGREnergyRuntime._computeEnergyLandscapeMetric(tpgrEnergyModel, "two_pt")
+check("TPGR one-point energy landscape matches feature count", onePt.shape == (4,))
+check("TPGR one-point energy landscape is finite", np.all(np.isfinite(onePt)))
+check("TPGR two-point energy landscape matches feature count", twoPt.shape == (4,))
+check("TPGR two-point energy landscape masks selected sensors with NaN",
+      np.isnan(twoPt[1]) and np.isnan(twoPt[3]))
+
+ppMissingTwoPt = SparseSensing()
+ppMissingTwoPt.sparseSensingGoal = "reconstruction"
+ppMissingTwoPt.nModes = 2
+ppMissingTwoPt.nSensors = 2
+ppMissingTwoPt.basis = "SVD"
+ppMissingTwoPt.optimizer = "TPGR"
+ppMissingTwoPt.energyLandscapeMetrics = ["two_pt"]
+ppMissingTwoPt.uncertaintyPrior = "decreasing"
+ppMissingTwoPt.uncertaintyNoise = 0.2
+checkRaises("two-point energy landscape requires selected sensors", IOError,
+            lambda: ppMissingTwoPt._computeEnergyLandscapeMetric(tpgrEnergyModel, "two_pt"),
+            "energyLandscapeSensors is required")
+
+ppBadEnergyOptimizer = SparseSensing()
+ppBadEnergyOptimizer.sparseSensingGoal = "reconstruction"
+ppBadEnergyOptimizer.nModes = 2
+ppBadEnergyOptimizer.nSensors = 2
+ppBadEnergyOptimizer.basis = "SVD"
+ppBadEnergyOptimizer.optimizer = "QR"
+ppBadEnergyOptimizer.energyLandscapeMetrics = ["one_pt"]
+ppBadEnergyOptimizer.uncertaintyPrior = "decreasing"
+ppBadEnergyOptimizer.uncertaintyNoise = 0.2
+checkRaises("energy landscapes are rejected for non-TPGR optimizers", IOError,
+            lambda: ppBadEnergyOptimizer._computeEnergyLandscapeMetric(curveModel, "one_pt"),
+            'optimizer "TPGR"')
 
 print("Results:", results)
 sys.exit(results["fail"])

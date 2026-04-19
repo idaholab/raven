@@ -35,8 +35,10 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
         \item \xmlNode{constraint}, \xmlDesc{optional field}, a nested block used only with \xmlString{GQR}. The required attribute \xmlAttr{strategy} selects one of \xmlString{max\_n}, \xmlString{exact\_n}, \xmlString{predetermined}, or \xmlString{distance}. For shape-based constraints, the block may include \xmlNode{shape}, axis names such as \xmlNode{xAxis}/\xmlNode{yAxis}/\xmlNode{zAxis}, shape parameters such as \xmlNode{centerX}, \xmlNode{centerY}, \xmlNode{radius}, and \xmlNode{nConstSensors}. Built-in shapes currently exposed are \xmlString{Circle}, \xmlString{Cylinder}, \xmlString{Line}, \xmlString{Parabola}, \xmlString{Ellipse}, \xmlString{Polygon}, and \xmlString{UserDefined}. Explicit constrained sensor indices can also be provided through \xmlNode{indices}.
         \item \xmlNode{reconstructionMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors reconstruction metrics to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}. These scalar values are written directly to the output \xmlNode{DataObject}.
         \item \xmlNode{uncertaintyMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors uncertainty metrics to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{std}. This writes a full-state vector indexed by \xmlString{candidateSensor}, so the output \xmlNode{DataSet} should declare a matching \xmlNode{Index}.
+        \item \xmlNode{energyLandscapeMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors TPGR energy-landscape outputs to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{one\_pt} and \xmlString{two\_pt}. These also write full-state vectors indexed by \xmlString{candidateSensor} and require \xmlString{optimizer=TPGR}.
+        \item \xmlNode{energyLandscapeSensors}, \xmlDesc{comma separated integers, optional field}, zero-based candidate sensor indices forwarded to \xmlString{pysensors.SSPOR.two\_pt\_energy\_landscape}. This is required when requesting \xmlString{two\_pt}.
         \item \xmlNode{uncertaintyPrior}, \xmlDesc{string, optional field}, prior covariance vector forwarded to \xmlString{pysensors.SSPOR.std}. Use \xmlString{decreasing} to let pysensors reuse its singular-value prior, or provide a comma-separated list of floats with one value per retained mode.
-        \item \xmlNode{uncertaintyNoise}, \xmlDesc{float, optional field}, optional sensor-noise magnitude forwarded to \xmlString{pysensors.SSPOR.std}.
+        \item \xmlNode{uncertaintyNoise}, \xmlDesc{float, optional field}, optional sensor-noise magnitude forwarded to \xmlString{pysensors.SSPOR.std} and the TPGR energy-landscape helpers.
         \item \xmlNode{reconstructionErrorRange}, \xmlDesc{comma separated integers, optional field}, sensor counts passed to \xmlString{pysensors.SSPOR.reconstruction\_error}. This writes a \xmlString{reconstructionError} curve indexed by \xmlString{sensorCount}. The current pysensors API does not support this helper with \xmlString{TPGR}.
         \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
 \end{itemize}
@@ -102,6 +104,23 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
     <uncertaintyMetrics>std</uncertaintyMetrics>
     <uncertaintyNoise>0.2</uncertaintyNoise>
     <reconstructionErrorRange>1,2</reconstructionErrorRange>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
+
+\textbf{Example (TPGR one-point and two-point energy landscapes):}
+\begin{lstlisting}[style=XML]
+<PostProcessor name="mySPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>TPGR</optimizer>
+    <energyLandscapeMetrics>one_pt,two_pt</energyLandscapeMetrics>
+    <energyLandscapeSensors>4</energyLandscapeSensors> <!-- zero-based -->
+    <uncertaintyNoise>0.2</uncertaintyNoise>
   </Goal>
 </PostProcessor>
 \end{lstlisting}
