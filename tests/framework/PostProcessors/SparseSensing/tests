@@ -12,6 +12,7 @@
     input = 'testSPSLOptiTwistReconstructionError.xml'
     csv = 'reconstructionOptiTwistError/outPP.csv'
     rel_err = 0.5
+    zero_threshold = 1e-10
   [../]
   [./testSPSLGQRCircle]
     type = 'RavenFramework'

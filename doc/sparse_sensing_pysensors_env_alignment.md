@@ -74,22 +74,98 @@ single-package change. It requires a coordinated refresh of at least:
 - `statsforecast`
 - `tensorflow-macos` or any TensorFlow-dependent workflow
 
+## Candidate SparseSensing Refresh Env
+
+The isolated `raven_spsl_043` environment was then repaired into a usable
+SparseSensing validation target with:
+
+- `python-sensors 0.4.3`
+- `numpy 2.2.6`
+- `scipy 1.15.3`
+- `matplotlib 3.10.8`
+- `scikit-learn 1.7.2`
+- `statsmodels 0.14.5`
+
+This package set is enough for the current SparseSensing import path and test
+surface.
+
+Validated in that environment:
+
+- `tests/framework/unit_tests/PostProcessors/testSparseSensingAdapters.py`
+- focused SparseSensing XML regressions with
+  `RAVEN_IGNORE_VERSIONS=1 ./run_tests --skip-load-env --re='...'`
+
+Observed result:
+
+- 9/10 focused XML regressions passed unchanged
+- the remaining case, `testSPSLOptiTwistReconstructionError`, differed only in
+  machine-precision reconstruction-error residuals (`~1e-13` to `~1e-24`)
+  under the newer numerical stack
+
+Repo-side follow-up:
+
+- `tests/framework/PostProcessors/SparseSensing/tests` now sets
+  `zero_threshold = 1e-10` for
+  `testSPSLOptiTwistReconstructionError`, so exact-reconstruction residual
+  noise is treated as numerical zero during CSV comparison while preserving the
+  scientific-notation outputs themselves.
+
+Follow-on dependency work in the same env:
+
+- upgraded `protobuf` into the TensorFlow 2.20-compatible range
+- upgraded `opentelemetry-proto` so the new protobuf range no longer conflicts
+- removed the stale `tensorflow-macos 2.14.1` / `tensorflow-estimator 2.14.0`
+  leftovers from the cloned env
+- `pip check` is now clean in `raven_spsl_043`
+
+TensorFlow/Keras status:
+
+- `tensorflow 2.20.0` can be installed cleanly alongside the refreshed
+  scientific stack
+- but the current RAVEN Keras ROM path still does not run cleanly with that
+  runtime on macOS
+- the immediate runtime failures are around the TensorFlow/Keras packaging
+  layout used by the new wheel, not the SparseSensing path
+
+Repo implication:
+
+- the scientific stack and `python-sensors` can move forward now
+- TensorFlow should be taken out of the default dependency contract until the
+  Keras ROM interface is modernized separately
+- after updating `dependencies.xml`, the focused SparseSensing regression set
+  also passed in `raven_spsl_043` without `RAVEN_IGNORE_VERSIONS`
+
 ## Immediate Repo Action Taken
 
-`dependencies.xml` was pinned to:
+`dependencies.xml` was initially pinned back to:
 
 ```xml
 <python-sensors source="pip">0.4.1</python-sensors>
 ```
 
-This prevents accidental drift of the QA environment while the coordinated stack
-refresh is planned separately.
+This prevented accidental drift while the refresh was being validated.
+
+After the follow-on refresh work, `dependencies.xml` was updated to the
+validated default scientific stack:
+
+```xml
+<numpy source="pip">2.2</numpy>
+<scipy source="pip">1.15</scipy>
+<scikit-learn source="pip">1.7</scikit-learn>
+<matplotlib source="pip">3.10</matplotlib>
+<statsmodels source="pip">0.14</statsmodels>
+<protobuf source="pip">6.33</protobuf>
+<opentelemetry-proto source="pip">1.41</opentelemetry-proto>
+<python-sensors source="pip">0.4.3</python-sensors>
+```
+
+TensorFlow was intentionally removed from the default dependency set for now.
 
 ## Recommended Next Step
 
-Create a dedicated stack-refresh branch or environment update effort that:
+Create a separate TensorFlow/Keras modernization effort that:
 
-1. chooses a coherent NumPy 2.x-compatible scientific stack,
-2. rebuilds or upgrades `scikit-learn` accordingly,
-3. resolves `numba` / `statsforecast` / `tensorflow-macos` compatibility,
-4. reruns the `SparseSensing` branch tests in that refreshed environment.
+1. selects the supported TensorFlow distribution for macOS and other platforms,
+2. updates the RAVEN Keras ROM interface for that packaging/runtime,
+3. reruns `tests/framework/ROM/tensorflow_keras`,
+4. only then restores TensorFlow to the default dependency contract.
