@@ -91,8 +91,11 @@ limit our library choices.
     <!-- <statsforecast source='pip'/> -->
     <statsforecast source="pip"/>
     <pywavelets source="pip">1.4</pywavelets>
-    <!-- python-sensors 0.4.3 currently pulls a newer scientific stack than raven_libraries. -->
-    <python-sensors source="pip"/>
+    <!-- Keep python-sensors pinned until the full scientific stack is refreshed.
+         Verified on 2026-04-19: python-sensors 0.4.3 upgrades numpy to 2.4.4,
+         scipy to 1.17.1, and matplotlib to 3.10.8, which breaks the current
+         scikit-learn 1.1.3 build in the RAVEN stack with a NumPy ABI mismatch. -->
+    <python-sensors source="pip">0.4.1</python-sensors>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>
