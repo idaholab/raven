@@ -19,4 +19,22 @@
     csv = 'gqrCircle/outPP.csv'
     rel_err = 0.01
   [../]
+  [./testSPSLUQStd]
+    type = 'RavenFramework'
+    input = 'testSPSLUQStd.xml'
+    csv = 'uqStd/outPP.csv'
+    rel_err = 0.01
+  [../]
+  [./testSPSLReconstructionErrorCurve]
+    type = 'RavenFramework'
+    input = 'testSPSLReconstructionErrorCurve.xml'
+    csv = 'reconstructionErrorCurve/outPP.csv'
+    rel_err = 0.01
+  [../]
+  [./testSPSLTPGR]
+    type = 'RavenFramework'
+    input = 'testSPSLTPGR.xml'
+    csv = 'tpgr/outPP.csv'
+    rel_err = 0.01
+  [../]
 []

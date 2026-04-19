@@ -148,6 +148,30 @@ check("TPGR optimizer name is parsed", ppTPGR.optimizer == "TPGR")
 check("TPGR builder returns the right class",
       ppTPGR._buildOptimizer().__class__.__name__ == "TPGR")
 
+xmlUQ = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <uncertaintyMetrics>std</uncertaintyMetrics>
+    <uncertaintyPrior>1.0,0.5</uncertaintyPrior>
+    <uncertaintyNoise>0.2</uncertaintyNoise>
+    <reconstructionErrorRange>1,2</reconstructionErrorRange>
+  </Goal>
+</PostProcessor>"""
+
+ppUQ = SparseSensing()
+ppUQ._handleInput(parse(xmlUQ))
+check("uncertainty metrics are normalized", ppUQ.uncertaintyMetrics == ["std"])
+check("uncertainty prior is parsed into a vector",
+      np.allclose(ppUQ.uncertaintyPrior, np.asarray([1.0, 0.5])))
+check("uncertainty noise is parsed", abs(ppUQ.uncertaintyNoise - 0.2) < 1e-14)
+check("reconstructionErrorRange is parsed",
+      np.array_equal(ppUQ.reconstructionErrorRange, np.asarray([1, 2])))
+
 checkRaises("legacy RandomProjetion spelling is rejected", IOError,
             lambda: parse("""<PostProcessor name='pp' subType='SparseSensing'>
   <Goal subType='reconstruction'>
@@ -183,6 +207,19 @@ checkRaises("unknown reconstruction metric is rejected", IOError,
     <reconstructionMetrics>rmse,bogus</reconstructionMetrics>
   </Goal>
 </PostProcessor>""")), "reconstruction metric")
+
+checkRaises("unknown uncertainty metric is rejected", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <uncertaintyMetrics>bogus</uncertaintyMetrics>
+  </Goal>
+</PostProcessor>""")), "uncertainty metric")
 
 checkRaises("GQR max_n requires nConstSensors", IOError,
             lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
@@ -220,6 +257,33 @@ checkRaises("GQR distance requires radius", IOError,
   </Goal>
 </PostProcessor>""")), "radius")
 
+checkRaises("uncertaintyPrior must be numeric when not decreasing", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <uncertaintyMetrics>std</uncertaintyMetrics>
+    <uncertaintyPrior>oops</uncertaintyPrior>
+  </Goal>
+</PostProcessor>""")), "uncertaintyPrior")
+
+checkRaises("reconstructionErrorRange requires positive integers", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <reconstructionErrorRange>0,2</reconstructionErrorRange>
+  </Goal>
+</PostProcessor>""")), "positive integers")
+
 ppMetric = SparseSensing()
 ppMetric.sparseSensingGoal = "reconstruction"
 data = np.asarray([[1.0, 2.0], [1.5, 2.5], [2.0, 3.0]])
@@ -236,6 +300,54 @@ check("rmse metric is non-negative", rmse >= 0.0)
 check("mse metric is non-negative", mse >= 0.0)
 check("mae metric is non-negative", mae >= 0.0)
 check("rmse and mse remain numerically consistent", abs(rmse**2 - mse) < 1e-12)
+
+ppStd = SparseSensing()
+ppStd.sparseSensingGoal = "reconstruction"
+ppStd.nModes = 2
+ppStd.nSensors = 2
+ppStd.basis = "SVD"
+ppStd.optimizer = "QR"
+ppStd.uncertaintyMetrics = ["std"]
+ppStd.uncertaintyPrior = "decreasing"
+stdData = np.asarray([[1.0, 2.0, 3.0, 4.0],
+                      [1.2, 2.1, 2.8, 4.1],
+                      [0.8, 1.9, 3.2, 3.9]])
+stdModel = ppStd._buildModel(ppStd._buildBasis(), ppStd._buildOptimizer())
+stdModel.fit(stdData)
+stdValues = ppStd._computeUncertaintyMetric(stdModel, "std")
+check("std uncertainty metric matches feature count", stdValues.shape == (4,))
+check("std uncertainty metric is non-negative", np.all(stdValues >= 0.0))
+
+ppStd.uncertaintyPrior = np.asarray([1.0])
+checkRaises("uncertaintyPrior length must match retained modes", IOError,
+            lambda: ppStd._resolveUncertaintyPrior(stdModel), "expected 2 values")
+
+ppCurve = SparseSensing()
+ppCurve.sparseSensingGoal = "reconstruction"
+ppCurve.nModes = 2
+ppCurve.nSensors = 2
+ppCurve.basis = "SVD"
+ppCurve.optimizer = "QR"
+ppCurve.reconstructionErrorRange = np.asarray([1, 2])
+curveModel = ppCurve._buildModel(ppCurve._buildBasis(), ppCurve._buildOptimizer())
+curveModel.fit(stdData)
+curve = curveModel.reconstruction_error(stdData, sensor_range=ppCurve.reconstructionErrorRange)
+check("reconstruction_error returns one value per requested sensor count",
+      np.asarray(curve).shape == (2,))
+check("reconstruction_error values are non-negative", np.all(np.asarray(curve) >= 0.0))
+
+ppTPGRCurve = SparseSensing()
+ppTPGRCurve.sparseSensingGoal = "reconstruction"
+ppTPGRCurve.nModes = 2
+ppTPGRCurve.nSensors = 2
+ppTPGRCurve.basis = "SVD"
+ppTPGRCurve.optimizer = "TPGR"
+ppTPGRCurve.reconstructionErrorRange = np.asarray([1, 2])
+tpgrCurveModel = ppTPGRCurve._buildModel(ppTPGRCurve._buildBasis(), ppTPGRCurve._buildOptimizer())
+tpgrCurveModel.fit(stdData, seed=0)
+checkRaises("TPGR reconstruction_error output is rejected explicitly", IOError,
+            lambda: ppTPGRCurve._addReconstructionErrorOutputs(None, tpgrCurveModel, stdData),
+            'not supported with optimizer "TPGR"')
 
 print("Results:", results)
 sys.exit(results["fail"])

@@ -44,6 +44,7 @@ class SparseSensing(PostProcessorReadyInterface):
                       'gqr': 'GQR',
                       'tpgr': 'TPGR'}
   reconstructionMetricOptions = ['rmse', 'mse', 'mae']
+  uncertaintyMetricOptions = ['std']
   constraintStrategyOptions = ['max_n', 'exact_n', 'predetermined', 'distance']
   constraintShapeOptions = ['Circle', 'Cylinder', 'Line', 'Parabola', 'Ellipse', 'Polygon', 'UserDefined']
   constraintLocationOptions = ['in', 'out']
@@ -167,6 +168,35 @@ class SparseSensing(PostProcessorReadyInterface):
                                                                   SSPOR model. Currently supported:
                                                                   \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}.""")
     goal.addSub(reconstructionMetrics)
+    uncertaintyMetrics = InputData.parameterInputFactory("uncertaintyMetrics", contentType=InputTypes.StringListType,
+                                                         printPriority=108,
+                                                         descr=r"""Comma-separated list of native pysensors
+                                                               uncertainty metrics to evaluate on the fitted
+                                                               \xmlString{SSPOR} model. Currently supported:
+                                                               \xmlString{std}.""")
+    goal.addSub(uncertaintyMetrics)
+    uncertaintyPrior = InputData.parameterInputFactory("uncertaintyPrior", contentType=InputTypes.StringType,
+                                                       printPriority=108,
+                                                       descr=r"""Prior covariance vector consumed by
+                                                             \xmlString{pysensors.SSPOR.std}. Use
+                                                             \xmlString{decreasing} to request pysensors'
+                                                             singular-value prior, or provide a comma-separated
+                                                             list of floats with one value per retained mode.""")
+    goal.addSub(uncertaintyPrior)
+    uncertaintyNoise = InputData.parameterInputFactory("uncertaintyNoise", contentType=InputTypes.FloatType,
+                                                       printPriority=108,
+                                                       descr=r"""Optional sensor-noise magnitude forwarded to
+                                                             \xmlString{pysensors.SSPOR.std}. If omitted,
+                                                             pysensors computes its default noise level.""")
+    goal.addSub(uncertaintyNoise)
+    reconstructionErrorRange = InputData.parameterInputFactory("reconstructionErrorRange", contentType=InputTypes.IntegerListType,
+                                                               printPriority=108,
+                                                               descr=r"""Optional list of sensor counts passed to
+                                                                     \xmlString{pysensors.SSPOR.reconstruction\_error}.
+                                                                     When provided, the postprocessor writes a
+                                                                     \xmlString{reconstructionError} curve indexed by
+                                                                     \xmlString{sensorCount}.""")
+    goal.addSub(reconstructionErrorRange)
     seed = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType,
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
@@ -197,6 +227,10 @@ class SparseSensing(PostProcessorReadyInterface):
     self.sensorCostsVariableName = None                      # Input variable name holding the CCQR costs
     self.constraintSpec = None                               # Optional GQR constraint specification
     self.reconstructionMetrics = []                          # Optional native pysensors reconstruction metrics
+    self.uncertaintyMetrics = []                             # Optional native pysensors uncertainty metrics
+    self.uncertaintyPrior = 'decreasing'                     # Prior covariance used by pysensors std()
+    self.uncertaintyNoise = None                             # Optional noise magnitude used by pysensors std()
+    self.reconstructionErrorRange = None                     # Optional sensor counts for reconstruction_error()
     self.seed = None                                         # The seed used by pysensors during sensor selection
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
 
@@ -238,6 +272,24 @@ class SparseSensing(PostProcessorReadyInterface):
                                         for metricName in metricsNode.value]
         else:
           self.reconstructionMetrics = []
+        uncertaintyNode = child.findFirst('uncertaintyMetrics')
+        if uncertaintyNode is not None:
+          self.uncertaintyMetrics = [self._normalizeUncertaintyMetric(metricName)
+                                     for metricName in uncertaintyNode.value]
+        else:
+          self.uncertaintyMetrics = []
+        uncertaintyPriorNode = child.findFirst('uncertaintyPrior')
+        if uncertaintyPriorNode is not None:
+          self.uncertaintyPrior = self._parseUncertaintyPrior(uncertaintyPriorNode.value)
+        else:
+          self.uncertaintyPrior = 'decreasing'
+        uncertaintyNoiseNode = child.findFirst('uncertaintyNoise')
+        self.uncertaintyNoise = uncertaintyNoiseNode.value if uncertaintyNoiseNode is not None else None
+        reconstructionErrorRangeNode = child.findFirst('reconstructionErrorRange')
+        if reconstructionErrorRangeNode is not None:
+          self.reconstructionErrorRange = self._normalizeReconstructionErrorRange(reconstructionErrorRangeNode.value)
+        else:
+          self.reconstructionErrorRange = None
         if child.findFirst('seed') is not None:
           self.seed = child.findFirst('seed').value
         else:
@@ -280,6 +332,45 @@ class SparseSensing(PostProcessorReadyInterface):
     normalized = str(metricName).strip().lower()
     if normalized not in self.reconstructionMetricOptions:
       self.raiseAnError(IOError, 'reconstruction metric "{}" is not recognized; allowed values are {}'.format(metricName, self.reconstructionMetricOptions))
+    return normalized
+
+  def _normalizeUncertaintyMetric(self, metricName):
+    """
+      Normalize supported native pysensors uncertainty metric names.
+      @ In, metricName, str, user-provided uncertainty metric name
+      @ Out, normalized, str, canonical lowercase metric name
+    """
+    normalized = str(metricName).strip().lower()
+    if normalized not in self.uncertaintyMetricOptions:
+      self.raiseAnError(IOError, 'uncertainty metric "{}" is not recognized; allowed values are {}'.format(metricName, self.uncertaintyMetricOptions))
+    return normalized
+
+  def _parseUncertaintyPrior(self, priorValue):
+    """
+      Parse the optional std prior input.
+      @ In, priorValue, str, either "decreasing" or a comma-separated float list
+      @ Out, parsed, str or np.ndarray, normalized std prior
+    """
+    text = str(priorValue).strip()
+    if text.lower() == 'decreasing':
+      return 'decreasing'
+    try:
+      parsed = np.asarray([float(value.strip()) for value in text.split(',') if value.strip()], dtype=float)
+    except ValueError as err:
+      self.raiseAnError(IOError, 'uncertaintyPrior "{}" must be "decreasing" or a comma-separated float list'.format(priorValue), err)
+    if parsed.size == 0:
+      self.raiseAnError(IOError, 'uncertaintyPrior "{}" must contain at least one float value'.format(priorValue))
+    return parsed
+
+  def _normalizeReconstructionErrorRange(self, sensorCounts):
+    """
+      Validate the optional reconstruction_error sensor range.
+      @ In, sensorCounts, list[int], sensor counts requested by the user
+      @ Out, normalized, np.ndarray, validated positive sensor counts
+    """
+    normalized = np.asarray(sensorCounts, dtype=int).reshape(-1)
+    if normalized.size == 0 or np.any(normalized <= 0):
+      self.raiseAnError(IOError, 'reconstructionErrorRange must contain only positive integers')
     return normalized
 
   def _parseConstraintNode(self, constraintNode):
@@ -400,6 +491,81 @@ class SparseSensing(PostProcessorReadyInterface):
     if metricName == 'mae':
       return float(model.score(data, score_function=lambda yTrue, yPred: np.mean(np.abs(yTrue - yPred))))
     self.raiseAnError(IOError, 'reconstruction metric "{}" is not implemented'.format(metricName))
+
+  def _resolveUncertaintyPrior(self, model):
+    """
+      Resolve the configured std prior against the fitted model.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ Out, prior, str or np.ndarray, valid pysensors std prior
+    """
+    if isinstance(self.uncertaintyPrior, str):
+      return self.uncertaintyPrior
+    prior = np.asarray(self.uncertaintyPrior, dtype=float).reshape(-1)
+    expected = model.basis_matrix_.shape[1]
+    if prior.size != expected:
+      self.raiseAnError(IOError, 'uncertaintyPrior has length {} but expected {} values (one per retained basis mode)'.format(prior.size, expected))
+    return prior
+
+  def _computeUncertaintyMetric(self, model, metricName):
+    """
+      Evaluate a native pysensors uncertainty metric on the fitted model.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, metricName, str, canonical metric name
+      @ Out, metricValues, np.ndarray, vector metric values
+    """
+    if metricName == 'std':
+      prior = self._resolveUncertaintyPrior(model)
+      return np.asarray(model.std(prior, noise=self.uncertaintyNoise), dtype=float)
+    self.raiseAnError(IOError, 'uncertainty metric "{}" is not implemented'.format(metricName))
+
+  def _candidateVariableName(self, varName):
+    """
+      Build the output variable name used for full-state candidate-sensor data.
+      @ In, varName, str, source feature name
+      @ Out, candidateName, str, prefixed output variable name
+    """
+    return 'candidate_{}'.format(varName)
+
+  def _addUncertaintyOutputs(self, outDS, inputDS, model, nfeatures):
+    """
+      Add full-state uncertainty outputs to the xarray dataset.
+      @ In, outDS, xr.Dataset, current output dataset
+      @ In, inputDS, xr.Dataset, original input dataset
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, nfeatures, int, number of candidate sensor locations
+      @ Out, outDS, xr.Dataset, augmented dataset
+    """
+    if not self.uncertaintyMetrics:
+      return outDS
+    if 'candidateSensor' not in outDS.coords:
+      outDS = outDS.assign_coords(candidateSensor=np.arange(1, nfeatures + 1))
+      for var in self.sensingFeatures:
+        outDS[self._candidateVariableName(var)] = ('candidateSensor', np.asarray(inputDS[var][0], dtype=float))
+    for metricName in self.uncertaintyMetrics:
+      metricValues = self._computeUncertaintyMetric(model, metricName)
+      if len(metricValues) != nfeatures:
+        self.raiseAnError(IOError, 'uncertainty metric "{}" returned {} values but expected {}'.format(metricName, len(metricValues), nfeatures))
+      outDS[metricName] = ('candidateSensor', metricValues)
+    return outDS
+
+  def _addReconstructionErrorOutputs(self, outDS, model, data):
+    """
+      Add the optional pysensors reconstruction_error curve to the xarray dataset.
+      @ In, outDS, xr.Dataset, current output dataset
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, data, np.ndarray, full-state measurements with shape (samples, features)
+      @ Out, outDS, xr.Dataset, augmented dataset
+    """
+    if self.reconstructionErrorRange is None:
+      return outDS
+    if self.optimizer == 'TPGR':
+      self.raiseAnError(IOError, 'reconstructionErrorRange is not supported with optimizer "TPGR" in the current pysensors API')
+    reconstructionError = np.asarray(model.reconstruction_error(data, sensor_range=self.reconstructionErrorRange), dtype=float)
+    if reconstructionError.shape != self.reconstructionErrorRange.shape:
+      self.raiseAnError(IOError, 'reconstruction_error returned shape {} but expected {}'.format(reconstructionError.shape, self.reconstructionErrorRange.shape))
+    outDS = outDS.assign_coords(sensorCount=self.reconstructionErrorRange)
+    outDS['reconstructionError'] = ('sensorCount', reconstructionError)
+    return outDS
 
   def _buildConstraintInfoDataFrame(self, inputDS):
     """
@@ -564,6 +730,9 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.sparseSensingGoal == 'reconstruction' and self.reconstructionMetrics:
       for metricName in self.reconstructionMetrics:
         outDS[metricName] = self._computeReconstructionMetric(model, data, metricName)
+    if self.sparseSensingGoal == 'reconstruction':
+      outDS = self._addUncertaintyOutputs(outDS, inputDS, model, nfeatures)
+      outDS = self._addReconstructionErrorOutputs(outDS, model, data)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims(self.sampleTag)
