@@ -68,17 +68,6 @@ xmlCanonical = """<PostProcessor name='pp' subType='SparseSensing'>
   </Goal>
 </PostProcessor>"""
 
-xmlLegacy = """<PostProcessor name='pp' subType='SparseSensing'>
-  <Goal subType='reconstruction'>
-    <features>X,Y,T</features>
-    <target>T</target>
-    <basis>RandomProjetion</basis>
-    <nModes>2</nModes>
-    <nSensors>2</nSensors>
-    <optimizer>QR</optimizer>
-  </Goal>
-</PostProcessor>"""
-
 pp = SparseSensing()
 pp._handleInput(parse(xmlCanonical))
 check("canonical RandomProjection spelling is preserved", pp.basis == "RandomProjection")
@@ -110,11 +99,17 @@ check("sensorCosts variable name is parsed", ppCCQR.sensorCostsVariableName == "
 check("CCQR builder returns the right class",
       ppCCQR._buildOptimizer().__class__.__name__ == "CCQR")
 
-ppLegacy = SparseSensing()
-ppLegacy._handleInput(parse(xmlLegacy))
-check("legacy RandomProjetion spelling is normalized", ppLegacy.basis == "RandomProjection")
-check("legacy spelling still builds RandomProjection",
-      ppLegacy._buildBasis().__class__.__name__ == "RandomProjection")
+checkRaises("legacy RandomProjetion spelling is rejected", IOError,
+            lambda: parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>RandomProjetion</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+  </Goal>
+</PostProcessor>"""))
 
 ppBadBasis = SparseSensing()
 ppBadBasis.basis = "Bogus"

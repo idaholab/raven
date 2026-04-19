@@ -27,7 +27,7 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., possible sensor locations/IDs
 	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed.
   \nb{Currently the algorithms can handle a single target}.
-	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}. The legacy misspelling \xmlString{RandomProjetion} is still accepted for backward compatibility. \default{SVD}
+	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}. \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
 	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case or \xmlString{CCQR} when sensor costs are supplied. \default{QR}

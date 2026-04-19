@@ -34,11 +34,10 @@ class SparseSensing(PostProcessorReadyInterface):
   """
   goalsDict = {'reconstruction':r"""Sparse sensor placement Optimization for Reconstruction (SSPOR)""",
           'classification':r"""Sparse sensor placement Optimization for Classification (SSPOC)"""}
-  basisOptions = ['Identity', 'SVD', 'RandomProjection', 'RandomProjetion']
+  basisOptions = ['Identity', 'SVD', 'RandomProjection']
   basisAliases = {'identity': 'Identity',
                   'svd': 'SVD',
-                  'randomprojection': 'RandomProjection',
-                  'randomprojetion': 'RandomProjection'}
+                  'randomprojection': 'RandomProjection'}
   optimizerOptions = ['QR', 'CCQR']
   optimizerAliases = {'qr': 'QR',
                       'ccqr': 'CCQR'}
@@ -176,7 +175,7 @@ class SparseSensing(PostProcessorReadyInterface):
 
   def _normalizeBasis(self, basisName):
     """
-      Normalize basis names and tolerate the legacy RandomProjetion typo.
+      Normalize basis names to the canonical spelling used internally.
       @ In, basisName, str, user-provided basis name
       @ Out, normalized, str, canonical basis name
     """
