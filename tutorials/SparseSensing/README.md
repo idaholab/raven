@@ -14,4 +14,6 @@ To re-run locally from this directory:
 
 ```bash
 /Users/abdomg/miniconda3/bin/jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel_name=spsl_vibrant 01_TwistPrototype.ipynb
+/Users/abdomg/miniconda3/bin/jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel_name=spsl_vibrant 02_Transient_singleTrajectory.ipynb
+/Users/abdomg/miniconda3/bin/jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel_name=spsl_vibrant 03_ParameterAndTime_snapshot.ipynb
 ```
