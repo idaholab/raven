@@ -18,6 +18,7 @@
 '''
 import pysensors as ps
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
@@ -37,10 +38,15 @@ class SparseSensing(PostProcessorReadyInterface):
   basisAliases = {'identity': 'Identity',
                   'svd': 'SVD',
                   'randomprojection': 'RandomProjection'}
-  optimizerOptions = ['QR', 'CCQR']
+  optimizerOptions = ['QR', 'CCQR', 'GQR', 'TPGR']
   optimizerAliases = {'qr': 'QR',
-                      'ccqr': 'CCQR'}
+                      'ccqr': 'CCQR',
+                      'gqr': 'GQR',
+                      'tpgr': 'TPGR'}
   reconstructionMetricOptions = ['rmse', 'mse', 'mae']
+  constraintStrategyOptions = ['max_n', 'exact_n', 'predetermined', 'distance']
+  constraintShapeOptions = ['Circle', 'Cylinder', 'Line', 'Parabola', 'Ellipse', 'Polygon', 'UserDefined']
+  constraintLocationOptions = ['in', 'out']
 
   @classmethod
   def getInputSpecification(cls):
@@ -85,6 +91,75 @@ class SparseSensing(PostProcessorReadyInterface):
                                                   descr=r"""Name of the variable in the input DataObject that stores
                                                         the per-sensor costs used by the CCQR optimizer.""")
     goal.addSub(sensorCosts)
+    constraint = InputData.parameterInputFactory("constraint",
+                                                 printPriority=108,
+                                                 descr=r"""Optional constraint definition used by the \xmlString{GQR}
+                                                       optimizer.""")
+    constraint.addParam("strategy",
+                        InputTypes.makeEnumType("constraintStrategy", "constraint strategy type",
+                                                cls.constraintStrategyOptions),
+                        True)
+    shape = InputData.parameterInputFactory("shape",
+                                            contentType=InputTypes.makeEnumType("constraintShape", "constraint shape type",
+                                                                                cls.constraintShapeOptions),
+                                            printPriority=108,
+                                            descr=r"""Built-in constrained region shape used to compute constrained sensor
+                                                  indices for the \xmlString{GQR} optimizer.""")
+    constraint.addSub(shape)
+    indices = InputData.parameterInputFactory("indices", contentType=InputTypes.IntegerListType,
+                                              printPriority=108,
+                                              descr=r"""Explicit list of constrained sensor indices for \xmlString{GQR}.""")
+    constraint.addSub(indices)
+    nConstSensors = InputData.parameterInputFactory("nConstSensors", contentType=InputTypes.IntegerType,
+                                                    printPriority=108,
+                                                    descr=r"""Number of sensors allowed or prescribed in the constrained
+                                                          region, depending on the chosen \xmlAttr{strategy}.""")
+    constraint.addSub(nConstSensors)
+    xAxis = InputData.parameterInputFactory("xAxis", contentType=InputTypes.StringType,
+                                            printPriority=108,
+                                            descr=r"""Feature variable used as the x-coordinate for dataframe-based
+                                                  constrained sensing.""")
+    constraint.addSub(xAxis)
+    yAxis = InputData.parameterInputFactory("yAxis", contentType=InputTypes.StringType,
+                                            printPriority=108,
+                                            descr=r"""Feature variable used as the y-coordinate for dataframe-based
+                                                  constrained sensing.""")
+    constraint.addSub(yAxis)
+    zAxis = InputData.parameterInputFactory("zAxis", contentType=InputTypes.StringType,
+                                            printPriority=108,
+                                            descr=r"""Feature variable used as the z-coordinate for 3-D constrained
+                                                  sensing shapes such as \xmlString{Cylinder}.""")
+    constraint.addSub(zAxis)
+    loc = InputData.parameterInputFactory("loc",
+                                          contentType=InputTypes.makeEnumType("constraintLocation", "constraint location type",
+                                                                              cls.constraintLocationOptions),
+                                          printPriority=108,
+                                          descr=r"""Whether the inside or outside of the shape is constrained.
+                                                Used by shape-based \xmlString{GQR} constraints.""")
+    constraint.addSub(loc)
+    centerX = InputData.parameterInputFactory("centerX", contentType=InputTypes.FloatType, printPriority=108)
+    centerY = InputData.parameterInputFactory("centerY", contentType=InputTypes.FloatType, printPriority=108)
+    centerZ = InputData.parameterInputFactory("centerZ", contentType=InputTypes.FloatType, printPriority=108)
+    radius = InputData.parameterInputFactory("radius", contentType=InputTypes.FloatType, printPriority=108)
+    height = InputData.parameterInputFactory("height", contentType=InputTypes.FloatType, printPriority=108)
+    width = InputData.parameterInputFactory("width", contentType=InputTypes.FloatType, printPriority=108)
+    angle = InputData.parameterInputFactory("angle", contentType=InputTypes.FloatType, printPriority=108)
+    x1 = InputData.parameterInputFactory("x1", contentType=InputTypes.FloatType, printPriority=108)
+    x2 = InputData.parameterInputFactory("x2", contentType=InputTypes.FloatType, printPriority=108)
+    y1 = InputData.parameterInputFactory("y1", contentType=InputTypes.FloatType, printPriority=108)
+    y2 = InputData.parameterInputFactory("y2", contentType=InputTypes.FloatType, printPriority=108)
+    parabolaH = InputData.parameterInputFactory("h", contentType=InputTypes.FloatType, printPriority=108)
+    parabolaK = InputData.parameterInputFactory("k", contentType=InputTypes.FloatType, printPriority=108)
+    parabolaA = InputData.parameterInputFactory("a", contentType=InputTypes.FloatType, printPriority=108)
+    equation = InputData.parameterInputFactory("equation", contentType=InputTypes.StringType, printPriority=108)
+    fileNode = InputData.parameterInputFactory("file", contentType=InputTypes.StringType, printPriority=108)
+    vertex = InputData.parameterInputFactory("vertex", contentType=InputTypes.FloatListType, printPriority=108,
+                                             descr=r"""A polygon vertex encoded as \xmlString{x,y}.""")
+    for sub in [centerX, centerY, centerZ, radius, height, width, angle,
+                x1, x2, y1, y2, parabolaH, parabolaK, parabolaA,
+                equation, fileNode, vertex]:
+      constraint.addSub(sub)
+    goal.addSub(constraint)
     reconstructionMetrics = InputData.parameterInputFactory("reconstructionMetrics", contentType=InputTypes.StringListType,
                                                             printPriority=108,
                                                             descr=r"""Comma-separated list of native pysensors
@@ -120,6 +195,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
     self.sensorCosts = None                                  # Optional per-sensor costs for CCQR
     self.sensorCostsVariableName = None                      # Input variable name holding the CCQR costs
+    self.constraintSpec = None                               # Optional GQR constraint specification
     self.reconstructionMetrics = []                          # Optional native pysensors reconstruction metrics
     self.seed = None                                         # The seed used by pysensors during sensor selection
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
@@ -154,6 +230,8 @@ class SparseSensing(PostProcessorReadyInterface):
         self.optimizer = self._normalizeOptimizer(child.findFirst('optimizer').value)
         sensorCosts = child.findFirst('sensorCosts')
         self.sensorCostsVariableName = sensorCosts.value if sensorCosts is not None else None
+        constraintNode = child.findFirst('constraint')
+        self.constraintSpec = self._parseConstraintNode(constraintNode) if constraintNode is not None else None
         metricsNode = child.findFirst('reconstructionMetrics')
         if metricsNode is not None:
           self.reconstructionMetrics = [self._normalizeReconstructionMetric(metricName)
@@ -204,6 +282,63 @@ class SparseSensing(PostProcessorReadyInterface):
       self.raiseAnError(IOError, 'reconstruction metric "{}" is not recognized; allowed values are {}'.format(metricName, self.reconstructionMetricOptions))
     return normalized
 
+  def _parseConstraintNode(self, constraintNode):
+    """
+      Parse and validate the optional GQR constraint block.
+      @ In, constraintNode, ParameterInput, parsed constraint node
+      @ Out, spec, dict, normalized constraint specification
+    """
+    spec = {'strategy': constraintNode.parameterValues['strategy']}
+    for child in constraintNode.subparts:
+      if child.getName() == 'vertex':
+        spec.setdefault('vertices', []).append(tuple(child.value))
+      else:
+        spec[child.getName()] = child.value
+    if spec['strategy'] == 'distance':
+      for key in ['xAxis', 'yAxis', 'radius']:
+        if key not in spec:
+          self.raiseAnError(IOError, 'GQR distance constraints require <{}>'.format(key))
+      if 'shape' in spec or 'indices' in spec:
+        self.raiseAnError(IOError, 'GQR distance constraints cannot be combined with shape- or index-based constrained regions')
+      return spec
+    if 'shape' not in spec and 'indices' not in spec:
+      self.raiseAnError(IOError, 'GQR constraints require either <shape> or <indices> unless the strategy is "distance"')
+    if spec['strategy'] in ['max_n', 'exact_n', 'predetermined'] and 'nConstSensors' not in spec:
+      self.raiseAnError(IOError, 'GQR strategy "{}" requires <nConstSensors>'.format(spec['strategy']))
+    if 'indices' in spec:
+      return spec
+    for key in ['xAxis', 'yAxis']:
+      if key not in spec:
+        self.raiseAnError(IOError, 'GQR shape constraints require <{}>'.format(key))
+    shape = spec['shape']
+    if shape == 'Circle':
+      for key in ['centerX', 'centerY', 'radius']:
+        if key not in spec:
+          self.raiseAnError(IOError, 'Circle constraints require <{}>'.format(key))
+    elif shape == 'Cylinder':
+      for key in ['centerX', 'centerY', 'centerZ', 'radius', 'height', 'zAxis']:
+        if key not in spec:
+          self.raiseAnError(IOError, 'Cylinder constraints require <{}>'.format(key))
+    elif shape == 'Ellipse':
+      for key in ['centerX', 'centerY', 'width', 'height']:
+        if key not in spec:
+          self.raiseAnError(IOError, 'Ellipse constraints require <{}>'.format(key))
+    elif shape == 'Line':
+      for key in ['x1', 'x2', 'y1', 'y2']:
+        if key not in spec:
+          self.raiseAnError(IOError, 'Line constraints require <{}>'.format(key))
+    elif shape == 'Parabola':
+      for key in ['h', 'k', 'a', 'loc']:
+        if key not in spec:
+          self.raiseAnError(IOError, 'Parabola constraints require <{}>'.format(key))
+    elif shape == 'Polygon':
+      if len(spec.get('vertices', [])) < 3:
+        self.raiseAnError(IOError, 'Polygon constraints require at least three <vertex> entries')
+    elif shape == 'UserDefined':
+      if 'equation' not in spec and 'file' not in spec:
+        self.raiseAnError(IOError, 'UserDefined constraints require either <equation> or <file>')
+    return spec
+
   def _buildBasis(self):
     """
       Construct the configured pysensors basis.
@@ -230,6 +365,10 @@ class SparseSensing(PostProcessorReadyInterface):
       if self.sensorCosts is None:
         self.raiseAnError(IOError, 'CCQR requires sensorCosts to be resolved before building the optimizer')
       return ps.optimizers.CCQR(sensor_costs=self.sensorCosts)
+    if self.optimizer == 'GQR':
+      return ps.optimizers.GQR()
+    if self.optimizer == 'TPGR':
+      return ps.optimizers.TPGR(n_sensors=self.nSensors)
     self.raiseAnError(IOError, 'optimizer "{}" is not implemented'.format(self.optimizer))
 
   def _buildModel(self, basis, optimizer):
@@ -261,6 +400,116 @@ class SparseSensing(PostProcessorReadyInterface):
     if metricName == 'mae':
       return float(model.score(data, score_function=lambda yTrue, yPred: np.mean(np.abs(yTrue - yPred))))
     self.raiseAnError(IOError, 'reconstruction metric "{}" is not implemented'.format(metricName))
+
+  def _buildConstraintInfoDataFrame(self, inputDS):
+    """
+      Build a per-sensor dataframe used by pysensors dataframe-based constraint helpers.
+      @ In, inputDS, xr.Dataset, input dataset
+      @ Out, infoDF, pd.DataFrame, one row per candidate sensor location
+    """
+    info = {}
+    for var in self.sensingFeatures:
+      values = np.asarray(inputDS[var].data)
+      if values.ndim == 2:
+        if var != self.sensingTarget and not np.allclose(values, values[0:1, :]):
+          self.raiseAWarning('Feature "{}" varies across samples; using the first sample for GQR constraint geometry'.format(var))
+        info[var] = np.asarray(values[0], dtype=float)
+      elif values.ndim == 1:
+        info[var] = np.asarray(values, dtype=float)
+      else:
+        self.raiseAnError(IOError, 'Feature "{}" must be 1-D or 2-D for GQR constraints'.format(var))
+    targetValues = np.asarray(inputDS[self.sensingTarget].data)
+    if targetValues.ndim == 2:
+      info[self.sensingTarget] = np.asarray(targetValues[0], dtype=float)
+    elif targetValues.ndim == 1:
+      info[self.sensingTarget] = np.asarray(targetValues, dtype=float)
+    else:
+      self.raiseAnError(IOError, 'Target "{}" must be 1-D or 2-D for GQR constraints'.format(self.sensingTarget))
+    return pd.DataFrame(info)
+
+  def _computeReferenceSensorRanking(self, data):
+    """
+      Compute the unconstrained QR ranking used by pysensors GQR helper logic.
+      @ In, data, np.ndarray, training data with shape (samples, features)
+      @ Out, sensors, np.ndarray, ranked list of all sensor indices
+    """
+    referenceModel = ps.SSPOR(basis=self._buildBasis(), n_sensors=self.nSensors, optimizer=ps.optimizers.QR())
+    if self.seed is not None:
+      referenceModel.fit(data, seed=self.seed)
+    else:
+      referenceModel.fit(data)
+    return np.asarray(referenceModel.get_all_sensors(), dtype=int)
+
+  def _buildConstraintObject(self, allSensors, infoDF):
+    """
+      Build the configured pysensors constraint helper object.
+      @ In, allSensors, np.ndarray, ranked list of candidate sensors
+      @ In, infoDF, pd.DataFrame, dataframe with per-sensor coordinates
+      @ Out, constraint, object, instantiated pysensors constraint helper
+    """
+    spec = self.constraintSpec
+    common = {'data': infoDF,
+              'X_axis': spec['xAxis'],
+              'Y_axis': spec['yAxis'],
+              'Field': self.sensingTarget}
+    shape = spec['shape']
+    loc = spec.get('loc', 'in')
+    if shape == 'Circle':
+      return ps.utils.Circle(spec['centerX'], spec['centerY'], spec['radius'], loc=loc, **common)
+    if shape == 'Cylinder':
+      common['Z_axis'] = spec['zAxis']
+      return ps.utils.Cylinder(spec['centerX'], spec['centerY'], spec['centerZ'],
+                               spec['radius'], spec['height'], loc=loc, **common)
+    if shape == 'Ellipse':
+      return ps.utils.Ellipse(spec['centerX'], spec['centerY'], spec['width'],
+                              spec['height'], angle=spec.get('angle', 0.0), loc=loc, **common)
+    if shape == 'Line':
+      return ps.utils.Line(spec['x1'], spec['x2'], spec['y1'], spec['y2'], **common)
+    if shape == 'Parabola':
+      return ps.utils.Parabola(spec['h'], spec['k'], spec['a'], spec['loc'], **common)
+    if shape == 'Polygon':
+      return ps.utils.Polygon(spec['vertices'], loc=loc, **common)
+    if shape == 'UserDefined':
+      if 'file' in spec:
+        return ps.utils.UserDefinedConstraints(allSensors, file=spec['file'], **common)
+      return ps.utils.UserDefinedConstraints(allSensors, equation=spec['equation'], **common)
+    self.raiseAnError(IOError, 'Unsupported GQR constraint shape "{}"'.format(shape))
+
+  def _buildOptimizerKws(self, data, inputDS):
+    """
+      Build fit-time optimizer kwargs for pysensors.
+      @ In, data, np.ndarray, training data with shape (samples, features)
+      @ In, inputDS, xr.Dataset, input dataset
+      @ Out, optimizerKws, dict, keyword arguments forwarded to model.fit
+    """
+    if self.optimizer != 'GQR':
+      return {}
+    if self.constraintSpec is None:
+      self.raiseAnError(IOError, 'GQR requires a <constraint> block in SparseSensing')
+    allSensors = self._computeReferenceSensorRanking(data)
+    optimizerKws = {'all_sensors': allSensors,
+                    'n_sensors': self.nSensors,
+                    'constraint_option': self.constraintSpec['strategy']}
+    if self.constraintSpec['strategy'] == 'distance':
+      infoDF = self._buildConstraintInfoDataFrame(inputDS)
+      optimizerKws.update({'info': infoDF,
+                           'r': self.constraintSpec['radius'],
+                           'X_axis': self.constraintSpec['xAxis'],
+                           'Y_axis': self.constraintSpec['yAxis']})
+      return optimizerKws
+    if 'indices' in self.constraintSpec:
+      idxConstrained = np.asarray(self.constraintSpec['indices'], dtype=int)
+    else:
+      infoDF = self._buildConstraintInfoDataFrame(inputDS)
+      constraintObject = self._buildConstraintObject(allSensors, infoDF)
+      if self.constraintSpec['shape'] == 'UserDefined':
+        idxConstrained, _ = constraintObject.constraint()
+      else:
+        idxConstrained, _ = constraintObject.get_constraint_indices(allSensors, infoDF)
+      idxConstrained = np.asarray(idxConstrained, dtype=int)
+    optimizerKws['idx_constrained'] = idxConstrained
+    optimizerKws['n_const_sensors'] = self.constraintSpec['nConstSensors']
+    return optimizerKws
 
   def run(self,inputIn):
     """
@@ -300,10 +549,11 @@ class SparseSensing(PostProcessorReadyInterface):
         self.raiseAnError(IOError, 'sensorCosts has length {} but expected {}'.format(len(self.sensorCosts), nfeatures))
     optimizer = self._buildOptimizer()
     model = self._buildModel(basis, optimizer)
+    optimizerKws = self._buildOptimizerKws(data, inputDS)
     if self.seed is not None:
-      model.fit(data, seed=self.seed)
+      model.fit(data, seed=self.seed, **optimizerKws)
     else:
-      model.fit(data)
+      model.fit(data, **optimizerKws)
     selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 

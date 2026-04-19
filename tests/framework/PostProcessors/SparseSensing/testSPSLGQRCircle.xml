@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Postprocessors/SparseSensing/GQRCircle</name>
+    <author>Jimmy-INL</author>
+    <created>2026-04-19</created>
+    <classesTested>Models.Postprocessors.SparseSensing</classesTested>
+    <description>This test checks that the SparseSensing PostProcessor forwards a
+     circular GQR exclusion constraint to pysensors and avoids the constrained
+     center sensor on a small synthetic 2-D field.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>gqrCircle</WorkingDir>
+    <Sequence>LoadCSV, mySPpp, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="fieldList" type="">Perturbations.csv</Input>
+    <Input name="refDO"     type="">sample0.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="LoadCSV">
+      <Input  class="Files"       type="">fieldList</Input>
+      <Input  class="Files"       type="">refDO</Input>
+      <Output class="DataObjects" type="HistorySet">FieldDO</Output>
+      <Output class="DataObjects" type="PointSet">RefDO</Output>
+    </IOStep>
+    <PostProcess name="mySPpp">
+      <Input  class="DataObjects" type="HistorySet">FieldDO</Input>
+      <Model  class="Models"      type="PostProcessor">mySPSL</Model>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input  class="DataObjects" type="DataSet">outPP</Input>
+      <Output class="OutStreams"  type="Print">outPP</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <features>X (m),Y (m),Temperature (K)</features>
+        <target>Temperature (K)</target>
+        <basis>SVD</basis>
+        <nModes>2</nModes>
+        <nSensors>2</nSensors>
+        <optimizer>GQR</optimizer>
+        <constraint strategy="max_n">
+          <shape>Circle</shape>
+          <xAxis>X (m)</xAxis>
+          <yAxis>Y (m)</yAxis>
+          <centerX>1.0</centerX>
+          <centerY>1.0</centerY>
+          <radius>0.25</radius>
+          <loc>in</loc>
+          <nConstSensors>0</nConstSensors>
+        </constraint>
+        <seed>0</seed>
+      </Goal>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="RefDO">
+      <Output>X (m),Temperature (K),Y (m)</Output>
+    </PointSet>
+    <HistorySet name="FieldDO">
+      <Input>sampleID</Input>
+      <Output>X (m),Temperature (K),Y (m)</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="outPP">
+      <Input>InputPlaceHolder</Input>
+      <Output>Temperature (K), X (m), Y (m)</Output>
+      <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPP">
+      <type>csv</type>
+      <source>outPP</source>
+      <what>output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

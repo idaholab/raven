@@ -30,8 +30,9 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}. \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
-	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case or \xmlString{CCQR} when sensor costs are supplied. \default{QR}
+	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case, \xmlString{CCQR} when sensor costs are supplied, \xmlString{GQR} for constrained reconstruction, or \xmlString{TPGR} for the two-point greedy optimizer. \default{QR}
         \item \xmlNode{sensorCosts}, \xmlDesc{string, optional field}, the name of the input variable that stores the per-sensor costs consumed by the \xmlString{CCQR} optimizer.
+        \item \xmlNode{constraint}, \xmlDesc{optional field}, a nested block used only with \xmlString{GQR}. The required attribute \xmlAttr{strategy} selects one of \xmlString{max\_n}, \xmlString{exact\_n}, \xmlString{predetermined}, or \xmlString{distance}. For shape-based constraints, the block may include \xmlNode{shape}, axis names such as \xmlNode{xAxis}/\xmlNode{yAxis}/\xmlNode{zAxis}, shape parameters such as \xmlNode{centerX}, \xmlNode{centerY}, \xmlNode{radius}, and \xmlNode{nConstSensors}. Built-in shapes currently exposed are \xmlString{Circle}, \xmlString{Cylinder}, \xmlString{Line}, \xmlString{Parabola}, \xmlString{Ellipse}, \xmlString{Polygon}, and \xmlString{UserDefined}. Explicit constrained sensor indices can also be provided through \xmlNode{indices}.
         \item \xmlNode{reconstructionMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors reconstruction metrics to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}. These scalar values are written directly to the output \xmlNode{DataObject}.
         \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
 \end{itemize}
@@ -58,4 +59,28 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
   </Models>
    ...
 </Simulation>
+\end{lstlisting}
+
+\textbf{Example (GQR with a circular exclusion region):}
+\begin{lstlisting}[style=XML]
+<PostProcessor name="mySPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>GQR</optimizer>
+    <constraint strategy="max_n">
+      <shape>Circle</shape>
+      <xAxis>X (m)</xAxis>
+      <yAxis>Y (m)</yAxis>
+      <centerX>1.0</centerX>
+      <centerY>1.0</centerY>
+      <radius>0.25</radius>
+      <loc>in</loc>
+      <nConstSensors>0</nConstSensors>
+    </constraint>
+  </Goal>
+</PostProcessor>
 \end{lstlisting}

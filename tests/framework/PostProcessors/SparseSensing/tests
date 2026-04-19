@@ -13,4 +13,10 @@
     csv = 'reconstructionOptiTwistError/outPP.csv'
     rel_err = 0.5
   [../]
+  [./testSPSLGQRCircle]
+    type = 'RavenFramework'
+    input = 'testSPSLGQRCircle.xml'
+    csv = 'gqrCircle/outPP.csv'
+    rel_err = 0.01
+  [../]
 []

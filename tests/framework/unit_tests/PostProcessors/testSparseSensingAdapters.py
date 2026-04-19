@@ -101,6 +101,53 @@ check("reconstruction metrics are normalized", ppCCQR.reconstructionMetrics == [
 check("CCQR builder returns the right class",
       ppCCQR._buildOptimizer().__class__.__name__ == "CCQR")
 
+xmlGQR = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>GQR</optimizer>
+    <constraint strategy='max_n'>
+      <shape>Circle</shape>
+      <xAxis>X</xAxis>
+      <yAxis>Y</yAxis>
+      <centerX>1.0</centerX>
+      <centerY>1.0</centerY>
+      <radius>0.25</radius>
+      <loc>in</loc>
+      <nConstSensors>0</nConstSensors>
+    </constraint>
+  </Goal>
+</PostProcessor>"""
+
+ppGQR = SparseSensing()
+ppGQR._handleInput(parse(xmlGQR))
+check("GQR optimizer name is parsed", ppGQR.optimizer == "GQR")
+check("GQR builder returns the right class",
+      ppGQR._buildOptimizer().__class__.__name__ == "GQR")
+check("GQR constraint strategy is parsed", ppGQR.constraintSpec["strategy"] == "max_n")
+check("GQR constraint shape is parsed", ppGQR.constraintSpec["shape"] == "Circle")
+check("GQR constraint xAxis is parsed", ppGQR.constraintSpec["xAxis"] == "X")
+
+xmlTPGR = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>TPGR</optimizer>
+  </Goal>
+</PostProcessor>"""
+
+ppTPGR = SparseSensing()
+ppTPGR._handleInput(parse(xmlTPGR))
+check("TPGR optimizer name is parsed", ppTPGR.optimizer == "TPGR")
+check("TPGR builder returns the right class",
+      ppTPGR._buildOptimizer().__class__.__name__ == "TPGR")
+
 checkRaises("legacy RandomProjetion spelling is rejected", IOError,
             lambda: parse("""<PostProcessor name='pp' subType='SparseSensing'>
   <Goal subType='reconstruction'>
@@ -136,6 +183,42 @@ checkRaises("unknown reconstruction metric is rejected", IOError,
     <reconstructionMetrics>rmse,bogus</reconstructionMetrics>
   </Goal>
 </PostProcessor>""")), "reconstruction metric")
+
+checkRaises("GQR max_n requires nConstSensors", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>GQR</optimizer>
+    <constraint strategy='max_n'>
+      <shape>Circle</shape>
+      <xAxis>X</xAxis>
+      <yAxis>Y</yAxis>
+      <centerX>1.0</centerX>
+      <centerY>1.0</centerY>
+      <radius>0.25</radius>
+    </constraint>
+  </Goal>
+</PostProcessor>""")), "nConstSensors")
+
+checkRaises("GQR distance requires radius", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>GQR</optimizer>
+    <constraint strategy='distance'>
+      <xAxis>X</xAxis>
+      <yAxis>Y</yAxis>
+    </constraint>
+  </Goal>
+</PostProcessor>""")), "radius")
 
 ppMetric = SparseSensing()
 ppMetric.sparseSensingGoal = "reconstruction"
