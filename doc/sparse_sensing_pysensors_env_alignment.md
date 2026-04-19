@@ -125,6 +125,8 @@ Follow-on dependency work in the same env:
   leftovers from the cloned env
 - upgraded `PyWavelets` to `1.8.0` so the TSA Wavelet unit test is compatible
   with the NumPy 2 stack
+- upgraded `netCDF4` to `1.7.2` so the NetCDF database tests are compatible
+  with the NumPy 2 stack
 - `pip check` is now clean in `raven_spsl_043`
 
 Targeted numerical/test follow-up:
@@ -133,6 +135,9 @@ Targeted numerical/test follow-up:
   exact computed Poisson CDF values when checking the inverse `ppf(cdf(k))`
   identity, avoiding a brittle jump-discontinuity failure caused by rounding a
   discrete CDF value
+- `tests/framework/unit_tests/utils/testCachedNDArray.py` now checks the
+  numeric content of the array repr instead of exact NumPy whitespace padding,
+  which changed under NumPy 2
 
 TensorFlow/Keras status:
 

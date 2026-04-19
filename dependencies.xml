@@ -58,7 +58,7 @@ limit our library choices.
     <pandas source="pip"/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray source="pip"/>
-    <netcdf4 source="pip">1.6</netcdf4>
+    <netcdf4 source="pip">1.7</netcdf4>
     <matplotlib source="pip">3.10</matplotlib>
     <statsmodels source="pip">0.14</statsmodels>
     <cloudpickle source="pip"/>
