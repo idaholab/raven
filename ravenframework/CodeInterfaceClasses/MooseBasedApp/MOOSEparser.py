@@ -24,6 +24,18 @@ import numpy as np
 from ravenframework.utils.utils import toBytes, toStrish, compare, toString
 from . import MooseInputParser
 
+def _serializeMooseValue(value):
+  """
+    Convert MOOSE scalar entries to the historical compact text form.
+    @ In, value, object, value to serialize into a MOOSE input file
+    @ Out, serialized, string, compact serialized text
+  """
+  if isinstance(value, np.generic):
+    if np.issubdtype(type(value), np.floating):
+      return np.format_float_positional(value.item(), unique=True, precision=12, trim='-')
+    value = value.item()
+  return str(value)
+
 class MOOSEparser():
   """
     Import the MOOSE input as xml tree, provide methods to add/change entries and print it back
@@ -143,10 +155,10 @@ class MOOSEparser():
           ## location index start from 1
           loc, modVal = mod[0], mod[1]
           val = found[-1].text.split()
-          val[loc-1] = str(modVal)
+          val[loc-1] = _serializeMooseValue(modVal)
           found[-1].text = ' '.join(val)
         else:
-          found[-1].text = str(mod)
+          found[-1].text = _serializeMooseValue(mod)
       else:
         # addition
         trees = MooseInputParser.addNewPath(trees, target, mod)

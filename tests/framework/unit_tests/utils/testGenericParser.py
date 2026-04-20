@@ -36,6 +36,8 @@ def check(comment, value, expected):
 check("python float uses repr", _reprIfFloat(1.25), repr(1.25))
 check("numpy float scalar drops constructor wrapper", _reprIfFloat(np.float64(1.25)), repr(1.25))
 check("numpy float32 scalar drops constructor wrapper", _reprIfFloat(np.float32(2.5)), repr(float(np.float32(2.5))))
+check("numpy float scalar keeps round-trip precision",
+      _reprIfFloat(np.float64(994.49329926271298)), "994.49329926271298")
 check("numpy integer scalar uses plain integer text", _reprIfFloat(np.int64(7)), "7")
 check("python integer uses plain integer text", _reprIfFloat(3), "3")
 check("strings pass through unchanged", _reprIfFloat("power"), "power")
