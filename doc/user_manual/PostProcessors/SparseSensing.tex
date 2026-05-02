@@ -14,6 +14,8 @@ This post-processor provides objects designed for the tasks of reconstruction an
 
 \ppType{SparseSensing }{SparseSensing}
 \begin{itemize}
+\item \xmlNode{Metric}, \xmlDesc{string, optional field, repeatable}, sibling of \xmlNode{Goal} at the \xmlNode{PostProcessor} top level. References a RAVEN \xmlNode{Metric} object (declared under \xmlNode{Metrics}) used to evaluate the reconstruction error against the original full-state field. The required attributes are \xmlAttr{class}=\xmlString{Metrics} and \xmlAttr{type}=\xmlString{Metric}. Multiple \xmlNode{Metric} entries can be supplied; each writes a column to the output \xmlNode{DataObject} under the metric's own \xmlAttr{name}. This path provides access to the full RAVEN metric ecosystem (e.g.\ \xmlString{regression|r2\_score}, \xmlString{regression|explained\_variance\_score}, custom user metrics) and is only meaningful for the \xmlString{reconstruction} goal. The shorthand \xmlNode{reconstructionMetrics} (described below) and the \xmlNode{Metric} assembler form share a single internal evaluator: pysensors \xmlString{SSPOR.score} extracts the \xmlString{(yTrue, yPred)} pair, and the metric performs the math, so the two surface syntaxes are guaranteed to produce the same numbers.
+
 \item \xmlNode{Goal}, \xmlDesc{string, required field}, the goal of the sparse sensor optimization.
 User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field} representing the goal of the sparse sensing optimization; i.e., which goal function is used in the optimization? Examples for such goal functions are:
 \begin{itemize}
@@ -33,7 +35,7 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case, \xmlString{CCQR} when sensor costs are supplied, \xmlString{GQR} for constrained reconstruction, or \xmlString{TPGR} for the two-point greedy optimizer. \default{QR}
         \item \xmlNode{sensorCosts}, \xmlDesc{string, optional field}, the name of the input variable that stores the per-sensor costs consumed by the \xmlString{CCQR} optimizer.
         \item \xmlNode{constraint}, \xmlDesc{optional field}, a nested block used only with \xmlString{GQR}. The required attribute \xmlAttr{strategy} selects one of \xmlString{max\_n}, \xmlString{exact\_n}, \xmlString{predetermined}, or \xmlString{distance}. For shape-based constraints, the block may include \xmlNode{shape}, axis names such as \xmlNode{xAxis}/\xmlNode{yAxis}/\xmlNode{zAxis}, shape parameters such as \xmlNode{centerX}, \xmlNode{centerY}, \xmlNode{radius}, and \xmlNode{nConstSensors}. Built-in shapes currently exposed are \xmlString{Circle}, \xmlString{Cylinder}, \xmlString{Line}, \xmlString{Parabola}, \xmlString{Ellipse}, \xmlString{Polygon}, and \xmlString{UserDefined}. Explicit constrained sensor indices can also be provided through \xmlNode{indices}.
-        \item \xmlNode{reconstructionMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors reconstruction metrics to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}. These scalar values are written directly to the output \xmlNode{DataObject}.
+        \item \xmlNode{reconstructionMetrics}, \xmlDesc{comma separated strings, optional field}, shorthand for the most common reconstruction error metrics on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}. Internally each shorthand entry is desugared into an anonymous RAVEN \xmlNode{Metric} (a \xmlString{regression}-class \xmlString{SKL} metric for \xmlString{mse} and \xmlString{mae}; \xmlString{rmse} is the square root of \xmlString{mse}). The resulting scalars are written to the output \xmlNode{DataObject} under the prefixed names \xmlString{rec\_rmse}, \xmlString{rec\_mse}, \xmlString{rec\_mae} so they cannot collide with the user-attached \xmlNode{Metric} entries described below.
         \item \xmlNode{uncertaintyMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors uncertainty metrics to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{std}. This writes a full-state vector indexed by \xmlString{candidateSensor}, so the output \xmlNode{DataSet} should declare a matching \xmlNode{Index}.
         \item \xmlNode{energyLandscapeMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors TPGR energy-landscape outputs to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{one\_pt} and \xmlString{two\_pt}. These also write full-state vectors indexed by \xmlString{candidateSensor} and require \xmlString{optimizer=TPGR}.
         \item \xmlNode{energyLandscapeSensors}, \xmlDesc{comma separated integers, optional field}, zero-based candidate sensor indices forwarded to \xmlString{pysensors.SSPOR.two\_pt\_energy\_landscape}. This is required when requesting \xmlString{two\_pt}.
@@ -44,7 +46,7 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 \end{itemize}
 \end{itemize}
 
-\textbf{Example:}
+\textbf{Example (shorthand):} writes \xmlString{rec\_rmse} and \xmlString{rec\_mse} columns.
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
@@ -65,6 +67,29 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
   </Models>
    ...
 </Simulation>
+\end{lstlisting}
+
+\textbf{Example (assembler form):} writes a column named \xmlString{userR2} under the metric's own name. Use this when you need a metric outside the shorthand (here, R\textsuperscript{2}).
+\begin{lstlisting}[style=XML]
+<Metrics>
+  <Metric name="userR2" subType="SKL">
+    <metricType>regression|r2_score</metricType>
+  </Metric>
+</Metrics>
+
+<Models>
+  <PostProcessor name="mySPSL" subType="SparseSensing">
+    <Goal subType="reconstruction">
+      <features>X (m),Y (m),Temperature (K)</features>
+      <target>Temperature (K)</target>
+      <basis>SVD</basis>
+      <nModes>4</nModes>
+      <nSensors>4</nSensors>
+      <optimizer>QR</optimizer>
+    </Goal>
+    <Metric class="Metrics" type="Metric">userR2</Metric>
+  </PostProcessor>
+</Models>
 \end{lstlisting}
 
 \textbf{Example (GQR with a circular exclusion region):}

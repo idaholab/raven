@@ -360,9 +360,14 @@ ppMetric.basis = "Identity"
 ppMetric.optimizer = "QR"
 model = ppMetric._buildModel(ppMetric._buildBasis(), ppMetric._buildOptimizer())
 model.fit(data)
-rmse = ppMetric._computeReconstructionMetric(model, data, "rmse")
-mse = ppMetric._computeReconstructionMetric(model, data, "mse")
-mae = ppMetric._computeReconstructionMetric(model, data, "mae")
+# Build the unified reconstruction-metric registry (assembler + shorthand desugar) and route
+# evaluation through the same code path users hit at run time.
+ppMetric.reconstructionMetrics = ["rmse", "mse", "mae"]
+ppMetric.assemblerDict = {}
+ppMetric._buildMetricsDict()
+rmse = ppMetric._evaluateRavenMetric(model, data, ppMetric.metricsDict["rec_rmse"])
+mse = ppMetric._evaluateRavenMetric(model, data, ppMetric.metricsDict["rec_mse"])
+mae = ppMetric._evaluateRavenMetric(model, data, ppMetric.metricsDict["rec_mae"])
 check("rmse metric is non-negative", rmse >= 0.0)
 check("mse metric is non-negative", mse >= 0.0)
 check("mae metric is non-negative", mae >= 0.0)

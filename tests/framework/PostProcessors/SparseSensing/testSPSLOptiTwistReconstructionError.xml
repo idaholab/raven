@@ -68,7 +68,7 @@
     </HistorySet>
     <DataSet name="outPP">
       <Input>InputPlaceHolder</Input>
-      <Output>Temperature (K), X (m), Y (m), rmse, mae, mse</Output>
+      <Output>Temperature (K), X (m), Y (m), rec_rmse, rec_mae, rec_mse</Output>
       <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
     </DataSet>
   </DataObjects>

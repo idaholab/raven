@@ -110,6 +110,30 @@ function guess_conda_defs ()
 	fi
 }
 
+function accept_anaconda_tos_if_needed ()
+{
+  # Conda 24.3+ gates the default Anaconda channels (pkgs/main, pkgs/r) behind a Terms of
+  # Service acceptance. Without it, `conda env remove`/`create` fail with
+  # CondaToSNonInteractiveError. We accept on the user's behalf so first-run installs are
+  # unattended. Each user runs this script under their own login, so the acceptance is on
+  # their own account, not transitive. Set RAVEN_SKIP_TOS_ACCEPT=1 to skip if your
+  # organization requires explicit manual acceptance, or if you are running a conda-forge-only
+  # configuration where the default channels are not used.
+  if [[ -n "${RAVEN_SKIP_TOS_ACCEPT}" ]]; then
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Skipping Anaconda TOS auto-accept \(RAVEN_SKIP_TOS_ACCEPT is set\); fi
+    return 0
+  fi
+  # Probe: only newer conda exposes the `tos` subcommand. On older conda this is a no-op.
+  if ! conda tos --help >/dev/null 2>&1; then
+    return 0
+  fi
+  if [[ $ECE_VERBOSE == 0 ]]; then echo ... Accepting Anaconda Terms of Service for default channels \(re-run with RAVEN_SKIP_TOS_ACCEPT=1 to opt out\) ...; fi
+  # Idempotent: re-accepting is a no-op. We tolerate failures (offline, etc.) so a flaky
+  # network here does not block users who already accepted on a previous run.
+  conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main >/dev/null 2>&1 || true
+  conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r >/dev/null 2>&1 || true
+}
+
 function install_libraries()
 {
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
@@ -515,6 +539,8 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
       exit 1
     fi
   fi
+  # Conda is loaded; accept Anaconda's TOS for default channels if the local conda enforces it.
+  accept_anaconda_tos_if_needed
 else
   # check if pip exists
   if ! pip_loc="$(type -p pip3)" || [[ -z $pip_loc ]]; then

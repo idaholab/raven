@@ -23,6 +23,35 @@ import xarray as xr
 
 from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from ...utils import InputData, InputTypes
+from ...Metrics.metrics.SklMetric import SKL
+
+
+class _RmseSklAdapter:
+  """
+    Tiny adapter exposing the same run(x, y) interface as a RAVEN Metric, computing RMSE as the
+    square root of SKL mean_squared_error. Used to unify the 'rmse' shorthand into the same
+    metric-evaluation code path as 'mse', 'mae', and user-attached <Metric> assemblers.
+  """
+  def __init__(self, name):
+    """
+      @ In, name, str, output column name (also used as the underlying SKL metric name)
+      @ Out, None
+    """
+    self.name = name
+    self._mse = SKL()
+    self._mse.name = name + '_internal_mse'
+    self._mse.metricType = ['regression', 'mean_squared_error']
+    self._mse.distParams = {}
+
+  def run(self, x, y, weights=None, axis=0, **kwargs):
+    """
+      @ In, x, numpy.ndarray, true values
+      @ In, y, numpy.ndarray, predicted values
+      @ Out, value, float, RMSE
+    """
+    mse = float(np.atleast_1d(self._mse.run(x, y, weights=weights, axis=axis, **kwargs))[0])
+    return float(np.sqrt(mse))
+
 
 class SparseSensing(PostProcessorReadyInterface):
   """
@@ -44,6 +73,9 @@ class SparseSensing(PostProcessorReadyInterface):
                       'gqr': 'GQR',
                       'tpgr': 'TPGR'}
   reconstructionMetricOptions = ['rmse', 'mse', 'mae']
+  # Shorthand → underlying sklearn (group, name). 'rmse' is synthesised as sqrt(mse).
+  reconstructionMetricSklMap = {'mse': ('regression', 'mean_squared_error'),
+                                'mae': ('regression', 'mean_absolute_error')}
   uncertaintyMetricOptions = ['std']
   energyLandscapeMetricOptions = ['one_pt', 'two_pt']
   constraintStrategyOptions = ['max_n', 'exact_n', 'predetermined', 'distance']
@@ -217,6 +249,19 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
     goal.addSub(seed)
     inputSpecification.addSub(goal)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType,
+                                                  printPriority=108,
+                                                  descr=r"""Optional reference to a RAVEN \xmlNode{Metric} object used to evaluate the
+                                                        reconstruction error against the original full-state field. Multiple
+                                                        \xmlNode{Metric} entries can be supplied to compute several errors in one run.
+                                                        The required attributes \xmlAttr{class} and \xmlAttr{type} must point to a
+                                                        \xmlNode{Metrics} entity (typically \xmlAttr{class}=\xmlString{Metrics},
+                                                        \xmlAttr{type}=\xmlString{Metric}). The metric output is written to the
+                                                        output \xmlNode{DataObject} under the metric's own \xmlAttr{name}.
+                                                        Only valid for the \xmlString{reconstruction} goal.""")
+    metricInput.addParam("class", InputTypes.StringType, True)
+    metricInput.addParam("type", InputTypes.StringType, True)
+    inputSpecification.addSub(metricInput)
     return inputSpecification
 
   def __init__(self):
@@ -250,6 +295,14 @@ class SparseSensing(PostProcessorReadyInterface):
     self.reconstructionErrorRange = None                     # Optional sensor counts for reconstruction_error()
     self.seed = None                                         # The seed used by pysensors during sensor selection
     self.sampleTag = 'RAVEN_sample_ID'                       # The sample tag
+    # Reconstruction metrics — unified dict keyed by output column name. Populated in initialize()
+    # from both the <reconstructionMetrics> shorthand (synthesized as anonymous SKL metrics, prefixed
+    # 'rec_') and any user-attached <Metric> assembler entries (using the metric's own name).
+    # All entries are evaluated through the same code path on the (yTrue, yPred) pair extracted by
+    # pysensors model.score, so results are guaranteed to be consistent across the two surface syntaxes.
+    self.metricsDict = {}
+    # Register the optional <Metric> assembler block (zero or more refs to RAVEN Metric objects).
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -262,6 +315,53 @@ class SparseSensing(PostProcessorReadyInterface):
     super().initialize(runInfo, inputs, initDict)
     if len(inputs)>1:
       self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    self._buildMetricsDict()
+
+  def _buildMetricsDict(self):
+    """
+      Assemble the unified reconstruction-metric dictionary. Combines anonymous SKL metrics synthesized
+      from <reconstructionMetrics> shorthand (with 'rec_' prefix) and user-attached <Metric> assembler
+      entries (keyed by metric.name). Detects collisions between the two sources so users cannot
+      accidentally write the same output column twice.
+      @ In, None
+      @ Out, None
+    """
+    self.metricsDict = {}
+    # 1. Synthesise SKL metrics for each <reconstructionMetrics> shorthand entry. Only meaningful for
+    # the reconstruction goal, but we mirror the existing behaviour of silently ignoring them otherwise.
+    if self.sparseSensingGoal == 'reconstruction':
+      for shortName in self.reconstructionMetrics:
+        outName = 'rec_{}'.format(shortName)
+        self.metricsDict[outName] = self._synthesizeReconstructionMetric(shortName, outName)
+    # 2. Pull any user-attached <Metric> assembler instances. assemblerDict entries are
+    # (class, type, name, instance) tuples; index 2 is name, index 3 is the live Metric.
+    for metricInfo in self.assemblerDict.get('Metric', []):
+      metricName = metricInfo[2]
+      metricInstance = metricInfo[3]
+      if metricName in self.metricsDict:
+        self.raiseAnError(IOError,
+          'Output column "{}" collides between <reconstructionMetrics> and an attached <Metric>. '
+          'The shorthand path always prefixes outputs with "rec_"; rename the attached <Metric> to '
+          'avoid the collision.'.format(metricName))
+      self.metricsDict[metricName] = metricInstance
+
+  def _synthesizeReconstructionMetric(self, shortName, outName):
+    """
+      Build an anonymous RAVEN SKL metric instance equivalent to the shorthand name. RMSE is
+      synthesised as a tiny adapter around SKL mean_squared_error so the same code path covers it.
+      @ In, shortName, str, canonical reconstruction metric shorthand ('rmse', 'mse', 'mae')
+      @ In, outName, str, output column name to assign as the metric's name attribute
+      @ Out, metric, object exposing run(x, y) -> float, ready to evaluate on (yTrue, yPred)
+    """
+    if shortName == 'rmse':
+      return _RmseSklAdapter(outName)
+    sklGroup, sklName = self.reconstructionMetricSklMap[shortName]
+    metric = SKL()
+    metric.name = outName
+    metric.metricType = [sklGroup, sklName]
+    # SKL.handleInput normally seeds distParams; we bypass XML parsing so seed it manually.
+    metric.distParams = {}
+    return metric
 
   def _handleInput(self, paramInput):
     """
@@ -324,6 +424,10 @@ class SparseSensing(PostProcessorReadyInterface):
           self.seed = None
         if child.parameterValues['subType'] not in self.goalsDict.keys():
           self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
+      elif child.getName() == 'Metric':
+        # Validation only — the assembler machinery resolves the reference itself in initialize().
+        if 'class' not in child.parameterValues or 'type' not in child.parameterValues:
+          self.raiseAnError(IOError, '<Metric> must declare attributes "class" and "type"')
     goalNode = paramInput.findFirst('Goal')
     _, notFound = goalNode.findNodesAndExtractValues(['nModes','nSensors','features','target'])
     # notFound must be empty
@@ -525,22 +629,27 @@ class SparseSensing(PostProcessorReadyInterface):
       self.raiseAnError(NotImplementedError, 'SparseSensing classification is not yet implemented in RAVEN')
     self.raiseAnError(IOError, 'goal "{}" is not recognized'.format(self.sparseSensingGoal))
 
-  def _computeReconstructionMetric(self, model, data, metricName):
+  def _evaluateRavenMetric(self, model, data, metricInstance):
     """
-      Evaluate a native pysensors reconstruction metric on the fitted model.
+      Apply a single RAVEN Metric instance to the (yTrue, yPred) pair extracted by pysensors.
+      pysensors handles the reconstruction step (predict full field from selected sensors); the metric
+      contributes only the math on the resulting array pair. Both shorthand-synthesised metrics and
+      user-attached <Metric> assembler instances flow through this method, so both surface syntaxes
+      converge on the same internal computation.
       @ In, model, ps.SSPOR, fitted sparse reconstruction model
       @ In, data, np.ndarray, full-state measurements with shape (samples, features)
-      @ In, metricName, str, canonical metric name
+      @ In, metricInstance, object, RAVEN Metric exposing run(x, y) -> scalar or 1-element array
       @ Out, metricValue, float, scalar metric value
     """
-    if metricName == 'rmse':
-      # pysensors.score follows sklearn's "higher is better" convention, so RMSE is negated there.
-      return float(-model.score(data))
-    if metricName == 'mse':
-      return float(model.score(data, score_function=lambda yTrue, yPred: np.mean((yTrue - yPred) ** 2)))
-    if metricName == 'mae':
-      return float(model.score(data, score_function=lambda yTrue, yPred: np.mean(np.abs(yTrue - yPred))))
-    self.raiseAnError(IOError, 'reconstruction metric "{}" is not implemented'.format(metricName))
+    def adapter(yTrue, yPred):
+      # Flatten to 1-D so the reduction is a single scalar over (sample, feature) pairs, matching
+      # the legacy np.mean(...) behaviour. SKL.run accepts 1-D inputs and reshapes internally.
+      # User-attached metrics arrive wrapped in MetricEntity which exposes .evaluate(x, y, ...);
+      # synthesised SKL instances (and our RMSE adapter) expose .run(x, y, ...) directly. Both
+      # signatures match (x, y, weights=None, axis=0, **kwargs); we just call whichever is there.
+      compute = getattr(metricInstance, 'evaluate', None) or metricInstance.run
+      return float(np.atleast_1d(compute(yTrue.reshape(-1), yPred.reshape(-1)))[0])
+    return float(model.score(data, score_function=adapter))
 
   def _resolveUncertaintyPrior(self, model):
     """
@@ -829,9 +938,13 @@ class SparseSensing(PostProcessorReadyInterface):
     for var in self.sensingFeatures:
       sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data)
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
-    if self.sparseSensingGoal == 'reconstruction' and self.reconstructionMetrics:
-      for metricName in self.reconstructionMetrics:
-        outDS[metricName] = self._computeReconstructionMetric(model, data, metricName)
+    if self.sparseSensingGoal == 'reconstruction' and self.metricsDict:
+      # Single unified path: shorthand-synthesised SKL metrics (keys prefixed 'rec_') and
+      # user-attached <Metric> assembler entries (keyed by metric.name) all flow through
+      # _evaluateRavenMetric, which uses model.score to produce (yTrue, yPred) and the metric to
+      # compute the scalar. This guarantees the two surface syntaxes produce identical numbers.
+      for outName, metricInstance in self.metricsDict.items():
+        outDS[outName] = self._evaluateRavenMetric(model, data, metricInstance)
     if self.sparseSensingGoal == 'reconstruction':
       outDS = self._addUncertaintyOutputs(outDS, inputDS, model, nfeatures)
       outDS = self._addEnergyLandscapeOutputs(outDS, inputDS, model, nfeatures)

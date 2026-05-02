@@ -1240,7 +1240,7 @@ class GeneralPlot(PlotInterface):
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         try:
-                          self.actcm.draw_all()
+                          self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
                         # this is not good, what exception will be thrown?
                         except:
                           m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
@@ -1259,9 +1259,20 @@ class GeneralPlot(PlotInterface):
                         self.actcm = self.fig.colorbar(m, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax=max(self.colorMapValues[pltIndex][key][-1]))
-                        self.actcm.draw_all()
+                        # Same as the 3D-scatter branch below: widen the bound mappable's clim
+                        # to span every iteration, and retroactively widen every scatter on
+                        # this axes so all keys share the colorbar's norm.
+                        curMin = min(self.colorMapValues[pltIndex][key][-1])
+                        curMax = max(self.colorMapValues[pltIndex][key][-1])
+                        bound = self.actcm.mappable
+                        boundMin = bound.norm.vmin if bound.norm.vmin is not None else curMin
+                        boundMax = bound.norm.vmax if bound.norm.vmax is not None else curMax
+                        newMin = min(boundMin, curMin)
+                        newMax = max(boundMax, curMax)
+                        bound.set_clim(vmin=newMin, vmax=newMax)
+                        for collection in self.ax.collections:
+                          collection.set_clim(vmin=newMin, vmax=newMax)
+                        self.actcm.update_normal(bound)
                 else:
                   if 'color' not in scatterPlotOptions:
                     scatterPlotOptions['c'] = plotSettings['c']
@@ -1285,7 +1296,7 @@ class GeneralPlot(PlotInterface):
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          self.actcm.draw_all()
+                          self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
                     else:
                       scatterPlotOptions['cmap'] = plotSettings['cmap']
                       self.actPlot = self.ax.scatter(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], self.zValues[pltIndex][key][zIndex], **scatterPlotOptions)
@@ -1293,12 +1304,30 @@ class GeneralPlot(PlotInterface):
                         if first:
                           m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltIndex][key])
-                          self.actcm = self.fig.colorbar(m)
+                          # matplotlib 3.10+ requires an explicit ax= when the ScalarMappable is not bound to one.
+                          self.actcm = self.fig.colorbar(m, ax=self.ax)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
-                          m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax=max(self.colorMapValues[pltIndex][key][-1]))
-                          self.actcm.draw_all()
+                          # Expand the bound mappable's clim so the colorbar spans every
+                          # iteration's data range, and retroactively widen every scatter
+                          # already rendered on this axes so they share the same norm. Legacy
+                          # code built a fresh, discarded ScalarMappable and leaned on
+                          # Colorbar.draw_all() to refresh; under matplotlib 3.10 that left
+                          # both the colorbar AND the earlier scatters normalized to a per-
+                          # iteration range, so most points were clipped to the colormap
+                          # extremes. Mutating every collection's clim here gives all four
+                          # layers a single shared norm that matches the colorbar.
+                          curMin = min(self.colorMapValues[pltIndex][key][-1])
+                          curMax = max(self.colorMapValues[pltIndex][key][-1])
+                          bound = self.actcm.mappable
+                          boundMin = bound.norm.vmin if bound.norm.vmin is not None else curMin
+                          boundMax = bound.norm.vmax if bound.norm.vmax is not None else curMax
+                          newMin = min(boundMin, curMin)
+                          newMax = max(boundMax, curMax)
+                          bound.set_clim(vmin=newMin, vmax=newMax)
+                          for collection in self.ax.collections:
+                            collection.set_clim(vmin=newMin, vmax=newMax)
+                          self.actcm.update_normal(bound)
                   else:
                     if 'color' not in scatterPlotOptions:
                       scatterPlotOptions['c'] = plotSettings['c']
@@ -1334,7 +1363,7 @@ class GeneralPlot(PlotInterface):
                       self.actcm = self.fig.colorbar(cmap)
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
-                      self.actcm.draw_all()
+                      self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
                 else:
                   self.actPlot = self.ax.plot(xi, yi, **plotSettings.get('attributes', {}))
               else:
@@ -1351,7 +1380,7 @@ class GeneralPlot(PlotInterface):
                         self.actcm = self.fig.colorbar(cmap)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.draw_all()
+                        self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
                   else:
                     self.actPlot = self.ax.plot(self.xValues[pltIndex][key][xIndex],
                                                 self.yValues[pltIndex][key][yIndex],
@@ -1627,7 +1656,7 @@ class GeneralPlot(PlotInterface):
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_clim(vmin=min(self.colorMapValues[pltIndex][key][-1]), vmax=max(self.colorMapValues[pltIndex][key][-1]))
-                        self.actcm.draw_all()
+                        self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
                   else:
                     if plotSettings['cmap'] == 'None':
                       self.actPlot = self.ax.plot_surface(xig,
@@ -1708,7 +1737,7 @@ class GeneralPlot(PlotInterface):
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_clim(vmin=min(self.colorMapValues[pltIndex][key][-1]), vmax=max(self.colorMapValues[pltIndex][key][-1]))
-                        self.actcm.draw_all()
+                        self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
                   else:
                     if plotSettings['cmap'] != 'None':
                       surfacePlotOptions["cmap"] = matplotlib.cm.get_cmap(name=plotSettings['cmap'])
@@ -1781,7 +1810,7 @@ class GeneralPlot(PlotInterface):
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_clim(vmin=min(self.colorMapValues[pltIndex][key][-1]), vmax=max(self.colorMapValues[pltIndex][key][-1]))
-                        self.actcm.draw_all()
+                        self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
                   else:
                     if plotSettings['cmap'] == 'None':
                       self.actPlot = self.ax.plot_wireframe(xig,
@@ -1867,7 +1896,7 @@ class GeneralPlot(PlotInterface):
                     else:
                       m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                       m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
-                      self.actcm.draw_all()
+                      self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
         else:
           self.raiseAWarning('contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n contour3D/filledContour3D are 3-D! ')
           return
@@ -1943,7 +1972,7 @@ class GeneralPlot(PlotInterface):
                     else:
                       m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                       m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
-                      self.actcm.draw_all()
+                      self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
       ########################
       #   DataMining PLOT    #
       ########################
