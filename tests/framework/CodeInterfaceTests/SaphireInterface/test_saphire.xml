@@ -14,6 +14,7 @@
     <Sequence>sample</Sequence>
     <WorkingDir>testSaphire</WorkingDir>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

@@ -16,12 +16,15 @@
       <revision author="maljdan" date="2016-05-23">Changing and regolding a test case that uses an external model when unnecessary.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_merge_2_databases</WorkingDir>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>

@@ -8,7 +8,6 @@
     <description>
        An example of using the Morse-Smale regression reduced order model with
        a support vector machine.
-
        Note, all of the tests in MSR operate on a 2D input domain with
        the goal of fitting a single Gaussian bump. The input dimensions are
        of largely different scales and one dimension is off-centered from the
@@ -21,8 +20,10 @@
       <revision author="maljdan" date="2016-02-10">    Using custom sampler blocks for the MSR-SVM tests.</revision>
       <revision author="maljdan" date="2016-04-06">    Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-19">Adding this test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
@@ -30,6 +31,7 @@
       train,
       resample
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -48,11 +50,6 @@
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
-        <!--The SVM implementation has a bit of uncontrollable randomness that
-            prevents uniform behavior across machines, so we will use more
-            training data to counteract the effects of the randomness imposed
-            by the cross-validation of the SVM which generates the probability
-            information that exhibits the non-deterministic behavior. -->
         <limit>800</limit>
         <initialSeed>888</initialSeed>
       </samplerInit>
@@ -64,8 +61,6 @@
       </variable>
     </MonteCarlo>
     <Grid name="gridSampler">
-      <!-- Try to place the grid samples away from the boundary in order to
-           reduce the chance of misclassification for this test case -->
       <variable name="X">
         <distribution>smallUniformDist</distribution>
         <grid construction="equal" steps="9" type="value">2 2.9</grid>
@@ -79,7 +74,6 @@
 
   <ExternalXML node="Steps" xmlToLoad="steps.xml"/>
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>

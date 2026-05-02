@@ -17,6 +17,7 @@
           init_param changed from wc to kmeans because the wc
           option has been removed in scikitlearn v. 0.21
       </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -24,6 +25,7 @@
     <WorkingDir>GaussianMixture</WorkingDir>
     <Sequence>readIn,GaussianMixtureBlobs,output</Sequence>
     <batchSize>100</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -82,13 +84,6 @@
           <y>data|input|x2</y>
           <cmap>Set1</cmap>
           <colorMap>data|Output|labels</colorMap>
-          <!--
-            <type>dataMining</type>
-            <SKLtype>cluster</SKLtype>
-            <x>DataSets|input|x1</x>
-            <y>DataSets|input|x2</y>
-            <clusterLabels>DataSets|Output|labels</clusterLabels>
-          -->
           <kwargs>
             <edgecolor>None</edgecolor>
           </kwargs>

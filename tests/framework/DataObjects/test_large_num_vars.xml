@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
   <TestInfo>
     <name>framework/DataObjects.load_print_large_num_vars</name>
     <author>wangc</author>
@@ -9,14 +8,18 @@
     <description>
         Test to check the performance of load and print of DataSet
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>originalModelCSV</WorkingDir>
     <Sequence>
-        load, PP, print 
+        load, PP, print
     </Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -74,4 +77,5 @@
       <source>timeDepBasicStat_basicStatPP</source>
     </Print>
   </OutStreams>
+
 </Simulation>

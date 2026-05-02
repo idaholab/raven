@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- TestInfo -->
   <TestInfo>
     <name>framework/Samplers.AdaptiveMonteCarlo</name>
     <author>ZHOUJ2</author>
@@ -14,12 +13,14 @@
       <revision author="aalfonsi" date="2022-12-12">
           Removed variables XML node and replaced with inputs and outputs
       </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -56,8 +57,8 @@
       <sigma>0.01</sigma>
     </Normal>
     <Uniform name="x2_dst">
-        <lowerBound>-1</lowerBound>
-        <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
     </Uniform>
   </Distributions>
 
@@ -68,7 +69,6 @@
         <limit>30</limit>
         <persistence>6</persistence>
         <forceIteration>False</forceIteration>
-        <!--relative tolerance of standard error-->
         <expectedValue prefix="mean" tol="1e-1">y1,y2</expectedValue>
         <sigma prefix="sigma" tol="6e-2">y1</sigma>
         <sigma prefix="sigma" tol="5e-2">y2</sigma>
@@ -85,10 +85,9 @@
 
   <Models>
     <ExternalModel ModuleToLoad="adaptive_test_model" name="testFunction" subType="">
-        <inputs>x1,x2</inputs>
-        <outputs>y1,y2</outputs>
+      <inputs>x1,x2</inputs>
+      <outputs>y1,y2</outputs>
     </ExternalModel>
-
   </Models>
 
   <OutStreams>

@@ -4,7 +4,9 @@
     <WorkingDir>MVNRel</WorkingDir>
     <Sequence>RelRun</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_rom/MVNRel</name>
     <author>wangc</author>
@@ -13,6 +15,9 @@
     <description>
       Tests MVN with relative covariance matrix
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>

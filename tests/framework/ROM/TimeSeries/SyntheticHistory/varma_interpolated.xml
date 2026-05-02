@@ -13,6 +13,7 @@
         Adding two separate Fourier nodes, one for each signal, to test resolved issue within
         Interpolated ROMCollection Segment type.
       </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -20,6 +21,7 @@
     <WorkingDir>VARMAInterpolated</WorkingDir>
     <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -70,7 +72,7 @@
       <fourier target="signal1">
         <periods>3</periods>
       </fourier>
-      <varma target="signal0, signal1" seed='42'>
+      <varma target="signal0, signal1" seed="42">
         <P>1</P>
         <Q>0</Q>
       </varma>

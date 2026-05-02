@@ -14,6 +14,7 @@
     <WorkingDir>interfacedPostProcessor_PointSet</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>cluster_tests/test_mpiqsub</name>
     <author>cogljj</author>
@@ -10,6 +10,7 @@
     </description>
     <revisions>
       <revision author="cogljj" date="2023-09-12">Tests the timing of running mpi code.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-IS-7</requirements>
   </TestInfo>
@@ -22,6 +23,7 @@
     <NumMPI>1</NumMPI>
     <expectedTime>0:10:00</expectedTime>
     <JobName>test_mpilong</JobName>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -57,12 +59,6 @@
       <apex>1</apex>
       <min>-0.1</min>
       <max>3</max>
-      <!--
-        <lowerBound>0</lowerBound>
-         This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-      -->
     </Triangular>
   </Distributions>
 
@@ -92,7 +88,7 @@
   </DataObjects>
 
   <OutStreams>
-    <Print name='samples'>
+    <Print name="samples">
       <type>csv</type>
       <source>stories</source>
       <what>input,output</what>

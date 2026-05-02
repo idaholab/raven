@@ -8,12 +8,16 @@
     <description>
       Tests the SyntheticHistory ROM using the VARMA TimeSeriesAnalyzer algorithm.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>VARMA</WorkingDir>
     <Sequence>read, train, print, serialize, sample, plot</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -69,8 +73,8 @@
       <Target>signal0, signal1, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <zerofilter target="signal0, signal1"/>  <!-- Helps test fitting with missing values -->
-      <varma target="signal0, signal1" seed='42'>
+      <zerofilter target="signal0, signal1"/>
+      <varma target="signal0, signal1" seed="42">
         <P>1</P>
         <Q>0</Q>
       </varma>

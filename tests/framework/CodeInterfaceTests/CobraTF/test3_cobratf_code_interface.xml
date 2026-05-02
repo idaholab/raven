@@ -16,6 +16,7 @@
     <WorkingDir>CobraTFinterfaceTest3</WorkingDir>
     <Sequence>testDummyStep_MC</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

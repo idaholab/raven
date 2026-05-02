@@ -11,6 +11,7 @@
     </description>
     <revisions>
       <revision author="wangc" date="2019-07-09">Move cross validation assemble from HybridModel to ROM</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -19,6 +20,7 @@
     <Sequence>testAdaptiveRom</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>

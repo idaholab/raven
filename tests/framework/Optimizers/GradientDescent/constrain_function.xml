@@ -12,6 +12,7 @@
     <revisions>
       <revision author="zhouj" date="2020-05-15">Add implicit constriant node in optimizer and function node with objective as variable.</revision>
       <revision author="zhouj" date="2020-06-04">Add reject opt point reason.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-RM-2</requirements>
   </TestInfo>
@@ -19,6 +20,7 @@
   <RunInfo>
     <WorkingDir>ConstrainFunction</WorkingDir>
     <Sequence>optimize, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -36,7 +38,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='dist'>
+    <Uniform name="dist">
       <lowerBound>-1</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>
@@ -76,8 +78,8 @@
         <persistence>3</persistence>
         <stepSize>1e-4</stepSize>
       </convergence>
-      <Constraint class='Functions' type='External'>goal</Constraint>
-      <ImplicitConstraint class='Functions' type='External'>goalimp</ImplicitConstraint>
+      <Constraint class="Functions" type="External">goal</Constraint>
+      <ImplicitConstraint class="Functions" type="External">goalimp</ImplicitConstraint>
     </GradientDescent>
   </Optimizers>
 

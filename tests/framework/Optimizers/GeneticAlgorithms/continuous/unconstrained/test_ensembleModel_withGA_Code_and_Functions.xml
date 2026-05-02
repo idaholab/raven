@@ -10,8 +10,11 @@
          a model Code. This test has been created to test the modifications performed to address issue
          #2304 (see \\url{https://github.com/idaholab/raven/issues/2304}).
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>metaModelWithCodeAndFunctionsAndGenetic</JobName>
     <Sequence>
@@ -19,6 +22,7 @@
     </Sequence>
     <WorkingDir>metaModelWithCodeAndFunctionsAndGenetic</WorkingDir>
     <batchSize>2</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -69,7 +73,6 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-
       <GAparams>
         <populationSize>2</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
@@ -81,14 +84,12 @@
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst"></fitness>
+        <fitness type="feasibleFirst"/>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
-
       <convergence>
         <AHDp>0.0</AHDp>
       </convergence>
-
       <variable name="sigma-A">
         <distribution>sigma</distribution>
       </variable>
@@ -101,37 +102,36 @@
       <variable name="decay_B">
         <function>decayConstantB</function>
       </variable>
-
       <objective>sum</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">finalResponses</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
-  
+
   <Functions>
-      <External file="decayConstantB.py" name="decayConstantB">
-        <variables>decay_A</variables>
-      </External>
+    <External file="decayConstantB.py" name="decayConstantB">
+      <variables>decay_A</variables>
+    </External>
   </Functions>
-  
+
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
         <limit>2</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
-    <variable name="sigma-A">
-      <distribution>sigma</distribution>
-    </variable>
-    <variable name="decay_A">
-      <distribution>decayConstant</distribution>
-    </variable>
-    <variable name="sigma-B">
-      <distribution>sigma</distribution>
-    </variable>
-    <variable name="decay_B">
-      <function>decayConstantB</function>
-    </variable>
+      <variable name="sigma-A">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay_A">
+        <distribution>decayConstant</distribution>
+      </variable>
+      <variable name="sigma-B">
+        <distribution>sigma</distribution>
+      </variable>
+      <variable name="decay_B">
+        <function>decayConstantB</function>
+      </variable>
     </MonteCarlo>
   </Samplers>
 

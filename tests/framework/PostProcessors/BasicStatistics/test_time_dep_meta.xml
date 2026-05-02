@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics.timeDepMeta</name>
     <author>wangc</author>
@@ -11,6 +10,9 @@
       the input of HistorySet, while vector meta data should be printed with output of HistorySet. See issue #986.
       With the fix of #986, The HistorySet will handle scalar and vector meta data separately.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -18,6 +20,7 @@
     <Sequence>Read_raw,  SensPost_1, Back_to_MASTER</Sequence>
     <internalParallel>True</internalParallel>
     <deleteOutExtension>o,plt,rst,csv,i</deleteOutExtension>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -97,6 +100,7 @@
       var_REP_P_a
     </Group>
   </VariableGroups>
+
   <Models>
     <PostProcessor name="SensPost_1" subType="BasicStatistics" verbosity="debug">
       <pivotParameter>Time_aligned</pivotParameter>
@@ -135,13 +139,11 @@
       <Input class="Files" type="csv">myinputfile</Input>
       <Output class="DataObjects" type="HiostorySet">SET_SensPost_aligned</Output>
     </IOStep>
-
     <PostProcess name="SensPost_1">
       <Input class="DataObjects" type="HistorySet">SET_SensPost_aligned</Input>
       <Model class="Models" type="PostProcessor">SensPost_1</Model>
       <Output class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Output>
     </PostProcess>
-
     <IOStep name="Back_to_MASTER">
       <Input class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Input>
       <Output class="OutStreams" type="Print">Back_to_MASTER</Output>
@@ -154,4 +156,5 @@
       <source>SET_Back_to_MASTER</source>
     </Print>
   </OutStreams>
+
 </Simulation>

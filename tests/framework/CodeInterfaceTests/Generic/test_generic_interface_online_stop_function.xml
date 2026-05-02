@@ -6,7 +6,7 @@
     <created>2025-04-11</created>
     <classesTested>Models.Code.GenericCode</classesTested>
     <description>
-       An example of using the the Model Code of type GenericCode to exercise 
+       An example of using the the Model Code of type GenericCode to exercise
        the option to stop the simulation if a stopping criteria defined by an
        external function ``genericStopCriteria'' commands to halt the simulation.
        In this example, the criteria is to stop the simulation
@@ -14,12 +14,17 @@
        The test exports only the variable ``StoppingReason'' that shows the reason why
        the simulations stop (we expect the reason to be ``StoppingCondtion'' for 3 out of 4 samples)
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <JobName>GenericInterfaceStoppingFunction</JobName>
     <Sequence>sample</Sequence>
     <WorkingDir>GenericInterfaceStoppingFunction</WorkingDir>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -33,21 +38,18 @@
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
-      <!-- THIS outputFile xml node is used to specify a fixed output file (ONLY CSV) from which RAVEN will collect the results -->
       <outputFile>fixed_output_case.csv</outputFile>
       <onlineStopCriteriaTimeInterval>0.1</onlineStopCriteriaTimeInterval>
-      <!-- link to function defined in <Functions> XML node -->
       <StoppingFunction class="Functions" type="External">stoppingCriteria</StoppingFunction>
-      
     </Code>
   </Models>
-  
+
   <Functions>
-      <External file="genericStopCriteria.py" name="stoppingCriteria">
-          <variables>poly</variables>
-      </External>
+    <External file="genericStopCriteria.py" name="stoppingCriteria">
+      <variables>poly</variables>
+    </External>
   </Functions>
-  
+
   <Distributions>
     <Uniform name="xd">
       <lowerBound>0.0</lowerBound>

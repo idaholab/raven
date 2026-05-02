@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.UnparametrizedDMDC</name>
@@ -15,8 +15,8 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2020-12-10">Definition of the final test</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
- 
   </TestInfo>
 
   <RunInfo>
@@ -29,38 +29,27 @@
              runDMDc
     </Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-    <!--  we load a synthesized data with 1 time, 1 actuation(u), 3 state(x) and 2 output(y) -->
-    <!-- Note: Adjacent rows should have constant time interval for DMDC -->
     <Input name="TrainDataFile">../trainingData/BOP_Data_index_unPara.csv</Input>
     <Input name="ROMpk" type="">ROMpk</Input>
   </Files>
 
   <Models>
     <ROM name="DMDrom" subType="DMDC">
-      <!-- Target contains Time, StateVariable Names (x) and OutputVariable Names (y) in training data -->
       <Target>Time,x1,x2,x3,y1,y2</Target>
-      <!-- Actuator Variable Names (u) -->
       <actuators>u1</actuators>
-      <!-- StateVariables Names (x) -->
       <stateVariables>x1,x2,x3</stateVariables>
-      <!-- Pivot variable (e.g. Time) -->
       <pivotParameter>Time</pivotParameter>
-      <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
       <rankSVD>-1</rankSVD>
-      <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
       <subtractNormUXY>True</subtractNormUXY>
-     
-      <!-- Features are the variable names for predictions: Actuator "u" and initial states -->
       <Features>u1,x1_init,x2_init,x3_init</Features>
-      <!-- Initialization Variables-->
       <initStateVariables>x1_init,x2_init,x3_init</initStateVariables>
     </ROM>
   </Models>
 
-  
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
@@ -73,14 +62,14 @@
       <constant name="u1" shape="100">
         11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5
         11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5 11700E5
-        11700E5 11702E5 11704E5 11706E5 11708E5 11710E5 11712E5 11714E5 11716E5 11718E5 
-        11720E5 11722E5 11724E5 11726E5 11728E5 11730E5 11732E5 11734E5 11736E5 11738E5 
-        11740E5 11742E5 11744E5 11746E5 11748E5 11750E5 11752E5 11754E5 11756E5 11758E5 
-        11760E5 11762E5 11764E5 11766E5 11768E5 11770E5 11772E5 11774E5 11776E5 11778E5 
-        11780E5 11782E5 11784E5 11786E5 11788E5 11790E5 11792E5 11794E5 11796E5 11798E5 
-        11800E5 11802E5 11804E5 11806E5 11808E5 11810E5 11812E5 11814E5 11816E5 11818E5 
-        11820E5 11822E5 11824E5 11826E5 11828E5 11830E5 11832E5 11834E5 11836E5 11838E5 
-        11840E5 11842E5 11844E5 11846E5 11848E5 11850E5 11852E5 11854E5 11856E5 11858E5 
+        11700E5 11702E5 11704E5 11706E5 11708E5 11710E5 11712E5 11714E5 11716E5 11718E5
+        11720E5 11722E5 11724E5 11726E5 11728E5 11730E5 11732E5 11734E5 11736E5 11738E5
+        11740E5 11742E5 11744E5 11746E5 11748E5 11750E5 11752E5 11754E5 11756E5 11758E5
+        11760E5 11762E5 11764E5 11766E5 11768E5 11770E5 11772E5 11774E5 11776E5 11778E5
+        11780E5 11782E5 11784E5 11786E5 11788E5 11790E5 11792E5 11794E5 11796E5 11798E5
+        11800E5 11802E5 11804E5 11806E5 11808E5 11810E5 11812E5 11814E5 11816E5 11818E5
+        11820E5 11822E5 11824E5 11826E5 11828E5 11830E5 11832E5 11834E5 11836E5 11838E5
+        11840E5 11842E5 11844E5 11846E5 11848E5 11850E5 11852E5 11854E5 11856E5 11858E5
       </constant>
       <constant name="Time" shape="100">
         0 1 2 3 4 5 6 7 8 9
@@ -94,9 +83,9 @@
         80 81 82 83 84 85 86 87 88 89
         90 91 92 93 94 95 96 97 98 99
       </constant>
-   </MonteCarlo>
+    </MonteCarlo>
   </Samplers>
-  
+
   <Steps>
     <IOStep name="readTrainData">
       <Input class="Files" type="">TrainDataFile</Input>
@@ -122,7 +111,7 @@
       <Output class="OutStreams" type="Print">outputData</Output>
     </MultiRun>
   </Steps>
-  
+
   <OutStreams>
     <Print name="DMDcCxCoeff">
       <type>csv</type>

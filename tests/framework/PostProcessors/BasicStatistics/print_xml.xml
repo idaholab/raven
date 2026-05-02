@@ -4,6 +4,7 @@
     <WorkingDir>basicStatisticsXml</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -23,6 +24,7 @@
           In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
       <revision author="talbpaul" date="2020-06-26">greatly increased numerical tolerance due to collinearity</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 

@@ -26,6 +26,7 @@
       </revision>
       <revision author="alfoa" date="2018-09-11"> Added an additional IOStep to check that the limit surface DataObject can be dumped into a Database of type HDF5</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-RA-1 R-RA-7</requirements>
   </TestInfo>
@@ -40,6 +41,7 @@
         dumpLimitSurfacePositiveNegativeInHDF5
     </Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -55,21 +57,18 @@
       <parameters>x0,y0</parameters>
       <side>positive</side>
       <ROM class="Models" type="ROM">Acc</ROM>
-      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="computeLimitSurfaceNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>negative</side>
       <ROM class="Models" type="ROM">Acc</ROM>
-      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>both</side>
       <ROM class="Models" type="ROM">Acc</ROM>
-      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <ROM name="Acc" subType="LinearSVC">

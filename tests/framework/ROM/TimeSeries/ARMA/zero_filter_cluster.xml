@@ -8,11 +8,15 @@
     <description>
       Tests the ZeroFilter functionality of the ARMA, including clustering and zero filtered target.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>ZeroFilterCluster</WorkingDir>
     <Sequence>load, train, meta, serialize, sample</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -25,23 +29,19 @@
       <Input class="Files" type="">input</Input>
       <Output class="DataObjects" type="HistorySet">input</Output>
     </IOStep>
-
     <RomTrainer name="train">
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
-
     <IOStep name="meta">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="DataObjects" type="DataSet">meta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
-
     <IOStep name="serialize">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="Files" type="">pk</Output>
     </IOStep>
-
     <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">arma</Model>
@@ -49,7 +49,6 @@
       <Output class="DataObjects" type="DataSet">synth</Output>
       <Output class="OutStreams" type="Print">synth</Output>
     </MultiRun>
-
   </Steps>
 
   <DataObjects>
@@ -57,7 +56,6 @@
       <Input>scaling</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <HistorySet name="input">
       <Input>scaling,YEAR</Input>
       <Output>TOTALLOAD,WIND,SOLAR,HOUR</Output>
@@ -65,7 +63,6 @@
         <pivotParameter>HOUR</pivotParameter>
       </options>
     </HistorySet>
-
     <DataSet name="synth">
       <Input>scaling</Input>
       <Output>TOTALLOAD,WIND,SOLAR</Output>
@@ -83,11 +80,11 @@
       <P>1</P>
       <Q>0</Q>
       <Fourier>24, 12</Fourier>
-      <SpecificFourier variables='TOTALLOAD,WIND'>
+      <SpecificFourier variables="TOTALLOAD,WIND">
         <periods>8760, 4380, 2920, 2190, 438, 168, 24, 12, 6, 3</periods>
       </SpecificFourier>
       <ZeroFilter>SOLAR</ZeroFilter>
-      <outTruncation domain='positive'>SOLAR</outTruncation>
+      <outTruncation domain="positive">SOLAR</outTruncation>
       <preserveInputCDF>True</preserveInputCDF>
       <reseedCopies>True</reseedCopies>
       <seed>42</seed>
@@ -117,7 +114,6 @@
       <type>csv</type>
       <source>meta</source>
     </Print>
-
     <Print name="synth">
       <type>csv</type>
       <source>synth</source>
@@ -133,4 +129,5 @@
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
+
 </Simulation>

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.compressedDMD</name>
@@ -11,6 +11,9 @@
        In addition, it tests the capability for the user to export the ROM info in an XML output
        file.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -24,10 +27,10 @@
              writeOut
     </Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-    <!--  we load the data from the PolyExponential database -->
     <Input name="rawDataFile">../../PolyExponential/data/decay_heat.csv</Input>
     <Input name="ROMpk" type="">ROMpk</Input>
   </Files>
@@ -135,6 +138,5 @@
     </HistorySet>
     <DataSet name="rom_stats"/>
   </DataObjects>
-  
 
 </Simulation>

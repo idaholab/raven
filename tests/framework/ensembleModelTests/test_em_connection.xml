@@ -9,12 +9,17 @@
        Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
        This test is aimed to check the connection between multiple models, as reported in issue #696.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>checkConnection</WorkingDir>
     <Sequence>testMetaModel,dumpResults</Sequence>
     <batchSize>2</batchSize>
     <internalParallel>True</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>
@@ -51,36 +56,35 @@
     <ExternalModel ModuleToLoad="../Models/rho" name="Rho" subType="">
       <variables>D, I</variables>
     </ExternalModel>
-
     <EnsembleModel name="testConfig" subType="">
       <Model class="Models" type="ExternalModel">
         Alpha
-        <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
+        <Input class="DataObjects" type="PointSet">inputAlpha</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataAlpha</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         Beta
-        <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
+        <Input class="DataObjects" type="PointSet">inputBeta</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataBeta</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         Delta
-        <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
+        <Input class="DataObjects" type="PointSet">inputDelta</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataDelta</TargetEvaluation>
       </Model>
-      <Model class="Models"  type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         Gamma
-        <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
+        <Input class="DataObjects" type="PointSet">inputGamma</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataGamma</TargetEvaluation>
       </Model>
-      <Model class="Models"  type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         Epsilon
-        <Input   class="DataObjects" type="PointSet"      >inputEpsilon</Input>
+        <Input class="DataObjects" type="PointSet">inputEpsilon</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataEpsilon</TargetEvaluation>
       </Model>
-      <Model class="Models"  type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         Rho
-        <Input   class="DataObjects" type="PointSet"      >inputRho</Input>
+        <Input class="DataObjects" type="PointSet">inputRho</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataRho</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -105,17 +109,17 @@
 
   <Steps>
     <MultiRun name="testMetaModel">
-      <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
-      <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
-      <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
-      <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
-      <Model   class="Models"      type="EnsembleModel" >testConfig</Model>
-      <Sampler class="Samplers"    type="Grid"          >grid</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >metaModelData</Output>
+      <Input class="DataObjects" type="PointSet">inputAlpha</Input>
+      <Input class="DataObjects" type="PointSet">inputBeta</Input>
+      <Input class="DataObjects" type="PointSet">inputGamma</Input>
+      <Input class="DataObjects" type="PointSet">inputDelta</Input>
+      <Model class="Models" type="EnsembleModel">testConfig</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">metaModelData</Output>
     </MultiRun>
     <IOStep name="dumpResults" pauseAtEnd="True">
-      <Input  class="DataObjects"  type="PointSet"      >metaModelData</Input>
-      <Output class="OutStreams"   type="Print"          >printData</Output>
+      <Input class="DataObjects" type="PointSet">metaModelData</Input>
+      <Output class="OutStreams" type="Print">printData</Output>
     </IOStep>
   </Steps>
 
@@ -152,7 +156,6 @@
       <Input>D</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <PointSet name="dataAlpha">
       <Input>A,B</Input>
       <Output>C</Output>

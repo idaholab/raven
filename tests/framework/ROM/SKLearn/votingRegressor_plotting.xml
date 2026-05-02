@@ -12,6 +12,7 @@
     </description>
     <revisions>
       <revision author="wangc" date="2021-11-22">Compare Voting Regressor with individual regressors</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -30,6 +31,7 @@
       resampleRidgeCV,
       plot
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -65,7 +67,6 @@
       <max_iter>-1</max_iter>
     </ROM>
     <ROM name="ridgeCV" subType="RidgeCV">
-      <!-- Using all of the defaults -->
       <Features>X,Y</Features>
       <Target>ans</Target>
       <alphas>0.1,1.0,10.0</alphas>
@@ -129,13 +130,13 @@
       <Output class="Models" type="ROM">ridgeCV</Output>
     </RomTrainer>
     <IOStep name="plot">
-      <Input   class="DataObjects"  type="PointSet">outData</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataVR</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataSVR</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataLR</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataRidgeCV</Input>
+      <Input class="DataObjects" type="PointSet">outData</Input>
+      <Input class="DataObjects" type="PointSet">outDataVR</Input>
+      <Input class="DataObjects" type="PointSet">outDataSVR</Input>
+      <Input class="DataObjects" type="PointSet">outDataLR</Input>
+      <Input class="DataObjects" type="PointSet">outDataRidgeCV</Input>
       <Output class="OutStreams" type="Print">outData</Output>
-      <Output  class="OutStreams"   type="Plot">votingRegressor</Output>
+      <Output class="OutStreams" type="Plot">votingRegressor</Output>
     </IOStep>
   </Steps>
 
@@ -178,13 +179,12 @@
   </Distributions>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
       <filename>outVotingRegressor_plotting</filename>
     </Print>
-    <Plot  name="votingRegressor">
+    <Plot name="votingRegressor">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -252,7 +252,6 @@
   </OutStreams>
 
   <DataObjects>
-    <!-- The input PointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
@@ -261,7 +260,6 @@
       <Input>X,Y</Input>
       <Output>ans</Output>
     </PointSet>
-    <!-- The output PointSet objects -->
     <PointSet name="outData">
       <Input>prefix, X,Y</Input>
       <Output>ans</Output>

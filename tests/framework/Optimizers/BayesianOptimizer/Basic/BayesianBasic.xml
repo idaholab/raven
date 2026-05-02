@@ -17,11 +17,15 @@
       This test uses the Basic function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>./</WorkingDir>
     <Sequence>optimize, collect_final, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -50,13 +54,13 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='basic_dist'>
+    <Uniform name="basic_dist">
       <lowerBound>0</lowerBound>
       <upperBound>10</upperBound>
     </Uniform>
   </Distributions>
 
-   <Samplers>
+  <Samplers>
     <Stratified name="LHS_samp">
       <samplerInit>
         <initialSeed>42</initialSeed>
@@ -87,8 +91,8 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
-      <ROM  class="Models" type="ROM">gpROM</ROM>
+      <Sampler class="Samplers" type="Stratified">LHS_samp</Sampler>
+      <ROM class="Models" type="ROM">gpROM</ROM>
       <ModelSelection>
         <Duration>1</Duration>
         <Method>Internal</Method>
@@ -124,7 +128,7 @@
       <multioutput>False</multioutput>
     </ROM>
     <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
-      <criterion value='-1'> index </criterion>
+      <criterion value="-1"> index </criterion>
     </PostProcessor>
   </Models>
 

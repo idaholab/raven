@@ -15,14 +15,16 @@
       <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-F-1</requirements>
-    
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RandomTest</WorkingDir>
     <Sequence>Sampler1,Sampler2,Sampler3,Sampler4,Sampler5</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>

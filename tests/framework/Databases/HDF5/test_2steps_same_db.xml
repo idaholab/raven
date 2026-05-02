@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <!-- TestInfo -->
   <TestInfo>
     <name>framework/Databases/HDF5.2steps_same_db</name>
     <author>@alfoa</author>
     <created>2015-05-01</created>
     <revisions>
-        <revision date="2016-05-20" author="@maljdan">Updating the test cases to remove references to Point or History</revision>
-        <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+      <revision date="2016-05-20" author="@maljdan">Updating the test cases to remove references to Point or History</revision>
+      <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <classesTested>Databases.HDF5</classesTested>
     <description>
@@ -17,21 +17,19 @@
     <requirements>R-IS-3</requirements>
   </TestInfo>
 
-  <!-- RunInfo. 2 Steps are performed in this case -->
   <RunInfo>
     <WorkingDir>test_2steps</WorkingDir>
     <Sequence>FirstStep,SecondStep</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
-  <!-- Models. One single external model -->
   <Models>
     <ExternalModel ModuleToLoad="two_steps" name="TwoStep" subType="">
       <variables>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist,time,out1,out2,time</variables>
     </ExternalModel>
   </Models>
 
-  <!-- Distributions. 4 Distributions -->
   <Distributions>
     <Normal name="Gauss1">
       <mean>1</mean>
@@ -58,7 +56,6 @@
     </Triangular>
   </Distributions>
 
-  <!-- Samplers. 2 different samplers since we want to test the possibility to add different data in the same HDF5 -->
   <Samplers>
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
@@ -96,7 +93,6 @@
     </MonteCarlo>
   </Samplers>
 
-  <!-- Steps. 2 steps that dump the results in the same HDF5 -->
   <Steps>
     <MultiRun name="FirstStep" re-seeding="200286">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
@@ -115,12 +111,10 @@
     </MultiRun>
   </Steps>
 
-  <!-- Databases. 1 database used as dumper -->
   <Databases>
     <HDF5 name="test2StepsDatabase" readMode="overwrite"/>
   </Databases>
 
-  <!-- DataObjects. 1 input data object and 1 output dataobject -->
   <DataObjects>
     <PointSet name="inputHolder">
       <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
@@ -132,7 +126,6 @@
     </HistorySet>
   </DataObjects>
 
-  <!-- OutStreams. Print object (dataobject dumping) -->
   <OutStreams>
     <Print name="fullprint_HistorySet">
       <type>csv</type>

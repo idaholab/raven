@@ -1,10 +1,12 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='debug'>
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>ColdRestart</WorkingDir>
     <Sequence>load,sample,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/ROM/coldRestart</name>
     <author>talbpaul</author>
@@ -14,6 +16,9 @@
       This tests the ability of a ROM to be unpickled and used with minimal specification, and without the typically-associated
       Sampler for the GaussPolynomialROM.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>

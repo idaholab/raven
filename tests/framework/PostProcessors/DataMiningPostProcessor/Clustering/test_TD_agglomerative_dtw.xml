@@ -14,6 +14,7 @@
         the output data object will be renamed, and the variable name of labels will be explicitly defined.
       </revision>
       <revision author="wangc" date="2020-05-07">Convert InterfacedPostProcessor: subType will be replaced with the text from method node, and method node will be removed</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -21,6 +22,7 @@
     <WorkingDir>agglomerative_dtw</WorkingDir>
     <Sequence>FirstMRun,plotAllHists,clustering,filter0,filter1</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

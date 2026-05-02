@@ -13,12 +13,15 @@
       <revision author="talbpaul" date="2016-09-15">Test updates</revision>
       <revision author="alfoa" date="2016-10-20">Modified XSD and removed dim attribute from all the tests</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>plot</WorkingDir>
     <Sequence>sample,plot</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files/>
@@ -26,7 +29,7 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <OutStreams>
-    <Plot  name="test" overwrite="false">
+    <Plot name="test" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -49,7 +52,6 @@
         <linewidths>0</linewidths>
       </kwargs>
       <actions>
-        <!-- The difference is the type of file output -->
         <how>ps</how>
         <figureProperties>
           <frameon>false</frameon>

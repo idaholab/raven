@@ -15,6 +15,7 @@
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

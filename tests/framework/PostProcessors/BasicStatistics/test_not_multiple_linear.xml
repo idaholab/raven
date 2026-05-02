@@ -4,6 +4,7 @@
     <WorkingDir>notMultipleLinear</WorkingDir>
     <Sequence>mc,pp</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -16,6 +17,9 @@
         without using the multiple linear regression method. This means the inputs
         are treated uncorrelated with respective to the output space
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Models>
@@ -97,7 +101,7 @@
   </DataObjects>
 
   <VariableGroups>
-      <Group name="analyticalTest_vars">
+    <Group name="analyticalTest_vars">
                  sen_u1_u0,
                  sen_v1_v0,
                  sen_w1_w0,
