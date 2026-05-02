@@ -29,7 +29,7 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
 	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., possible sensor locations/IDs
 	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed.
   \nb{Currently the algorithms can handle a single target}.
-	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}. \default{SVD}
+	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the projection basis: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}, or \xmlString{HOSVD} (Tucker decomposition; requires \xmlNode{pivotParameter} and a 3-D input tensor). \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
 	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case, \xmlString{CCQR} when sensor costs are supplied, \xmlString{GQR} for constrained reconstruction, or \xmlString{TPGR} for the two-point greedy optimizer. \default{QR}
@@ -43,6 +43,8 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
         \item \xmlNode{uncertaintyNoise}, \xmlDesc{float, optional field}, optional sensor-noise magnitude forwarded to \xmlString{pysensors.SSPOR.std} and the TPGR energy-landscape helpers.
         \item \xmlNode{reconstructionErrorRange}, \xmlDesc{comma separated integers, optional field}, sensor counts passed to \xmlString{pysensors.SSPOR.reconstruction\_error}. This writes a \xmlString{reconstructionError} curve indexed by \xmlString{sensorCount}. The current pysensors API does not support this helper with \xmlString{TPGR}.
         \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
+        \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, the name of the pivot dimension (for example \xmlString{time}). When supplied, the input is interpreted as time-dependent and the target is expected to have shape $(samples, times, spatial\text{-}points)$.
+        \item \xmlNode{reshape}, \xmlDesc{string, optional field}, how to flatten a time-dependent tensor before sensor selection. \xmlString{snapshot} (default) stacks samples and time steps as rows, so sensors remain physical spatial points. \xmlString{spatiotemporal} keeps rows as samples and encodes $(space, time)$ pairs as columns, returning a measurement schedule instead of only spatial locations.
 \end{itemize}
 \end{itemize}
 
@@ -146,6 +148,23 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
     <energyLandscapeMetrics>one_pt,two_pt</energyLandscapeMetrics>
     <energyLandscapeSensors>4</energyLandscapeSensors> <!-- zero-based -->
     <uncertaintyNoise>0.2</uncertaintyNoise>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
+
+\textbf{Example (time-dependent HOSVD with snapshot reshape):}
+\begin{lstlisting}[style=XML]
+<PostProcessor name="myTransientSPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>x, T</features>
+    <target>T</target>
+    <basis>HOSVD</basis>
+    <nModes>3</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <pivotParameter>time</pivotParameter>
+    <reshape>snapshot</reshape>
+    <seed>42</seed>
   </Goal>
 </PostProcessor>
 \end{lstlisting}

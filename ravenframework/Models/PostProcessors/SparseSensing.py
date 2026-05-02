@@ -63,10 +63,11 @@ class SparseSensing(PostProcessorReadyInterface):
   """
   goalsDict = {'reconstruction':r"""Sparse sensor placement Optimization for Reconstruction (SSPOR)""",
           'classification':r"""Sparse sensor placement Optimization for Classification (SSPOC)"""}
-  basisOptions = ['Identity', 'SVD', 'RandomProjection']
+  basisOptions = ['Identity', 'SVD', 'RandomProjection', 'HOSVD']
   basisAliases = {'identity': 'Identity',
                   'svd': 'SVD',
-                  'randomprojection': 'RandomProjection'}
+                  'randomprojection': 'RandomProjection',
+                  'hosvd': 'HOSVD'}
   optimizerOptions = ['QR', 'CCQR', 'GQR', 'TPGR']
   optimizerAliases = {'qr': 'QR',
                       'ccqr': 'CCQR',
@@ -248,6 +249,20 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
     goal.addSub(seed)
+    pivotParameter = InputData.parameterInputFactory('pivotParameter',
+                        contentType=InputTypes.StringType, printPriority=108,
+                        descr=r"""Name of the pivot dimension in the input data (e.g. 'time'). """
+                              r"""When supplied, the data is treated as time-dependent.""")
+    goal.addSub(pivotParameter)
+    reshape = InputData.parameterInputFactory('reshape',
+                        contentType=InputTypes.makeEnumType('reshape','reshapeType',
+                                                            ['snapshot','spatiotemporal']),
+                        printPriority=108,
+                        descr=r"""How to flatten a parameter/time tensor before sensor selection. """
+                              r"""'snapshot': stack (sample,time) pairs as rows (sensors = spatial points). """
+                              r"""'spatiotemporal': stack (space,time) pairs as columns (sensors = space-time pairs).""",
+                        default='snapshot')
+    goal.addSub(reshape)
     inputSpecification.addSub(goal)
     metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType,
                                                   printPriority=108,
@@ -275,6 +290,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.keepInputMeta(False)
     self.outputMultipleRealizations = True                   # True indicate multiple realizations are returned
     self.pivotParameter = None                               # time-dependent data pivot parameter. None if the problem is steady state
+    self.reshape = 'snapshot'                                # 'snapshot' | 'spatiotemporal'
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
     self.sparseSensingGoal = None                            # The goal of the sensor selection. i.e., reconstruction or classification
     self.nSensors = None                                     # The number of the sensors required by the user.
@@ -422,6 +438,10 @@ class SparseSensing(PostProcessorReadyInterface):
           self.seed = child.findFirst('seed').value
         else:
           self.seed = None
+        pivotNode = child.findFirst('pivotParameter')
+        self.pivotParameter = pivotNode.value if pivotNode is not None else None
+        reshapeNode = child.findFirst('reshape')
+        self.reshape = reshapeNode.value if reshapeNode is not None else 'snapshot'
         if child.parameterValues['subType'] not in self.goalsDict.keys():
           self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
       elif child.getName() == 'Metric':
@@ -596,6 +616,11 @@ class SparseSensing(PostProcessorReadyInterface):
       return ps.basis.Identity(n_basis_modes=self.nModes)
     if self.basis == 'RandomProjection':
       return ps.basis.RandomProjection(n_basis_modes=self.nModes)
+    if self.basis == 'HOSVD':
+      if self.pivotParameter is None:
+        self.raiseAnError(IOError, 'HOSVD basis requires <pivotParameter> (needs a 3-D input tensor)')
+      from .SparseSensingBases import HOSVDBasis
+      return HOSVDBasis(n_basis_modes=self.nModes)
     self.raiseAnError(IOError, 'basis "{}" is not recognized'.format(self.basis))
 
   def _buildOptimizer(self):
@@ -888,6 +913,25 @@ class SparseSensing(PostProcessorReadyInterface):
     optimizerKws['n_const_sensors'] = self.constraintSpec['nConstSensors']
     return optimizerKws
 
+  def _reshapeForFit(self, data, pivotLen):
+    """
+      Reshape a (sample, [time,] space) array into the 2-D matrix SSPOR.fit expects.
+      @ In, data, np.ndarray, shape (nSamples, nSpace) or (nSamples, nTime, nSpace).
+      @ In, pivotLen, int or None, length of the time axis if present.
+      @ Out, matrix, np.ndarray, 2-D matrix (rows=snapshots or samples, cols=sensor candidates).
+    """
+    if pivotLen is None or data.ndim == 2:
+      return data
+    if self.reshape == 'snapshot':
+      nSamples, nTime, nSpace = data.shape
+      # Row-major stack: row k·T + t holds sample k at time t.
+      return data.reshape(nSamples * nTime, nSpace)
+    if self.reshape == 'spatiotemporal':
+      nSamples, nTime, nSpace = data.shape
+      # Column k·T + t holds one scheduled measurement at space k and time t.
+      return data.transpose(0, 2, 1).reshape(nSamples, nSpace * nTime)
+    raise NotImplementedError(f"reshape={self.reshape} not yet implemented")
+
   def run(self,inputIn):
     """
       This method executes the postprocessor action. In this case, it finds the optimal sensor locations to achieve a prescribed goal
@@ -903,14 +947,30 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
     basis = self._buildBasis()
-
-    features = {}
-    for var in self.sensingFeatures:
-      features[var] = np.atleast_1d(inputDS[var].data)
-    nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingTarget].data
-    ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
-    assert np.shape(data) == (nSamples,nfeatures)
+
+    # If HOSVD, fit the basis on the raw 3-D tensor before SSPOR consumes the reshaped 2-D matrix.
+    if self.basis == 'HOSVD':
+      basis.fit(data)
+
+    # Determine the time axis length when pivotParameter is declared (transient / param+time).
+    pivotLen = None
+    if self.pivotParameter is not None:
+      if self.pivotParameter not in inputDS.dims:
+        self.raiseAnError(IOError,
+          'pivotParameter "{}" not found in input dims {}'.format(self.pivotParameter, list(inputDS.dims)))
+      pivotLen = inputDS.sizes[self.pivotParameter]
+
+    # Expected shapes:
+    #   steady-state (pivotParameter=None): (nSamples, nSpace)
+    #   transient / param+time:             (nSamples, nTime, nSpace)
+    if pivotLen is None:
+      assert data.ndim == 2, 'Expected 2-D target for steady-state; got {}'.format(data.shape)
+      nSamples, nfeatures = data.shape
+    else:
+      assert data.ndim == 3, 'Expected 3-D target when pivotParameter is set; got {}'.format(data.shape)
+      nSamples, _nTime, nfeatures = data.shape
+
     if self.sensorCostsVariableName is not None:
       if self.sensorCostsVariableName not in inputDS:
         self.raiseAnError(IOError, 'sensorCosts variable "{}" not found in the input DataObject'.format(self.sensorCostsVariableName))
@@ -927,16 +987,51 @@ class SparseSensing(PostProcessorReadyInterface):
     optimizer = self._buildOptimizer()
     model = self._buildModel(basis, optimizer)
     optimizerKws = self._buildOptimizerKws(data, inputDS)
+    matrix = self._reshapeForFit(data, pivotLen)
     if self.seed is not None:
-      model.fit(data, seed=self.seed, **optimizerKws)
+      model.fit(matrix, seed=self.seed, **optimizerKws)
     else:
-      model.fit(data, **optimizerKws)
-    selectedSensors = model.get_selected_sensors()
+      model.fit(matrix, **optimizerKws)
+    # Sort selected sensors by spatial index so regression golds are deterministic across
+    # pysensors versions (selection order is unstable even with a fixed seed; the sensor SET
+    # is what matters for reconstruction).
+    selectedSensors = np.sort(model.get_selected_sensors())
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
+
+    if self.pivotParameter is not None and self.reshape == 'spatiotemporal':
+      nTime = data.shape[1]
+      sensorSpace = selectedSensors // nTime
+      sensorTime = selectedSensors % nTime
+      pivotValues = np.asarray(inputDS[self.pivotParameter].data)
+      sensorData = {}
+      for var in self.sensingFeatures:
+        arr = inputDS[var].data
+        if arr.ndim == 3:
+          values = arr[0, sensorTime, sensorSpace]
+        elif arr.ndim == 2:
+          values = arr[0, sensorSpace]
+        else:
+          vec = np.atleast_1d(arr)
+          values = vec[sensorSpace]
+        sensorData[var] = ('sensor', values)
+      sensorData[self.pivotParameter] = ('sensor', pivotValues[sensorTime])
+      outDS = xr.Dataset(data_vars=sensorData, coords=coords)
+      outDS = outDS.expand_dims(self.sampleTag)
+      outDS[self.sampleTag] = [0]
+      return outDS
 
     sensorData = {}
     for var in self.sensingFeatures:
-      sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data)
+      arr = inputDS[var].data
+      # Reduce arr to a (nSpace,) vector: drop sample axis (take index 0) and,
+      # when present, drop the pivot axis too (features are assumed space-only).
+      if arr.ndim == 2:
+        vec = arr[0, :]
+      elif arr.ndim == 3:
+        vec = arr[0, 0, :]
+      else:
+        vec = np.atleast_1d(arr)
+      sensorData[var] = ('sensor', vec[selectedSensors])
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
     if self.sparseSensingGoal == 'reconstruction' and self.metricsDict:
       # Single unified path: shorthand-synthesised SKL metrics (keys prefixed 'rec_') and

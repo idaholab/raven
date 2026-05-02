@@ -75,4 +75,28 @@
     csv = 'tpgrTwoPtEnergy/outPP.csv'
     rel_err = 0.01
   [../]
+  [./Transient]
+    type = 'RavenFramework'
+    input = 'testSPSLTransient.xml'
+    csv = 'transient/outPP.csv'
+    rel_err = 1e-6
+  [../]
+  [./ParamTime]
+    type = 'RavenFramework'
+    input = 'testSPSLParamTime.xml'
+    csv = 'paramTime/outPP.csv'
+    rel_err = 1e-6
+  [../]
+  [./Spatiotemporal]
+    type = 'RavenFramework'
+    input = 'testSPSLSpatiotemporal.xml'
+    csv = 'spatiotemporal/outPP.csv'
+    rel_err = 1e-6
+  [../]
+  [./HOSVD]
+    type = 'RavenFramework'
+    input = 'testSPSLHOSVD.xml'
+    csv = 'hosvd/outPP.csv'
+    rel_err = 1e-6
+  [../]
 []
