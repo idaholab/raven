@@ -236,6 +236,67 @@ These are the commits that touched code-interface formatting. They are **not** S
     - round-trip precision in `GenericParser`
   - fixes the CobraTF regression introduced by over-compacting generic numeric text
 
+## 4. Transient / 3-D Tensor / HOSVD Commits
+
+Brought in by merging the sibling branch `2_Jimmy_sparse_sensing_spatiotemporal`.
+These commits add 3-D `(sample, time, space)` tensor handling, a new
+`<pivotParameter>` and `<reshape>` input contract, and HOSVD (Tucker
+decomposition) as a basis option. Merge commit on this branch is the integration
+point — its message lists the conflict resolutions.
+
+### `0b37c6492` `SparseSensing tests: add license header, env bootstrap, and harness registration`
+- Test plumbing: licence header, `conftest.py`, harness wiring for the new pytest-style helpers.
+
+### `1482ac3a9` `SparseSensing: accept pivotParameter and reshape input nodes`
+- Adds the `<pivotParameter>` and `<reshape>` sub-nodes to `<Goal>`.
+- Persists `self.pivotParameter` and `self.reshape` (default `'snapshot'`).
+
+### `27eaafe65` `SparseSensing: add _reshapeForFit helper (snapshot mode)`
+- New `_reshapeForFit(data, pivotLen)` helper. Pass-through for 2-D, row-major
+  stack `(sample, time, space) -> (sample·time, space)` for `snapshot`.
+
+### `8dd3b1d03` `SparseSensing: accept 3-D (sample,time,space) input with snapshot reshape`
+- `run()` detects the time axis from `inputDS.dims[pivotParameter]`, asserts the
+  expected 2-D / 3-D shapes, then routes through `_reshapeForFit`.
+
+### `ca2eb7431` `Document confirmed data-layout contract in SparseSensing.run()`
+- Inline doc block in `run()` recording the confirmed data-layout contract
+  (probed against `testSPSLOptiTwist`).
+
+### `d59c54ee7` `Add SparseSensing single-trajectory transient regression test`
+- `testSPSLTransient.xml` + `transient/genTransient.py` + gold.
+
+### `b73f55741` `Add SparseSensing parameter+time snapshot-reshape regression test`
+- `testSPSLParamTime.xml` + `paramTime/genParamTime.py` + gold.
+
+### `c5e82aec0` `SparseSensing ParamTime: use alpha-dependent spatial mode + Identity basis`
+- Tightens the `paramTime` test so the SVD-vs-Identity distinction matters and
+  the gold becomes physically meaningful.
+
+### `54f2daf20` `SparseSensing: add spatiotemporal reshape and HOSVD support`
+- The big one. Adds the `'spatiotemporal'` reshape arm (sensors are
+  `(space, time)` pairs — a measurement schedule), and a new file
+  `ravenframework/Models/PostProcessors/SparseSensingBases.py` with
+  `HOSVDBasis(n_basis_modes=...)`. The `<basis>` enum gains `HOSVD`. New tests:
+  `testSPSLHOSVD.xml`, `testSPSLSpatiotemporal.xml` + golds + data generators.
+
+### `68da5db1a` `SparseSensing: document sort rationale; drop dead distribution`
+- Docs that selected sensors are sorted by spatial index for deterministic
+  golds; removes a dead distribution stub.
+
+### `c69500ea3` `Document SparseSensing transient snapshot options`
+- User-manual paragraphs covering `<reshape>`, `<pivotParameter>`, and HOSVD.
+
+### `dad5e5469` `Add SparseSensing snapshot tutorial notebooks`
+- Notebooks 02–03 under `tutorials/SparseSensing/`.
+
+### `d651d8bae` `Add SparseSensing PR handoff note`
+- `doc/sparse_sensing_pr_handoff.md` — historical handoff note from when the
+  spatiotemporal work was still on its own branch.
+
+### `273f72cab` `Add SparseSensing PR2 tutorial notebooks`
+- Notebooks 04–05: spatiotemporal schedule + HOSVD-vs-SVD.
+
 ## Practical Review Advice
 
 If you want the cleanest SPSL-only pass, review this subset first:
@@ -245,10 +306,21 @@ If you want the cleanest SPSL-only pass, review this subset first:
 - `e444ea34a`
 - `f041b52bd`
 - `f140903a2`
-- `e3d47fd72`
 - `551d51a39`
 - `151738e6f`
 - `bfe02f216`
+
+For the 3-D / transient / HOSVD slice, review in this order:
+
+- `1482ac3a9`
+- `27eaafe65`
+- `8dd3b1d03`
+- `ca2eb7431`
+- `d59c54ee7`
+- `b73f55741`
+- `c5e82aec0`
+- `54f2daf20`
+- `68da5db1a`
 
 If you want the repo-wide dependency story after that, review:
 
@@ -262,7 +334,6 @@ If you want the repo-wide dependency story after that, review:
 - `143a866bd`
 - `216d9bdcf`
 - `c759fedd0`
-- `b0f23917e`
 
 ## Validation Summary
 
