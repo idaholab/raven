@@ -125,9 +125,17 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, line_alphas=
   if line_colors is None:
     line_colors = np.asarray(['tab:blue'] * N, dtype=object)
   else:
-    line_colors = np.asarray(line_colors, dtype=object)
-    if line_colors.size != N:
-      raise ValueError(f'line_colors length {line_colors.size} does not match number of lines {N}.')
+    raw_colors = np.asarray(line_colors, dtype=object)
+    if raw_colors.ndim > 1:
+      if raw_colors.shape[0] != N:
+        raise ValueError(f'line_colors length {raw_colors.size} does not match number of lines {N}.')
+      packed_colors = np.empty(N, dtype=object)
+      packed_colors[:] = [tuple(np.asarray(row).tolist()) for row in raw_colors]
+      line_colors = packed_colors
+    else:
+      if raw_colors.size != N:
+        raise ValueError(f'line_colors length {raw_colors.size} does not match number of lines {N}.')
+      line_colors = raw_colors
 
   if line_widths is None:
     line_widths = np.ones(N, dtype=float)

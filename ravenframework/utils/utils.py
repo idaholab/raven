@@ -39,7 +39,10 @@ from difflib import SequenceMatcher
 from xml.etree import ElementTree as ET
 import random
 import copy
-import numpy as np
+# NOTE: numpy is imported lazily inside the two methods that need it
+# (get_genome, selectburn). Keeping it out of module scope preserves the
+# invariant documented above — utils.py is used by --library-report and
+# must import before the scientific stack is installed.
 from collections import Counter
 
 class Object(object):
@@ -1261,6 +1264,7 @@ class EQchecker:
     """
     Function to generate genome after get N0,N1,N2 and index
     """
+    import numpy as np  # deferred; see module-level note
     N0=len(bat0id)
     N1=len(bat1id)
     N2=len(bat2id)
@@ -1365,6 +1369,7 @@ class EQchecker:
     return iter, genome
 
   def selectburn(self, index, Nmin, Nmax):
+     import numpy as np  # deferred; see module-level note
      N=random.randint(Nmin, Nmax)
      selectindex = np.random.choice(index, size=N, replace=False).tolist()
      return selectindex, N

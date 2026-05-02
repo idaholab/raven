@@ -310,8 +310,12 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
 
       # Colorbar: contour line colors correspond to the plotted surface variable values.
       if contourSet is not None:
-        cbar = fig.colorbar(contourSet, ax=ax, shrink=0.72, pad=0.06)
-        cbar.set_label(f'{var} contour level')
+        contourLevels = np.asarray(getattr(contourSet, 'levels', []), dtype=float)
+        if contourLevels.size > 1 and np.isfinite(contourLevels).all() and np.nanmax(contourLevels) > np.nanmin(contourLevels):
+          cbar = fig.colorbar(contourSet, ax=ax, shrink=0.72, pad=0.06)
+          cbar.set_label(f'{var} contour level')
+        else:
+          self.raiseAWarning(f'FeasibleRegionObjectiveContourPlot "{self.name}" skipped colorbar for "{var}" because the contour projection collapsed to a single level.')
 
       ax.set_xlabel(self.axes[0])
       ax.set_ylabel(self.axes[1])
