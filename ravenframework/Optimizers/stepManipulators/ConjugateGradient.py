@@ -23,7 +23,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 # External Modules----------------------------------------------------------------------------------
 import numpy as np
-from scipy.optimize import minpack2
+# scipy.optimize.minpack2.dcsrch was removed in scipy 1.13. The modern equivalent is
+# scipy.optimize._dcsrch.DCSRCH._iterate, which has the same (stp, f, g, task) interface; the
+# bracketing state previously held externally in isave/dsave is now held inside a DCSRCH
+# instance, so we cache the instance per line-search.
+from scipy.optimize._dcsrch import DCSRCH
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
@@ -147,11 +151,13 @@ class ConjugateGradient(StepManipulator):
     if lastStepInfo is None:
       # this MUST MEAN that this is the very very first step in this algorithm
       # note that we use binary strings because that's what scipy gives us
+      # Build a DCSRCH instance whose phi/derphi are no-ops; RAVEN supplies (f, g) directly via
+      # _iterate(stp, f, g, task), so the constructor's initial phi(0)/derphi(0) calls don't matter.
+      _dcsrchEngine = DCSRCH(phi=lambda x: 0.0, derphi=lambda x: 0.0,
+                              ftol=1e-4, gtol=0.4, xtol=1e-14,
+                              stpmin=1e-100, stpmax=1e100)
       lastStepInfo = {'task': b'START',
-                      'fortranParams': {'iSave': np.zeros((2,), dtype=np.intc),
-                                        'dSave': np.zeros((13,), dtype=float),
-                                       }
-                     }
+                      'fortranParams': {'engine': _dcsrchEngine}}
     lineSearchTask = lastStepInfo['task']
 
     # get the gradient
@@ -439,12 +445,8 @@ class ConjugateGradient(StepManipulator):
     stepSize = lastStepInfo['stepSize']
     lineObjDerivative = lastStepInfo['line']['objDerivative']
     task = lastStepInfo['task']
-    iSave = lastStepInfo['fortranParams']['iSave']
-    dSave = lastStepInfo['fortranParams']['dSave']
-    stepSize, _, _, task = minpack2.dcsrch(stepSize, curObjVal, lineObjDerivative,
-                                           ftol=1e-4, gtol=0.4, xtol=1e-14,
-                                           task=task, stpmin=1e-100, stpmax=1e100,
-                                           isave=iSave, dsave=dSave)
+    engine = lastStepInfo['fortranParams']['engine']
+    stepSize, _, _, task = engine._iterate(stepSize, curObjVal, lineObjDerivative, task)
 
     return stepSize, task
 
