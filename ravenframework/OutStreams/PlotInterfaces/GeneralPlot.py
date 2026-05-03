@@ -768,13 +768,16 @@ class GeneralPlot(PlotInterface):
           self.options[key]['which'] = 'major'
         if 'axis' not in self.options[key]:
           self.options[key]['axis'] = 'both'
+        # matplotlib 3.5 deprecated `b=` and 3.10 removed it; the modern keyword is `visible=`.
+        # Convert RAVEN's legacy 'on'/'off' string to the bool that visible= expects.
+        gridVisible = str(self.options[key]['b']).lower() not in ('off', 'false', '0', 'none')
         if self.dim == 2:
-          self.ax.grid(b=self.options[key]['b'],
+          self.ax.grid(visible=gridVisible,
                        which=self.options[key]['which'],
                        axis=self.options[key]['axis'],
                        **self.options[key].get('attributes', {}))
         else:
-          self.ax.grid(b=self.options[key]['b'], **self.options[key].get('attributes', {}))
+          self.ax.grid(visible=gridVisible, **self.options[key].get('attributes', {}))
       else:
         self.raiseAWarning(f'Attempting to perform action {key}. If this does not work, check manual and relevant matplotlib method specification.')
         kwargs = {}
