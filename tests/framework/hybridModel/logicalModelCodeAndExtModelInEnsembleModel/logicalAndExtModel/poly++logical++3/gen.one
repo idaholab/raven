@@ -1,0 +1,9 @@
+#############################################
+#                                           #
+#  Dummy Input File for Poly Python Module  #
+#                                           #
+#############################################
+
+case = out~gen
+auxfile = /Users/abdomg/projects/raven/tests/framework/hybridModel/logicalModelCodeAndExtModelInEnsembleModel/logicalAndExtModel/poly++logical++3/gen.two
+x = 0.5552941412607425

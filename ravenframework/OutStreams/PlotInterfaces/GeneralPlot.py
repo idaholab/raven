@@ -1517,7 +1517,6 @@ class GeneralPlot(PlotInterface):
                                             linefmt=plotSettings['linefmt'],
                                             markerfmt=plotSettings['markerfmt'],
                                             basefmt = plotSettings['linefmt'],
-                                            use_line_collection=True,
                                             **plotSettings.get('attributes', {}))
               else:
                 # it is a basic stem plot constructed using a standard line plot. For now we do not use the previous defined keywords...
