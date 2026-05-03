@@ -73,6 +73,7 @@ limit our library choices.
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
     <pylint/>
+    <pytest/>
     <coverage/>
     <lxml source="pip"/>
     <psutil/>

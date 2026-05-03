@@ -1236,7 +1236,7 @@ class GeneralPlot(PlotInterface):
                       if first:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
-                        self.actcm = self.fig.colorbar(m)
+                        self.actcm = self.fig.colorbar(m, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         try:
@@ -1245,7 +1245,7 @@ class GeneralPlot(PlotInterface):
                         except:
                           m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltIndex][key])
-                          self.actcm = self.fig.colorbar(m)
+                          self.actcm = self.fig.colorbar(m, ax=self.ax)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                   else:
                     scatterPlotOptions['cmap'] = plotSettings['cmap']
@@ -1293,7 +1293,7 @@ class GeneralPlot(PlotInterface):
                         if first:
                           m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                           m.set_array(self.colorMapValues[pltIndex][key])
-                          self.actcm = self.fig.colorbar(m)
+                          self.actcm = self.fig.colorbar(m, ax=self.ax)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
                           self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
@@ -1360,7 +1360,7 @@ class GeneralPlot(PlotInterface):
                   self.ax.plot(xi, yi, c=cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1]/(maxV-minV)))
                   if 'colorbar' not in self.options or self.options['colorbar']['colorbar'] != 'off':
                     if self.actcm is None:
-                      self.actcm = self.fig.colorbar(cmap)
+                      self.actcm = self.fig.colorbar(cmap, ax=self.ax)
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
                       self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
@@ -1377,7 +1377,7 @@ class GeneralPlot(PlotInterface):
                                  c=cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1]/(maxV-minV)))
                     if 'colorbar' not in self.options or self.options['colorbar']['colorbar'] != 'off':
                       if self.actcm is None:
-                        self.actcm = self.fig.colorbar(cmap)
+                        self.actcm = self.fig.colorbar(cmap, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         self.actcm.update_normal(self.actcm.mappable)  # Colorbar.draw_all() removed in matplotlib 3.10
@@ -1583,7 +1583,7 @@ class GeneralPlot(PlotInterface):
                     m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(ma.masked_where(np.isnan(Ci), Ci))
                   if 'colorbar' not in self.options or self.options['colorbar']['colorbar'] != 'off':
-                    actcm = self.fig.colorbar(m)
+                    actcm = self.fig.colorbar(m, ax=self.ax)
                     actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
         else:
           self.raiseAWarning('pseudocolor Plot is considered a 2D plot, not a 3D!')
@@ -1651,7 +1651,7 @@ class GeneralPlot(PlotInterface):
                       if first:
                         m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
-                        self.actcm = self.fig.colorbar(m)
+                        self.actcm = self.fig.colorbar(m, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
@@ -1732,7 +1732,7 @@ class GeneralPlot(PlotInterface):
                         self.actPlot.cmap = matplotlib.cm.get_cmap(name=plotSettings['cmap'])
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
-                        self.actcm = self.fig.colorbar(m)
+                        self.actcm = self.fig.colorbar(m, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
@@ -1805,7 +1805,7 @@ class GeneralPlot(PlotInterface):
                       if first:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                         m.set_array(self.colorMapValues[pltIndex][key])
-                        self.actcm = self.fig.colorbar(m)
+                        self.actcm = self.fig.colorbar(m, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)

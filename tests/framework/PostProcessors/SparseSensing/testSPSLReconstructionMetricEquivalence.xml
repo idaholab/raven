@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>tests/framework/Postprocessors/SparseSensing/ReconstructionMetricEquivalence</name>
+    <author>Jimmy-INL</author>
+    <created>2026-05-02</created>
+    <classesTested>Models.Postprocessors.SparseSensing</classesTested>
+    <description>
+      Verifies that the two surface syntaxes for reconstruction error metrics produce
+      identical output values: the inline shorthand (\xmlNode{reconstructionMetrics})
+      and the assembler form (\xmlNode{Metric} pointing at a RAVEN \xmlNode{Metrics} object).
+      Both paths flow through the same internal evaluator that uses pysensors model.score
+      to extract the (yTrue, yPred) pair and then applies a RAVEN Metric for the math.
+      The shorthand outputs are prefixed with rec_; the assembler outputs use the
+      attached metric's own name. The gold file asserts numerical equivalence between
+      rec_mse and userMse, rec_mae and userMae, with a tight tolerance.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>reconstructionMetricEquivalence</WorkingDir>
+    <Sequence>LoadCSV, mySPpp, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="twistFile" type="">../reconstructionOptiTwist/Perturbations2.csv</Input>
+    <Input name="refDO"     type="">../reconstructionOptiTwist/350_330.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="LoadCSV">
+      <Input  class="Files"       type="">twistFile</Input>
+      <Input  class="Files"       type="">refDO</Input>
+      <Output class="DataObjects" type="HistorySet">TwistDO</Output>
+      <Output class="DataObjects" type="PointSet">myDO</Output>
+    </IOStep>
+    <PostProcess name="mySPpp">
+      <Input  class="DataObjects" type="HistorySet">TwistDO</Input>
+      <Model  class="Models"      type="PostProcessor">mySPSL</Model>
+      <Output class="DataObjects" type="DataSet">outPP</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input  class="DataObjects" type="DataSet">outPP</Input>
+      <Output class="OutStreams"  type="Print">outPP</Output>
+    </IOStep>
+  </Steps>
+
+  <Metrics>
+    <Metric name="userMse" subType="SKL">
+      <metricType>regression|mean_squared_error</metricType>
+    </Metric>
+    <Metric name="userMae" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+    </Metric>
+  </Metrics>
+
+  <Models>
+    <PostProcessor name="mySPSL" subType="SparseSensing" verbosity="debug">
+      <Goal subType="reconstruction">
+        <features>X (m),Y (m),Temperature (K)</features>
+        <target>Temperature (K)</target>
+        <basis>SVD</basis>
+        <nModes>4</nModes>
+        <nSensors>4</nSensors>
+        <optimizer>QR</optimizer>
+        <reconstructionMetrics>mse,mae</reconstructionMetrics>
+        <seed>0</seed>
+      </Goal>
+      <Metric class="Metrics" type="Metric">userMse</Metric>
+      <Metric class="Metrics" type="Metric">userMae</Metric>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="myDO">
+      <Output>X (m),Temperature (K),Y (m)</Output>
+    </PointSet>
+    <HistorySet name="TwistDO">
+      <Input>Power (W), BCTemperature (K)</Input>
+      <Output>X (m),Temperature (K),Y (m)</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="outPP">
+      <Input>InputPlaceHolder</Input>
+      <Output>Temperature (K), X (m), Y (m), rec_mse, rec_mae, userMse, userMae</Output>
+      <Index var="sensor">X (m),Y (m),Temperature (K)</Index>
+    </DataSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPP">
+      <type>csv</type>
+      <source>outPP</source>
+      <what>output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>
