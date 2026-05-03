@@ -1,9 +1,12 @@
 [Tests]
+  # tensorflow 2.21 + tf-keras 2.21 legacy mode is substantially slower than the prior
+  # tensorflow 2.14 + keras 2.14 stack used by RAVEN. Each test now needs ~10 min of CPU
+  # for the model.fit calls; max_time bumped to 1800 to keep them running on CI.
   [./tf_cnn1d]
     type  = 'RavenFramework'
     input = 'cnn1d.xml'
     required_libraries = 'tensorflow'
-    max_time = 450
+    max_time = 1800
     [./data]
         type = OrderedCSV
         output = 'data/outCon1DClassifier.csv'
@@ -12,36 +15,40 @@
   [./tf_mlpc]
     type  = 'RavenFramework'
     input = 'custom_dataset.xml'
+    required_libraries = 'tensorflow'
+    max_time = 1800
     output = 'diabetes/romXML.xml'
     csv = 'diabetes/outMLPClassifier.csv'
   [../]
   [./tf_mlpr]
     type  = 'RavenFramework'
     input = 'keras_mlp_regression.xml'
+    required_libraries = 'tensorflow'
+    max_time = 1800
     output = 'keras_mlp_regression/romXML.xml'
     csv = 'keras_mlp_regression/outMLPClassifier.csv'
     rel_err = 0.0005
   [../]
-  # Disable test for pickling, currently, we could not pickle the DNN ROMs
-  #[./tf_cnn_dump]
-  #  type  = 'RavenFramework'
-  #  input = 'keras_cnn_1d.xml'
-  #  output = 'data/cnn1d.pk'
-  #[../]
   [./tf_lstm]
     type  = 'RavenFramework'
     input = 'lstm.xml'
+    required_libraries = 'tensorflow'
+    max_time = 1800
     csv = 'data/outLSTMClassifier.csv'
   [../]
   [./tf_lstm_regression]
     type = 'RavenFramework'
     input = 'keras_lstm_regression.xml'
+    required_libraries = 'tensorflow'
+    max_time = 1800
     csv = 'LSTMRegression/out_resampled_0.csv LSTMRegression/out_resampled_1.csv'
     rel_err = 0.0005
   [../]
   [./LSTMFromFile]
     type  = 'RavenFramework'
     input = 'lstm_from_file.xml'
+    required_libraries = 'tensorflow'
+    max_time = 1800
     csv = 'data/rom_samples.csv'
     output = 'data/rom_samples.xml'
   [../]
