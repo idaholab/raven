@@ -118,6 +118,7 @@ limit our library choices.
     <python>remove</python>
     <nomkl>remove</nomkl>
     <liblapack>remove</liblapack>
+    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
@@ -125,5 +126,6 @@ limit our library choices.
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
+    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
 </dependencies>
