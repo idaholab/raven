@@ -505,20 +505,21 @@ if __name__ == "__main__":
   output_list = run_pool.process_results(process_result)
   run_pool.wait()
 
-  if results["fail"] > 0:
-    print("{}FAILED:".format(Colors.fail))
-  for path in failed_list:
-    print(path)
-  print(Colors.norm)
-
   # Surface every skipped test with its skip reason so silent skips (missing optional libs,
   # stale skip directives, OS guards, heavy/normal mismatches) cannot hide regressions.
   # The inline SKIPPED messages above scroll off long runs; a final list keeps them visible.
+  # Listed before FAILED so the more-actionable failures stay closest to the final counts.
   if results["skipped"] > 0:
     print("{}SKIPPED tests:{}".format(Colors.skip, Colors.norm))
     for name, reason in skipped_list:
       reason_text = reason if reason else "(no reason given)"
       print("  {} -- {}".format(name, reason_text))
+
+  if results["fail"] > 0:
+    print("{}FAILED:".format(Colors.fail))
+  for path in failed_list:
+    print(path)
+  print(Colors.norm)
 
   with open("test_report.csv", "w") as csv_report:
     csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
