@@ -487,10 +487,15 @@ class SciKitLearn(unSupervisedLearning):
 
     for key, value in self.initOptionDict.items():
       if key in paramsDict:
-        try:
-          tempDict[key] = ast.literal_eval(value)
-        except:
-          tempDict[key] = value
+        if isinstance(value, str) and value.strip().lower() in ('true', 'false'):
+          # scikit-learn >= 1.4 strictly type-checks bool params. ast.literal_eval rejects
+          # lowercase 'true'/'false', so coerce them explicitly before falling through.
+          tempDict[key] = value.strip().lower() == 'true'
+        else:
+          try:
+            tempDict[key] = ast.literal_eval(value)
+          except (ValueError, SyntaxError):
+            tempDict[key] = value
       else:
         self.raiseAWarning('Ignoring unknown parameter %s to the method of type %s' % (key, SKLsubType))
     self.initOptionDict = tempDict

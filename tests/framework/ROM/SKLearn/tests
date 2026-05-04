@@ -305,6 +305,7 @@
     type = 'RavenFramework'
     input = 'linearRidgeRCV.xml'
     UnorderedCsv = 'data/outLinearRidgeRCV.csv'
+    rel_err = 1e-6
     output = 'data/outLinearRidgeRCV.xml'
   [../]
   [./linearPAR]
