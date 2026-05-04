@@ -10,6 +10,9 @@
   type = 'RavenFramework'
   input = 'test_adaptive_sampler.xml'
   csv = 'Adapt/limitSurfaceDump.csv'
+  # numpy 2 FP rounding produces values like 4.4e-16 where gold has 3.3e-16; tiny near-zero
+  # noise on x2/x3 columns. zero_threshold absorbs anything below 1e-10 as "effectively zero".
+  zero_threshold = 1e-10
  [../]
  [./adaptive_sampler_no_crossing]
   type = 'RavenFramework'
