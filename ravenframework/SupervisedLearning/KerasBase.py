@@ -1960,14 +1960,14 @@ class KerasBase(SupervisedLearning):
       self.availLayer['zeropadding2d'] = tf.keras.layers.ZeroPadding2D
       # Zero-padding layer for 3D data (spatial or spatio-tempral)
       self.availLayer['zeropadding3d'] = tf.keras.layers.ZeroPadding3D
-      # Locally-connected layer for 1D inputs.
-      # The LocallyConnected1D layer works similarly to the Conv1D layer, except that weights are unshared,
-      # that is, a different set of filters is applied at each different patch of the input.
-      self.availLayer['locallyconnected1d'] = tf.keras.layers.LocallyConnected1D
-      # Locally-connected layer for 2D inputs.
-      # The LocallyConnected1D layer works similarly to the Conv2D layer, except that weights are unshared,
-      # that is, a different set of filters is applied at each different patch of the input.
-      self.availLayer['locallyconnected2d'] = tf.keras.layers.LocallyConnected2D
+      # Locally-connected layers (deprecated in keras 2.10, removed in keras 3 / tf-keras 2.16+).
+      # Register only when the underlying tf.keras still exposes them so KerasBase initialisation
+      # does not abort on every model import. Tests / users that explicitly request these layers
+      # will get a clear "unknown layer" error from RAVEN's normal validation path instead.
+      if hasattr(tf.keras.layers, 'LocallyConnected1D'):
+        self.availLayer['locallyconnected1d'] = tf.keras.layers.LocallyConnected1D
+      if hasattr(tf.keras.layers, 'LocallyConnected2D'):
+        self.availLayer['locallyconnected2d'] = tf.keras.layers.LocallyConnected2D
 
       # available pooling layers
       # Max pooling operation for temporal data.
