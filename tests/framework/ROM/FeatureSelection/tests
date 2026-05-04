@@ -45,7 +45,9 @@
     type  = 'RavenFramework'
     input = 'dmdc_rfe_and_score_cross_corr.xml'
     output = 'data/dmdc_stats_rfe_score_subgroup_cross_correlation.xml'
-    max_time = 400
+    # Linux / Windows finish in 290-340s; macOS runners take ~401s and tip past the
+    # previous 400s ceiling. Bump to 600s to give macOS headroom.
+    max_time = 600
   [../]
   [./StaticSklearnVarianceThreshold]
     type  = 'RavenFramework'
