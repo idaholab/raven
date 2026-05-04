@@ -7,7 +7,12 @@
     input = 'cnn1d.xml'
     required_libraries = 'tensorflow'
     max_time = 1800
-    skip = 'tf-keras 2.21 + tensorflow 2.21 deadlocks on AbslInternalPerThreadSemWait due to absl version mismatch between TF (libtensorflow_framework absl v20250814) and PyArrow (libarrow.2400.dylib bundled absl). Standalone tf-keras fits a model in 0.14s; the hang only happens when both libs are loaded together. Needs separate investigation -- either re-pin pyarrow or rebuild TF/PyArrow against a common absl. See PR conversation for stack trace.'
+    # Marked heavy (opt-in via --heavy) because tf-keras 2.21 + tensorflow 2.21 deadlocks on
+    # AbslInternalPerThreadSemWait when PyArrow's bundled libarrow absl loads alongside
+    # TF's libtensorflow_framework absl (version mismatch). Standalone tf-keras fits a model
+    # in 0.14s; the hang only manifests when both libs are loaded together. Needs separate
+    # packaging investigation (re-pin pyarrow or rebuild TF/PyArrow against a common absl).
+    heavy = True
     [./data]
         type = OrderedCSV
         output = 'data/outCon1DClassifier.csv'
@@ -18,7 +23,12 @@
     input = 'custom_dataset.xml'
     required_libraries = 'tensorflow'
     max_time = 1800
-    skip = 'tf-keras 2.21 + tensorflow 2.21 deadlocks on AbslInternalPerThreadSemWait due to absl version mismatch between TF (libtensorflow_framework absl v20250814) and PyArrow (libarrow.2400.dylib bundled absl). Standalone tf-keras fits a model in 0.14s; the hang only happens when both libs are loaded together. Needs separate investigation -- either re-pin pyarrow or rebuild TF/PyArrow against a common absl. See PR conversation for stack trace.'
+    # Marked heavy (opt-in via --heavy) because tf-keras 2.21 + tensorflow 2.21 deadlocks on
+    # AbslInternalPerThreadSemWait when PyArrow's bundled libarrow absl loads alongside
+    # TF's libtensorflow_framework absl (version mismatch). Standalone tf-keras fits a model
+    # in 0.14s; the hang only manifests when both libs are loaded together. Needs separate
+    # packaging investigation (re-pin pyarrow or rebuild TF/PyArrow against a common absl).
+    heavy = True
     output = 'diabetes/romXML.xml'
     csv = 'diabetes/outMLPClassifier.csv'
   [../]
@@ -27,7 +37,12 @@
     input = 'keras_mlp_regression.xml'
     required_libraries = 'tensorflow'
     max_time = 1800
-    skip = 'tf-keras 2.21 + tensorflow 2.21 deadlocks on AbslInternalPerThreadSemWait due to absl version mismatch between TF (libtensorflow_framework absl v20250814) and PyArrow (libarrow.2400.dylib bundled absl). Standalone tf-keras fits a model in 0.14s; the hang only happens when both libs are loaded together. Needs separate investigation -- either re-pin pyarrow or rebuild TF/PyArrow against a common absl. See PR conversation for stack trace.'
+    # Marked heavy (opt-in via --heavy) because tf-keras 2.21 + tensorflow 2.21 deadlocks on
+    # AbslInternalPerThreadSemWait when PyArrow's bundled libarrow absl loads alongside
+    # TF's libtensorflow_framework absl (version mismatch). Standalone tf-keras fits a model
+    # in 0.14s; the hang only manifests when both libs are loaded together. Needs separate
+    # packaging investigation (re-pin pyarrow or rebuild TF/PyArrow against a common absl).
+    heavy = True
     output = 'keras_mlp_regression/romXML.xml'
     csv = 'keras_mlp_regression/outMLPClassifier.csv'
     rel_err = 0.0005
@@ -37,7 +52,12 @@
     input = 'lstm.xml'
     required_libraries = 'tensorflow'
     max_time = 1800
-    skip = 'tf-keras 2.21 + tensorflow 2.21 deadlocks on AbslInternalPerThreadSemWait due to absl version mismatch between TF (libtensorflow_framework absl v20250814) and PyArrow (libarrow.2400.dylib bundled absl). Standalone tf-keras fits a model in 0.14s; the hang only happens when both libs are loaded together. Needs separate investigation -- either re-pin pyarrow or rebuild TF/PyArrow against a common absl. See PR conversation for stack trace.'
+    # Marked heavy (opt-in via --heavy) because tf-keras 2.21 + tensorflow 2.21 deadlocks on
+    # AbslInternalPerThreadSemWait when PyArrow's bundled libarrow absl loads alongside
+    # TF's libtensorflow_framework absl (version mismatch). Standalone tf-keras fits a model
+    # in 0.14s; the hang only manifests when both libs are loaded together. Needs separate
+    # packaging investigation (re-pin pyarrow or rebuild TF/PyArrow against a common absl).
+    heavy = True
     csv = 'data/outLSTMClassifier.csv'
   [../]
   [./tf_lstm_regression]
@@ -45,7 +65,12 @@
     input = 'keras_lstm_regression.xml'
     required_libraries = 'tensorflow'
     max_time = 1800
-    skip = 'tf-keras 2.21 + tensorflow 2.21 deadlocks on AbslInternalPerThreadSemWait due to absl version mismatch between TF (libtensorflow_framework absl v20250814) and PyArrow (libarrow.2400.dylib bundled absl). Standalone tf-keras fits a model in 0.14s; the hang only happens when both libs are loaded together. Needs separate investigation -- either re-pin pyarrow or rebuild TF/PyArrow against a common absl. See PR conversation for stack trace.'
+    # Marked heavy (opt-in via --heavy) because tf-keras 2.21 + tensorflow 2.21 deadlocks on
+    # AbslInternalPerThreadSemWait when PyArrow's bundled libarrow absl loads alongside
+    # TF's libtensorflow_framework absl (version mismatch). Standalone tf-keras fits a model
+    # in 0.14s; the hang only manifests when both libs are loaded together. Needs separate
+    # packaging investigation (re-pin pyarrow or rebuild TF/PyArrow against a common absl).
+    heavy = True
     csv = 'LSTMRegression/out_resampled_0.csv LSTMRegression/out_resampled_1.csv'
     rel_err = 0.0005
   [../]
@@ -54,7 +79,12 @@
     input = 'lstm_from_file.xml'
     required_libraries = 'tensorflow'
     max_time = 1800
-    skip = 'tf-keras 2.21 + tensorflow 2.21 deadlocks on AbslInternalPerThreadSemWait due to absl version mismatch between TF (libtensorflow_framework absl v20250814) and PyArrow (libarrow.2400.dylib bundled absl). Standalone tf-keras fits a model in 0.14s; the hang only happens when both libs are loaded together. Needs separate investigation -- either re-pin pyarrow or rebuild TF/PyArrow against a common absl. See PR conversation for stack trace.'
+    # Marked heavy (opt-in via --heavy) because tf-keras 2.21 + tensorflow 2.21 deadlocks on
+    # AbslInternalPerThreadSemWait when PyArrow's bundled libarrow absl loads alongside
+    # TF's libtensorflow_framework absl (version mismatch). Standalone tf-keras fits a model
+    # in 0.14s; the hang only manifests when both libs are loaded together. Needs separate
+    # packaging investigation (re-pin pyarrow or rebuild TF/PyArrow against a common absl).
+    heavy = True
     csv = 'data/rom_samples.csv'
     output = 'data/rom_samples.xml'
   [../]
