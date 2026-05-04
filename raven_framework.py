@@ -22,6 +22,22 @@ This is a package that properly imports Driver and runs it.
 import os
 import sys
 
+# On Linux, pre-load the env's libstdc++ with RTLD_GLOBAL before any native library imports.
+# Why: importing tensorflow first (see below) can cause the dynamic linker to bind libstdc++
+# from /lib64 (the host system copy) instead of the conda env's lib/. If the host's libstdc++
+# is older than the env's GCC-built shared objects (e.g. libicui18n.so.78 needs
+# CXXABI_1.3.15 from GCC 13), every later import that touches ICU fails with
+# "version 'CXXABI_1.3.15' not found". Pre-loading the env's libstdc++ as RTLD_GLOBAL
+# guarantees its symbols are in the global scope before tensorflow or ICU show up.
+if sys.platform.startswith('linux'):
+    import ctypes
+    _env_libstdcxx = os.path.join(sys.prefix, 'lib', 'libstdc++.so.6')
+    if os.path.exists(_env_libstdcxx):
+        try:
+            ctypes.CDLL(_env_libstdcxx, mode=ctypes.RTLD_GLOBAL)
+        except OSError:
+            pass
+
 # Pre-import tensorflow before anything else if it is available.
 # Reason: tf-keras 2.21 + tensorflow 2.21 ship Abseil v20250814 statically vendored, and
 # PyArrow's libarrow.<version>.dylib also ships Abseil with the same versioned symbol names.
