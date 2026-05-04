@@ -203,7 +203,10 @@
   [./parallel]
     type = 'RavenFramework'
     input = 'test_local_parallel.xml'
-    max_time = 600
+    # Linux / Windows finish in ~316-327s; macOS GHA runners take >600s for the same
+    # workload (CI runs hit Timeout at 600.71s and 600.25s). Bump to 1200s so macOS
+    # has the headroom it needs.
+    max_time = 1200
     UnorderedCsv = 'data/outDataParallel.csv'
     output = 'data/outDataParallel.xml'
     required_libraries = 'AMSC'
