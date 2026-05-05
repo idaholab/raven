@@ -93,12 +93,12 @@
   [./Spatiotemporal]
     type = 'RavenFramework'
     input = 'testSPSLSpatiotemporal.xml'
-    csv = 'spatiotemporal/outPP.csv'
-    # Same QR pivot near-degeneracy as HOSVD/ParamTime: BLAS variance picks different
-    # but equally-valid sensors of opposite sign. Worst observed diff is 3.0 on newer
-    # CI runners (was 0.56 on older ones). Smoke test until data is reshaped for
-    # unambiguous pivots.
-    rel_err = 3.0
+    # QR pivots can return the same two sensors in either row order across BLAS
+    # implementations -- the values are reproducible, just the row order isn't.
+    # Use UnorderedCsv so each row matches its nearest gold row regardless of order.
+    UnorderedCsv = 'spatiotemporal/outPP.csv'
+    rel_err = 1.0e-6
+    zero_threshold = 1e-10
   [../]
   [./HOSVD]
     type = 'RavenFramework'
