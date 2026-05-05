@@ -1,12 +1,14 @@
-"""Parameter+time synthetic field with alpha controlling spatial mode frequency.
+"""Parameter+time synthetic field with two well-separated Gaussian peaks in space.
 
-T(x, t; alpha) = exp(-t) * sin((3 + alpha) * pi * x)
+T(x, t; alpha) = (1 + 0.5*alpha) * exp(-t) *
+                 (2.0 * exp(-((x - 0.25)/0.08)^2) + 1.0 * exp(-((x - 0.75)/0.08)^2))
 
-Rank-1 in (x, t) for each alpha, but different alphas shift the dominant
-spatial mode (alpha=0.1 -> sin(3.1 pi x), alpha=1.0 -> sin(4 pi x)), so
-stacking 5 different alphas produces a (5*NT, NX) snapshot matrix whose
-SVD modes depend on the sampled set -- distinct from the fixed-alpha
-transient test's data.
+The two spatial peaks at x=0.25 and x=0.75 have amplitudes 2.0 and 1.0, giving
+column norms with a clear, large-margin ordering: x near 0.25 dominates first,
+x near 0.75 second, all other x columns are exponentially smaller. QR-based
+sensor selection produces the same two sensors regardless of the BLAS backend
+(OpenBLAS / MKL / Apple Accelerate), making this test reproducible across
+platforms. alpha modulates global amplitude only, preserving the column ordering.
 """
 import numpy as np
 
@@ -17,7 +19,9 @@ TIMES = np.linspace(0.0, 1.0, NT)
 
 def run(self, Input):
   alpha = float(getattr(Input, 'alpha', 0.5))
-  T = np.exp(-TIMES[:, None]) * np.sin((3.0 + alpha) * np.pi * X)[None, :]
+  spatial = (2.0 * np.exp(-((X - 0.25) / 0.08) ** 2)
+             + 1.0 * np.exp(-((X - 0.75) / 0.08) ** 2))
+  T = (1.0 + 0.5 * alpha) * np.exp(-TIMES[:, None]) * spatial[None, :]
   self.time = TIMES
   self.pointID = np.arange(NX)
   self.x = X.copy()
