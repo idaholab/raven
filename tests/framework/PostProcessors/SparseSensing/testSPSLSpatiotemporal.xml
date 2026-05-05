@@ -16,7 +16,8 @@
 
   <Models>
     <ExternalModel name="genT" subType="" ModuleToLoad="genParamTime">
-      <variables>alpha, time, pointID, x, T</variables>
+      <inputs>alpha</inputs>
+      <outputs>time, pointID, x, T</outputs>
     </ExternalModel>
     <PostProcessor name="mySPSL" subType="SparseSensing">
       <Goal subType="reconstruction">
