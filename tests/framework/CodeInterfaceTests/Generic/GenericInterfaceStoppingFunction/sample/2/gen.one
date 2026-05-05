@@ -1,9 +1,0 @@
-#############################################
-#                                           #
-#  Dummy Input File for Poly Python Module  #
-#                                           #
-#############################################
-
-case = fixed_output_case
-auxfile = /Users/abdomg/projects/raven/tests/framework/CodeInterfaceTests/Generic/GenericInterfaceStoppingFunction/sample/2/gen.two
-x = 0.3
