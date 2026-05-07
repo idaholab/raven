@@ -532,7 +532,10 @@ class EnsembleModel(Dummy):
     Input = self.createNewInput(myInput[0], samplerType, **kwargsToKeep)
 
     ## Unpack the specifics for this class, namely just the jobHandler
-    returnValue = (Input,self._externalRun(Input, jobHandler))
+    evaluation = self._externalRun(Input, jobHandler)
+    if evaluation is None:
+      return None
+    returnValue = (Input,evaluation)
     return returnValue
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
@@ -716,10 +719,13 @@ class EnsembleModel(Dummy):
         ##if self.runInfoDict and 'Code' == self.modelsDictionary[modelIn]['Instance'].type:
         ##  inputKwargs[modelIn].update(self.runInfoDict)
 
-        retDict, gotOuts, evaluation = self.__advanceModel(identifier, self.modelsDictionary[modelIn],
-                                                        originalInput[modelIn], inputKwargs[modelIn],
-                                                        inRunTargetEvaluations[modelIn], samplerType,
-                                                        iterationCount, jobHandler)
+        evaluationInfo = self.__advanceModel(identifier, self.modelsDictionary[modelIn],
+                                             originalInput[modelIn], inputKwargs[modelIn],
+                                             inRunTargetEvaluations[modelIn], samplerType,
+                                             iterationCount, jobHandler)
+        if evaluationInfo is None:
+          return None
+        retDict, gotOuts, evaluation = evaluationInfo
 
         returnDict[modelIn] = retDict
         typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
@@ -781,6 +787,7 @@ class EnsembleModel(Dummy):
       suffix = f"{utils.returnIdSeparator()}{inputKwargs['batchRun']}"
     self.raiseADebug('Submitting model',modelToExecute['Instance'].name)
     localIdentifier = f"{modelToExecute['Instance'].name}{utils.returnIdSeparator()}{identifier}{suffix}"
+    excType, excValue, excTrace = RuntimeError, RuntimeError("Model returned no evaluation"), None
     if self.parallelStrategy == 1:
       # we evaluate the model directly
       try:
@@ -794,9 +801,46 @@ class EnsembleModel(Dummy):
         # run the model
         inputKwargs.pop("jobHandler", None)
         modelToExecute['Instance'].submit(origInputList, samplerType, jobHandler, **inputKwargs)
-        ## wait until the model finishes, in order to get ready to run the subsequential one
-        while not jobHandler.isThisJobFinished(localIdentifier):
-          time.sleep(1.e-3)
+        ## Wait for the sub-model job to finish.
+        #
+        # Historical context (lock contention bug):
+        #   The original implementation polled isThisJobFinished() in a
+        #   while/sleep loop.  Each call acquires JobHandler.__queueLock.
+        #   With N evaluation threads (e.g. 100 GA populations) all
+        #   polling concurrently, the resulting N lock-requests/sec can
+        #   starve the single polling thread in JobHandler.startLoop(),
+        #   which also needs the lock to run fillJobQueue() and
+        #   cleanJobQueue().  When the polling thread is starved, jobs
+        #   that have already finished at the OS level never transition
+        #   from __running to __finished, causing a permanent hang.
+        #
+        # Fix:
+        #   Use a per-job threading.Event (created in reAddJob, set in
+        #   cleanJobQueue) so that waiting threads block on event.wait()
+        #   instead of acquiring the lock.  This eliminates contention
+        #   entirely on the wait path.
+        #
+        # The timeout on event.wait() serves two purposes:
+        #   1. Python's Event.wait(None) is not interruptible by Ctrl+C
+        #      or POSIX signals (CPython limitation); a finite timeout
+        #      ensures the thread periodically regains control.
+        #   2. Acts as a safety net in case the Event is somehow missed
+        #      (should not happen in normal operation).
+        #
+        # Backward compatibility:
+        #   If getJobEvent() returns None (unexpected), we fall back to
+        #   the original polling loop so that non-standard JobHandler
+        #   subclasses or configurations still work.
+        jobEvent = jobHandler.getJobEvent(localIdentifier)
+        if jobEvent is not None:
+          while not jobEvent.wait(timeout=30.0):
+            pass
+        else:
+          # Fallback: original polling (should not be reached in normal use)
+          self.raiseAWarning(f'No Event found for job "{localIdentifier}", '
+                             f'falling back to polling-based wait')
+          while not jobHandler.isThisJobFinished(localIdentifier):
+            time.sleep(1.0)
         moveOn = True
       # get job that just finished to gather the results
       finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
@@ -808,23 +852,35 @@ class EnsembleModel(Dummy):
           # the failure happened at the input creation stage
           excType, excValue, excTrace = IOError, IOError("Failure happened at the input creation stage. See trace above"), None
         evaluation = None
-        # the model failed
-        for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
-          jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}",
-                                 uniqueHandler = f"{self.name}{identifier}{suffix}")
+        # the model failed — clean up only models that were submitted
+        # BEFORE the failed model (they may be running or finished).
+        # Models AFTER the failed one in orderList were never submitted,
+        # so calling getFinished for them would block indefinitely.
+        failedModelIdx = self.orderList.index(modelToExecute['Instance'].name)
+        for modelToRemove in self.orderList[:failedModelIdx]:
+          try:
+            jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}",
+                                   uniqueHandler = f"{self.name}{identifier}{suffix}")
+          except Exception:
+            pass  # best-effort cleanup
 
       else:
         # collect the target evaluation
         modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
 
-    if not evaluation:
-      # the model failed
+    if evaluation is None:
+      # A failed sub-model should make the enclosing EnsembleModel job fail the
+      # same way a standalone Code model fails: return no evaluation and let the
+      # JobHandler/MultiRun failure-handling path manage retries or failed runs.
+      # Raising here bypasses that generic path and can leave nested ensemble
+      # runs stuck with unclaimed internal jobs.
       import traceback
       msg = io.StringIO()
       traceback.print_exception(excType, excValue, excTrace, limit=10, file=msg)
       msg = msg.getvalue().replace('\n', '\n        ')
-      self.raiseAnError(RuntimeError, f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" '+
-                        f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
+      self.raiseAWarning(f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" '+
+                         f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
+      return None
     else:
       if self.parallelStrategy == 1:
         inRunTargetEvaluations.addRealization(evaluation)
