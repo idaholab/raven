@@ -78,6 +78,13 @@ limit our library choices.
     <lxml source="pip"/>
     <psutil/>
     <pip/>
+    <!-- Required for tutorial notebooks. nbclassic provides the classic browser UI,
+         notebook 6 provides the legacy `jupyter notebook` command, nbconvert provides
+         automated execution, and ipykernel provides the Python kernel. -->
+    <nbclassic source="pip"/>
+    <notebook source="pip">6.5</notebook>
+    <ipykernel source="pip"/>
+    <nbconvert source="pip"/>
     <pyDOE3 source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>

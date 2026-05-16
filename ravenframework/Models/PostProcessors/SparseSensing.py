@@ -74,6 +74,7 @@ class SparseSensing(PostProcessorReadyInterface):
                       'gqr': 'GQR',
                       'tpgr': 'TPGR'}
   reconstructionMetricOptions = ['rmse', 'mse', 'mae']
+  reconstructionMethodOptions = ['auto', 'unregularized', 'regularized']
   # Shorthand → underlying sklearn (group, name). 'rmse' is synthesised as sqrt(mse).
   reconstructionMetricSklMap = {'mse': ('regression', 'mean_squared_error'),
                                 'mae': ('regression', 'mean_absolute_error')}
@@ -202,6 +203,46 @@ class SparseSensing(PostProcessorReadyInterface):
                                                                   SSPOR model. Currently supported:
                                                                   \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}.""")
     goal.addSub(reconstructionMetrics)
+    reconstructionMethod = InputData.parameterInputFactory("reconstructionMethod",
+                                                           contentType=InputTypes.makeEnumType("reconstructionMethod",
+                                                                                               "reconstructionMethodType",
+                                                                                               cls.reconstructionMethodOptions),
+                                                           printPriority=108,
+                                                           descr=r"""Prediction method used when reconstructing the full field for
+                                                                 \xmlNode{reconstructionMetrics} and attached RAVEN
+                                                                 \xmlNode{Metric} objects. \xmlString{auto} selects
+                                                                 \xmlString{unregularized} when the fitted basis represents the
+                                                                 data to \xmlNode{reconstructionRankTolerance} and at least one
+                                                                 sensor is available per retained mode; otherwise it selects
+                                                                 \xmlString{regularized}. \xmlString{regularized} forwards
+                                                                 \xmlNode{reconstructionPrior} and \xmlNode{reconstructionNoise}
+                                                                 to \xmlString{pysensors.SSPOR.predict}.""",
+                                                           default='auto')
+    goal.addSub(reconstructionMethod)
+    reconstructionPrior = InputData.parameterInputFactory("reconstructionPrior", contentType=InputTypes.StringType,
+                                                          printPriority=108,
+                                                          descr=r"""Prior covariance vector consumed by regularized
+                                                                \xmlString{pysensors.SSPOR.predict}. Use
+                                                                \xmlString{decreasing} to request pysensors'
+                                                                singular-value prior, or provide a comma-separated
+                                                                list of floats with one value per retained mode.""")
+    goal.addSub(reconstructionPrior)
+    reconstructionNoise = InputData.parameterInputFactory("reconstructionNoise", contentType=InputTypes.FloatType,
+                                                          printPriority=108,
+                                                          descr=r"""Optional sensor-noise magnitude forwarded to regularized
+                                                                \xmlString{pysensors.SSPOR.predict}. If omitted,
+                                                                pysensors computes its default noise level. In
+                                                                \xmlString{auto} mode, an explicit value of zero is treated
+                                                                as a noiseless measurement model.""")
+    goal.addSub(reconstructionNoise)
+    reconstructionRankTolerance = InputData.parameterInputFactory("reconstructionRankTolerance", contentType=InputTypes.FloatType,
+                                                                  printPriority=108,
+                                                                  descr=r"""Relative tolerance used by
+                                                                        \xmlString{reconstructionMethod=auto} when checking
+                                                                        whether the retained basis represents the data
+                                                                        without truncation residual.""",
+                                                                  default=1e-10)
+    goal.addSub(reconstructionRankTolerance)
     uncertaintyMetrics = InputData.parameterInputFactory("uncertaintyMetrics", contentType=InputTypes.StringListType,
                                                          printPriority=108,
                                                          descr=r"""Comma-separated list of native pysensors
@@ -303,6 +344,10 @@ class SparseSensing(PostProcessorReadyInterface):
     self.sensorCostsVariableName = None                      # Input variable name holding the CCQR costs
     self.constraintSpec = None                               # Optional GQR constraint specification
     self.reconstructionMetrics = []                          # Optional native pysensors reconstruction metrics
+    self.reconstructionMethod = 'auto'                       # Full-field prediction method for reconstruction metrics
+    self.reconstructionPrior = 'decreasing'                  # Prior covariance used by regularized reconstruction
+    self.reconstructionNoise = None                          # Optional noise magnitude used by regularized reconstruction
+    self.reconstructionRankTolerance = 1e-10                 # Tolerance for auto noiseless/basis-residual check
     self.uncertaintyMetrics = []                             # Optional native pysensors uncertainty metrics
     self.energyLandscapeMetrics = []                         # Optional TPGR energy-landscape outputs
     self.energyLandscapeSensors = None                       # Optional zero-based sensor list for TPGR two-point landscape
@@ -315,7 +360,8 @@ class SparseSensing(PostProcessorReadyInterface):
     # from both the <reconstructionMetrics> shorthand (synthesized as anonymous SKL metrics, prefixed
     # 'rec_') and any user-attached <Metric> assembler entries (using the metric's own name).
     # All entries are evaluated through the same code path on the (yTrue, yPred) pair extracted by
-    # pysensors model.score, so results are guaranteed to be consistent across the two surface syntaxes.
+    # the configured full-field reconstruction, so results are guaranteed to be consistent across the
+    # two surface syntaxes.
     self.metricsDict = {}
     # Register the optional <Metric> assembler block (zero or more refs to RAVEN Metric objects).
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
@@ -405,6 +451,21 @@ class SparseSensing(PostProcessorReadyInterface):
                                         for metricName in metricsNode.value]
         else:
           self.reconstructionMetrics = []
+        reconstructionMethodNode = child.findFirst('reconstructionMethod')
+        self.reconstructionMethod = reconstructionMethodNode.value if reconstructionMethodNode is not None else 'auto'
+        reconstructionPriorNode = child.findFirst('reconstructionPrior')
+        if reconstructionPriorNode is not None:
+          self.reconstructionPrior = self._parsePriorVector(reconstructionPriorNode.value, 'reconstructionPrior')
+        else:
+          self.reconstructionPrior = 'decreasing'
+        reconstructionNoiseNode = child.findFirst('reconstructionNoise')
+        self.reconstructionNoise = reconstructionNoiseNode.value if reconstructionNoiseNode is not None else None
+        if self.reconstructionNoise is not None and self.reconstructionNoise < 0:
+          self.raiseAnError(IOError, 'reconstructionNoise must be non-negative')
+        reconstructionRankToleranceNode = child.findFirst('reconstructionRankTolerance')
+        self.reconstructionRankTolerance = reconstructionRankToleranceNode.value if reconstructionRankToleranceNode is not None else 1e-10
+        if self.reconstructionRankTolerance <= 0:
+          self.raiseAnError(IOError, 'reconstructionRankTolerance must be positive')
         uncertaintyNode = child.findFirst('uncertaintyMetrics')
         if uncertaintyNode is not None:
           self.uncertaintyMetrics = [self._normalizeUncertaintyMetric(metricName)
@@ -424,7 +485,7 @@ class SparseSensing(PostProcessorReadyInterface):
           self.energyLandscapeSensors = None
         uncertaintyPriorNode = child.findFirst('uncertaintyPrior')
         if uncertaintyPriorNode is not None:
-          self.uncertaintyPrior = self._parseUncertaintyPrior(uncertaintyPriorNode.value)
+          self.uncertaintyPrior = self._parsePriorVector(uncertaintyPriorNode.value, 'uncertaintyPrior')
         else:
           self.uncertaintyPrior = 'decreasing'
         uncertaintyNoiseNode = child.findFirst('uncertaintyNoise')
@@ -519,11 +580,12 @@ class SparseSensing(PostProcessorReadyInterface):
       self.raiseAnError(IOError, 'energyLandscapeSensors must contain only zero-based non-negative integers')
     return normalized
 
-  def _parseUncertaintyPrior(self, priorValue):
+  def _parsePriorVector(self, priorValue, nodeName):
     """
-      Parse the optional std prior input.
+      Parse an optional pysensors prior input.
       @ In, priorValue, str, either "decreasing" or a comma-separated float list
-      @ Out, parsed, str or np.ndarray, normalized std prior
+      @ In, nodeName, str, XML node name for error reporting
+      @ Out, parsed, str or np.ndarray, normalized prior
     """
     text = str(priorValue).strip()
     if text.lower() == 'decreasing':
@@ -531,10 +593,18 @@ class SparseSensing(PostProcessorReadyInterface):
     try:
       parsed = np.asarray([float(value.strip()) for value in text.split(',') if value.strip()], dtype=float)
     except ValueError as err:
-      self.raiseAnError(IOError, 'uncertaintyPrior "{}" must be "decreasing" or a comma-separated float list'.format(priorValue), err)
+      self.raiseAnError(IOError, '{} "{}" must be "decreasing" or a comma-separated float list'.format(nodeName, priorValue), err)
     if parsed.size == 0:
-      self.raiseAnError(IOError, 'uncertaintyPrior "{}" must contain at least one float value'.format(priorValue))
+      self.raiseAnError(IOError, '{} "{}" must contain at least one float value'.format(nodeName, priorValue))
     return parsed
+
+  def _parseUncertaintyPrior(self, priorValue):
+    """
+      Parse the optional std prior input.
+      @ In, priorValue, str, either "decreasing" or a comma-separated float list
+      @ Out, parsed, str or np.ndarray, normalized std prior
+    """
+    return self._parsePriorVector(priorValue, 'uncertaintyPrior')
 
   def _normalizeReconstructionErrorRange(self, sensorCounts):
     """
@@ -611,11 +681,17 @@ class SparseSensing(PostProcessorReadyInterface):
       @ Out, basis, object, instantiated pysensors basis
     """
     if self.basis == 'SVD':
-      return ps.basis.SVD(n_basis_modes=self.nModes)
+      kwargs = {}
+      if self.seed is not None:
+        kwargs['random_state'] = self.seed
+      return ps.basis.SVD(n_basis_modes=self.nModes, **kwargs)
     if self.basis == 'Identity':
       return ps.basis.Identity(n_basis_modes=self.nModes)
     if self.basis == 'RandomProjection':
-      return ps.basis.RandomProjection(n_basis_modes=self.nModes)
+      kwargs = {}
+      if self.seed is not None:
+        kwargs['random_state'] = self.seed
+      return ps.basis.RandomProjection(n_basis_modes=self.nModes, **kwargs)
     if self.basis == 'HOSVD':
       if self.pivotParameter is None:
         self.raiseAnError(IOError, 'HOSVD basis requires <pivotParameter> (needs a 3-D input tensor)')
@@ -654,27 +730,102 @@ class SparseSensing(PostProcessorReadyInterface):
       self.raiseAnError(NotImplementedError, 'SparseSensing classification is not yet implemented in RAVEN')
     self.raiseAnError(IOError, 'goal "{}" is not recognized'.format(self.sparseSensingGoal))
 
+  def _resolvePriorAgainstModel(self, model, prior, nodeName):
+    """
+      Resolve a configured prior against the fitted model.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, prior, str or np.ndarray, configured prior
+      @ In, nodeName, str, XML node name for error reporting
+      @ Out, prior, str or np.ndarray, valid pysensors prior
+    """
+    if isinstance(prior, str):
+      return prior
+    prior = np.asarray(prior, dtype=float).reshape(-1)
+    expected = model.basis_matrix_.shape[1]
+    if prior.size != expected:
+      self.raiseAnError(IOError, '{} has length {} but expected {} values (one per retained basis mode)'.format(nodeName, prior.size, expected))
+    return prior
+
+  def _basisProjectionResidual(self, model, data):
+    """
+      Compute the relative residual after projecting data onto the retained basis.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, data, np.ndarray, full-state measurements with shape (samples, features)
+      @ Out, residual, float, relative projection residual
+    """
+    data = np.asarray(data, dtype=float)
+    basis = np.asarray(model.basis_matrix_, dtype=float)
+    if data.ndim != 2:
+      self.raiseAnError(IOError, 'SparseSensing reconstruction metrics require a 2-D data matrix; got shape {}'.format(data.shape))
+    if basis.ndim != 2 or basis.shape[0] != data.shape[1]:
+      self.raiseAnError(IOError, 'basis matrix shape {} is incompatible with data shape {}'.format(basis.shape, data.shape))
+    coeffs, _, _, _ = np.linalg.lstsq(basis, data.T, rcond=None)
+    projected = np.dot(basis, coeffs).T
+    residual = np.linalg.norm(data - projected)
+    scale = np.linalg.norm(data)
+    if scale == 0.0:
+      return float(residual)
+    return float(residual / scale)
+
+  def _resolveReconstructionMethod(self, model, data):
+    """
+      Resolve the configured full-field reconstruction method.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, data, np.ndarray, full-state measurements with shape (samples, features)
+      @ Out, method, str, either "unregularized" or "regularized"
+    """
+    if self.reconstructionMethod in ['unregularized', 'regularized']:
+      return self.reconstructionMethod
+    if self.reconstructionMethod != 'auto':
+      self.raiseAnError(IOError, 'reconstructionMethod "{}" is not recognized; allowed values are {}'.format(self.reconstructionMethod, self.reconstructionMethodOptions))
+    nBasisModes = model.basis_matrix_.shape[1]
+    enoughSensors = self.nSensors >= nBasisModes
+    if enoughSensors and self.reconstructionNoise is not None and self.reconstructionNoise <= self.reconstructionRankTolerance:
+      self.raiseADebug('SparseSensing reconstructionMethod=auto selected unregularized because reconstructionNoise is zero')
+      return 'unregularized'
+    basisResidual = self._basisProjectionResidual(model, data)
+    if enoughSensors and basisResidual <= self.reconstructionRankTolerance:
+      self.raiseADebug('SparseSensing reconstructionMethod=auto selected unregularized; basis residual={}'.format(basisResidual))
+      return 'unregularized'
+    self.raiseADebug('SparseSensing reconstructionMethod=auto selected regularized; basis residual={}, nSensors={}, nBasisModes={}'.format(basisResidual, self.nSensors, nBasisModes))
+    return 'regularized'
+
+  def _resolveReconstructionPrior(self, model):
+    """
+      Resolve the configured regularized reconstruction prior against the fitted model.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ Out, prior, str or np.ndarray, valid pysensors predict prior
+    """
+    return self._resolvePriorAgainstModel(model, self.reconstructionPrior, 'reconstructionPrior')
+
+  def _predictFullState(self, model, data):
+    """
+      Reconstruct the full field from the selected sparse sensors.
+      @ In, model, ps.SSPOR, fitted sparse reconstruction model
+      @ In, data, np.ndarray, full-state measurements with shape (samples, features)
+      @ Out, prediction, np.ndarray, reconstructed full-state measurements
+    """
+    sensors = model.get_selected_sensors()
+    sparseMeasurements = data[:, sensors]
+    method = self._resolveReconstructionMethod(model, data)
+    if method == 'unregularized':
+      return model.predict(sparseMeasurements, method='unregularized')
+    prior = self._resolveReconstructionPrior(model)
+    return model.predict(sparseMeasurements, method=None, prior=prior, noise=self.reconstructionNoise)
+
   def _evaluateRavenMetric(self, model, data, metricInstance):
     """
-      Apply a single RAVEN Metric instance to the (yTrue, yPred) pair extracted by pysensors.
-      pysensors handles the reconstruction step (predict full field from selected sensors); the metric
-      contributes only the math on the resulting array pair. Both shorthand-synthesised metrics and
-      user-attached <Metric> assembler instances flow through this method, so both surface syntaxes
-      converge on the same internal computation.
+      Apply a single RAVEN Metric instance to the configured reconstructed full field.
+      Both shorthand-synthesised metrics and user-attached <Metric> assembler instances flow through
+      this method, so both surface syntaxes converge on the same internal computation.
       @ In, model, ps.SSPOR, fitted sparse reconstruction model
       @ In, data, np.ndarray, full-state measurements with shape (samples, features)
       @ In, metricInstance, object, RAVEN Metric exposing run(x, y) -> scalar or 1-element array
       @ Out, metricValue, float, scalar metric value
     """
-    def adapter(yTrue, yPred):
-      # Flatten to 1-D so the reduction is a single scalar over (sample, feature) pairs, matching
-      # the legacy np.mean(...) behaviour. SKL.run accepts 1-D inputs and reshapes internally.
-      # User-attached metrics arrive wrapped in MetricEntity which exposes .evaluate(x, y, ...);
-      # synthesised SKL instances (and our RMSE adapter) expose .run(x, y, ...) directly. Both
-      # signatures match (x, y, weights=None, axis=0, **kwargs); we just call whichever is there.
-      compute = getattr(metricInstance, 'evaluate', None) or metricInstance.run
-      return float(np.atleast_1d(compute(yTrue.reshape(-1), yPred.reshape(-1)))[0])
-    return float(model.score(data, score_function=adapter))
+    prediction = self._predictFullState(model, data)
+    compute = getattr(metricInstance, 'evaluate', None) or metricInstance.run
+    return float(np.atleast_1d(compute(data.reshape(-1), prediction.reshape(-1)))[0])
 
   def _resolveUncertaintyPrior(self, model):
     """
@@ -682,13 +833,7 @@ class SparseSensing(PostProcessorReadyInterface):
       @ In, model, ps.SSPOR, fitted sparse reconstruction model
       @ Out, prior, str or np.ndarray, valid pysensors std prior
     """
-    if isinstance(self.uncertaintyPrior, str):
-      return self.uncertaintyPrior
-    prior = np.asarray(self.uncertaintyPrior, dtype=float).reshape(-1)
-    expected = model.basis_matrix_.shape[1]
-    if prior.size != expected:
-      self.raiseAnError(IOError, 'uncertaintyPrior has length {} but expected {} values (one per retained basis mode)'.format(prior.size, expected))
-    return prior
+    return self._resolvePriorAgainstModel(model, self.uncertaintyPrior, 'uncertaintyPrior')
 
   def _computeUncertaintyMetric(self, model, metricName):
     """
@@ -992,10 +1137,9 @@ class SparseSensing(PostProcessorReadyInterface):
       model.fit(matrix, seed=self.seed, **optimizerKws)
     else:
       model.fit(matrix, **optimizerKws)
-    # Sort selected sensors by spatial index so regression golds are deterministic across
-    # pysensors versions (selection order is unstable even with a fixed seed; the sensor SET
-    # is what matters for reconstruction).
-    selectedSensors = np.sort(model.get_selected_sensors())
+    # Preserve the optimizer selection order.  For QR-style optimizers, this is the
+    # pivot/importance order; sorting by spatial index would lose that information.
+    selectedSensors = model.get_selected_sensors()
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
     if self.pivotParameter is not None and self.reshape == 'spatiotemporal':
@@ -1036,14 +1180,15 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.sparseSensingGoal == 'reconstruction' and self.metricsDict:
       # Single unified path: shorthand-synthesised SKL metrics (keys prefixed 'rec_') and
       # user-attached <Metric> assembler entries (keyed by metric.name) all flow through
-      # _evaluateRavenMetric, which uses model.score to produce (yTrue, yPred) and the metric to
-      # compute the scalar. This guarantees the two surface syntaxes produce identical numbers.
+      # _evaluateRavenMetric, which reconstructs yPred with the configured reconstruction method and
+      # then lets the metric compute the scalar. This guarantees the two surface syntaxes produce
+      # identical numbers.
       for outName, metricInstance in self.metricsDict.items():
-        outDS[outName] = self._evaluateRavenMetric(model, data, metricInstance)
+        outDS[outName] = self._evaluateRavenMetric(model, matrix, metricInstance)
     if self.sparseSensingGoal == 'reconstruction':
       outDS = self._addUncertaintyOutputs(outDS, inputDS, model, nfeatures)
       outDS = self._addEnergyLandscapeOutputs(outDS, inputDS, model, nfeatures)
-      outDS = self._addReconstructionErrorOutputs(outDS, model, data)
+      outDS = self._addReconstructionErrorOutputs(outDS, model, matrix)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
     outDS = outDS.expand_dims(self.sampleTag)

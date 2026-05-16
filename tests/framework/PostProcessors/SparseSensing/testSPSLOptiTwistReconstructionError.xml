@@ -49,6 +49,7 @@
         <nModes>4</nModes>
         <nSensors>4</nSensors>
         <optimizer>QR</optimizer>
+        <reconstructionMethod>unregularized</reconstructionMethod>
         <reconstructionMetrics>rmse,mae,mse</reconstructionMetrics>
         <seed>0</seed>
       </Goal>

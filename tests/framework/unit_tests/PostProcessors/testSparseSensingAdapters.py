@@ -72,6 +72,7 @@ xmlCanonical = """<PostProcessor name='pp' subType='SparseSensing'>
 pp = SparseSensing()
 pp._handleInput(parse(xmlCanonical))
 check("canonical RandomProjection spelling is preserved", pp.basis == "RandomProjection")
+check("default reconstruction method is auto", pp.reconstructionMethod == "auto")
 check("RandomProjection builder returns the right class",
       pp._buildBasis().__class__.__name__ == "RandomProjection")
 check("QR builder returns the right class",
@@ -171,6 +172,32 @@ check("uncertainty prior is parsed into a vector",
 check("uncertainty noise is parsed", abs(ppUQ.uncertaintyNoise - 0.2) < 1e-14)
 check("reconstructionErrorRange is parsed",
       np.array_equal(ppUQ.reconstructionErrorRange, np.asarray([1, 2])))
+
+xmlReconstructionRegularized = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <reconstructionMethod>regularized</reconstructionMethod>
+    <reconstructionPrior>1.0,0.25</reconstructionPrior>
+    <reconstructionNoise>0.2</reconstructionNoise>
+    <reconstructionRankTolerance>1e-8</reconstructionRankTolerance>
+  </Goal>
+</PostProcessor>"""
+
+ppReconstructionRegularized = SparseSensing()
+ppReconstructionRegularized._handleInput(parse(xmlReconstructionRegularized))
+check("regularized reconstruction method is parsed",
+      ppReconstructionRegularized.reconstructionMethod == "regularized")
+check("reconstruction prior is parsed into a vector",
+      np.allclose(ppReconstructionRegularized.reconstructionPrior, np.asarray([1.0, 0.25])))
+check("reconstruction noise is parsed",
+      abs(ppReconstructionRegularized.reconstructionNoise - 0.2) < 1e-14)
+check("reconstruction rank tolerance is parsed",
+      abs(ppReconstructionRegularized.reconstructionRankTolerance - 1e-8) < 1e-14)
 
 xmlTPGREnergy = """<PostProcessor name='pp' subType='SparseSensing'>
   <Goal subType='reconstruction'>
@@ -324,6 +351,46 @@ checkRaises("uncertaintyPrior must be numeric when not decreasing", IOError,
   </Goal>
 </PostProcessor>""")), "uncertaintyPrior")
 
+checkRaises("reconstructionPrior must be numeric when not decreasing", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <reconstructionMethod>regularized</reconstructionMethod>
+    <reconstructionPrior>oops</reconstructionPrior>
+  </Goal>
+</PostProcessor>""")), "reconstructionPrior")
+
+checkRaises("negative reconstructionNoise is rejected", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <reconstructionNoise>-0.1</reconstructionNoise>
+  </Goal>
+</PostProcessor>""")), "non-negative")
+
+checkRaises("nonpositive reconstructionRankTolerance is rejected", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='reconstruction'>
+    <features>X,Y,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <reconstructionRankTolerance>0</reconstructionRankTolerance>
+  </Goal>
+</PostProcessor>""")), "positive")
+
 checkRaises("reconstructionErrorRange requires positive integers", IOError,
             lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
   <Goal subType='reconstruction'>
@@ -372,6 +439,49 @@ check("rmse metric is non-negative", rmse >= 0.0)
 check("mse metric is non-negative", mse >= 0.0)
 check("mae metric is non-negative", mae >= 0.0)
 check("rmse and mse remain numerically consistent", abs(rmse**2 - mse) < 1e-12)
+
+ppAuto = SparseSensing()
+ppAuto.sparseSensingGoal = "reconstruction"
+ppAuto.nModes = 1
+ppAuto.nSensors = 1
+ppAuto.basis = "SVD"
+ppAuto.optimizer = "QR"
+rankOneData = np.asarray([[1.0, 2.0, 3.0],
+                          [2.0, 4.0, 6.0],
+                          [3.0, 6.0, 9.0]])
+autoModel = ppAuto._buildModel(ppAuto._buildBasis(), ppAuto._buildOptimizer())
+autoModel.fit(rankOneData)
+check("auto reconstruction method uses unregularized for basis-consistent data",
+      ppAuto._resolveReconstructionMethod(autoModel, rankOneData) == "unregularized")
+
+ppAutoRegularized = SparseSensing()
+ppAutoRegularized.sparseSensingGoal = "reconstruction"
+ppAutoRegularized.nModes = 1
+ppAutoRegularized.nSensors = 1
+ppAutoRegularized.basis = "SVD"
+ppAutoRegularized.optimizer = "QR"
+fullRankData = np.eye(3)
+autoRegularizedModel = ppAutoRegularized._buildModel(ppAutoRegularized._buildBasis(), ppAutoRegularized._buildOptimizer())
+autoRegularizedModel.fit(fullRankData)
+check("auto reconstruction method uses regularized when retained basis has residual",
+      ppAutoRegularized._resolveReconstructionMethod(autoRegularizedModel, fullRankData) == "regularized")
+ppAutoRegularized.reconstructionNoise = 0.0
+check("auto reconstruction method treats explicit zero noise as unregularized",
+      ppAutoRegularized._resolveReconstructionMethod(autoRegularizedModel, fullRankData) == "unregularized")
+
+ppExplicitRegularized = SparseSensing()
+ppExplicitRegularized.sparseSensingGoal = "reconstruction"
+ppExplicitRegularized.nModes = 1
+ppExplicitRegularized.nSensors = 1
+ppExplicitRegularized.basis = "SVD"
+ppExplicitRegularized.optimizer = "QR"
+ppExplicitRegularized.reconstructionMethod = "regularized"
+ppExplicitRegularized.reconstructionNoise = 0.2
+explicitRegularizedModel = ppExplicitRegularized._buildModel(ppExplicitRegularized._buildBasis(), ppExplicitRegularized._buildOptimizer())
+explicitRegularizedModel.fit(fullRankData)
+regularizedPrediction = ppExplicitRegularized._predictFullState(explicitRegularizedModel, fullRankData)
+check("explicit regularized reconstruction returns the full-state shape",
+      regularizedPrediction.shape == fullRankData.shape)
 
 ppStd = SparseSensing()
 ppStd.sparseSensingGoal = "reconstruction"
