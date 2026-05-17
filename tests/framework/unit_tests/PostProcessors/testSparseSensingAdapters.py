@@ -18,6 +18,7 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 import numpy as np
+import xarray as xr
 
 ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)]+[os.pardir]*4)))
 sys.path.append(ravenDir)
@@ -256,11 +257,86 @@ ppBadBasis.basis = "Bogus"
 ppBadBasis.nModes = 2
 checkRaises("unknown basis is rejected", IOError, ppBadBasis._buildBasis, "not recognized")
 
+xmlClassification = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='classification'>
+    <features>x,T</features>
+    <target>T</target>
+    <label>classLabel</label>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <l1Penalty>0.2</l1Penalty>
+    <threshold>1e-10</threshold>
+  </Goal>
+</PostProcessor>"""
+
 ppClass = SparseSensing()
-ppClass.sparseSensingGoal = "classification"
-ppClass.nSensors = 2
-checkRaises("classification is rejected explicitly", NotImplementedError,
-            lambda: ppClass._buildModel(None, None), "not yet implemented")
+ppClass._handleInput(parse(xmlClassification))
+check("classification goal is parsed", ppClass.sparseSensingGoal == "classification")
+check("classification label is parsed", ppClass.classificationLabel == "classLabel")
+check("classification l1 penalty is parsed", abs(ppClass.classificationL1Penalty - 0.2) < 1e-14)
+check("classification threshold is parsed", abs(ppClass.classificationThreshold - 1e-10) < 1e-20)
+check("classification builder returns SSPOC",
+      ppClass._buildModel(ppClass._buildBasis(), None).__class__.__name__ == "SSPOC")
+
+checkRaises("classification requires a label node", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='classification'>
+    <features>x,T</features>
+    <target>T</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+  </Goal>
+</PostProcessor>""")), "label")
+
+checkRaises("negative classification l1Penalty is rejected", IOError,
+            lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='classification'>
+    <features>x,T</features>
+    <target>T</target>
+    <label>classLabel</label>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <l1Penalty>-0.1</l1Penalty>
+  </Goal>
+</PostProcessor>""")), "non-negative")
+
+xmlClassificationRun = """<PostProcessor name='pp' subType='SparseSensing'>
+  <Goal subType='classification'>
+    <features>x,T</features>
+    <target>T</target>
+    <label>classLabel</label>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+  </Goal>
+</PostProcessor>"""
+ppClassRun = SparseSensing()
+ppClassRun._handleInput(parse(xmlClassificationRun))
+field = np.asarray([[0.0, 0.0, 1.0, 1.0],
+                    [0.1, 0.0, 1.0, 0.9],
+                    [1.0, 1.0, 0.0, 0.0],
+                    [0.9, 1.0, 0.1, 0.0]])
+sampleCoord = np.arange(field.shape[0])
+sensorCoord = np.arange(field.shape[1])
+inputDS = xr.Dataset({
+  "x": (("RAVEN_sample_ID", "index"), np.tile(sensorCoord, (field.shape[0], 1))),
+  "T": (("RAVEN_sample_ID", "index"), field),
+  "classLabel": ("RAVEN_sample_ID", np.asarray([0, 0, 1, 1])),
+}, coords={"RAVEN_sample_ID": sampleCoord, "index": sensorCoord})
+classOut = ppClassRun.run({"Data": [(None, None, inputDS)]})
+check("classification run outputs one row per selected sensor",
+      classOut.sizes["sensor"] == ppClassRun.nSensors)
+check("classification run outputs selected sensor coordinates",
+      "x" in classOut and classOut["x"].sizes["sensor"] == ppClassRun.nSensors)
+check("classification run outputs measured target values at sensors",
+      "T" in classOut and classOut["T"].sizes["sensor"] == ppClassRun.nSensors)
 
 checkRaises("unknown reconstruction metric is rejected", IOError,
             lambda: SparseSensing()._handleInput(parse("""<PostProcessor name='pp' subType='SparseSensing'>

@@ -106,6 +106,13 @@ class SparseSensing(PostProcessorReadyInterface):
                                                 printPriority=108,
                                                 descr=r"""target of data model""")
     goal.addSub(target)
+    label = InputData.parameterInputFactory("label", contentType=InputTypes.StringType,
+                                            printPriority=108,
+                                            descr=r"""Name of the class-label variable used when
+                                                  \xmlAttr{subType} is \xmlString{classification}.
+                                                  \xmlNode{target} remains the measured field whose
+                                                  locations are candidate sensors.""")
+    goal.addSub(label)
     basis = InputData.parameterInputFactory("basis", contentType=InputTypes.makeEnumType("basis","basis Type", cls.basisOptions),
                                                            printPriority=108,
                                                            descr=r"""The type of basis onto which the data are projected""", default='SVD')
@@ -118,6 +125,19 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The number of sensors used""")
     goal.addSub(nSensors)
+    l1Penalty = InputData.parameterInputFactory("l1Penalty", contentType=InputTypes.FloatType,
+                                                printPriority=108,
+                                                descr=r"""L1 penalty forwarded to
+                                                      \xmlString{pysensors.SSPOC} for multiclass
+                                                      classification. \default{0.1}""",
+                                                default=0.1)
+    goal.addSub(l1Penalty)
+    threshold = InputData.parameterInputFactory("threshold", contentType=InputTypes.FloatType,
+                                                printPriority=108,
+                                                descr=r"""Optional sensor-coefficient threshold forwarded
+                                                      to \xmlString{pysensors.SSPOC}. If omitted,
+                                                      pysensors computes the Brunton et al. default.""")
+    goal.addSub(threshold)
     optimizer = InputData.parameterInputFactory("optimizer", contentType=InputTypes.makeEnumType("optimizer","optimizer type", cls.optimizerOptions),
                                                            printPriority=108,
                                                            descr=r"""The type of optimizer used""",default='QR')
@@ -339,6 +359,9 @@ class SparseSensing(PostProcessorReadyInterface):
     self.basis = None                                        # The types of basis used in the projection. i.e., SVD, Identity, or Random Projection
     self.sensingFeatures = None                              # The variable representing the features of the data i.e., X, Y, SensorID, etc.
     self.sensingTarget = None                                # The Response of interest to be reconstructed (or classify)
+    self.classificationLabel = None                          # The class-label variable used for SSPOC classification
+    self.classificationL1Penalty = 0.1                       # L1 penalty used by multiclass SSPOC
+    self.classificationThreshold = None                      # Optional SSPOC sensor-coefficient threshold
     self.optimizer = None                                    # The Optimizer type using in the Sparse sensing selection (default: QR)
     self.sensorCosts = None                                  # Optional per-sensor costs for CCQR
     self.sensorCostsVariableName = None                      # Input variable name holding the CCQR costs
@@ -440,6 +463,16 @@ class SparseSensing(PostProcessorReadyInterface):
         self.basis = self._normalizeBasis(child.findFirst('basis').value)
         self.sensingFeatures = child.findFirst('features').value
         self.sensingTarget = child.findFirst('target').value
+        labelNode = child.findFirst('label')
+        self.classificationLabel = labelNode.value if labelNode is not None else None
+        l1PenaltyNode = child.findFirst('l1Penalty')
+        self.classificationL1Penalty = l1PenaltyNode.value if l1PenaltyNode is not None else 0.1
+        if self.classificationL1Penalty < 0:
+          self.raiseAnError(IOError, 'l1Penalty must be non-negative')
+        thresholdNode = child.findFirst('threshold')
+        self.classificationThreshold = thresholdNode.value if thresholdNode is not None else None
+        if self.classificationThreshold is not None and self.classificationThreshold < 0:
+          self.raiseAnError(IOError, 'threshold must be non-negative')
         self.optimizer = self._normalizeOptimizer(child.findFirst('optimizer').value)
         sensorCosts = child.findFirst('sensorCosts')
         self.sensorCostsVariableName = sensorCosts.value if sensorCosts is not None else None
@@ -505,6 +538,8 @@ class SparseSensing(PostProcessorReadyInterface):
         self.reshape = reshapeNode.value if reshapeNode is not None else 'snapshot'
         if child.parameterValues['subType'] not in self.goalsDict.keys():
           self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
+        if self.sparseSensingGoal == 'classification' and self.classificationLabel is None:
+          self.raiseAnError(IOError, 'SparseSensing classification requires a <label> node naming the class-label variable')
       elif child.getName() == 'Metric':
         # Validation only — the assembler machinery resolves the reference itself in initialize().
         if 'class' not in child.parameterValues or 'type' not in child.parameterValues:
@@ -727,8 +762,48 @@ class SparseSensing(PostProcessorReadyInterface):
     if self.sparseSensingGoal == 'reconstruction':
       return ps.SSPOR(basis=basis, n_sensors=self.nSensors, optimizer=optimizer)
     if self.sparseSensingGoal == 'classification':
-      self.raiseAnError(NotImplementedError, 'SparseSensing classification is not yet implemented in RAVEN')
+      return ps.SSPOC(basis=basis,
+                      n_sensors=self.nSensors,
+                      threshold=self.classificationThreshold,
+                      l1_penalty=self.classificationL1Penalty)
     self.raiseAnError(IOError, 'goal "{}" is not recognized'.format(self.sparseSensingGoal))
+
+  def _extractClassificationLabels(self, inputDS, nSamples, pivotLen, expectedRows):
+    """
+      Extract and align class labels for SSPOC fitting.
+      @ In, inputDS, xr.Dataset, input dataset
+      @ In, nSamples, int, number of original samples
+      @ In, pivotLen, int or None, number of pivot entries for time-dependent data
+      @ In, expectedRows, int, number of rows in the matrix passed to SSPOC.fit
+      @ Out, labels, np.ndarray, one label per row of the fitting matrix
+    """
+    if self.classificationLabel not in inputDS:
+      self.raiseAnError(IOError, 'classification label variable "{}" not found in the input DataObject'.format(self.classificationLabel))
+    raw = np.asarray(inputDS[self.classificationLabel].data)
+    if raw.ndim == 0:
+      self.raiseAnError(IOError, 'classification label variable "{}" must contain one label per sample'.format(self.classificationLabel))
+    if raw.shape[0] != nSamples:
+      self.raiseAnError(IOError, 'classification label variable "{}" has first dimension {} but expected {}'.format(self.classificationLabel, raw.shape[0], nSamples))
+
+    labels = None
+    if raw.ndim == 1:
+      labels = raw
+    elif pivotLen is not None and self.reshape == 'snapshot' and raw.shape[1] == pivotLen:
+      labelsBySnapshot = raw.reshape(nSamples, pivotLen, -1)
+      if labelsBySnapshot.shape[2] > 1 and not np.all(labelsBySnapshot == labelsBySnapshot[:, :, 0:1]):
+        self.raiseAnError(IOError, 'classification label variable "{}" must have one value per sample/time snapshot'.format(self.classificationLabel))
+      labels = labelsBySnapshot[:, :, 0].reshape(-1)
+    else:
+      labelsBySample = raw.reshape(nSamples, -1)
+      if labelsBySample.shape[1] > 1 and not np.all(labelsBySample == labelsBySample[:, 0:1]):
+        self.raiseAnError(IOError, 'classification label variable "{}" must have one invariant value per sample'.format(self.classificationLabel))
+      labels = labelsBySample[:, 0]
+
+    if pivotLen is not None and self.reshape == 'snapshot' and labels.shape[0] == nSamples:
+      labels = np.repeat(labels, pivotLen)
+    if labels.shape[0] != expectedRows:
+      self.raiseAnError(IOError, 'classification label variable "{}" produced {} labels but expected {} rows'.format(self.classificationLabel, labels.shape[0], expectedRows))
+    return labels
 
   def _resolvePriorAgainstModel(self, model, prior, nodeName):
     """
@@ -1129,14 +1204,18 @@ class SparseSensing(PostProcessorReadyInterface):
       self.sensorCosts = np.asarray(rawCosts, dtype=float).reshape(-1)
       if len(self.sensorCosts) != nfeatures:
         self.raiseAnError(IOError, 'sensorCosts has length {} but expected {}'.format(len(self.sensorCosts), nfeatures))
-    optimizer = self._buildOptimizer()
+    optimizer = None if self.sparseSensingGoal == 'classification' else self._buildOptimizer()
     model = self._buildModel(basis, optimizer)
-    optimizerKws = self._buildOptimizerKws(data, inputDS)
     matrix = self._reshapeForFit(data, pivotLen)
-    if self.seed is not None:
-      model.fit(matrix, seed=self.seed, **optimizerKws)
+    if self.sparseSensingGoal == 'classification':
+      labels = self._extractClassificationLabels(inputDS, nSamples, pivotLen, matrix.shape[0])
+      model.fit(matrix, labels)
     else:
-      model.fit(matrix, **optimizerKws)
+      optimizerKws = self._buildOptimizerKws(data, inputDS)
+      if self.seed is not None:
+        model.fit(matrix, seed=self.seed, **optimizerKws)
+      else:
+        model.fit(matrix, **optimizerKws)
     # Preserve the optimizer selection order.  For QR-style optimizers, this is the
     # pivot/importance order; sorting by spatial index would lose that information.
     selectedSensors = model.get_selected_sensors()

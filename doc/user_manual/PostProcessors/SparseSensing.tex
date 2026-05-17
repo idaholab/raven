@@ -1,6 +1,6 @@
 \subsubsection{SparseSensing}
 \label{SparseSensing}
-The \textbf{SparseSensing} post-processor incorporates ``PySensors'', a Scikit-learn style Python package for the sparse placement of sensors for reconstruction tasks and classification tasks which will be added here soon.
+The \textbf{SparseSensing} post-processor incorporates ``PySensors'', a Scikit-learn style Python package for the sparse placement of sensors for reconstruction and classification tasks.
 
 Sparse sensor placement concerns the problem of selecting a small subset of sensor or measurement locations in a way that allows one to perform some task nearly as well as if one had access to measurements at every location.
 
@@ -23,15 +23,17 @@ User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field
 
     \item \textbf{Classification} is the problem of predicting which category an example belongs to, given a set of training data (e.g. determining whether digital photos are of dogs or cats).
 \end{itemize}
-\nb{Currently, only reconstruction is implemented.}
 In order to use the \xmlNode{Goal}, the user needs to provide the following subnodes:
 \begin{itemize}
 	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., possible sensor locations/IDs
-	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed.
+	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed or the measured field whose candidate sensor locations are used for classification.
   \nb{Currently the algorithms can handle a single target}.
+        \item \xmlNode{label}, \xmlDesc{string, required for \xmlString{classification}}, the class-label variable used by \xmlString{SSPOC}. This is intentionally separate from \xmlNode{target}: \xmlNode{target} is the measured field from which sensors are selected, while \xmlNode{label} contains the class assigned to each sample.
 	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the projection basis: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}, or \xmlString{HOSVD} (Tucker decomposition; requires \xmlNode{pivotParameter} and a 3-D input tensor). \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
+        \item \xmlNode{l1Penalty}, \xmlDesc{float, optional field}, L1 penalty forwarded to \xmlString{pysensors.SSPOC} for multiclass classification. \default{0.1}
+        \item \xmlNode{threshold}, \xmlDesc{float, optional field}, sensor-coefficient threshold forwarded to \xmlString{pysensors.SSPOC}. If omitted, PySensors computes its Brunton et al. default.
 	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case, \xmlString{CCQR} when sensor costs are supplied, \xmlString{GQR} for constrained reconstruction, or \xmlString{TPGR} for the two-point greedy optimizer. \default{QR}
         \item \xmlNode{sensorCosts}, \xmlDesc{string, optional field}, the name of the input variable that stores the per-sensor costs consumed by the \xmlString{CCQR} optimizer.
         \item \xmlNode{constraint}, \xmlDesc{optional field}, a nested block used only with \xmlString{GQR}. The required attribute \xmlAttr{strategy} selects one of \xmlString{max\_n}, \xmlString{exact\_n}, \xmlString{predetermined}, or \xmlString{distance}. For shape-based constraints, the block may include \xmlNode{shape}, axis names such as \xmlNode{xAxis}/\xmlNode{yAxis}/\xmlNode{zAxis}, shape parameters such as \xmlNode{centerX}, \xmlNode{centerY}, \xmlNode{radius}, and \xmlNode{nConstSensors}. Built-in shapes currently exposed are \xmlString{Circle}, \xmlString{Cylinder}, \xmlString{Line}, \xmlString{Parabola}, \xmlString{Ellipse}, \xmlString{Polygon}, and \xmlString{UserDefined}. Explicit constrained sensor indices can also be provided through \xmlNode{indices}.
@@ -51,6 +53,22 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
         \item \xmlNode{reshape}, \xmlDesc{string, optional field}, how to flatten a time-dependent tensor before sensor selection. \xmlString{snapshot} (default) stacks samples and time steps as rows, so sensors remain physical spatial points. \xmlString{spatiotemporal} keeps rows as samples and encodes $(space, time)$ pairs as columns, returning a measurement schedule instead of only spatial locations.
 \end{itemize}
 \end{itemize}
+
+\textbf{Example (classification):} selects \xmlString{SSPOC} sensor locations from the measured field \xmlString{Temperature (K)} using \xmlString{classLabel} as the supervised class label.
+\begin{lstlisting}[style=XML]
+<PostProcessor name="myClassifierSPSL" subType="SparseSensing">
+  <Goal subType="classification">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <label>classLabel</label>
+    <basis>SVD</basis>
+    <nModes>4</nModes>
+    <nSensors>4</nSensors>
+    <optimizer>QR</optimizer>
+    <l1Penalty>0.1</l1Penalty>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
 
 \textbf{Example (shorthand):} writes \xmlString{rec\_rmse} and \xmlString{rec\_mse} columns.
 \begin{lstlisting}[style=XML]
