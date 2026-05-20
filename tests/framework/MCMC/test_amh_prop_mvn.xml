@@ -14,6 +14,9 @@
       ``TargetEvaluation'' is used to collect the inputs and outputs from the likelihood model.
       ``SolutionExport'' is used to store the posterior values for the input variables, i.e. ``xin'' and ``yin''
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -21,6 +24,7 @@
     <Sequence>amh, print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>
@@ -99,15 +103,14 @@
       <Input>xin, yin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <PointSet name="outSet">
       <Input>xin, yin</Input>
       <Output>zout</Output>
     </PointSet>
-
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>xin, yin, LogPosterior, AcceptRate</Output>
     </PointSet>
   </DataObjects>
+
 </Simulation>

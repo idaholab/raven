@@ -4,6 +4,7 @@
     <WorkingDir>shuffleSplit</WorkingDir>
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -16,6 +17,7 @@
     </description>
     <revisions>
       <revision author="wangc" date="2017-12-07">convert test to use the new dataobjects</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 

@@ -25,6 +25,7 @@ import threading
 from collections import deque, defaultdict
 import numpy as np
 import copy
+from time import time
 
 from .utils import findCrowModule
 from ..CustomDrivers.DriverUtils import setupCpp
@@ -218,15 +219,20 @@ class NumpyRNG:
     """
     self._engine = None
     self._seed = None
-    self.seed(5489)  # default seed of boost::random::mt19937
+    self.seed(5489)  # default seed inherited from boost::random::mt19937 was 5489. If a high entropy seed is desired, set <globalSeed>None</globalSeed> under node <RunInfo> in the '.xml'.
 
   def seed(self, value):
     """
       Reseeds the RNG
-      @ In, value, int, RNG seed
+      @ In, value, int or NoneType, RNG seed
       @ Out, None
     """
-    self._seed = abs(int(value))
+    if value in [None,"none"]: # 'None' prompts the bitGenerator to grab a "high entropy seed from the OS", which defines the inital state.
+      self._seed = None
+    elif str(value).lower() == 'legacynone': # Use the system clock as a source of entropy for a legacy-style seed.
+      self._seed = int(time())
+    else: # Use the user-provided integer seed value.
+      self._seed = abs(int(value))
     # According to the numpy docs, best practice is to create a new Generator rather than reseed an
     # existing one.
     bitGenerator = np.random.MT19937()
@@ -303,6 +309,7 @@ def randomSeed(value, engine=None):
   """
   engine = getEngine(engine)
   engine.seed(value)
+  return engine._seed
 
 def forwardSeed(count, engine=None):
   """

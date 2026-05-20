@@ -1,9 +1,12 @@
+<?xml version="1.0" ?>
 <Simulation color="True" verbosity="debug">
   <RunInfo>
     <WorkingDir>run</WorkingDir>
     <Sequence>sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/SingleRuns/externalModelFails</name>
     <author>talbpw</author>
@@ -12,6 +15,9 @@
     <description>
        This test assures the SingleRun produces the correct error when paired with the External model.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Steps>
@@ -45,4 +51,5 @@
       <source>sample</source>
     </Print>
   </OutStreams>
+
 </Simulation>

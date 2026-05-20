@@ -4,7 +4,9 @@
     <WorkingDir>gridSplit</WorkingDir>
     <Sequence>load_old, makeCoarse,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/Restart.Grid</name>
     <author>cogljj</author>
@@ -15,6 +17,9 @@
       and saves it. This is an example of how to write a new input
       that continues a 'failed' run of RAVEN.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -23,7 +28,7 @@
 
   <Steps>
     <IOStep name="load_old">
-      <Input class='Files' type=''>old_solns</Input>
+      <Input class="Files" type="">old_solns</Input>
       <Output class="DataObjects" type="PointSet">solns_orig</Output>
     </IOStep>
     <MultiRun name="makeCoarse">

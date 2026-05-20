@@ -9,12 +9,17 @@
         Mechanic TEST: This test is aimed to check that the failures from the EnsembleModel are correctly collected without abnormal
        termination of RAVEN.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>metaModelLinearExpectedFailure</WorkingDir>
     <Sequence>failStep</Sequence>
     <batchSize>2</batchSize>
     <internalParallel>False</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>
@@ -29,7 +34,6 @@
   </Distributions>
 
   <Models>
-    <!-- EM1faulty will allways fail -->
     <ExternalModel ModuleToLoad="metaModelLinearExpectedFailure/EM1faulty" name="heatTransfer" subType="">
       <variables>leftTemperature,rightTemperature,k,solution</variables>
     </ExternalModel>
@@ -73,7 +77,6 @@
       <Output class="DataObjects" type="PointSet">heatTransferContainer</Output>
     </MultiRun>
   </Steps>
-
 
   <DataObjects>
     <PointSet name="inputHolder">

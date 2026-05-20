@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Databases/NetCDF.TwiceWrite</name>
@@ -10,11 +11,15 @@
       ``io'' (via IOStep), check that all possible combinations come out the same: sample-sample,
       sample-io, io-sample, and io-io.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>TwiceWrite</WorkingDir>
     <Sequence>sample1,write1,sample2,write2</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -50,13 +55,13 @@
 
   <DataObjects>
     <PointSet name="placeholder"/>
-    <DataSet name='nd_data1'>
+    <DataSet name="nd_data1">
       <Input>a,b,c</Input>
       <Output>d,e,f</Output>
       <Index var="x">e,f</Index>
       <Index var="y">f</Index>
     </DataSet>
-    <DataSet name='nd_data2'>
+    <DataSet name="nd_data2">
       <Input>a,b,c</Input>
       <Output>d,e,f</Output>
       <Index var="x">e,f</Index>
@@ -65,10 +70,10 @@
   </DataObjects>
 
   <Databases>
-    <NetCDF name="io_io" readMode="overwrite" directory=''/>
-    <NetCDF name="io_sample" readMode="overwrite" directory=''/>
-    <NetCDF name="sample_io" readMode="overwrite" directory=''/>
-    <NetCDF name="sample_sample" readMode="overwrite" directory=''/>
+    <NetCDF name="io_io" readMode="overwrite" directory=""/>
+    <NetCDF name="io_sample" readMode="overwrite" directory=""/>
+    <NetCDF name="sample_io" readMode="overwrite" directory=""/>
+    <NetCDF name="sample_sample" readMode="overwrite" directory=""/>
   </Databases>
 
   <Models>

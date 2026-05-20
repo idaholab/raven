@@ -30,11 +30,15 @@
         \item 1.0, 1.0, 0.35880
       \end{itemize}
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>SerializePyomo</WorkingDir>
     <Sequence>sample, train, serialize, pickle</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -88,11 +92,11 @@
     <Grid name="grid">
       <variable name="y1">
         <distribution>dist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="1">0 1</grid>
       </variable>
       <variable name="y2">
         <distribution>dist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="1">0 1</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -106,6 +110,5 @@
       <Output>ans</Output>
     </PointSet>
   </DataObjects>
-
 
 </Simulation>

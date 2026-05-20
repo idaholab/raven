@@ -24,6 +24,7 @@
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -31,6 +32,7 @@
     <WorkingDir>circle</WorkingDir>
     <Sequence>sample,adapt,dump</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -99,9 +101,6 @@
       <Function class="Functions" type="External">label</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">response</TargetEvaluation>
       <Convergence forceIteration="False" limit="16" persistence="25" weight="value">9e-5</Convergence>
-      <!--
-        <generateCSVs/>
-      -->
       <scoring>distancePersistence</scoring>
       <batchStrategy>maxV</batchStrategy>
       <thickness>1</thickness>

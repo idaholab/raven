@@ -11,6 +11,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2020-04-15">Added test for computation of the error bound and linked to new requirement</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-RA-8</requirements>
   </TestInfo>
@@ -19,6 +20,7 @@
     <WorkingDir>limitSurfaceBoundingError</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>

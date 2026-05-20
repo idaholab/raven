@@ -14,25 +14,25 @@
       <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="talbpaul" date="2018-02-26">Adding maxQueueSize of 1 for consistency with previous behavior</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-IS-4</requirements>
   </TestInfo>
-  <!-- RUNINFO -->
+
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Sequence>FirstMRun,FirstMRun2</Sequence>
     <batchSize>1</batchSize>
     <maxQueueSize>1</maxQueueSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
-  <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="25061978">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
-      <!-- FIXME <Output class="Databases" type="HDF5">test_external_db</Output>-->
       <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
       <Output class="OutStreams" type="Print">testPointSet_dump</Output>
@@ -48,17 +48,14 @@
     </MultiRun>
   </Steps>
 
-  <!-- MODELS -->
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractorWithCustomNode" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0,customVariable2</variables>
-      
       <customNode1>It is a string that is read in the external model directly</customNode1>
       <customNode2>20021986</customNode2>
     </ExternalModel>
   </Models>
 
-  <!-- DISTRIBUTIONS -->
   <Distributions>
     <Normal name="x0_distrib">
       <mean>4</mean>
@@ -74,7 +71,6 @@
     </Normal>
   </Distributions>
 
-  <!-- SAMPLERS -->
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
@@ -106,12 +102,10 @@
     </Grid>
   </Samplers>
 
-  <!-- DATABASES -->
   <Databases>
     <HDF5 name="test_external_db" readMode="overwrite"/>
   </Databases>
 
-  <!-- OUTSTREAMS -->
   <OutStreams>
     <Print name="testPrintHistorySet_dump">
       <type>csv</type>
@@ -125,7 +119,6 @@
     </Print>
   </OutStreams>
 
-  <!-- DATA OBJECTS -->
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>

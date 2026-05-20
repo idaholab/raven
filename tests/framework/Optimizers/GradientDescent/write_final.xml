@@ -12,11 +12,15 @@
       This test uses Beale's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>WriteFinal</WorkingDir>
     <Sequence>optimize, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -36,7 +40,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='beale_dist'>
+    <Uniform name="beale_dist">
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>
@@ -72,7 +76,7 @@
       </acceptance>
       <convergence>
         <gradient>1e-1</gradient>
-        <terminateFollowers proximity='1e-1'>true</terminateFollowers>
+        <terminateFollowers proximity="1e-1">true</terminateFollowers>
       </convergence>
     </GradientDescent>
   </Optimizers>

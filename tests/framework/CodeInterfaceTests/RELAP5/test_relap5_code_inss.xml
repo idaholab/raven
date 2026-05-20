@@ -21,6 +21,7 @@
     <WorkingDir>RELAP5interfaceTestModifiedVersionINSS</WorkingDir>
     <Sequence>INSS_RELAP5_step,io_test</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

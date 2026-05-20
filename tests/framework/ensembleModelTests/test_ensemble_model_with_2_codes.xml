@@ -9,8 +9,11 @@
        Example of usage of the Ensemble Model capability in RAVEN, connecting multiple multiple Codes together, with same output variable names.
        This means that the alias system has been used and this test is aimed to show how to use it in these kinds of situations.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>testEnsembleModelWith2CodesAndAlias</JobName>
     <Sequence>
@@ -20,6 +23,7 @@
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
     <delSucLogFiles>True</delSucLogFiles>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -34,21 +38,21 @@
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
       <prepend>python</prepend>
-      <alias variable="AtestModel1"           type="output">A</alias>
-      <alias variable="BtestModel1"           type="output">B</alias>
+      <alias variable="AtestModel1" type="output">A</alias>
+      <alias variable="BtestModel1" type="output">B</alias>
     </Code>
     <Code name="testModel2" subType="GenericCode">
-        <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-        <clargs arg="python" type="prepend"/>
-        <clargs arg="" extension=".xml" type="input"/>
-        <clargs arg=" " extension=".csv" type="output"/>
-        <prepend>python</prepend>
-        <alias variable="AtestModel1"           type="input">init-A</alias>
-        <alias variable="BtestModel1"           type="input">init-B</alias>
-        <alias variable="AtestModel2"           type="output">A</alias>
-        <alias variable="BtestModel2"           type="output">B</alias>
-        <alias variable="CtestModel2"           type="output">C</alias>
-        <alias variable="DtestModel2"           type="output">D</alias>
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+      <alias variable="AtestModel1" type="input">init-A</alias>
+      <alias variable="BtestModel1" type="input">init-B</alias>
+      <alias variable="AtestModel2" type="output">A</alias>
+      <alias variable="BtestModel2" type="output">B</alias>
+      <alias variable="CtestModel2" type="output">C</alias>
+      <alias variable="DtestModel2" type="output">D</alias>
     </Code>
     <EnsembleModel name="codeAndExtModel" subType="">
       <Model class="Models" type="Code">
@@ -104,8 +108,8 @@
       <Output class="DataObjects" type="PointSet">finalResponses</Output>
     </MultiRun>
     <IOStep name="dumpResults">
-        <Input class="DataObjects" type="PointSet">finalResponses</Input>
-        <Output class="OutStreams" type="Print">printFinalResults</Output>
+      <Input class="DataObjects" type="PointSet">finalResponses</Input>
+      <Output class="OutStreams" type="Print">printFinalResults</Output>
     </IOStep>
   </Steps>
 

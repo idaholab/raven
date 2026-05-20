@@ -15,6 +15,7 @@
     <revisions>
       <revision author="alfoa" date="2024-04-16">Added test and added description of the test.</revision>
       <revision author="alfoa" date="2024-05-14">Moved test to dedicated subfolder for test reorganization</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -22,12 +23,12 @@
     <WorkingDir>RedundantInputsFunctionsSameModule</WorkingDir>
     <Sequence>sim_py_MC</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
     <Input name="input.py" type="">../RedundantInputs/input.py</Input>
     <Input name="simp_imp.py" type="">RedundantInputs/simp_imp.py</Input>
-    
   </Files>
 
   <Steps>

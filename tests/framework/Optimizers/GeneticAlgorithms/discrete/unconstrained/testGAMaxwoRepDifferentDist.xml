@@ -14,12 +14,16 @@
     <analytic>
       This test uses myLocalSum's analytic objective function.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>MaxwoReplacementDiffDist</WorkingDir>
     <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

@@ -25,6 +25,9 @@ sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
 
+from ravenframework.utils import randomUtils
+randomUtils.randomSeed(5489) #initialize numpy RNG with set seed
+
 from ravenframework.Optimizers.gradients import factory # returnInstance
 
 fd = factory.returnInstance('FiniteDifference')

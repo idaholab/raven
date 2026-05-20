@@ -9,6 +9,9 @@
       Tests using the MPIExec and NodeParameter by fiddling with them and
       putting the node parameter in the MPIExec block.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -21,12 +24,12 @@
       mpi
       <runQSUB/>
     </mode>
-    <!-- this is a silly rearrangement to test the functionality. -->
     <MPIExec>mpiexec</MPIExec>
     <NodeParameter> </NodeParameter>
     <NumMPI>2</NumMPI>
     <expectedTime>0:10:00</expectedTime>
     <JobName>test_qsub</JobName>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -62,12 +65,6 @@
       <apex>1</apex>
       <min>-0.1</min>
       <max>3</max>
-      <!--
-        <lowerBound>0</lowerBound>
-         This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-      -->
     </Triangular>
   </Distributions>
 

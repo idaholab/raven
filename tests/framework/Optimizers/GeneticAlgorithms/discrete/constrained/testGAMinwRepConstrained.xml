@@ -14,12 +14,16 @@
       This test uses myLocalSum's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>MinwReplacementConstrained</WorkingDir>
     <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

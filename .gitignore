@@ -38,6 +38,7 @@ src/crow_modules/randomENG_wrap.cpp
 src/crow_modules/randomENG.py
 test_out*
 dist/
+developer_tools/generated_raven.xsd
 
 # eclipse
 .project

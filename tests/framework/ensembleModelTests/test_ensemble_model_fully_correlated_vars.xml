@@ -10,8 +10,10 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-12-07">Added the test</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <JobName>ensembleModelFullyCorrVars</JobName>
     <Sequence>
@@ -19,6 +21,7 @@
     </Sequence>
     <WorkingDir>ensembleModelFullyCorrVars</WorkingDir>
     <batchSize>2</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

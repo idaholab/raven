@@ -297,6 +297,7 @@ def process_result(index, _input_data, output_data):
     okaycolor = Colors.okay
   elif group == Tester.group_skip:
     results["skipped"] += 1
+    skipped_list.append((process_test_name, output_data.message))
     print(output_data.message)
     okaycolor = Colors.skip
   else:
@@ -499,9 +500,20 @@ if __name__ == "__main__":
 
   results = {"pass":0, "fail":0, "skipped":0}
   failed_list = []
+  skipped_list = []
 
   output_list = run_pool.process_results(process_result)
   run_pool.wait()
+
+  # Surface every skipped test with its skip reason so silent skips (missing optional libs,
+  # stale skip directives, OS guards, heavy/normal mismatches) cannot hide regressions.
+  # The inline SKIPPED messages above scroll off long runs; a final list keeps them visible.
+  # Listed before FAILED so the more-actionable failures stay closest to the final counts.
+  if results["skipped"] > 0:
+    print("{}SKIPPED tests:{}".format(Colors.skip, Colors.norm))
+    for name, reason in skipped_list:
+      reason_text = reason if reason else "(no reason given)"
+      print("  {} -- {}".format(name, reason_text))
 
   if results["fail"] > 0:
     print("{}FAILED:".format(Colors.fail))

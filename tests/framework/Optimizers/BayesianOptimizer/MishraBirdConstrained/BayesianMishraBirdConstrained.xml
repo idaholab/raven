@@ -21,16 +21,20 @@
       This test uses the Mishra's Constrained Bird function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>./</WorkingDir>
     <Sequence>optimize, collect_final, print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" >
+    <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">mishra</Model>
       <Optimizer class="Optimizers" type="BayesianOptimizer">BOopt</Optimizer>
@@ -55,11 +59,11 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='mishra_dist_x'>
+    <Uniform name="mishra_dist_x">
       <lowerBound>-10</lowerBound>
       <upperBound>0</upperBound>
     </Uniform>
-    <Uniform name='mishra_dist_y'>
+    <Uniform name="mishra_dist_y">
       <lowerBound>-6.5</lowerBound>
       <upperBound>0</upperBound>
     </Uniform>
@@ -80,9 +84,9 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
-      <ROM  class="Models" type="ROM">gpROM</ROM>
-      <Constraint class='Functions' type='External'>constraint1</Constraint>
+      <Sampler class="Samplers" type="Stratified">LHS_samp</Sampler>
+      <ROM class="Models" type="ROM">gpROM</ROM>
+      <Constraint class="Functions" type="External">constraint1</Constraint>
       <ModelSelection>
         <Duration>1</Duration>
         <Method>External</Method>
@@ -133,7 +137,7 @@
       <multioutput>False</multioutput>
     </ROM>
     <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
-      <criterion value='-1'> index </criterion>
+      <criterion value="-1"> index </criterion>
     </PostProcessor>
   </Models>
 
@@ -174,4 +178,5 @@
       <source>selected_index</source>
     </Print>
   </OutStreams>
+
 </Simulation>

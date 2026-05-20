@@ -4,6 +4,7 @@
     <WorkingDir>Ordered</WorkingDir>
     <printInput/>
     <Sequence>sample,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -14,6 +15,9 @@
     <description>
       tests order preservation of variables in variable groups
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <VariableGroups>

@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Samplers/SparseGrid/AdaptiveOnVariance</name>
@@ -7,12 +8,16 @@
     <description>
       This tests the adaptive sparse grid with adaptive samples chosen and converged according to variance.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>AdaptiveStochasticPolyVar</WorkingDir>
     <Sequence>make, train, stats, print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

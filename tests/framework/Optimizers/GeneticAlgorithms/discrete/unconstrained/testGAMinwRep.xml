@@ -22,6 +22,7 @@
     <WorkingDir>MinwReplacement</WorkingDir>
     <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

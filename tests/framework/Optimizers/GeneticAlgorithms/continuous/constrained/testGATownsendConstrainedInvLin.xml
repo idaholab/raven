@@ -16,11 +16,15 @@
     <analytic>
       This test uses Simionescu function.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>townsendConstrainedInvLin</WorkingDir>
     <Sequence>optimize, print, plot_results</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

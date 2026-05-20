@@ -139,6 +139,8 @@ def checkSameVersion(expected, received):
   # if identical, they're the same
   if expected == received:
     return True
+  if expected is not None and received is None:
+    return False
   # A.B.C versioning -> 1.1.0 should match 1.1
   expected = expected.replace("dev0", "0")
   received = received.replace("dev0", "0")
@@ -199,6 +201,10 @@ def findLibAndVersion(lib, version=None):
       found = False
       foundVersion = None
       output = 'Library not found.'
+    except TypeError:
+      found = False
+      foundVersion = None
+      output = 'Library finding failed.'
   # bad actors
   ## FIXME: if updating pyside2, check if it can be found with importlib_metadata!
   ## Was not possible in version 5.13.1 - talbpaul

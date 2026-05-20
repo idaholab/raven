@@ -11,12 +11,16 @@
     The design/serach variables are x1, through x3. Each of these variables are integers between 2, and 4.
     The problem is subjected to constraints: expConstr1, ixpConstr2, ixpConstr3 found at myCOnstraints.py
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>MultiwoReplacementFeasibleFirst</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

@@ -65,7 +65,7 @@ limit our library choices.
     <!-- <grpcio source="pip">1.69</grpcio> -->
     <!-- conda is really slow on windows if the version is not specified.-->
     <python skip_check='True' os='windows'>3.11</python>
-    <python skip_check='True' os='linux'>3</python>
+    <python skip_check='True' os='linux'>3.11</python>
     <python skip_check='True' os='mac'>3.11</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -78,11 +78,17 @@ limit our library choices.
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
+    <!-- libstdcxx-ng: ensure the conda env ships its own libstdc++ on Linux. The refreshed
+         scientific stack pulls in libicui18n.so.78 built against CXXABI_1.3.15 (GCC 13+),
+         which the CI machine older system /lib64/libstdc++.so.6 does not provide. Conda
+         activation puts the env libstdc++ ahead of /lib64 in the loader path, so this pin
+         alone is sufficient (no LD_LIBRARY_PATH workaround required). -->
+    <libstdcxx-ng os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]">2023.3.2</dask>
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <typing-extensions source="pip">4.14</typing-extensions>
-    <ray source="pip" pip_extra="[default]">2.49</ray>
+    <ray source="pip" pip_extra="[default]">2.52</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
@@ -112,6 +118,7 @@ limit our library choices.
     <python>remove</python>
     <nomkl>remove</nomkl>
     <liblapack>remove</liblapack>
+    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
@@ -119,5 +126,6 @@ limit our library choices.
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
+    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
 </dependencies>

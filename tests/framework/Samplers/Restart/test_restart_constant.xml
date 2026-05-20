@@ -10,7 +10,8 @@
         i.e. test the scaling factor for constant samples as mentioned in issue #690
     </description>
     <revisions>
-        <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
+      <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-F-4</requirements>
   </TestInfo>
@@ -19,6 +20,7 @@
     <WorkingDir>constant</WorkingDir>
     <Sequence>makeCoarse, makeFineRestart,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -76,8 +78,6 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <!-- The "coarsemod" model will output a reponse of 1.0, while "finemod" gives 2.0.
-         This allows the test to distinguish which samples originated in "coarse" and which in "fine".-->
     <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
       <variables>x1,x2,ans</variables>
     </ExternalModel>

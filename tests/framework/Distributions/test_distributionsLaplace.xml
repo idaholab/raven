@@ -8,24 +8,28 @@
     <description>
        This test is aimed to test the capability of RAVEN to use 1D Laplace distributions.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>test_laplace/</WorkingDir>
     <Sequence>MCrun,OutStreams</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
-    <MultiRun  name="MCrun">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    <MultiRun name="MCrun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet_MC</Output>
     </MultiRun>
     <IOStep name="OutStreams" pauseAtEnd="false">
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
-      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
+      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
+      <Output class="OutStreams" type="Print">MC_dump</Output>
     </IOStep>
   </Steps>
 

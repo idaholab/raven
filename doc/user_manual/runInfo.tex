@@ -296,7 +296,7 @@ automatically sets this option )
 \default{None - Automatic detection}
 
 
-%%%%%% remoteNodes
+%%%%%% PYTHONPATH
 \item \xmlNode{PYTHONPATH}, \xmlDesc{string, optional
 field}, specifies additional PATH that should be added in the $PYTHONPATH$ before executing models. In this node the user can specify
 additional path that will be added to the PYTHONPATH (e.g. path of python scripts that are used in driven models, etc.)
@@ -304,8 +304,17 @@ additional path that will be added to the PYTHONPATH (e.g. path of python script
 \default{None}
 
 %%%%%% schedulerFile
-\item \xmlNode{schedulerFile}, \xmlDesc{string, option field}, specifies the path to an existing Dask json scheduler file that can be use to run dask tasks.  This allows RAVEN to use an already started dask scheduler.  The scheduler file is created by running \texttt{dask scheduler --scheduler-file schedulerFile} which is also how RAVEN starts dask if this node is not provided.
+\item \xmlNode{schedulerFile}, \xmlDesc{string, optional field}, specifies the path to an existing Dask json scheduler file that can be use to run dask tasks.  This allows RAVEN to use an already started dask scheduler.  The scheduler file is created by running \texttt{dask scheduler --scheduler-file schedulerFile} which is also how RAVEN starts dask if this node is not provided.
   \default{None}
+
+%%%%%% globalSeed
+\item \xmlNode{globalSeed}, \xmlDesc{integer, optional field}, specifies the numerical seed to be used when initializing the random number
+generator (RNG) for the RAVEN calculation. The generator used is the numpy library by default. A value of \texttt{LegacyNone} can be
+provided to request that the system clock be used as a source of entropy for generating integer-based seeds. The initial seed used or requested
+is printed to the RAVEN log file. A value of \texttt{None} can also be provided to request that a high entropy initial seed be automatically generated,
+however the resulting generator initial state cannot be represented with an integer seed value which may lead to reproducibility issues.
+%
+\default{5489}
 
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
