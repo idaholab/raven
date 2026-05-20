@@ -127,9 +127,9 @@ newPop2,newFit2,newAge2,popObjVal2 = ageBased(rlz,
                                               variables=optVars,
                                               objVar=objVar,
                                               population=population,
-                                              fitness=popFitnessDS,
-                                              offspringFitness=offspringFitnessDS,
-                                              popObjectiveVal=popFitnessDS)
+                                              popFitVals=popFitnessDS,
+                                              offspringFitVals=offspringFitnessDS,
+                                              popMinObjVals=popFitnessDS)
 
 print('Age Based Selection')
 print('*'*19)

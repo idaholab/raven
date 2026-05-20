@@ -1002,7 +1002,7 @@ Simulated Annealing Example:
   providing decision-makers with a comprehensive view of the problem's solution space. More
   information about NSGA-II can be found in:\\\\                              Deb, Kalyanmoy, et al.
   ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on
-  evolutionary computation 6.2 (2002): 182-197.\\\\                              GA in RAVEN
+  evolutionary computation 6.2 (2002): 182-197.\\\\                              Internally, GA and NSGA-II store \texttt{minObjVals} as objective values transformed into RAVEN's minimization convention. Objectives declared as \texttt{min} are unchanged, while objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking, crowding-distance calculation, convergence checks, and fitness calculations. User-facing objective values should be interpreted through the requested minimization or maximization convention when exported.\\ The implementation keeps \texttt{minObjVals}, \texttt{externalObjVals}, and \texttt{fitVals} separate: \texttt{minObjVals} drives algorithmic ranking, crowding distance, convergence, and fitness calculation; \texttt{externalObjVals} is used only when converting back to user-facing signs for exports or implicit constraints; and \texttt{fitVals} is the scalar or per-objective fitness container used by parent and survivor selection.\\                              GA in RAVEN
   supports for both single and multi-objective optimization problem.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The

@@ -46,7 +46,8 @@ def rouletteWheel(population,**kwargs):
   """
   # Arguments
   pop = population
-  fitness = np.array([item for sublist in datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data for item in sublist],dtype=np.float64)
+  fitValsInput = kwargs.get('popFitVals', kwargs.get('fitness'))
+  fitVals = np.array([item for sublist in datasetToDataArray(fitValsInput, list(fitValsInput.keys())).data for item in sublist], dtype=np.float64)
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -67,15 +68,15 @@ def rouletteWheel(population,**kwargs):
     # initialize Probability
     counter = 0
     try:
-      if np.all(fitness>=0) or np.all(fitness<=0):
-        selectionProb = fitness/np.sum(fitness) # Share of the pie (rouletteWheel)
+      if np.all(fitVals>=0) or np.all(fitVals<=0):
+        selectionProb = fitVals/np.sum(fitVals) # Share of the pie (rouletteWheel)
       else:
         # shift the fitness to be all positive
-        shiftedFitness = fitness + abs(min(fitness))
+        shiftedFitness = fitVals + abs(min(fitVals))
         selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
     except (ZeroDivisionError, RuntimeWarning):
       #shift the fitnesses to be all positive (adds min and epsilon)
-      shiftedFitness = fitness + abs(min(fitness))+1e-10
+      shiftedFitness = fitVals + abs(min(fitVals))+1e-10
       selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
 
     sumProb = selectionProb[counter]
@@ -85,7 +86,7 @@ def rouletteWheel(population,**kwargs):
       sumProb += selectionProb[counter]
     selectedParent[i,:] = pop.values[counter,:]
     pop = np.delete(pop, counter, axis=0)
-    fitness = np.delete(fitness,counter,axis=0)
+    fitVals = np.delete(fitVals, counter, axis=0)
   return selectedParent
 
 def countConstViolation(const):
@@ -109,7 +110,8 @@ def tournamentSelection(population, **kwargs):
   """
   nParents = kwargs['nParents']
   nObjVal = len(kwargs['objVar'])
-  fitnessProvided = 'fitness' in kwargs
+  fitVals = kwargs.get('popFitVals', kwargs.get('fitness'))
+  fitnessProvided = fitVals is not None
   selectedParent = xr.DataArray(np.zeros((nParents, np.shape(population.values)[1])),
                                 dims=['chromosome', 'Gene'],
                                 coords={'chromosome': np.arange(nParents),
@@ -119,7 +121,7 @@ def tournamentSelection(population, **kwargs):
     if not fitnessProvided and nParents > 0:
       mh.error('parentSelectors', ValueError, "Fitness must be provided for single-objective selection")
     else:
-      fitness = kwargs['fitness']
+      fitness = fitVals
 
     allSelected = set()
     for i in range(nParents):
@@ -140,7 +142,7 @@ def tournamentSelection(population, **kwargs):
     rankProvided = 'rank' in kwargs
     crowdDistanceProvided = 'crowdDistance' in kwargs
 
-    if not rankProvided or not crowdDistanceProvided or 'fitness' not in kwargs:
+    if not rankProvided or not crowdDistanceProvided or not fitnessProvided:
       # Handle cases where neither fitness nor rank are provided
       mh.error('parentSelectors',ValueError, 'At least one of "fitness" or "rank" must be provided for multi-objective selection')
     allSelected = set()
@@ -184,7 +186,7 @@ def tournamentSelection(population, **kwargs):
           minRankNmaxCDIndex = minRankIndex
         # Stage 2: Select the individual with the highest rank within their group
         tournamentWinnerIndex = int(minRankNmaxCDIndex[0])
-      elif 'fitness' in kwargs and not rankProvided:
+      elif fitnessProvided and not rankProvided:
         # If only fitness is provided (without rank), calculate a default rank
         matrixOperationRaw = np.zeros((kwargs['kSelection'], 2))
         selectChromoIndexes = list(set(population.indexes['chromosome']) - allSelected)
@@ -192,7 +194,7 @@ def tournamentSelection(population, **kwargs):
                                                   replace=False, engine=None)
         # Extract relevant information
         matrixOperationRaw[:, 0] = selectedChromo
-        matrixOperationRaw[:, 1] = np.transpose(kwargs['fitness'][selectedChromo])
+        matrixOperationRaw[:, 1] = np.transpose(fitVals[selectedChromo])
         # Stage 1: Select based on fitness
         tournamentWinnerIndex = int(matrixOperationRaw[np.argmax(matrixOperationRaw[:, 1]), 0])
       allSelected.add(selectedChromo[tournamentWinnerIndex])
@@ -209,7 +211,7 @@ def rankSelection(population,**kwargs):
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs['fitness']
+  fitness = kwargs.get('popFitVals', kwargs.get('fitness'))
   pop = population
 
   index = np.arange(0,pop.shape[0])

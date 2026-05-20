@@ -113,7 +113,7 @@ for i in range(np.shape(offspring)[0]):
   d[objectiveVar] = {'dims':(), 'data': offspringFitness[i]}
   rlz.append(xr.Dataset.from_dict(d))
 rlz = xr.concat(rlz,dim='data')
-newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, objVar=objectiveVar, population=population, fitness=popFitnessDS, offspringFitness=offspringFitnessDS, popObjectiveVal=popFitness)
+newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, objVar=objectiveVar, population=population, popFitVals=popFitnessDS, offspringFitVals=offspringFitnessDS, popMinObjVals=popFitness)
 print('*'*39)
 print('Fitness Based Selection')
 print('*'*39)

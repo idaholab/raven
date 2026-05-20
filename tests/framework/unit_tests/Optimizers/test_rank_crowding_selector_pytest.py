@@ -12,7 +12,7 @@ def test_rank_crowding_based_selects_by_front_and_distance(nsga_combined_data):
     rankNcrowdingBased(**params)
   )
 
-  expected_population = params["combinedInputs"][expected_indices]
+  expected_population = params["combinedPop"][expected_indices]
   assert population.shape == expected_population.shape
   assert np.allclose(population.data, expected_population)
 
@@ -27,7 +27,7 @@ def test_rank_crowding_based_selects_by_front_and_distance(nsga_combined_data):
 
   for obj_idx, values in enumerate(objectives):
     expected = [
-      params["combinedObjectives"][obj_idx][i]
+      params["combinedMinObjVals"][obj_idx][i]
       for i in expected_indices
     ]
     assert np.allclose(values, expected)
@@ -35,12 +35,12 @@ def test_rank_crowding_based_selects_by_front_and_distance(nsga_combined_data):
   for obj_name in fitness_ds.data_vars:
     idx = int(obj_name.replace("obj", ""))
     expected = [
-      params["combinedFitness"][i][idx]
+      params["combinedFitVals"][i][idx]
       for i in expected_indices
     ]
     assert np.allclose(fitness_ds[obj_name].data, expected)
 
-  expected_constraints = params["combinedConstraints"][expected_indices]
+  expected_constraints = params["combinedConstraintVals"][expected_indices]
   assert constraints.shape == expected_constraints.shape
   assert np.allclose(constraints.data, expected_constraints)
 

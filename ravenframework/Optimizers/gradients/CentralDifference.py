@@ -53,12 +53,12 @@ class CentralDifference(GradientApproximator):
     evalInfo = []
     # submit a positive and negative side of the opt point for each dimension
     for _, optVar in enumerate(self._optVars):
-      optValue = opt[optVar]
+      optVarValue = opt[optVar]
       neg = copy.deepcopy(opt)
       pos = copy.deepcopy(opt)
       delta = dh
-      neg[optVar] = optValue - delta
-      pos[optVar] = optValue + delta
+      neg[optVar] = optVarValue - delta
+      pos[optVar] = optVarValue + delta
 
       evalPoints.append(neg)
       evalInfo.append({'type': 'grad',

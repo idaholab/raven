@@ -99,12 +99,12 @@ def nsga_combined_data():
   )
   age = [1, 2, 1, 0, 3]
   params = {
-    "combinedInputs": combined_inputs,
+    "combinedPop": combined_inputs,
     "combinedRanks": combined_ranks,
     "combinedCD": combined_cd,
-    "combinedObjectives": combined_objectives,
-    "combinedFitness": combined_fitness,
-    "combinedConstraints": combined_constraints,
+    "combinedMinObjVals": combined_objectives,
+    "combinedFitVals": combined_fitness,
+    "combinedConstraintVals": combined_constraints,
     "age": age,
     "popSize": 3,
     "variables": ["x1", "x2"],

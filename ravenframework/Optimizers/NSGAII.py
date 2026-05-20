@@ -140,8 +140,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     """
     super()._useRealization(info, rlz)
 
-  def _process_generation(self, info, rlz, currentPopInputs, currentPop_objvals,
-                          currentPopFitness, currentPop_g):
+  def _process_generation(self, info, rlz, offspring, offspringMinObjVals,
+                          offspringFitVals, offspringConstraintVals):
     """
       Execute the NSGA-II specific update: elitist merge, non-dominated sorting,
       crowding-distance assignment, survivor selection, and spawning of the next
@@ -153,99 +153,99 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     traj = info['traj']
 
     if self.counter > 1:
-      combinedInputs = np.vstack([self.matingPopInputs.data, currentPopInputs.data])
-      combinedObjVals = [self.matingPopObjVals[i] + currentPop_objvals[i]
+      combinedPop = np.vstack([self.pop.data, offspring.data])
+      combinedMinObjVals = [self.popMinObjVals[i] + offspringMinObjVals[i]
                          for i in range(len(self._objectiveVar))]
-      combinedAges = list(map(lambda x: x + 1, self.matingPopAges)) + [0] * len(currentPopInputs)
+      combinedAges = list(map(lambda x: x + 1, self.popAges)) + [0] * len(offspring)
 
-      popFitArray = [self.matingPopFitness[key].data.tolist()
-                     for key in self.matingPopFitness.keys()]
-      offFitArray = [currentPopFitness[key].data.tolist()
-                     for key in currentPopFitness.keys()]
-      combinedFitness = np.array([i + j for i, j in zip(popFitArray, offFitArray)])
-      combinedFitnessPairs = [list(pair) for pair in zip(*combinedFitness)]
+      popFitValsByObj = [self.popFitVals[key].data.tolist()
+                     for key in self.popFitVals.keys()]
+      offspringFitValsByObj = [offspringFitVals[key].data.tolist()
+                     for key in offspringFitVals.keys()]
+      combinedFitValsByObj = np.array([i + j for i, j in zip(popFitValsByObj, offspringFitValsByObj)])
+      combinedFitVals = [list(pair) for pair in zip(*combinedFitValsByObj)]
 
-      combinedConstraints = np.vstack([self.matingPop_g.data, currentPop_g.data])
+      combinedConstraintVals = np.vstack([self.popConstraintVals.data, offspringConstraintVals.data])
 
       combinedRanks = frontUtils.rankNonDominatedFrontiers(
-          np.array(combinedFitnessPairs),
+          np.array(combinedFitVals),
           isFitness=True)
 
       combinedCD = frontUtils.crowdingDistance(
           rank=np.array(combinedRanks),
           popSize=len(combinedRanks),
-          fitness=np.array(combinedFitnessPairs))
+          fitness=np.array(combinedFitVals))
 
-      objectiveNames = list(self.matingPopFitness.keys())
-      (self.matingPopInputs,
-       self.matingPopRanks,
-       self.matingPopAges,
-       self.matingPopCD,
-       self.matingPopObjVals,
-       self.matingPopFitness,
-       self.matingPop_g) = self._survivorSelectionInstance(
+      objectiveNames = list(self.popFitVals.keys())
+      (self.pop,
+       self.popRanks,
+       self.popAges,
+       self.popCrowdingDist,
+       self.popMinObjVals,
+       self.popFitVals,
+       self.popConstraintVals) = self._survivorSelectionInstance(
           age=combinedAges,
           variables=list(self.toBeSampled),
-          combinedInputs=combinedInputs,
+          combinedPop=combinedPop,
           combinedRanks=combinedRanks,
           combinedCD=combinedCD,
-          combinedObjectives=combinedObjVals,
-          combinedFitness=combinedFitnessPairs,
-          combinedConstraints=combinedConstraints,
+          combinedMinObjVals=combinedMinObjVals,
+          combinedFitVals=combinedFitVals,
+          combinedConstraintVals=combinedConstraintVals,
           popSize=self._populationSize,
           objectiveNames=objectiveNames)
     else:
-      currentPop_fitsbysoln = datasetToDataArray(currentPopFitness, self._objectiveVar).data.tolist()
+      offspringFitValsBySolution = datasetToDataArray(offspringFitVals, self._objectiveVar).data.tolist()
       currentPopRanks = frontUtils.rankNonDominatedFrontiers(
-          np.array(currentPop_fitsbysoln),
+          np.array(offspringFitValsBySolution),
           isFitness=True)
       currentPopCD = frontUtils.crowdingDistance(
           rank=np.array(currentPopRanks),
           popSize=len(currentPopRanks),
-          fitness=np.array(currentPop_fitsbysoln))
+          fitness=np.array(offspringFitValsBySolution))
 
-      self.matingPopInputs = currentPopInputs
-      self.matingPopFitness = currentPopFitness
-      self.matingPopObjVals = currentPop_objvals
-      self.matingPopAges = [0] * len(currentPopInputs)
-      self.matingPopRanks = xr.DataArray(currentPopRanks,
+      self.pop = offspring
+      self.popFitVals = offspringFitVals
+      self.popMinObjVals = offspringMinObjVals
+      self.popAges = [0] * len(offspring)
+      self.popRanks = xr.DataArray(currentPopRanks,
                                          dims=['rank'],
                                          coords={'rank': np.arange(len(currentPopRanks))})
-      self.matingPopCD = xr.DataArray(currentPopCD,
+      self.popCrowdingDist = xr.DataArray(currentPopCD,
                                       dims=['CrowdingDistance'],
                                       coords={'CrowdingDistance': np.arange(len(currentPopCD))})
-      self.matingPop_g = currentPop_g
+      self.popConstraintVals = offspringConstraintVals
 
-    self.currentPop_ages = np.array(self.matingPopAges)
+    self.popAgesArray = np.array(self.popAges)
 
-    if not hasattr(self, 'prevPop_inputs') or self.prevPop_inputs is None:
-      self.prevPop_inputs = None
+    if not hasattr(self, 'prevPopInputs') or self.prevPopInputs is None:
+      self.prevPopInputs = None
 
     self._collectOptPointMulti(rlz,
-                               self.matingPopInputs,
-                               self.matingPopRanks,
-                               self.matingPopCD,
-                               self.matingPopObjVals,
-                               self.matingPopFitness,
-                               self.matingPop_g)
+                               self.pop,
+                               self.popRanks,
+                               self.popCrowdingDist,
+                               self.popMinObjVals,
+                               self.popFitVals,
+                               self.popConstraintVals)
 
     self._resolveNewGeneration(traj,
                                rlz,
                                info,
-                               self.prevPop_inputs,
-                               self.matingPopObjVals,
-                               self.matingPopFitness,
-                               self.matingPop_g,
-                               self.matingPopRanks,
-                               self.matingPopCD)
+                               self.prevPopInputs,
+                               self.popMinObjVals,
+                               self.popFitVals,
+                               self.popConstraintVals,
+                               self.popRanks,
+                               self.popCrowdingDist)
 
-    parents = self._parentSelectionInstance(self.matingPopInputs,
+    parents = self._parentSelectionInstance(self.pop,
                                             variables=list(self.toBeSampled),
-                                            fitness=self.matingPopFitness,
+                                            fitness=self.popFitVals,
                                             kSelection=self._kSelection,
                                             nParents=self._nParents,
-                                            rank=self.matingPopRanks,
-                                            crowdDistance=self.matingPopCD,
+                                            rank=self.popRanks,
+                                            crowdDistance=self.popCrowdingDist,
                                             objVar=self._objectiveVar,
                                             isMultiObjective=True)
 
@@ -256,7 +256,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                                             EQfiles=self._EQcheckfile,
                                             distDict=self.distDict)
 
-    childrenMutated = self._mutationInstance(offSprings=childrenXover,
+    childrenMutated = self._mutationInstance(offspring=childrenXover,
                                              distDict=self.distDict,
                                              locs=self._mutationLocs,
                                              mutationProb=self._mutationProb,
@@ -295,4 +295,4 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
         newRlz[var] = float(daChildren.loc[i, var].values)
       self._submitRun(newRlz, traj, self.getIteration(traj))
 
-    self.prevPop_inputs = deepcopy(self.matingPopInputs)
+    self.prevPopInputs = deepcopy(self.pop)

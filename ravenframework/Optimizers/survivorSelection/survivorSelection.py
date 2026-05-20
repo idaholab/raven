@@ -29,7 +29,7 @@ from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
 # Internal Modules End------------------------------------------------------------------------------
 
 # @profile
-def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, objectiveVal, g):
+def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, minObjVals, constraintVals):
   """
     Process of selecting survivors for single objective problems.
     @ In, self, Instance of GeneticAlgorithm
@@ -37,41 +37,41 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitness, 
     @ In, rlz, xr.Dataset, dictionary of realizations
     @ In, traj, int, trajectory identifier
     @ In, offspring, xr.DataArray, offspring individuals
-    @ In, offspringFitness, xr.Dataset, fitness of offspring
-    @ In, objectiveVal, list, objective values of offspring
-    @ In, g, xr.DataArray, constraint data
-    @ Out, None (updates self.matingPop* variables)
+    @ In, offspringFitVals, xr.Dataset, fitness of offspring
+    @ In, minObjVals, list, minimization-space objective values of offspring
+    @ In, constraintVals, xr.DataArray, constraint data
+    @ Out, None (updates self.pop* variables)
   """
   if self.counter > 1:
     # Survivor selection returns the new population; keep both legacy and new attributes in sync.
-    self.matingPopInputs, self.matingPopFitness, \
-    self.matingPopAges, self.matingPopObjVals = self._survivorSelectionInstance(
-        age=self.matingPopAges,
+    self.pop, self.popFitVals, \
+    self.popAges, self.popMinObjVals = self._survivorSelectionInstance(
+        age=self.popAges,
         variables=list(self.toBeSampled),
-        population=self.matingPopInputs,
-        fitness=self.matingPopFitness,
+        population=self.pop,
+        popFitVals=self.popFitVals,
         objVar=self._objectiveVar[0],
         newRlz=rlz,
-        offspringFitness=offspringFitness,
-        popObjectiveVal=self.matingPopObjVals
+        offspringFitVals=offspringFitVals,
+        popMinObjVals=self.popMinObjVals
     )
   else:
-    # First generation: offspring becomes mating population
-    self.matingPopInputs = offspring
-    self.matingPopFitness = offspringFitness
-    baseObj = objectiveVal[0] if isinstance(objectiveVal, list) and len(objectiveVal) > 0 else rlz[self._objectiveVar[0]].data
-    self.matingPopObjVals = list(np.atleast_1d(baseObj))
-    self.matingPopAges = [0] * len(offspring)
-  self.matingPopG = g
+    # First generation: offspring becomes the current population
+    self.pop = offspring
+    self.popFitVals = offspringFitVals
+    baseObj = minObjVals[0] if isinstance(minObjVals, list) and len(minObjVals) > 0 else rlz[self._objectiveVar[0]].data
+    self.popMinObjVals = list(np.atleast_1d(baseObj))
+    self.popAges = [0] * len(offspring)
+  self.popConstraintVals = constraintVals
 
   # Mirror legacy attribute names to keep downstream logic functional.
-  self.population = self.matingPopInputs
-  self.fitness = self.matingPopFitness
-  self.popAge = self.matingPopAges
-  self.objectiveVal = self.matingPopObjVals
-  self.constraintsV = self.matingPopG
+  self.population = self.pop
+  self.fitVals = self.popFitVals
+  self.popAge = self.popAges
+  self.minObjVals = self.popMinObjVals
+  self.constraintVals = self.popConstraintVals
 
-def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringsFitness, objectiveVal, g):
+def multiObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, minObjVals, constraintVals):
   """
     Process of selecting survivors for multi-objective problems.
     Multi-objective survivor selection is handled by the GeneticAlgorithm flow;
@@ -80,9 +80,9 @@ def multiObjSurvivorSelect(self, info, rlz, traj, offSprings, offSpringsFitness,
     @ In, info, dict, dictionary of information
     @ In, rlz, dict, dictionary of realizations (including values of all objectives)
     @ In, traj, dict, dictionary of trajectories
-    @ In, offSprings, list, list of offspring individuals
-    @ In, offSpringsFitness, list, list of fitness values for offspring individuals
-    @ In, objectiveVal, list, values of the objectives (for ranking and crowding distance calculation)
-    @ In, g, xr.DataArray, constraint data
+    @ In, offspring, list, list of offspring individuals
+    @ In, offspringFitVals, list, list of fitness values for offspring individuals
+    @ In, minObjVals, list, values of the objectives (for ranking and crowding distance calculation)
+    @ In, constraintVals, xr.DataArray, constraint data
   """
   pass

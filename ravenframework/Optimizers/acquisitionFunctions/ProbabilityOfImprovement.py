@@ -129,7 +129,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
     """
     # Need to retrieve current optimum point
     best = bayesianOptimizer._optPointHistory[0][-1][0]
-    fopt = best[bayesianOptimizer._objectiveVar[0]]
+    bestMinObjVal = best[bayesianOptimizer._objectiveVar[0]]
 
     # Need to convert array input "x" into dict point
     featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
@@ -139,7 +139,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
 
     # Retrieve iteration and set epsilon for threshhold
     self._transient(bayesianOptimizer._iteration[0])
-    tau = fopt - self._epsilon
+    tau = bestMinObjVal - self._epsilon
 
     # Is this evaluation vectorized?
     if vectorized:
@@ -166,11 +166,11 @@ class ProbabilityOfImprovement(AcquisitionFunction):
 
     # Need to retrieve current optimum point
     best = bayesianOptimizer._optPointHistory[0][-1][0]
-    fopt = best[bayesianOptimizer._objectiveVar]
+    bestMinObjVal = best[bayesianOptimizer._objectiveVar[0]]
 
     # Retrieve iteration and set epsilon for threshhold
     self._transient(bayesianOptimizer._iteration[0])
-    tau = fopt - self._epsilon
+    tau = bestMinObjVal - self._epsilon
 
     # Gradient of PoI
     poiGrad = -s*np.transpose(meanGrad) - (tau-mu)*stdGrad

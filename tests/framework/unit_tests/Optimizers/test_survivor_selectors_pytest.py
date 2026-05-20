@@ -30,21 +30,21 @@ def test_age_based_replaces_oldest_individuals():
     }
   )
   offspring_fitness = _dataset_from([6.0], 'obj')
-  pop_obj = [5.0, 3.0, 4.0]
-  new_pop, new_fit, new_age, pop_obj_vals = survivorSelectors.ageBased(
+  popMinObjVals = [5.0, 3.0, 4.0]
+  new_pop, new_fit, new_age, popMinObjVals_vals = survivorSelectors.ageBased(
     offspring,
     age=age,
     variables=variables,
-    fitness=fitness,
-    offspringFitness=offspring_fitness,
+    popFitVals=fitness,
+    offspringFitVals=offspring_fitness,
     population=population,
     objVar='obj',
-    popObjectiveVal=pop_obj,
+    popMinObjVals=popMinObjVals,
   )
   assert np.allclose(new_pop.values[-1], np.array([9.0, 8.0]))
   assert new_age[-1] == 0
   assert np.allclose(new_fit['obj'].values[-1], 6.0)
-  assert pop_obj_vals[-1] == pop_obj[-1]
+  assert popMinObjVals_vals[-1] == popMinObjVals[-1]
 
 
 def test_fitness_based_keeps_best_individuals():
@@ -64,16 +64,16 @@ def test_fitness_based_keeps_best_individuals():
     }
   )
   offspring_fitness = _dataset_from([2.5, 7.5], 'obj')
-  pop_obj = [1.0, 6.0, 2.0]
+  popMinObjVals = [1.0, 6.0, 2.0]
   new_pop, new_fit, new_age, new_obj = survivorSelectors.fitnessBased(
     offspring,
     age=age,
     variables=variables,
-    fitness=fitness,
-    offspringFitness=offspring_fitness,
+    popFitVals=fitness,
+    offspringFitVals=offspring_fitness,
     population=population,
     objVar='obj',
-    popObjectiveVal=pop_obj,
+    popMinObjVals=popMinObjVals,
   )
   expected_pop = np.array([[8.0, 8.0], [5.0, 5.0], [2.0, 2.0]])
   np.testing.assert_allclose(new_pop.values, expected_pop)
@@ -87,7 +87,7 @@ def test_rank_and_crowding_selector_respects_fronts(nsga_combined_data):
   selected = result[0].coords['chromosome'].values
   assert len(selected) == nsga_combined_data['params']['popSize']
   assert list(result[0].values[:, 0]) == [
-    nsga_combined_data['params']['combinedInputs'][i][0] for i in nsga_combined_data['expected_indices']
+    nsga_combined_data['params']['combinedPop'][i][0] for i in nsga_combined_data['expected_indices']
   ]
 
 
