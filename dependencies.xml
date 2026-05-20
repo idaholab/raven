@@ -96,6 +96,7 @@ limit our library choices.
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->
     <statsforecast source="pip">1.7.8</statsforecast>
+    <utilsforecast source="pip">0.1.4</utilsforecast>
     <pywavelets source="pip">1.4</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
