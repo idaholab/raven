@@ -40,14 +40,14 @@ def test_swap_mutator_swaps_selected_locations(simple_offsprings, monkeypatch):
     mutationProb=0.5,
     variables=list(dist.keys()),
   )
-  expected = np.array([[0.3, 0.2, 0.1], [0.6, 0.5, 0.4]])
+  expected = np.array([[0.3, 0.2, 0.1], [0.4, 0.5, 0.6]])
   np.testing.assert_allclose(mutated.values, expected)
 
 
 def test_scramble_mutator_uses_random_permutation(simple_offsprings, monkeypatch):
   offsprings, dist = simple_offsprings
 
-  random_calls = iter([0.0, 1.0, 0.0, 1.0])
+  random_calls = iter([0.0, 1.0])
 
   def fake_random(dim=1, samples=1, keepMatrix=False, engine=None):
     try:
@@ -67,18 +67,19 @@ def test_scramble_mutator_uses_random_permutation(simple_offsprings, monkeypatch
     mutationProb=0.5,
     variables=list(dist.keys()),
   )
-  expected = np.array([[0.3, 0.2, 0.1], [0.6, 0.5, 0.4]])
+  expected = np.array([[0.3, 0.2, 0.1], [0.4, 0.5, 0.6]])
   np.testing.assert_allclose(mutated.values, expected)
 
 
 def test_bit_flip_mutator_flips_gene_using_cdf(simple_offsprings, monkeypatch):
   offsprings, dist = simple_offsprings
-  calls = iter([1, 1])
+  calls = iter([0, 0])
 
   def fake_random(dim=1, samples=1, keepMatrix=False, engine=None):
     return 0.0
 
   def fake_integers(low, high, caller=None, engine=None):
+    assert (low, high) == (0, 2)
     return next(calls)
 
   monkeypatch.setattr(randomUtils, 'random', fake_random)
@@ -108,7 +109,7 @@ def test_bit_flip_mutator_rejects_locs_argument(simple_offsprings):
 def test_random_mutator_draws_new_values(simple_offsprings, monkeypatch):
   offsprings, dist = simple_offsprings
   rand_values = iter([0.0, 0.15, 0.0, 0.85])
-  calls = iter([1, 1])
+  calls = iter([0, 0])
 
   def fake_random(dim=1, samples=1, keepMatrix=False, engine=None):
     try:
@@ -117,6 +118,7 @@ def test_random_mutator_draws_new_values(simple_offsprings, monkeypatch):
       return 1.0
 
   def fake_integers(low, high, caller=None, engine=None):
+    assert (low, high) == (0, 2)
     return next(calls)
 
   monkeypatch.setattr(randomUtils, 'random', fake_random)

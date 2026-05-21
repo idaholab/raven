@@ -133,8 +133,8 @@ def twoPointsCrossover(parents, **kwargs):
                                       'Gene':parents.coords['Gene'].values})
   parentPairs = list(combinations(parents,2))
   index = 0
-  if nGenes<=2:
-    ValueError('In Two point Crossover the number of genes should be >=3!')
+  if nGenes <= 2:
+    raise ValueError('In Two point Crossover the number of genes should be >=3!')
   for couples in parentPairs:
     [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
     if loc1 > loc2:

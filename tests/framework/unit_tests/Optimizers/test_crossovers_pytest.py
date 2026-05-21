@@ -94,6 +94,14 @@ def test_two_points_crossover_uses_sampled_points(simple_parents, monkeypatch):
   np.testing.assert_allclose(children.values[:2], expected_first_pair)
 
 
+def test_two_points_crossover_rejects_short_chromosomes(simple_parents):
+  with pytest.raises(ValueError):
+    crossovers.twoPointsCrossover(
+      simple_parents[:, :2],
+      crossoverProb=1.0,
+    )
+
+
 if __name__ == "__main__":
   from pytest_runner import run_module
   run_module(__file__)

@@ -85,9 +85,8 @@ def scrambleMutator(offspring, distDict, **kwargs):
       children[i,j] = distDict[offspring[i].coords['Gene'].values[j]].cdf(float(offspring[i,j].values))
 
   for i in range(np.shape(offspring)[0]):
-    for ind,element in enumerate(locs):
-      if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
-        children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(children.data[i,locs[0]:locs[-1]+1]),None)
+    if randomUtils.random(dim=1, samples=1) < kwargs['mutationProb']:
+      children[i, locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(children.data[i, locs[0]:locs[-1]+1]), None)
 
   for i in range(np.shape(offspring)[0]):
     for j in range(np.shape(offspring)[1]):
@@ -115,13 +114,13 @@ def bitFlipMutator(offspring, distDict, **kwargs):
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
-      loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
+      loc = randomUtils.randomIntegers(0, chromosomeSize - 1, caller=None, engine=None)
       # gene at location loc is flipped from current value to newValue
-      geneIDToBeChanged = child.coords['Gene'].values[loc-1]
-      oldCDFvalue = distDict[geneIDToBeChanged].cdf(child.values[loc-1])
+      geneIDToBeChanged = child.coords['Gene'].values[loc]
+      oldCDFvalue = distDict[geneIDToBeChanged].cdf(child.values[loc])
       newCDFValue = 1.0 - oldCDFvalue
       newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
-      child.values[loc-1] = newValue
+      child.values[loc] = newValue
   return offspring
 
 def randomMutator(offspring, distDict, **kwargs):
@@ -140,12 +139,12 @@ def randomMutator(offspring, distDict, **kwargs):
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
-      loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
+      loc = randomUtils.randomIntegers(0, chromosomeSize - 1, caller=None, engine=None)
       # gene at location loc is flipped from current value to newValue
-      geneIDToBeChanged = child.coords['Gene'].values[loc-1]
+      geneIDToBeChanged = child.coords['Gene'].values[loc]
       newCDFValue = randomUtils.random()
       newValue = distDict[geneIDToBeChanged].ppf(newCDFValue)
-      child.values[loc-1] = newValue
+      child.values[loc] = newValue
   return offspring
 
 def inversionMutator(offspring, distDict, **kwargs):
@@ -168,16 +167,17 @@ def inversionMutator(offspring, distDict, **kwargs):
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # select sequence to be mirrored and mirror it
       seq = np.arange(locL,locU+1)
-      allElems = []
-      for i,elem in enumerate(seq):
-        allElems.append(distDict[child.coords['Gene'].values[i]].cdf(float(child[elem].values)))
+      cdfValues = []
+      genes = child.coords['Gene'].values
+      for elem in seq:
+        cdfValues.append(distDict[genes[elem]].cdf(float(child[elem].values)))
 
-      mirrSeq = allElems[::-1]
-      mirrElems = []
-      for elem in mirrSeq:
-        mirrElems.append(distDict[child.coords['Gene'].values[i]].ppf(elem))
+      mirroredCdfValues = cdfValues[::-1]
+      mirroredValues = []
+      for elem, cdfValue in zip(seq, mirroredCdfValues):
+        mirroredValues.append(distDict[genes[elem]].ppf(cdfValue))
       # insert mirrored sequence into child
-      child.values[locL:locU+1]=mirrElems
+      child.values[locL:locU+1] = mirroredValues
 
   return offspring
 
