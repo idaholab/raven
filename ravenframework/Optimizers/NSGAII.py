@@ -173,6 +173,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
       combinedRanks = frontUtils.rankNonDominatedFrontiers(
           combinedExternalObjValsBySolution,
+          constraintVals=combinedConstraintVals,
           minMask=minMask)
 
       combinedCD = frontUtils.crowdingDistance(
@@ -205,6 +206,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
       currentPopRanks = frontUtils.rankNonDominatedFrontiers(
           currentPopExternalObjValsBySolution,
+          constraintVals=offspringConstraintVals.data,
           minMask=minMask)
       currentPopCD = frontUtils.crowdingDistance(
           rank=np.array(currentPopRanks),

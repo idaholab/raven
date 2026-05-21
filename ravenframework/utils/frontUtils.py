@@ -21,6 +21,78 @@ import numpy as np
 import xarray as xr
 # Internal Imports
 
+def _constraintViolation(constraintVals):
+  """Return total positive constraint violation for each point. RAVEN constraints are feasible when g(x) >= 0."""
+  if constraintVals is None:
+    return None
+  values = np.asarray(constraintVals)
+  if values.ndim == 1:
+    values = values.reshape((-1, 1))
+  if values.size == 0:
+    return np.zeros(values.shape[0], dtype=float)
+  return np.sum(np.maximum(0.0, -values), axis=1)
+
+
+def _applyObjectiveDirections(data, minMask=None):
+  """Convert objective values to minimization-space for dominance checks using an explicit direction mask."""
+  data = np.array(data, dtype=float, copy=True)
+  if minMask is None:
+    return data
+  minMask = np.asarray(minMask, dtype=bool)
+  if len(minMask) != data.shape[1]:
+    raise IOError("rankNonDominatedFrontiers method: Data features do not match minMask dimensions")
+  data[:, ~minMask] *= -1.0
+  return data
+
+
+def _dominatesForMinimization(candidate, other, candidateViolation=0.0, otherViolation=0.0):
+  """Evaluate Deb constrained dominance for minimization-space objective values."""
+  candidateFeasible = candidateViolation <= 0.0
+  otherFeasible = otherViolation <= 0.0
+  if candidateFeasible and not otherFeasible:
+    return True
+  if not candidateFeasible and otherFeasible:
+    return False
+  if not candidateFeasible and not otherFeasible:
+    return candidateViolation < otherViolation
+  return np.all(candidate <= other) and np.any(candidate < other)
+
+
+def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None):
+  """Rank fronts using objective dominance plus Deb constrained-dominance rules."""
+  data = np.asarray(data, dtype=float)
+  if data.ndim != 2:
+    raise IOError("rankNonDominatedFrontiers method: data must be a 2-D array")
+  violation = _constraintViolation(constraintVals)
+  if violation is None:
+    violation = np.zeros(data.shape[0], dtype=float)
+  if len(violation) != data.shape[0]:
+    raise IOError("rankNonDominatedFrontiers method: constraint rows do not match data rows")
+  directedData = _applyObjectiveDirections(data, minMask)
+
+  ranks = np.zeros(data.shape[0], dtype=int)
+  remaining = set(range(data.shape[0]))
+  rank = 0
+  while remaining:
+    rank += 1
+    front = []
+    for candidate in sorted(remaining):
+      dominated = False
+      for other in remaining:
+        if other == candidate:
+          continue
+        if _dominatesForMinimization(directedData[other], directedData[candidate], violation[other], violation[candidate]):
+          dominated = True
+          break
+      if not dominated:
+        front.append(candidate)
+    if not front:
+      raise RuntimeError("No non-dominated front could be identified.")
+    for index in front:
+      ranks[index] = rank
+      remaining.remove(index)
+  return ranks.tolist()
+
 
 def nonDominatedFrontier(data, returnMask, minMask=None, isFitness=False):
   """
@@ -77,7 +149,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None, isFitness=False):
     return nonDominatedFrontier
 
 
-def rankNonDominatedFrontiers(data, isFitness=False, minMask=None):
+def rankNonDominatedFrontiers(data, isFitness=False, constraintVals=None, minMask=None):
   """
     This method ranks the non-dominated fronts by omitting the first front from the data
     and searching the remaining data for a new one recursively.
@@ -85,10 +157,16 @@ def rankNonDominatedFrontiers(data, isFitness=False, minMask=None):
                           evaluations of each point/individual, element (i,j)
                           means jth objective/fitness function at the ith point/individual
     @ In, isFitness, bool, optional, if True rank larger values as better fitness values.
+    @ In, constraintVals, np.array, optional, constraint evaluations g(x); rows with all g >= 0 are feasible.
     @ In, minMask, np.array, optional, True for minimized objectives and False for maximized objectives.
     @ Out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
+  if constraintVals is not None:
+    if isFitness:
+      raise IOError("rankNonDominatedFrontiers method: constrained ranking expects objective values with minMask, not fitness values")
+    return _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=minMask)
+
   nonDominatedRank = np.zeros(data.shape[0], dtype=int)
   mask = np.ones(data.shape[0], dtype=bool)
   rank = 0

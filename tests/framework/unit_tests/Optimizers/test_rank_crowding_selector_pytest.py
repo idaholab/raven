@@ -102,6 +102,32 @@ def test_crowding_distance_uses_objective_values_not_transformed_fitness():
   assert np.isfinite(fitness_cd[2])
 
 
+def test_constrained_rank_uses_deb_constrained_dominance_with_directions():
+  external_obj_vals = np.array(
+    [
+      [0.0, 10.0],
+      [1.0, 5.0],
+      [2.0, 4.0],
+      [0.5, 7.0],
+    ],
+    dtype=float,
+  )
+  min_mask = np.array([True, False], dtype=bool)
+  constraint_vals = np.array(
+    [
+      [-1.0],
+      [0.0],
+      [0.0],
+      [-0.2],
+    ],
+    dtype=float,
+  )
+
+  ranks = frontUtils.rankNonDominatedFrontiers(external_obj_vals, constraintVals=constraint_vals, minMask=min_mask)
+
+  assert ranks == [4, 1, 2, 3]
+
+
 if __name__ == "__main__":
   from pytest_runner import run_module
   run_module(__file__)

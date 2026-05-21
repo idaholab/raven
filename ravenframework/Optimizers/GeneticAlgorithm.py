@@ -980,13 +980,15 @@ class GeneticAlgorithm(RavenSampled):
           combinedConstraintVals = np.vstack([self.popConstraintVals.data, offspringConstraintVals.data])
 
           # Step 1: Rank the combined population R(t) using original objective signs
-          # and explicit min/max directions rather than penalty-modified fitness.
+          # and explicit min/max directions. Constraint violations are handled
+          # by constrained dominance, not fitness penalties.
           combinedExternalObjValsBySolution = np.array(
               [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
                for solution in zip(*combinedMinObjVals)], dtype=float)
           minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
           combinedRanks = frontUtils.rankNonDominatedFrontiers(
               combinedExternalObjValsBySolution,
+              constraintVals=combinedConstraintVals,
               minMask=minMask
           )
 
@@ -1030,9 +1032,9 @@ class GeneticAlgorithm(RavenSampled):
                for solution in zip(*offspringMinObjVals)], dtype=float)
           minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
 
-          # Rank first generation
           currentPopRanks = frontUtils.rankNonDominatedFrontiers(
               currentPopExternalObjValsBySolution,
+              constraintVals=offspringConstraintVals.data,
               minMask=minMask
           )
 
