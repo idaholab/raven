@@ -72,6 +72,36 @@ def test_rank_fronts_use_original_objectives_with_directions_not_transformed_fit
   assert fitness_ranks != objective_ranks
 
 
+def test_crowding_distance_uses_objective_values_not_transformed_fitness():
+  rank = np.array([1, 1, 1], dtype=int)
+  external_obj_vals = np.array(
+    [
+      [0.0, 0.0],
+      [0.5, 0.5],
+      [1.0, 1.0],
+    ],
+    dtype=float,
+  )
+  misleading_fit_vals = np.array(
+    [
+      [0.0, 0.0],
+      [100.0, 100.0],
+      [1.0, 1.0],
+    ],
+    dtype=float,
+  )
+
+  objective_cd = frontUtils.crowdingDistance(rank, len(rank), external_obj_vals)
+  fitness_cd = frontUtils.crowdingDistance(rank, len(rank), misleading_fit_vals)
+
+  assert np.isinf(objective_cd[0])
+  assert np.isfinite(objective_cd[1])
+  assert np.isinf(objective_cd[2])
+  assert np.isinf(fitness_cd[0])
+  assert np.isinf(fitness_cd[1])
+  assert np.isfinite(fitness_cd[2])
+
+
 if __name__ == "__main__":
   from pytest_runner import run_module
   run_module(__file__)

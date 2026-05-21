@@ -990,11 +990,11 @@ class GeneticAlgorithm(RavenSampled):
               minMask=minMask
           )
 
-          # Step 2: Compute CD for the COMBINED population R(t)
+          # Step 2: Compute crowding distance on the same original objective values.
           combinedCD = frontUtils.crowdingDistance(
               rank=np.array(combinedRanks),
               popSize=len(combinedRanks),
-              fitness=np.array(combinedFitVals)
+              fitness=combinedExternalObjValsBySolution
           )
 
           # Step 3: NOW perform survivor selection with rank and CD already computed
@@ -1024,9 +1024,7 @@ class GeneticAlgorithm(RavenSampled):
           self.popMinObjVals = rlz[self._objectiveVar[0]].data
           self.popAges = [0] * len(offspring)
         else:
-          # For first generation multi-objective, still need to rank
-          offspringFitValsBySolution = datasetToDataArray(offspringFitVals,
-                                                     self._objectiveVar).data.tolist()
+          # For first generation multi-objective, still need rank and crowding distance.
           currentPopExternalObjValsBySolution = np.array(
               [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
                for solution in zip(*offspringMinObjVals)], dtype=float)
@@ -1038,11 +1036,10 @@ class GeneticAlgorithm(RavenSampled):
               minMask=minMask
           )
 
-          # Compute crowding distance for first generation
           currentPopCD = frontUtils.crowdingDistance(
               rank=np.array(currentPopRanks),
               popSize=len(currentPopRanks),
-              fitness=np.array(offspringFitValsBySolution)
+              fitness=currentPopExternalObjValsBySolution
           )
 
           # Store as the current population
