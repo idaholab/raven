@@ -30,9 +30,6 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   """Shared functionality for multi-objective genetic algorithms."""
 
   convergenceOptions = dict(GeneticAlgorithm.convergenceOptions, **{
-      'hypervolume': r""" provides the maximum relative change permitted between consecutive Pareto-front
-                        dominated hypervolumes before convergence is declared. Smaller values enforce tighter
-                        convergence of the dominated space.""",
       'spread': r""" provides the maximum allowable value of Deb's spread metric (Δ) measuring the distance
                         between extreme and intermediate Pareto points. Once the spread drops below this value
                         the algorithm is considered converged.""",
@@ -649,137 +646,13 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _checkConvHypervolume(self, traj, **kwargs):
     """
-    _checkConvHypervolume method.
-    @ In, traj, int, trajectory identifier for the current optimization run.
-    @ In, **kwargs, dict, additional convergence inputs (unused).
-    @ Out, converged, bool, True if hypervolume criterion is satisfied.
+    Reject hypervolume convergence until the indicator implementation is mathematically validated.
     """
-    if len(self._optPointHistory[traj]) < 2:
-      return False
-    if not hasattr(self, 'popRanks') or not hasattr(self, 'popMinObjVals'):
-      return False
-
-    rank1Indices = np.where(self.popRanks.data == 1)[0]
-    if len(rank1Indices) == 0:
-      return False
-
-    currentFront = []
-    for idx in rank1Indices:
-      point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
-      currentFront.append(point)
-
-    prev_opt, _ = self._optPointHistory[traj][-2]
-    if 'rank' not in prev_opt:
-      return False
-    prev_rank1Indices = np.where(np.array(prev_opt['rank']) == 1)[0]
-    if len(prev_rank1Indices) == 0:
-      return False
-
-    prev_front = []
-    for idx in prev_rank1Indices:
-      point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-      prev_front.append(point)
-
-    all_points = currentFront + prev_front
-    if not all_points:
-      return False
-    nadir = [max(p[i] for p in all_points) for i in range(len(self._objectiveVar))]
-    reference = [n * 1.1 for n in nadir]
-
-    current_hv = self._computeHypervolume(currentFront, reference)
-    prev_hv = self._computeHypervolume(prev_front, reference)
-
-    if not hasattr(self, '_hvHistory'):
-      self._hvHistory = {}
-    if traj not in self._hvHistory:
-      self._hvHistory[traj] = []
-    self._hvHistory[traj].append(current_hv)
-
-    if mathUtils.compareFloats(prev_hv, 0.0, 1e-12):
-      rel_improvement = float('inf')
-    else:
-      rel_improvement = abs(current_hv - prev_hv) / prev_hv
-
-    threshold = self._convergenceCriteria.get('hypervolume', 0.01)
-    converged = rel_improvement < threshold
-
-    self.raiseADebug(self.convFormat.format(
-        name='Hypervolume',
-        conv=str(converged),
-        got=rel_improvement,
-        req=threshold))
-
-    return converged
-
-  def _computeHypervolume(self, front, reference):
-    """
-    _computeHypervolume method.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ In, reference, list(float), hypervolume reference point.
-    @ Out, hv, float, hypervolume of the front.
-    """
-    if not front:
-      return 0.0
-    n_objectives = len(front[0])
-    if n_objectives == 2:
-      return self._hypervolume2D(front, reference)
-    if n_objectives == 3:
-      return self._hypervolume3D(front, reference)
-    return self._hypervolumeWFG(front, reference)
-
-  def _hypervolume2D(self, front, reference):
-    """
-    _hypervolume2D method.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ In, reference, list(float), hypervolume reference point.
-    @ Out, hv, float, 2D hypervolume of the front.
-    """
-    sorted_front = sorted(front, key=lambda p: p[0])
-    hv = 0.0
-    prev_x = reference[0]
-    for point in sorted_front:
-      width = prev_x - point[0]
-      height = reference[1] - point[1]
-      hv += width * height
-      prev_x = point[0]
-    return hv
-
-  def _hypervolume3D(self, front, reference):
-    """
-    _hypervolume3D method.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ In, reference, list(float), hypervolume reference point.
-    @ Out, hv, float, 3D hypervolume of the front.
-    """
-    sorted_front = sorted(front, key=lambda p: p[0])
-    hv = 0.0
-    for i, point in enumerate(sorted_front):
-      x_extent = reference[0] - point[0]
-      remaining_front = [p[1:] for p in sorted_front[:i + 1]]
-      remaining_ref = reference[1:]
-      slice_hv = self._hypervolume2D(remaining_front, remaining_ref)
-      hv += x_extent * slice_hv
-    return hv
-
-  def _hypervolumeWFG(self, front, reference):
-    """
-    _hypervolumeWFG method.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ In, reference, list(float), hypervolume reference point.
-    @ Out, hv, float, hypervolume computed by recursive WFG method.
-    """
-    if len(reference) == 1:
-      return reference[0] - min(p[0] for p in front)
-
-    sorted_front = sorted(front, key=lambda p: p[-1])
-    hv = 0.0
-    for i, point in enumerate(sorted_front):
-      lower_dim_front = [p[:-1] for p in sorted_front[:i + 1]]
-      lower_dim_ref = reference[:-1]
-      lower_hv = self._hypervolumeWFG(lower_dim_front, lower_dim_ref)
-      height = reference[-1] - point[-1]
-      hv += height * lower_hv
-    return hv
+    self.raiseAnError(
+        NotImplementedError,
+        'Hypervolume convergence is currently disabled because the previous implementation was not '
+        'mathematically validated. Use spread, spacing, maxSpread, rank1Ratio, or objective '
+        'convergence instead.')
 
   def _checkConvSpread(self, traj, **kwargs):
     """
