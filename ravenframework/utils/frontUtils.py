@@ -77,13 +77,15 @@ def nonDominatedFrontier(data, returnMask, minMask=None, isFitness=False):
     return nonDominatedFrontier
 
 
-def rankNonDominatedFrontiers(data, isFitness=False):
+def rankNonDominatedFrontiers(data, isFitness=False, minMask=None):
   """
     This method ranks the non-dominated fronts by omitting the first front from the data
     and searching the remaining data for a new one recursively.
     @ In, data, np.array, data matrix (nPoints, nObjectives) containing the multi-objective
                           evaluations of each point/individual, element (i,j)
                           means jth objective/fitness function at the ith point/individual
+    @ In, isFitness, bool, optional, if True rank larger values as better fitness values.
+    @ In, minMask, np.array, optional, True for minimized objectives and False for maximized objectives.
     @ Out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
@@ -95,7 +97,7 @@ def rankNonDominatedFrontiers(data, isFitness=False):
     rank += 1
     # Get non-dominated points from remaining data
     if not isFitness:
-      currentFront = nonDominatedFrontier(data[mask], False)
+      currentFront = nonDominatedFrontier(data[mask].copy(), False, minMask=minMask)
     else:
       currentFront = nonDominatedFrontier(data[mask], False, [False] * data.shape[1], isFitness=isFitness)
     # Convert indices back to original data space

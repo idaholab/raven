@@ -3,6 +3,7 @@ import numpy as np
 from ravenframework.Optimizers.survivorSelectors.survivorSelectors import (
   rankNcrowdingBased,
 )
+from ravenframework.utils import frontUtils
 
 
 def test_rank_crowding_based_selects_by_front_and_distance(nsga_combined_data):
@@ -43,6 +44,32 @@ def test_rank_crowding_based_selects_by_front_and_distance(nsga_combined_data):
   expected_constraints = params["combinedConstraintVals"][expected_indices]
   assert constraints.shape == expected_constraints.shape
   assert np.allclose(constraints.data, expected_constraints)
+
+
+def test_rank_fronts_use_original_objectives_with_directions_not_transformed_fitness():
+  external_obj_vals = np.array(
+    [
+      [1.0, 10.0],
+      [2.0, 9.0],
+      [3.0, 11.0],
+    ],
+    dtype=float,
+  )
+  min_mask = np.array([True, False], dtype=bool)
+  misleading_fit_vals = np.array(
+    [
+      [0.0, 0.0],
+      [100.0, 100.0],
+      [50.0, 50.0],
+    ],
+    dtype=float,
+  )
+
+  objective_ranks = frontUtils.rankNonDominatedFrontiers(external_obj_vals, minMask=min_mask)
+  fitness_ranks = frontUtils.rankNonDominatedFrontiers(misleading_fit_vals, isFitness=True)
+
+  assert objective_ranks == [1, 2, 1]
+  assert fitness_ranks != objective_ranks
 
 
 if __name__ == "__main__":

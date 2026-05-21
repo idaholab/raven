@@ -979,10 +979,15 @@ class GeneticAlgorithm(RavenSampled):
           # Combine constraints
           combinedConstraintVals = np.vstack([self.popConstraintVals.data, offspringConstraintVals.data])
 
-          # Step 1: Rank the COMBINED population R(t)
+          # Step 1: Rank the combined population R(t) using original objective signs
+          # and explicit min/max directions rather than penalty-modified fitness.
+          combinedExternalObjValsBySolution = np.array(
+              [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
+               for solution in zip(*combinedMinObjVals)], dtype=float)
+          minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
           combinedRanks = frontUtils.rankNonDominatedFrontiers(
-              np.array(combinedFitVals),
-              isFitness=True
+              combinedExternalObjValsBySolution,
+              minMask=minMask
           )
 
           # Step 2: Compute CD for the COMBINED population R(t)
@@ -1022,11 +1027,15 @@ class GeneticAlgorithm(RavenSampled):
           # For first generation multi-objective, still need to rank
           offspringFitValsBySolution = datasetToDataArray(offspringFitVals,
                                                      self._objectiveVar).data.tolist()
+          currentPopExternalObjValsBySolution = np.array(
+              [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
+               for solution in zip(*offspringMinObjVals)], dtype=float)
+          minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
 
           # Rank first generation
           currentPopRanks = frontUtils.rankNonDominatedFrontiers(
-              np.array(offspringFitValsBySolution),
-              isFitness=True
+              currentPopExternalObjValsBySolution,
+              minMask=minMask
           )
 
           # Compute crowding distance for first generation

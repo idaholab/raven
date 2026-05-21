@@ -553,7 +553,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
         return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
 
       popMinObjVals = np.column_stack([np.atleast_1d(_as_array(vals)) for vals in self.popMinObjVals])
-      # Finalization candidates are also in minimization space, so do not reapply _objMult.
+      # Finalization candidates are stored in minimization space; convert to original
+      # signs below only for Pareto ranking with explicit objective directions.
       try:
         candidateMinObjVals = np.array([float(np.atleast_1d(candidate[obj])[0]) for obj in self._objectiveVar], dtype=float)
       except KeyError:
@@ -561,7 +562,13 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
         return
 
       combined = np.vstack([popMinObjVals, candidateMinObjVals])
-      ranks = np.array(frontUtils.rankNonDominatedFrontiers(combined))
+      # Rank final-front candidates with user-facing objective signs and
+      # explicit objective directions, matching the NSGA-II survivor ranking.
+      combinedExternalObjVals = np.array(
+          [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
+           for solution in combined], dtype=float)
+      minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
+      ranks = np.array(frontUtils.rankNonDominatedFrontiers(combinedExternalObjVals, minMask=minMask))
       candidateRank = ranks[-1]
       bestRank = ranks[:-1].min() if combined.shape[0] > 1 else candidateRank
       if candidateRank > bestRank:
