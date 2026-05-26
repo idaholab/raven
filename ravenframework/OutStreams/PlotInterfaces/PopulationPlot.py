@@ -132,12 +132,23 @@ class PopulationPlot(PlotInterface):
       minFit = np.zeros(maxGen-minGen+1)
       maxFit = np.zeros(maxGen-minGen+1)
       avgFit = np.zeros(maxGen-minGen+1)
+      nonFiniteCount = 0
 
       for idx,genID in enumerate(range(minGen,maxGen+1,1)):
         population = data[data[self.index]==genID]
-        minFit[idx] = min(population[var])
-        maxFit[idx] = max(population[var])
-        avgFit[idx] = population[var].mean()
+        values = population[var].replace([np.inf, -np.inf], np.nan).dropna()
+        nonFiniteCount += len(population[var]) - len(values)
+        if values.empty:
+          minFit[idx] = np.nan
+          maxFit[idx] = np.nan
+          avgFit[idx] = np.nan
+        else:
+          minFit[idx] = min(values)
+          maxFit[idx] = max(values)
+          avgFit[idx] = values.mean()
+
+      if nonFiniteCount:
+        self.raiseAWarning(f'PopulationPlot "{self.name}" ignored {nonFiniteCount} non-finite value(s) for variable "{var}" while computing generation statistics.')
 
       if var in inVars:
         if var in self.logVars:
@@ -161,6 +172,5 @@ class PopulationPlot(PlotInterface):
       plt.savefig(filename, format=self.how)
     else:
       self.raiseAnError(IOError, f'Digital format of the plot "{self.name}" is not available!')
-
 
 
