@@ -391,20 +391,36 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
       self.raiseAWarning(f'AdjustedEpsilonOptimalPlot "{self.name}" has no samples after filtering.')
       return
 
-    objs = subset[self.objectives].astype(float).to_numpy()
-    objs_min = self._to_min_space(objs)
+    feasible_mask = self._is_feasible(subset, self.constraints) if self.constraints else np.ones(len(subset), dtype=bool)
+    infeasible_mask = ~feasible_mask
+    selection_mask = feasible_mask if self.constraints else np.ones(len(subset), dtype=bool)
+    if not selection_mask.any():
+      self.raiseAWarning(
+        f'AdjustedEpsilonOptimalPlot "{self.name}" has no feasible samples after applying constraints; '
+        'using all finite samples for normalization and epsilon selection.'
+      )
+      selection_mask = np.ones(len(subset), dtype=bool)
+    selection = subset.loc[selection_mask].copy()
+
+    objs_all = subset[self.objectives].astype(float).to_numpy()
+    objs_all_min = self._to_min_space(objs_all)
+    objs_select = selection[self.objectives].astype(float).to_numpy()
+    objs_select_min = self._to_min_space(objs_select)
 
     if self.normalize:
       if self.normalizeMode == 'quantile':
-        mins, maxs, span = self._quantile_scale(objs_min)
+        mins, maxs, span = self._quantile_scale(objs_select_min)
       else:
-        mins, maxs, span = self._minmax(objs_min)
-      norm = (objs_min - mins) / span
-      norm = np.clip(norm, 0.0, 1.0)
+        mins, maxs, span = self._minmax(objs_select_min)
+      norm_all = (objs_all_min - mins) / span
+      norm_select = (objs_select_min - mins) / span
+      norm_all = np.clip(norm_all, 0.0, 1.0)
+      norm_select = np.clip(norm_select, 0.0, 1.0)
     else:
       # shift to non-negative for epsilon boxing
-      mins, maxs, span = self._minmax(objs_min)
-      norm = objs_min - mins
+      mins, maxs, span = self._minmax(objs_select_min)
+      norm_all = objs_all_min - mins
+      norm_select = objs_select_min - mins
 
     epsilon = None
     if self.epsilon is not None:
@@ -415,18 +431,16 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
       epsilon = 0.1
 
     # box indices
-    cells = np.floor(norm / epsilon).astype(int)
+    cells = np.floor(norm_select / epsilon).astype(int)
     cells = np.maximum(cells, 0)
 
     # choose one representative per cell (lowest sum in minimization space)
-    cell_keys = [tuple(c) for c in cells]
-    df_rep = subset.copy()
+    df_rep = selection.copy()
     df_rep['_cell0'] = cells[:, 0]
     df_rep['_cell1'] = cells[:, 1]
-    df_rep['_score'] = objs_min.sum(axis=1)
+    df_rep['_score'] = norm_select.sum(axis=1)
     grouped = df_rep.sort_values('_score').groupby(['_cell0', '_cell1'], as_index=False).first()
     rep_cells = grouped[['_cell0', '_cell1']].to_numpy(dtype=int)
-    rep_vals = grouped[self.objectives].astype(float).to_numpy()
 
     # epsilon-nondominated in cell space among representatives
     nd_mask = self._epsilon_nondominated(rep_cells)
@@ -434,12 +448,12 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
 
     # Prepare plot coordinates (always show normalized plane for pedagogy)
     if self.normalize:
-      plot_coords_all = norm
+      plot_coords_all = norm_all
       rep_min = self._to_min_space(eps_front[self.objectives].astype(float).to_numpy())
       rep_norm_coords = (rep_min - mins) / span
       rep_norm_coords = np.clip(rep_norm_coords, 0.0, 1.0)
     else:
-      plot_coords_all = norm
+      plot_coords_all = norm_all
       rep_min = self._to_min_space(eps_front[self.objectives].astype(float).to_numpy())
       rep_norm_coords = rep_min - mins
 
@@ -453,9 +467,6 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
 
     display_all = _norm_to_display(plot_coords_all)
     display_rep = _norm_to_display(rep_norm_coords) if rep_norm_coords is not None else None
-
-    feasible_mask = self._is_feasible(subset, self.constraints) if self.constraints else np.ones(len(subset), dtype=bool)
-    infeasible_mask = ~feasible_mask
 
     fig_width = 10.0 if self.showInfo else 7.0
     fig, ax = plt.subplots(figsize=(fig_width, 6.3))
