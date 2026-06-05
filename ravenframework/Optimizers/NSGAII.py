@@ -179,7 +179,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       combinedCD = frontUtils.crowdingDistance(
           rank=np.array(combinedRanks),
           popSize=len(combinedRanks),
-          fitness=combinedExternalObjValsBySolution)
+          objectiveValues=combinedExternalObjValsBySolution)
 
       objectiveNames = list(self.popFitVals.keys())
       (self.pop,
@@ -211,7 +211,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       currentPopCD = frontUtils.crowdingDistance(
           rank=np.array(currentPopRanks),
           popSize=len(currentPopRanks),
-          fitness=currentPopExternalObjValsBySolution)
+          objectiveValues=currentPopExternalObjValsBySolution)
 
       self.pop = offspring
       self.popFitVals = offspringFitVals

@@ -188,16 +188,20 @@ def rankNonDominatedFrontiers(data, isFitness=False, constraintVals=None, minMas
   return nonDominatedRank.tolist()
 
 
-def crowdingDistance(rank, popSize, fitness):
+def crowdingDistance(rank, popSize, objectiveValues):
   """
-    Method designed to calculate the crowding distance for each front.
+    Calculate the NSGA-II crowding distance for each front.
 
-    FIXED: No longer assigns infinity to all points with boundary values.
-    Only actual boundary points (first and last after sorting) get infinity.
+    Crowding distance is an objective-space diversity estimate (Deb et al., 2002):
+    within each non-dominated front the points are sorted along every objective and
+    each interior point accrues the normalized gap between its neighbours. The two
+    extreme points of each front (per objective) are assigned an infinite distance so
+    they are always preserved. Note this is a measure of objective-space spread, so it
+    must be fed objective values, not transformed/penalized fitness values.
 
     @ In, rank, np.array or xr.DataArray, array which contains the front ID for each element of the population
     @ In, popSize, int, size of population
-    @ In, fitness, np.array, matrix contains fitness values for each element of the population
+    @ In, objectiveValues, np.array, matrix (nPoints, nObjectives) of objective values for each individual
     @ Out, crowdDist, np.array, array of crowding distances
   """
   if isinstance(rank, xr.DataArray):
@@ -214,10 +218,10 @@ def crowdingDistance(rank, popSize, fitness):
 
   for f in fronts:
     front = frontIndices[f]  # Get indices of current front
-    numObjectives = fitness.shape[1]
+    numObjectives = objectiveValues.shape[1]
     numPoints = len(front)
 
-    # Special case: fronts with ≤2 points
+    # Special case: fronts with <= 2 points; every member is a boundary point
     if numPoints <= 2:
       crowdDist[front] = np.inf
       continue
@@ -226,37 +230,26 @@ def crowdingDistance(rank, popSize, fitness):
     for obj in range(numObjectives):
       # Sort points in current front by current objective
       sortedFront = [i for i in front]
-      sortedIndices = np.argsort(fitness[sortedFront, obj], kind='stable')
+      sortedIndices = np.argsort(objectiveValues[sortedFront, obj], kind='stable')
       sortedFront = [sortedFront[i] for i in sortedIndices]
 
-      # # To be removed
-      # # ================================================================
-      # # FIXED: Only set actual boundary points to infinity
-      # # Do NOT set interior points with same values to infinity
-      # # ================================================================
-      # crowdDist[sortedFront[0]] = np.inf   # Minimum boundary
-      # crowdDist[sortedFront[-1]] = np.inf  # Maximum boundary
-
-      # # Skip normalization if all values are identical
-
-      # # FIXED: Only set actual boundary points to infinity
-      # # Do NOT set interior points with same values to infinity
+      # Only the actual boundary points (first and last after sorting) get infinity
       crowdDist[sortedFront[0]] = np.inf   # Minimum boundary
       crowdDist[sortedFront[-1]] = np.inf  # Maximum boundary
 
       # Skip normalization if all values are identical
-      fMax = fitness[sortedFront, obj].max()
-      fMin = fitness[sortedFront, obj].min()
-      if fMax == fMin:
+      objMax = objectiveValues[sortedFront, obj].max()
+      objMin = objectiveValues[sortedFront, obj].min()
+      if objMax == objMin:
         continue
 
       # Calculate normalized distances for interior points
       for i in range(1, numPoints - 1):
         # Skip if already set to infinity (can happen if point is boundary in another objective)
         if crowdDist[sortedFront[i]] != np.inf:
-          nextObjValue = fitness[sortedFront[i + 1], obj]
-          prevObjValue = fitness[sortedFront[i - 1], obj]
+          nextObjValue = objectiveValues[sortedFront[i + 1], obj]
+          prevObjValue = objectiveValues[sortedFront[i - 1], obj]
           # Add normalized distance for this objective
-          crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (fMax - fMin)
+          crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (objMax - objMin)
 
   return crowdDist

@@ -996,7 +996,7 @@ class GeneticAlgorithm(RavenSampled):
           combinedCD = frontUtils.crowdingDistance(
               rank=np.array(combinedRanks),
               popSize=len(combinedRanks),
-              fitness=combinedExternalObjValsBySolution
+              objectiveValues=combinedExternalObjValsBySolution
           )
 
           # Step 3: NOW perform survivor selection with rank and CD already computed
@@ -1041,7 +1041,7 @@ class GeneticAlgorithm(RavenSampled):
           currentPopCD = frontUtils.crowdingDistance(
               rank=np.array(currentPopRanks),
               popSize=len(currentPopRanks),
-              fitness=currentPopExternalObjValsBySolution
+              objectiveValues=currentPopExternalObjValsBySolution
           )
 
           # Store as the current population
