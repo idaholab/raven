@@ -253,3 +253,68 @@ def crowdingDistance(rank, popSize, objectiveValues):
           crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (objMax - objMin)
 
   return crowdDist
+
+
+def hypervolume(points, reference):
+  """
+    Exact hypervolume indicator of a point set in MINIMIZATION objective space.
+
+    The hypervolume is the measure (area in 2-D, volume in 3-D, ...) of the region
+    that is dominated by ``points`` and bounded above by ``reference``. It is the
+    standard unary quality indicator for multi-objective optimization: it is the
+    only widely used indicator that is strictly Pareto-compliant (a set that
+    dominates another never has a smaller hypervolume), so a monotonically
+    increasing hypervolume is direct evidence of convergence + spread improvement.
+
+    This routine works entirely in minimization space, so smaller objective values
+    are better and the reference point must be weakly dominated by every point
+    (i.e. ``reference[k] >= point[k]`` for every objective ``k``; points that do
+    not strictly dominate the reference contribute nothing). It is computed with
+    the Hypervolume-by-Slicing-Objectives (HSO) recursion of While et al. (2006),
+    which is exact for any number of objectives.
+
+    @ In, points, list or np.array, (nPoints, nObjectives) objective vectors in minimization space
+    @ In, reference, list or np.array, (nObjectives,) reference point, no better than any point in every objective
+    @ Out, hv, float, hypervolume dominated by the point set relative to the reference
+  """
+  reference = np.asarray(reference, dtype=float).reshape(-1)
+  pts = np.asarray(points, dtype=float)
+  if pts.ndim == 1:
+    pts = pts.reshape((1, -1))
+  if pts.size == 0:
+    return 0.0
+  if pts.shape[1] != reference.shape[0]:
+    raise IOError("hypervolume method: points and reference have mismatched dimensions")
+  # Only points that strictly dominate the reference in every objective contribute volume.
+  contributing = pts[np.all(pts < reference, axis=1)]
+  if contributing.shape[0] == 0:
+    return 0.0
+  return _hypervolumeHSO(contributing, reference)
+
+
+def _hypervolumeHSO(points, reference):
+  """
+    Recursive Hypervolume by Slicing Objectives (HSO) in minimization space.
+    Slices the dominated region along the first objective; within each slice the
+    cross-section is the hypervolume of the projected points in the remaining
+    objectives, recursing down to the 1-D base case. Assumes every point strictly
+    dominates the reference in every (remaining) objective.
+    @ In, points, np.array, (nPoints, nRemainingObjectives) objective vectors (minimization space)
+    @ In, reference, np.array, (nRemainingObjectives,) reference point for the remaining objectives
+    @ Out, hv, float, hypervolume of the slice
+  """
+  nObjectives = reference.shape[0]
+  if nObjectives == 1:
+    return float(reference[0] - np.min(points[:, 0]))
+  ordered = points[np.argsort(points[:, 0], kind='stable')]
+  nPoints = ordered.shape[0]
+  hv = 0.0
+  for i in range(nPoints):
+    lowerEdge = ordered[i, 0]
+    upperEdge = ordered[i + 1, 0] if i + 1 < nPoints else reference[0]
+    width = upperEdge - lowerEdge
+    if width <= 0.0:
+      continue
+    # Cross-section of the slice = hypervolume of points 0..i projected onto the remaining objectives.
+    hv += width * _hypervolumeHSO(ordered[:i + 1, 1:], reference[1:])
+  return hv

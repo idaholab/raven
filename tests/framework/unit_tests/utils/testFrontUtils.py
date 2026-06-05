@@ -140,6 +140,24 @@ indexesCD3D = frontUtils.crowdingDistance(rank=rank3D, popSize=len(rank3D), obje
 answerIndexesCD3D = np.array([np.inf, np.inf, 1.06417083, np.inf, np.inf,0.56135102, np.inf, np.inf, np.inf,np.inf])
 checkArray('3D crowding distance', indexesCD3D.tolist(), answerIndexesCD3D.tolist())
 ###########################################
+
+###########################################
+# Hypervolume indicator (minimization space)
+# Validated against hand-computed exact values.
+# 2-D unit square: one point at the origin, reference at (1,1) -> area 1
+checkAnswer('HV 2D unit square', frontUtils.hypervolume([[0.0, 0.0]], [1.0, 1.0]), 1.0)
+# 2-D three-point front {(1,3),(2,2),(3,1)} with reference (4,4): union of the three
+# dominated boxes has area 6 (inclusion-exclusion: 3+4+3-2-2-1+1).
+checkAnswer('HV 2D three-point front', frontUtils.hypervolume([[1.0, 3.0], [2.0, 2.0], [3.0, 1.0]], [4.0, 4.0]), 6.0)
+# 2-D two-point front {(1,3),(2,2)} with reference (4,4): 3+4-2 = 5.
+checkAnswer('HV 2D two-point front', frontUtils.hypervolume([[1.0, 3.0], [2.0, 2.0]], [4.0, 4.0]), 5.0)
+# 3-D unit cube: one point at the origin, reference at (1,1,1) -> volume 1
+checkAnswer('HV 3D unit cube', frontUtils.hypervolume([[0.0, 0.0, 0.0]], [1.0, 1.0, 1.0]), 1.0)
+# Negative objectives (common after max->min sign conversion): point (-2,-2), reference (-1,-1) -> 1
+checkAnswer('HV negative objectives', frontUtils.hypervolume([[-2.0, -2.0]], [-1.0, -1.0]), 1.0)
+# A point that does not dominate the reference contributes nothing to the hypervolume.
+checkAnswer('HV dominated point ignored', frontUtils.hypervolume([[0.0, 0.0], [5.0, 5.0]], [1.0, 1.0]), 1.0)
+###########################################
 print(results)
 
 sys.exit(results["fail"])

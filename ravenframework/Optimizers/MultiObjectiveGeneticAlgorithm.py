@@ -40,7 +40,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                         observed between successive Pareto fronts. Convergence occurs once the change is below this value.""",
       'rank1Ratio': r""" specifies the minimum proportion of the population that must belong to the first
                         non-dominated front to declare convergence. The ratio must remain above the provided
-                        value for several successive generations."""})
+                        value for several successive generations.""",
+      'hypervolume': r""" sets the relative-change tolerance for the Pareto-front hypervolume indicator
+                        between successive generations. The hypervolume is measured in RAVEN's internal
+                        minimization space against a common nadir-based reference point (offset by a positive
+                        margin so it is valid for zero or negative objectives); convergence is declared once
+                        the relative change in hypervolume falls below the provided value."""})
 
   def __init__(self):
     """
@@ -665,13 +670,69 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _checkConvHypervolume(self, traj, **kwargs):
     """
-    Reject hypervolume convergence until the indicator implementation is mathematically validated.
+    Check convergence on the relative change of the Pareto-front hypervolume indicator
+    between successive generations. The rank-1 front is taken in RAVEN's internal
+    minimization space, and the current and previous fronts are measured against a
+    common reference point (the union nadir offset by a positive margin) so the two
+    hypervolumes are directly comparable. Convergence is declared once the relative
+    change falls below the user threshold.
+    @ In, traj, int, trajectory identifier for the current optimization run.
+    @ In, **kwargs, dict, additional convergence inputs (unused).
+    @ Out, converged, bool, True if the hypervolume criterion is satisfied.
     """
-    self.raiseAnError(
-        NotImplementedError,
-        'Hypervolume convergence is currently disabled because the previous implementation was not '
-        'mathematically validated. Use spread, spacing, maxSpread, rank1Ratio, or objective '
-        'convergence instead.')
+    if not hasattr(self, 'popRanks') or not hasattr(self, 'popMinObjVals'):
+      return False
+    rank1Indices = np.where(self.popRanks.data == 1)[0]
+    if len(rank1Indices) == 0:
+      return False
+    currentFront = [[self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
+                    for idx in rank1Indices]
+    if not hasattr(self, '_paretoFrontHistory'):
+      self._paretoFrontHistory = {}
+    previousFront = self._paretoFrontHistory.get(traj)
+    self._paretoFrontHistory[traj] = currentFront
+    if previousFront is None:
+      # No earlier front to compare against yet; record this one and continue.
+      return False
+    reference = self._hypervolumeReference(currentFront, previousFront)
+    currentHV = frontUtils.hypervolume(currentFront, reference)
+    previousHV = frontUtils.hypervolume(previousFront, reference)
+    if not hasattr(self, '_hvHistory'):
+      self._hvHistory = {}
+    self._hvHistory.setdefault(traj, []).append(currentHV)
+    if mathUtils.compareFloats(previousHV, 0.0, 1e-14):
+      relChange = 0.0 if mathUtils.compareFloats(currentHV, 0.0, 1e-14) else float('inf')
+    else:
+      relChange = abs(currentHV - previousHV) / abs(previousHV)
+    threshold = self._convergenceCriteria.get('hypervolume', 0.01)
+    converged = relChange < threshold
+    self.raiseADebug(self.convFormat.format(
+        name='Hypervolume',
+        conv=str(converged),
+        got=relChange,
+        req=threshold))
+    return converged
+
+  def _hypervolumeReference(self, currentFront, previousFront, marginFraction=0.1):
+    """
+    Build a reference point that is strictly worse (larger, in minimization space) than every
+    point of both fronts. The reference is the per-objective nadir of the union of the two fronts
+    plus a positive margin proportional to each objective's range. Using an additive margin rather
+    than a multiplicative factor (the previous implementation used nadir * 1.1) keeps the reference
+    valid when objectives are zero or negative, which is common after RAVEN converts maximization
+    objectives to minimization space.
+    @ In, currentFront, list(list(float)), current rank-1 front in minimization space.
+    @ In, previousFront, list(list(float)), previous rank-1 front in minimization space.
+    @ In, marginFraction, float, fractional margin added beyond the union nadir.
+    @ Out, reference, list(float), reference point for the hypervolume computation.
+    """
+    union = np.array(currentFront + previousFront, dtype=float)
+    nadir = union.max(axis=0)
+    ideal = union.min(axis=0)
+    ranges = nadir - ideal
+    margins = np.where(ranges > 0, marginFraction * ranges, marginFraction * np.maximum(np.abs(nadir), 1.0))
+    reference = nadir + np.maximum(margins, 1e-12)
+    return reference.tolist()
 
   def _checkConvSpread(self, traj, **kwargs):
     """
