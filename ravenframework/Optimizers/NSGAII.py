@@ -88,7 +88,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
   """
   def __init__(self):
     """
-    __init__ method.
+    Constructor. Initializes the NSGA-II optimizer and sets its print tag.
+    @ In, None.
     @ Out, None.
     """
     super().__init__()
@@ -97,7 +98,9 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
   @classmethod
   def getInputSpecification(cls):
     """
-    getInputSpecification method.
+    Build and return the input specification for the NSGA-II optimizer, extending
+    the base GeneticAlgorithm specification with NSGA-II-specific descriptions.
+    @ In, cls, the class for which the input specification is being generated.
     @ Out, specs, InputData.ParameterInput, input specification for NSGA-II.
     """
     specs = super(NSGAII, cls).getInputSpecification()
@@ -114,7 +117,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
 
   def handleInput(self, paramInput):
     """
-    handleInput method.
+    Read the parsed input for this optimizer and enforce that NSGA-II is used
+    only for multi-objective problems.
     @ In, paramInput, InputData.ParameterInput, input specification for this optimizer.
     @ Out, None.
     """
@@ -146,6 +150,13 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       Execute the NSGA-II specific update: elitist merge, non-dominated sorting,
       crowding-distance assignment, survivor selection, and spawning of the next
       generation.
+      @ In, info, dict, identifier of the realization being processed.
+      @ In, rlz, xr.Dataset, evaluated realizations for the current generation.
+      @ In, offspring, xr.DataArray, offspring individuals to be merged with the population.
+      @ In, offspringMinObjVals, list, minimization-space objective values of the offspring.
+      @ In, offspringFitVals, xr.Dataset, fitness values of the offspring.
+      @ In, offspringConstraintVals, xr.DataArray, constraint values of the offspring.
+      @ Out, None.
     """
     if not self._activeTraj:
       return

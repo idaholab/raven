@@ -126,17 +126,17 @@ class UnorderedCSVDiffer:
       ## and as high as val(1+relErr)
       if matchIsNumber:
         pval = abs(val) if self._ignore_sign else val
-        series_vals = series.to_numpy()
-        pmatch = abs(series_vals) if self._ignore_sign else series_vals
+        seriesVals = series.to_numpy()
+        pmatch = abs(seriesVals) if self._ignore_sign else seriesVals
         # adjust for negative values
         sign = np.sign(pval)
         lowest = np.searchsorted(pmatch, pval*(1.0-sign*self._rel_err))
         highest = np.searchsorted(pmatch, pval*(1.0+sign*self._rel_err), side='right')-1
       ## if not floats, then check exact matches
       else:
-        series_vals = series.to_numpy()
-        lowest = np.searchsorted(series_vals, val)
-        highest = np.searchsorted(series_vals, val, side='right')-1
+        seriesVals = series.to_numpy()
+        lowest = np.searchsorted(seriesVals, val)
+        highest = np.searchsorted(seriesVals, val, side='right')-1
       if debug:
         print('  low/hi match index:', lowest, highest)
       ## if lowest is past end of array, no match found

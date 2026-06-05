@@ -102,7 +102,6 @@ offspringFitnessDS = xr.Dataset()
 offspringFitnessDS[objectiveVar] = xr.DataArray(offspringFitness,
                                  dims=['chromosome'],
                                  coords={'chromosome': np.arange(np.shape(offspringFitness)[0])})
-# offspringFitnessSet = offspringFitness.to_dataset(name = "test_offFitness")
 rlz =[]
 for i in range(np.shape(offspring)[0]):
   d = {}

@@ -1680,18 +1680,12 @@ class GeneticAlgorithm(RavenSampled):
     return max(self._GDp(a, b, p), self._GDp(b, a, p))
 
   def _GDp(self, a, b, p):
-    """
-    _GDp method.
-    @ In, a, np.ndarray, population A (rows are individuals).
-    @ In, b, np.ndarray, population B (rows are individuals).
-    @ In, p, float, Minkowski norm order for distance calculation.
-    @ Out, gd_p, float, modified generational distance value.
-    """
     r"""
-      Modified Generational Distance Indicator
-      @ In, a, np.array, old population A
-      @ In, b, np.array, new population B
-      @ In, p, float, the order of norm
+      Modified Generational Distance Indicator: the p-averaged minimum distance
+      from every individual in population A to its nearest neighbor in population B.
+      @ In, a, np.array, old population A (rows are individuals)
+      @ In, b, np.array, new population B (rows are individuals)
+      @ In, p, float, the order of the Minkowski norm
       @ Out, _GDp, float, the modified generational distance $\frac{1}{n_A} \Sigma_{i=1}^{n_A}min_{b \in B} dist(ai,B)$
     """
     s = 0
@@ -1702,18 +1696,11 @@ class GeneticAlgorithm(RavenSampled):
     return (1/n * s)**(1/p)
 
   def _popDist(self,ai,b,q=2):
-    """
-    _popDist method.
-    @ In, ai, np.ndarray, single individual from population A.
-    @ In, b, np.ndarray, population B (rows are individuals).
-    @ In, q, int, Minkowski norm order for distance calculation.
-    @ Out, distance, float, minimum distance from ai to population B.
-    """
     r"""
-      Minimum Minkowski distance from a_i to B (nearest point in B)
-      @ In, ai, 1d array, the ith chromosome in the generation A
-      @ In, b, np.array, population B
-      @ In, q, integer, order of the norm
+      Minimum Minkowski distance from individual a_i to population B (nearest point in B).
+      @ In, ai, np.array, the ith chromosome (single individual) in generation A
+      @ In, b, np.array, population B (rows are individuals)
+      @ In, q, int, order of the Minkowski norm
       @ Out, _popDist, float, the minimum distance from ai to B $inf_(\|ai-bj\|_q)**\frac{1}{q}$
     """
     nrm = []
@@ -1732,17 +1719,12 @@ class GeneticAlgorithm(RavenSampled):
     return max(self._GD(a,b),self._GD(b,a))
 
   def _GD(self,a,b):
-    """
-    _GD method.
-    @ In, a, np.ndarray, population A (rows are individuals).
-    @ In, b, np.ndarray, population B (rows are individuals).
-    @ Out, gd, float, generational distance value.
-    """
     r"""
-      Generational Distance Indicator
-      @ In, a, np.array, old population A
-      @ In, b, np.array, new population B
-      @ Out, _GD, float, the generational distance $\frac{1}{n_A} \max_{i \in A}min_{b \in B} dist(ai,B)$
+      Generational Distance Indicator: the maximum over individuals in A of the
+      minimum distance from that individual to its nearest neighbor in B.
+      @ In, a, np.array, old population A (rows are individuals)
+      @ In, b, np.array, new population B (rows are individuals)
+      @ Out, _GD, float, the generational distance $\max_{i \in A}min_{b \in B} dist(ai,B)$
     """
     s = []
     n = np.shape(a)[0]
@@ -1753,16 +1735,11 @@ class GeneticAlgorithm(RavenSampled):
 
   def _envelopeSize(self,a,b):
     """
-    _envelopeSize method.
-    @ In, a, np.ndarray, population A (rows are individuals).
-    @ In, b, np.ndarray, population B (rows are individuals).
-    @ Out, hyperDiagonal, float, envelope hyper-diagonal length.
-    """
-    r"""
-      Compute hyper diagonal of envelope containing old and new population
-      @ In, a, np.array, old population A
-      @ In, b, np.array, new population B
-      @ Out, _GD, float, the generational distance $\frac{1}{n_A} \max_{i \in A}min_{b \in B} dist(ai,B)$
+      Compute the hyper-diagonal of the bounding box (envelope) that contains
+      both the old and new populations; used to normalize the Hausdorff distance.
+      @ In, a, np.array, old population A (rows are individuals)
+      @ In, b, np.array, new population B (rows are individuals)
+      @ Out, hyperDiagonal, float, the envelope hyper-diagonal length
     """
     aLenght = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
     bLenght = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
@@ -1835,19 +1812,19 @@ class GeneticAlgorithm(RavenSampled):
     if n < 2:
         return 0.0
 
-    n_obj = len(front[0])
+    numObj = len(front[0])
 
     # Calculate Euclidean distances between consecutive solutions
     distances = []
 
-    for obj in range(n_obj):
+    for obj in range(numObj):
         # Sort front by this objective
-        sorted_indices = sorted(range(n), key=lambda i: front[i][obj])
-        sorted_front = [front[i] for i in sorted_indices]
+        sortedIndices = sorted(range(n), key=lambda i: front[i][obj])
+        sortedFront = [front[i] for i in sortedIndices]
 
         # Distance between consecutive points
-        for i in range(len(sorted_front) - 1):
-            dist = np.linalg.norm(np.array(sorted_front[i+1]) - np.array(sorted_front[i]))
+        for i in range(len(sortedFront) - 1):
+            dist = np.linalg.norm(np.array(sortedFront[i+1]) - np.array(sortedFront[i]))
             distances.append(dist)
 
     if len(distances) == 0:
@@ -1855,22 +1832,22 @@ class GeneticAlgorithm(RavenSampled):
 
     # Extreme distances (distance to boundary solutions)
     # For simplicity, use distance from first to ideal and last to nadir
-    ideal = [min(p[i] for p in front) for i in range(n_obj)]
-    nadir = [max(p[i] for p in front) for i in range(n_obj)]
+    ideal = [min(p[i] for p in front) for i in range(numObj)]
+    nadir = [max(p[i] for p in front) for i in range(numObj)]
 
-    sorted_by_first_obj = sorted(front, key=lambda p: p[0])
-    d_f = np.linalg.norm(np.array(sorted_by_first_obj[0]) - np.array(ideal))
-    d_l = np.linalg.norm(np.array(sorted_by_first_obj[-1]) - np.array(nadir))
+    sortedByFirstObj = sorted(front, key=lambda p: p[0])
+    distFirst = np.linalg.norm(np.array(sortedByFirstObj[0]) - np.array(ideal))
+    distLast = np.linalg.norm(np.array(sortedByFirstObj[-1]) - np.array(nadir))
 
     # Mean distance
-    d_mean = np.mean(distances)
+    meanDist = np.mean(distances)
 
-    if d_mean == 0:
+    if meanDist == 0:
         return 0.0
 
     # Spread calculation
-    numerator = d_f + d_l + sum(abs(d - d_mean) for d in distances)
-    denominator = d_f + d_l + (len(distances)) * d_mean
+    numerator = distFirst + distLast + sum(abs(d - meanDist) for d in distances)
+    denominator = distFirst + distLast + (len(distances)) * meanDist
 
     if denominator == 0:
         return 0.0
@@ -1896,29 +1873,29 @@ class GeneticAlgorithm(RavenSampled):
         currentFront.append(point)
 
     # Previous front
-    prev_opt, _ = self._optPointHistory[traj][-2]
-    prev_rank1 = np.where(np.array(prev_opt['rank']) == 1)[0]
-    prev_front = []
-    for idx in prev_rank1:
-        point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-        prev_front.append(point)
+    prevOpt, _ = self._optPointHistory[traj][-2]
+    prevRank1 = np.where(np.array(prevOpt['rank']) == 1)[0]
+    prevFront = []
+    for idx in prevRank1:
+        point = [prevOpt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
+        prevFront.append(point)
 
     # Compute MS
-    current_ms = self._computeMaxSpread(currentFront)
-    prev_ms = self._computeMaxSpread(prev_front)
+    currentMS = self._computeMaxSpread(currentFront)
+    prevMS = self._computeMaxSpread(prevFront)
 
     # Check relative change
-    if prev_ms == 0:
-        rel_change = float('inf')
+    if prevMS == 0:
+        relChange = float('inf')
     else:
-        rel_change = abs(current_ms - prev_ms) / prev_ms
+        relChange = abs(currentMS - prevMS) / prevMS
 
-    converged = rel_change < self._convergenceCriteria.get('maxSpread', 0.05)
+    converged = relChange < self._convergenceCriteria.get('maxSpread', 0.05)
 
     self.raiseADebug(self.convFormat.format(
         name='MaxSpread',
         conv=str(converged),
-        got=rel_change,
+        got=relChange,
         req=self._convergenceCriteria.get('maxSpread', 0.05)
     ))
 
@@ -1933,12 +1910,12 @@ class GeneticAlgorithm(RavenSampled):
     if len(front) < 2:
         return 0.0
 
-    n_obj = len(front[0])
+    numObj = len(front[0])
     ranges = []
 
-    for obj in range(n_obj):
-        obj_values = [p[obj] for p in front]
-        ranges.append(max(obj_values) - min(obj_values))
+    for obj in range(numObj):
+        objValues = [p[obj] for p in front]
+        ranges.append(max(objValues) - min(objValues))
 
     ms = np.sqrt(sum(r**2 for r in ranges))
 
@@ -1955,8 +1932,8 @@ class GeneticAlgorithm(RavenSampled):
         return False
 
     # Count rank-1 solutions
-    rank1_count = np.sum(self.popRanks.data == 1)
-    ratio = rank1_count / self._populationSize
+    rank1Count = np.sum(self.popRanks.data == 1)
+    ratio = rank1Count / self._populationSize
 
     # Track history
     if not hasattr(self, '_rank1History'):
@@ -1967,15 +1944,15 @@ class GeneticAlgorithm(RavenSampled):
 
     # Converged if ratio high and stable
     threshold = self._convergenceCriteria.get('rank1Ratio', 0.5)
-    stable_generations = 3  # Require stability
+    stableGenerations = 3  # Require stability
 
-    if len(self._rank1History[traj]) < stable_generations:
+    if len(self._rank1History[traj]) < stableGenerations:
         converged = False
     else:
-        recent_ratios = self._rank1History[traj][-stable_generations:]
-        all_above_threshold = all(r >= threshold for r in recent_ratios)
-        variation = max(recent_ratios) - min(recent_ratios)
-        converged = all_above_threshold and variation < 0.1
+        recentRatios = self._rank1History[traj][-stableGenerations:]
+        allAboveThreshold = all(r >= threshold for r in recentRatios)
+        variation = max(recentRatios) - min(recentRatios)
+        converged = allAboveThreshold and variation < 0.1
 
     self.raiseADebug(self.convFormat.format(
         name='Rank1Ratio',
@@ -2122,67 +2099,67 @@ class GeneticAlgorithm(RavenSampled):
       objective, fitness, decision variables, and constraint metrics match the
       aligned values written for intermediary accepted iterations.
     """
-    final_rlz = dict(rlz)
+    finalRlz = dict(rlz)
     # carry over the best decision variables and constraint evaluations
-    best_idx = self._matchBestChromosomeIndex()
-    if best_idx is None:
-      best_idx = self._inferBestIndexFromObjective()
+    bestIdx = self._matchBestChromosomeIndex()
+    if bestIdx is None:
+      bestIdx = self._inferBestIndexFromObjective()
 
     if self._bestSnapshot:
       for var in self.toBeSampled:
         if var in self._bestSnapshot:
-          final_rlz[var] = self._bestSnapshot[var]
+          finalRlz[var] = self._bestSnapshot[var]
       for key, val in self._bestSnapshot.items():
         if key.startswith('ConstraintEvaluation_'):
-          final_rlz[key] = val
+          finalRlz[key] = val
       if hasattr(self, '_solutionExport') and self._solutionExport is not None:
         for outVar in self._solutionExport.getVars('output'):
           if outVar in self._bestSnapshot:
-            final_rlz[outVar] = self._bestSnapshot[outVar]
+            finalRlz[outVar] = self._bestSnapshot[outVar]
       if 'objective' in self._bestSnapshot:
-        final_rlz[self._objectiveVar[0]] = self._bestSnapshot['objective']
+        finalRlz[self._objectiveVar[0]] = self._bestSnapshot['objective']
       if 'fitness' in self._bestSnapshot:
-        final_rlz['fitness'] = self._bestSnapshot['fitness']
+        finalRlz['fitness'] = self._bestSnapshot['fitness']
       if 'age' in self._bestSnapshot:
-        final_rlz['age'] = self._bestSnapshot['age']
+        finalRlz['age'] = self._bestSnapshot['age']
       if 'batchId' in self._bestSnapshot:
-        final_rlz['batchId'] = self._bestSnapshot['batchId']
+        finalRlz['batchId'] = self._bestSnapshot['batchId']
     elif isinstance(self.bestPoint, dict):
       for key, val in self.bestPoint.items():
         if key.startswith('ConstraintEvaluation_'):
-          final_rlz[key] = val
+          finalRlz[key] = val
 
     # objective value and fitness are stored separately from the population
     if self.multiBestMinObjVals is not None and 'objective' not in (self._bestSnapshot or {}):
-      final_rlz[self._objectiveVar[0]] = float(np.atleast_1d(self.multiBestMinObjVals)[0])
+      finalRlz[self._objectiveVar[0]] = float(np.atleast_1d(self.multiBestMinObjVals)[0])
     if self.bestFitVal is not None and 'fitness' not in (self._bestSnapshot or {}):
-      final_rlz['fitness'] = float(np.atleast_1d(self.bestFitVal)[0])
+      finalRlz['fitness'] = float(np.atleast_1d(self.bestFitVal)[0])
 
     # Overwrite decision variables using the survivor record to keep them
     # consistent with the recorded objective/fitness.
-    if best_idx is not None and hasattr(self, 'pop') and self.pop is not None:
+    if bestIdx is not None and hasattr(self, 'pop') and self.pop is not None:
       for var in self.toBeSampled:
         try:
           arr = np.asarray(self.pop.sel(Gene=var))
-          final_rlz[var] = float(np.atleast_1d(arr)[best_idx])
+          finalRlz[var] = float(np.atleast_1d(arr)[bestIdx])
         except Exception:
           if var in self.bestPoint:
-            final_rlz[var] = self.bestPoint[var]
+            finalRlz[var] = self.bestPoint[var]
     elif isinstance(self.bestPoint, dict):
       for var in self.toBeSampled:
         if var in self.bestPoint:
-          final_rlz[var] = self.bestPoint[var]
+          finalRlz[var] = self.bestPoint[var]
 
     # include survivor age information if we can match the stored best point
-    if best_idx is not None and self.popAges and 'age' not in (self._bestSnapshot or {}):
-      final_rlz['age'] = self.popAges[best_idx]
+    if bestIdx is not None and self.popAges and 'age' not in (self._bestSnapshot or {}):
+      finalRlz['age'] = self.popAges[bestIdx]
     elif isinstance(self.popAge, list) and self.popAge:
-      final_rlz['age'] = self.popAge[0]
+      finalRlz['age'] = self.popAge[0]
     else:
-      final_rlz['age'] = 0
+      finalRlz['age'] = 0
 
-    final_rlz['batchId'] = self.batchId
-    return final_rlz
+    finalRlz['batchId'] = self.batchId
+    return finalRlz
 
   def _matchBestChromosomeIndex(self):
     """
@@ -2193,21 +2170,21 @@ class GeneticAlgorithm(RavenSampled):
       return None
     genes = list(self.toBeSampled.keys())
     try:
-      pop_da = self.pop.sel(Gene=genes).transpose('chromosome', 'Gene')
+      popDA = self.pop.sel(Gene=genes).transpose('chromosome', 'Gene')
     except Exception:
-      pop_da = self.pop.transpose('chromosome', 'Gene')
-    pop_matrix = np.asarray(pop_da)
-    if pop_matrix.ndim != 2 or not pop_matrix.size:
+      popDA = self.pop.transpose('chromosome', 'Gene')
+    popMatrix = np.asarray(popDA)
+    if popMatrix.ndim != 2 or not popMatrix.size:
       return None
-    target_vals = []
+    targetVals = []
     for gene in genes:
       if gene not in self.bestPoint:
         return None
-      target_vals.append(float(self.bestPoint[gene]))
-    target = np.asarray(target_vals, dtype=float)
+      targetVals.append(float(self.bestPoint[gene]))
+    target = np.asarray(targetVals, dtype=float)
     if np.any(np.isnan(target)):
       return None
-    matches = np.isclose(pop_matrix, target[np.newaxis, :], rtol=1e-9, atol=1e-12)
+    matches = np.isclose(popMatrix, target[np.newaxis, :], rtol=1e-9, atol=1e-12)
     hit = np.where(np.all(matches, axis=1))[0]
     return int(hit[0]) if hit.size else None
 
@@ -2220,13 +2197,13 @@ class GeneticAlgorithm(RavenSampled):
     if self.popMinObjVals is None:
       return None
     try:
-      obj_values = np.asarray(self.popMinObjVals, dtype=float)
+      objValues = np.asarray(self.popMinObjVals, dtype=float)
     except Exception:
       return None
-    if obj_values.ndim == 1 and obj_values.size:
-      return int(np.argmin(obj_values))
-    if obj_values.ndim > 1 and obj_values.size:
-      return int(np.argmin(obj_values[0]))
+    if objValues.ndim == 1 and objValues.size:
+      return int(np.argmin(objValues))
+    if objValues.ndim > 1 and objValues.size:
+      return int(np.argmin(objValues[0]))
     return None
 
   def _addToSolutionExport(self, traj, rlz, acceptable):

@@ -44,7 +44,20 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def __init__(self):
     """
-    __init__ method.
+    Constructor. Initializes the multi-objective bookkeeping attributes used across
+    generations:
+      self._canHandleMultiObjective, bool, flag enabling multi-objective handling.
+      self.popRanks, xr.DataArray or None, non-dominated sorting rank per population member.
+      self.popCrowdingDist, xr.DataArray or None, crowding distance per population member.
+      self.multiBestPoint, dict or None, rank-1 optimal decision points keyed by variable.
+      self.multiBestFitVals, xr.Dataset or None, fitness values for the rank-1 survivors.
+      self.multiBestMinObjVals, np.ndarray or None, minimization-space objective values of the rank-1 front.
+      self.multiBestConstraintVals, xr.DataArray or None, constraint values for the rank-1 front.
+      self.multiBestRank, np.ndarray or None, ranks of the retained best (rank-1) points.
+      self.multiBestCD, np.ndarray or None, crowding distances of the retained best points.
+      self.multiBestOutputs, dict or None, cached non-decision/non-objective outputs for the best points.
+      self._populationCache, dict, maps a chromosome key (tuple) to a dict of its evaluated outputs,
+        preserving full evaluation data for survivors across generations.
     @ Out, None.
     """
     super().__init__()
@@ -136,9 +149,13 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _normalizeKeyComponent(self, value):
     """
-      Convert a decision-variable value into a hashable, comparable token.
+      Convert a decision-variable value into a hashable, comparable token. The incoming
+      ``value`` may be an xr.DataArray, xr.Dataset, numpy array, or python scalar (bytes,
+      str, bool, integer, or float); the first scalar element is extracted and coerced to
+      a stable bool/int/str token or a float rounded to 12 decimals so that chromosomes
+      can be compared and used as dictionary keys regardless of source container type.
       @ In, value, object, raw value extracted from an evaluation
-      @ Out, normalized, object, comparable representation
+      @ Out, normalized, object, comparable representation (bool, int, str, or rounded float)
     """
     if isinstance(value, (xr.DataArray, xr.Dataset)):
       array = np.asarray(value.values)
@@ -154,12 +171,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if isinstance(scalar, (np.integer, int)):
       return int(scalar)
     try:
-      float_val = float(scalar)
+      floatVal = float(scalar)
     except (TypeError, ValueError):
       return str(scalar)
-    if np.isnan(float_val):
+    if np.isnan(floatVal):
       return 'nan'
-    return round(float_val, 12)
+    return round(floatVal, 12)
 
   def _buildChromosomeKey(self, data):
     """
@@ -221,14 +238,14 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     """
     if not isinstance(dataset, xr.Dataset):
       return
-    sample_dim = 'RAVEN_sample_ID'
-    if sample_dim not in dataset.dims:
+    sampleDim = 'RAVEN_sample_ID'
+    if sampleDim not in dataset.dims:
       return
     if self._populationCache is None:
       self._populationCache = {}
-    count = dataset.sizes.get(sample_dim, 0)
+    count = dataset.sizes.get(sampleDim, 0)
     for idx in range(count):
-      sample = dataset.isel({sample_dim: idx})
+      sample = dataset.isel({sampleDim: idx})
       key = self._buildChromosomeKey(sample)
       if key is None:
         continue
@@ -247,11 +264,11 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if self._populationCache is None:
       self._populationCache = {}
     if key not in self._populationCache and isinstance(dataset, xr.Dataset):
-      sample_dim = 'RAVEN_sample_ID'
-      if sample_dim in dataset.dims:
-        count = dataset.sizes.get(sample_dim, 0)
+      sampleDim = 'RAVEN_sample_ID'
+      if sampleDim in dataset.dims:
+        count = dataset.sizes.get(sampleDim, 0)
         for idx in range(count):
-          sample = dataset.isel({sample_dim: idx})
+          sample = dataset.isel({sampleDim: idx})
           if self._buildChromosomeKey(sample) == key:
             self._populationCache[key] = self._sampleToEntry(sample)
             break
@@ -270,13 +287,13 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     chromo = {}
     genes = list(self.toBeSampled.keys())
     if isinstance(population, xr.DataArray):
-      slice_ = population.isel(chromosome=index)
+      chromoSlice = population.isel(chromosome=index)
       for var in genes:
         try:
-          if 'Gene' in slice_.coords and var in slice_.coords['Gene'].values:
-            val = slice_.sel(Gene=var).values
+          if 'Gene' in chromoSlice.coords and var in chromoSlice.coords['Gene'].values:
+            val = chromoSlice.sel(Gene=var).values
           else:
-            val = slice_.loc[var].values
+            val = chromoSlice.loc[var].values
         except Exception:
           continue
         arr = np.asarray(val)
@@ -299,7 +316,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       @ In, population, xr.DataArray or dict, survivor representation
       @ In, count, int, number of chromosomes to extract
       @ In, dataset, xr.Dataset or None, fallback data source for matching
-      @ Out, outputs, dict(str -> list), collected outputs per requested variable
+      @ Out, outputs, dict(str -> list), collected outputs per requested variable. Each
+        appended entry (``value`` below) is either a python scalar (when the cached output
+        is a size-1 numpy array or already scalar) or a copied numpy.ndarray (for vector
+        outputs); missing outputs are recorded as numpy.nan.
     """
     if count <= 0 or not hasattr(self, '_solutionExport') or self._solutionExport is None:
       return {}
@@ -437,7 +457,6 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
     if self._writeSteps == 'every':
       popSize = rlz.sizes.get('RAVEN_sample_ID', 0)
-      self.raiseADebug(f"### rlz.sizes['RAVEN_sample_ID'] = {popSize}")
       solutionExportVars = set()
       solutionExportOutputs = []
       if hasattr(self, '_solutionExport') and self._solutionExport is not None:
@@ -541,15 +560,15 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       if not hasattr(self, 'popMinObjVals') or self.popMinObjVals is None:
         return
 
-      def _as_array(values):
+      def asArray(values):
         """
-        _as_array method.
+        Cast a DataArray or list of objective values to a 1-D float numpy array.
         @ In, values, array-like, values from a DataArray or list to cast to ndarray.
         @ Out, array, np.ndarray, values converted to a float array.
         """
         return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
 
-      popMinObjVals = np.column_stack([np.atleast_1d(_as_array(vals)) for vals in self.popMinObjVals])
+      popMinObjVals = np.column_stack([np.atleast_1d(asArray(vals)) for vals in self.popMinObjVals])
       # Finalization candidates are stored in minimization space; convert to original
       # signs below only for Pareto ranking with explicit objective directions.
       try:
@@ -682,7 +701,11 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _computeSpread(self, front):
     """
-    _computeSpread method.
+    Compute Deb's spread metric (Delta) for a Pareto front, quantifying how uniformly the
+    solutions are distributed. The front points are sorted along the first objective; the
+    Euclidean distances between consecutive points are compared against their mean, and the
+    distances from the extreme front points to the ideal/nadir corners are added in. Lower
+    values indicate a more uniform spread of non-dominated solutions.
     @ In, front, list(list(float)), Pareto front points in objective space.
     @ Out, spread, float, spread metric for the front.
     """
@@ -696,12 +719,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       distances.append(dist)
     ideal = np.array([min(p[i] for p in front) for i in range(len(front[0]))])
     nadir = np.array([max(p[i] for p in front) for i in range(len(front[0]))])
-    d_f = np.linalg.norm(np.array(front[0]) - ideal)
-    d_l = np.linalg.norm(np.array(front[-1]) - nadir)
-    mean_d = np.mean(distances)
-    if mathUtils.compareFloats(mean_d, 0.0, 1e-14):
+    distFirst = np.linalg.norm(np.array(front[0]) - ideal)
+    distLast = np.linalg.norm(np.array(front[-1]) - nadir)
+    meanDist = np.mean(distances)
+    if mathUtils.compareFloats(meanDist, 0.0, 1e-14):
       return 0.0
-    spread = (d_f + d_l + sum(abs(d - mean_d) for d in distances)) / (d_f + d_l + (len(distances)) * mean_d)
+    spread = (distFirst + distLast + sum(abs(d - meanDist) for d in distances)) / (distFirst + distLast + (len(distances)) * meanDist)
     return spread
 
   def _checkConvSpacing(self, traj, **kwargs):
@@ -732,7 +755,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _computeSpacing(self, front):
     """
-    _computeSpacing method.
+    Compute the spacing metric for a Pareto front: the standard deviation of each point's
+    nearest-neighbour distance to the other front points. A lower value indicates the
+    non-dominated solutions are more evenly spaced along the front.
     @ In, front, list(list(float)), Pareto front points in objective space.
     @ Out, spacing, float, spacing metric for the front.
     """
@@ -741,18 +766,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       return 0.0
     distances = []
     for i in range(n):
-      point_i = np.array(front[i])
-      min_dist = float('inf')
+      pointI = np.array(front[i])
+      minDist = float('inf')
       for j in range(n):
         if i == j:
           continue
-        point_j = np.array(front[j])
-        dist = np.linalg.norm(point_i - point_j)
-        if dist < min_dist:
-          min_dist = dist
-      distances.append(min_dist)
-    mean_dist = np.mean(distances)
-    spacing = np.sqrt(np.mean([(d - mean_dist) ** 2 for d in distances]))
+        pointJ = np.array(front[j])
+        dist = np.linalg.norm(pointI - pointJ)
+        if dist < minDist:
+          minDist = dist
+      distances.append(minDist)
+    meanDist = np.mean(distances)
+    spacing = np.sqrt(np.mean([(d - meanDist) ** 2 for d in distances]))
     return spacing
 
   def _checkConvMaxSpread(self, traj, **kwargs):
@@ -774,51 +799,53 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
       currentFront.append(point)
 
-    prev_opt, _ = self._optPointHistory[traj][-2]
-    if 'rank' not in prev_opt:
+    prevOpt, _ = self._optPointHistory[traj][-2]
+    if 'rank' not in prevOpt:
       return False
-    prev_rank1 = np.where(np.array(prev_opt['rank']) == 1)[0]
-    if len(prev_rank1) == 0:
+    prevRank1 = np.where(np.array(prevOpt['rank']) == 1)[0]
+    if len(prevRank1) == 0:
       return False
-    prev_front = []
-    for idx in prev_rank1:
-      point = [prev_opt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-      prev_front.append(point)
+    prevFront = []
+    for idx in prevRank1:
+      point = [prevOpt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
+      prevFront.append(point)
 
-    current_ms = self._computeMaxSpread(currentFront)
-    prev_ms = self._computeMaxSpread(prev_front)
+    currentMaxSpread = self._computeMaxSpread(currentFront)
+    prevMaxSpread = self._computeMaxSpread(prevFront)
 
-    if mathUtils.compareFloats(prev_ms, 0.0, 1e-14):
-      rel_change = float('inf')
+    if mathUtils.compareFloats(prevMaxSpread, 0.0, 1e-14):
+      relChange = float('inf')
     else:
-      rel_change = abs(current_ms - prev_ms) / prev_ms
+      relChange = abs(currentMaxSpread - prevMaxSpread) / prevMaxSpread
 
     threshold = self._convergenceCriteria.get('maxSpread', 0.05)
-    converged = rel_change < threshold
+    converged = relChange < threshold
 
     self.raiseADebug(self.convFormat.format(
         name='MaxSpread',
         conv=str(converged),
-        got=rel_change,
+        got=relChange,
         req=threshold))
 
     return converged
 
   def _computeMaxSpread(self, front):
     """
-    _computeMaxSpread method.
+    Compute the maximum spread of a Pareto front: the Euclidean norm of the per-objective
+    ranges (max minus min over the front for each objective). This captures how widely the
+    non-dominated solutions extend in objective space.
     @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, max_spread, float, max-spread metric for the front.
+    @ Out, maxSpread, float, max-spread metric for the front.
     """
     n = len(front)
     if n < 2:
       return 0.0
     ranges = []
     for i in range(len(front[0])):
-      obj_values = [point[i] for point in front]
-      ranges.append(max(obj_values) - min(obj_values))
-    ms = np.sqrt(sum(r ** 2 for r in ranges))
-    return ms
+      objValues = [point[i] for point in front]
+      ranges.append(max(objValues) - min(objValues))
+    maxSpread = np.sqrt(sum(r ** 2 for r in ranges))
+    return maxSpread
 
   def _checkConvRank1Ratio(self, traj, **kwargs):
     """
@@ -831,22 +858,22 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       return False
     if not hasattr(self, '_populationSize') or self._populationSize == 0:
       return False
-    rank1_count = np.sum(self.popRanks.data == 1)
-    ratio = rank1_count / self._populationSize
+    rank1Count = np.sum(self.popRanks.data == 1)
+    ratio = rank1Count / self._populationSize
     if not hasattr(self, '_rank1History'):
       self._rank1History = {}
     if traj not in self._rank1History:
       self._rank1History[traj] = []
     self._rank1History[traj].append(ratio)
     threshold = self._convergenceCriteria.get('rank1Ratio', 0.5)
-    stable_generations = 3
-    if len(self._rank1History[traj]) < stable_generations:
+    stableGenerations = 3
+    if len(self._rank1History[traj]) < stableGenerations:
       converged = False
     else:
-      recent_ratios = self._rank1History[traj][-stable_generations:]
-      all_above_threshold = all(r >= threshold for r in recent_ratios)
-      variation = max(recent_ratios) - min(recent_ratios)
-      converged = all_above_threshold and variation < 0.1
+      recentRatios = self._rank1History[traj][-stableGenerations:]
+      allAboveThreshold = all(r >= threshold for r in recentRatios)
+      variation = max(recentRatios) - min(recentRatios)
+      converged = allAboveThreshold and variation < 0.1
     self.raiseADebug(self.convFormat.format(
         name='Rank1Ratio',
         conv=str(converged),

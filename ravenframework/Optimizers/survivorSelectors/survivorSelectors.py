@@ -103,18 +103,25 @@ def fitnessBased(newRlz,**kwargs):
     @ Out, newAge, list, Ages of each chromosome in the new population.
     @ Out, popMinObjVals, list, floats of minimization-space objective values
   """
-  def _toNumericArray(values, default_size):
-    """Convert incoming objective list into a 1-D numpy array of length >= default_size."""
+  def _toNumericArray(values, defaultSize):
+    """
+      Convert an incoming objective list into a 1-D numpy array of length defaultSize.
+      Missing entries are padded with NaN and extra entries are truncated so the
+      returned array always matches the requested length.
+      @ In, values, list or np.array or None, objective values to normalize.
+      @ In, defaultSize, int, target length of the returned 1-D array.
+      @ Out, array, np.array, 1-D array of length defaultSize.
+    """
     if values is None:
-      return np.full(default_size, np.nan)
+      return np.full(defaultSize, np.nan)
     array = np.asarray(values)
     if array.size == 0:
-      return np.full(default_size, np.nan)
+      return np.full(defaultSize, np.nan)
     array = array.reshape(-1)
-    if array.size < default_size:
-      pad = np.full(default_size - array.size, np.nan)
+    if array.size < defaultSize:
+      pad = np.full(defaultSize - array.size, np.nan)
       array = np.concatenate([array, pad])
-    return array[:default_size]
+    return array[:defaultSize]
 
   popSize = np.shape(kwargs['population'])[0]
   popAge = list(kwargs.get('age', [0] * popSize))
@@ -134,6 +141,8 @@ def fitnessBased(newRlz,**kwargs):
   offspringPopulation = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   objVar = kwargs['objVar']
   offspringMinObjVals = np.asarray(newRlz[objVar].data).reshape(-1)
+  # Align the objective-value vector to the offspring fitness vector length:
+  # pad with NaN when shorter, truncate when longer, so both pools concatenate cleanly below.
   if offspringMinObjVals.size < offspringFitVals.size:
     pad = np.full(offspringFitVals.size - offspringMinObjVals.size, np.nan)
     offspringMinObjVals = np.concatenate([offspringMinObjVals, pad])
@@ -222,6 +231,8 @@ def rankNcrowdingBased(individuals=None, **kwargs):
   for frontNum in sortedFrontNums:
     currentFront = fronts[frontNum]
 
+    # If the whole front fits within the remaining slots, take it entirely;
+    # otherwise fill the leftover slots from this front by crowding distance.
     if len(selectedIndices) + len(currentFront) <= popSize:
       # Entire front fits - add all individuals
       selectedIndices.extend(currentFront)

@@ -191,8 +191,8 @@ class AutoARMA(TimeSeriesCharacterizer):
       SFAA = AutoARIMA(**statsforecastParams)
       try:
         fittedARIMA = SFAA.fit(y=history[mask])
-        arma_str = re.findall(r'\(([^\\)]+)\)', arima_string(fittedARIMA.model_))[0]
-        p_opt, d_opt, q_opt = [int(a) for a in arma_str.split(',')]
+        armaStr = re.findall(r'\(([^\\)]+)\)', arima_string(fittedARIMA.model_))[0]
+        pOpt, dOpt, qOpt = [int(a) for a in armaStr.split(',')]
         del SFAA, fittedARIMA
       except Exception:
         # statsforecast AutoARIMA can fail to return a best_fit; fall back to brute-force statsmodels
@@ -203,16 +203,16 @@ class AutoARMA(TimeSeriesCharacterizer):
           from statsmodels.tsa.arima.model import ARIMA
         except ModuleNotFoundError as exc:
           raise ModuleNotFoundError('statsmodels is required for AutoARMA fallback') from exc
-        p_opt = 0
-        q_opt = 0
-        d_opt = 0
-        best_score = np.inf
+        pOpt = 0
+        qOpt = 0
+        dOpt = 0
+        bestScore = np.inf
         for p in range(settings['P_upper'] + 1):
           for q in range(settings['Q_upper'] + 1):
             if p + q > maxOrder:
               continue
             try:
-              model = ARIMA(hist, order=(p, d_opt, q), trend='n',
+              model = ARIMA(hist, order=(p, dOpt, q), trend='n',
                             enforce_stationarity=False, enforce_invertibility=False)
               res = model.fit()
             except Exception:
@@ -226,14 +226,14 @@ class AutoARMA(TimeSeriesCharacterizer):
               nobs = res.nobs
               k = res.df_model
               score = res.aic + (2 * k * (k + 1)) / max(nobs - k - 1, 1)
-            if score < best_score:
-              best_score = score
-              p_opt = p
-              q_opt = q
+            if score < bestScore:
+              bestScore = score
+              pOpt = p
+              qOpt = q
 
-      params[target]['P_opt'] = p_opt
-      params[target]['D_opt'] = d_opt
-      params[target]['Q_opt'] = q_opt
+      params[target]['P_opt'] = pOpt
+      params[target]['D_opt'] = dOpt
+      params[target]['Q_opt'] = qOpt
 
     return params
 

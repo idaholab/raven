@@ -28,7 +28,6 @@ from ravenframework.utils import frontUtils
 from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
 # Internal Modules End------------------------------------------------------------------------------
 
-# @profile
 def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, minObjVals, constraintVals):
   """
     Process of selecting survivors for single objective problems.

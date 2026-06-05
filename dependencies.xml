@@ -95,6 +95,8 @@ limit our library choices.
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->
+    <!-- statsforecast/utilsforecast pinned for compatibility with the AutoARMA (auto_arima) test;
+         newer releases break establish_conda_env / set-python-env resolution. -->
     <statsforecast source="pip">1.7.8</statsforecast>
     <utilsforecast source="pip">0.1.4</utilsforecast>
     <pywavelets source="pip">1.4</pywavelets>
