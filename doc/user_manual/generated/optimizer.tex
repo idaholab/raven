@@ -2067,6 +2067,15 @@ Genetic Algorithm Example:
             such as HistorySet or PointSet.
       \end{itemize}
 
+    \item \xmlNode{crowdingDistanceNormalization}: \xmlDesc{[front, population]},
+      selects how objective gaps are normalized when computing the NSGA-II crowding distance.
+      \textit{front} (default) normalizes each objective by the range observed within each
+      non-dominated front, the classic Deb et al. (2002) formulation. \textit{population}
+      normalizes by the range of each objective over the whole combined population, so crowding
+      distances are comparable across fronts and generations; this can improve diversity
+      preservation on problems whose objectives differ greatly in scale.
+  \default{front}
+
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
@@ -2641,6 +2650,15 @@ Multiobjective Genetic Algorithm Example:
             The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
             such as HistorySet or PointSet.
       \end{itemize}
+
+    \item \xmlNode{crowdingDistanceNormalization}: \xmlDesc{[front, population]},
+      selects how objective gaps are normalized when computing the NSGA-II crowding distance.
+      \textit{front} (default) normalizes each objective by the range observed within each
+      non-dominated front, the classic Deb et al. (2002) formulation. \textit{population}
+      normalizes by the range of each objective over the whole combined population, so crowding
+      distances are comparable across fronts and generations; this can improve diversity
+      preservation on problems whose objectives differ greatly in scale.
+  \default{front}
 
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match

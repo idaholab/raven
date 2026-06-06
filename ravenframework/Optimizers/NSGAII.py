@@ -144,6 +144,21 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     """
     super()._useRealization(info, rlz)
 
+  def _crowdingNormalizationBounds(self, objectiveValues):
+    """
+      Build the per-objective (min, max) normalization bounds for crowding distance
+      when population-level normalization is requested, else None to use the classic
+      per-front normalization.
+      @ In, objectiveValues, np.array, (nPoints, nObjectives) external objective values of the combined population.
+      @ Out, bounds, np.array or None, (2, nObjectives) array of per-objective min/max, or None.
+    """
+    if getattr(self, '_crowdingNormalization', 'front') != 'population':
+      return None
+    objectiveValues = np.asarray(objectiveValues, dtype=float)
+    if objectiveValues.size == 0:
+      return None
+    return np.vstack([objectiveValues.min(axis=0), objectiveValues.max(axis=0)])
+
   def _process_generation(self, info, rlz, offspring, offspringMinObjVals,
                           offspringFitVals, offspringConstraintVals):
     """
@@ -190,7 +205,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       combinedCD = frontUtils.crowdingDistance(
           rank=np.array(combinedRanks),
           popSize=len(combinedRanks),
-          objectiveValues=combinedExternalObjValsBySolution)
+          objectiveValues=combinedExternalObjValsBySolution,
+          normalizationBounds=self._crowdingNormalizationBounds(combinedExternalObjValsBySolution))
 
       objectiveNames = list(self.popFitVals.keys())
       (self.pop,
@@ -222,7 +238,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       currentPopCD = frontUtils.crowdingDistance(
           rank=np.array(currentPopRanks),
           popSize=len(currentPopRanks),
-          objectiveValues=currentPopExternalObjValsBySolution)
+          objectiveValues=currentPopExternalObjValsBySolution,
+          normalizationBounds=self._crowdingNormalizationBounds(currentPopExternalObjValsBySolution))
 
       self.pop = offspring
       self.popFitVals = offspringFitVals

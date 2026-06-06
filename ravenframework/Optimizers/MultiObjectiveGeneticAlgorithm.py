@@ -20,7 +20,7 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 
-from ..utils import mathUtils, frontUtils
+from ..utils import mathUtils, frontUtils, InputData, InputTypes
 from ..utils.gaUtils import datasetToDataArray
 from .GeneticAlgorithm import GeneticAlgorithm
 from .constraintHandling.constraintHandling import constraintHandling
@@ -67,6 +67,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     """
     super().__init__()
     self._canHandleMultiObjective = True
+    self._crowdingNormalization = 'front'           # 'front' or 'population' normalization for crowding distance
     self.popRanks = None
     self.popCrowdingDist = None
     self.multiBestPoint = None
@@ -113,6 +114,16 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if objective is not None:
       objective.description = r"""List the objective variables that jointly define the Pareto front. Two or more
                                   objectives are required when using a multi-objective genetic algorithm."""
+    crowdingDistanceNormalization = InputData.parameterInputFactory('crowdingDistanceNormalization', strictMode=True,
+        contentType=InputTypes.makeEnumType('crowdingDistanceNormalization', 'cdNormType', ['front', 'population']),
+        descr=r"""selects how objective gaps are normalized when computing the NSGA-II crowding distance.
+                  \textit{front} (default) normalizes each objective by the range observed within each
+                  non-dominated front, the classic Deb et al. (2002) formulation. \textit{population}
+                  normalizes by the range of each objective over the whole combined population, so crowding
+                  distances are comparable across fronts and generations; this can improve diversity
+                  preservation on problems whose objectives differ greatly in scale.""",
+        default='front')
+    specs.addSub(crowdingDistanceNormalization)
     return specs
 
   @classmethod
@@ -364,6 +375,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       self.raiseAnError(IOError, 'Multi-objective genetic algorithms currently support only "tournamentSelection" as <parentSelection>.')
     if self._survivorSelectionType != 'rankNcrowdingBased':
       self.raiseAnError(IOError, 'Multi-objective genetic algorithms require <survivorSelection> to be "rankNcrowdingBased".')
+    crowdingNormNode = paramInput.findFirst('crowdingDistanceNormalization')
+    if crowdingNormNode is not None:
+      self._crowdingNormalization = crowdingNormNode.value
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
