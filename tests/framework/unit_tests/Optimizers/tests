@@ -39,6 +39,10 @@
     type = 'RavenPython'
     input = 'testSBXCrossover.py'
   [../]
+  [./testNSGAIIOptions]
+    type = 'RavenPython'
+    input = 'testNSGAIIOptions.py'
+  [../]
   [./test2pointsCrossover]
     type = 'RavenPython'
     input = 'test2pointsCrossover.py'
