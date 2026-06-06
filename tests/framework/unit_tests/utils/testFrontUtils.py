@@ -142,6 +142,76 @@ checkArray('3D crowding distance', indexesCD3D.tolist(), answerIndexesCD3D.tolis
 ###########################################
 
 ###########################################
+# Fast non-dominated sort (Deb et al., 2002), constrained variant, O(M*N^2).
+# It must produce ranks identical to the recursive peeling ranker it replaces.
+
+def bruteForceConstrainedRanks(directed, violation):
+  """
+    Independent O(N^3) reference ranker used only to validate the fast sort.
+    Peels fronts: a point joins the current front when no still-remaining point
+    constrained-dominates it.
+    @ In, directed, np.array, (nPoints, nObj) minimization-space objective values
+    @ In, violation, np.array, (nPoints,) total positive constraint violation
+    @ Out, ranks, list, 1-based front index for each point
+  """
+  nPoints = directed.shape[0]
+  ranks = [0] * nPoints
+  remaining = set(range(nPoints))
+  rank = 0
+  while remaining:
+    rank += 1
+    front = []
+    for cand in sorted(remaining):
+      dominated = any(
+          frontUtils._dominatesForMinimization(directed[o], directed[cand], violation[o], violation[cand])
+          for o in remaining if o != cand)
+      if not dominated:
+        front.append(cand)
+    for idx in front:
+      ranks[idx] = rank
+      remaining.remove(idx)
+  return ranks
+
+# Known unconstrained 2-D case: three clear fronts.
+fnsData = np.array([[1.0, 2.0],   # front 1
+                    [2.0, 1.0],   # front 1
+                    [2.0, 2.0],   # front 2 (dominated by both above)
+                    [3.0, 3.0]])  # front 3
+fnsViol = np.zeros(4)
+checkArray('fast NDS unconstrained ranks',
+           frontUtils._fastNonDominatedSortConstrained(fnsData, fnsViol),
+           [1, 1, 2, 3])
+
+# Constrained case: the middle point is infeasible (g < 0) so feasible points
+# dominate it regardless of objective values.
+fnsConData = np.array([[1.0, 1.0],   # feasible
+                       [0.0, 0.0],   # infeasible, would dominate all if feasible
+                       [2.0, 2.0]])  # feasible
+fnsConViol = np.array([0.0, 5.0, 0.0])
+checkArray('fast NDS constrained ranks',
+           frontUtils._fastNonDominatedSortConstrained(fnsConData, fnsConViol),
+           [1, 3, 2])
+
+# Public ranker on the same constrained problem (all objectives minimized).
+checkArray('rankNonDominatedFrontiers constrained',
+           frontUtils.rankNonDominatedFrontiers(fnsConData,
+                                                 constraintVals=np.array([[1.0], [-5.0], [2.0]]),
+                                                 minMask=np.array([True, True])),
+           [1, 3, 2])
+
+# Randomized equivalence vs the brute-force reference (objectives + constraints).
+rng = np.random.RandomState(12345)
+for trial in range(25):
+  nPts = int(rng.randint(4, 20))
+  nObj = int(rng.randint(2, 4))
+  rData = rng.rand(nPts, nObj)
+  rViol = np.where(rng.rand(nPts) < 0.4, rng.rand(nPts) * 3.0, 0.0)
+  checkArray('fast NDS equivalence trial %d' % trial,
+             frontUtils._fastNonDominatedSortConstrained(rData, rViol),
+             bruteForceConstrainedRanks(rData, rViol))
+###########################################
+
+###########################################
 # Hypervolume indicator (minimization space)
 # Validated against hand-computed exact values.
 # 2-D unit square: one point at the origin, reference at (1,1) -> area 1

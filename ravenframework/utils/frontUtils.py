@@ -58,6 +58,51 @@ def _dominatesForMinimization(candidate, other, candidateViolation=0.0, otherVio
   return np.all(candidate <= other) and np.any(candidate < other)
 
 
+def _fastNonDominatedSortConstrained(directedData, violation):
+  """
+    Fast non-dominated sort (Deb et al., 2002) with Deb constrained dominance.
+
+    Computes, for every individual p, the set of individuals it dominates and the
+    count of individuals that dominate it, in a single O(M*N^2) pairwise pass
+    (M objectives, N individuals); fronts are then peeled by decrementing the
+    domination counters. This yields ranks identical to the recursive peeling
+    ranker but avoids its O(N^3) cost on large populations.
+
+    @ In, directedData, np.array, (nPoints, nObjectives) objective values already
+                                  converted to minimization space.
+    @ In, violation, np.array, (nPoints,) total positive constraint violation per point.
+    @ Out, ranks, list, 1-based front index for each point.
+  """
+  nPoints = directedData.shape[0]
+  dominated = [[] for _ in range(nPoints)]   # individuals dominated by p
+  dominationCount = np.zeros(nPoints, dtype=int)  # individuals that dominate p
+  ranks = np.zeros(nPoints, dtype=int)
+  currentFront = []
+  for p in range(nPoints):
+    for q in range(p + 1, nPoints):
+      if _dominatesForMinimization(directedData[p], directedData[q], violation[p], violation[q]):
+        dominated[p].append(q)
+        dominationCount[q] += 1
+      elif _dominatesForMinimization(directedData[q], directedData[p], violation[q], violation[p]):
+        dominated[q].append(p)
+        dominationCount[p] += 1
+    if dominationCount[p] == 0:
+      ranks[p] = 1
+      currentFront.append(p)
+  rank = 1
+  while currentFront:
+    nextFront = []
+    for p in currentFront:
+      for q in dominated[p]:
+        dominationCount[q] -= 1
+        if dominationCount[q] == 0:
+          ranks[q] = rank + 1
+          nextFront.append(q)
+    rank += 1
+    currentFront = nextFront
+  return ranks.tolist()
+
+
 def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None):
   """Rank fronts using objective dominance plus Deb constrained-dominance rules."""
   data = np.asarray(data, dtype=float)
@@ -69,29 +114,7 @@ def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None):
   if len(violation) != data.shape[0]:
     raise IOError("rankNonDominatedFrontiers method: constraint rows do not match data rows")
   directedData = _applyObjectiveDirections(data, minMask)
-
-  ranks = np.zeros(data.shape[0], dtype=int)
-  remaining = set(range(data.shape[0]))
-  rank = 0
-  while remaining:
-    rank += 1
-    front = []
-    for candidate in sorted(remaining):
-      dominated = False
-      for other in remaining:
-        if other == candidate:
-          continue
-        if _dominatesForMinimization(directedData[other], directedData[candidate], violation[other], violation[candidate]):
-          dominated = True
-          break
-      if not dominated:
-        front.append(candidate)
-    if not front:
-      raise RuntimeError("No non-dominated front could be identified.")
-    for index in front:
-      ranks[index] = rank
-      remaining.remove(index)
-  return ranks.tolist()
+  return _fastNonDominatedSortConstrained(directedData, violation)
 
 
 def nonDominatedFrontier(data, returnMask, minMask=None, isFitness=False):
