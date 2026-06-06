@@ -471,9 +471,10 @@ class GeneticAlgorithm(RavenSampled):
                     \item \textit{onePointCrossover} - It selects a random crossover point along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
                     \item \textit{twoPointsCrossover} - It selects two random crossover points along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
                     \item \textit{uniformCrossover} - It randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
+                    \item \textit{sbxCrossover} - Simulated Binary Crossover (Deb \& Agrawal, 1995) for real-valued variables; produces offspring distributed around the parents within the variable bounds, controlled by a distribution index. Recommended for continuous multi-objective problems.
                   \end{itemize}""")
     crossover.addParam("type",
-                       InputTypes.makeEnumType('crossover','crossoverType',['onePointCrossover','twoPointsCrossover','uniformCrossover']),
+                       InputTypes.makeEnumType('crossover','crossoverType',['onePointCrossover','twoPointsCrossover','uniformCrossover','sbxCrossover']),
                        True,
                        descr="type of crossover operation to be used. See the list of options above.")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
@@ -500,9 +501,10 @@ class GeneticAlgorithm(RavenSampled):
                   \item \textit{inversionMutator} - It selects a contiguous subset of genes within an chromosome and reverses their order.
                   \item \textit{bitFlipMutator} - It randomly selects genes within an chromosome and flips their values.
                   \item \textit{randomMutator} - It randomly selects a gene within an chromosome and mutates the gene.
+                  \item \textit{polynomialMutator} - Polynomial mutation (Deb \& Goyal, 1996) for real-valued variables; perturbs a gene by a bounded, polynomial-distributed step controlled by a distribution index. Recommended for continuous multi-objective problems, paired with sbxCrossover.
                 \end{itemize} """)
     mutation.addParam("type",
-                      InputTypes.makeEnumType('mutation','mutationType',['swapMutator','scrambleMutator','inversionMutator','randomMutator']),
+                      InputTypes.makeEnumType('mutation','mutationType',['swapMutator','scrambleMutator','inversionMutator','randomMutator','polynomialMutator']),
                       True,
                       descr="type of mutation operation to be used. See the list of options above.")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
@@ -1130,6 +1132,7 @@ class GeneticAlgorithm(RavenSampled):
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints,
+                                              distDict=self.distDict,
                                               EQfiles=self._EQcheckfile)
 
       # Mutation

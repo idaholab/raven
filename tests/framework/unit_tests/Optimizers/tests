@@ -26,10 +26,18 @@
     type = 'RavenPython'
     input = 'testSwapMutator.py'
   [../]
+  [./testPolynomialMutator]
+    type = 'RavenPython'
+    input = 'testPolynomialMutator.py'
+  [../]
   #  GA: CrossOvers Unit Tests
   [./test1pointCrossover]
     type = 'RavenPython'
     input = 'test1pointCrossover.py'
+  [../]
+  [./testSBXCrossover]
+    type = 'RavenPython'
+    input = 'testSBXCrossover.py'
   [../]
   [./test2pointsCrossover]
     type = 'RavenPython'

@@ -195,12 +195,93 @@ def locationsGenerator(offspring,locs):
   loc2 = np.maximum(locs[0], locs[1])
   return loc1, loc2
 
+def _finiteGeneBounds(dist, *observedValues):
+  """
+    Return finite (lower, upper) bounds for a gene/decision variable, used by the
+    real-coded polynomial mutation. Prefers the distribution's explicit bounds, falls
+    back to extreme quantiles via the ppf, and finally to a padded range around the
+    observed value so the operator is always well-defined for unbounded distributions.
+    @ In, dist, Distribution or None, distribution associated with the gene.
+    @ In, observedValues, float, one or more current values of the gene.
+    @ Out, (low, high), tuple(float, float), finite lower and upper bounds with high > low.
+  """
+  low = getattr(dist, 'lowerBound', None) if dist is not None else None
+  high = getattr(dist, 'upperBound', None) if dist is not None else None
+  if (low is None or not np.isfinite(low)) and dist is not None and hasattr(dist, 'ppf'):
+    try:
+      low = float(dist.ppf(1e-6))
+    except Exception:
+      low = None
+  if (high is None or not np.isfinite(high)) and dist is not None and hasattr(dist, 'ppf'):
+    try:
+      high = float(dist.ppf(1.0 - 1e-6))
+    except Exception:
+      high = None
+  vMin = min(observedValues)
+  vMax = max(observedValues)
+  span = abs(vMax - vMin) if vMax != vMin else 1.0
+  if low is None or not np.isfinite(low):
+    low = vMin - span
+  if high is None or not np.isfinite(high):
+    high = vMax + span
+  if high <= low:
+    high = low + 1.0
+  return float(low), float(high)
+
+
+def polynomialMutator(offspring, distDict, **kwargs):
+  """
+    Polynomial mutation for real-valued decision variables (Deb & Goyal, 1996).
+    Each gene is perturbed, with probability mutationProb, by a polynomial-distributed
+    step bounded by the decision-variable limits; the distribution index eta controls how
+    local the perturbation is (larger eta -> smaller perturbations near the current value).
+    Together with SBX this is the canonical NSGA-II continuous variation pair and provides
+    the directed, bound-respecting local search that gene-resampling mutators lack.
+    @ In, offspring, xr.DataArray, children resulting from the crossover process.
+    @ In, distDict, dict, distribution per gene, used to obtain decision-variable bounds.
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          mutationProb, float, per-gene probability that a gene is mutated.
+          eta, float, mutation distribution index (default 20.0).
+          variables, list, variable names.
+    @ Out, children, xr.DataArray, the mutated children.
+  """
+  mutationProb = kwargs['mutationProb']
+  eta = float(kwargs.get('eta', 20.0))
+  geneNames = offspring.coords['Gene'].values
+  children = offspring.copy(deep=True)
+  numChildren, numGenes = np.shape(offspring)
+  for i in range(numChildren):
+    for g in range(numGenes):
+      if float(randomUtils.random(dim=1, samples=1)) < mutationProb:
+        x = float(offspring[i, g].values)
+        low, high = _finiteGeneBounds(distDict.get(geneNames[g]), x)
+        spread = high - low
+        if spread <= 0.0:
+          continue
+        delta1 = (x - low) / spread
+        delta2 = (high - x) / spread
+        rand = float(randomUtils.random(dim=1, samples=1))
+        mutPow = 1.0 / (eta + 1.0)
+        if rand < 0.5:
+          xy = 1.0 - delta1
+          val = 2.0 * rand + (1.0 - 2.0 * rand) * (xy ** (eta + 1.0))
+          deltaq = val ** mutPow - 1.0
+        else:
+          xy = 1.0 - delta2
+          val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (xy ** (eta + 1.0))
+          deltaq = 1.0 - val ** mutPow
+        xNew = min(max(x + deltaq * spread, low), high)
+        children.values[i, g] = xNew
+  return children
+
+
 __mutators = {}
 __mutators['swapMutator']       = swapMutator
 __mutators['scrambleMutator']   = scrambleMutator
 __mutators['bitFlipMutator']    = bitFlipMutator
 __mutators['inversionMutator']  = inversionMutator
 __mutators['randomMutator']     = randomMutator
+__mutators['polynomialMutator'] = polynomialMutator
 
 
 def returnInstance(cls, name):
