@@ -259,6 +259,23 @@ checkArray('archive truncation keeps boundaries', sorted(arTrunc), [0, 4])
 _, arNoTrunc = frontUtils.updateParetoArchive(np.empty((0, 2)), arFront,
                                              minMask=np.array([True, True]), maxArchiveSize=10)
 checkArray('archive no truncation', sorted(arNoTrunc), [0, 1, 2, 3, 4])
+
+# Iterative accumulation across generations (the contract the NSGA-II Pareto archive
+# relies on): the archive remembers good points from earlier generations.
+gMin = np.array([True, True])
+# Generation 1: [1,1] dominates [2,2] -> archive = {[1,1]}.
+g1comb, g1keep = frontUtils.updateParetoArchive(np.empty((0, 2)), np.array([[1.0, 1.0], [2.0, 2.0]]), minMask=gMin)
+arch = g1comb[g1keep]
+checkArray('archive gen1 objectives', arch.ravel().tolist(), [1.0, 1.0])
+# Generation 2: two points mutually non-dominated with the retained [1,1] -> archive grows to 3.
+g2comb, g2keep = frontUtils.updateParetoArchive(arch, np.array([[3.0, 0.5], [0.5, 3.0]]), minMask=gMin)
+arch = g2comb[g2keep]
+checkAnswer('archive gen2 size', arch.shape[0], 3)
+checkAnswer('archive gen2 keeps the gen1 point', int(np.any(np.all(arch == [1.0, 1.0], axis=1))), 1)
+# Generation 3: a single dominator collapses the whole archive to one point.
+g3comb, g3keep = frontUtils.updateParetoArchive(arch, np.array([[0.4, 0.4]]), minMask=gMin)
+arch = g3comb[g3keep]
+checkArray('archive gen3 collapses to dominator', arch.ravel().tolist(), [0.4, 0.4])
 ###########################################
 
 ###########################################

@@ -2076,6 +2076,22 @@ Genetic Algorithm Example:
       preservation on problems whose objectives differ greatly in scale.
   \default{front}
 
+    \item \xmlNode{paretoArchive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, maintain an external archive of the non-dominated (rank-1) solutions found
+      across all generations and report it as the final Pareto front. NSGA-II's elitist
+      (mu+lambda) survivor selection already protects the rank-1 front between consecutive
+      generations, but an archive additionally guarantees that the best front ever found is
+      reported even if a later generation drops a previously discovered point. Defaults to
+      False (only the final generation's rank-1 front is reported).
+  \default{False}
+      The \xmlNode{paretoArchive} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{maxSize}: \xmlDesc{integer, optional},
+            optional cap on the number of solutions retained in the archive. When the archive
+            exceeds this size the most crowded solutions are removed first (boundary solutions are
+            always kept). If omitted the archive is unbounded.
+      \end{itemize}
+
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
@@ -2659,6 +2675,22 @@ Multiobjective Genetic Algorithm Example:
       distances are comparable across fronts and generations; this can improve diversity
       preservation on problems whose objectives differ greatly in scale.
   \default{front}
+
+    \item \xmlNode{paretoArchive}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, maintain an external archive of the non-dominated (rank-1) solutions found
+      across all generations and report it as the final Pareto front. NSGA-II's elitist
+      (mu+lambda) survivor selection already protects the rank-1 front between consecutive
+      generations, but an archive additionally guarantees that the best front ever found is
+      reported even if a later generation drops a previously discovered point. Defaults to
+      False (only the final generation's rank-1 front is reported).
+  \default{False}
+      The \xmlNode{paretoArchive} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{maxSize}: \xmlDesc{integer, optional},
+            optional cap on the number of solutions retained in the archive. When the archive
+            exceeds this size the most crowded solutions are removed first (boundary solutions are
+            always kept). If omitted the archive is unbounded.
+      \end{itemize}
 
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match

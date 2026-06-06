@@ -68,6 +68,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     super().__init__()
     self._canHandleMultiObjective = True
     self._crowdingNormalization = 'front'           # 'front' or 'population' normalization for crowding distance
+    self._paretoArchiveEnabled = False              # if True, accumulate non-dominated solutions across generations
+    self._paretoArchiveMaxSize = None               # optional cap on archive size (None = unbounded)
+    self._paretoArchive = None                      # accumulated archive records (dict), see _mergeIntoParetoArchive
     self.popRanks = None
     self.popCrowdingDist = None
     self.multiBestPoint = None
@@ -85,6 +88,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     @ Out, None.
     """
     super().flush()
+    self._paretoArchive = None
     self.popRanks = None
     self.popCrowdingDist = None
     self.multiBestPoint = None
@@ -124,6 +128,20 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                   preservation on problems whose objectives differ greatly in scale.""",
         default='front')
     specs.addSub(crowdingDistanceNormalization)
+    paretoArchive = InputData.parameterInputFactory('paretoArchive', strictMode=True,
+        contentType=InputTypes.BoolType,
+        descr=r"""if True, maintain an external archive of the non-dominated (rank-1) solutions found
+                  across all generations and report it as the final Pareto front. NSGA-II's elitist
+                  (mu+lambda) survivor selection already protects the rank-1 front between consecutive
+                  generations, but an archive additionally guarantees that the best front ever found is
+                  reported even if a later generation drops a previously discovered point. Defaults to
+                  False (only the final generation's rank-1 front is reported).""",
+        default=False)
+    paretoArchive.addParam('maxSize', InputTypes.IntegerType, required=False,
+        descr=r"""optional cap on the number of solutions retained in the archive. When the archive
+                  exceeds this size the most crowded solutions are removed first (boundary solutions are
+                  always kept). If omitted the archive is unbounded.""")
+    specs.addSub(paretoArchive)
     return specs
 
   @classmethod
@@ -378,6 +396,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     crowdingNormNode = paramInput.findFirst('crowdingDistanceNormalization')
     if crowdingNormNode is not None:
       self._crowdingNormalization = crowdingNormNode.value
+    paretoArchiveNode = paramInput.findFirst('paretoArchive')
+    if paretoArchiveNode is not None:
+      self._paretoArchiveEnabled = paretoArchiveNode.value
+      self._paretoArchiveMaxSize = paretoArchiveNode.parameterValues.get('maxSize', None)
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
@@ -443,7 +465,99 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self.multiBestOutputs = self._collectOutputsForPopulation(optPointsDic,
                                                               len(optRank),
                                                               dataset=rlz)
+    if self._paretoArchiveEnabled:
+      self._mergeIntoParetoArchive(optPointsDic, optMinObjVals, fitSet, optConstNew, self.multiBestOutputs)
+      self._applyParetoArchiveToMultiBest()
     return optPointsDic
+
+  def _mergeIntoParetoArchive(self, pointsDic, minObjVals, fitSet, constraintVals, outputs):
+    """
+    Merge the current generation's rank-1 front into the persistent Pareto archive,
+    keeping only the mutually non-dominated solutions (minimization space). All parallel
+    per-solution data (decision variables, objectives, fitness, constraints, outputs) is
+    carried so the archived front can be reported with the same columns as a normal front.
+    @ In, pointsDic, dict, rank-1 decision values keyed by variable name.
+    @ In, minObjVals, np.ndarray, (nPoints, nObjectives) minimization-space objective values.
+    @ In, fitSet, xr.Dataset, fitness values keyed by objective name for the rank-1 points.
+    @ In, constraintVals, xr.DataArray or list, (Constraint, Evaluation) constraint values, or [] if none.
+    @ In, outputs, dict, cached non-decision/non-objective outputs keyed by variable name.
+    @ Out, None.
+    """
+    varNames = list(pointsDic.keys())
+    curDecision = np.column_stack([np.asarray(pointsDic[v], dtype=float) for v in varNames]) if varNames else np.empty((minObjVals.shape[0], 0))
+    curObj = np.asarray(minObjVals, dtype=float)
+    fitKeys = list(fitSet.keys())
+    curFit = np.column_stack([np.asarray(fitSet[k].data, dtype=float) for k in fitKeys]) if fitKeys else np.empty((curObj.shape[0], 0))
+    hasConstr = hasattr(constraintVals, 'values') and getattr(constraintVals, 'size', 0) != 0
+    constrNames = [str(c) for c in constraintVals.Constraint.values] if hasConstr else []
+    curConstr = np.asarray(constraintVals.values, dtype=float).T if hasConstr else np.empty((curObj.shape[0], 0))
+    outNames = list(outputs.keys()) if isinstance(outputs, dict) else []
+    curOut = {name: list(np.atleast_1d(outputs[name])) for name in outNames}
+
+    if self._paretoArchive is None:
+      prevObj = np.empty((0, curObj.shape[1]))
+      prevDecision = np.empty((0, curDecision.shape[1]))
+      prevFit = np.empty((0, curFit.shape[1]))
+      prevConstr = np.empty((0, curConstr.shape[1]))
+      prevOut = {name: [] for name in outNames}
+    else:
+      prevObj = self._paretoArchive['obj']
+      prevDecision = self._paretoArchive['decision']
+      prevFit = self._paretoArchive['fit']
+      prevConstr = self._paretoArchive['constr']
+      prevOut = self._paretoArchive['outputs']
+
+    minMask = np.ones(curObj.shape[1], dtype=bool)  # archive objectives are already in minimization space
+    _, kept = frontUtils.updateParetoArchive(prevObj, curObj, minMask=minMask,
+                                             maxArchiveSize=self._paretoArchiveMaxSize)
+    stackedDecision = np.vstack([prevDecision, curDecision])
+    stackedObj = np.vstack([prevObj, curObj])
+    stackedFit = np.vstack([prevFit, curFit])
+    stackedConstr = np.vstack([prevConstr, curConstr])
+    stackedOut = {name: list(prevOut.get(name, [])) + curOut.get(name, []) for name in outNames}
+
+    self._paretoArchive = {
+        'varNames': varNames,
+        'decision': stackedDecision[kept],
+        'obj': stackedObj[kept],
+        'fitKeys': fitKeys,
+        'fit': stackedFit[kept],
+        'constrNames': constrNames,
+        'constr': stackedConstr[kept],
+        'outNames': outNames,
+        'outputs': {name: [stackedOut[name][i] for i in kept] for name in outNames},
+    }
+
+  def _applyParetoArchiveToMultiBest(self):
+    """
+    Overwrite the multiBest* solution-export containers with the accumulated Pareto archive
+    so the reported front is the best non-dominated set found over the whole run. Ranks are
+    all 1 (the archive is mutually non-dominated) and crowding distances are recomputed on the
+    archived objectives.
+    @ Out, None.
+    """
+    archive = self._paretoArchive
+    nPoints = archive['obj'].shape[0]
+    self.multiBestPoint = {var: archive['decision'][:, i] for i, var in enumerate(archive['varNames'])}
+    self.multiBestMinObjVals = archive['obj']
+    fitSet = None
+    for count, key in enumerate(archive['fitKeys']):
+      dataArray = xr.DataArray(archive['fit'][:, count], dims=['chromosome'], coords={'chromosome': np.arange(nPoints)})
+      if count == 0:
+        fitSet = dataArray.to_dataset(name=key)
+      else:
+        fitSet[key] = dataArray
+    self.multiBestFitVals = fitSet
+    if archive['constrNames']:
+      self.multiBestConstraintVals = xr.DataArray(archive['constr'].T,
+                                                  dims=['Constraint', 'Evaluation'],
+                                                  coords={'Constraint': archive['constrNames'],
+                                                          'Evaluation': np.arange(nPoints)})
+    else:
+      self.multiBestConstraintVals = []
+    self.multiBestRank = np.ones(nPoints, dtype=int)
+    self.multiBestCD = frontUtils.crowdingDistance(np.ones(nPoints, dtype=int), nPoints, archive['obj'])
+    self.multiBestOutputs = {name: archive['outputs'][name] for name in archive['outNames']}
 
   def _resolveNewGeneration(self, traj, rlz, info, pastPop, minObjVals, fitVals, constraintVals, ranks=None, CD=None):
     """
