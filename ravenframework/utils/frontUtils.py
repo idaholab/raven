@@ -211,7 +211,7 @@ def rankNonDominatedFrontiers(data, isFitness=False, constraintVals=None, minMas
   return nonDominatedRank.tolist()
 
 
-def crowdingDistance(rank, popSize, objectiveValues):
+def crowdingDistance(rank, popSize, objectiveValues, normalizationBounds=None):
   """
     Calculate the NSGA-II crowding distance for each front.
 
@@ -222,13 +222,24 @@ def crowdingDistance(rank, popSize, objectiveValues):
     they are always preserved. Note this is a measure of objective-space spread, so it
     must be fed objective values, not transformed/penalized fitness values.
 
+    By default each objective is normalized by the range observed within the front. A
+    population-level normalization (the min/max of each objective over the whole
+    population) can be supplied via normalizationBounds so crowding distances are
+    comparable across fronts and generations rather than rescaled per front.
+
     @ In, rank, np.array or xr.DataArray, array which contains the front ID for each element of the population
     @ In, popSize, int, size of population
     @ In, objectiveValues, np.array, matrix (nPoints, nObjectives) of objective values for each individual
+    @ In, normalizationBounds, np.array, optional, (2, nObjectives) array whose first row is the
+                               per-objective minimum and second row the per-objective maximum used to
+                               normalize gaps; if None each front is normalized by its own range.
     @ Out, crowdDist, np.array, array of crowding distances
   """
   if isinstance(rank, xr.DataArray):
     rank = rank.data
+
+  if normalizationBounds is not None:
+    normalizationBounds = np.asarray(normalizationBounds, dtype=float)
 
   crowdDist = np.zeros(popSize)
   fronts = np.unique(rank)
@@ -260,9 +271,14 @@ def crowdingDistance(rank, popSize, objectiveValues):
       crowdDist[sortedFront[0]] = np.inf   # Minimum boundary
       crowdDist[sortedFront[-1]] = np.inf  # Maximum boundary
 
-      # Skip normalization if all values are identical
-      objMax = objectiveValues[sortedFront, obj].max()
-      objMin = objectiveValues[sortedFront, obj].min()
+      # Normalize by the population range when provided, else by this front's range.
+      if normalizationBounds is not None:
+        objMin = normalizationBounds[0, obj]
+        objMax = normalizationBounds[1, obj]
+      else:
+        objMax = objectiveValues[sortedFront, obj].max()
+        objMin = objectiveValues[sortedFront, obj].min()
+      # Skip normalization if the range is degenerate
       if objMax == objMin:
         continue
 
@@ -276,6 +292,42 @@ def crowdingDistance(rank, popSize, objectiveValues):
           crowdDist[sortedFront[i]] += (nextObjValue - prevObjValue) / (objMax - objMin)
 
   return crowdDist
+
+
+def updateParetoArchive(archiveObjectives, newObjectives, minMask=None, maxArchiveSize=None):
+  """
+    Update a Pareto archive with new candidate objective vectors.
+
+    Stacks the current archive and the new candidates, retains only the mutually
+    non-dominated set (in minimization space after applying minMask), and optionally
+    truncates to maxArchiveSize by removing the most crowded points first; boundary
+    points (infinite crowding distance) are always retained. An external archive lets
+    NSGA-II report the best Pareto front found over the whole run, even if a later
+    generation's (mu+lambda) elitism happens to drop a previously found point.
+
+    @ In, archiveObjectives, np.array, (nArchive, nObjectives) current archive objective vectors
+    @ In, newObjectives, np.array, (nNew, nObjectives) candidate objective vectors
+    @ In, minMask, np.array, optional, True per minimized objective and False per maximized objective
+    @ In, maxArchiveSize, int, optional, maximum number of points to retain (None = unbounded)
+    @ Out, combined, np.array, (nArchive+nNew, nObjectives) stacked objective vectors
+    @ Out, keptIndices, list, sorted indices into combined that form the updated archive
+  """
+  archiveObjectives = np.asarray(archiveObjectives, dtype=float)
+  newObjectives = np.asarray(newObjectives, dtype=float)
+  pieces = [arr for arr in (archiveObjectives, newObjectives) if arr.size]
+  if not pieces:
+    return np.empty((0, 0)), []
+  combined = np.vstack(pieces)
+  nonDominatedMask = nonDominatedFrontier(combined.copy(), returnMask=True, minMask=minMask)
+  keptIndices = list(np.where(nonDominatedMask)[0])
+  if maxArchiveSize is not None and len(keptIndices) > maxArchiveSize:
+    keptObjectives = combined[keptIndices]
+    ranks = np.ones(len(keptIndices), dtype=int)
+    crowding = crowdingDistance(ranks, len(keptIndices), keptObjectives)
+    # Keep the least crowded points (largest crowding distance); boundaries are +inf.
+    order = sorted(range(len(keptIndices)), key=lambda i: crowding[i], reverse=True)
+    keptIndices = [keptIndices[i] for i in order[:maxArchiveSize]]
+  return combined, sorted(keptIndices)
 
 
 def hypervolume(points, reference):

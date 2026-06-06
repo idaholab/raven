@@ -212,6 +212,56 @@ for trial in range(25):
 ###########################################
 
 ###########################################
+# Crowding distance with population-level normalization bounds.
+# Single 2-D front; the interior point's crowding distance scales with the
+# normalization range used for each objective.
+normFront = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
+normRank = np.array([1, 1, 1])
+# Default (per-front range = 2 in each objective): interior CD = 1 + 1 = 2.
+cdDefault = frontUtils.crowdingDistance(normRank, 3, normFront)
+checkAnswer('crowding default interior', cdDefault[1], 2.0)
+# Population bounds wider (range = 4 in each objective): interior CD halves to 1.
+cdNorm = frontUtils.crowdingDistance(normRank, 3, normFront,
+                                     normalizationBounds=np.array([[0.0, 0.0], [4.0, 4.0]]))
+checkAnswer('crowding population-normalized interior', cdNorm[1], 1.0)
+# Boundaries remain infinite regardless of normalization.
+checkAnswer('crowding normalized boundary low', cdNorm[0], np.inf)
+checkAnswer('crowding normalized boundary high', cdNorm[2], np.inf)
+###########################################
+
+###########################################
+# Pareto archive: accumulate non-dominated solutions across generations.
+
+# Empty archive + a candidate set returns only the non-dominated candidates.
+arNew = np.array([[1.0, 2.0], [2.0, 1.0], [2.0, 2.0]])  # last is dominated
+_, arKept = frontUtils.updateParetoArchive(np.empty((0, 2)), arNew, minMask=np.array([True, True]))
+checkArray('archive empty + new front', sorted(arKept), [0, 1])
+
+# Merging an existing archive with a new point that dominates everything collapses it.
+arArch = np.array([[1.0, 3.0], [3.0, 1.0]])
+arNew2 = np.array([[2.0, 2.0], [0.0, 0.0]])  # [0,0] dominates all (minimization)
+arComb, arKept2 = frontUtils.updateParetoArchive(arArch, arNew2, minMask=np.array([True, True]))
+checkArray('archive merge collapses to dominator', sorted(arKept2), [3])
+checkArray('archive merge dominator value', arComb[arKept2[0]].tolist(), [0.0, 0.0])
+
+# Maximization objectives: the larger point dominates.
+_, arKeptMax = frontUtils.updateParetoArchive(np.empty((0, 2)), np.array([[1.0, 1.0], [2.0, 2.0]]),
+                                              minMask=np.array([False, False]))
+checkArray('archive maximization', sorted(arKeptMax), [1])
+
+# Truncation by crowding distance keeps the boundary points of a 2-D front.
+arFront = np.array([[0.0, 4.0], [1.0, 3.0], [2.0, 2.0], [3.0, 1.0], [4.0, 0.0]])
+_, arTrunc = frontUtils.updateParetoArchive(np.empty((0, 2)), arFront,
+                                           minMask=np.array([True, True]), maxArchiveSize=2)
+checkArray('archive truncation keeps boundaries', sorted(arTrunc), [0, 4])
+
+# maxArchiveSize >= front size leaves the whole non-dominated set.
+_, arNoTrunc = frontUtils.updateParetoArchive(np.empty((0, 2)), arFront,
+                                             minMask=np.array([True, True]), maxArchiveSize=10)
+checkArray('archive no truncation', sorted(arNoTrunc), [0, 1, 2, 3, 4])
+###########################################
+
+###########################################
 # Hypervolume indicator (minimization space)
 # Validated against hand-computed exact values.
 # 2-D unit square: one point at the origin, reference at (1,1) -> area 1
