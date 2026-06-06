@@ -963,6 +963,26 @@
     [../]
   [../]
 
+  [./NSGA-II_ZDT1_sbx_adaptmut]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1_sbx_adaptmut.xml'
+    required_libraries = 'imageio'
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/ZDT1_sbx_adaptmut/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/ZDT1_sbx_adaptmut/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/ZDT1_sbx_adaptmut/1-population.png'
+    [../]
+  [../]
+
   [./NSGA-II_Beale]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'

@@ -144,6 +144,23 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     """
     super()._useRealization(info, rlz)
 
+  def _effectiveMutationProb(self):
+    """
+      Return the mutation probability to use this generation. With adaptive mutation enabled
+      it is annealed linearly from the configured mutationProb (first generation) to the
+      requested final value (last generation), defaulting the final value to 1/nVariables.
+      @ Out, prob, float, mutation probability for the current generation.
+    """
+    if not getattr(self, '_adaptiveMutation', False):
+      return self._mutationProb
+    if self.limit and self.limit > 1:
+      progress = min(1.0, max(0.0, (self.counter - 1) / (self.limit - 1)))
+    else:
+      progress = 0.0
+    nVariables = max(1, len(self.toBeSampled))
+    finalProb = self._adaptiveMutationFinal if self._adaptiveMutationFinal is not None else 1.0 / nVariables
+    return self._mutationProb + (finalProb - self._mutationProb) * progress
+
   def _crowdingNormalizationBounds(self, objectiveValues):
     """
       Build the per-objective (min, max) normalization bounds for crowding distance
@@ -298,7 +315,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     childrenMutated = self._mutationInstance(offspring=childrenXover,
                                              distDict=self.distDict,
                                              locs=self._mutationLocs,
-                                             mutationProb=self._mutationProb,
+                                             mutationProb=self._effectiveMutationProb(),
                                              variables=list(self.toBeSampled),
                                              EQfiles=self._EQcheckfile)
 

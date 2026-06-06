@@ -72,6 +72,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self._paretoArchiveMaxSize = None               # optional cap on archive size (None = unbounded)
     self._paretoArchive = None                      # accumulated archive records (dict), see _mergeIntoParetoArchive
     self._constraintEpsilon = 0.0                    # epsilon-constrained dominance relaxation (0.0 = strict)
+    self._adaptiveMutation = False                   # if True, anneal mutation probability over generations
+    self._adaptiveMutationFinal = None               # final mutation probability (None = 1/nVariables)
     self.popRanks = None
     self.popCrowdingDist = None
     self.multiBestPoint = None
@@ -152,6 +154,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                   constraint boundaries. Defaults to 0.0 (strict Deb constrained dominance).""",
         default=0.0)
     specs.addSub(constraintEpsilon)
+    adaptiveMutation = InputData.parameterInputFactory('adaptiveMutation', strictMode=True,
+        contentType=InputTypes.BoolType,
+        descr=r"""if True, anneal the mutation probability linearly across the generation budget, from the
+                  configured \xmlNode{mutationProb} (initial, exploratory) down to the \xmlAttr{final}
+                  value (late, exploitative). This favors broad exploration early and fine refinement of
+                  the Pareto front late. Defaults to False (constant \xmlNode{mutationProb}).""",
+        default=False)
+    adaptiveMutation.addParam('final', InputTypes.FloatType, required=False,
+        descr=r"""the mutation probability reached at the final generation when \xmlNode{adaptiveMutation}
+                  is True. If omitted it defaults to 1/(number of decision variables), the customary
+                  per-gene NSGA-II mutation rate.""")
+    specs.addSub(adaptiveMutation)
     return specs
 
   @classmethod
@@ -413,6 +427,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     constraintEpsilonNode = paramInput.findFirst('constraintEpsilon')
     if constraintEpsilonNode is not None:
       self._constraintEpsilon = constraintEpsilonNode.value
+    adaptiveMutationNode = paramInput.findFirst('adaptiveMutation')
+    if adaptiveMutationNode is not None:
+      self._adaptiveMutation = adaptiveMutationNode.value
+      self._adaptiveMutationFinal = adaptiveMutationNode.parameterValues.get('final', None)
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

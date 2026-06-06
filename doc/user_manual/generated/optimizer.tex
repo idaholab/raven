@@ -2100,6 +2100,20 @@ Genetic Algorithm Example:
       constraint boundaries. Defaults to 0.0 (strict Deb constrained dominance).
   \default{0.0}
 
+    \item \xmlNode{adaptiveMutation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, anneal the mutation probability linearly across the generation budget, from the
+      configured \xmlNode{mutationProb} (initial, exploratory) down to the \xmlAttr{final}
+      value (late, exploitative). This favors broad exploration early and fine refinement of
+      the Pareto front late. Defaults to False (constant \xmlNode{mutationProb}).
+  \default{False}
+      The \xmlNode{adaptiveMutation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{final}: \xmlDesc{float, optional},
+            the mutation probability reached at the final generation when \xmlNode{adaptiveMutation}
+            is True. If omitted it defaults to 1/(number of decision variables), the customary
+            per-gene NSGA-II mutation rate.
+      \end{itemize}
+
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
@@ -2707,6 +2721,20 @@ Multiobjective Genetic Algorithm Example:
       fully feasible solutions. This relaxation can improve exploration along active
       constraint boundaries. Defaults to 0.0 (strict Deb constrained dominance).
   \default{0.0}
+
+    \item \xmlNode{adaptiveMutation}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, anneal the mutation probability linearly across the generation budget, from the
+      configured \xmlNode{mutationProb} (initial, exploratory) down to the \xmlAttr{final}
+      value (late, exploitative). This favors broad exploration early and fine refinement of
+      the Pareto front late. Defaults to False (constant \xmlNode{mutationProb}).
+  \default{False}
+      The \xmlNode{adaptiveMutation} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{final}: \xmlDesc{float, optional},
+            the mutation probability reached at the final generation when \xmlNode{adaptiveMutation}
+            is True. If omitted it defaults to 1/(number of decision variables), the customary
+            per-gene NSGA-II mutation rate.
+      \end{itemize}
 
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
