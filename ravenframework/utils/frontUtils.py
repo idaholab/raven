@@ -330,6 +330,50 @@ def updateParetoArchive(archiveObjectives, newObjectives, minMask=None, maxArchi
   return combined, sorted(keptIndices)
 
 
+def _meanNearestDistance(fromPoints, toPoints):
+  """
+    Mean over fromPoints of the Euclidean distance to the nearest point in toPoints.
+    @ In, fromPoints, np.array, (nFrom, nObjectives) objective vectors to measure from
+    @ In, toPoints, np.array, (nTo, nObjectives) objective vectors to measure to
+    @ Out, value, float, average nearest-neighbour distance (np.inf if toPoints is empty)
+  """
+  fromPoints = np.atleast_2d(np.asarray(fromPoints, dtype=float))
+  toPoints = np.atleast_2d(np.asarray(toPoints, dtype=float))
+  if fromPoints.size == 0:
+    return 0.0
+  if toPoints.size == 0:
+    return np.inf
+  # distance from each fromPoint to every toPoint, then take the minimum per fromPoint
+  diffs = fromPoints[:, None, :] - toPoints[None, :, :]
+  dists = np.sqrt(np.sum(diffs ** 2, axis=2))
+  return float(np.mean(np.min(dists, axis=1)))
+
+
+def generationalDistance(obtainedFront, referenceFront):
+  """
+    Generational distance (GD): the average Euclidean distance from each obtained
+    point to the nearest point of the reference (true) Pareto front. It measures how
+    close the obtained solutions are to the reference front; smaller is better.
+    @ In, obtainedFront, list or np.array, (nObtained, nObjectives) objective vectors found by the optimizer
+    @ In, referenceFront, list or np.array, (nReference, nObjectives) reference/true Pareto front
+    @ Out, gd, float, generational distance
+  """
+  return _meanNearestDistance(obtainedFront, referenceFront)
+
+
+def invertedGenerationalDistance(obtainedFront, referenceFront):
+  """
+    Inverted generational distance (IGD): the average Euclidean distance from each
+    reference (true) Pareto-front point to the nearest obtained point. Unlike GD it
+    rewards both convergence and coverage of the whole reference front; smaller is
+    better and it is the standard quality indicator when the true front is known.
+    @ In, obtainedFront, list or np.array, (nObtained, nObjectives) objective vectors found by the optimizer
+    @ In, referenceFront, list or np.array, (nReference, nObjectives) reference/true Pareto front
+    @ Out, igd, float, inverted generational distance
+  """
+  return _meanNearestDistance(referenceFront, obtainedFront)
+
+
 def hypervolume(points, reference):
   """
     Exact hypervolume indicator of a point set in MINIMIZATION objective space.

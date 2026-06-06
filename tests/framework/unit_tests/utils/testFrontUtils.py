@@ -279,6 +279,39 @@ checkArray('archive gen3 collapses to dominator', arch.ravel().tolist(), [0.4, 0
 ###########################################
 
 ###########################################
+# Generational distance (GD) and inverted generational distance (IGD) indicators.
+# Both measure Euclidean closeness between an obtained front and a reference front.
+refFront = np.array([[0.0, 1.0], [0.5, 0.5], [1.0, 0.0]])
+# A front identical to the reference has zero distance both ways.
+checkAnswer('GD identical front', frontUtils.generationalDistance(refFront, refFront), 0.0)
+checkAnswer('IGD identical front', frontUtils.invertedGenerationalDistance(refFront, refFront), 0.0)
+# Single obtained point at distance 5 from a single reference point.
+checkAnswer('GD single point', frontUtils.generationalDistance([[3.0, 4.0]], [[0.0, 0.0]]), 5.0)
+checkAnswer('IGD single point', frontUtils.invertedGenerationalDistance([[3.0, 4.0]], [[0.0, 0.0]]), 5.0)
+# GD averages over obtained points; IGD averages over reference points (so they differ
+# when the cardinalities differ). Obtained = {(0,0),(2,0)}, reference = {(0,0)}.
+# GD = mean(dist((0,0)->(0,0)), dist((2,0)->(0,0))) = mean(0, 2) = 1.0
+# IGD = mean over reference {(0,0)} of min dist to obtained = 0.0
+checkAnswer('GD asymmetric', frontUtils.generationalDistance([[0.0, 0.0], [2.0, 0.0]], [[0.0, 0.0]]), 1.0)
+checkAnswer('IGD asymmetric', frontUtils.invertedGenerationalDistance([[0.0, 0.0], [2.0, 0.0]], [[0.0, 0.0]]), 0.0)
+
+# Demonstration against a known analytic Pareto front: ZDT1 is obj2 = 1 - sqrt(obj1),
+# obj1 in [0,1]. A dense sample of the analytic front has near-zero IGD against itself,
+# and a coarse 6-point approximation that lies exactly on the front still has small IGD
+# (bounded by the coverage gap), confirming the indicator behaves on a real benchmark.
+zdt1Ref = np.array([[f1, 1.0 - np.sqrt(f1)] for f1 in np.linspace(0.0, 1.0, 50)])
+checkAnswer('IGD ZDT1 dense self', frontUtils.invertedGenerationalDistance(zdt1Ref, zdt1Ref), 0.0)
+zdt1Coarse = np.array([[f1, 1.0 - np.sqrt(f1)] for f1 in np.linspace(0.0, 1.0, 6)])
+igdCoarse = frontUtils.invertedGenerationalDistance(zdt1Coarse, zdt1Ref)
+# 6 on-front points cover the ~1.4-long front with a coverage-gap IGD well under 0.1.
+checkAnswer('IGD ZDT1 coarse-on-front is small', float(igdCoarse < 0.1), 1.0)
+# A front shifted off the analytic front by 0.2 in obj2 has a clearly larger IGD.
+zdt1Off = zdt1Ref + np.array([0.0, 0.2])
+checkAnswer('IGD ZDT1 off-front larger than on-front',
+            float(frontUtils.invertedGenerationalDistance(zdt1Off, zdt1Ref) > igdCoarse), 1.0)
+###########################################
+
+###########################################
 # Hypervolume indicator (minimization space)
 # Validated against hand-computed exact values.
 # 2-D unit square: one point at the origin, reference at (1,1) -> area 1
