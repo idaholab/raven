@@ -2114,6 +2114,22 @@ Genetic Algorithm Example:
             per-gene NSGA-II mutation rate.
       \end{itemize}
 
+    \item \xmlNode{stochasticRanking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, use stochastic ranking (Runarsson \& Yao) for constraint handling: each
+      generation the non-dominated sort is performed by objectives only (ignoring
+      constraints) with probability \xmlAttr{pf}, and by Deb constrained dominance otherwise.
+      This stochastically balances objective progress against feasibility and can keep the
+      strict feasible-first rule from stalling exploration near active constraints. Defaults
+      to False.
+  \default{False}
+      The \xmlNode{stochasticRanking} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{pf}: \xmlDesc{float, optional},
+            probability of ranking by objectives only (ignoring constraints) in a given generation
+            when \xmlNode{stochasticRanking} is enabled. Defaults to 0.45 (the Runarsson \& Yao
+            recommended value); values below 0.5 favor feasibility on average.
+      \end{itemize}
+
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
@@ -2734,6 +2750,22 @@ Multiobjective Genetic Algorithm Example:
             the mutation probability reached at the final generation when \xmlNode{adaptiveMutation}
             is True. If omitted it defaults to 1/(number of decision variables), the customary
             per-gene NSGA-II mutation rate.
+      \end{itemize}
+
+    \item \xmlNode{stochasticRanking}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, use stochastic ranking (Runarsson \& Yao) for constraint handling: each
+      generation the non-dominated sort is performed by objectives only (ignoring
+      constraints) with probability \xmlAttr{pf}, and by Deb constrained dominance otherwise.
+      This stochastically balances objective progress against feasibility and can keep the
+      strict feasible-first rule from stalling exploration near active constraints. Defaults
+      to False.
+  \default{False}
+      The \xmlNode{stochasticRanking} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{pf}: \xmlDesc{float, optional},
+            probability of ranking by objectives only (ignoring constraints) in a given generation
+            when \xmlNode{stochasticRanking} is enabled. Defaults to 0.45 (the Runarsson \& Yao
+            recommended value); values below 0.5 favor feasibility on average.
       \end{itemize}
 
     \item \xmlNode{restartTolerance}: \xmlDesc{float},

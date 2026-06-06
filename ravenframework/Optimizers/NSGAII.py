@@ -34,7 +34,7 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 
-from ..utils import frontUtils
+from ..utils import frontUtils, randomUtils
 from ..utils.gaUtils import datasetToDataArray
 from .MultiObjectiveGeneticAlgorithm import MultiObjectiveGeneticAlgorithm
 
@@ -161,6 +161,22 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     finalProb = self._adaptiveMutationFinal if self._adaptiveMutationFinal is not None else 1.0 / nVariables
     return self._mutationProb + (finalProb - self._mutationProb) * progress
 
+  def _rankingConstraintVals(self, constraintData):
+    """
+      Return the constraint values to use for this generation's non-dominated sort. Normally this is
+      the supplied constraint data, but under stochastic ranking (Runarsson & Yao) the constraints are
+      ignored (None) with probability pf so the generation is ranked by objectives only, stochastically
+      balancing objective progress against feasibility. Drawing the coin here consumes one RNG sample
+      per generation; with stochastic ranking disabled the data passes through unchanged (no draw).
+      @ In, constraintData, np.array, constraint values for the population being ranked.
+      @ Out, constraintVals, np.array or None, constraint values, or None to rank by objectives only.
+    """
+    if not getattr(self, '_stochasticRanking', False):
+      return constraintData
+    if float(randomUtils.random(dim=1, samples=1)) < self._stochasticRankingPf:
+      return None
+    return constraintData
+
   def _crowdingNormalizationBounds(self, objectiveValues):
     """
       Build the per-objective (min, max) normalization bounds for crowding distance
@@ -216,7 +232,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
       combinedRanks = frontUtils.rankNonDominatedFrontiers(
           combinedExternalObjValsBySolution,
-          constraintVals=combinedConstraintVals,
+          constraintVals=self._rankingConstraintVals(combinedConstraintVals),
           minMask=minMask,
           epsilon=self._constraintEpsilon)
 
@@ -251,7 +267,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
       currentPopRanks = frontUtils.rankNonDominatedFrontiers(
           currentPopExternalObjValsBySolution,
-          constraintVals=offspringConstraintVals.data,
+          constraintVals=self._rankingConstraintVals(offspringConstraintVals.data),
           minMask=minMask,
           epsilon=self._constraintEpsilon)
       currentPopCD = frontUtils.crowdingDistance(

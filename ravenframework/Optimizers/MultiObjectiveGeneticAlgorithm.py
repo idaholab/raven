@@ -74,6 +74,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self._constraintEpsilon = 0.0                    # epsilon-constrained dominance relaxation (0.0 = strict)
     self._adaptiveMutation = False                   # if True, anneal mutation probability over generations
     self._adaptiveMutationFinal = None               # final mutation probability (None = 1/nVariables)
+    self._stochasticRanking = False                  # if True, stochastically rank by objectives only (Runarsson & Yao)
+    self._stochasticRankingPf = 0.45                 # probability of objective-only ranking per generation
     self.popRanks = None
     self.popCrowdingDist = None
     self.multiBestPoint = None
@@ -166,6 +168,20 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                   is True. If omitted it defaults to 1/(number of decision variables), the customary
                   per-gene NSGA-II mutation rate.""")
     specs.addSub(adaptiveMutation)
+    stochasticRanking = InputData.parameterInputFactory('stochasticRanking', strictMode=True,
+        contentType=InputTypes.BoolType,
+        descr=r"""if True, use stochastic ranking (Runarsson \& Yao) for constraint handling: each
+                  generation the non-dominated sort is performed by objectives only (ignoring
+                  constraints) with probability \xmlAttr{pf}, and by Deb constrained dominance otherwise.
+                  This stochastically balances objective progress against feasibility and can keep the
+                  strict feasible-first rule from stalling exploration near active constraints. Defaults
+                  to False.""",
+        default=False)
+    stochasticRanking.addParam('pf', InputTypes.FloatType, required=False,
+        descr=r"""probability of ranking by objectives only (ignoring constraints) in a given generation
+                  when \xmlNode{stochasticRanking} is enabled. Defaults to 0.45 (the Runarsson \& Yao
+                  recommended value); values below 0.5 favor feasibility on average.""")
+    specs.addSub(stochasticRanking)
     return specs
 
   @classmethod
@@ -431,6 +447,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if adaptiveMutationNode is not None:
       self._adaptiveMutation = adaptiveMutationNode.value
       self._adaptiveMutationFinal = adaptiveMutationNode.parameterValues.get('final', None)
+    stochasticRankingNode = paramInput.findFirst('stochasticRanking')
+    if stochasticRankingNode is not None:
+      self._stochasticRanking = stochasticRankingNode.value
+      self._stochasticRankingPf = stochasticRankingNode.parameterValues.get('pf', 0.45)
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

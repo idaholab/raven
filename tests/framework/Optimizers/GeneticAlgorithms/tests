@@ -863,6 +863,26 @@
     [../]
   [../]
 
+  [./NSGA-II_MinwoRepMultiObjectiveStoch]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/MinwoRepMultiObjectiveStoch.xml'
+    required_libraries = 'imageio'
+    rel_err = 0.25
+    [./csv]
+      type = UnorderedCSV
+      output = 'discrete/constrained/Multi_MinwoReplacementStoch/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'discrete/constrained/Multi_MinwoReplacementStoch/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'discrete/constrained/Multi_MinwoReplacementStoch/1-population.png'
+    [../]
+  [../]
+
   [./NSGA-II_MinwoRepFeasibleFirst]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst.xml'
