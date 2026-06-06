@@ -98,10 +98,13 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   @classmethod
   def getInputSpecification(cls):
     """
-    getInputSpecification method.
-    @ Out, None.
+    Build and return the input specification for the multi-objective genetic algorithm,
+    extending the base GeneticAlgorithm specification with multi-objective descriptions.
+    @ In, cls, the class for which the input specification is being generated.
+    @ Out, specs, InputData.ParameterInput, input specification for MultiObjectiveGeneticAlgorithm.
     """
     specs = super(MultiObjectiveGeneticAlgorithm, cls).getInputSpecification()
+    specs.name = 'MultiObjectiveGeneticAlgorithm'
     specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
                             operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
                             crowding-distance survivor selection, and multi-objective convergence metrics that are shared
