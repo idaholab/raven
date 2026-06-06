@@ -45,10 +45,13 @@ def _applyObjectiveDirections(data, minMask=None):
   return data
 
 
-def _dominatesForMinimization(candidate, other, candidateViolation=0.0, otherViolation=0.0):
-  """Evaluate Deb constrained dominance for minimization-space objective values."""
-  candidateFeasible = candidateViolation <= 0.0
-  otherFeasible = otherViolation <= 0.0
+def _dominatesForMinimization(candidate, other, candidateViolation=0.0, otherViolation=0.0, epsilon=0.0):
+  """Evaluate Deb constrained dominance for minimization-space objective values.
+     With epsilon > 0 this becomes epsilon-constrained dominance (Takahama & Sato):
+     total constraint violations up to epsilon are treated as feasible, so near-boundary
+     solutions compete on objectives instead of being strictly dominated by feasible ones."""
+  candidateFeasible = candidateViolation <= epsilon
+  otherFeasible = otherViolation <= epsilon
   if candidateFeasible and not otherFeasible:
     return True
   if not candidateFeasible and otherFeasible:
@@ -58,7 +61,7 @@ def _dominatesForMinimization(candidate, other, candidateViolation=0.0, otherVio
   return np.all(candidate <= other) and np.any(candidate < other)
 
 
-def _fastNonDominatedSortConstrained(directedData, violation):
+def _fastNonDominatedSortConstrained(directedData, violation, epsilon=0.0):
   """
     Fast non-dominated sort (Deb et al., 2002) with Deb constrained dominance.
 
@@ -80,10 +83,10 @@ def _fastNonDominatedSortConstrained(directedData, violation):
   currentFront = []
   for p in range(nPoints):
     for q in range(p + 1, nPoints):
-      if _dominatesForMinimization(directedData[p], directedData[q], violation[p], violation[q]):
+      if _dominatesForMinimization(directedData[p], directedData[q], violation[p], violation[q], epsilon):
         dominated[p].append(q)
         dominationCount[q] += 1
-      elif _dominatesForMinimization(directedData[q], directedData[p], violation[q], violation[p]):
+      elif _dominatesForMinimization(directedData[q], directedData[p], violation[q], violation[p], epsilon):
         dominated[q].append(p)
         dominationCount[p] += 1
     if dominationCount[p] == 0:
@@ -103,7 +106,7 @@ def _fastNonDominatedSortConstrained(directedData, violation):
   return ranks.tolist()
 
 
-def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None):
+def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None, epsilon=0.0):
   """Rank fronts using objective dominance plus Deb constrained-dominance rules."""
   data = np.asarray(data, dtype=float)
   if data.ndim != 2:
@@ -114,7 +117,7 @@ def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None):
   if len(violation) != data.shape[0]:
     raise IOError("rankNonDominatedFrontiers method: constraint rows do not match data rows")
   directedData = _applyObjectiveDirections(data, minMask)
-  return _fastNonDominatedSortConstrained(directedData, violation)
+  return _fastNonDominatedSortConstrained(directedData, violation, epsilon)
 
 
 def nonDominatedFrontier(data, returnMask, minMask=None, isFitness=False):
@@ -172,7 +175,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None, isFitness=False):
     return nonDominatedFrontier
 
 
-def rankNonDominatedFrontiers(data, isFitness=False, constraintVals=None, minMask=None):
+def rankNonDominatedFrontiers(data, isFitness=False, constraintVals=None, minMask=None, epsilon=0.0):
   """
     This method ranks the non-dominated fronts by omitting the first front from the data
     and searching the remaining data for a new one recursively.
@@ -182,13 +185,15 @@ def rankNonDominatedFrontiers(data, isFitness=False, constraintVals=None, minMas
     @ In, isFitness, bool, optional, if True rank larger values as better fitness values.
     @ In, constraintVals, np.array, optional, constraint evaluations g(x); rows with all g >= 0 are feasible.
     @ In, minMask, np.array, optional, True for minimized objectives and False for maximized objectives.
+    @ In, epsilon, float, optional, epsilon-constrained relaxation: total constraint violations up to
+                          epsilon are treated as feasible (0.0 = strict Deb constrained dominance).
     @ Out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
   if constraintVals is not None:
     if isFitness:
       raise IOError("rankNonDominatedFrontiers method: constrained ranking expects objective values with minMask, not fitness values")
-    return _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=minMask)
+    return _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=minMask, epsilon=epsilon)
 
   nonDominatedRank = np.zeros(data.shape[0], dtype=int)
   mask = np.ones(data.shape[0], dtype=bool)

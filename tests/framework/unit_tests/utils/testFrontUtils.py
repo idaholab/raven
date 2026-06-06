@@ -312,6 +312,24 @@ checkAnswer('IGD ZDT1 off-front larger than on-front',
 ###########################################
 
 ###########################################
+# Epsilon-constrained dominance (Takahama & Sato): violations <= epsilon count as feasible.
+# p0 feasible but worse objectives; p1 slightly infeasible (viol 1) but best objectives;
+# p2 strongly infeasible (viol 5).
+epsObj = np.array([[1.0, 1.0], [0.0, 0.0], [2.0, 2.0]])
+epsConstr = np.array([[0.0], [-1.0], [-5.0]])  # g >= 0 feasible -> violations [0, 1, 5]
+epsMin = np.array([True, True])
+# Strict (epsilon=0): feasible p0 dominates the infeasible points -> ranks [1, 2, 3].
+checkArray('eps-dominance strict (epsilon=0)',
+           frontUtils.rankNonDominatedFrontiers(epsObj, constraintVals=epsConstr, minMask=epsMin),
+           [1, 2, 3])
+# Relaxed (epsilon=2): p0 and p1 both within epsilon -> compared by objectives, so p1
+# (0,0) dominates p0 (1,1); p2 still infeasible -> ranks [2, 1, 3].
+checkArray('eps-dominance relaxed (epsilon=2)',
+           frontUtils.rankNonDominatedFrontiers(epsObj, constraintVals=epsConstr, minMask=epsMin, epsilon=2.0),
+           [2, 1, 3])
+###########################################
+
+###########################################
 # Hypervolume indicator (minimization space)
 # Validated against hand-computed exact values.
 # 2-D unit square: one point at the origin, reference at (1,1) -> area 1

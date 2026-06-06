@@ -71,6 +71,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self._paretoArchiveEnabled = False              # if True, accumulate non-dominated solutions across generations
     self._paretoArchiveMaxSize = None               # optional cap on archive size (None = unbounded)
     self._paretoArchive = None                      # accumulated archive records (dict), see _mergeIntoParetoArchive
+    self._constraintEpsilon = 0.0                    # epsilon-constrained dominance relaxation (0.0 = strict)
     self.popRanks = None
     self.popCrowdingDist = None
     self.multiBestPoint = None
@@ -142,6 +143,15 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                   exceeds this size the most crowded solutions are removed first (boundary solutions are
                   always kept). If omitted the archive is unbounded.""")
     specs.addSub(paretoArchive)
+    constraintEpsilon = InputData.parameterInputFactory('constraintEpsilon', strictMode=True,
+        contentType=InputTypes.FloatType,
+        descr=r"""enables epsilon-constrained dominance (Takahama \& Sato) in the non-dominated sorting:
+                  solutions whose total constraint violation does not exceed this value are treated as
+                  feasible and therefore compete on objectives rather than being strictly dominated by
+                  fully feasible solutions. This relaxation can improve exploration along active
+                  constraint boundaries. Defaults to 0.0 (strict Deb constrained dominance).""",
+        default=0.0)
+    specs.addSub(constraintEpsilon)
     return specs
 
   @classmethod
@@ -400,6 +410,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if paretoArchiveNode is not None:
       self._paretoArchiveEnabled = paretoArchiveNode.value
       self._paretoArchiveMaxSize = paretoArchiveNode.parameterValues.get('maxSize', None)
+    constraintEpsilonNode = paramInput.findFirst('constraintEpsilon')
+    if constraintEpsilonNode is not None:
+      self._constraintEpsilon = constraintEpsilonNode.value
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

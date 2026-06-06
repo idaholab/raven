@@ -2092,6 +2092,14 @@ Genetic Algorithm Example:
             always kept). If omitted the archive is unbounded.
       \end{itemize}
 
+    \item \xmlNode{constraintEpsilon}: \xmlDesc{float},
+      enables epsilon-constrained dominance (Takahama \& Sato) in the non-dominated sorting:
+      solutions whose total constraint violation does not exceed this value are treated as
+      feasible and therefore compete on objectives rather than being strictly dominated by
+      fully feasible solutions. This relaxation can improve exploration along active
+      constraint boundaries. Defaults to 0.0 (strict Deb constrained dominance).
+  \default{0.0}
+
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
       the desired sample point in order to be used. If a potential restart point is within a
@@ -2691,6 +2699,14 @@ Multiobjective Genetic Algorithm Example:
             exceeds this size the most crowded solutions are removed first (boundary solutions are
             always kept). If omitted the archive is unbounded.
       \end{itemize}
+
+    \item \xmlNode{constraintEpsilon}: \xmlDesc{float},
+      enables epsilon-constrained dominance (Takahama \& Sato) in the non-dominated sorting:
+      solutions whose total constraint violation does not exceed this value are treated as
+      feasible and therefore compete on objectives rather than being strictly dominated by
+      fully feasible solutions. This relaxation can improve exploration along active
+      constraint boundaries. Defaults to 0.0 (strict Deb constrained dominance).
+  \default{0.0}
 
     \item \xmlNode{restartTolerance}: \xmlDesc{float},
       specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
