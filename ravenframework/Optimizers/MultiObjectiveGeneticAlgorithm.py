@@ -30,7 +30,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   """Shared functionality for multi-objective genetic algorithms."""
 
   convergenceOptions = dict(GeneticAlgorithm.convergenceOptions, **{
-      'spread': r""" provides the maximum allowable value of Deb's spread metric (Δ) measuring the distance
+      'spread': r""" provides the maximum allowable value of Deb's spread metric ($\Delta$) measuring the distance
                         between extreme and intermediate Pareto points. Once the spread drops below this value
                         the algorithm is considered converged.""",
       'spacing': r""" provides the maximum allowable spacing metric that captures the variance of

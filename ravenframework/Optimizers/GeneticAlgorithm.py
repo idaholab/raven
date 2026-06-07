@@ -1581,7 +1581,10 @@ class GeneticAlgorithm(RavenSampled):
 
   def _checkConvObjective(self, traj, **kwargs):
     """
-      Checks the change in objective for convergence
+      Checks whether the objective(s) have reached the user-specified target value(s).
+      Unlike GradientDescent/SimulatedAnnealing (whose <objective> is a change tolerance),
+      the GA <objective> criterion is a goal / inverse-problem target: convergence is declared
+      when each objective exactly equals its requested value (see the <objective> manual entry).
       @ In, traj, int, trajectory identifier
       @ In, kwargs, dict, dictionary of parameters for convergence criteria
       @ Out, converged, bool, convergence state
