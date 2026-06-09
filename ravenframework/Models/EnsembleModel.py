@@ -820,27 +820,21 @@ class EnsembleModel(Dummy):
         #   instead of acquiring the lock.  This eliminates contention
         #   entirely on the wait path.
         #
-        # The timeout on event.wait() serves two purposes:
-        #   1. Python's Event.wait(None) is not interruptible by Ctrl+C
-        #      or POSIX signals (CPython limitation); a finite timeout
-        #      ensures the thread periodically regains control.
-        #   2. Acts as a safety net in case the Event is somehow missed
-        #      (should not happen in normal operation).
-        #
         # Backward compatibility:
         #   If getJobEvent() returns None (unexpected), we fall back to
         #   the original polling loop so that non-standard JobHandler
         #   subclasses or configurations still work.
         jobEvent = jobHandler.getJobEvent(localIdentifier)
         if jobEvent is not None:
-          while not jobEvent.wait(timeout=30.0):
-            pass
+          jobEvent.wait()
         else:
-          # Fallback: original polling (should not be reached in normal use)
+          # Fallback: polling (should not be reached in normal use).  Use
+          # a moderate interval since this path still takes the JobHandler
+          # queue lock.
           self.raiseAWarning(f'No Event found for job "{localIdentifier}", '
                              f'falling back to polling-based wait')
           while not jobHandler.isThisJobFinished(localIdentifier):
-            time.sleep(1.0)
+            time.sleep(0.1)
         moveOn = True
       # get job that just finished to gather the results
       finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
@@ -852,17 +846,10 @@ class EnsembleModel(Dummy):
           # the failure happened at the input creation stage
           excType, excValue, excTrace = IOError, IOError("Failure happened at the input creation stage. See trace above"), None
         evaluation = None
-        # the model failed — clean up only models that were submitted
-        # BEFORE the failed model (they may be running or finished).
-        # Models AFTER the failed one in orderList were never submitted,
-        # so calling getFinished for them would block indefinitely.
-        failedModelIdx = self.orderList.index(modelToExecute['Instance'].name)
-        for modelToRemove in self.orderList[:failedModelIdx]:
-          try:
-            jobHandler.getFinished(jobIdentifier = f"{modelToRemove}{utils.returnIdSeparator()}{identifier}{suffix}",
-                                   uniqueHandler = f"{self.name}{identifier}{suffix}")
-          except Exception:
-            pass  # best-effort cleanup
+        # No additional sub-model cleanup is needed for this ensemble
+        # evaluation: previous sub-models were already collected, the
+        # failed sub-model was just collected above, and downstream
+        # sub-models have not been submitted yet.
 
       else:
         # collect the target evaluation
