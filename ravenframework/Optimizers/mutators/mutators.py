@@ -26,7 +26,7 @@
 import numpy as np
 import xarray as xr
 from operator import itemgetter
-from ...utils import utils, randomUtils
+from ...utils import utils, randomUtils, gaUtils
 
 def swapMutator(offspring, distDict, **kwargs):
   """
@@ -195,40 +195,6 @@ def locationsGenerator(offspring,locs):
   loc2 = np.maximum(locs[0], locs[1])
   return loc1, loc2
 
-def _finiteGeneBounds(dist, *observedValues):
-  """
-    Return finite (lower, upper) bounds for a gene/decision variable, used by the
-    real-coded polynomial mutation. Prefers the distribution's explicit bounds, falls
-    back to extreme quantiles via the ppf, and finally to a padded range around the
-    observed value so the operator is always well-defined for unbounded distributions.
-    @ In, dist, Distribution or None, distribution associated with the gene.
-    @ In, observedValues, float, one or more current values of the gene.
-    @ Out, (low, high), tuple(float, float), finite lower and upper bounds with high > low.
-  """
-  low = getattr(dist, 'lowerBound', None) if dist is not None else None
-  high = getattr(dist, 'upperBound', None) if dist is not None else None
-  if (low is None or not np.isfinite(low)) and dist is not None and hasattr(dist, 'ppf'):
-    try:
-      low = float(dist.ppf(1e-6))
-    except Exception:
-      low = None
-  if (high is None or not np.isfinite(high)) and dist is not None and hasattr(dist, 'ppf'):
-    try:
-      high = float(dist.ppf(1.0 - 1e-6))
-    except Exception:
-      high = None
-  vMin = min(observedValues)
-  vMax = max(observedValues)
-  span = abs(vMax - vMin) if vMax != vMin else 1.0
-  if low is None or not np.isfinite(low):
-    low = vMin - span
-  if high is None or not np.isfinite(high):
-    high = vMax + span
-  if high <= low:
-    high = low + 1.0
-  return float(low), float(high)
-
-
 def polynomialMutator(offspring, distDict, **kwargs):
   """
     Polynomial mutation for real-valued decision variables (Deb & Goyal, 1996).
@@ -254,7 +220,7 @@ def polynomialMutator(offspring, distDict, **kwargs):
     for g in range(numGenes):
       if float(randomUtils.random(dim=1, samples=1)) < mutationProb:
         x = float(offspring[i, g].values)
-        low, high = _finiteGeneBounds(distDict.get(geneNames[g]), x)
+        low, high = gaUtils.finiteGeneBounds(distDict.get(geneNames[g]), x)
         spread = high - low
         if spread <= 0.0:
           continue

@@ -26,7 +26,7 @@ import numpy as np
 from scipy.special import comb
 from itertools import combinations
 import xarray as xr
-from ...utils import randomUtils
+from ...utils import randomUtils, gaUtils
 
 
 # @profile
@@ -153,41 +153,6 @@ def twoPointsCrossover(parents, **kwargs):
 
   return children
 
-def _finiteGeneBounds(dist, *observedValues):
-  """
-    Return finite (lower, upper) bounds for a gene/decision variable, used by the
-    real-coded operators (SBX, polynomial mutation). Prefers the distribution's
-    explicit bounds, falls back to extreme quantiles via the ppf, and finally to a
-    padded range around the observed parent/child values so the operator is always
-    well-defined even for unbounded distributions.
-    @ In, dist, Distribution or None, distribution associated with the gene.
-    @ In, observedValues, float, one or more current values of the gene (parents/child).
-    @ Out, (low, high), tuple(float, float), finite lower and upper bounds with high > low.
-  """
-  low = getattr(dist, 'lowerBound', None) if dist is not None else None
-  high = getattr(dist, 'upperBound', None) if dist is not None else None
-  if (low is None or not np.isfinite(low)) and dist is not None and hasattr(dist, 'ppf'):
-    try:
-      low = float(dist.ppf(1e-6))
-    except Exception:
-      low = None
-  if (high is None or not np.isfinite(high)) and dist is not None and hasattr(dist, 'ppf'):
-    try:
-      high = float(dist.ppf(1.0 - 1e-6))
-    except Exception:
-      high = None
-  vMin = min(observedValues)
-  vMax = max(observedValues)
-  span = abs(vMax - vMin) if vMax != vMin else 1.0
-  if low is None or not np.isfinite(low):
-    low = vMin - span
-  if high is None or not np.isfinite(high):
-    high = vMax + span
-  if high <= low:
-    high = low + 1.0
-  return float(low), float(high)
-
-
 def _sbxBetaq(rand, alpha, eta):
   """
     Spread factor for Simulated Binary Crossover (Deb & Agrawal, 1995).
@@ -241,7 +206,7 @@ def sbxCrossover(parents, **kwargs):
         x2 = float(p2[g])
         if abs(x1 - x2) < 1e-14:
           continue  # identical genes -> nothing to recombine
-        xl, xu = _finiteGeneBounds(distDict.get(geneNames[g]), x1, x2)
+        xl, xu = gaUtils.finiteGeneBounds(distDict.get(geneNames[g]), x1, x2)
         y1, y2 = (x1, x2) if x1 < x2 else (x2, x1)
         rand = float(randomUtils.random(dim=1, samples=1))
         # child 1 (closer to lower parent)
