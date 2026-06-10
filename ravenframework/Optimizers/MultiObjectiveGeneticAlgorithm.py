@@ -852,16 +852,26 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     raise NotImplementedError(f'{self.__class__.__name__} must implement "_processGeneration".')
 
   def _checkConvHypervolume(self, traj, **kwargs):
-    """
-    Check convergence on the relative change of the Pareto-front hypervolume indicator
-    between successive generations. The rank-1 front is taken in RAVEN's internal
-    minimization space, and the current and previous fronts are measured against a
-    common reference point (the union nadir offset by a positive margin) so the two
-    hypervolumes are directly comparable. Convergence is declared once the relative
-    change falls below the user threshold.
+    r"""
+    Convergence check on the relative change of the Pareto-front hypervolume indicator between
+    successive generations. The hypervolume of a rank-1 front $\mathcal{F}$ (in RAVEN minimization
+    space) with respect to a reference point $\mathbf{r}$ is the Lebesgue measure of the region
+    dominated by the front and bounded by $\mathbf{r}$,
+    \begin{equation*}
+      \mathrm{HV}(\mathcal{F},\mathbf{r}) =
+        \Lambda\!\left(\bigcup_{\mathbf{f}\in\mathcal{F}}
+        [f_1,r_1]\times\cdots\times[f_M,r_M]\right),
+    \end{equation*}
+    computed by frontUtils.hypervolume. The current and previous fronts share a common reference
+    (the union nadir offset by a positive margin; see _hypervolumeReference) so the volumes are
+    comparable. Convergence is declared when the relative change
+    \begin{equation*}
+      \delta = \frac{\left|\mathrm{HV}^{(t)}-\mathrm{HV}^{(t-1)}\right|}{\left|\mathrm{HV}^{(t-1)}\right|}
+    \end{equation*}
+    falls below the user-provided \xmlNode{hypervolume} criterion.
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
-    @ Out, converged, bool, True if the hypervolume criterion is satisfied.
+    @ Out, converged, bool, True if the relative hypervolume change is below the criterion.
     """
     if not hasattr(self, 'popRanks') or not hasattr(self, 'popMinObjVals'):
       return False
@@ -918,11 +928,13 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return reference.tolist()
 
   def _checkConvSpread(self, traj, **kwargs):
-    """
-    Checks convergence on Deb's spread (Delta) metric of the rank-1 front against the 'spread' criterion.
+    r"""
+    Convergence check on Deb's spread metric $\Delta$ of the rank-1 front (see _computeSpread).
+    Convergence is declared when $\Delta < \tau_{\text{spread}}$, the user-provided
+    \xmlNode{spread} criterion (requires at least 3 rank-1 points).
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
-    @ Out, converged, bool, True if spread criterion is satisfied.
+    @ Out, converged, bool, True if the spread $\Delta$ is below the spread criterion.
     """
     if not hasattr(self, 'popRanks') or not hasattr(self, 'popMinObjVals'):
       return False
@@ -944,14 +956,22 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeSpread(self, front):
-    """
-    Compute Deb's spread metric (Delta) for a Pareto front, quantifying how uniformly the
-    solutions are distributed. The front points are sorted along the first objective; the
-    Euclidean distances between consecutive points are compared against their mean, and the
-    distances from the extreme front points to the ideal/nadir corners are added in. Lower
-    values indicate a more uniform spread of non-dominated solutions.
+    r"""
+    Compute Deb's spread metric $\Delta$ for a Pareto front, quantifying how uniformly the
+    solutions are distributed (lower is more uniform).
+
+    The $n$ front points are sorted along the first objective, $\mathbf{f}^{(1)},\dots,\mathbf{f}^{(n)}$.
+    Let $d_i=\lVert \mathbf{f}^{(i+1)}-\mathbf{f}^{(i)}\rVert$ be the Euclidean distance between
+    consecutive points and $\bar d=\frac{1}{n-1}\sum_{i=1}^{n-1} d_i$ their mean. Let $d_f$ and
+    $d_l$ be the distances from the two extreme front points to the ideal and nadir corners
+    (the per-objective min and max over the front). Then
+    \begin{equation*}
+      \Delta = \frac{d_f + d_l + \sum_{i=1}^{n-1}\lvert d_i-\bar d\rvert}
+                    {d_f + d_l + (n-1)\,\bar d}\,.
+    \end{equation*}
+    A perfectly uniform spread drives $\Delta\to 0$. Returns 0 when $n<2$ or $\bar d=0$.
     @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, spread, float, spread metric for the front.
+    @ Out, spread, float, Deb's spread metric $\Delta$ for the front.
     """
     n = len(front)
     if n < 2:
@@ -972,11 +992,14 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return spread
 
   def _checkConvSpacing(self, traj, **kwargs):
-    """
-    Checks convergence on the spacing (nearest-neighbour distance deviation) metric of the rank-1 front against the 'spacing' criterion.
+    r"""
+    Convergence check on the spacing metric $\mathrm{SP}$ (nearest-neighbour distance deviation)
+    of the rank-1 front (see _computeSpacing). Convergence is declared when
+    $\mathrm{SP} < \tau_{\text{spacing}}$, the user-provided \xmlNode{spacing} criterion
+    (requires at least 3 rank-1 points).
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
-    @ Out, converged, bool, True if spacing criterion is satisfied.
+    @ Out, converged, bool, True if the spacing $\mathrm{SP}$ is below the spacing criterion.
     """
     if not hasattr(self, 'popRanks') or not hasattr(self, 'popMinObjVals'):
       return False
@@ -998,12 +1021,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeSpacing(self, front):
-    """
-    Compute the spacing metric for a Pareto front: the standard deviation of each point's
-    nearest-neighbour distance to the other front points. A lower value indicates the
-    non-dominated solutions are more evenly spaced along the front.
+    r"""
+    Compute the spacing metric $\mathrm{SP}$ for a Pareto front: the standard deviation of each
+    point's nearest-neighbour distance (lower means more evenly spaced).
+
+    For each of the $n$ front points, let $D_i=\min_{j\ne i}\lVert \mathbf{f}^{(i)}-\mathbf{f}^{(j)}\rVert$
+    be its nearest-neighbour Euclidean distance and $\bar D=\frac1n\sum_{i=1}^{n} D_i$ the mean. Then
+    \begin{equation*}
+      \mathrm{SP} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\left(D_i-\bar D\right)^2}\,.
+    \end{equation*}
+    $\mathrm{SP}=0$ indicates perfectly equal spacing. Returns 0 when $n<2$.
     @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, spacing, float, spacing metric for the front.
+    @ Out, spacing, float, the spacing metric $\mathrm{SP}$ for the front.
     """
     n = len(front)
     if n < 2:
@@ -1110,11 +1139,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return maxSpread
 
   def _checkConvRank1Ratio(self, traj, **kwargs):
-    """
-    Checks convergence on the ratio of rank-1 individuals to population size, requiring it to stay above the 'rank1Ratio' criterion and stable across recent generations.
+    r"""
+    Convergence check on the fraction of the population that belongs to the first non-dominated
+    front. With $N_1^{(t)}$ rank-1 individuals in a population of size $N$, the ratio is
+    \begin{equation*}
+      \rho^{(t)} = \frac{N_1^{(t)}}{N}\,.
+    \end{equation*}
+    Convergence is declared only once the front has both saturated and stabilized: over the last
+    $G=3$ generations every $\rho \ge \tau_{\text{rank1Ratio}}$ (the user \xmlNode{rank1Ratio}
+    criterion) and the spread of those ratios, $\max\rho-\min\rho$, stays below $0.1$.
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
-    @ Out, converged, bool, True if rank-1 ratio criterion is satisfied.
+    @ Out, converged, bool, True if the rank-1 ratio is high and stable.
     """
     if not hasattr(self, 'popRanks'):
       return False
