@@ -862,13 +862,6 @@ class GeneticAlgorithm(RavenSampled):
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
     self.incrementIteration(traj)
 
-    files = self.assemblerDict['Files']
-    EQflag = any("EQinput" in sublist for sublist in files)
-    if EQflag:
-      self._EQcheckfile = files
-    else:
-      self._EQcheckfile = None
-
     # ============================================================
     # PART A: Extract and Process Offspring Q(t)
     # ============================================================
@@ -1125,8 +1118,7 @@ class GeneticAlgorithm(RavenSampled):
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints,
-                                              distDict=self.distDict,
-                                              EQfiles=self._EQcheckfile)
+                                              distDict=self.distDict)
 
       # Mutation
       childrenMutated = self._mutationInstance(offspring=childrenXover,

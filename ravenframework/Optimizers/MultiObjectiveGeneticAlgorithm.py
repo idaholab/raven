@@ -799,9 +799,6 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
     self._cacheEvaluations(rlz)
 
-    files = self.assemblerDict['Files']
-    self._EQcheckfile = files if any("EQinput" in sublist for sublist in files) else None
-
     offspring = datasetToDataArray(rlz, list(self.toBeSampled))
     # minObjVals are objective values in RAVEN minimization space; maximization objectives
     # have already been multiplied by -1 by RavenSampled before GA/NSGA-II ranking.

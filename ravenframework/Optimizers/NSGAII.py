@@ -325,15 +325,13 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                                             variables=list(self.toBeSampled),
                                             crossoverProb=self._crossoverProb,
                                             points=self._crossoverPoints,
-                                            EQfiles=self._EQcheckfile,
                                             distDict=self.distDict)
 
     childrenMutated = self._mutationInstance(offspring=childrenXover,
                                              distDict=self.distDict,
                                              locs=self._mutationLocs,
                                              mutationProb=self._effectiveMutationProb(),
-                                             variables=list(self.toBeSampled),
-                                             EQfiles=self._EQcheckfile)
+                                             variables=list(self.toBeSampled))
 
     needsRepair = False
     for chrom in range(min(self._nChildren, len(childrenMutated))):
