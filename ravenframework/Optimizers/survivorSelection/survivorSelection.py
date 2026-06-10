@@ -20,13 +20,7 @@
 """
 # External Modules----------------------------------------------------------------------------------
 import numpy as np
-import xarray as xr
-from ravenframework.utils import frontUtils
 # External Modules End------------------------------------------------------------------------------
-
-# Internal Modules----------------------------------------------------------------------------------
-from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
-# Internal Modules End------------------------------------------------------------------------------
 
 def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, minObjVals, constraintVals):
   """
@@ -69,19 +63,3 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, 
   self.popAge = self.popAges
   self.minObjVals = self.popMinObjVals
   self.constraintVals = self.popConstraintVals
-
-def multiObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, minObjVals, constraintVals):
-  """
-    Process of selecting survivors for multi-objective problems.
-    Multi-objective survivor selection is handled by the GeneticAlgorithm flow;
-    this stub is kept for compatibility with older call sites.
-    @ In, self, instance of GeneticAlgorithm. Also information to return is added to this
-    @ In, info, dict, dictionary of information
-    @ In, rlz, dict, dictionary of realizations (including values of all objectives)
-    @ In, traj, dict, dictionary of trajectories
-    @ In, offspring, list, list of offspring individuals
-    @ In, offspringFitVals, list, list of fitness values for offspring individuals
-    @ In, minObjVals, list, values of the objectives (for ranking and crowding distance calculation)
-    @ In, constraintVals, xr.DataArray, constraint data
-  """
-  pass

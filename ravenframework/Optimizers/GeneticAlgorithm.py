@@ -206,12 +206,8 @@
                                                                 | population                         |
                                                                 | rank                               |
                                                                 |------------------------------------|
-                                                                | _GD                                |
-                                                                | _GDp                               |
                                                                 | __init__                           |
                                                                 | _addToSolutionExport               |
-                                                                | _ahd                               |
-                                                                | _ahdp                              |
                                                                 | _applyFunctionalConstraints        |
                                                                 | _checkAcceptability                |
                                                                 | _checkConvAHD                      |
@@ -223,12 +219,9 @@
                                                                 | _checkImpFunctionalConstraints     |
                                                                 | _collectOptPoint                   |
                                                                 | _collectOptPointMulti              |
-                                                                | _envelopeSize                      |
                                                                 | _formatSolutionExportVariableNames |
                                                                 | _handleExplicitConstraints         |
                                                                 | _handleImplicitConstraints         |
-                                                                | _hdsm                              |
-                                                                | _popDist                           |
                                                                 | _rejectOptPoint                    |
                                                                 | _resolveNewGeneration              |
                                                                 | _submitRun                         |
@@ -1625,7 +1618,7 @@ class GeneticAlgorithm(RavenSampled):
       p = 3
     else:
       p = kwargs['p']
-    ahdp = self._ahdp(old, new, p)
+    ahdp = mathUtils.averageHausdorffDistanceP(old, new, p)
     self.ahdp = ahdp
     converged = (ahdp <= self._convergenceCriteria['AHDp'])
     self.raiseADebug(self.convFormat.format(name='AHDp',
@@ -1646,7 +1639,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     old = kwargs['old'].data
     new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
-    ahd = self._ahd(old,new)
+    ahd = mathUtils.averageHausdorffDistance(old, new)
     self.ahd = ahd
     converged = (ahd < self._convergenceCriteria['AHD'])
     self.raiseADebug(self.convFormat.format(name='AHD',
@@ -1667,7 +1660,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     old = kwargs['old'].data
     new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
-    self.hdsm = self._hdsm(old, new)
+    self.hdsm = mathUtils.hausdorffDistanceSimilarityMeasure(old, new)
     converged = (self.hdsm >= self._convergenceCriteria['HDSM'])
     self.raiseADebug(self.convFormat.format(name='HDSM',
                                             conv=str(converged),
@@ -1676,100 +1669,6 @@ class GeneticAlgorithm(RavenSampled):
 
     return converged
 
-  def _ahdp(self, a, b, p):
-    """
-      p-average Hausdorff Distance for generation convergence
-      @ In, a, np.array, old population A
-      @ In, b, np.array, new population B
-      @ Out, _AHDp, float, average Hausdorff distance
-    """
-    return max(self._GDp(a, b, p), self._GDp(b, a, p))
-
-  def _GDp(self, a, b, p):
-    r"""
-      Modified Generational Distance Indicator: the p-averaged minimum distance
-      from every individual in population A to its nearest neighbor in population B.
-      @ In, a, np.array, old population A (rows are individuals)
-      @ In, b, np.array, new population B (rows are individuals)
-      @ In, p, float, the order of the Minkowski norm
-      @ Out, _GDp, float, the modified generational distance $\frac{1}{n_A} \Sigma_{i=1}^{n_A}min_{b \in B} dist(ai,B)$
-    """
-    s = 0
-    n = np.shape(a)[0]
-    for i in range(n):
-      s += self._popDist(a[i,:],b)**p
-
-    return (1/n * s)**(1/p)
-
-  def _popDist(self,ai,b,q=2):
-    r"""
-      Minimum Minkowski distance from individual a_i to population B (nearest point in B).
-      @ In, ai, np.array, the ith chromosome (single individual) in generation A
-      @ In, b, np.array, population B (rows are individuals)
-      @ In, q, int, order of the Minkowski norm
-      @ Out, _popDist, float, the minimum distance from ai to B $inf_(\|ai-bj\|_q)**\frac{1}{q}$
-    """
-    nrm = []
-    for j in range(np.shape(b)[0]):
-      nrm.append(np.linalg.norm(ai-b[j,:], q))
-
-    return min(nrm)
-
-  def _ahd(self, a, b):
-    """
-      Hausdorff Distance for generation convergence
-      @ In, a, np.array, old population A
-      @ In, b, np.array, new population B
-      @ Out, _AHD, float, Hausdorff distance
-    """
-    return max(self._GD(a,b),self._GD(b,a))
-
-  def _GD(self,a,b):
-    r"""
-      Generational Distance Indicator: the maximum over individuals in A of the
-      minimum distance from that individual to its nearest neighbor in B.
-      @ In, a, np.array, old population A (rows are individuals)
-      @ In, b, np.array, new population B (rows are individuals)
-      @ Out, _GD, float, the generational distance $\max_{i \in A}min_{b \in B} dist(ai,B)$
-    """
-    s = []
-    n = np.shape(a)[0]
-    for i in range(n):
-      s.append(self._popDist(a[i,:],b))
-
-    return max(s)
-
-  def _envelopeSize(self,a,b):
-    """
-      Compute the hyper-diagonal of the bounding box (envelope) that contains
-      both the old and new populations; used to normalize the Hausdorff distance.
-      @ In, a, np.array, old population A (rows are individuals)
-      @ In, b, np.array, new population B (rows are individuals)
-      @ Out, hyperDiagonal, float, the envelope hyper-diagonal length
-    """
-    aLenght = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
-    bLenght = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
-    sides = np.amax(np.stack([aLenght, bLenght], axis=0), axis=0).tolist()
-    hyperDiagonal = mathUtils.hyperdiagonal(sides)
-    return hyperDiagonal
-
-  def _hdsm(self, a, b):
-    """
-      Hausdorff Distance Similarity Measure for generation convergence
-      @ In, a, np.array, old population A
-      @ In, b, np.array, new population B
-      @ Out, _hdsm, float, average Hausdorff distance
-    """
-    normFactor = self._envelopeSize(a, b)
-    ahd = self._ahd(a,b)
-    if mathUtils.compareFloats(ahd, 0.0, 1e-14):
-      return 1.
-    if mathUtils.compareFloats(normFactor, 0.0, 1e-14):
-      # the envelope has a zero size (=> populations are
-      # composed by the same genes (all the same numbers
-      # => minimum == maximum within the population
-      return 1.
-    return  1. - ahd / normFactor
 
   def _checkConvSpread(self, traj, **kwargs):
     """

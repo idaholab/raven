@@ -276,38 +276,23 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       return 'nan'
     return round(floatVal, 12)
 
-  def _buildChromosomeKey(self, data):
+  def _buildChromosomeKey(self, geneValues):
     """
-      Build a stable key for identifying chromosomes based on decision variables.
-      @ In, data, xr.Dataset or xr.DataArray or dict, container holding decision variables
-      @ Out, key, tuple, identifying key or None if incomplete
+      Build a stable key identifying a chromosome from its decision-variable values.
+      Callers normalize the various RAVEN containers (xr.Dataset, xr.DataArray) to a plain
+      dict first via _sampleToEntry / _chromosomeDictFromPopulation, so this method handles
+      a single representation.
+      @ In, geneValues, dict, mapping decision-variable name -> value
+      @ Out, key, tuple, identifying key or None if any decision variable is missing
     """
     genes = list(self.toBeSampled.keys())
     if not genes:
       return None
     key = []
     for var in genes:
-      try:
-        if isinstance(data, xr.Dataset):
-          if var not in data.data_vars:
-            return None
-          val = data[var].values
-        elif isinstance(data, xr.DataArray):
-          if 'Gene' in data.coords and var in data.coords['Gene'].values:
-            val = data.sel(Gene=var).values
-          elif hasattr(data, 'loc'):
-            val = data.loc[var].values
-          else:
-            return None
-        elif isinstance(data, dict):
-          if var not in data:
-            return None
-          val = data[var]
-        else:
-          return None
-      except Exception:
+      if var not in geneValues:
         return None
-      normalized = self._normalizeKeyComponent(val)
+      normalized = self._normalizeKeyComponent(geneValues[var])
       if normalized is None:
         return None
       key.append(normalized)
@@ -344,19 +329,20 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     count = dataset.sizes.get(sampleDim, 0)
     for idx in range(count):
       sample = dataset.isel({sampleDim: idx})
-      key = self._buildChromosomeKey(sample)
+      entry = self._sampleToEntry(sample)
+      key = self._buildChromosomeKey(entry)
       if key is None:
         continue
-      self._populationCache[key] = self._sampleToEntry(sample)
+      self._populationCache[key] = entry
 
-  def _retrieveCachedOutputs(self, data, dataset=None):
+  def _retrieveCachedOutputs(self, geneValues, dataset=None):
     """
       Fetch cached outputs for the given chromosome, optionally falling back to a dataset search.
-      @ In, data, xr.DataArray or dict, representation of the chromosome
+      @ In, geneValues, dict, decision-variable values identifying the chromosome
       @ In, dataset, xr.Dataset or None, optional search space for fallback matching
       @ Out, outputs, dict, cached outputs (may be empty)
     """
-    key = self._buildChromosomeKey(data)
+    key = self._buildChromosomeKey(geneValues)
     if key is None:
       return {}
     if self._populationCache is None:
@@ -366,9 +352,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       if sampleDim in dataset.dims:
         count = dataset.sizes.get(sampleDim, 0)
         for idx in range(count):
-          sample = dataset.isel({sampleDim: idx})
-          if self._buildChromosomeKey(sample) == key:
-            self._populationCache[key] = self._sampleToEntry(sample)
+          entry = self._sampleToEntry(dataset.isel({sampleDim: idx}))
+          if self._buildChromosomeKey(entry) == key:
+            self._populationCache[key] = entry
             break
     cached = self._populationCache.get(key)
     if cached is None:
@@ -691,7 +677,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
           rlzDict[f'FitnessEvaluation_{fitName}'] = fitValsContainer[fitName].data[i]
         for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
           rlzDict[f'ConstraintEvaluation_{consName}'] = constraintVals.data[i, ind]
-        cachedOutputs = self._retrieveCachedOutputs(survivorSlice, dataset=rlz)
+        cachedOutputs = self._retrieveCachedOutputs(self._chromosomeDictFromPopulation(self.pop, i), dataset=rlz)
         for var in solutionExportVars:
           if var in rlzDict:
             continue

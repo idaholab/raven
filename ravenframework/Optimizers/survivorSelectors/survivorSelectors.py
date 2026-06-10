@@ -28,7 +28,7 @@ from ravenframework.utils import frontUtils
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
+from ...utils.gaUtils import datasetToDataArray
 # Internal Modules End------------------------------------------------------------------------------
 
 # @profile

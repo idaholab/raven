@@ -22,6 +22,7 @@ import functools
 import copy
 import scipy
 from scipy import interpolate, stats
+from scipy.spatial.distance import cdist
 import numpy as np
 import six
 from numpy import linalg
@@ -1278,3 +1279,88 @@ def getNumpyTypes(typ):
         nTypes.append(t)
 
   return nTypes
+
+def minDistanceToPopulation(ai, b, q=2):
+  r"""
+    Minimum Minkowski distance from a single individual a_i to population B (nearest point in B).
+    @ In, ai, np.array, a single individual (chromosome)
+    @ In, b, np.array, population B (rows are individuals)
+    @ In, q, int, order of the Minkowski norm
+    @ Out, minDistanceToPopulation, float, the minimum distance from ai to B
+  """
+  return cdist(np.atleast_2d(ai), np.atleast_2d(b), metric='minkowski', p=q).min()
+
+def generationalDistanceP(a, b, p):
+  r"""
+    Modified Generational Distance Indicator: the p-averaged minimum (Euclidean) distance from
+    every individual in population A to its nearest neighbor in population B. The per-individual
+    nearest-neighbor distances are computed in a single vectorized pass (scales to large populations).
+    @ In, a, np.array, population A (rows are individuals)
+    @ In, b, np.array, population B (rows are individuals)
+    @ In, p, float, the averaging exponent
+    @ Out, generationalDistanceP, float, $\frac{1}{n_A} \Sigma_{i=1}^{n_A}min_{b \in B} dist(ai,B)$
+  """
+  minDist = cdist(np.atleast_2d(a), np.atleast_2d(b)).min(axis=1)
+  return (np.sum(minDist**p) / minDist.shape[0])**(1/p)
+
+def averageHausdorffDistanceP(a, b, p):
+  """
+    p-average Hausdorff Distance, used as a generation-convergence metric.
+    @ In, a, np.array, population A
+    @ In, b, np.array, population B
+    @ In, p, float, the order of the Minkowski norm
+    @ Out, averageHausdorffDistanceP, float, average Hausdorff distance
+  """
+  return max(generationalDistanceP(a, b, p), generationalDistanceP(b, a, p))
+
+def generationalDistance(a, b):
+  r"""
+    Generational Distance Indicator: the maximum over individuals in A of the minimum (Euclidean)
+    distance from that individual to its nearest neighbor in B, computed in a single vectorized
+    pass (scales to large populations).
+    @ In, a, np.array, population A (rows are individuals)
+    @ In, b, np.array, population B (rows are individuals)
+    @ Out, generationalDistance, float, $\max_{i \in A}min_{b \in B} dist(ai,B)$
+  """
+  return cdist(np.atleast_2d(a), np.atleast_2d(b)).min(axis=1).max()
+
+def averageHausdorffDistance(a, b):
+  """
+    Hausdorff Distance, used as a generation-convergence metric.
+    @ In, a, np.array, population A
+    @ In, b, np.array, population B
+    @ Out, averageHausdorffDistance, float, Hausdorff distance
+  """
+  return max(generationalDistance(a, b), generationalDistance(b, a))
+
+def populationEnvelopeSize(a, b):
+  """
+    Hyper-diagonal of the bounding box (envelope) that contains both populations;
+    used to normalize the Hausdorff distance.
+    @ In, a, np.array, population A (rows are individuals)
+    @ In, b, np.array, population B (rows are individuals)
+    @ Out, populationEnvelopeSize, float, the envelope hyper-diagonal length
+  """
+  aLenght = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
+  bLenght = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
+  sides = np.amax(np.stack([aLenght, bLenght], axis=0), axis=0).tolist()
+  return hyperdiagonal(sides)
+
+def hausdorffDistanceSimilarityMeasure(a, b):
+  """
+    Hausdorff Distance Similarity Measure for generation convergence; returns a value in [0, 1]
+    where 1 indicates the two populations occupy the same region.
+    @ In, a, np.array, population A
+    @ In, b, np.array, population B
+    @ Out, hausdorffDistanceSimilarityMeasure, float, similarity measure
+  """
+  normFactor = populationEnvelopeSize(a, b)
+  ahd = averageHausdorffDistance(a, b)
+  if compareFloats(ahd, 0.0, 1e-14):
+    return 1.
+  if compareFloats(normFactor, 0.0, 1e-14):
+    # the envelope has a zero size (=> populations are
+    # composed by the same genes (all the same numbers
+    # => minimum == maximum within the population
+    return 1.
+  return  1. - ahd / normFactor

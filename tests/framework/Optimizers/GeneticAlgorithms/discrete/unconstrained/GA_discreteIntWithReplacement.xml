@@ -157,7 +157,7 @@ un    <MultiRun name="opt" re-seeding="2286">
       <Output>planValue,validPlan</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
+      <Input>batchId</Input>
       <Output>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue,accepted</Output>
     </PointSet>
   </DataObjects>
@@ -183,13 +183,13 @@ un    <MultiRun name="opt" re-seeding="2286">
       <Plot name="population" subType="PopulationPlot">
         <source>opt_export</source>
         <vars>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue</vars>
-        <index>trajID</index>
+        <index>batchId</index>
         <how>png</how>
       </Plot>
       <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
         <source>opt_export</source>
         <vars>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</vars>
-        <index>trajID</index>
+        <index>batchId</index>
       </Plot>
     </OutStreams>
 

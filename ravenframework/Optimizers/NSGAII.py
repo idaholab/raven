@@ -35,7 +35,6 @@ import numpy as np
 import xarray as xr
 
 from ..utils import frontUtils, randomUtils
-from ..utils.gaUtils import datasetToDataArray
 from .MultiObjectiveGeneticAlgorithm import MultiObjectiveGeneticAlgorithm
 
 

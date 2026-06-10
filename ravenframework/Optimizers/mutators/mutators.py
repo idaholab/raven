@@ -25,8 +25,7 @@
 """
 import numpy as np
 import xarray as xr
-from operator import itemgetter
-from ...utils import utils, randomUtils, gaUtils
+from ...utils import randomUtils, gaUtils
 
 def swapMutator(offspring, distDict, **kwargs):
   """
