@@ -98,6 +98,10 @@
     type = 'PyTest'
     input = 'test_ga_utils_pytest.py'
   [../]
+  [./pytestGaNormalization]
+    type = 'PyTest'
+    input = 'test_ga_normalization_pytest.py'
+  [../]
   [./pytestGaMutators]
     type = 'PyTest'
     input = 'test_mutators_pytest.py'

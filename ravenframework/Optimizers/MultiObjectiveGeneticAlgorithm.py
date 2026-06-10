@@ -463,7 +463,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
-    _addToSolutionExport method.
+    Augments the solution export additions with the multi-objective rank and crowding distance metrics.
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, rlz, dict, realization dictionary for the current generation.
     @ In, acceptable, set(str), candidate variable names allowed for solution export.
@@ -482,7 +482,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _collectOptPointMulti(self, rlz, population, rank, CD, minObjVals, fitVals, constraintVals):
     """
-    _collectOptPointMulti method.
+    Collects the rank-1 (non-dominated) optimal points and their metrics from the current population.
     @ In, rlz, dict, realization dictionary for the current generation.
     @ In, population, xr.DataArray, population decision vectors (Gene dimension).
     @ In, rank, xr.DataArray, non-dominated sorting ranks per individual.
@@ -643,6 +643,17 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
             +---------------+
             | update Pareto |
             +---------------+
+
+      @ In, traj, int, trajectory identifier for the current optimization run
+      @ In, rlz, xr.Dataset, evaluated offspring realization for this generation
+      @ In, info, dict, identifying information about the realization (step, traj, etc.)
+      @ In, pastPop, xr.DataArray, population from the previous generation
+      @ In, minObjVals, list, minimization-space objective values per objective and individual
+      @ In, fitVals, dict, population fitness values keyed by objective name
+      @ In, constraintVals, xr.DataArray, calculated constraint values per individual
+      @ In, ranks, xr.DataArray, optional, non-dominated sorting ranks per individual
+      @ In, CD, xr.DataArray, optional, crowding distances per individual
+      @ Out, None
     """
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving multi-objective generation ...')
     self._stepTracker[traj]['opt'] = (rlz, info)
@@ -746,7 +757,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _validateFinalFront(self, candidate):
     """
-    _validateFinalFront method.
+    Warns if the final-export candidate is dominated by existing population members via non-dominated ranking.
     @ In, candidate, dict, realization for the candidate final-front point.
     @ Out, None.
     """
@@ -807,30 +818,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     offspringConstraintVals = constraintHandling(self, info, rlz, offspring,
                                       offspringMinObjVals, multiObjective=True)
 
-    normRlz = deepcopy(rlz)
-    if self._normalizeFitness:
-      constrVarsList = self._constraintFunctions + self._impConstraintFunctions
-      varsToNormalize = []
-      for func in constrVarsList:
-        varsToNormalize += func.parameterNames()
-      varsToNormalize = set(varsToNormalize + self._objectiveVar)
-
-      self.normScores = {}
-      for var in varsToNormalize:
-        if self._normalizeFitness == 'zscore':
-          self.normScores[var] = (np.mean(rlz[var].to_dataframe().values),
-                                  np.std(rlz[var].to_dataframe().values))
-          for idx in range(len(rlz[var])):
-            normRlz[var][idx] = (rlz[var][idx] - self.normScores[var][0]) / self.normScores[var][1]
-            if np.isnan(normRlz[var][idx]):
-              normRlz[var][idx] = 0.0
-
-      for i in range(len(offspringConstraintVals)):
-        for j in range(len(constrVarsList)):
-          denom = self.normScores[constrVarsList[j].parameterNames()[0]][1]
-          offspringConstraintVals[i][j] = offspringConstraintVals[i][j] / denom
-          if np.isnan(offspringConstraintVals[i][j]):
-            offspringConstraintVals[i][j] = 0.0
+    normRlz, offspringConstraintVals = self._normalizeRealization(rlz, offspringConstraintVals)
 
     offspringFitVals = self._fitnessInstance(normRlz,
                                               objVar=self._objectiveVar,
@@ -841,20 +829,27 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                                               constraintNum=self._numOfConst,
                                               type=self._minMax)
 
-    self._process_generation(info,
-                             rlz,
-                             offspring,
-                             offspringMinObjVals,
-                             offspringFitVals,
-                             offspringConstraintVals)
+    self._processGeneration(info,
+                            rlz,
+                            offspring,
+                            offspringMinObjVals,
+                            offspringFitVals,
+                            offspringConstraintVals)
 
-  def _process_generation(self, info, rlz, offspring, offspringMinObjVals,
+  def _processGeneration(self, info, rlz, offspring, offspringMinObjVals,
                           offspringFitVals, offspringConstraintVals):
     """
       Perform the strategy-specific portion of the multi-objective update.
       Subclasses (e.g. NSGA-II) must implement this method.
+      @ In, info, dict, identifying information about the realization (step, traj, etc.)
+      @ In, rlz, xr.Dataset, evaluated offspring realization for this generation
+      @ In, offspring, xr.DataArray, offspring decision vectors (Gene dimension)
+      @ In, offspringMinObjVals, list, minimization-space objective values per objective and offspring
+      @ In, offspringFitVals, dict, offspring fitness values keyed by objective name
+      @ In, offspringConstraintVals, xr.DataArray, calculated constraint values per offspring
+      @ Out, None
     """
-    raise NotImplementedError(f'{self.__class__.__name__} must implement "_process_generation".')
+    raise NotImplementedError(f'{self.__class__.__name__} must implement "_processGeneration".')
 
   def _checkConvHypervolume(self, traj, **kwargs):
     """
@@ -924,7 +919,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _checkConvSpread(self, traj, **kwargs):
     """
-    _checkConvSpread method.
+    Checks convergence on Deb's spread (Delta) metric of the rank-1 front against the 'spread' criterion.
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
     @ Out, converged, bool, True if spread criterion is satisfied.
@@ -978,7 +973,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _checkConvSpacing(self, traj, **kwargs):
     """
-    _checkConvSpacing method.
+    Checks convergence on the spacing (nearest-neighbour distance deviation) metric of the rank-1 front against the 'spacing' criterion.
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
     @ Out, converged, bool, True if spacing criterion is satisfied.
@@ -1030,11 +1025,19 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return spacing
 
   def _checkConvMaxSpread(self, traj, **kwargs):
-    """
-    _checkConvMaxSpread method.
+    r"""
+    Convergence check on the rank-1 front's max-spread metric $S$ (see _computeMaxSpread, which
+    defines $S=\sqrt{\sum_{m=1}^{M} R_m^2}$ from the per-objective ranges $R_m$). Let $S^{(t)}$ be
+    the max-spread of the current generation's rank-1 front and $S^{(t-1)}$ that of the previous
+    generation; convergence is declared when the relative change
+    \begin{equation*}
+      \delta = \frac{\left|\,S^{(t)} - S^{(t-1)}\,\right|}{S^{(t-1)}}
+    \end{equation*}
+    falls below the user-provided \xmlNode{maxSpread} criterion. By convention $\delta=\infty$
+    when $S^{(t-1)}=0$ (no convergence until the previous front has nonzero extent).
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
-    @ Out, converged, bool, True if max-spread criterion is satisfied.
+    @ Out, converged, bool, True if the relative max-spread change is below the maxSpread criterion.
     """
     if len(self._optPointHistory[traj]) < 2:
       return False
@@ -1079,12 +1082,22 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeMaxSpread(self, front):
-    """
+    r"""
     Compute the maximum spread of a Pareto front: the Euclidean norm of the per-objective
-    ranges (max minus min over the front for each objective). This captures how widely the
-    non-dominated solutions extend in objective space.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, maxSpread, float, max-spread metric for the front.
+    ranges, i.e. how widely the non-dominated solutions extend in objective space.
+
+    For a rank-1 front $\mathcal{F}=\{\mathbf{f}^{(1)},\dots,\mathbf{f}^{(n)}\}$ of $n$ points in
+    $M$-objective (minimization) space, where $f^{(k)}_m$ is the $m$-th objective of point $k$,
+    the per-objective range $R_m$ and the max-spread $S$ are
+    \begin{equation*}
+      R_m = \max_{1\le k\le n} f^{(k)}_m \;-\; \min_{1\le k\le n} f^{(k)}_m,
+      \qquad
+      S = \sqrt{\sum_{m=1}^{M} R_m^2}\,.
+    \end{equation*}
+    Geometrically $S$ is the diagonal length of the axis-aligned bounding box enclosing the
+    front, so it grows as the front widens along any objective. By convention $S=0$ when $n<2$.
+    @ In, front, list(list(float)), Pareto front points in objective space (one inner list per point).
+    @ Out, maxSpread, float, the max-spread metric $S$ for the front.
     """
     n = len(front)
     if n < 2:
@@ -1098,7 +1111,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _checkConvRank1Ratio(self, traj, **kwargs):
     """
-    _checkConvRank1Ratio method.
+    Checks convergence on the ratio of rank-1 individuals to population size, requiring it to stay above the 'rank1Ratio' criterion and stable across recent generations.
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
     @ Out, converged, bool, True if rank-1 ratio criterion is satisfied.

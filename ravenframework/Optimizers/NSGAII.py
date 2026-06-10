@@ -192,7 +192,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
       return None
     return np.vstack([objectiveValues.min(axis=0), objectiveValues.max(axis=0)])
 
-  def _process_generation(self, info, rlz, offspring, offspringMinObjVals,
+  def _processGeneration(self, info, rlz, offspring, offspringMinObjVals,
                           offspringFitVals, offspringConstraintVals):
     """
       Execute the NSGA-II specific update: elitist merge, non-dominated sorting,
