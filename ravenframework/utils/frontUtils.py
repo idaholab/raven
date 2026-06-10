@@ -22,7 +22,14 @@ import xarray as xr
 # Internal Imports
 
 def _constraintViolation(constraintVals):
-  """Return total positive constraint violation for each point. RAVEN constraints are feasible when g(x) >= 0."""
+  """
+    Compute the total positive constraint violation for each point. RAVEN constraints are
+    feasible when g(x) >= 0, so only negative values contribute to the violation.
+    @ In, constraintVals, np.array or None, (nPoints,) or (nPoints, nConstraints) constraint
+                          function values g(x); None when the problem is unconstrained.
+    @ Out, violation, np.array or None, (nPoints,) total positive violation per point
+                      (sum of max(0, -g) over constraints); None when constraintVals is None.
+  """
   if constraintVals is None:
     return None
   values = np.asarray(constraintVals)
@@ -34,7 +41,15 @@ def _constraintViolation(constraintVals):
 
 
 def _applyObjectiveDirections(data, minMask=None):
-  """Convert objective values to minimization-space for dominance checks using an explicit direction mask."""
+  """
+    Convert objective values to minimization space for dominance checks by negating the
+    objectives that are to be maximized, as flagged by an explicit direction mask.
+    @ In, data, np.array, (nPoints, nObjectives) objective values.
+    @ In, minMask, np.array, optional, (nObjectives,) boolean mask, True where the objective
+                   is minimized and False where it is maximized; None leaves data unchanged.
+    @ Out, data, np.array, (nPoints, nObjectives) objectives in minimization space
+                 (maximized columns negated).
+  """
   data = np.array(data, dtype=float, copy=True)
   if minMask is None:
     return data
@@ -46,10 +61,18 @@ def _applyObjectiveDirections(data, minMask=None):
 
 
 def _dominatesForMinimization(candidate, other, candidateViolation=0.0, otherViolation=0.0, epsilon=0.0):
-  """Evaluate Deb constrained dominance for minimization-space objective values.
-     With epsilon > 0 this becomes epsilon-constrained dominance (Takahama & Sato):
-     total constraint violations up to epsilon are treated as feasible, so near-boundary
-     solutions compete on objectives instead of being strictly dominated by feasible ones."""
+  """
+    Evaluate Deb constrained dominance for minimization-space objective values.
+    With epsilon > 0 this becomes epsilon-constrained dominance (Takahama & Sato):
+    total constraint violations up to epsilon are treated as feasible, so near-boundary
+    solutions compete on objectives instead of being strictly dominated by feasible ones.
+    @ In, candidate, np.array, (nObjectives,) minimization-space objectives of the candidate point.
+    @ In, other, np.array, (nObjectives,) minimization-space objectives of the point compared against.
+    @ In, candidateViolation, float, optional, total positive constraint violation of the candidate.
+    @ In, otherViolation, float, optional, total positive constraint violation of the other point.
+    @ In, epsilon, float, optional, constraint-violation tolerance below which a point is treated as feasible.
+    @ Out, dominates, bool, True if candidate dominates other under Deb (epsilon-)constrained dominance.
+  """
   candidateFeasible = candidateViolation <= epsilon
   otherFeasible = otherViolation <= epsilon
   if candidateFeasible and not otherFeasible:
@@ -107,7 +130,18 @@ def _fastNonDominatedSortConstrained(directedData, violation, epsilon=0.0):
 
 
 def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None, epsilon=0.0):
-  """Rank fronts using objective dominance plus Deb constrained-dominance rules."""
+  """
+    Rank non-dominated fronts using objective dominance plus Deb constrained-dominance rules:
+    constraint violations are derived from constraintVals, objectives are converted to
+    minimization space via minMask, and fronts are then assigned by a fast non-dominated sort.
+    @ In, data, np.array, (nPoints, nObjectives) objective values.
+    @ In, constraintVals, np.array or None, (nPoints,) or (nPoints, nConstraints) constraint
+                          function values g(x); None when the problem is unconstrained.
+    @ In, minMask, np.array, optional, (nObjectives,) boolean mask, True where the objective
+                   is minimized and False where it is maximized; None treats all as minimized.
+    @ In, epsilon, float, optional, constraint-violation tolerance for epsilon-constrained dominance.
+    @ Out, ranks, list, 1-based front index for each point.
+  """
   data = np.asarray(data, dtype=float)
   if data.ndim != 2:
     raise IOError("rankNonDominatedFrontiers method: data must be a 2-D array")

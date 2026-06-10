@@ -104,8 +104,9 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     @ Out, specs, InputData.ParameterInput, input specification for NSGA-II.
     """
     specs = super(NSGAII, cls).getInputSpecification()
-    specs.name = 'NSGAII'
-    specs.description = r"""The \xmlNode{NSGAII} optimizer extends \xmlNode{GeneticAlgorithm} to handle multi-objective problems using
+    # keep the inherited spec name 'MultiObjectiveGeneticAlgorithm' so it matches the input node tag;
+    # NSGA-II is selected via the <MultiObjectiveGeneticAlgorithm type="NSGA-II"> attribute.
+    specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-II} handles multi-objective problems using
                             the Non-dominated Sorting Genetic Algorithm II (NSGA-II). It preserves all configuration options of the
                             base genetic algorithm while enabling Pareto front ranking and crowding-distance based survivor selection
                             to explore trade-offs between conflicting objectives."""

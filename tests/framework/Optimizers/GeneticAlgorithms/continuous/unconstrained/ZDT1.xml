@@ -4,7 +4,7 @@
     <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_ZDT1</name>
     <author>Junyung Kim</author>
     <created>2023-02-21</created>
-    <classesTested/>
+    <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.twoPointsCrossover;Optimizers.mutators.randomMutator</classesTested>
     <description>ZDT1 test using NSGA-II. This is the first of the ZDT test suite mathematical benchmark for two objective optimization.
       design (desicion) variable $\vec{x} = [x1,x2,...x_n]; n here is equal to 3$
 
@@ -66,7 +66,7 @@ obj_2     *                  o
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">ZDT</Model>
-      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -95,7 +95,7 @@ obj_2     *                  o
   </Distributions>
 
   <Optimizers>
-    <NSGA-II name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>15</limit>
         <initialSeed>42</initialSeed>
@@ -135,7 +135,7 @@ obj_2     *                  o
       <objective>obj1, obj2 </objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </NSGA-II>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 
   <Samplers>

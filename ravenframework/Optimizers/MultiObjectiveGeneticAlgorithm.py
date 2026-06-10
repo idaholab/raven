@@ -29,6 +29,22 @@ from .constraintHandling.constraintHandling import constraintHandling
 class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
   """Shared functionality for multi-objective genetic algorithms."""
 
+  # Registry of concrete multi-objective algorithms keyed by the input 'type' value
+  # (e.g. 'NSGA-II' -> NSGAII). Populated by Optimizers.Factory. Selecting the algorithm
+  # via <MultiObjectiveGeneticAlgorithm type="..."> keeps every concrete algorithm a
+  # subclass of this base, so adding one (e.g. NSGA-III) is a subclass plus one registration.
+  knownAlgorithms = {}
+
+  @classmethod
+  def registerAlgorithm(cls, name, algorithmClass):
+    """
+      Register a concrete multi-objective GA algorithm under its input 'type' name.
+      @ In, name, str, value used in <MultiObjectiveGeneticAlgorithm type="...">
+      @ In, algorithmClass, class, MultiObjectiveGeneticAlgorithm subclass implementing the algorithm
+      @ Out, None
+    """
+    cls.knownAlgorithms[name] = algorithmClass
+
   convergenceOptions = dict(GeneticAlgorithm.convergenceOptions, **{
       'spread': r""" provides the maximum allowable value of Deb's spread metric ($\Delta$) measuring the distance
                         between extreme and intermediate Pareto points. Once the spread drops below this value
@@ -67,6 +83,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     """
     super().__init__()
     self._canHandleMultiObjective = True
+    self._multiObjectiveAlgorithm = 'NSGA-II'       # concrete algorithm variant (see <... type="...">)
     self._crowdingNormalization = 'front'           # 'front' or 'population' normalization for crowding distance
     self._paretoArchiveEnabled = False              # if True, accumulate non-dominated solutions across generations
     self._paretoArchiveMaxSize = None               # optional cap on archive size (None = unbounded)
@@ -118,7 +135,11 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
                             operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
                             crowding-distance survivor selection, and multi-objective convergence metrics that are shared
-                            by concrete optimizers such as \xmlNode{NSGAII}."""
+                            by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II."""
+    specs.addParam('type', param_type=InputTypes.makeEnumType('multiObjectiveGA', 'multiObjectiveGAType',
+        list(cls.knownAlgorithms.keys()) or ['NSGA-II']), required=False, default='NSGA-II',
+        descr=r"""selects the concrete multi-objective genetic algorithm to run. Currently \xmlString{NSGA-II}
+                  (Non-dominated Sorting Genetic Algorithm II) is available. Defaults to \xmlString{NSGA-II}.""")
     objective = specs.getSub('objective')
     if objective is not None:
       objective.description = r"""List the objective variables that jointly define the Pareto front. Two or more
@@ -427,6 +448,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     @ Out, None.
     """
     super().handleInput(paramInput)
+    # concrete algorithm variant selected via <MultiObjectiveGeneticAlgorithm type="..."> (default NSGA-II)
+    self._multiObjectiveAlgorithm = paramInput.parameterValues.get('type', 'NSGA-II')
     if not self._isMultiObjective:
       self.raiseAnError(IOError, 'At least two objectives are required for a multi-objective genetic algorithm.')
     if self._parentSelectionType != 'tournamentSelection':

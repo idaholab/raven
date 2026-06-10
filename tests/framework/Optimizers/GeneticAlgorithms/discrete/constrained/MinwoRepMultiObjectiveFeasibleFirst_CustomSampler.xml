@@ -4,7 +4,7 @@
     <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
     <author>Mohammad Abdo</author>
     <created>2025-01-09</created>
-    <classesTested/>
+    <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.twoPointsCrossover;Optimizers.mutators.swapMutator</classesTested>
     <description>NSGA-II min-max test </description>
   </TestInfo>
 
@@ -18,7 +18,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -71,7 +71,7 @@
   </Distributions>
 
   <Optimizers>
-    <NSGA-II name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>5</limit>
         <initialSeed>42</initialSeed>
@@ -108,7 +108,7 @@
       <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="CustomSampler">my_sampler</Sampler>
-    </NSGA-II>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 
   <Samplers>

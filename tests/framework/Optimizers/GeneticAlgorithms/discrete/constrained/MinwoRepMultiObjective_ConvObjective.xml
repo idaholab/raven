@@ -4,7 +4,7 @@
     <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
     <author>Mohammad Abdo @Jimmy-INL</author>
     <created>2022-12-21</created>
-    <classesTested/>
+    <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.twoPointsCrossover;Optimizers.mutators.swapMutator</classesTested>
     <description>NSGA-II min-max-min test: This test is for a three objectives obj1, 2, and 3
     objective1 is a weighted sum of the whole chromosome from myLocalSum_multi.py, where as objective 2 and 3
     are partial sums (i.e., obj2 is the weighted sum of the first two genes, whereas obj3 is the weighted sume of the third and forth Genes), the goal is to minimize obj1, and 3, and maximize 2.
@@ -23,7 +23,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="NSGA-II">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -70,7 +70,7 @@
   </Distributions>
 
   <Optimizers>
-    <NSGA-II name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>5</limit>
         <initialSeed>42</initialSeed>
@@ -120,7 +120,7 @@
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
-    </NSGA-II>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 
   <Samplers>

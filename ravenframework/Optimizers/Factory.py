@@ -27,12 +27,48 @@ from .GeneticAlgorithm import GeneticAlgorithm
 from .MultiObjectiveGeneticAlgorithm import MultiObjectiveGeneticAlgorithm
 from .NSGAII import NSGAII
 
-factory = EntityFactory('Optimizer')
+
+class OptimizerFactory(EntityFactory):
+  """
+    Optimizer entity factory. Extends the base factory so that the
+    MultiObjectiveGeneticAlgorithm node selects its concrete algorithm
+    (e.g. NSGA-II) through the 'type' attribute, while every concrete
+    algorithm remains a subclass of MultiObjectiveGeneticAlgorithm.
+  """
+  def instanceFromXML(self, xml):
+    """
+      Using the provided XML, return the required instance. For the
+      MultiObjectiveGeneticAlgorithm node the concrete algorithm subclass is
+      resolved from the 'type' attribute (defaulting to 'NSGA-II'); all other
+      optimizer nodes resolve by tag exactly as in the base factory.
+      @ In, xml, xml.etree.ElementTree.Element, head element for instance
+      @ Out, kind, str, name of type of entity (the node tag)
+      @ Out, name, str, identifying name of entity
+      @ Out, entity, instance, object from factory
+    """
+    kind = xml.tag
+    name = xml.attrib['name']
+    if kind == 'MultiObjectiveGeneticAlgorithm':
+      algorithmType = xml.attrib.get('type', 'NSGA-II')
+      algorithmClass = MultiObjectiveGeneticAlgorithm.knownAlgorithms.get(algorithmType)
+      if algorithmClass is None:
+        self.raiseAnError(IOError, f'<MultiObjectiveGeneticAlgorithm> has unknown type "{algorithmType}"; '
+                          f'known types are: {", ".join(MultiObjectiveGeneticAlgorithm.knownAlgorithms)}')
+      entity = algorithmClass()
+    else:
+      entity = self.returnInstance(kind)
+    return kind, name, entity
+
+
+factory = OptimizerFactory('Optimizer')
 factory.registerType('GradientDescent', GradientDescent)
 factory.registerType('SimulatedAnnealing', SimulatedAnnealing)
 factory.registerType('GeneticAlgorithm', GeneticAlgorithm)
 factory.registerType('MultiObjectiveGeneticAlgorithm', MultiObjectiveGeneticAlgorithm)
-factory.registerType('NSGA-II', NSGAII)
+# Concrete multi-objective GA algorithms are registered against the MultiObjectiveGeneticAlgorithm
+# base class and selected at input time via <MultiObjectiveGeneticAlgorithm type="...">.
+# Adding a new variant (e.g. NSGA-III) is a single registration line here plus its subclass.
+MultiObjectiveGeneticAlgorithm.registerAlgorithm('NSGA-II', NSGAII)
 
 try:
     from .BayesianOptimizer import BayesianOptimizer
