@@ -89,6 +89,7 @@ class EnsembleModel(Dummy):
     self.printTag               = 'EnsembleModel MODEL' # print tag
     self.parallelStrategy = 1                           # parallel strategy [1=MPI like (internalParallel), 2=threads]
     self.runInfoDict = None                             # dictionary containing run info in case of parallelStrategy=2
+    self.pollingInterval = 0.1                          # polling interval for fallback polling
     # assembler objects to be requested
     self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one_to_infinity)
@@ -170,6 +171,8 @@ class EnsembleModel(Dummy):
               self.initialConditions[var.tag] = float(values[0]) if len(values) == 1 else np.asarray([float(varValue) for varValue in values])
             except:
               self.raiseAnError(IOError,"unable to read text from XML node "+var.tag)
+      elif child.tag == 'pollingInterval':
+        self.pollingInterval = float(child.text)
 
   def __findMatchingModel(self,what,subWhat):
     """
@@ -834,7 +837,7 @@ class EnsembleModel(Dummy):
           self.raiseAWarning(f'No Event found for job "{localIdentifier}", '
                              f'falling back to polling-based wait')
           while not jobHandler.isThisJobFinished(localIdentifier):
-            time.sleep(0.1)
+            time.sleep(self.pollingInterval)
         moveOn = True
       # get job that just finished to gather the results
       finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=f"{self.name}{identifier}{suffix}")
