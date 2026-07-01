@@ -291,7 +291,15 @@ __mutators['inversionMutator']  = inversionMutator
 __mutators['randomMutator']     = randomMutator
 __mutators['polynomialMutator'] = polynomialMutator
 
-
+def registerMutator(name, func):
+  """
+    Register a mutator function under the given name.  Plugins call this from
+    their __init__.py to make custom operators discoverable by the GA.
+    @ In, name, str, operator name as it will appear in RAVEN XML input.
+    @ In, func, callable, mutator function with signature func(offSprings, distDict, **kwargs).
+    @ Out, None
+  """
+  __mutators[name] = func
 def returnInstance(cls, name):
   """
     Method designed to return class instance:
