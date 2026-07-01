@@ -44,6 +44,8 @@ class CoreLayoutPlot(PlotInterface):
         descr=r"""Name of the DataObject containing locXX variables (e.g., opt_export)."""))
     spec.addSub(InputData.parameterInputFactory('template', contentType=InputTypes.StringType,
         descr=r"""Path to the SIMULATE template (EQinput.inp/firstInput.inp) containing locXX placeholders."""))
+    spec.addSub(InputData.parameterInputFactory('geometry_xml', contentType=InputTypes.StringType,
+      descr=r"""Optional path to the PRLO XML file containing the <geometry> block."""))
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Optional generation/index column used to pick a row."""))
     spec.addSub(InputData.parameterInputFactory('generation', contentType=InputTypes.FloatType,
@@ -139,6 +141,7 @@ class CoreLayoutPlot(PlotInterface):
     self.locToCoords = {}
     self.locLabels = {}
     self.size = 0
+    self.geometryXml = None
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -253,6 +256,9 @@ class CoreLayoutPlot(PlotInterface):
     barNode = spec.findFirst('bar3d')
     if barNode is not None and barNode.value is not None:
       self.bar3d = bool(barNode.value)
+    geomXml = spec.findFirst('geometry_xml')
+    if geomXml is not None and geomXml.value:
+      self.geometryXml = geomXml.value
 
   def initialize(self, stepEntities):
     super().initialize(stepEntities)
@@ -260,10 +266,35 @@ class CoreLayoutPlot(PlotInterface):
     if src is None:
       self.raiseAnError(IOError, f'Source "{self.sourceName}" not found for CoreLayoutPlot "{self.name}".')
     self.source = src
-    # parse template once
+
+    # 1. Try to parse template for the (loc -> row,col) mapping
     self._parseTemplate(self.templatePath)
+
+    # 2. If template parsing failed, try to parse the XML geometry
     if not self.locToCoords:
-      self.raiseAnError(IOError, f'No locXX placeholders parsed from template "{self.templatePath}".')
+      # PRIORITY 1: Use the explicitly provided geometry_xml path
+      if self.geometryXml:
+        self._parseXmlGeometry(self.geometryXml)
+
+      # PRIORITY 2: If no explicit path, try to find it near the source (your current logic)
+      else:
+        import os
+        import glob
+        src_path = src.getPath() if hasattr(src, 'getPath') else src.filename
+
+        base_name = os.path.splitext(os.path.basename(src_path))[0]
+        search_pattern = os.path.join(os.path.dirname(src_path), f"{base_name}*.xml")
+        xml_files = glob.glob(search_pattern)
+
+        if not xml_files:
+          xml_files = glob.glob(os.path.join(os.path.dirname(src_path), "*.xml"))
+
+        if xml_files:
+          self._parseXmlGeometry(xml_files[0])
+        else:
+          self.raiseAnError(IOError,
+            f'CoreLayoutPlot "{self.name}" could not find locXX mappings.\n'
+            f'Please provide the path to the XML file using <geometry_xml> in your configuration.')
 
   def _parseTemplate(self, path):
     self.locToCoords = {}
@@ -276,10 +307,25 @@ class CoreLayoutPlot(PlotInterface):
       self.raiseAnError(IOError, f'Failed to read template "{path}": {err}')
 
     for line in lines:
+      # A. Extract Grid Size (DIM.PWR)
       if self.size == 0:
         m = re.search(r"'DIM\.PWR'\s+(\d+)", line, re.IGNORECASE)
         if m:
           self.size = int(m.group(1))
+
+      # B. Extract Mapping (The "Map" Case)
+      mfull = re.search(r"^\s*(\d+)\s+(\d+).*loc[^0-9]*([0-9]+)", line, re.IGNORECASE)
+      if mfull:
+        r = int(mfull.group(1)) - 1
+        c = int(mfull.group(2)) - 1
+        raw_loc = f'loc{mfull.group(3)}'.lower()
+        norm_loc = self._normalizeLoc(raw_loc)
+        self.locToCoords.setdefault(norm_loc, []).append((r, c))
+        self.locLabels.setdefault(norm_loc, raw_loc)
+        self.size = max(self.size, r + 1, c + 1)
+        continue
+
+      # C. Handle the "FUE.TYP" style lines
       mtyp = re.match(r"\s*'FUE\.TYP'\s*[, ]\s*(\d+)\s*,?(.*)$", line, re.IGNORECASE)
       if mtyp:
         row = int(mtyp.group(1)) - 1
@@ -293,21 +339,95 @@ class CoreLayoutPlot(PlotInterface):
             norm_loc = self._normalizeLoc(f"loc{ml.group(1)}")
             self.locToCoords.setdefault(norm_loc, []).append((row, col))
             self.locLabels.setdefault(norm_loc, f"loc{ml.group(1)}")
-          col += 1
-        self.size = max(self.size, row + 1, col, self.size)
-        continue
-      mfull = re.search(r"^\s*(\d+)\s+(\d+).*loc[^0-9]*([0-9]+)", line, re.IGNORECASE)
-      if mfull:
-        r = int(mfull.group(1)) - 1
-        c = int(mfull.group(2)) - 1
-        raw_loc = f'loc{mfull.group(3)}'.lower()
-        norm_loc = self._normalizeLoc(raw_loc)
-        self.locToCoords.setdefault(norm_loc, []).append((r, c))
-        self.locLabels.setdefault(norm_loc, raw_loc)
+            col += 1
+        self.size = max(self.size, row + 1, col)
+
     if self.size == 0 and self.locToCoords:
       self.size = max(max(r, c) for coords in self.locToCoords.values() for r, c in coords) + 1
     if self.size == 0:
-      self.size = 15  # fall back
+      self.size = 15
+
+  def _parseXmlGeometry(self, xml_path):
+    import xml.etree.ElementTree as ET
+    try:
+      tree = ET.parse(xml_path)
+      root = tree.getroot()
+      geometry_node = root.find('geometry')
+      if geometry_node is None or not geometry_node.text:
+        return
+
+      geometry_text = geometry_node.text
+      lines = geometry_text.strip().split('\n')
+
+      grid_rows = []
+      for line in lines:
+        parts = line.split()
+        if parts:
+          grid_rows.append(parts)
+
+      if not grid_rows:
+        return
+
+      num_rows = len(grid_rows)
+      num_cols = len(grid_rows[0])
+      self.size = max(num_rows, num_cols)
+
+      for r, row_data in enumerate(grid_rows):
+        for c, val in enumerate(row_data):
+          if val.isdigit() and int(val) > 0:
+            loc_val = int(val)
+            norm_loc = f'loc{loc_val}'
+            self.locToCoords.setdefault(norm_loc, []).append((r, c))
+            self.locLabels.setdefault(norm_loc, f'loc{loc_val}')
+
+      self.size = max(self.size, num_rows, num_cols)
+
+    except Exception as e:
+      self.raiseAnError(IOError, f'Failed to parse XML geometry from "{xml_path}": {e}')
+
+  # def _parseTemplate(self, path):
+  #   self.locToCoords = {}
+  #   self.locLabels = {}
+  #   self.size = 0
+  #   try:
+  #     with open(path, 'r') as fh:
+  #       lines = fh.readlines()
+  #   except IOError as err:
+  #     self.raiseAnError(IOError, f'Failed to read template "{path}": {err}')
+
+  #   for line in lines:
+  #     if self.size == 0:
+  #       m = re.search(r"'DIM\.PWR'\s+(\d+)", line, re.IGNORECASE)
+  #       if m:
+  #         self.size = int(m.group(1))
+  #     mtyp = re.match(r"\s*'FUE\.TYP'\s*[, ]\s*(\d+)\s*,?(.*)$", line, re.IGNORECASE)
+  #     if mtyp:
+  #       row = int(mtyp.group(1)) - 1
+  #       tokens = re.split(r"[,\s]+", mtyp.group(2).strip().rstrip('/'))
+  #       col = 0
+  #       for tok in tokens:
+  #         if not tok:
+  #           continue
+  #         ml = re.search(r"loc[^0-9]*([0-9]+)", tok, re.IGNORECASE)
+  #         if ml:
+  #           norm_loc = self._normalizeLoc(f"loc{ml.group(1)}")
+  #           self.locToCoords.setdefault(norm_loc, []).append((row, col))
+  #           self.locLabels.setdefault(norm_loc, f"loc{ml.group(1)}")
+  #         col += 1
+  #       self.size = max(self.size, row + 1, col, self.size)
+  #       continue
+  #     mfull = re.search(r"^\s*(\d+)\s+(\d+).*loc[^0-9]*([0-9]+)", line, re.IGNORECASE)
+  #     if mfull:
+  #       r = int(mfull.group(1)) - 1
+  #       c = int(mfull.group(2)) - 1
+  #       raw_loc = f'loc{mfull.group(3)}'.lower()
+  #       norm_loc = self._normalizeLoc(raw_loc)
+  #       self.locToCoords.setdefault(norm_loc, []).append((r, c))
+  #       self.locLabels.setdefault(norm_loc, raw_loc)
+  #   if self.size == 0 and self.locToCoords:
+  #     self.size = max(max(r, c) for coords in self.locToCoords.values() for r, c in coords) + 1
+  #   if self.size == 0:
+  #     self.size = 15  # fall back
 
   def _normalizeLoc(self, name):
     m = re.search(r'loc0*(\d+)', name.lower())
