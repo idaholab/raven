@@ -23,31 +23,31 @@
 import numpy as np
 
 # @profile
-def replacementRepair(offSprings,**kwargs):
+def replacementRepair(offspring,**kwargs):
   """
-    @ In, offSprings, xr.DataArray, distorted offSprings resulting from the mating process.
+    @ In, offspring, xr.DataArray, distorted offspring resulting from the mating process.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           variables, list, variables names.
           distInfo, dict, Distribution information.
           distDict, dict, Distribution dictionary.
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
-  nChildren,nGenes = np.shape(offSprings)
-  children = offSprings
+  nChildren,nGenes = np.shape(offspring)
+  children = offspring
   # read distribution info
   distInfo = kwargs['distInfo']
 
   # create children
   for chrom in range(nChildren):
     duplicated = set()
-    unique = set(offSprings.data[chrom,:])
-    if len(offSprings.data[chrom,:]) != len(unique):
-      for ind,x in enumerate(offSprings.data[chrom,:]):
+    unique = set(offspring.data[chrom,:])
+    if len(offspring.data[chrom,:]) != len(unique):
+      for ind,x in enumerate(offspring.data[chrom,:]):
         if x not in duplicated:
           children[chrom,ind] = x
           duplicated.add(x)
         else:
-          if (distInfo[offSprings['Gene'].data[ind]].strategy == 'withoutReplacement'):
+          if (distInfo[offspring['Gene'].data[ind]].strategy == 'withoutReplacement'):
             y = distInfo[kwargs['variables'][ind]].selectedRvs(list(duplicated))
             children[chrom,ind] = y
             duplicated.add(y)

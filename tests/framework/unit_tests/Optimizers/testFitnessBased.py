@@ -96,23 +96,23 @@ popFitnessDS[objectiveVar] = xr.DataArray(popFitness,
                           coords={'chromosome': np.arange(np.shape(popFitness)[0])})
 # popFitnessSet = popFitness.to_dataset(name = "test_popFitness")
 popAge = [3,1,7,1]
-offSprings = [[2,3,4,5,6,1],[1,3,5,2,4,6],[1,2,4,3,6,5]]
-offSpringsFitness = [1.1,2.0,3.2]
-offSpringsFitnessDS = xr.Dataset()
-offSpringsFitnessDS[objectiveVar] = xr.DataArray(offSpringsFitness,
+offspring = [[2,3,4,5,6,1],[1,3,5,2,4,6],[1,2,4,3,6,5]]
+offspringFitness = [1.1,2.0,3.2]
+offspringFitnessDS = xr.Dataset()
+offspringFitnessDS[objectiveVar] = xr.DataArray(offspringFitness,
                                  dims=['chromosome'],
-                                 coords={'chromosome': np.arange(np.shape(offSpringsFitness)[0])})
-# offSpringsFitnessSet = offSpringsFitness.to_dataset(name = "test_offFitness")
+                                 coords={'chromosome': np.arange(np.shape(offspringFitness)[0])})
 rlz =[]
-for i in range(np.shape(offSprings)[0]):
+for i in range(np.shape(offspring)[0]):
   d = {}
-  for j in range(np.shape(offSprings)[1]):
+  for j in range(np.shape(offspring)[1]):
     var = optVars[j]
-    val = offSprings[i][j]
+    val = offspring[i][j]
     d[var] = {'dims':() ,'data': val}
+  d[objectiveVar] = {'dims':(), 'data': offspringFitness[i]}
   rlz.append(xr.Dataset.from_dict(d))
 rlz = xr.concat(rlz,dim='data')
-newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, objVar=objectiveVar, population=population, fitness=popFitnessDS, offSpringsFitness=offSpringsFitnessDS, popObjectiveVal=popFitness)
+newPop2,newFit2,newAge2,popFitness2 = fitnessBased(rlz, age=popAge, variables=optVars, objVar=objectiveVar, population=population, popFitVals=popFitnessDS, offspringFitVals=offspringFitnessDS, popMinObjVals=popFitness)
 print('*'*39)
 print('Fitness Based Selection')
 print('*'*39)

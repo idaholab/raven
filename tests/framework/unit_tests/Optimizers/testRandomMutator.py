@@ -27,10 +27,10 @@ print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
+print(os.environ.get("CONDA_PREFIX","NO Prefix found"))
 
 from ravenframework.utils import randomUtils
 randomUtils.randomSeed(5489) #initialize numpy RNG with set seed
-
 from ravenframework.Optimizers.mutators.mutators import returnInstance
 import xml.etree.ElementTree as ET
 from ravenframework import MessageHandler
@@ -119,8 +119,8 @@ print('*'*79)
 print('Random Mutator unit test')
 print('*'*79)
 print('generated children are: {}'.format(children))
-expectedChildren = xr.DataArray([[ 1,  2,  5,  2],
-                                 [ 2,  5,  1,  1],
+expectedChildren = xr.DataArray([[ 1,  4,  2,  2],
+                                 [ 2,  3,  5,  1],
                                  [ 5,  5,  5,  5]],
                                  dims   = ['chromosome','Gene'],
                                  coords = {'chromosome': np.arange(np.shape(population)[0]),

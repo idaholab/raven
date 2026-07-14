@@ -6,7 +6,7 @@
     <created>2022-02-24</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
-      This test assesses the Genetic algorithm when a custom sampler (initialized by file) is used to
+      This test assesses the Genetic algorithm when a custom sampler (initialized by file) is used to 
       initialize the initial population
     </description>
     <analytic>
@@ -19,13 +19,13 @@
 
   <RunInfo>
     <WorkingDir>MaxwReplacement_customsampler</WorkingDir>
-    <Sequence>optimize, print</Sequence>
+    <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
     <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-    <Input name="restart.csv" type="">restart.csv</Input>
+      <Input name="restart.csv" type="">restart.csv</Input>
   </Files>
 
   <Steps>
@@ -44,15 +44,21 @@
       <Output class="OutStreams" type="Print">optOut</Output>
       <Output class="OutStreams" type="Plot">opt_path</Output>
     </IOStep>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+    </IOStep>
   </Steps>
 
   <Distributions>
-    <UniformDiscrete name="uniform_dist_Repl_1">
+    <UniformDiscrete name='uniform_dist_Repl_1'>
       <lowerBound>1</lowerBound>
       <upperBound>6</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
-    <UniformDiscrete name="uniform_dist_woRepl_1">
+        <UniformDiscrete name='uniform_dist_woRepl_1'>
       <lowerBound>1</lowerBound>
       <upperBound>6</upperBound>
       <strategy>withoutReplacement</strategy>
@@ -67,6 +73,7 @@
         <writeSteps>every</writeSteps>
         <type>max</type>
       </samplerInit>
+
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
@@ -84,21 +91,26 @@
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
+
       <convergence>
         <AHDp>0.1</AHDp>
       </convergence>
+
       <variable name="x1">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <variable name="x2">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <Sampler class="Samplers" type="CustomSampler">restartSampler</Sampler>
+    <Sampler class="Samplers" type="CustomSampler">restartSampler</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -111,38 +123,49 @@
     </CustomSampler>
   </Samplers>
 
-  <Models>
-    <ExternalModel ModuleToLoad="../../../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
-      <variables>x1,x2,x3,ans</variables>
-    </ExternalModel>
-  </Models>
+    <Models>
+      <ExternalModel ModuleToLoad="../../../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
+        <variables>x1,x2,x3,ans</variables>
+      </ExternalModel>
+    </Models>
 
-  <DataObjects>
-    <PointSet name="placeholder"/>
-    <PointSet name="optOut">
-      <Input>x1,x2,x3</Input>
-      <Output>ans</Output>
-    </PointSet>
-    <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
-    </PointSet>
-  </DataObjects>
+    <DataObjects>
+      <PointSet name="placeholder"/>
+      <PointSet name="optOut">
+        <Input>x1,x2,x3</Input>
+        <Output>ans</Output>
+      </PointSet>
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+      </PointSet>
+    </DataObjects>
 
-  <OutStreams>
-    <Print name="optOut">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
-    <Print name="opt_export">
-      <type>csv</type>
-      <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
-    </Print>
-    <Plot name="opt_path" subType="OptPath">
-      <source>opt_export</source>
-      <vars>x1,x2,x3,ans</vars>
-    </Plot>
-  </OutStreams>
-
+    <OutStreams>
+      <Print name="optOut">
+        <type>csv</type>
+        <source>optOut</source>
+      </Print>
+      <Print name="opt_export">
+        <type>csv</type>
+        <source>opt_export</source>
+        <clusterLabel>trajID</clusterLabel>
+      </Print>
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>x1,x2,x3,ans</vars>
+      </Plot>
+    
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>x1,x2,x3,ans</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <vars>x1,x2,x3</vars>
+        <index>batchId</index>
+      </Plot>
+    </OutStreams>
 </Simulation>

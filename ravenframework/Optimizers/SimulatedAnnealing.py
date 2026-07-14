@@ -315,13 +315,13 @@ class SimulatedAnnealing(RavenSampled):
       Used to feedback the collected runs into actionable items within the sampler.
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization (NORMALIZED)
-      @ In, optVal, float, value of objective variable (corrected for min/max)
+      @ In, minObjVal, float, RAVEN minimization-space objective value
       @ Out, None
     """
     traj = info['traj']
     if len(self._objectiveVar) > 1:
       self.raiseAnError(IOError, 'Simulated Annealing does not support multiObjective yet! objective variable must be a single variable for now!')
-    info['optVal'] = rlz[self._objectiveVar[0]]
+    info['minObjVal'] = rlz[self._objectiveVar[0]]
     self.incrementIteration(traj)
     self._resolveNewOptPoint(traj, rlz, rlz[self._objectiveVar[0]], info)
     if self._stepTracker[traj]['opt'] is None:
@@ -456,12 +456,12 @@ class SimulatedAnnealing(RavenSampled):
     # But since it is an abstract method it has to exist
     return True
 
-  def _checkAcceptability(self, traj, opt, optVal, info):
+  def _checkAcceptability(self, traj, opt, minObjVal, info):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
-      @ In, optVal, float, new optimization value
+      @ In, minObjVal, float, new minimization-space objective value
       @ In, info, dict, meta information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
@@ -471,9 +471,9 @@ class SimulatedAnnealing(RavenSampled):
     # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
     try:
       old, _ = self._optPointHistory[traj][-1]
-      oldVal = old[self._objectiveVar[0]]
+      oldMinObjVal = old[self._objectiveVar[0]]
       # check if same point
-      self.raiseADebug(f' ... change: {opt[self._objectiveVar[0]]-oldVal:1.3e} new objective: {opt[self._objectiveVar[0]]:1.6e} old objective: {oldVal:1.6e}')
+      self.raiseADebug(f' ... change: {opt[self._objectiveVar[0]]-oldMinObjVal:1.3e} new objective: {opt[self._objectiveVar[0]]:1.6e} old objective: {oldMinObjVal:1.6e}')
       # if this is an opt point rerun, accept it without checking.
       if self._acceptRerun[traj]:
         acceptable = 'rerun'
@@ -482,7 +482,7 @@ class SimulatedAnnealing(RavenSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
-        if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar[0]])>randomUtils.random(dim=1, samples=1): # TODO replace it back
+        if self._acceptabilityCriterion(oldMinObjVal,opt[self._objectiveVar[0]])>randomUtils.random(dim=1, samples=1): # TODO replace it back
           acceptable = 'accepted'
         else:
           acceptable = 'rejected'
@@ -533,12 +533,12 @@ class SimulatedAnnealing(RavenSampled):
 
     return converged
 
-  def _updatePersistence(self, traj, converged, optVal):
+  def _updatePersistence(self, traj, converged, minObjVal):
     """
       Update persistence tracking state variables
       @ In, traj, identifier
       @ In, converged, bool, convergence check result
-      @ In, optVal, float, new optimal value
+      @ In, minObjVal, float, new minimization-space objective value
       @ Out, None
     """
     # update persistence
@@ -546,7 +546,7 @@ class SimulatedAnnealing(RavenSampled):
       self._convergenceInfo[traj]['persistence'] += 1
       self.raiseADebug(f'Trajectory {traj} has converged successfully {self._convergenceInfo[traj]["persistence"]} time(s)!')
       if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
-        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+        self._closeTrajectory(traj, 'converge', 'converged', minObjVal)
     else:
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug(f'Resetting convergence for trajectory {traj}.')

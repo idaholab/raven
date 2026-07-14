@@ -40,4 +40,3 @@ import ravenframework.Simulation
 base = ravenframework.Simulation.Simulation.getXSDSchema()
 ET.ElementTree(base).write(sys.argv[1])
 print("Generated ",sys.argv[1])
-

@@ -90,3 +90,6 @@ plugins/plugin_directory.xml
 
 # Directories
 OUT
+
+# local-only test input, intentionally not pushed (pushed by mistake earlier)
+tests/framework/Optimizers/GeneticAlgorithms/continuous/unconstrained/ZDT1_user-initials.xml

@@ -130,15 +130,188 @@ testCDarray = np.array([[12, 0],
                        [0, 12]])
 
 rankCDSingleFront = frontUtils.rankNonDominatedFrontiers(testCDarray)
-indexesCD2D = frontUtils.crowdingDistance(rank=rankCDSingleFront, popSize=len(rankCDSingleFront), fitness=testCDarray)
+indexesCD2D = frontUtils.crowdingDistance(rank=rankCDSingleFront, popSize=len(rankCDSingleFront), objectiveValues=testCDarray)
 answerIndexesCD2D = np.array([np.inf,0.16666667,0.11666667,0.08333333,0.09166667,0.125,0.16666667,0.29166667,0.45833333,0.625,0.75,0.5,0.20833333,0.11666667,0.125,np.inf])
 checkArray('2D crowding distance', indexesCD2D.tolist(), answerIndexesCD2D.tolist())
 
 # test2: 3 objective functions
 rank3D = frontUtils.rankNonDominatedFrontiers(test3D)
-indexesCD3D = frontUtils.crowdingDistance(rank=rank3D, popSize=len(rank3D), fitness=test3D)
+indexesCD3D = frontUtils.crowdingDistance(rank=rank3D, popSize=len(rank3D), objectiveValues=test3D)
 answerIndexesCD3D = np.array([np.inf, np.inf, 1.06417083, np.inf, np.inf,0.56135102, np.inf, np.inf, np.inf,np.inf])
 checkArray('3D crowding distance', indexesCD3D.tolist(), answerIndexesCD3D.tolist())
+###########################################
+
+###########################################
+# Fast non-dominated sort (Deb et al., 2002), constrained variant, O(M*N^2).
+# It must produce ranks identical to the recursive peeling ranker it replaces.
+
+def bruteForceConstrainedRanks(directed, violation):
+  """
+    Independent O(N^3) reference ranker used only to validate the fast sort.
+    Peels fronts: a point joins the current front when no still-remaining point
+    constrained-dominates it.
+    @ In, directed, np.array, (nPoints, nObj) minimization-space objective values
+    @ In, violation, np.array, (nPoints,) total positive constraint violation
+    @ Out, ranks, list, 1-based front index for each point
+  """
+  nPoints = directed.shape[0]
+  ranks = [0] * nPoints
+  remaining = set(range(nPoints))
+  rank = 0
+  while remaining:
+    rank += 1
+    front = []
+    for cand in sorted(remaining):
+      dominated = any(
+          frontUtils._dominatesForMinimization(directed[o], directed[cand], violation[o], violation[cand])
+          for o in remaining if o != cand)
+      if not dominated:
+        front.append(cand)
+    for idx in front:
+      ranks[idx] = rank
+      remaining.remove(idx)
+  return ranks
+
+# Known unconstrained 2-D case: three clear fronts.
+fnsData = np.array([[1.0, 2.0],   # front 1
+                    [2.0, 1.0],   # front 1
+                    [2.0, 2.0],   # front 2 (dominated by both above)
+                    [3.0, 3.0]])  # front 3
+fnsViol = np.zeros(4)
+checkArray('fast NDS unconstrained ranks',
+           frontUtils._fastNonDominatedSortConstrained(fnsData, fnsViol),
+           [1, 1, 2, 3])
+
+# Constrained case: the middle point is infeasible (g < 0) so feasible points
+# dominate it regardless of objective values.
+fnsConData = np.array([[1.0, 1.0],   # feasible
+                       [0.0, 0.0],   # infeasible, would dominate all if feasible
+                       [2.0, 2.0]])  # feasible
+fnsConViol = np.array([0.0, 5.0, 0.0])
+checkArray('fast NDS constrained ranks',
+           frontUtils._fastNonDominatedSortConstrained(fnsConData, fnsConViol),
+           [1, 3, 2])
+
+# Public ranker on the same constrained problem (all objectives minimized).
+checkArray('rankNonDominatedFrontiers constrained',
+           frontUtils.rankNonDominatedFrontiers(fnsConData,
+                                                 constraintVals=np.array([[1.0], [-5.0], [2.0]]),
+                                                 minMask=np.array([True, True])),
+           [1, 3, 2])
+
+# Randomized equivalence vs the brute-force reference (objectives + constraints).
+rng = np.random.RandomState(12345)
+for trial in range(25):
+  nPts = int(rng.randint(4, 20))
+  nObj = int(rng.randint(2, 4))
+  rData = rng.rand(nPts, nObj)
+  rViol = np.where(rng.rand(nPts) < 0.4, rng.rand(nPts) * 3.0, 0.0)
+  checkArray('fast NDS equivalence trial %d' % trial,
+             frontUtils._fastNonDominatedSortConstrained(rData, rViol),
+             bruteForceConstrainedRanks(rData, rViol))
+###########################################
+
+###########################################
+# Crowding distance with population-level normalization bounds.
+# Single 2-D front; the interior point's crowding distance scales with the
+# normalization range used for each objective.
+normFront = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
+normRank = np.array([1, 1, 1])
+# Default (per-front range = 2 in each objective): interior CD = 1 + 1 = 2.
+cdDefault = frontUtils.crowdingDistance(normRank, 3, normFront)
+checkAnswer('crowding default interior', cdDefault[1], 2.0)
+# Population bounds wider (range = 4 in each objective): interior CD halves to 1.
+cdNorm = frontUtils.crowdingDistance(normRank, 3, normFront,
+                                     normalizationBounds=np.array([[0.0, 0.0], [4.0, 4.0]]))
+checkAnswer('crowding population-normalized interior', cdNorm[1], 1.0)
+# Boundaries remain infinite regardless of normalization.
+checkAnswer('crowding normalized boundary low', cdNorm[0], np.inf)
+checkAnswer('crowding normalized boundary high', cdNorm[2], np.inf)
+###########################################
+
+###########################################
+# Pareto archive: accumulate non-dominated solutions across generations.
+
+# Empty archive + a candidate set returns only the non-dominated candidates.
+arNew = np.array([[1.0, 2.0], [2.0, 1.0], [2.0, 2.0]])  # last is dominated
+_, arKept = frontUtils.updateParetoArchive(np.empty((0, 2)), arNew, minMask=np.array([True, True]))
+checkArray('archive empty + new front', sorted(arKept), [0, 1])
+
+# Merging an existing archive with a new point that dominates everything collapses it.
+arArch = np.array([[1.0, 3.0], [3.0, 1.0]])
+arNew2 = np.array([[2.0, 2.0], [0.0, 0.0]])  # [0,0] dominates all (minimization)
+arComb, arKept2 = frontUtils.updateParetoArchive(arArch, arNew2, minMask=np.array([True, True]))
+checkArray('archive merge collapses to dominator', sorted(arKept2), [3])
+checkArray('archive merge dominator value', arComb[arKept2[0]].tolist(), [0.0, 0.0])
+
+# Maximization objectives: the larger point dominates.
+_, arKeptMax = frontUtils.updateParetoArchive(np.empty((0, 2)), np.array([[1.0, 1.0], [2.0, 2.0]]),
+                                              minMask=np.array([False, False]))
+checkArray('archive maximization', sorted(arKeptMax), [1])
+
+# Truncation by crowding distance keeps the boundary points of a 2-D front.
+arFront = np.array([[0.0, 4.0], [1.0, 3.0], [2.0, 2.0], [3.0, 1.0], [4.0, 0.0]])
+_, arTrunc = frontUtils.updateParetoArchive(np.empty((0, 2)), arFront,
+                                           minMask=np.array([True, True]), maxArchiveSize=2)
+checkArray('archive truncation keeps boundaries', sorted(arTrunc), [0, 4])
+
+# maxArchiveSize >= front size leaves the whole non-dominated set.
+_, arNoTrunc = frontUtils.updateParetoArchive(np.empty((0, 2)), arFront,
+                                             minMask=np.array([True, True]), maxArchiveSize=10)
+checkArray('archive no truncation', sorted(arNoTrunc), [0, 1, 2, 3, 4])
+
+# Iterative accumulation across generations (the contract the NSGA-II Pareto archive
+# relies on): the archive remembers good points from earlier generations.
+gMin = np.array([True, True])
+# Generation 1: [1,1] dominates [2,2] -> archive = {[1,1]}.
+g1comb, g1keep = frontUtils.updateParetoArchive(np.empty((0, 2)), np.array([[1.0, 1.0], [2.0, 2.0]]), minMask=gMin)
+arch = g1comb[g1keep]
+checkArray('archive gen1 objectives', arch.ravel().tolist(), [1.0, 1.0])
+# Generation 2: two points mutually non-dominated with the retained [1,1] -> archive grows to 3.
+g2comb, g2keep = frontUtils.updateParetoArchive(arch, np.array([[3.0, 0.5], [0.5, 3.0]]), minMask=gMin)
+arch = g2comb[g2keep]
+checkAnswer('archive gen2 size', arch.shape[0], 3)
+checkAnswer('archive gen2 keeps the gen1 point', int(np.any(np.all(arch == [1.0, 1.0], axis=1))), 1)
+# Generation 3: a single dominator collapses the whole archive to one point.
+g3comb, g3keep = frontUtils.updateParetoArchive(arch, np.array([[0.4, 0.4]]), minMask=gMin)
+arch = g3comb[g3keep]
+checkArray('archive gen3 collapses to dominator', arch.ravel().tolist(), [0.4, 0.4])
+###########################################
+
+###########################################
+# Epsilon-constrained dominance (Takahama & Sato): violations <= epsilon count as feasible.
+# p0 feasible but worse objectives; p1 slightly infeasible (viol 1) but best objectives;
+# p2 strongly infeasible (viol 5).
+epsObj = np.array([[1.0, 1.0], [0.0, 0.0], [2.0, 2.0]])
+epsConstr = np.array([[0.0], [-1.0], [-5.0]])  # g >= 0 feasible -> violations [0, 1, 5]
+epsMin = np.array([True, True])
+# Strict (epsilon=0): feasible p0 dominates the infeasible points -> ranks [1, 2, 3].
+checkArray('eps-dominance strict (epsilon=0)',
+           frontUtils.rankNonDominatedFrontiers(epsObj, constraintVals=epsConstr, minMask=epsMin),
+           [1, 2, 3])
+# Relaxed (epsilon=2): p0 and p1 both within epsilon -> compared by objectives, so p1
+# (0,0) dominates p0 (1,1); p2 still infeasible -> ranks [2, 1, 3].
+checkArray('eps-dominance relaxed (epsilon=2)',
+           frontUtils.rankNonDominatedFrontiers(epsObj, constraintVals=epsConstr, minMask=epsMin, epsilon=2.0),
+           [2, 1, 3])
+###########################################
+
+###########################################
+# Hypervolume indicator (minimization space)
+# Validated against hand-computed exact values.
+# 2-D unit square: one point at the origin, reference at (1,1) -> area 1
+checkAnswer('HV 2D unit square', frontUtils.hypervolume([[0.0, 0.0]], [1.0, 1.0]), 1.0)
+# 2-D three-point front {(1,3),(2,2),(3,1)} with reference (4,4): union of the three
+# dominated boxes has area 6 (inclusion-exclusion: 3+4+3-2-2-1+1).
+checkAnswer('HV 2D three-point front', frontUtils.hypervolume([[1.0, 3.0], [2.0, 2.0], [3.0, 1.0]], [4.0, 4.0]), 6.0)
+# 2-D two-point front {(1,3),(2,2)} with reference (4,4): 3+4-2 = 5.
+checkAnswer('HV 2D two-point front', frontUtils.hypervolume([[1.0, 3.0], [2.0, 2.0]], [4.0, 4.0]), 5.0)
+# 3-D unit cube: one point at the origin, reference at (1,1,1) -> volume 1
+checkAnswer('HV 3D unit cube', frontUtils.hypervolume([[0.0, 0.0, 0.0]], [1.0, 1.0, 1.0]), 1.0)
+# Negative objectives (common after max->min sign conversion): point (-2,-2), reference (-1,-1) -> 1
+checkAnswer('HV negative objectives', frontUtils.hypervolume([[-2.0, -2.0]], [-1.0, -1.0]), 1.0)
+# A point that does not dominate the reference contributes nothing to the hypervolume.
+checkAnswer('HV dominated point ignored', frontUtils.hypervolume([[0.0, 0.0], [5.0, 5.0]], [1.0, 1.0]), 1.0)
 ###########################################
 print(results)
 

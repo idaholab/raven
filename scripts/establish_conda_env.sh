@@ -148,6 +148,11 @@ function install_libraries()
       pyomo download-extensions || echo "Pyomo download failed"
       pyomo build-extensions || echo "Pyomo build failed"
     fi
+    # ensure conda libstdc++ is available for runtime linking on linux
+    if [[ "$OSOPTION" == "linux" ]];
+    then
+      conda install -y -c conda-forge libstdcxx-ng
+    fi
   else
     # activate the enviroment
     activate_env
@@ -217,6 +222,11 @@ function create_libraries()
     then
       pyomo download-extensions || echo "Pyomo download failed"
       pyomo build-extensions || echo "Pyomo build failed"
+    fi
+    # ensure conda libstdc++ is available for runtime linking on linux
+    if [[ "$OSOPTION" == "linux" ]];
+    then
+      conda install -y -c conda-forge libstdcxx-ng
     fi
   else
     #pip create virtual enviroment
@@ -615,6 +625,15 @@ fi
 
 # activate environment and write settings if successful
 activate_env
+
+# ensure conda libstdc++ is preferred at runtime on linux
+if [[ "$INSTALL_MANAGER" == "CONDA" && "$OSOPTION" == "linux" ]];
+then
+  mkdir -p "$CONDA_PREFIX/etc/conda/activate.d"
+  cat > "$CONDA_PREFIX/etc/conda/activate.d/ld_library_path.sh" <<'EOF'
+export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:${LD_LIBRARY_PATH:-}"
+EOF
+fi
 
 if [ -z "$RAVEN_SIGNATURE" ];
 then

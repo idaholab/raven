@@ -340,13 +340,13 @@ class GradientDescent(RavenSampled):
     traj = info['traj']
     if self._isMultiObjective:
       self.raiseAnError(IOError, 'Gradient Descent does not support multiObjective optimization yet! objective variable must be a single variable for now!')
-    optVal = rlz[self._objectiveVar[0]]
-    info['optVal'] = optVal
+    minObjVal = rlz[self._objectiveVar[0]]
+    info['minObjVal'] = minObjVal
     purpose = info['purpose']
     if purpose.startswith('opt'):
-      self._resolveNewOptPoint(traj, rlz, optVal, info)
+      self._resolveNewOptPoint(traj, rlz, minObjVal, info)
     elif purpose.startswith('grad'):
-      self._resolveNewGradPoint(traj, rlz, optVal, info)
+      self._resolveNewGradPoint(traj, rlz, minObjVal, info)
     if self._checkStepReady(traj):
       # get new gradient
       self.raiseADebug('Opt point accepted and gradient points collected, searching new opt point ...')
@@ -370,7 +370,7 @@ class GradientDescent(RavenSampled):
       except NoMoreStepsNeeded:
         # the stepInstance has decided it's done
         self.raiseAMessage(f'Step Manipulator "{self._stepInstance.type}" has declared no more steps needed!')
-        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+        self._closeTrajectory(traj, 'converge', 'converged', minObjVal)
         return
 
       self.raiseADebug(' ... found new proposed opt point ...')
@@ -473,13 +473,13 @@ class GradientDescent(RavenSampled):
     self._acceptRerun = {}
     self._trajectoryFollowers = defaultdict(list)
 
-  def _resolveNewGradPoint(self, traj, rlz, optVal, info):
+  def _resolveNewGradPoint(self, traj, rlz, minObjVal, info):
     """
       Consider and store a new gradient evaluation point
       @ In, traj, int, trajectory for this new point
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
+      @ In, minObjVal, float, RAVEN minimization-space objective value
     """
     self._stepTracker[traj]['grads'].append((rlz, info))
 
@@ -585,12 +585,12 @@ class GradientDescent(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
-  def _checkAcceptability(self, traj, opt, optVal, info):
+  def _checkAcceptability(self, traj, opt, minObjVal, info):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
-      @ In, optVal, float, new optimization value
+      @ In, minObjVal, float, new minimization-space objective value
       @ In, info, dict, identifying information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
@@ -600,7 +600,7 @@ class GradientDescent(RavenSampled):
     # Check acceptability
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
-      oldVal = old[self._objectiveVar[0]]
+      oldMinObjVal = old[self._objectiveVar[0]]
       # check if following another trajectory
       if self._terminateFollowers:
         following = self._stepInstance.trajIsFollowing(traj, self.denormalizeData(opt), info,
@@ -610,14 +610,14 @@ class GradientDescent(RavenSampled):
         if following is not None:
           self.raiseADebug(f'Cancelling Trajectory {traj} because it is following Trajectory {following}')
           self._trajectoryFollowers[following].append(traj) # "traj" is killed by "following"
-          self._closeTrajectory(traj, 'cancel', f'following {following}', optVal)
+          self._closeTrajectory(traj, 'cancel', f'following {following}', minObjVal)
           return 'accepted', old, 'None'
 
-      self.raiseADebug(f' ... change: {optVal-oldVal:1.3e} new: {optVal:1.6e} old: {oldVal:1.6e}')
+      self.raiseADebug(f' ... change: {minObjVal-oldMinObjVal:1.3e} new: {minObjVal:1.6e} old: {oldMinObjVal:1.6e}')
       rejectReason = 'None'
       # some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
       if self._stepInstance.needsAccessToAcceptance:
-        acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
+        acceptable = self._stepInstance.modifyAcceptance(old, oldMinObjVal, opt, minObjVal)
       # if this is an opt point rerun, accept it without checking.
       elif self._acceptRerun[traj]:
         acceptable = 'rerun'
@@ -631,12 +631,12 @@ class GradientDescent(RavenSampled):
         if self._impConstraintFunctions:
           accept = self._handleImplicitConstraints(opt)
           if accept:
-            acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
+            acceptable, rejectReason = self._checkForImprovement(minObjVal, oldMinObjVal)
           else:
             acceptable = 'rejected'
             rejectReason = 'implicitConstraintsViolation'
         else:
-          acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
+          acceptable, rejectReason = self._checkForImprovement(minObjVal, oldMinObjVal)
     else: # no history
       # if first sample, simply assume it's better!
       rejectReason = 'None'
@@ -690,12 +690,12 @@ class GradientDescent(RavenSampled):
 
     return converged
 
-  def _updatePersistence(self, traj, converged, optVal):
+  def _updatePersistence(self, traj, converged, minObjVal):
     """
       Update persistence tracking state variables
       @ In, traj, int, identifier
       @ In, converged, bool, convergence check result
-      @ In, optVal, float, new optimal value
+      @ In, minObjVal, float, new minimization-space objective value
       @ Out, None
     """
     # update persistence
@@ -703,7 +703,7 @@ class GradientDescent(RavenSampled):
       self._convergenceInfo[traj]['persistence'] += 1
       self.raiseADebug(f'Trajectory {traj} has converged successfully {self._convergenceInfo[traj]["persistence"]} / {self._requiredPersistence} time(s)!')
       if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
-        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+        self._closeTrajectory(traj, 'converge', 'converged', minObjVal)
     else:
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug(f'Resetting convergence for trajectory {traj}.')

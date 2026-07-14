@@ -143,8 +143,8 @@ class BayesianOptimizer(RavenSampled):
     self._acquisitionConv = 1e-8                                              # Value for acquisition convergence criteria
     self._convergenceInfo = {}                                                # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 5                                             # consecutive persistence required to mark convergence
-    self._expectedOptVal = None                                               # Expected value of fopt, in other words, muopt
-    self._optValSigma = None                                                  # Standard deviations at expected solution, confidence of solution
+    self._expectedMinObjVal = None                                           # Expected minimization-space objective value (muopt)
+    self._expectedMinObjValSigma = None                                      # Standard deviation at expected minimization-space solution
     self._expectedSolution = None                                             # Decision variable values at expected solution
     self._evaluationCount = 0                                                 # Number of function/model calls
     self._paramSelectionOptions = {'ftol':1e-10, 'maxiter':200, 'disp':False} # Optimizer options for hyperparameter selection
@@ -270,11 +270,11 @@ class BayesianOptimizer(RavenSampled):
                          "This pre-trained ROM will be used by Optimizer to evaluate the next best point!")
       # retrieving the best solution is based on the acqusition function's utility
       # Constraints are considered in the following method.
-      xStar, minDex = self._acquFunction._recommendSolutionForPretrainedRom(self)
+      xStar, minIdx = self._acquFunction._recommendSolutionForPretrainedRom(self)
       # remove the best solution from training data
       for varName in self.toBeSampled.keys():
-        self._trainingInputs[0][varName].pop(minDex)
-      self._trainingTargets[0].pop(minDex)
+        self._trainingInputs[0][varName].pop(minIdx)
+      self._trainingTargets[0].pop(minIdx)
       # re-evaluate the best point with the given model
       self._iteration[0] = 0
       self._submitRun(xStar, 0, 0)
@@ -346,8 +346,8 @@ class BayesianOptimizer(RavenSampled):
       self._trainingTargets[traj].append(rlz[self._objectiveVar[0]])
       # Generate posterior with training data
       self._generatePredictiveModel(traj)
-      optVal = rlz[self._objectiveVar[0]]
-      self._resolveNewOptPoint(traj, rlz, optVal, info)
+      minObjVal = rlz[self._objectiveVar[0]]
+      self._resolveNewOptPoint(traj, rlz, minObjVal, info)
 
     # Use acquisition to select next point
     newPoint = self._acquFunction.conductAcquisition(self)
@@ -453,10 +453,10 @@ class BayesianOptimizer(RavenSampled):
     toAdd['radiusFromBest'] = bestDelta
     toAdd['radiusFromLast'] = prevDelta
     if self._minMax[0] == 'max':
-      toAdd['solutionValue'] = -1*self._expectedOptVal
+      toAdd['solutionValue'] = -1*self._expectedMinObjVal
     else:
-      toAdd['solutionValue'] = self._expectedOptVal
-    toAdd['solutionDeviation'] = self._optValSigma
+      toAdd['solutionValue'] = self._expectedMinObjVal
+    toAdd['solutionDeviation'] = self._expectedMinObjValSigma
     toAdd['modelRuns'] = self._evaluationCount
     return toAdd
 
@@ -627,23 +627,23 @@ class BayesianOptimizer(RavenSampled):
     for index in range(info['batchSize']):
       for varName in rlzVars:
         singleRlz[varName] = getattr(rlz, varName)[index].values
-      optVal = singleRlz[self._objectiveVar[0]]
-      self._resolveNewOptPoint(traj, singleRlz, optVal, info)
+      minObjVal = singleRlz[self._objectiveVar[0]]
+      self._resolveNewOptPoint(traj, singleRlz, minObjVal, info)
       singleRlz = {} # FIXME is this necessary?
     self.raiseADebug(f'Multi-sample resolution completed')
 
-  def _resolveNewOptPoint(self, traj, rlz, optVal, info):
+  def _resolveNewOptPoint(self, traj, rlz, minObjVal, info):
     """
       Consider and store a new optimal point
       @ In, traj, int, trajectory for this new point
       @ In, info, dict, identifying information about the realization
       @ In, rlz, xr.DataSet, batched realizations
-      @ In, optVal, list of floats, values of objective variable
+      @ In, minObjVal, list of floats, minimization-space objective values
     """
     # Recommending solutions is based on the acqusition function's utility, typically local reward
     muStar, xStar, stdStar = self._acquFunction._recommendSolution(self)
-    self._expectedOptVal = muStar
-    self._optValSigma = stdStar
+    self._expectedMinObjVal = muStar
+    self._expectedMinObjValSigma = stdStar
     self._expectedSolution = xStar
     self._evaluationCount += 1
     self.raiseADebug('*' * 80)
@@ -651,10 +651,10 @@ class BayesianOptimizer(RavenSampled):
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, optVal, info)
+    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, minObjVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # BO should consider convergence on every iteration and by extension Persistence
-    self._updatePersistence(traj, converged, optVal)
+    self._updatePersistence(traj, converged, minObjVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
@@ -686,12 +686,12 @@ class BayesianOptimizer(RavenSampled):
       self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
 
   # support methods for _resolveNewOptPoint
-  def _checkAcceptability(self, traj, opt, optVal, info):
+  def _checkAcceptability(self, traj, opt, minObjVal, info):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
-      @ In, optVal, float, new optimization value
+      @ In, minObjVal, float, new minimization-space objective value
       @ In, info, dict, provides auxillary info about optimizer status (traj, batch, step)
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
@@ -756,12 +756,12 @@ class BayesianOptimizer(RavenSampled):
     self._convergenceInfo['converged'] = converged
     return converged
 
-  def _updatePersistence(self, traj, converged, optVal):
+  def _updatePersistence(self, traj, converged, minObjVal):
     """
       Update persistence tracking state variables
       @ In, traj, identifier
       @ In, converged, bool, convergence check result
-      @ In, optVal, float, new optimal value
+      @ In, minObjVal, float, new minimization-space objective value
       @ Out, None
     """
     # update persistence
@@ -769,7 +769,7 @@ class BayesianOptimizer(RavenSampled):
       self._convergenceInfo[traj]['persistence'] += 1
       self.raiseADebug(f'Trajectory {traj} has converged successfully {self._convergenceInfo[traj]["persistence"]} / {self._requiredPersistence} time(s)!')
       if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
-        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+        self._closeTrajectory(traj, 'converge', 'converged', minObjVal)
     else:
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug(f'Resetting convergence for trajectory {traj}.')

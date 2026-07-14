@@ -4,13 +4,18 @@
     <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_ZDT1</name>
     <author>Junyung Kim</author>
     <created>2023-02-21</created>
-    <classesTested/>
+    <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.twoPointsCrossover;Optimizers.mutators.randomMutator</classesTested>
     <description>ZDT1 test using NSGA-II. This is the first of the ZDT test suite mathematical benchmark for two objective optimization.
       design (desicion) variable $\vec{x} = [x1,x2,...x_n]; n here is equal to 3$
+
       $obj_1(x) = x_1$
+
       $g(x) = 1 + \frac{9}{n-1} \sum_{2}^{n} x_i = 1 + 4.5 * (x_2 + x_3)$
+
       $h(obj1,g(x)) = 1 - \sqrt{\frac{obj_1}{g(x)}} = 1 - \sqrt(\frac{x_1}{1 + 4.5 * (x_2 + x_3)})$
+
       $obj_2 = g(x) * h(obj_1,g(x)) = [1 + 4.5 * (x_2 + x_3)] * \sqrt(x_1) * \sqrt(1 + 4.5 * (x_2 + x_3))$
+
       The analytic solution of this problem is as follows:
       Pareto front:
       $\vec{x}$:
@@ -19,6 +24,7 @@
       $0 \leq obj_1 \leq 1$
       $obj_2$
       $1 \geq obj_1 \geq 0$
+
      1.0  *
           *
           *
@@ -43,12 +49,12 @@ obj_2     *                  o
           /.......................................................................
             0            0.2          0.4          0.6          0.8            1.0
                                           obj_1 = x_1
+
     </description>
     <revisions>
       <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>ZDT1</WorkingDir>
     <Sequence>optimize,print</Sequence>
@@ -60,7 +66,7 @@ obj_2     *                  o
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">ZDT</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -82,20 +88,21 @@ obj_2     *                  o
   </Models>
 
   <Distributions>
-    <Uniform name="unifDist">
+    <Uniform name='unifDist'>
       <lowerBound>0</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>15</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min,min</type>
       </samplerInit>
+
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
@@ -111,9 +118,11 @@ obj_2     *                  o
         </fitness>
         <survivorSelection>rankNcrowdingBased</survivorSelection>
       </GAparams>
+
       <convergence>
         <AHDp>0.0</AHDp>
       </convergence>
+
       <variable name="x1">
         <distribution>unifDist</distribution>
       </variable>
@@ -126,7 +135,7 @@ obj_2     *                  o
       <objective>obj1, obj2 </objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </GeneticAlgorithm>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
@@ -155,7 +164,7 @@ obj_2     *                  o
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x1,x2,x3,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
+      <Output>x1,x2,x3,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output><!--Modify if necessary CD,iteration,accepted,conv_AHDp-->
     </PointSet>
   </DataObjects>
 
@@ -169,7 +178,7 @@ obj_2     *                  o
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Plot name="opt_path" subType="OptPath">
+    <Plot name = "opt_path" subType="OptPath">
       <source>opt_export</source>
       <vars>x1, x2, x3, obj1, obj2</vars>
     </Plot>
@@ -180,5 +189,4 @@ obj_2     *                  o
       <how>png</how>
     </Plot>
   </OutStreams>
-
 </Simulation>

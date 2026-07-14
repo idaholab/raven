@@ -4,7 +4,7 @@
     <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_MinwoRepMultiObjective</name>
     <author>Junyung Kim</author>
     <created>2022-12-21</created>
-    <classesTested/>
+    <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.twoPointsCrossover;Optimizers.mutators.swapMutator</classesTested>
     <description>NSGA-II min-max-min test: This test is for a three objectives obj1, 2, and 3
     objective1 is a weighted sum of the whole chromosome from myLocalSum_multi.py, where as objective 2 and 3
     are partial sums (i.e., obj2 is the weighted sum of the first two genes, whereas obj3 is the weighted sume of the third and forth Genes), the goal is to minimize obj1, and 3, and maximize 2.
@@ -27,7 +27,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -61,7 +61,7 @@
   </Functions>
 
   <Distributions>
-    <UniformDiscrete name="woRep_dist">
+    <UniformDiscrete name='woRep_dist'>
       <lowerBound>2</lowerBound>
       <upperBound>7</upperBound>
       <strategy>withoutReplacement</strategy>
@@ -69,7 +69,7 @@
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>500</limit>
         <initialSeed>42</initialSeed>
@@ -83,16 +83,17 @@
           <crossover type="twoPointsCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
-          <mutation type="swapMutator">
+          <mutation type="swapMutator"> <!--swapMutator, scrambleMutator, bitFlipMutator, inversionMutator-->
             <mutationProb>0.8</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst">
+        <fitness type="feasibleFirst">  <!--'invLinear', 'feasibleFirst', 'hardConstraint' -->
+          <!--<b>50, 50, 100, 100, 100, 150</b> <!~~the number of wegith needs to same with the number of objectives multiplied by the number of constraints~~>-->
         </fitness>
-        <survivorSelection>rankNcrowdingBased</survivorSelection>
+        <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
       </GAparams>
       <convergence>
-        <objective>78.0,19.0,32.0</objective>
+	<objective>78.0,19.0,32.0</objective>
       </convergence>
       <variable name="x1">
         <distribution>woRep_dist</distribution>
@@ -115,10 +116,10 @@
       <objective>obj1, obj2, obj3</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-      <Constraint class="Functions" type="External">expConstr3</Constraint>
-      <ImplicitConstraint class="Functions" type="External">impConstr2</ImplicitConstraint>
-      <ImplicitConstraint class="Functions" type="External">impConstr3</ImplicitConstraint>
-    </GeneticAlgorithm>
+      <Constraint class='Functions' type='External'>expConstr3</Constraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
+      <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
@@ -170,7 +171,7 @@
       <source>opt_export</source>
       <clusterLabel>trajID</clusterLabel>
     </Print>
-    <Plot name="opt_path" subType="OptPath">
+    <Plot name = "opt_path" subType="OptPath">
       <source>opt_export</source>
       <vars>x1, x2, x3, x4, x5, x6, obj1, obj2, obj3</vars>
     </Plot>
@@ -181,5 +182,4 @@
       <how>png</how>
     </Plot>
   </OutStreams>
-
 </Simulation>

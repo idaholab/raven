@@ -26,7 +26,7 @@ import numpy as np
 from scipy.special import comb
 from itertools import combinations
 import xarray as xr
-from ...utils import randomUtils
+from ...utils import randomUtils, gaUtils
 
 
 # @profile
@@ -133,8 +133,8 @@ def twoPointsCrossover(parents, **kwargs):
                                       'Gene':parents.coords['Gene'].values})
   parentPairs = list(combinations(parents,2))
   index = 0
-  if nGenes<=2:
-    ValueError('In Two point Crossover the number of genes should be >=3!')
+  if nGenes <= 2:
+    raise ValueError('In Two point Crossover the number of genes should be >=3!')
   for couples in parentPairs:
     [loc1,loc2] = randomUtils.randomChoice(list(range(1,nGenes)), size=2, replace=False, engine=None)
     if loc1 > loc2:
@@ -153,10 +153,88 @@ def twoPointsCrossover(parents, **kwargs):
 
   return children
 
+def _sbxBetaq(rand, alpha, eta):
+  """
+    Spread factor for Simulated Binary Crossover (Deb & Agrawal, 1995).
+    @ In, rand, float, uniform random number in [0,1).
+    @ In, alpha, float, SBX alpha term derived from the bounded beta.
+    @ In, eta, float, crossover distribution index (larger -> children closer to parents).
+    @ Out, betaq, float, SBX spread factor.
+  """
+  if rand <= 1.0 / alpha:
+    return (rand * alpha) ** (1.0 / (eta + 1.0))
+  return (1.0 / (2.0 - rand * alpha)) ** (1.0 / (eta + 1.0))
+
+
+def sbxCrossover(parents, **kwargs):
+  """
+    Simulated Binary Crossover (SBX) for real-valued decision variables (Deb & Agrawal, 1995).
+    SBX is the canonical NSGA-II continuous recombination operator: it produces two children
+    distributed around the two parents with a spread controlled by the distribution index eta,
+    so offspring can both interpolate between and extrapolate beyond the parents while
+    respecting each variable's bounds. This is what makes NSGA-II competitive on continuous
+    (ZDT/DTLZ/engineering) problems, unlike the gene-swapping crossovers.
+    @ In, parents, xr.DataArray, parents involved in the mating process (nParents x nGenes).
+    @ In, kwargs, dict, dictionary of parameters for this crossover method:
+          crossoverProb, float, probability that crossover occurs for a parent pair (default 0.9 if None).
+          distDict, dict, distribution per gene, used to obtain decision-variable bounds.
+          eta, float, SBX distribution index (default 15.0).
+          variables, list, variable names.
+    @ Out, children, xr.DataArray, children resulting from the crossover (2*comb(nParents,2) x nGenes).
+  """
+  nParents, nGenes = np.shape(parents)
+  geneNames = parents.coords['Gene'].values
+  distDict = kwargs.get('distDict', {}) or {}
+  crossoverProb = kwargs.get('crossoverProb', None)
+  if crossoverProb is None:
+    crossoverProb = 0.9
+  eta = float(kwargs.get('eta', 15.0))
+  children = xr.DataArray(np.zeros((int(2 * comb(nParents, 2)), nGenes)),
+                          dims=['chromosome', 'Gene'],
+                          coords={'chromosome': np.arange(int(2 * comb(nParents, 2))),
+                                  'Gene': geneNames})
+  parentPairs = list(combinations(parents, 2))
+  index = 0
+  for pair in parentPairs:
+    p1 = np.array(pair[0].values, dtype=float)
+    p2 = np.array(pair[1].values, dtype=float)
+    c1 = p1.copy()
+    c2 = p2.copy()
+    if float(randomUtils.random(dim=1, samples=1)) <= crossoverProb:
+      for g in range(nGenes):
+        x1 = float(p1[g])
+        x2 = float(p2[g])
+        if abs(x1 - x2) < 1e-14:
+          continue  # identical genes -> nothing to recombine
+        xl, xu = gaUtils.finiteGeneBounds(distDict.get(geneNames[g]), x1, x2)
+        y1, y2 = (x1, x2) if x1 < x2 else (x2, x1)
+        rand = float(randomUtils.random(dim=1, samples=1))
+        # child 1 (closer to lower parent)
+        beta = 1.0 + (2.0 * (y1 - xl) / (y2 - y1))
+        alpha = 2.0 - beta ** (-(eta + 1.0))
+        ch1 = 0.5 * ((y1 + y2) - _sbxBetaq(rand, alpha, eta) * (y2 - y1))
+        # child 2 (closer to upper parent)
+        beta = 1.0 + (2.0 * (xu - y2) / (y2 - y1))
+        alpha = 2.0 - beta ** (-(eta + 1.0))
+        ch2 = 0.5 * ((y1 + y2) + _sbxBetaq(rand, alpha, eta) * (y2 - y1))
+        ch1 = min(max(ch1, xl), xu)
+        ch2 = min(max(ch2, xl), xu)
+        # randomly assign the two children to the two slots (standard SBX)
+        if float(randomUtils.random(dim=1, samples=1)) <= 0.5:
+          c1[g], c2[g] = ch2, ch1
+        else:
+          c1[g], c2[g] = ch1, ch2
+    children[index] = c1
+    children[index + 1] = c2
+    index += 2
+  return children
+
+
 __crossovers = {}
 __crossovers['onePointCrossover']  = onePointCrossover
 __crossovers['twoPointsCrossover'] = twoPointsCrossover
 __crossovers['uniformCrossover']   = uniformCrossover
+__crossovers['sbxCrossover']       = sbxCrossover
 
 
 def returnInstance(cls, name):

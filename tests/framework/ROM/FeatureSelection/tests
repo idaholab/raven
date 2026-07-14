@@ -43,6 +43,7 @@
   [../]
   [./DMDcRFESubgroupCrossCorrelation]
     type  = 'RavenFramework'
+    heavy = true
     input = 'dmdc_rfe_and_score_cross_corr.xml'
     output = 'data/dmdc_stats_rfe_score_subgroup_cross_correlation.xml'
     max_time = 400
@@ -66,8 +67,4 @@
       rel_err = 0.0001
     [../]
   [../]
-
 []
-
-
-

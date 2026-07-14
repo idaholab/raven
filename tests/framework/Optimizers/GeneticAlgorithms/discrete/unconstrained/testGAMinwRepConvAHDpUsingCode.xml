@@ -1,4 +1,5 @@
 <?xml version="1.0" ?>
+
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
     <name>framework/Optimizers/GeneticAlgorithms.MinwReplacementConvAHDpUsingCode</name>
@@ -17,13 +18,13 @@
 
   <RunInfo>
     <WorkingDir>MinwReplacementConvAHDpUsingCode</WorkingDir>
-    <Sequence>optimize, print</Sequence>
+    <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
     <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-    <Input name="proj_inp">input.i</Input>
+      <Input name="proj_inp">input.i</Input>
   </Files>
 
   <Steps>
@@ -41,15 +42,21 @@
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
     </IOStep>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+    </IOStep>
   </Steps>
 
   <Distributions>
-    <UniformDiscrete name="v0_dist">
+    <UniformDiscrete name='v0_dist'>
       <lowerBound>10.0</lowerBound>
       <upperBound>20.0</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
-    <UniformDiscrete name="angle_dist">
+    <UniformDiscrete name='angle_dist'>
       <lowerBound>30</lowerBound>
       <upperBound>60</upperBound>
       <strategy>withReplacement</strategy>
@@ -63,6 +70,7 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
+
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
@@ -80,18 +88,22 @@
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
+
       <convergence>
         <AHDp>0.0</AHDp>
       </convergence>
+
       <variable name="v0">
         <distribution>v0_dist</distribution>
       </variable>
+
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
+
       <objective>r</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -107,39 +119,55 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
+
     </MonteCarlo>
   </Samplers>
 
-  <Models>
-    <Code name="projectile" subType="GenericCode">
-      <executable>../../../../../../../AnalyticModels/projectile.py</executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="-i" extension=".i" type="input"/>
-      <clargs arg="-o" type="output"/>
-    </Code>
-  </Models>
+    <Models>
+      <Code name="projectile" subType="GenericCode">
+            <executable>../../../../../../../AnalyticModels/projectile.py</executable>
+            <clargs arg="python" type="prepend"/>
+            <clargs arg="-i" extension=".i" type="input"/>
+            <clargs arg="-o" type="output"/>
+      </Code>
+    </Models>
 
-  <DataObjects>
-    <PointSet name="optOut">
-      <Input>v0,angle</Input>
-      <Output>r,t</Output>
-    </PointSet>
-    <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>v0,angle,r,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
-    </PointSet>
-  </DataObjects>
+    <DataObjects>
+      <PointSet name="optOut">
+        <Input>v0,angle</Input>
+        <Output>r,t</Output>
+      </PointSet>
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>v0,angle,r,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+      </PointSet>
+    </DataObjects>
 
-  <OutStreams>
-    <Print name="optOut">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
-    <Print name="opt_export">
-      <type>csv</type>
-      <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
-    </Print>
-  </OutStreams>
-
+    <OutStreams>
+      <Print name="optOut">
+        <type>csv</type>
+        <source>optOut</source>
+      </Print>
+      <Print name="opt_export">
+        <type>csv</type>
+        <source>opt_export</source>
+        <clusterLabel>trajID</clusterLabel>
+      </Print>
+    
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>v0,angle,r</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>v0,angle,r</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <vars>v0,angle</vars>
+        <index>batchId</index>
+      </Plot>
+    </OutStreams>
 </Simulation>

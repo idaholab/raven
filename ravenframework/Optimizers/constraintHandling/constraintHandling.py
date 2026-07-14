@@ -20,18 +20,17 @@
 """
 import xarray as xr
 import numpy as np
-from ..GeneticAlgorithm import datasetToDataArray
 
-def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective=False):
+def constraintHandling(self, info, rlz, offspring, minObjVals, multiObjective=False):
     """
     This function handles the constraints for both single and multi-objective optimization.
     @ In, info, dict, dictionary containing information about the run
     @ In, rlz, dict, dictionary containing the results of the run
+    @ In, offspring, xr.DataArray, offspring individuals
+    @ In, minObjVals, list, RAVEN minimization-space objective values. Objectives declared as max have already been multiplied by -1.
     @ In, multiObjective, bool, indicates if it's a multi-objective optimization
-    @ Out, None
+    @ Out, constraintVals, xr.DataArray, constraint evaluations for each chromosome and constraint
     """
-    traj = info['traj']
-
     allConstraintFunctions = self._constraintFunctions + self._impConstraintFunctions
     # Collect parameters for constraint functions (excluding default params)
     constraintData = {}
@@ -45,27 +44,28 @@ def constraintHandling(self, info, rlz, offSprings, objectiveVal, multiObjective
             constraintData[p] = list(np.atleast_1d(rlz[p].data))
 
     # Compute constraint function g_j(x) for all constraints and population individuals
-    g0 = np.zeros((np.shape(offSprings)[0], len(allConstraintFunctions)))
+    constraintDataArray = np.zeros((np.shape(offspring)[0], len(allConstraintFunctions)))
 
-    g = xr.DataArray(g0,
+    constraintVals = xr.DataArray(constraintDataArray,
                      dims=['chromosome', 'Constraint'],
-                     coords={'chromosome': np.arange(np.shape(offSprings)[0]),
+                     coords={'chromosome': np.arange(np.shape(offspring)[0]),
                              'Constraint': [y.name for y in allConstraintFunctions]})
 
-    for index, individual in enumerate(offSprings):
+    for index, individual in enumerate(offspring):
         newOpt = individual
 
-        optDict = dict(zip(self._objectiveVar, [item[index] for item in objectiveVal]))
+        minObjValsByName = dict(zip(self._objectiveVar, [item[index] for item in minObjVals]))
 
-        opt = {k: self._objMult[k] * optDict[k] for k in self._objectiveVar}
+        # Implicit constraints expect user-facing objective signs, so convert minObjVals back.
+        externalObjVals = {k: self._objMult[k] * minObjValsByName[k] for k in self._objectiveVar}
 
         for p, v in constraintData.items():
-            opt[p] = v[index]
+            externalObjVals[p] = v[index]
 
         for constIndex, constraint in enumerate(allConstraintFunctions):
             if constraint in self._constraintFunctions:
-                g.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
+                constraintVals.data[index, constIndex] = self._handleExplicitConstraints(newOpt, constraint)
             else:
-                g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt, constraint)
+                constraintVals.data[index, constIndex] = self._handleImplicitConstraints(newOpt, externalObjVals, constraint)
 
-    return g
+    return constraintVals
