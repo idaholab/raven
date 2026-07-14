@@ -407,7 +407,38 @@ class GeneticAlgorithm(RavenSampled):
     # GA Params
     GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
         printPriority=108,
-        descr=r""" """)
+        descr=r""" Genetic Algorithm Parameters:\begin{itemize}
+                                                  \item populationSize.
+                                                  \item parentSelectors:
+                                                                    \begin{itemize}
+                                                                      \item rouletteWheel.
+                                                                      \item tournamentSelection.
+                                                                      \item rankSelection.
+                                                                    \end{itemize}
+                                                 \item Reproduction:
+                                                                  \begin{itemize}
+                                                                    \item crossover:
+                                                                      \begin{itemize}
+                                                                        \item onePointCrossover.
+                                                                        \item twoPointsCrossover.
+                                                                        \item uniformCrossover
+                                                                        \item partiallyMappedCrossover
+                                                                      \end{itemize}
+                                                                    \item mutators:
+                                                                      \begin{itemize}
+                                                                        \item swapMutator.
+                                                                        \item scrambleMutator.
+                                                                        \item inversionMutator.
+                                                                        \item bitFlipMutator.
+                                                                        \item randomMutator.
+                                                                      \end{itemize}
+                                                                    \end{itemize}
+                                                \item survivorSelectors:
+                                                                      \begin{itemize}
+                                                                        \item ageBased.
+                                                                        \item fitnessBased.
+                                                                      \end{itemize}
+                                                \end{itemize}""")
     # Population Size
     populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
         contentType=InputTypes.IntegerType,
@@ -451,16 +482,16 @@ class GeneticAlgorithm(RavenSampled):
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""a subnode containing the implemented crossover mechanisms. You can choose one of the crossover options listed below:
-                  \begin{itemize}
-                    \item \textit{onePointCrossover} - It selects a random crossover point along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
-                    \item \textit{twoPointsCrossover} - It selects two random crossover points along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
-                    \item \textit{uniformCrossover} - It randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
-                  \end{itemize}""")
-    crossover.addParam("type",
-                       InputTypes.makeEnumType('crossover','crossoverType',['onePointCrossover','twoPointsCrossover','uniformCrossover']),
-                       True,
-                       descr="type of crossover operation to be used. See the list of options above.")
+        descr=r"""a subnode containing the implemented crossover mechanisms.
+            \begin{itemize}
+              \item \textit{onePointCrossover} - It selects a random crossover point along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
+              \item \textit{twoPointsCrossover} - It selects two random crossover points along the chromosome of parent individuals and swapping the genetic material beyond that point to create offspring.
+              \item \textit{uniformCrossover} - It randomly selects genes from two parent chromosomes with equal probability, creating offspring by exchanging genes at corresponding positions.
+              \item \textit{partiallyMappedCrossover} - Method designed to perform a two point partially mapped crossover (MPX) on two parents to create offspring.
+            \end{itemize}""")
+    crossoverType = InputTypes.makeEnumType("crossover", "crossoverType", ["onePointCrossover","twoPointsCrossover", "uniformCrossover", "partiallyMappedCrossover"])
+    crossover.addParam("type", crossoverType, required=True,
+                       descr="type of crossover operation to be used (e.g., onePointCrossover, twoPointsCrossover, uniformCrossover, or partiallyMappedCrossover)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,

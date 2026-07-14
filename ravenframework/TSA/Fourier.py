@@ -113,7 +113,10 @@ class Fourier(TimeSeriesTransformer, TimeSeriesCharacterizer, TimeSeriesGenerato
       if simultFit and cond < 30:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}". ',
                         ' Calculating all Fourier coefficients at once.')
-        intercept, coeffs = self._fitSignal(fourierSignals, history)
+        fourierEngine = sklearn.linear_model.LinearRegression(normalize=False)
+        fourierEngine.fit(fourierSignals[mask], history[mask])
+        intercept = fourierEngine.intercept_
+        coeffs = fourierEngine.coef_
       else:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}"! ',
                         'Calculating iteratively instead of all at once.')

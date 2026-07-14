@@ -51,6 +51,17 @@
             <Lag1_signal1_signal0>0.13614430675764458</Lag1_signal1_signal0>
             <Lag1_signal0_signal1>-0.17695178859296026</Lag1_signal0_signal1>
             <Lag1_signal1_signal1>0.6619346044811945</Lag1_signal1_signal1>
+          </constant>
+          <covariance>
+            <var_signal0>0.9980833740337604</var_signal0>
+            <cov_signal0_signal1>0.6721723832745242</cov_signal0_signal1>
+            <var_signal1>2.1830936915008348</var_signal1>
+          </covariance>
+          <AR>
+            <Lag1_signal0_signal0>0.780694946566058</Lag1_signal0_signal0>
+            <Lag1_signal1_signal0>0.13614430675764458</Lag1_signal1_signal0>
+            <Lag1_signal0_signal1>-0.17695178859296026</Lag1_signal0_signal1>
+            <Lag1_signal1_signal1>0.6619346044811945</Lag1_signal1_signal1>
           </AR>
         </VARMA>
         <segments_represented>0</segments_represented>
@@ -150,5 +161,4 @@
       </ClusterROM>
     </MacroStepROM>
   </synth>
-  
 </DataObjectMetadata>

@@ -113,6 +113,21 @@ class MultiResolutionTSA(SupervisedLearning):
       msg += ' multiresolution time series analysis. None were found. Example: FilterBankDWT.'
       self.raiseAnError(IOError, msg)
 
+    # check that there is a multiresolution algorithm
+    allAlgorithms = globalROM.getTsaAlgorithms()               # get non-global algorithms
+    allAlgorithms.extend(globalROM.getGlobalTsaAlgorithms())   # add all global algorithms
+    foundMRAalgorithm = False
+    for algo in allAlgorithms:
+      if algo.canTransform():
+        if algo.isMultiResolutionAlgorithm():
+          foundMRAalgorithm = True
+          self.decompositionAlgorithm = algo.name
+          break
+    if not foundMRAalgorithm:
+      msg = 'The MultiResolutionTSA ROM class requires a TSA algorithm capable of '
+      msg += ' multiresolution time series analysis. None were found. Example: FilterBankDWT.'
+      self.raiseAnError(IOError, msg)
+
   def _train(self, featureVals, targetVals):
     """
       Perform training on input database stored in featureVals.
@@ -160,6 +175,18 @@ class MultiResolutionTSA(SupervisedLearning):
     mrAlgo, mrTrainedParams = trainedParams[-1]
 
     mrAlgo.combineTrainedParamsByLevels(mrTrainedParams, params)
+
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Allows the SVE to put whatever it wants into an XML to print to file.
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused (kept for compatability)
+      @ In, skip, list, optional, unused (kept for compatability)
+      @ Out, None
+    """
+    self._globalROM.writeTSAtoXML(writeTo)
 
 
   def writeXML(self, writeTo, targets=None, skip=None):

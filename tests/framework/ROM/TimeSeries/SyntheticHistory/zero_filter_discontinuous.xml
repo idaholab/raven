@@ -119,5 +119,4 @@
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
-
 </Simulation>

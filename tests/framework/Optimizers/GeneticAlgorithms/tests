@@ -157,6 +157,17 @@
     [../]
   [../]
 
+  [./MaxwoRepPartiallyMappedCrossover]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGAMaxwoRepPartiallyMappedCrossover.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/MaxwoRepPartiallyMappedCrossover/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./MaxwoReplacementDiffDist]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMaxwoRepDifferentDist.xml'
