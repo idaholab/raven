@@ -157,7 +157,35 @@ class JobHandler(BaseType):
     # something from the main thread can remove them.
     self.__finished = []
 
-    # End block of __queueLock protected variables
+    # ---------- Per-job completion events (lock-free signaling) ----------
+    # Maps job identifier (str) -> threading.Event.
+    #
+    # Motivation:
+    #   EnsembleModel (parallelStrategy==2) runs N evaluation threads that
+    #   each call isThisJobFinished() in a busy-wait loop.  Every call
+    #   acquires __queueLock, and when N is large (e.g. 100) the resulting
+    #   lock contention can starve the single polling thread in startLoop(),
+    #   preventing it from running cleanJobQueue().  Jobs then never
+    #   transition from __running to __finished, causing a permanent hang.
+    #
+    # Solution:
+    #   Each job gets a threading.Event created in reAddJob().  Waiting
+    #   threads call event.wait() instead of polling isThisJobFinished(),
+    #   eliminating lock acquisition entirely on the wait path.  The
+    #   polling thread calls event.set() inside cleanJobQueue() when it
+    #   moves a job to __finished.
+    #
+    # Impact:
+    #   - Backward-compatible: isThisJobFinished() is unchanged and still
+    #     available for callers that do not use event-based waiting.
+    #   - Negligible overhead: one dict entry and one Event object per job.
+    #   - Cleaned up in getFinished() (on collection), terminateAll(),
+    #     terminateJobs(), and startingNewStep().
+    #
+    # See also: EnsembleModel.__advanceModel(), which is the consumer.
+    self.__jobEvents = {}
+
+    # End block of __queueLock protected variables (including __jobEvents)
     ############################################################################
 
     self.__queueLock = threading.RLock()
@@ -182,6 +210,9 @@ class JobHandler(BaseType):
     """
     state = copy.copy(self.__dict__)
     state.pop('_JobHandler__queueLock')
+    # threading.Event objects cannot be pickled; exclude them.
+    # They will be re-created as empty dict in __setstate__.
+    state.pop('_JobHandler__jobEvents', None)
     #This will be reinitialized from a schedulerFile.
     if self._parallelLib == ParallelLibEnum.dask and '_server' in state:
       state.pop('_server')
@@ -195,6 +226,9 @@ class JobHandler(BaseType):
     """
     self.__dict__.update(d)
     self.__queueLock = threading.RLock()
+    # Reinitialize the per-job event registry (lost during pickling).
+    # New events will be created when jobs are submitted via reAddJob().
+    self.__jobEvents = {}
     if '_server' not in self.__dict__:
       if self._parallelLib == ParallelLibEnum.dask and self.daskSchedulerFile is not None:
         self._server = dask.distributed.Client(scheduler_file=self.daskSchedulerFile)
@@ -780,6 +814,11 @@ class JobHandler(BaseType):
       @ Out, None
     """
     with self.__queueLock:
+      # Create a per-job Event so that waiting threads (e.g. in
+      # EnsembleModel.__advanceModel) can block on event.wait() instead
+      # of polling isThisJobFinished().  Created inside the lock to
+      # guarantee the event exists before cleanJobQueue() could set it.
+      self.__jobEvents[runner.identifier] = threading.Event()
       if not runner.clientRunner:
         self.__queue.append(runner)
       else:
@@ -940,6 +979,33 @@ class JobHandler(BaseType):
     # problems.
     self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
 
+  def getJobEvent(self, identifier):
+    """
+      Return the threading.Event associated with a job identifier.
+
+      The returned Event is set (event.set()) by cleanJobQueue() when the
+      job transitions to the __finished state.  Callers can use
+      event.wait() to block efficiently without acquiring __queueLock,
+      which eliminates the lock contention that causes hangs when many
+      threads poll isThisJobFinished() concurrently.
+
+      If the job has already finished before this method is called, the
+      Event will already be in the set state, so event.wait() returns
+      immediately.
+
+      Returns None if the identifier is not found (e.g. job was never
+      submitted through reAddJob, or was already collected and cleaned up).
+
+      @ In, identifier, string, job identifier
+      @ Out, event, threading.Event or None, the completion event
+    """
+    identifier = identifier.strip()
+    with self.__queueLock:
+      event = self.__jobEvents.get(identifier)
+      if event is None:
+        self.raiseADebug(f'getJobEvent: no Event found for "{identifier}"')
+      return event
+
   def areTheseJobsFinished(self, uniqueHandler="any"):
     """
       Method to check if all the runs in the queue are finished
@@ -1041,6 +1107,10 @@ class JobHandler(BaseType):
       if removeFinished:
         for i in reversed(runsToBeRemoved):
           self.__finished[i].trackTime('collected')
+          # Remove the per-job Event to prevent memory leaks.  At this
+          # point the waiting thread has already been woken up (the Event
+          # was set in cleanJobQueue), so this is pure cleanup.
+          self.__jobEvents.pop(self.__finished[i].identifier, None)
           del self.__finished[i]
 
       # end with self.__queueLock
@@ -1201,6 +1271,14 @@ class JobHandler(BaseType):
             self.__finished.append(run)
             self.__finished[-1].trackTime('jobHandler_finished')
             runList[i] = None
+            # Wake up any thread waiting for this specific job to finish.
+            # This is the counterpart to event.wait() in
+            # EnsembleModel.__advanceModel().  The call is safe even when
+            # no thread is waiting (set() on an unwaited Event is a no-op
+            # that simply flips the internal flag).
+            event = self.__jobEvents.get(run.identifier)
+            if event is not None:
+              event.set()
 
   def setProfileJobs(self,profile=False):
     """
@@ -1218,6 +1296,9 @@ class JobHandler(BaseType):
     """
     with self.__queueLock:
       self.__submittedJobs = []
+      # Clear stale Events from the previous step.  Any new step will
+      # create fresh Events via reAddJob() as jobs are submitted.
+      self.__jobEvents.clear()
 
   def shutdown(self):
     """
@@ -1244,6 +1325,12 @@ class JobHandler(BaseType):
         for run in unfinishedRuns:
           run.kill()
 
+      # Discard all pending Events.  This is called by
+      # createCloneJobHandler() after deep-copying, so the cloned
+      # handler starts with a clean event registry.  It is also called
+      # on explicit termination to release resources.
+      self.__jobEvents.clear()
+
   def terminateJobs(self, ids):
     """
       Kills running jobs that match the given ids.
@@ -1262,6 +1349,12 @@ class JobHandler(BaseType):
             ids.remove(job.identifier)
             toRemove.append(job)
         for job in toRemove:
+          # Clean up the per-job completion Event for the terminated job.
+          # If a thread is waiting on this Event, it holds its own
+          # reference and will not crash; however, the Event will never
+          # be set, so the thread will eventually time out.  This is the
+          # expected behavior for a forcibly killed job.
+          self.__jobEvents.pop(job.identifier, None)
           # for fixed-spot queues, need to replace job with None not remove
           if isinstance(queue,list):
             job.kill()
