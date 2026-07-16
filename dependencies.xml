@@ -40,7 +40,8 @@ Note all install methods after "main" take
 1. ray can be updated to 2.51, however for mac test machine, only 2.49 is installed. In addition,
 ray have conflicts with grpcio, which sometime we need to pin the version of grpcio
 2. ray may also have issue with typing-extensions, which sometime we need to pin the version
-3. few libraries need to be updated in the near future, such as numpy, scikit-learn, scipy
+3. SparseSensing/pysensors refresh validated a newer scientific stack on 2026-04-19.
+   TensorFlow/Keras now uses tf_keras legacy mode on top of the refreshed stack.
 4. some libraries in plugins can cause library conflicts, such as FARM quadprog which can really
 limit our library choices.
 -->
@@ -48,21 +49,23 @@ limit our library choices.
 <dependencies>
   <main>
     <h5py source="pip"/>
-    <numpy source="pip">1.26</numpy>
+    <numpy source="pip">2.2</numpy>
     <!-- pip installs were overwritting the scipy version, so using pip -->
-    <scipy source="pip">1.12</scipy>
-    <scikit-learn source="pip">1.1</scikit-learn>
+    <scipy source="pip">1.15</scipy>
+    <scikit-learn source="pip">1.7</scikit-learn>
     <!-- Pin numba to 0.61 to avoid coverage issue: https://github.com/numba/numba/issues/10239 -->
     <numba source="pip">0.61</numba>
     <pandas source="pip"/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray source="pip"/>
-    <netcdf4 source="pip">1.6</netcdf4>
-    <matplotlib source="pip">3.6</matplotlib>
-    <statsmodels source="pip">0.13</statsmodels>
+    <netcdf4 source="pip">1.7</netcdf4>
+    <matplotlib source="pip">3.10</matplotlib>
+    <statsmodels source="pip">0.14</statsmodels>
     <cloudpickle source="pip"/>
-    <tensorflow source="pip">2.14</tensorflow>
+    <tensorflow source="pip">2.21</tensorflow>
+    <tf-keras source="pip">2.21</tf-keras>
     <!-- <grpcio source="pip">1.69</grpcio> -->
+    <protobuf source="pip">6.33</protobuf>
     <!-- conda is really slow on windows if the version is not specified.-->
     <python skip_check='True' os='windows'>3.11</python>
     <python skip_check='True' os='linux'>3.11</python>
@@ -70,10 +73,18 @@ limit our library choices.
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
     <pylint/>
+    <pytest/>
     <coverage/>
     <lxml source="pip"/>
     <psutil/>
     <pip/>
+    <!-- Required for tutorial notebooks. nbclassic provides the classic browser UI,
+         notebook 6 provides the legacy `jupyter notebook` command, nbconvert provides
+         automated execution, and ipykernel provides the Python kernel. -->
+    <nbclassic source="pip"/>
+    <notebook source="pip">6.5</notebook>
+    <ipykernel source="pip"/>
+    <nbconvert source="pip"/>
     <pyDOE3 source="pip"/>
     <importlib_metadata/>
     <pyside2 optional='True'/>
@@ -89,6 +100,7 @@ limit our library choices.
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <typing-extensions source="pip">4.14</typing-extensions>
     <ray source="pip" pip_extra="[default]">2.52</ray>
+    <opentelemetry-proto source="pip">1.41</opentelemetry-proto>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
@@ -96,8 +108,10 @@ limit our library choices.
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->
     <statsforecast source="pip"/>
-    <pywavelets source="pip">1.4</pywavelets>
-    <python-sensors source="pip"/>
+    <pywavelets source="pip">1.8</pywavelets>
+    <!-- Validated with numpy 2.2, scipy 1.15, scikit-learn 1.7, matplotlib 3.10,
+         and statsmodels 0.14 in the dedicated SparseSensing refresh env. -->
+    <python-sensors source="pip">0.4.3</python-sensors>
     <numdifftools source="pip">0.9</numdifftools>
     <fmpy optional='True'/>
     <xmlschema source="pip"/>

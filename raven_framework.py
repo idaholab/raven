@@ -19,7 +19,44 @@ Created on Feb 14, 2022
 
 This is a package that properly imports Driver and runs it.
 """
+import os
 import sys
+
+# On Linux, pre-load the env's libstdc++ with RTLD_GLOBAL before any native library imports.
+# Why: importing tensorflow first (see below) can cause the dynamic linker to bind libstdc++
+# from /lib64 (the host system copy) instead of the conda env's lib/. If the host's libstdc++
+# is older than the env's GCC-built shared objects (e.g. libicui18n.so.78 needs
+# CXXABI_1.3.15 from GCC 13), every later import that touches ICU fails with
+# "version 'CXXABI_1.3.15' not found". Pre-loading the env's libstdc++ as RTLD_GLOBAL
+# guarantees its symbols are in the global scope before tensorflow or ICU show up.
+if sys.platform.startswith('linux'):
+    import ctypes
+    _env_libstdcxx = os.path.join(sys.prefix, 'lib', 'libstdc++.so.6')
+    if os.path.exists(_env_libstdcxx):
+        try:
+            ctypes.CDLL(_env_libstdcxx, mode=ctypes.RTLD_GLOBAL)
+        except OSError:
+            pass
+
+# Pre-import tensorflow before anything else if it is available.
+# Reason: tf-keras 2.21 + tensorflow 2.21 ship Abseil v20250814 statically vendored, and
+# PyArrow's libarrow.<version>.dylib also ships Abseil with the same versioned symbol names.
+# Whichever library is loaded first wins the dynamic-linker symbol resolution race; if PyArrow
+# loads first (which happens transitively through pandas/xarray/dask in RAVEN), TensorFlow
+# ends up calling PyArrow's Abseil with a different struct layout for Mutex/Notification, and
+# the eager kernel deadlocks forever in AbslInternalPerThreadSemWait. Importing TF first
+# makes its Abseil symbols win and PyArrow uses TF's copy successfully (verified: 0.11s vs
+# >4-min hang). Cost is a one-time ~1.5s startup penalty on TF-less tests; acceptable trade.
+#
+# TF_USE_LEGACY_KERAS must be set before tf imports so tf.keras routes to the tf_keras (Keras 2)
+# legacy package; the bundled Keras 3 dropped tf.keras.optimizers.legacy plus several layers
+# (LocallyConnected1D/2D, etc.) that RAVEN's KerasBase still references.
+os.environ.setdefault('TF_USE_LEGACY_KERAS', '1')
+try:
+    import tensorflow  # noqa: F401
+except ImportError:
+    pass
+
 from ravenframework.Driver import main
 if __name__ == '__main__':
   sys.exit(main(True))

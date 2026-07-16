@@ -145,8 +145,10 @@ class BatemanSimple(CodeInterfaceBase):
       if varElement is None:
         # if None, no variable has been found
         raise Exception('Not found variable '+var+' in input file '+ originalPath)
-      # set the new variable value
-      varElement.text = repr(varDict[var])
+      # set the new variable value. Use str() rather than repr() so numpy scalars are written
+      # as plain numbers; numpy 2 changed repr(np.float64(x)) to 'np.float64(x)' which the
+      # downstream parser float() can't parse, leading to a sequence×float TypeError later.
+      varElement.text = str(float(varDict[var])) if hasattr(varDict[var], '__float__') else str(varDict[var])
 
     # now we can re-write the input file
     tree.write(currentInputFiles[index].getAbsFile())

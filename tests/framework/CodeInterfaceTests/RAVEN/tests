@@ -8,9 +8,13 @@
  [./Optimizer]
    type = 'RavenFramework'
    input = 'optimizer.xml'
+   # RAVEN-running-RAVEN optimizer test exceeds the 300s default on macOS GHA runners
+   # (timed out at 300.37s). Bump to 600s for headroom.
+   max_time = 600
    [./data]
      type = OrderedCSV
      output = 'Optimizer/opt_export_0.csv'
+     rel_err = 1e-8
    [../]
  [../]
  [./Code]

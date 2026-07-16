@@ -1,0 +1,12 @@
+<DataObjectMetadata name="samples_model">
+  <DataSet type="Static">
+    <general>
+      <datasetName>samples_model</datasetName>
+      <inputs>v0,angle</inputs>
+      <outputs>r,t</outputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight,ProbabilityWeight-angle,ProbabilityWeight-v0,prefix</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

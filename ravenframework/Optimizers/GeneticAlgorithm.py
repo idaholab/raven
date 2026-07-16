@@ -320,9 +320,9 @@ class GeneticAlgorithm(RavenSampled):
     self.rank = None                                             # population rank (for Multi-objective optimization only)
     self.constraintsV = None                                     # calculated contraints value
     self.crowdingDistance = None                                 # population crowding distance (for Multi-objective optimization only)
-    self.ahdp = np.NaN                                           # p-Average Hausdorff Distance between populations
-    self.ahd  = np.NaN                                           # Hausdorff Distance between populations
-    self.hdsm = np.NaN                                           # Hausdorff Distance Similarity metric between populations
+    self.ahdp = np.nan                                           # p-Average Hausdorff Distance between populations
+    self.ahd  = np.nan                                           # Hausdorff Distance between populations
+    self.hdsm = np.nan                                           # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
     self.bestFitness = None                                      # fitness value of the best solution found
     self.multiBestPoint = {}                                     # the best solutions (chromosomes) found among population in a specific batchId
@@ -942,9 +942,9 @@ class GeneticAlgorithm(RavenSampled):
     self.fitness = None
     self.rank = None
     self.crowdingDistance = None
-    self.ahdp = np.NaN
-    self.ahd = np.NaN
-    self.hdsm = np.NaN
+    self.ahdp = np.nan
+    self.ahd = np.nan
+    self.hdsm = np.nan
     self.bestPoint = None
     self.bestFitness = None
     self.objectiveVal = None

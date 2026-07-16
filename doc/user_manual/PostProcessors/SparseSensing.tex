@@ -1,6 +1,6 @@
 \subsubsection{SparseSensing}
 \label{SparseSensing}
-The \textbf{SparseSensing} post-processor incorporates ``PySensors'', a Scikit-learn style Python package for the sparse placement of sensors for reconstruction tasks and classification tasks which will be added here soon.
+The \textbf{SparseSensing} post-processor incorporates ``PySensors'', a Scikit-learn style Python package for the sparse placement of sensors for reconstruction and classification tasks.
 
 Sparse sensor placement concerns the problem of selecting a small subset of sensor or measurement locations in a way that allows one to perform some task nearly as well as if one had access to measurements at every location.
 
@@ -14,6 +14,8 @@ This post-processor provides objects designed for the tasks of reconstruction an
 
 \ppType{SparseSensing }{SparseSensing}
 \begin{itemize}
+\item \xmlNode{Metric}, \xmlDesc{string, optional field, repeatable}, sibling of \xmlNode{Goal} at the \xmlNode{PostProcessor} top level. References a RAVEN \xmlNode{Metric} object (declared under \xmlNode{Metrics}) used to evaluate the reconstruction error against the original full-state field. The required attributes are \xmlAttr{class}=\xmlString{Metrics} and \xmlAttr{type}=\xmlString{Metric}. Multiple \xmlNode{Metric} entries can be supplied; each writes a column to the output \xmlNode{DataObject} under the metric's own \xmlAttr{name}. This path provides access to the full RAVEN metric ecosystem (e.g.\ \xmlString{regression|r2\_score}, \xmlString{regression|explained\_variance\_score}, custom user metrics) and is only meaningful for the \xmlString{reconstruction} goal. The shorthand \xmlNode{reconstructionMetrics} (described below) and the \xmlNode{Metric} assembler form share a single internal evaluator: RAVEN reconstructs the full field using \xmlNode{reconstructionMethod}, then the metric performs the math, so the two surface syntaxes are guaranteed to produce the same numbers.
+
 \item \xmlNode{Goal}, \xmlDesc{string, required field}, the goal of the sparse sensor optimization.
 User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field} representing the goal of the sparse sensing optimization; i.e., which goal function is used in the optimization? Examples for such goal functions are:
 \begin{itemize}
@@ -21,21 +23,54 @@ User has to provide \xmlAttr{subType} which is a \xmlDesc{string, required field
 
     \item \textbf{Classification} is the problem of predicting which category an example belongs to, given a set of training data (e.g. determining whether digital photos are of dogs or cats).
 \end{itemize}
-\nb{Currently, only reconstruction is implemented.}
 In order to use the \xmlNode{Goal}, the user needs to provide the following subnodes:
 \begin{itemize}
 	\item \xmlNode{features}, \xmlDesc{comma separated strings, required field}, features/inputs of the data model, i.e., possible sensor locations/IDs
-	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed.
+	\item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, target of data model, i.e., response of interest sought to be reconstructed or the measured field whose candidate sensor locations are used for classification.
   \nb{Currently the algorithms can handle a single target}.
-	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the type of basis onto which the data are projected: \xmlString{Identity}, \xmlString{SVD}, \xmlString{Random}. \default{SVD}
+        \item \xmlNode{label}, \xmlDesc{string, required for \xmlString{classification}}, the class-label variable used by \xmlString{SSPOC}. This is intentionally separate from \xmlNode{target}: \xmlNode{target} is the measured field from which sensors are selected, while \xmlNode{label} contains the class assigned to each sample.
+	\item \xmlNode{basis} , \xmlDesc{string, optional field}, the projection basis: \xmlString{Identity}, \xmlString{SVD}, \xmlString{RandomProjection}, or \xmlString{HOSVD} (Tucker decomposition; requires \xmlNode{pivotParameter} and a 3-D input tensor). \default{SVD}
 	\item \xmlNode{nModes},  \xmlDesc{integer, required field}, the number of modes  used to project the data.
 	\item \xmlNode{nSensors},  \xmlDesc{integer, required field}, the number of sensors used
-	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR}, for the unconstrained case.
+        \item \xmlNode{l1Penalty}, \xmlDesc{float, optional field}, L1 penalty forwarded to \xmlString{pysensors.SSPOC} for multiclass classification. \default{0.1}
+        \item \xmlNode{threshold}, \xmlDesc{float, optional field}, sensor-coefficient threshold forwarded to \xmlString{pysensors.SSPOC}. If omitted, PySensors computes its Brunton et al. default.
+	\item \xmlNode{optimizer},  \xmlDesc{string, optional field}, the optimizer used to find the sensors: \xmlString{QR} for the unconstrained case, \xmlString{CCQR} when sensor costs are supplied, \xmlString{GQR} for constrained reconstruction, or \xmlString{TPGR} for the two-point greedy optimizer. \default{QR}
+        \item \xmlNode{sensorCosts}, \xmlDesc{string, optional field}, the name of the input variable that stores the per-sensor costs consumed by the \xmlString{CCQR} optimizer.
+        \item \xmlNode{constraint}, \xmlDesc{optional field}, a nested block used only with \xmlString{GQR}. The required attribute \xmlAttr{strategy} selects one of \xmlString{max\_n}, \xmlString{exact\_n}, \xmlString{predetermined}, or \xmlString{distance}. For shape-based constraints, the block may include \xmlNode{shape}, axis names such as \xmlNode{xAxis}/\xmlNode{yAxis}/\xmlNode{zAxis}, shape parameters such as \xmlNode{centerX}, \xmlNode{centerY}, \xmlNode{radius}, and \xmlNode{nConstSensors}. Built-in shapes currently exposed are \xmlString{Circle}, \xmlString{Cylinder}, \xmlString{Line}, \xmlString{Parabola}, \xmlString{Ellipse}, \xmlString{Polygon}, and \xmlString{UserDefined}. Explicit constrained sensor indices can also be provided through \xmlNode{indices}.
+        \item \xmlNode{reconstructionMetrics}, \xmlDesc{comma separated strings, optional field}, shorthand for the most common reconstruction error metrics on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{rmse}, \xmlString{mse}, and \xmlString{mae}. Internally each shorthand entry is desugared into an anonymous RAVEN \xmlNode{Metric} (a \xmlString{regression}-class \xmlString{SKL} metric for \xmlString{mse} and \xmlString{mae}; \xmlString{rmse} is the square root of \xmlString{mse}). The resulting scalars are written to the output \xmlNode{DataObject} under the prefixed names \xmlString{rec\_rmse}, \xmlString{rec\_mse}, \xmlString{rec\_mae} so they cannot collide with the user-attached \xmlNode{Metric} entries described below.
+        \item \xmlNode{reconstructionMethod}, \xmlDesc{string, optional field}, reconstruction method used when computing \xmlNode{reconstructionMetrics} or attached RAVEN \xmlNode{Metric} objects. Options are \xmlString{auto}, \xmlString{unregularized}, and \xmlString{regularized}. In \xmlString{auto} mode, RAVEN selects \xmlString{unregularized} when the retained basis represents the data to \xmlNode{reconstructionRankTolerance} and at least one sensor is available per retained mode; otherwise it selects \xmlString{regularized}. An explicit \xmlNode{reconstructionNoise} of zero is treated as noiseless in \xmlString{auto} mode. \default{auto}
+        \item \xmlNode{reconstructionPrior}, \xmlDesc{string, optional field}, prior covariance vector forwarded to regularized \xmlString{pysensors.SSPOR.predict}. Use \xmlString{decreasing} to let pysensors reuse its singular-value prior, or provide a comma-separated list of floats with one value per retained mode. \default{decreasing}
+        \item \xmlNode{reconstructionNoise}, \xmlDesc{float, optional field}, optional sensor-noise magnitude forwarded to regularized \xmlString{pysensors.SSPOR.predict}. If omitted and regularized reconstruction is selected, pysensors computes its default noise level. This is distinct from \xmlNode{uncertaintyNoise}, which is used by uncertainty and TPGR energy-landscape outputs.
+        \item \xmlNode{reconstructionRankTolerance}, \xmlDesc{float, optional field}, relative tolerance used by \xmlString{reconstructionMethod=auto} to determine whether the retained basis represents the input data without truncation residual. \default{1e-10}
+        \item \xmlNode{uncertaintyMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors uncertainty metrics to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{std}. This writes a full-state vector indexed by \xmlString{candidateSensor}, so the output \xmlNode{DataSet} should declare a matching \xmlNode{Index}.
+        \item \xmlNode{energyLandscapeMetrics}, \xmlDesc{comma separated strings, optional field}, native pysensors TPGR energy-landscape outputs to evaluate on the fitted \xmlString{SSPOR} model. Currently supported: \xmlString{one\_pt} and \xmlString{two\_pt}. These also write full-state vectors indexed by \xmlString{candidateSensor} and require \xmlString{optimizer=TPGR}.
+        \item \xmlNode{energyLandscapeSensors}, \xmlDesc{comma separated integers, optional field}, zero-based candidate sensor indices forwarded to \xmlString{pysensors.SSPOR.two\_pt\_energy\_landscape}. This is required when requesting \xmlString{two\_pt}.
+        \item \xmlNode{uncertaintyPrior}, \xmlDesc{string, optional field}, prior covariance vector forwarded to \xmlString{pysensors.SSPOR.std}. Use \xmlString{decreasing} to let pysensors reuse its singular-value prior, or provide a comma-separated list of floats with one value per retained mode.
+        \item \xmlNode{uncertaintyNoise}, \xmlDesc{float, optional field}, optional sensor-noise magnitude forwarded to \xmlString{pysensors.SSPOR.std} and the TPGR energy-landscape helpers.
+        \item \xmlNode{reconstructionErrorRange}, \xmlDesc{comma separated integers, optional field}, sensor counts passed to \xmlString{pysensors.SSPOR.reconstruction\_error}. This writes a \xmlString{reconstructionError} curve indexed by \xmlString{sensorCount}. The current pysensors API does not support this helper with \xmlString{TPGR}.
         \item \xmlNode{seed}, \xmlDesc{integer, optional field}, the seed that is passed to the pysensors SSPOR fit function.  If not specified if there are more sensors chosen then nModes, the sensors chosen will be different with each run.
+        \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, the name of the pivot dimension (for example \xmlString{time}). When supplied, the input is interpreted as time-dependent and the target is expected to have shape $(samples, times, spatial\text{-}points)$.
+        \item \xmlNode{reshape}, \xmlDesc{string, optional field}, how to flatten a time-dependent tensor before sensor selection. \xmlString{snapshot} (default) stacks samples and time steps as rows, so sensors remain physical spatial points. \xmlString{spatiotemporal} keeps rows as samples and encodes $(space, time)$ pairs as columns, returning a measurement schedule instead of only spatial locations.
 \end{itemize}
 \end{itemize}
 
-\textbf{Example:}
+\textbf{Example (classification):} selects \xmlString{SSPOC} sensor locations from the measured field \xmlString{Temperature (K)} using \xmlString{classLabel} as the supervised class label.
+\begin{lstlisting}[style=XML]
+<PostProcessor name="myClassifierSPSL" subType="SparseSensing">
+  <Goal subType="classification">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <label>classLabel</label>
+    <basis>SVD</basis>
+    <nModes>4</nModes>
+    <nSensors>4</nSensors>
+    <optimizer>QR</optimizer>
+    <l1Penalty>0.1</l1Penalty>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
+
+\textbf{Example (shorthand):} writes \xmlString{rec\_rmse} and \xmlString{rec\_mse} columns.
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
@@ -49,10 +84,128 @@ In order to use the \xmlNode{Goal}, the user needs to provide the following subn
         <nModes>4</nModes> <!--default: opt, allows the algorithm to pick nModes-->
         <nSensors>4</nSensors><!--default: opt, allows the algorithm to pick nSensors-->
         <optimizer>QR</optimizer><!--default: QR-->
+        <reconstructionMethod>auto</reconstructionMethod>
+        <reconstructionMetrics>rmse,mse</reconstructionMetrics>
       </Goal>
     </PostProcessor>
     ...
   </Models>
    ...
 </Simulation>
+\end{lstlisting}
+
+\textbf{Example (assembler form):} writes a column named \xmlString{userR2} under the metric's own name. Use this when you need a metric outside the shorthand (here, R\textsuperscript{2}).
+\begin{lstlisting}[style=XML]
+<Metrics>
+  <Metric name="userR2" subType="SKL">
+    <metricType>regression|r2_score</metricType>
+  </Metric>
+</Metrics>
+
+<Models>
+  <PostProcessor name="mySPSL" subType="SparseSensing">
+    <Goal subType="reconstruction">
+      <features>X (m),Y (m),Temperature (K)</features>
+      <target>Temperature (K)</target>
+      <basis>SVD</basis>
+      <nModes>4</nModes>
+      <nSensors>4</nSensors>
+      <optimizer>QR</optimizer>
+    </Goal>
+    <Metric class="Metrics" type="Metric">userR2</Metric>
+  </PostProcessor>
+</Models>
+\end{lstlisting}
+
+\textbf{Example (explicit regularized reconstruction):} forwards the prior and sensor-noise magnitude to \xmlString{pysensors.SSPOR.predict} before computing \xmlString{rec\_rmse}.
+\begin{lstlisting}[style=XML]
+<PostProcessor name="mySPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>3</nSensors>
+    <optimizer>QR</optimizer>
+    <reconstructionMethod>regularized</reconstructionMethod>
+    <reconstructionPrior>decreasing</reconstructionPrior>
+    <reconstructionNoise>0.2</reconstructionNoise>
+    <reconstructionMetrics>rmse</reconstructionMetrics>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
+
+\textbf{Example (GQR with a circular exclusion region):}
+\begin{lstlisting}[style=XML]
+<PostProcessor name="mySPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>GQR</optimizer>
+    <constraint strategy="max_n">
+      <shape>Circle</shape>
+      <xAxis>X (m)</xAxis>
+      <yAxis>Y (m)</yAxis>
+      <centerX>1.0</centerX>
+      <centerY>1.0</centerY>
+      <radius>0.25</radius>
+      <loc>in</loc>
+      <nConstSensors>0</nConstSensors>
+    </constraint>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
+
+\textbf{Example (full-state uncertainty and reconstruction-error curve):}
+\begin{lstlisting}[style=XML]
+<PostProcessor name="mySPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <uncertaintyMetrics>std</uncertaintyMetrics>
+    <uncertaintyNoise>0.2</uncertaintyNoise>
+    <reconstructionErrorRange>1,2</reconstructionErrorRange>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
+
+\textbf{Example (TPGR one-point and two-point energy landscapes):}
+\begin{lstlisting}[style=XML]
+<PostProcessor name="mySPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>X (m),Y (m),Temperature (K)</features>
+    <target>Temperature (K)</target>
+    <basis>SVD</basis>
+    <nModes>2</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>TPGR</optimizer>
+    <energyLandscapeMetrics>one_pt,two_pt</energyLandscapeMetrics>
+    <energyLandscapeSensors>4</energyLandscapeSensors> <!-- zero-based -->
+    <uncertaintyNoise>0.2</uncertaintyNoise>
+  </Goal>
+</PostProcessor>
+\end{lstlisting}
+
+\textbf{Example (time-dependent HOSVD with snapshot reshape):}
+\begin{lstlisting}[style=XML]
+<PostProcessor name="myTransientSPSL" subType="SparseSensing">
+  <Goal subType="reconstruction">
+    <features>x, T</features>
+    <target>T</target>
+    <basis>HOSVD</basis>
+    <nModes>3</nModes>
+    <nSensors>2</nSensors>
+    <optimizer>QR</optimizer>
+    <pivotParameter>time</pivotParameter>
+    <reshape>snapshot</reshape>
+    <seed>42</seed>
+  </Goal>
+</PostProcessor>
 \end{lstlisting}

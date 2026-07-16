@@ -72,12 +72,12 @@ class SGDRegressor(ScikitLearnBase):
                         This implementation works with data represented as dense arrays of floating point values for the features.
                         \zNormalizationPerformed{SGDRegressor}
                         """
-    specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['squared_loss', 'huber','epsilon_insensitive','squared_epsilon_insensitive']),
+    specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['squared_error', 'huber','epsilon_insensitive','squared_epsilon_insensitive']),
                                                  descr=r"""The loss function to be used.
                                                  The ``squared\_loss'' refers to the ordinary least squares fit. ``huber'' modifies ``squared\_loss'' to focus less on getting outliers correct by
                                                  switching from squared to linear loss past a distance of epsilon. ``epsilon\_insensitive'' ignores errors less than epsilon and is linear past
                                                  that; this is the loss function used in SVR. ``squared\_epsilon\_insensitive'' is the same but becomes squared loss past a tolerance of epsilon.
-                                                 """, default='squared_loss'))
+                                                 """, default='squared_error'))
     specs.addSub(InputData.parameterInputFactory("penalty", contentType=InputTypes.makeEnumType("penalty", "penaltyType",['l2', 'l1', 'elasticnet']),
                                                  descr=r"""The penalty (aka regularization term) to be used. Defaults to ``l2'' which is the standard regularizer for linear SVM models.
                                                  ``l1'' and ``elasticnet'' might bring sparsity to the model (feature selection) not achievable with ``l2''.""", default='l2'))

@@ -39,8 +39,8 @@
     <ROM name="modelUnderTest" subType="ExtraTreeRegressor">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <criterion>mse</criterion>
-      <max_features>auto</max_features>
+      <criterion>squared_error</criterion>
+      <max_features>sqrt</max_features>
       <min_samples_split>2</min_samples_split>
       <min_samples_leaf>1</min_samples_leaf>
       <random_state>1</random_state>

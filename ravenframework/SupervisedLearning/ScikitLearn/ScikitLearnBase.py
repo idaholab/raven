@@ -118,6 +118,25 @@ class ScikitLearnBase(SupervisedLearning):
     import sklearn.multioutput
     if self.settings is None:
       self.settings = settings
+    # Filter out kwargs the underlying sklearn class no longer accepts. scikit-learn 1.2 removed
+    # the `normalize` keyword from most linear models (Lasso, Ridge, ElasticNet, Lars, LinearRegression,
+    # OMP, etc.); it is fully gone in 1.7. RAVEN still parses <normalize> from XML for backwards
+    # compatibility, but we silently drop it here when the target class doesn't accept it. Users
+    # who need normalization should preprocess their inputs or wrap the model in a Pipeline with
+    # StandardScaler.
+    targetClass = self.model if inspect.isclass(self.model) else self.model.__class__
+    try:
+      acceptedParams = inspect.signature(targetClass.__init__).parameters
+    except (TypeError, ValueError):
+      acceptedParams = None
+    if acceptedParams is not None:
+      droppedParams = [k for k in settings if k not in acceptedParams and 'kwargs' not in [p.kind.name.lower() for p in acceptedParams.values()]]
+      for k in droppedParams:
+        settings.pop(k, None)
+        if k == 'normalize':
+          self.raiseAWarning('Ignoring <normalize> for {}: scikit-learn >=1.2 removed this parameter.'.format(targetClass.__name__))
+        else:
+          self.raiseAWarning('Ignoring <{}> for {}: not a valid scikit-learn parameter.'.format(k, targetClass.__name__))
     if inspect.isclass(self.model):
       self.model = self.model(**settings)
       if self.multioutputWrapper:

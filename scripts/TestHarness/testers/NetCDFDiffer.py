@@ -16,6 +16,7 @@ This module implements a NetCDF database differ, assuming xarray structure.
 """
 import sys
 import os
+import threading
 import numpy as np
 import xarray as xr
 
@@ -33,6 +34,7 @@ except ImportError:
 
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
+_NETCDF_LOAD_LOCK = threading.Lock()
 
 class NetCDFDiffer(UnorderedCSVDiffer):
   """
@@ -52,18 +54,24 @@ class NetCDFDiffer(UnorderedCSVDiffer):
       msg = []
       # load test file
       try:
-        testDS = xr.load_dataset(testFilename)
+        with _NETCDF_LOAD_LOCK:
+          with xr.open_dataset(testFilename) as ds:
+            testDS = ds.load()
       # if file doesn't exist, that's a problem
-      except IOError:
-        msg.append('Test file "{}" does not exist!'.format(testFilename))
+      except (IOError, OSError, RuntimeError) as err:
+        msg.append('Test file "{}" could not be loaded!'.format(testFilename))
+        msg.append(str(err))
         same = False
       # load gold file
       try:
-        goldDS = xr.load_dataset(goldFilename)
+        with _NETCDF_LOAD_LOCK:
+          with xr.open_dataset(goldFilename) as ds:
+            goldDS = ds.load()
         goldCsv = None
       # if file doesn't exist, that's a problem
-      except IOError:
-        msg.append('Gold file "{}" does not exist!'.format(goldFilename))
+      except (IOError, OSError, RuntimeError) as err:
+        msg.append('Gold file "{}" could not be loaded!'.format(goldFilename))
+        msg.append(str(err))
         same = False
       # if either file did not exist, clean up and go to next outfile
       if not same:

@@ -197,7 +197,8 @@ class HistorySetSampling(PostProcessorReadyInterface):
             extractCondition = (localPivotParameter>=t) * (localPivotParameter<=t+deltaT)
             extractVar = np.extract(extractCondition, vars[key])
             extractTime = np.extract(extractCondition, localPivotParameter)
-            newVars[key][tIdx] = integrate.trapz(extractVar, extractTime) / deltaT
+            # scipy 1.14 removed integrate.trapz; trapezoid is the modern equivalent.
+            newVars[key][tIdx] = integrate.trapezoid(extractVar, extractTime) / deltaT
         else:
           interp = interpolate.interp1d(vars[self.pivotParameter], vars[key], self.interpolation)
           newVars[key]=interp(newTime)

@@ -7,6 +7,10 @@
   type = 'RavenPython'
   input = 'testMathUtils.py'
  [../]
+ [./genericParser]
+  type = 'RavenPython'
+  input = 'testGenericParser.py'
+ [../]
  [./randomUtils]
   type = 'RavenPython'
   input = 'testRandomUtils.py'
@@ -44,5 +48,4 @@
   input = 'testInputDataToXml.py'
  [../]
 []
-
 

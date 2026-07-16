@@ -22,6 +22,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
+import re
 import numpy as np
 
 # numpy with version 1.14.0 and upper will change the floating point type and print
@@ -97,12 +98,13 @@ checkAnswer('index min',testArray.returnIndexMin(),5)
 
 #test repr
 msg = str(testArray)
-right = 'array([ -3.14   ,   2.99792,   2.718  ,   8.987  ,   0.618  ,  -6.626  ,\n        12.56   ,   6.67   ])'
+right = np.array([-3.14, 2.99792, 2.718, 8.987, 0.618, -6.626, 12.56, 6.67])
+values = np.asarray([float(x) for x in re.findall(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', msg)])
 
-if msg == right:
+if msg.startswith('array([') and msg.endswith('])') and values.shape == right.shape and np.allclose(values, right):
   results['pass']+=1
 else:
-  print('checking string representation does not match:\n'+msg,'\n!=\n'+right)
+  print('checking string representation does not match:\n'+msg,'\n!=\n'+repr(right))
   results['fail']+=1
 
 print(results)

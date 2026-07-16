@@ -23,6 +23,7 @@ from __future__ import division, print_function, absolute_import
 #----- end python 2 - 3 compatibility
 
 #External Modules------------------------------------------------------------------------------------
+import os
 from ..contrib.lazy import lazy_loader
 from importlib import util as imutil
 #External Modules End--------------------------------------------------------------------------------
@@ -31,6 +32,17 @@ from importlib import util as imutil
 
 # filled by isLibAvail: store if libraries are available or not e.g. {'numpy':True/False, etc.}.
 __moduleAvailability = {}
+
+def _configureLazyImportEnvironment(moduleString):
+  """
+    Apply module-specific environment setup before the actual import occurs.
+    @ In, moduleString, str, module name requested through the lazy importer
+    @ Out, None
+  """
+  if moduleString == 'tensorflow' and 'TF_USE_LEGACY_KERAS' not in os.environ:
+    if imutil.find_spec('tf_keras') is not None:
+      os.environ['TF_USE_LEGACY_KERAS'] = '1'
+
 def importModuleLazy(moduleString, parentGlobals=None):
   """
     This method is aimed to import a module with lazy_import
@@ -40,6 +52,7 @@ def importModuleLazy(moduleString, parentGlobals=None):
     @ Out, mod, Object, the imported module (lazy)
   """
   name = moduleString.strip()
+  _configureLazyImportEnvironment(name)
   if parentGlobals is None:
     parentGlobals = globals()
   return lazy_loader.LazyLoader(name, parentGlobals, name)
@@ -53,6 +66,7 @@ def importModuleLazyRenamed(localName, parentGlobals, name):
     @ In, name, str, the module to import (e.g. numpy or scipy.stats, etc.)
     @ Out, mod, Object, the imported module (lazy)
   """
+  _configureLazyImportEnvironment(name)
   return lazy_loader.LazyLoader(localName, parentGlobals, name)
 
 def isLibAvail(moduleString):
