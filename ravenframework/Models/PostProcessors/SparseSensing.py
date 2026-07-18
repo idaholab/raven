@@ -76,7 +76,20 @@ class SparseSensing(PostProcessorReadyInterface):
                                                            printPriority=108,
                                                            descr=r"""The integer seed use for sensor placement random number seed""")
     goal.addSub(seed)
-    inputSpecification.addSub(goal)
+    pivotParameter = InputData.parameterInputFactory('pivotParameter',
+                        contentType=InputTypes.StringType, printPriority=108,
+                        descr=r"""Name of the pivot dimension in the input data (e.g. 'time'). """
+                              r"""When supplied, the data is treated as time-dependent.""")
+    goal.addSub(pivotParameter)
+    reshape = InputData.parameterInputFactory('reshape',
+                        contentType=InputTypes.makeEnumType('reshape','reshapeType',
+                                                            ['snapshot','spatiotemporal']),
+                        printPriority=108,
+                        descr=r"""How to flatten a parameter/time tensor before sensor selection. """
+                              r"""'snapshot': stack (sample,time) pairs as rows (sensors = spatial points). """
+                              r"""'spatiotemporal': stack (space,time) pairs as columns (sensors = space-time pairs).""",
+                        default='snapshot')
+    goal.addSub(reshape)
     return inputSpecification
 
   def __init__(self):
@@ -90,6 +103,7 @@ class SparseSensing(PostProcessorReadyInterface):
     self.keepInputMeta(False)
     self.outputMultipleRealizations = True                   # True indicate multiple realizations are returned
     self.pivotParameter = None                               # time-dependent data pivot parameter. None if the problem is steady state
+    self.reshape = 'snapshot'                                # 'snapshot' | 'spatiotemporal'
     self.validDataType = ['PointSet','HistorySet','DataSet'] # FIXME: Should remove the unsupported ones
     self.sparseSensingGoal = None                            # The goal of the sensor selection. i.e., reconstruction or classification
     self.nSensors = None                                     # The number of the sensors required by the user.
@@ -131,11 +145,30 @@ class SparseSensing(PostProcessorReadyInterface):
         self.seed = child.findFirst('seed').value
       else:
         self.seed = None
+      pivot = child.findFirst('pivotParameter')
+      self.pivotParameter = pivot.value if pivot is not None else None
+      reshape = child.findFirst('reshape')
+      self.reshape = reshape.value if reshape is not None else 'snapshot'
       if child.parameterValues['subType'] not in self.goalsDict.keys():
         self.raiseAnError(IOError, '{} is not a recognized option, allowed options are {}'.format(child.getName(),self.goalsDict.keys()))
     _, notFound = paramInput.subparts[0].findNodesAndExtractValues(['nModes','nSensors','features','target'])
     # notFound must be empty
     assert not notFound, "Unexpected nodes in _handleInput"
+
+  def _reshapeForFit(self, data, pivotLen):
+    """Reshape a (sample, [time,] space) array into the 2-D matrix SSPOR.fit expects.
+
+    @ In, data, np.ndarray, shape (nSamples, nSpace) or (nSamples, nTime, nSpace).
+    @ In, pivotLen, int or None, length of the time axis if present.
+    @ Out, matrix, np.ndarray, 2-D matrix (rows=snapshots or samples, cols=sensor candidates).
+    """
+    if pivotLen is None or data.ndim == 2:
+      return data
+    if self.reshape == 'snapshot':
+      nSamples, nTime, nSpace = data.shape
+      # Row-major stack: row k·T + t holds sample k at time t.
+      return data.reshape(nSamples * nTime, nSpace)
+    raise NotImplementedError(f"reshape={self.reshape} not yet implemented")
 
   def run(self,inputIn):
     """
@@ -167,23 +200,59 @@ class SparseSensing(PostProcessorReadyInterface):
 
     model = ps.SSPOR(basis=basis,n_sensors = self.nSensors,optimizer = optimizer)
 
-    features = {}
-    for var in self.sensingFeatures:
-      features[var] = np.atleast_1d(inputDS[var].data)
-    nSamples,nfeatures = np.shape(features[self.sensingFeatures[0]])
     data = inputDS[self.sensingTarget].data
-    ## TODO: add some assertions to check the shape of the data matrix in case of steady state and time-dependent data
-    assert np.shape(data) == (nSamples,nfeatures)
-    if self.seed is not None:
-      model.fit(data, seed=self.seed)
+
+    pivotLen = None
+    if self.pivotParameter is not None:
+      if self.pivotParameter not in inputDS.dims:
+        self.raiseAnError(IOError,
+          f"pivotParameter '{self.pivotParameter}' not found in input dims {list(inputDS.dims)}")
+      pivotLen = inputDS.sizes[self.pivotParameter]
+
+    # Expected shapes:
+    #   steady-state (pivotParameter=None): (nSamples, nSpace)
+    #   transient / param+time:              (nSamples, nTime, nSpace)
+    # Data layout contract (confirmed via Task 1 probe on testSPSLOptiTwist):
+    #   - inputDS.dims == {'RAVEN_sample_ID': 4, 'index': 4051}
+    #   - inputDS[target].dims == ('RAVEN_sample_ID', 'index')
+    #   - shape == (nSamples, nPointsAlongPivot) = (4, 4051)
+    # When <pivotParameter> is NOT declared (current OPTI-TWIST case):
+    #   the pivot dim holds spatial indices; matrix is ready for SSPOR as-is.
+    # When <pivotParameter> IS declared (new transient/parametric cases, future tasks):
+    #   the pivot dim holds time; spatial dim comes from a separate feature axis
+    #   and we must reshape (see _reshapeForFit).
+    if pivotLen is None:
+      assert data.ndim == 2, f"Expected 2-D target for steady-state; got {data.shape}"
+      nSamples, nSpace = data.shape
     else:
-      model.fit(data)
-    selectedSensors = model.get_selected_sensors()
+      assert data.ndim == 3, f"Expected 3-D target when pivotParameter is set; got {data.shape}"
+      nSamples, _nTime, nSpace = data.shape
+
+    matrix = self._reshapeForFit(data, pivotLen)
+    if self.seed is not None:
+      model.fit(matrix, seed=self.seed)
+    else:
+      model.fit(matrix)
+    # pysensors' get_selected_sensors() returns pivots in QR-selection order
+    # (sensor=1 is "most important"), but that order is not stable across runs
+    # even with a fixed seed. Sort by spatial index so regression gold files are
+    # deterministic. The selected sensor SET is unchanged; only the output
+    # labelling differs — downstream reconstruction uses the index set, not order.
+    selectedSensors = np.sort(model.get_selected_sensors())
     coords = {'sensor':np.arange(1,len(selectedSensors)+1)}
 
     sensorData = {}
     for var in self.sensingFeatures:
-      sensorData[var] = ('sensor', inputDS[var][0,selectedSensors].data)
+      arr = inputDS[var].data
+      # Reduce arr to a (nSpace,) vector: drop sample axis (take index 0) and,
+      # when present, drop the pivot axis too (features are assumed space-only).
+      if arr.ndim == 2:
+        vec = arr[0, :]
+      elif arr.ndim == 3:
+        vec = arr[0, 0, :]
+      else:
+        vec = np.atleast_1d(arr)
+      sensorData[var] = ('sensor', vec[selectedSensors])
     outDS = xr.Dataset(data_vars=sensorData, coords=coords)
     ## PLEASE READ: For developers: this is really important, currently,
     # you have to manually add RAVEN_sample_ID to the dims if you are using xarrays
