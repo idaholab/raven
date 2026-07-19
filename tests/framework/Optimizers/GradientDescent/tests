@@ -63,6 +63,17 @@
     [../]
   [../]
 
+    [./ConvergeIterationLimit]
+    type = 'RavenFramework'
+    input = 'converge_iterationLimit.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'ConvergeIterationLimit/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./ConstrainBoundary]
     #REQUIREMENT_TEST R-RM-2
     type = 'RavenFramework'

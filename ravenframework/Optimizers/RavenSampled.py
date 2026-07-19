@@ -248,7 +248,7 @@ class RavenSampled(Optimizer):
       self.inputInfo['batchMode'] = False
     for _ in range(self.batch):
       inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
-      if self.counter == self.limit + 1:
+      if self.getIteration(all(self._activeTraj)) == self.limit + 1:
         break
       # get point from stack
       point, info = self._submissionQueue.popleft()
@@ -605,6 +605,8 @@ class RavenSampled(Optimizer):
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
+      if self.printTag == 'GradientDescent':
+        self.__stepCounter[traj] -= 1
     elif acceptable == 'rerun':
       # update the most recently obtained opt value for the rerun point
       # NOTE we do this because if we got "lucky" in an opt point evaluation, we can get stuck
