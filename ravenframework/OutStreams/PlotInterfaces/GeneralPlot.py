@@ -1015,7 +1015,10 @@ class GeneralPlot(PlotInterface):
               else:
                 tempDict['attributes'] = {}
                 for sss in subsubsub:
-                  tempDict['attributes'][sss.tag] = sss.text.strip()
+                  try:
+                    tempDict['attributes'][sss.tag] = ast.literal_eval(sss.text.strip())
+                  except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+                    tempDict['attributes'][sss.tag] = sss.text.strip()
             self.options[subnode.tag][subsub.tag].append(tempDict)
           elif subsub.tag == 'legend':
             self.options[subnode.tag][subsub.tag] = {}
