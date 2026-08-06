@@ -3,14 +3,14 @@
  * Copyright Jens Maurer 2000
  * Distributed under the Boost Software License, Version 1.0. (See
  * accompanying file LICENSE_1_0.txt or copy at
- * http://www.boost.org/LICENSE_1_0.txt)
+ * https://www.boost.org/LICENSE_1_0.txt)
  *
- * $Id: integer_traits.hpp 85813 2013-09-21 20:17:00Z jewillco $
+ * $Id$
  *
  * Idea by Beman Dawes, Ed Brey, Steve Cleary, and Nathan Myers
  */
 
-//  See http://www.boost.org/libs/integer for documentation.
+//  See https://www.boost.org/libs/integer for documentation.
 
 
 #ifndef BOOST_INTEGER_TRAITS_HPP
@@ -103,7 +103,7 @@ class integer_traits<wchar_t>
     // library: they are wrong!
 #if defined(WCHAR_MIN) && defined(WCHAR_MAX) && !defined(__APPLE__)
     public detail::integer_traits_base<wchar_t, WCHAR_MIN, WCHAR_MAX>
-#elif defined(__BORLANDC__) || defined(__CYGWIN__) || defined(__MINGW32__) || (defined(__BEOS__) && defined(__GNUC__))
+#elif defined(BOOST_BORLANDC) || defined(__CYGWIN__) || defined(__MINGW32__) || (defined(__BEOS__) && defined(__GNUC__))
     // No WCHAR_MIN and WCHAR_MAX, whar_t is short and unsigned:
     public detail::integer_traits_base<wchar_t, 0, 0xffff>
 #elif (defined(__sgi) && (!defined(__SGI_STL_PORT) || __SGI_STL_PORT < 0x400))\
@@ -119,11 +119,6 @@ class integer_traits<wchar_t>
     //  - Mac OS X with native library
     //  - gcc on FreeBSD, OpenBSD and NetBSD
     public detail::integer_traits_base<wchar_t, INT_MIN, INT_MAX>
-#elif defined(__hpux) && defined(__GNUC__) && (__GNUC__ == 2) && !defined(__SGI_STL_PORT)
-    // No WCHAR_MIN and WCHAR_MAX, wchar_t has the same range as unsigned int.
-    //  - gcc 2.95.x on HP-UX
-    // (also, std::numeric_limits<wchar_t> appears to return the wrong values).
-    public detail::integer_traits_base<wchar_t, 0, UINT_MAX>
 #else
 #error No WCHAR_MIN and WCHAR_MAX present, please adjust integer_traits<> for your compiler.
 #endif

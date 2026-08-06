@@ -10,9 +10,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Id: if.hpp 49267 2008-10-11 06:19:02Z agurtovoy $
-// $Date: 2008-10-10 23:19:02 -0700 (Fri, 10 Oct 2008) $
-// $Revision: 49267 $
+// $Id$
+// $Date$
+// $Revision$
 
 #include <boost/mpl/aux_/value_wknd.hpp>
 #include <boost/mpl/aux_/static_cast.hpp>
@@ -46,7 +46,7 @@ struct if_c<false,T1,T2>
 };
 
 // agurt, 05/sep/04: nondescriptive parameter names for the sake of DigitalMars
-// (and possibly MWCW < 8.0); see http://article.gmane.org/gmane.comp.lib.boost.devel/108959
+// (and possibly MWCW < 8.0); see https://lists.boost.org/Archives/boost/2004/09/71383.php
 template<
       typename BOOST_MPL_AUX_NA_PARAM(T1)
     , typename BOOST_MPL_AUX_NA_PARAM(T2)

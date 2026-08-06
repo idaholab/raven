@@ -15,8 +15,15 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include <boost/detail/interlocked.hpp>
+#include <boost/smart_ptr/detail/sp_interlocked.hpp>
 #include <boost/smart_ptr/detail/yield_k.hpp>
+
+#if defined(BOOST_SP_REPORT_IMPLEMENTATION)
+
+#include <boost/config/pragma_message.hpp>
+BOOST_PRAGMA_MESSAGE("Using Win32 spinlock")
+
+#endif
 
 // BOOST_COMPILER_FENCE
 
@@ -59,7 +66,7 @@ public:
 
     bool try_lock()
     {
-        long r = BOOST_INTERLOCKED_EXCHANGE( &v_, 1 );
+        long r = BOOST_SP_INTERLOCKED_EXCHANGE( &v_, 1 );
 
         BOOST_COMPILER_FENCE
 

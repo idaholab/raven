@@ -8,6 +8,8 @@
 
 #ifdef _MSC_VER
 #pragma once
+#pragma warning(push)
+#pragma warning(disable:4702) // Unreachable code (release mode only warning)
 #endif
 
 #include <boost/math/special_functions/detail/bessel_j1.hpp>
@@ -15,7 +17,17 @@
 #include <boost/math/tools/rational.hpp>
 #include <boost/math/tools/big_constant.hpp>
 #include <boost/math/policies/error_handling.hpp>
-#include <boost/assert.hpp>
+#include <boost/math/tools/assert.hpp>
+
+#if defined(__GNUC__) && defined(BOOST_MATH_USE_FLOAT128)
+//
+// This is the only way we can avoid
+// warning: non-standard suffix on floating constant [-Wpedantic]
+// when building with -Wall -pedantic.  Neither __extension__
+// nor #pragma diagnostic ignored work :(
+//
+#pragma GCC system_header
+#endif
 
 // Bessel function of the second kind of order one
 // x <= 8, minimax rational approximations on root-bracketing intervals
@@ -147,7 +159,7 @@ T bessel_y1(T x, const Policy& pol)
 
     if (x <= 0)
     {
-       return policies::raise_domain_error<T>("bost::math::bessel_y1<%1%>(%1%,%1%)",
+       return policies::raise_domain_error<T>("boost::math::bessel_y1<%1%>(%1%,%1%)",
             "Got x == %1%, but x must be > 0, complex result not supported.", x, pol);
     }
     if (x <= 4)                       // x in (0, 4]
@@ -191,6 +203,10 @@ T bessel_y1(T x, const Policy& pol)
 }
 
 }}} // namespaces
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif // BOOST_MATH_BESSEL_Y1_HPP
 

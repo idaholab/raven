@@ -7,6 +7,7 @@
 #if !defined(FUSION_JOINT_VIEW_07162005_0140)
 #define FUSION_JOINT_VIEW_07162005_0140
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/view/joint_view/joint_view_fwd.hpp>
 #include <boost/fusion/support/detail/access.hpp>
 #include <boost/fusion/support/is_view.hpp>
@@ -23,6 +24,11 @@
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/inherit.hpp>
 #include <boost/mpl/identity.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -55,23 +61,28 @@ namespace boost { namespace fusion
             result_of::size<Sequence1>::value + result_of::size<Sequence2>::value>
         size;
 
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         joint_view(Sequence1& in_seq1, Sequence2& in_seq2)
             : seq1(in_seq1)
             , seq2(in_seq2)
         {}
 
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         first_type first() const { return fusion::begin(seq1); }
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         concat_type concat() const { return fusion::begin(seq2); }
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         concat_last_type concat_last() const { return fusion::end(seq2); }
 
     private:
-        // silence MSVC warning C4512: assignment operator could not be generated
-        joint_view& operator= (joint_view const&);
-
         typename mpl::if_<traits::is_view<Sequence1>, Sequence1, Sequence1&>::type seq1;
         typename mpl::if_<traits::is_view<Sequence2>, Sequence2, Sequence2&>::type seq2;
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #endif
 

@@ -6,8 +6,8 @@
  Enable the factory functions for the controller and the dense output of the Rosenbrock4 method.
  [end_description]
 
- Copyright 2009-2011 Karsten Ahnert
- Copyright 2009-2011 Mario Mulansky
+ Copyright 2011-2012 Karsten Ahnert
+ Copyright 2011-2012 Mario Mulansky
 
  Distributed under the Boost Software License, Version 1.0.
  (See accompanying file LICENSE_1_0.txt or
@@ -54,11 +54,18 @@ struct dense_output_factory< Stepper , rosenbrock4_dense_output< rosenbrock4_con
     typedef Stepper stepper_type;
     typedef rosenbrock4_controller< stepper_type > controller_type;
     typedef typename stepper_type::value_type value_type;
+    typedef typename stepper_type::time_type time_type;
     typedef rosenbrock4_dense_output< controller_type > dense_output_type;
 
     dense_output_type operator()( value_type abs_error , value_type rel_error , const stepper_type &stepper )
     {
         return dense_output_type( controller_type( abs_error , rel_error , stepper ) );
+    }
+
+    dense_output_type operator()( value_type abs_error , value_type rel_error ,
+                                  time_type max_dt, const stepper_type &stepper )
+    {
+        return dense_output_type( controller_type( abs_error , rel_error , max_dt , stepper ) );
     }
 };
 

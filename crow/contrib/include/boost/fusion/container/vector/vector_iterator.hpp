@@ -7,6 +7,7 @@
 #if !defined(FUSION_VECTOR_ITERATOR_05042005_0635)
 #define FUSION_VECTOR_ITERATOR_05042005_0635
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/iterator_base.hpp>
 #include <boost/fusion/container/vector/detail/deref_impl.hpp>
 #include <boost/fusion/container/vector/detail/value_of_impl.hpp>
@@ -17,6 +18,11 @@
 #include <boost/fusion/container/vector/detail/advance_impl.hpp>
 #include <boost/type_traits/add_const.hpp>
 #include <boost/mpl/int.hpp>
+
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4512) // assignment operator could not be generated.
+#endif
 
 namespace boost { namespace fusion
 {
@@ -36,15 +42,26 @@ namespace boost { namespace fusion
         typedef vector_iterator_identity<
             typename add_const<Vector>::type, N> identity;
 
+        BOOST_CONSTEXPR BOOST_FUSION_GPU_ENABLED
         vector_iterator(Vector& in_vec)
             : vec(in_vec) {}
-        Vector& vec;
 
-    private:
-        // silence MSVC warning C4512: assignment operator could not be generated
-        vector_iterator& operator= (vector_iterator const&);
+        Vector& vec;
     };
 }}
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
+
+#ifdef BOOST_FUSION_WORKAROUND_FOR_LWG_2408
+namespace std
+{
+    template <typename Vector, int N>
+    struct iterator_traits< ::boost::fusion::vector_iterator<Vector, N> >
+    { };
+}
+#endif
 
 #endif
 
