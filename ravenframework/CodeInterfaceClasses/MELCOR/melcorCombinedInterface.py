@@ -37,7 +37,7 @@ class Melcor(CodeInterfaceBase):
       @ Out, None
     """
     self.melcOut = 'OUTPUT_MELCOR'
-    self.goodWord  = "Normal termination"   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
+    self.goodWord  = ["USER INPUT TEND (END OF PROBLEM)","Normal termination"]   # This is for MELCOR 2.2 (todo: list for other MELCOR versions)
 
 
   def _readMoreXML(self,xmlNode):
@@ -59,7 +59,7 @@ class Melcor(CodeInterfaceBase):
     if plotNode is None:
       raise IOError("Please define the name of the MELCOR plot file in the CodePlotFile xml node")
     if melNode is None:
-      raise IOError("Please enter MELCOR message file name")
+      raise IOError("Please enter MELCOR message (2.X) or diagnostic (1.8.X) file name")
 
     self.varList        = [var.strip() for var in varNode.text.split(",")]
     self.melcorPlotFile = plotNode.text
@@ -104,9 +104,9 @@ class Melcor(CodeInterfaceBase):
       precommand = executable + clargs['text']
     else:
       precommand = executable
-    melgCommand = str(preExec)    + ' ' + melcin.getFilename()
-    melcCommand = str(precommand) + ' ' + melcin.getFilename()
-    returnCommand = [('serial',melgCommand + ' && ' + melcCommand +' ow=o ')],self.melcOut
+    melgCommand = str(preExec)    + ' i=' + melcin.getFilename()
+    melcCommand = str(precommand) + ' i=' + melcin.getFilename()
+    returnCommand = [('parallel',melgCommand+' ow=o '),('parallel', melcCommand +' ow=o ')],self.melcOut
 
     return returnCommand
 
@@ -179,8 +179,8 @@ class Melcor(CodeInterfaceBase):
     failure = True
     with open(os.path.join(workingDir,self.melcorOutFile),"r") as outputToRead:
       readLines = outputToRead.readlines()
-      lastRow = readLines[-1]
-      if self.goodWord in lastRow:
-        failure = False
+      for lastRow in readLines[-4:]:
+          if any([gw in lastRow for gw in self.goodWord]):
+            failure = False
       outputToRead.close()
       return failure
