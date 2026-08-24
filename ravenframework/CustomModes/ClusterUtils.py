@@ -191,3 +191,38 @@ def buildSrunPrecommand(numMPI, mpiParams, existingPrecommand):
   """
   mpiParamsStr = (" ".join(mpiParams) + " ") if mpiParams else ""
   return "srun --overlap --exact -n " + str(numMPI) + " " + mpiParamsStr + existingPrecommand
+
+
+def assembleDaskJobqueueKwargs(config, runInfoDict):
+  """
+    Assembles the constructor keyword arguments for a dask_jobqueue cluster
+    (SLURMCluster / PBSCluster) from the <daskJobqueue> RunInfo configuration,
+    deriving sensible defaults from the RAVEN run info. Pure function so it
+    can be unit tested without dask_jobqueue installed.
+    @ In, config, dict, with 'scheduler' ("slurm" or "pbs") and 'options'
+      (dict of dask_jobqueue options from the XML attributes; 'memory' is
+      required by dask_jobqueue, 'cores' defaults to numProcByRun, 'jobs'
+      controls how many scheduler jobs to scale to and defaults to batchSize)
+    @ In, runInfoDict, dict, the RAVEN run info dictionary
+    @ Out, (clusterClassName, kwargs, jobs), (str, dict, int), the
+      dask_jobqueue class name, its constructor kwargs, and the number of
+      scheduler jobs to scale the cluster to
+  """
+  clusterClasses = {'slurm': 'SLURMCluster', 'pbs': 'PBSCluster'}
+  scheduler = str(config.get('scheduler', '')).strip().lower()
+  if scheduler not in clusterClasses:
+    raise ValueError(f'<daskJobqueue> scheduler must be one of {sorted(clusterClasses)}, '
+                     f'got "{scheduler}"')
+  options = dict(config.get('options') or {})
+  memory = options.pop('memory', None)
+  if memory is None:
+    raise ValueError('<daskJobqueue> requires a "memory" attribute (per scheduler job), '
+                     'e.g. memory="4GB", because dask_jobqueue requires it')
+  cores = int(options.pop('cores', max(1, int(runInfoDict.get('numProcByRun', 1)))))
+  jobs = int(options.pop('jobs', max(1, int(runInfoDict.get('batchSize', 1)))))
+  kwargs = dict(cores=cores, memory=memory)
+  if 'walltime' not in options and runInfoDict.get('expectedTime'):
+    kwargs['walltime'] = runInfoDict['expectedTime']
+  # any remaining attributes (queue, account, interface, ...) pass through verbatim
+  kwargs.update(options)
+  return clusterClasses[scheduler], kwargs, jobs

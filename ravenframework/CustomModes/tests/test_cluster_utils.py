@@ -168,6 +168,38 @@ class TestBuildSrunPrecommand(unittest.TestCase):
     self.assertEqual(pre, "srun --overlap --exact -n 2 --mpi=pmix oldpre")
 
 
+class TestAssembleDaskJobqueueKwargs(unittest.TestCase):
+  """ Tests for assembleDaskJobqueueKwargs (quick-ref #10) """
+
+  def testSlurmDefaults(self):
+    runInfo = {'numProcByRun': 4, 'batchSize': 3, 'expectedTime': '2:00:00'}
+    config = {'scheduler': 'slurm', 'options': {'memory': '4GB'}}
+    name, kwargs, jobs = ClusterUtils.assembleDaskJobqueueKwargs(config, runInfo)
+    self.assertEqual(name, 'SLURMCluster')
+    self.assertEqual(kwargs, {'cores': 4, 'memory': '4GB', 'walltime': '2:00:00'})
+    self.assertEqual(jobs, 3)
+
+  def testPbsOverridesAndPassthrough(self):
+    runInfo = {'numProcByRun': 4, 'batchSize': 3, 'expectedTime': '2:00:00'}
+    config = {'scheduler': 'pbs', 'options': {'memory': '8GB', 'cores': '16',
+                                              'jobs': '2', 'walltime': '0:30:00',
+                                              'queue': 'short', 'account': 'proj1'}}
+    name, kwargs, jobs = ClusterUtils.assembleDaskJobqueueKwargs(config, runInfo)
+    self.assertEqual(name, 'PBSCluster')
+    self.assertEqual(jobs, 2)
+    self.assertEqual(kwargs, {'cores': 16, 'memory': '8GB', 'walltime': '0:30:00',
+                              'queue': 'short', 'account': 'proj1'})
+
+  def testMissingMemoryRaises(self):
+    with self.assertRaises(ValueError):
+      ClusterUtils.assembleDaskJobqueueKwargs({'scheduler': 'slurm', 'options': {}}, {})
+
+  def testUnknownSchedulerRaises(self):
+    with self.assertRaises(ValueError):
+      ClusterUtils.assembleDaskJobqueueKwargs({'scheduler': 'lsf',
+                                               'options': {'memory': '1GB'}}, {})
+
+
 class TestSanitizeJobName(unittest.TestCase):
   """ Tests for sanitizeJobName """
 

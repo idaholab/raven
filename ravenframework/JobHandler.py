@@ -201,6 +201,7 @@ class JobHandler(BaseType):
     self.remoteServers = None
     self.daskSchedulerFile = None
     self._daskScheduler = None
+    self._daskJobqueueCluster = None  # dask_jobqueue cluster object (if <daskJobqueue> is used)
     self._headDaskWorker = None  # Popen of the dask worker started on the head node (if any)
 
   def __getstate__(self):
@@ -217,6 +218,8 @@ class JobHandler(BaseType):
     #This will be reinitialized from a schedulerFile.
     if self._parallelLib == ParallelLibEnum.dask and '_server' in state:
       state.pop('_server')
+    # the dask_jobqueue cluster object is not picklable
+    state.pop('_daskJobqueueCluster', None)
     return state
 
   def __setstate__(self, d):
@@ -226,6 +229,7 @@ class JobHandler(BaseType):
       @ Out, None
     """
     self.__dict__.update(d)
+    self.__dict__.setdefault('_daskJobqueueCluster', None)
     self.__queueLock = threading.RLock()
     # Reinitialize the per-job event registry (lost during pickling).
     # New events will be created when jobs are submitted via reAddJob().
@@ -358,6 +362,11 @@ class JobHandler(BaseType):
       # is ray instanciated outside?
       self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
       self.daskInstanciatedOutside = 'schedulerFile' in self.runInfoDict
+      # dask-jobqueue managed cluster (workers submitted as scheduler jobs)?
+      if self._parallelLib == ParallelLibEnum.dask and self.runInfoDict.get('daskJobqueue'):
+        self.__initializeDaskJobqueue(self.runInfoDict['daskJobqueue'])
+        self.__isDistributedInitialized = True
+        return
       if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside or self.daskInstanciatedOutside:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         uniqueN = list(set(availableNodes))
@@ -455,6 +464,38 @@ class JobHandler(BaseType):
     # ray or dask is initialized
     self.__isDistributedInitialized = True
 
+  def __initializeDaskJobqueue(self, config):
+    """
+      Initializes a dask-jobqueue managed cluster: the Dask scheduler runs
+      locally and the workers are submitted AS scheduler jobs (sbatch/qsub) by
+      dask_jobqueue, so no inter-node ssh and no hand-rolled bring-up scripts
+      are needed. Configured via the <daskJobqueue> RunInfo element.
+      @ In, config, dict, with 'scheduler' ("slurm"/"pbs") and 'options'
+        (dask_jobqueue constructor options; see ClusterUtils.assembleDaskJobqueueKwargs)
+      @ Out, None
+    """
+    from ravenframework.CustomModes import ClusterUtils
+    try:
+      import dask_jobqueue
+    except ImportError:
+      self.raiseAnError(RuntimeError, 'The <daskJobqueue> option requires the '
+                        '"dask_jobqueue" package (e.g. pip install dask-jobqueue), '
+                        'which could not be imported!')
+    try:
+      clusterClassName, kwargs, jobs = ClusterUtils.assembleDaskJobqueueKwargs(config, self.runInfoDict)
+    except ValueError as err:
+      self.raiseAnError(IOError, str(err))
+    clusterClass = getattr(dask_jobqueue, clusterClassName)
+    self.raiseAMessage(f'Starting dask_jobqueue.{clusterClassName} with options {kwargs}, '
+                       f'scaling to {jobs} scheduler job(s)')
+    self._daskJobqueueCluster = clusterClass(**kwargs)
+    self._daskJobqueueCluster.scale(jobs=jobs)
+    self._server = dask.distributed.Client(self._daskJobqueueCluster)
+    # RAVEN owns this cluster (teardown happens in __shutdownParallel)
+    self.daskInstanciatedOutside = False
+    self.raiseADebug('dask-jobqueue dashboard: '
+                     +str(getattr(self._daskJobqueueCluster, 'dashboard_link', 'N/A')))
+
   def __getLocalAndRemoteMachineNames(self):
     """
       Method to get the qualified host and remote nodes' names
@@ -506,7 +547,18 @@ class JobHandler(BaseType):
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
     elif self._parallelLib == ParallelLibEnum.dask and self._server is not None:
-      if not self.daskInstanciatedOutside:
+      if self._daskJobqueueCluster is not None:
+        # dask-jobqueue managed cluster: closing the cluster cancels the
+        # worker scheduler jobs (sbatch/qsub) and stops the scheduler
+        try:
+          self._server.close()
+        finally:
+          try:
+            self._daskJobqueueCluster.close()
+          except Exception as exc:
+            self.raiseAWarning("dask-jobqueue cluster close raised: "+repr(exc))
+          self._daskJobqueueCluster = None
+      elif not self.daskInstanciatedOutside:
         # We own this cluster: shut down the scheduler and ALL (local and
         # remote) workers, not just the client connection. Client.shutdown()
         # asks the scheduler to retire every worker before closing, which
