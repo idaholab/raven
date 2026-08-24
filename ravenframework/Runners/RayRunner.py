@@ -163,6 +163,14 @@ class RayRunner(InternalRunner):
       @ Out, None
     """
     with self.__funcLock:
+      if self.__func is not None:
+        # actually cancel the remote task; simply dropping the ObjectRef
+        # leaves the task running and consuming cluster resources
+        try:
+          ray.cancel(self.__func, force=True, recursive=True)
+        except Exception as exc:
+          self.raiseAWarning('Unable to cancel remote ray task for job "'
+                             +self.identifier+'": '+repr(exc))
       del self.__func
       self.__func = None
     self.returnCode = -1

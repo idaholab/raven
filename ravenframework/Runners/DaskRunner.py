@@ -178,6 +178,14 @@ class DaskRunner(InternalRunner):
       @ Out, None
     """
     with self.__funcLock:
+      if self.__func is not None:
+        # actually cancel the task on the cluster; simply dropping the Future
+        # leaves the task running and consuming cluster resources
+        try:
+          self.__func.cancel()
+        except Exception as exc:
+          self.raiseAWarning('Unable to cancel dask future for job "'
+                             +self.identifier+'": '+repr(exc))
       del self.__func
       self.__func = None
     self.returnCode = -1
