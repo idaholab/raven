@@ -175,3 +175,19 @@ def sanitizeJobName(jobName, maxLength=None):
   if maxLength is not None and len(jobName) > maxLength:
     jobName = jobName[:maxLength-5] + '-' + jobName[-4:]
   return jobName
+
+
+def buildSrunPrecommand(numMPI, mpiParams, existingPrecommand):
+  """
+    Creates a Slurm-native "srun" precommand instead of the mpiexec+nodefile
+    one. Slurm tracks per-step resource assignment itself, so no node files
+    are needed: "--exact" gives each step exactly the requested tasks and
+    "--overlap" allows the steps of a batch to share the allocation. Works
+    with all major MPI stacks via PMI/PMIx.
+    @ In, numMPI, int, number of MPI processes (tasks) per run
+    @ In, mpiParams, list(str), extra parameters passed to srun
+    @ In, existingPrecommand, str, the pre-existing precommand to append
+    @ Out, precommand, str, the assembled srun precommand
+  """
+  mpiParamsStr = (" ".join(mpiParams) + " ") if mpiParams else ""
+  return "srun --overlap --exact -n " + str(numMPI) + " " + mpiParamsStr + existingPrecommand

@@ -50,6 +50,7 @@ class SlurmSimulationMode(ClusterSimulationMode):
     self.__mpiparams = [] #Paramaters to give to mpi
     self.__createPrecommand = True #If true, do create precommand.
     self.__runSbatch = False #If true, submit this run via sbatch when outside Slurm.
+    self.__useSrun = False #If true, launch runs with native srun instead of mpiexec+nodefiles.
     self.printTag = 'SLURM SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
@@ -67,6 +68,20 @@ class SlurmSimulationMode(ClusterSimulationMode):
         #generate nodeFile (checked srun, with scontrol-based fallback)
         self.__generateNodeFile(self.__nodeFile)
       nodeFileName = self.__nodeFile
+    if self.__useSrun:
+      #srun-native launch: Slurm assigns per-step resources itself, so no
+      # per-batch node files are needed; keep node discovery for the Nodes
+      # bookkeeping (used e.g. by the internal-parallel cluster bring-up)
+      newRunInfo = self._modifyInfoForCluster(runInfoDict, nodeFileName,
+                                              mpiParams=None,
+                                              createPrecommand=False,
+                                              splitNodeFiles=False,
+                                              clusterName="this Slurm allocation")
+      if self.__createPrecommand:
+        newRunInfo['precommand'] = ClusterUtils.buildSrunPrecommand(
+          runInfoDict['NumMPI'], self.__mpiparams, runInfoDict['precommand'])
+        self.raiseAMessage("srun precommand: "+newRunInfo['precommand'])
+      return newRunInfo
     #the batch sizing, node-file splitting and precommand assembly are shared
     # with the other cluster modes (see ClusterMode.ClusterSimulationMode)
     return self._modifyInfoForCluster(runInfoDict, nodeFileName,
@@ -200,6 +215,7 @@ class SlurmSimulationMode(ClusterSimulationMode):
     inputSpecification.addSub(InputData.parameterInputFactory("partition", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("MPIParam", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("noprecommand"))
+    inputSpecification.addSub(InputData.parameterInputFactory("useSrun"))
     return inputSpecification
 
   def handleInput(self, paramInput):
@@ -230,6 +246,8 @@ class SlurmSimulationMode(ClusterSimulationMode):
         self.__mpiparams.append(child.value.strip())
       elif childName == "noprecommand":
         self.__createPrecommand = False
+      elif childName == "usesrun":
+        self.__useSrun = True
       else:
         self.raiseAWarning(f'Unrecognized <mode> option "{child.getName()}" ignored '
                            'by the Slurm simulation mode.')

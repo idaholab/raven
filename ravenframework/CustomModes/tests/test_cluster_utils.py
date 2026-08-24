@@ -156,6 +156,18 @@ class TestBuildMPIPrecommand(unittest.TestCase):
     self.assertEqual(pre, "mpiexec   -n 2 ")
 
 
+class TestBuildSrunPrecommand(unittest.TestCase):
+  """ Tests for buildSrunPrecommand (Slurm-native launch, quick-ref #9) """
+
+  def testDefault(self):
+    pre = ClusterUtils.buildSrunPrecommand(4, [], "")
+    self.assertEqual(pre, "srun --overlap --exact -n 4 ")
+
+  def testWithParamsAndExisting(self):
+    pre = ClusterUtils.buildSrunPrecommand(2, ["--mpi=pmix"], "oldpre")
+    self.assertEqual(pre, "srun --overlap --exact -n 2 --mpi=pmix oldpre")
+
+
 class TestSanitizeJobName(unittest.TestCase):
   """ Tests for sanitizeJobName """
 
