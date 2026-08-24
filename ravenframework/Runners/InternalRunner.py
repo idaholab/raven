@@ -103,9 +103,11 @@ class InternalRunner(Runner):
       if self.runSucceeded is False:
         self.returnCode = -1
         return Error()
-      if self.runSucceeded is None and self.runReturn is None:
-        # legacy fallback for runners that do not track success explicitly:
-        # a None return is (conservatively) treated as a failure
+      if self.runReturn is None:
+        # a None return means either no outcome was recorded, or the wrapped
+        # function itself returned None as its failure signal without raising
+        # (e.g. Models.Code.evaluateSample on a non-zero process return code);
+        # in both cases, treat the run as failed
         self.returnCode = -1
         return Error()
       return self.runReturn

@@ -85,9 +85,11 @@ class SharedMemoryRunner(InternalRunner):
       self._collectRunnerResponse()
     if self.runSucceeded is False:
       self.returnCode = -1
-    elif self.runSucceeded is None and self.runReturn is None:
-      ## Legacy fallback: the wrapper never recorded an outcome (e.g. the
-      ## thread was killed before completing), treat as failed.
+    elif self.runReturn is None:
+      ## Either the wrapper never recorded an outcome (e.g. the thread was
+      ## killed before completing), or the wrapped function returned None as
+      ## its own failure signal without raising (e.g. Models.Code.evaluateSample
+      ## on a non-zero process return code). Treat as failed either way.
       self.returnCode = -1
 
     return self.returnCode

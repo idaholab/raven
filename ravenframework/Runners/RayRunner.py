@@ -103,9 +103,12 @@ class RayRunner(InternalRunner):
           runReturn = ray.get(self.__func, timeout=waitTimeOut)
           self.runReturn = runReturn
           self.hasBeenAdded = True
-          # a None return value from the function is a legitimate result;
-          # success/failure is tracked explicitly via runSucceeded
           self.runSucceeded = True
+          if self.runReturn is None:
+            # the function returned None as its own failure signal without
+            # raising (e.g. Models.Code.evaluateSample on a non-zero process
+            # return code); treat as failed
+            self.returnCode = -1
           return True
         except ray.exceptions.GetTimeoutError:
           #Timeout, so still running.
@@ -138,6 +141,8 @@ class RayRunner(InternalRunner):
           try:
             self.runReturn = ray.get(self.__func)
             self.runSucceeded = True
+            if self.runReturn is None:
+              self.returnCode = -1
           except ray.exceptions.RayTaskError as rte:
             self.raiseAWarning("RayTaskError: "+str(rte))
             self.failureInfo = str(rte)
