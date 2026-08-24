@@ -21,24 +21,31 @@
 # start ray
 # OUTPUT FILE FOR LOGGING
 OUTFILE=$1
-# BASH_PROFILE 
+# HEAD NODE ADDRESS
 HEAD_ADDRESS=$2
 NUM_CPUS=$3
-RAVEN_FRAMEWORK_DIR=$4
+NUM_GPUS=$4
+RAVEN_FRAMEWORK_DIR=$5
 
-echo starting >> $OUTFILE
+echo starting >> "$OUTFILE"
 
-if [ $# -eq 5 ]
+if [ $# -ge 6 ] && [ -n "$6" ]
   then
-  REMOTE_BASH=$5
-  source $REMOTE_BASH >> $OUTFILE 2>&1
+  REMOTE_BASH=$6
+  source "$REMOTE_BASH" >> "$OUTFILE" 2>&1
 fi
 
-which ray >> $OUTFILE 2>&1
-hostname >> $OUTFILE
+which ray >> "$OUTFILE" 2>&1
+hostname >> "$OUTFILE"
 
-echo loaded >> $OUTFILE
-command -v ray >> $OUTFILE 2>&1
+echo loaded >> "$OUTFILE"
+command -v ray >> "$OUTFILE" 2>&1
 mkdir -p /tmp/ray
-echo ray start --verbose --address=$HEAD_ADDRESS --num-cpus $NUM_CPUS >> $OUTFILE 2>&1
-ray start --verbose --address=$HEAD_ADDRESS --num-cpus $NUM_CPUS >> $OUTFILE 2>&1
+# only pass --num-gpus when a non-negative count was requested
+GPU_ARGS=()
+if [ -n "$NUM_GPUS" ] && [ "$NUM_GPUS" -ge 0 ] 2>/dev/null
+  then
+  GPU_ARGS=(--num-gpus "$NUM_GPUS")
+fi
+echo ray start --verbose --address="$HEAD_ADDRESS" --num-cpus "$NUM_CPUS" "${GPU_ARGS[@]}" >> "$OUTFILE" 2>&1
+ray start --verbose --address="$HEAD_ADDRESS" --num-cpus "$NUM_CPUS" "${GPU_ARGS[@]}" >> "$OUTFILE" 2>&1
