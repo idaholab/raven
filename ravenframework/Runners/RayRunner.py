@@ -18,6 +18,7 @@ Created on Mar 5, 2013
 """
 #External Modules------------------------------------------------------------------------------------
 import sys
+import traceback
 import gc
 import copy
 import threading
@@ -102,8 +103,9 @@ class RayRunner(InternalRunner):
           runReturn = ray.get(self.__func, timeout=waitTimeOut)
           self.runReturn = runReturn
           self.hasBeenAdded = True
-          if self.runReturn is None:
-            self.returnCode = -1
+          # a None return value from the function is a legitimate result;
+          # success/failure is tracked explicitly via runSucceeded
+          self.runSucceeded = True
           return True
         except ray.exceptions.GetTimeoutError:
           #Timeout, so still running.
@@ -113,6 +115,10 @@ class RayRunner(InternalRunner):
           # I assume it means the task has unfixably died,
           # and so is done, and set return code to failed.
           self.raiseAWarning("RayTaskError: "+str(rte))
+          self.failureInfo = str(rte)
+          self.runSucceeded = False
+          self.hasBeenAdded = True
+          self.runReturn = None
           self.returnCode = -1
           return True
         #Alternative that was tried:
@@ -129,7 +135,15 @@ class RayRunner(InternalRunner):
     with self.__funcLock:
       if not self.hasBeenAdded:
         if self.__func is not None:
-          self.runReturn = ray.get(self.__func)
+          try:
+            self.runReturn = ray.get(self.__func)
+            self.runSucceeded = True
+          except ray.exceptions.RayTaskError as rte:
+            self.raiseAWarning("RayTaskError: "+str(rte))
+            self.failureInfo = str(rte)
+            self.runSucceeded = False
+            self.runReturn = None
+            self.returnCode = -1
         else:
           self.runReturn = None
         self.hasBeenAdded = True
@@ -148,11 +162,9 @@ class RayRunner(InternalRunner):
       return
 
     except Exception as ae:
-      #Uncomment if you need the traceback
       self.exceptionTrace = sys.exc_info()
-      #exc_type, exc_value, exc_traceback = sys.exc_info()
-      #import traceback
-      #traceback.print_exception(exc_type, exc_value, exc_traceback)
+      self.failureInfo = traceback.format_exc()
+      self.runSucceeded = False
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 

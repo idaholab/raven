@@ -319,6 +319,16 @@ class JobHandler(BaseType):
         # FIXME: The running.command was always internal now, so I removed it.
         # We should probably find a way to give more pertinent information.
         self.raiseAMessage(f" Process Failed {running.identifier}:{running} internal returnCode {returnCode}")
+        # surface the failure details (e.g. the remote/threaded traceback), if
+        # the runner recorded any, both in the log and in the failed-job metadata
+        failureInfo = getattr(running, 'getFailureInfo', lambda: None)()
+        if failureInfo:
+          self.raiseAMessage(f' Failure details for job "{running.identifier}":\n{failureInfo}')
+          if isinstance(metadataToKeep, dict):
+            metadataToKeep = dict(metadataToKeep)
+            metadataToKeep['failureInfo'] = failureInfo
+          elif metadataToKeep is None:
+            metadataToKeep = {'failureInfo': failureInfo}
         self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
   def __initializeDistributed(self):

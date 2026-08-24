@@ -25,6 +25,7 @@ import time
 import ctypes
 import inspect
 import threading
+import traceback
 
 #External Modules End--------------------------------------------------------------------------------
 
@@ -82,9 +83,11 @@ class SharedMemoryRunner(InternalRunner):
     """
     if not self.hasBeenAdded:
       self._collectRunnerResponse()
-    ## Is this necessary and sufficient for all failed runs?
-    if len(self.subque) == 0 and self.runReturn is None:
-      self.runReturn = None
+    if self.runSucceeded is False:
+      self.returnCode = -1
+    elif self.runSucceeded is None and self.runReturn is None:
+      ## Legacy fallback: the wrapper never recorded an outcome (e.g. the
+      ## thread was killed before completing), treat as failed.
       self.returnCode = -1
 
     return self.returnCode
@@ -111,8 +114,30 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
+    def _runFunction(q, *arg):
+      """
+        Thread target: runs the function, capturing exceptions and recording
+        the outcome explicitly (so that a legitimate None return value is not
+        mistaken for a failure, and the traceback is preserved).
+        @ In, q, collections.deque, queue collecting the result
+        @ In, arg, tuple, arguments for the function
+        @ Out, None
+      """
+      try:
+        result = self.functionToRun(*arg)
+      except Exception:
+        self.exceptionTrace = sys.exc_info()
+        self.failureInfo = traceback.format_exc()
+        self.runSucceeded = False
+        self.returnCode = -1
+        self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier
+                           +" failed with error:\n"+self.failureInfo, 'ExceptedError')
+        return
+      q.append(result)
+      self.runSucceeded = True
+
     try:
-      self.thread = InterruptibleThread(target = lambda q, *arg : q.append(self.functionToRun(*arg)),
+      self.thread = InterruptibleThread(target = _runFunction,
                                      name = self.identifier,
                                      args=(self.subque,) + tuple(self.args))
 
@@ -122,6 +147,8 @@ class SharedMemoryRunner(InternalRunner):
       self.started = True
     except Exception as ae:
       self.exceptionTrace = sys.exc_info()
+      self.failureInfo = traceback.format_exc()
+      self.runSucceeded = False
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 

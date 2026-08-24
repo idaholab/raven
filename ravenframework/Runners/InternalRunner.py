@@ -48,6 +48,12 @@ class InternalRunner(Runner):
     self.hasBeenAdded = False
     self.returnCode = 0
     self.exceptionTrace = None    # sys.exc_info() if an error occurred while running
+    self.runSucceeded = None      # tri-state: None (unknown/legacy), True (function
+                                  # completed without exception), False (function failed).
+                                  # Allows functions legitimately returning None to be
+                                  # distinguished from failed evaluations.
+    self.failureInfo = None       # human-readable failure description (e.g. formatted
+                                  # traceback of the remote/threaded exception)
 
     ## These things cannot be deep copied
     self.skipOnCopy = ['functionToRun','thread','__queueLock', '_InternalRunner__queueLock']
@@ -94,9 +100,23 @@ class InternalRunner(Runner):
     """
     if self.isDone():
       self._collectRunnerResponse()
-      if self.runReturn is None:
+      if self.runSucceeded is False:
+        self.returnCode = -1
+        return Error()
+      if self.runSucceeded is None and self.runReturn is None:
+        # legacy fallback for runners that do not track success explicitly:
+        # a None return is (conservatively) treated as a failure
         self.returnCode = -1
         return Error()
       return self.runReturn
     else:
       return Error()
+
+  def getFailureInfo(self):
+    """
+      Returns a human-readable description of the failure (e.g. the formatted
+      traceback raised by the evaluated function), if any.
+      @ In, None
+      @ Out, failureInfo, str or None, the failure description
+    """
+    return self.failureInfo
