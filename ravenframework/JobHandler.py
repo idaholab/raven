@@ -201,6 +201,7 @@ class JobHandler(BaseType):
     self.remoteServers = None
     self.daskSchedulerFile = None
     self._daskScheduler = None
+    self._headDaskWorker = None  # Popen of the dask worker started on the head node (if any)
 
   def __getstate__(self):
     """
@@ -424,12 +425,14 @@ class JobHandler(BaseType):
         else:
           self.raiseAWarning("parallellib creation not handled")
       if self._parallelLib == ParallelLibEnum.ray:
-        self.raiseADebug("Head node IP address: ", self._server.address_info['node_ip_address'])
-        self.raiseADebug("Redis address       : ", self._server.address_info['redis_address'])
-        self.raiseADebug("Object store address: ", self._server.address_info['object_store_address'])
-        self.raiseADebug("Raylet socket name  : ", self._server.address_info['raylet_socket_name'])
-        self.raiseADebug("Session directory   : ", self._server.address_info['session_dir'])
-        self.raiseADebug("GCS Address         : ", self._server.address_info['gcs_address'])
+        # use .get: some keys (e.g. redis_address) were removed in Ray 2.x
+        addressInfo = getattr(self._server, 'address_info', {}) or {}
+        self.raiseADebug("Head node IP address: ", addressInfo.get('node_ip_address', 'N/A'))
+        self.raiseADebug("Redis address       : ", addressInfo.get('redis_address', 'N/A'))
+        self.raiseADebug("Object store address: ", addressInfo.get('object_store_address', 'N/A'))
+        self.raiseADebug("Raylet socket name  : ", addressInfo.get('raylet_socket_name', 'N/A'))
+        self.raiseADebug("Session directory   : ", addressInfo.get('session_dir', 'N/A'))
+        self.raiseADebug("GCS Address         : ", addressInfo.get('gcs_address', 'N/A'))
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
@@ -492,10 +495,28 @@ class JobHandler(BaseType):
         rayTerminate.wait()
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
-    elif self._parallelLib == ParallelLibEnum.dask and self._server is not None and not self.rayInstanciatedOutside:
-      self._server.close()
-      if self._daskScheduler is not None:
-        self._daskScheduler.terminate()
+    elif self._parallelLib == ParallelLibEnum.dask and self._server is not None:
+      if not self.daskInstanciatedOutside:
+        # We own this cluster: shut down the scheduler and ALL (local and
+        # remote) workers, not just the client connection. Client.shutdown()
+        # asks the scheduler to retire every worker before closing, which
+        # prevents zombie "dask worker" processes on remote nodes.
+        try:
+          self._server.shutdown()
+        except Exception as exc:
+          self.raiseAWarning("Dask cluster shutdown raised: "+repr(exc))
+          try:
+            self._server.close()
+          except Exception:
+            pass
+        if self._headDaskWorker is not None and self._headDaskWorker.poll() is None:
+          self._headDaskWorker.terminate()
+        if self._daskScheduler is not None and self._daskScheduler.poll() is None:
+          self._daskScheduler.terminate()
+      else:
+        # Externally managed cluster: only disconnect our client; leave the
+        # scheduler and workers to their owner.
+        self._server.close()
 
   def __runHeadNode(self, nProcs, port=None):
     """
@@ -514,10 +535,9 @@ class JobHandler(BaseType):
         command.append("--num-cpus="+str(nProcs))
       if port is not None:
         command.append("--port="+str(port))
-      outFile = open("ray_head.ip", 'w')
-      rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localEnv)
-      rayStart.wait()
-      outFile.close()
+      with open("ray_head.ip", 'w') as outFile:
+        rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localEnv)
+        rayStart.wait()
       if rayStart.returncode != 0:
         self.raiseAnError(RuntimeError, f"RAY failed to start on the --head node! Return code is {rayStart.returncode}")
       else:
@@ -559,13 +579,15 @@ class JobHandler(BaseType):
       if succeeded:
         #do equivelent of dask worker start in start_dask.sh:
         # dask worker --nworkers $NUM_CPUS --scheduler-file $SCHEDULER_FILE  >> $OUTFILE
-        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],
-                                    "server_debug_"+self.__getLocalHost()),'w')
         command = ["dask","worker","--scheduler-file",self.daskSchedulerFile]
         if nProcs is not None:
           command.extend(("--nworkers",str(nProcs)))
-        headDaskWorker = utils.pickleSafeSubprocessPopen(command,shell=False,
-                                stdout=outFile, stderr=outFile, env=localEnv)
+        # the subprocess duplicates the file descriptor, so the Python-side
+        # handle can (and should) be closed right after spawning
+        with open(os.path.join(self.runInfoDict['WorkingDir'],
+                               "server_debug_"+self.__getLocalHost()),'w') as outFile:
+          self._headDaskWorker = utils.pickleSafeSubprocessPopen(command,shell=False,
+                                  stdout=outFile, stderr=outFile, env=localEnv)
     return address
 
   def __getRayInfoFromStart(self, rayLog):
