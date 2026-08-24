@@ -1213,7 +1213,7 @@ class JobHandler(BaseType):
                   if infoKey in self.runInfoDict:
                     kwargs[infoKey] = self.runInfoDict[infoKey]
               kwargs['INDEX'] = str(i)
-              kwargs['INDEX1'] = str(i+i)
+              kwargs['INDEX1'] = str(i+1)
               kwargs['CURRENT_ID'] = str(self.__nextId)
               kwargs['CURRENT_ID1'] = str(self.__nextId+1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
