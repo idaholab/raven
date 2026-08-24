@@ -160,9 +160,25 @@ class SharedMemoryRunner(InternalRunner):
     """
     if self.thread is not None:
       self.raiseADebug('Terminating job thread "{}" and RAVEN identifier "{}"'.format(self.thread.ident, self.identifier))
-      while self.thread is not None and self.thread.is_alive():
-        time.sleep(0.1)
+      ## NOTE: raising an asynchronous exception in a thread is inherently
+      ## unreliable: it is silently ignored while the thread is blocked inside
+      ## C extension code or system calls (exactly where external models spend
+      ## most of their time). The previous unbounded loop could therefore spin
+      ## forever. Bound the attempts and, if the thread will not die, warn and
+      ## move on: the thread is a daemon, so it cannot keep the process alive.
+      killTimeout = 10.0  # seconds
+      waited = 0.0
+      while self.thread is not None and self.thread.is_alive() and waited < killTimeout:
         self.thread.kill()
+        time.sleep(0.1)
+        waited += 0.1
+      if self.thread is not None and self.thread.is_alive():
+        self.raiseAWarning('Job thread "{}" (RAVEN identifier "{}") did not terminate '
+                           'within {} s; it is likely blocked in native code. '
+                           'Abandoning it as a daemon thread.'.format(
+                           self.thread.ident, self.identifier, killTimeout))
+      self.runSucceeded = False
+      self.returnCode = -1
     self.trackTime('runner_killed')
 
 ## The following code is extracted from stack overflow with some minor cosmetic
