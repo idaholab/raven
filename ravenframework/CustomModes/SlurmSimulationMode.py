@@ -18,8 +18,10 @@ Module that contains a SimulationMode for Slurm and mpiexec
 import os
 import math
 import string
+import subprocess
 from ravenframework import Simulation
 from ravenframework.utils import InputData, InputTypes
+from ravenframework.CustomModes import ClusterUtils
 
 #For the mode information
 modeName = "slurm"
@@ -46,6 +48,7 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     self.__partition = None #If not none, use this for partition=
     self.__mpiparams = [] #Paramaters to give to mpi
     self.__createPrecommand = True #If true, do create precommand.
+    self.__runSbatch = False #If true, submit this run via sbatch when outside Slurm.
     self.printTag = 'SLURM SIMULATION MODE'
 
   def modifyInfo(self, runInfoDict):
@@ -61,10 +64,14 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     if self.__nodeFile or self.__inSlurm:
       if not self.__nodeFile:
         self.__nodeFile = os.path.join(workingDir,"slurmNodeFile_"+str(os.getpid()))
-        #generate nodeFile
-        os.system("srun --overlap -- hostname > "+self.__nodeFile)
+        #generate nodeFile (checked srun, with scontrol-based fallback)
+        self.__generateNodeFile(self.__nodeFile)
       self.raiseADebug('Setting up remote nodes based on "{}"'.format(self.__nodeFile))
-      lines = open(self.__nodeFile,"r").readlines()
+      with open(self.__nodeFile, "r") as nodeFileObject:
+        lines = nodeFileObject.readlines()
+      if len(lines) == 0:
+        self.raiseAnError(IOError, 'Node file "{}" is empty! Cannot determine the '
+                          'nodes available to this Slurm allocation.'.format(self.__nodeFile))
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
       numMPI = runInfoDict['NumMPI']
@@ -94,11 +101,11 @@ class SlurmSimulationMode(Simulation.SimulationMode):
         nodeCommand = runInfoDict["NodeParameter"]+" "+self.__nodeFile
 
     else:
-      #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
+      #Not in Slurm, so can't look at SLURM_JOB_ID and no node file supplied in input
       newBatchsize = newRunInfo['batchSize']
       numMPI = runInfoDict['NumMPI']
       #TODO, we don't have a way to know which machines it can run on
-      # when not in PBS so just distribute it over the local machine:
+      # when not in Slurm so just distribute it over the local machine:
       nodeCommand = " "
 
     if len(self.__mpiparams) > 0:
@@ -117,6 +124,40 @@ class SlurmSimulationMode(Simulation.SimulationMode):
       newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
+
+  def __generateNodeFile(self, nodeFileName):
+    """
+      Generates the node file (one line per available task/processor) for the
+      current Slurm allocation. Tries "srun hostname" first and falls back to
+      expanding $SLURM_JOB_NODELIST via "scontrol show hostnames".
+      @ In, nodeFileName, str, the path of the node file to write
+      @ Out, None
+    """
+    lines = None
+    try:
+      result = subprocess.run(["srun", "--overlap", "--", "hostname"],
+                              capture_output=True, text=True, timeout=300)
+      if result.returncode == 0 and result.stdout.strip():
+        lines = [line for line in result.stdout.splitlines() if line.strip()]
+      else:
+        self.raiseAWarning('"srun --overlap -- hostname" failed (return code '
+                           f'{result.returncode}): {result.stderr.strip()}')
+    except (OSError, subprocess.TimeoutExpired, subprocess.SubprocessError) as exc:
+      self.raiseAWarning(f'Unable to run "srun --overlap -- hostname": {exc}')
+    if lines is None:
+      # fall back to scontrol-based expansion of the allocation node list
+      self.raiseADebug('Falling back to "scontrol show hostnames" for node discovery')
+      try:
+        lines = ClusterUtils.slurmNodeListFromScontrol()
+      except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
+        self.raiseAnError(RuntimeError, 'Could not determine the nodes of this Slurm '
+                          f'allocation with either srun or scontrol: {exc}')
+    if not lines:
+      self.raiseAnError(RuntimeError, 'Slurm node discovery returned no nodes! '
+                        'Check that RAVEN is running inside a valid allocation.')
+    with open(nodeFileName, "w") as nodeFileObject:
+      for line in lines:
+        nodeFileObject.write(line.strip() + "\n")
 
   def __createAndRunSbatch(self, runInfoDict):
     """
@@ -172,11 +213,10 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     remoteRunCommand["cwd"] = runInfoDict['InputDir']
     ## command to run in that directory
     remoteRunCommand["args"] = command
-    print("remoteRunCommand",remoteRunCommand)
-    print("COMMAND", command_env["COMMAND"])
-    print("RAVEN_FRAMEWORK_DIR", command_env["RAVEN_FRAMEWORK_DIR"])
+    self.raiseAMessage("remoteRunCommand: "+str(remoteRunCommand))
+    self.raiseADebug("COMMAND: "+command_env["COMMAND"])
+    self.raiseADebug("RAVEN_FRAMEWORK_DIR: "+command_env["RAVEN_FRAMEWORK_DIR"])
     remoteRunCommand["env"] = command_env
-    ## print out for debugging
     return remoteRunCommand
 
   def remoteRunCommand(self, runInfoDict):
@@ -203,6 +243,8 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     """
     inputSpecification = InputData.parameterInputFactory("mode", ordered=False, contentType=InputTypes.StringType)
     inputSpecification.addSub(InputData.parameterInputFactory("runSbatch"))
+    inputSpecification.addSub(InputData.parameterInputFactory("nodefile", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nodefileenv", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("memory", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("coresneeded", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("partition", contentType=InputTypes.StringType))
@@ -217,17 +259,27 @@ class SlurmSimulationMode(Simulation.SimulationMode):
       @ Out, None
     """
     for child in paramInput.subparts:
-      if child.getName() == "nodefile":
+      childName = child.getName().lower()
+      if childName == "nodefile":
         self.__nodeFile = child.value.strip()
-      elif child.getName() == "memory":
+      elif childName == "nodefileenv":
+        envName = child.value.strip()
+        if envName not in os.environ:
+          self.raiseAnError(IOError, f'<nodefileenv> environment variable "{envName}" '
+                            'is not defined in the current environment!')
+        self.__nodeFile = os.environ[envName]
+      elif childName == "memory":
         self.__memNeeded = child.value.strip()
-      elif child.getName() == "coresneeded":
+      elif childName == "coresneeded":
         self.__coresNeeded = child.value
-      elif child.getName() == "partition":
+      elif childName == "partition":
         self.__partition = child.value.strip()
-      elif child.getName() == "runSbatch":
+      elif childName == "runsbatch":
         self.__runSbatch = True
-      elif child.getName() == "MPIParam":
+      elif childName == "mpiparam":
         self.__mpiparams.append(child.value.strip())
-      elif child.getName() == "noPrecommand":
+      elif childName == "noprecommand":
         self.__createPrecommand = False
+      else:
+        self.raiseAWarning(f'Unrecognized <mode> option "{child.getName()}" ignored '
+                           'by the Slurm simulation mode.')
