@@ -739,6 +739,17 @@ class Simulation(MessageUser):
         self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
       elif element.tag == 'schedulerFile':
         self.runInfoDict['schedulerFile'] = element.text.strip()
+      elif element.tag == 'daskJobqueue':
+        # dask-jobqueue managed cluster: workers are submitted as scheduler
+        # jobs (SLURMCluster/PBSCluster). The element text selects the
+        # scheduler ("slurm" or "pbs"); the XML attributes are passed to the
+        # dask_jobqueue cluster constructor (memory is required; cores, jobs,
+        # queue, account, walltime, interface, ... are optional).
+        # Example: <daskJobqueue memory="4GB" queue="short">slurm</daskJobqueue>
+        self.runInfoDict['daskJobqueue'] = {
+          'scheduler': element.text.strip().lower() if element.text is not None else '',
+          'options': dict(element.attrib),
+        }
       elif element.tag == 'PYTHONPATH':
         self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
