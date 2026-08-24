@@ -22,12 +22,13 @@ import subprocess
 from ravenframework import Simulation
 from ravenframework.utils import InputData, InputTypes
 from ravenframework.CustomModes import ClusterUtils
+from ravenframework.CustomModes.ClusterMode import ClusterSimulationMode
 
 #For the mode information
 modeName = "slurm"
 modeClassName = "SlurmSimulationMode"
 
-class SlurmSimulationMode(Simulation.SimulationMode):
+class SlurmSimulationMode(ClusterSimulationMode):
   """
     SlurmSimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs on a Slurm cluster
@@ -58,72 +59,20 @@ class SlurmSimulationMode(Simulation.SimulationMode):
       @ In, runInfoDict, dict, the original runInfo
       @ Out, newRunInfo, dict, of modified values
     """
-    newRunInfo = {}
-    newRunInfo['batchSize'] = runInfoDict['batchSize']
     workingDir = runInfoDict['WorkingDir']
+    nodeFileName = None
     if self.__nodeFile or self.__inSlurm:
       if not self.__nodeFile:
         self.__nodeFile = os.path.join(workingDir,"slurmNodeFile_"+str(os.getpid()))
         #generate nodeFile (checked srun, with scontrol-based fallback)
         self.__generateNodeFile(self.__nodeFile)
-      self.raiseADebug('Setting up remote nodes based on "{}"'.format(self.__nodeFile))
-      with open(self.__nodeFile, "r") as nodeFileObject:
-        lines = nodeFileObject.readlines()
-      if len(lines) == 0:
-        self.raiseAnError(IOError, 'Node file "{}" is empty! Cannot determine the '
-                          'nodes available to this Slurm allocation.'.format(self.__nodeFile))
-      #XXX This is an undocumented way to pass information back
-      newRunInfo['Nodes'] = list(lines)
-      numMPI = runInfoDict['NumMPI']
-      oldBatchsize = runInfoDict['batchSize']
-      #the batchsize is just the number of nodes of which there is one
-      # per line in the nodeFile divided by the numMPI (which is per run)
-      # and the floor and int and max make sure that the numbers are reasonable
-      maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
-
-      if maxBatchsize < oldBatchsize:
-        newRunInfo['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
-      newBatchsize = newRunInfo['batchSize']
-      self.raiseADebug('Batch size is "{}"'.format(newBatchsize))
-      if newBatchsize > 1:
-        #need to split node lines so that numMPI nodes are available per run
-        workingDir = runInfoDict['WorkingDir']
-        for i in range(newBatchsize):
-          subNodeFile = open(os.path.join(workingDir, f"node_{i}"), "w")
-          for line in lines[i*numMPI : (i+1) * numMPI]:
-            subNodeFile.write(line)
-          subNodeFile.close()
-        #then give each index a separate file.
-        nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
-      else:
-        #If only one batch just use original node file
-        nodeCommand = runInfoDict["NodeParameter"]+" "+self.__nodeFile
-
-    else:
-      #Not in Slurm, so can't look at SLURM_JOB_ID and no node file supplied in input
-      newBatchsize = newRunInfo['batchSize']
-      numMPI = runInfoDict['NumMPI']
-      #TODO, we don't have a way to know which machines it can run on
-      # when not in Slurm so just distribute it over the local machine:
-      nodeCommand = " "
-
-    if len(self.__mpiparams) > 0:
-      mpiParams = " ".join(self.__mpiparams)+" "
-    else:
-      mpiParams = ""
-    # Create the mpiexec pre command
-    # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    if self.__createPrecommand:
-      newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+mpiParams+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
-    else:
-      newRunInfo['precommand'] = runInfoDict['precommand']
-    if runInfoDict['NumThreads'] > 1:
-      newRunInfo['threadParameter'] = runInfoDict['threadParameter']
-      #add number of threads to the post command.
-      newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
-    self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
-    return newRunInfo
+      nodeFileName = self.__nodeFile
+    #the batch sizing, node-file splitting and precommand assembly are shared
+    # with the other cluster modes (see ClusterMode.ClusterSimulationMode)
+    return self._modifyInfoForCluster(runInfoDict, nodeFileName,
+                                      mpiParams=self.__mpiparams,
+                                      createPrecommand=self.__createPrecommand,
+                                      clusterName="this Slurm allocation")
 
   def __generateNodeFile(self, nodeFileName):
     """
@@ -185,10 +134,11 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     ncpus = runInfoDict['NumThreads']
     # job title
     jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
-    ## fix up job title
-    validChars = set(string.ascii_letters).union(set(string.digits)).union(set('_'))
-    if any(char not in validChars for char in jobName):
-      raise IOError('JobName can only contain alphanumeric and "_" characters! Received'+jobName)
+    ## fix up job title (shared validator; alphanumeric, "_" and "-" allowed)
+    try:
+      jobName = ClusterUtils.sanitizeJobName(jobName)
+    except ValueError as err:
+      self.raiseAnError(IOError, str(err))
     #--job-name=
     # Generate the sbatch command needed to run input
     ## raven_framework location

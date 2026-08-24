@@ -90,3 +90,88 @@ def slurmNodeListFromScontrol(nodeList=None, tasksPerNode=None, runner=subproces
   for host, count in zip(hosts, counts):
     lines.extend([host] * count)
   return lines
+
+
+def readNodeFile(path):
+  """
+    Reads a node file (one node name per line, one line per available
+    task/processor) and returns the stripped, non-empty lines.
+    @ In, path, str, the path of the node file
+    @ Out, lines, list(str), the node names (one entry per processor)
+  """
+  with open(path, "r") as nodeFileObject:
+    return [line.strip() for line in nodeFileObject if line.strip()]
+
+
+def computeBatchSize(numProcessors, numMPI, requestedBatchSize):
+  """
+    Computes the batch size that fits in the given number of processors.
+    The batch size is the number of processors divided by numMPI (processors
+    per run); floor/max keep the numbers reasonable.
+    @ In, numProcessors, int, number of available processors (node file lines)
+    @ In, numMPI, int, number of MPI processes per run
+    @ In, requestedBatchSize, int, the batch size requested in the input
+    @ Out, (batchSize, changed), (int, bool), the usable batch size and whether
+      it had to be reduced from the requested one
+  """
+  maxBatchsize = max(int(math.floor(numProcessors / numMPI)), 1)
+  if maxBatchsize < requestedBatchSize:
+    return maxBatchsize, True
+  return requestedBatchSize, False
+
+
+def writeNodeSubFiles(lines, batchSize, numMPI, workingDir, prefix="node_"):
+  """
+    Splits the node list so that numMPI processors are available per batch
+    slot, writing one node file per slot (node_0, node_1, ...): the files
+    referenced by the "%BASE_WORKING_DIR%/node_%INDEX%" placeholder command.
+    @ In, lines, list(str), node names, one entry per processor
+    @ In, batchSize, int, number of batch slots
+    @ In, numMPI, int, number of MPI processes per run
+    @ In, workingDir, str, directory in which to write the files
+    @ In, prefix, str, optional, file name prefix
+    @ Out, written, list(str), the paths written
+  """
+  written = []
+  for i in range(batchSize):
+    subFileName = os.path.join(workingDir, f"{prefix}{i}")
+    with open(subFileName, "w") as subNodeFile:
+      for line in lines[i*numMPI : (i+1)*numMPI]:
+        subNodeFile.write(line.rstrip("\n") + "\n")
+    written.append(subFileName)
+  return written
+
+
+def buildMPIPrecommand(mpiExec, mpiParams, nodeCommand, numMPI, existingPrecommand):
+  """
+    Creates the mpiexec precommand. With defaults the precommand is
+    "mpiexec -f nodeFile -n numMPI <existing precommand>".
+    @ In, mpiExec, str, the mpi executor (e.g. "mpiexec")
+    @ In, mpiParams, list(str), extra parameters for mpi
+    @ In, nodeCommand, str, the node-selection portion (e.g. "-f nodefile"),
+      or " " when running on the local machine only
+    @ In, numMPI, int, number of MPI processes per run
+    @ In, existingPrecommand, str, the pre-existing precommand to append
+    @ Out, precommand, str, the assembled precommand
+  """
+  mpiParamsStr = (" ".join(mpiParams) + " ") if mpiParams else ""
+  return mpiExec + " " + mpiParamsStr + nodeCommand + " -n " + str(numMPI) + " " + existingPrecommand
+
+
+def sanitizeJobName(jobName, maxLength=None):
+  """
+    Validates and (optionally) shortens a scheduler job name. Only
+    alphanumeric characters, "_" and "-" are allowed. When maxLength is given
+    and exceeded, the name is shortened keeping the head and the last 4
+    characters (e.g. maxLength=15: first 10 + "-" + last 4).
+    @ In, jobName, str, the requested job name
+    @ In, maxLength, int, optional, maximum allowed length
+    @ Out, jobName, str, the validated (possibly shortened) job name
+  """
+  validChars = set(string.ascii_letters) | set(string.digits) | set('-_')
+  if any(char not in validChars for char in jobName):
+    raise ValueError('JobName can only contain alphanumeric, "_" and "-" '
+                     'characters! Received: ' + jobName)
+  if maxLength is not None and len(jobName) > maxLength:
+    jobName = jobName[:maxLength-5] + '-' + jobName[-4:]
+  return jobName
