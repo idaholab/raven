@@ -781,7 +781,19 @@ class RavenSampled(Optimizer):
 
     ## If any solution in the history has a higher objective value than what is found in ._optPointHistory, add it to opt. NOTE: this only searches the most recent iteration of the optimizer.
     opt = self._optPointHistory[traj][-1][0]
-    objectiveVars = [var for var in list(opt) if self._objectiveVar in var.lower()] #!TODO(rollnk): this may break for GA, since "fitness" != _objectiveVar.
+
+    objectiveVars = []
+    optKeys = list(opt)
+    # Map objective variable names to keys in the optimization history.
+    for obj in np.atleast_1d(self._objectiveVar):
+      if obj in optKeys:
+        objectiveVars.append(obj)
+      else:
+        matches = [var for var in optKeys if obj.lower() in var.lower()]
+        objectiveVars.extend(matches)
+    # Deduplicate while preserving order
+    objectiveVars = list(dict.fromkeys(objectiveVars))
+
     self._solutionExport.asDataset() #empty _collector into _data
     ## Search the rest of the history
     if hasattr(self,"_sampledHistoryInfo"):
@@ -1255,7 +1267,8 @@ class RavenSampled(Optimizer):
                      'modelRuns': self.counter
                     })
     # add the contents of the realization
-    #!toExport.update(dict((var, rlz[var]) for var in rlz)) #!TODO(rollnk): this was removed by a merge conflict. Is it still needed?
+    toExport.update(dict((var, rlz[var]) for var in rlz))
+
     # optimal point input and output spaces
     for objVar in self._objectiveVar:
       objValue = rlz[objVar]*self._objMult[objVar]
