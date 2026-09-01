@@ -23,12 +23,10 @@
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi, Junyung Kim
 """
-import os
 import numpy as np
 import xarray as xr
 from operator import itemgetter
 from ...utils import utils, randomUtils
-from ...utils.SSChecker import EQChecker, SingleCycleChecker
 
 def swapMutator(offSprings, distDict, **kwargs):
   """
@@ -53,213 +51,11 @@ def swapMutator(offSprings, distDict, **kwargs):
     children[i] = offSprings[i]
     ## TODO What happens if loc1 or 2 is out of range?! should we raise an error?
     if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
-      # convert loc1 and loc2 in terms of cdf values
+      # convert loc1 and loc2 in terms on cdf values
       cdf1 = distDict[offSprings.coords['Gene'].values[loc1]].cdf(float(offSprings[i,loc1].values))
       cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
       children[i,loc1] = distDict[offSprings.coords['Gene'].values[loc1]].ppf(cdf2)
       children[i,loc2] = distDict[offSprings.coords['Gene'].values[loc2]].ppf(cdf1)
-  return children
-
-def swapMutatorSS(offSprings, distDict, **kwargs):
-  """
-    User-facing swap mutator dispatcher for PRLO shuffling scheme optimization.
-    Routes to swapMutatorEQ for equilibrium-cycle problems or swapMutatorSingleCycle
-    for single-cycle (Nth cycle) problems based on the calculationType in the prlodata file.
-    @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
-    @ In, kwargs, dict, see swapMutatorEQ / swapMutatorSingleCycle for full parameter list.
-    @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
-
-    #!TODO(rollnk): Deprecated. Replaced by PRLO/src/Optimizers/mutators.py::swapMutatorSS.
-    #!              Remove this copy once the PRLO version is validated in production.
-  """
-  if not any("prlodata" in sublist for sublist in kwargs["files"]):
-    raise ValueError("'swapMutatorSS' requires a File of type 'prlodata'.")
-  inpfile = [sublist[-1] for sublist in kwargs["files"] if sublist[1]=='prlodata'][0]
-  prloData = EQChecker.PRLODataParser(os.path.normpath(os.path.join(inpfile.getPath(), inpfile.getFilename())), verbosity='reduced')
-  effectiveType = prloData.phase1CalcType if prloData.calculationType == "coupled_transient" else prloData.calculationType
-  if effectiveType in ["eq_cycle","eq_uprate"]:
-    return swapMutatorEQ(offSprings, distDict, **kwargs)
-  elif effectiveType in ["single_cycle","single_uprate"] and prloData.numBatches > 1:
-    return swapMutatorSingleCycle(offSprings, distDict, **kwargs)
-  raise ValueError(f"'swapMutatorSS' does not support calculationType '{prloData.calculationType}' with the given parameters.")
-
-def swapMutatorEQ(offSprings, distDict, **kwargs):
-  """
-    Swap mutator for equilibrium-cycle (EQ) PRLO shuffling schemes.
-    Two symmetry-equivalent gene locations are selected and swapped.  Two
-    distinct swap modes are applied depending on whether the selected genes
-    belong to the same batch or different batches:
-
-    #!TODO(rollnk): Deprecated. Replaced by PRLO/src/Optimizers/mutators.py::swapMutatorEQ.
-    #!              Remove this copy once the PRLO version is validated in production.
-
-    Same-batch swap: exchanges the CDF-space values at loc1 and loc2, then
-    updates the immediate downstream reload reference for each position.  This
-    shuffles assemblies within the current zoning map without changing which
-    locations belong to which batch.
-
-    Cross-batch swap: exchanges the batch assignments of loc1 and loc2 by
-    directly re-encoding new FAID values.  loc1 takes on loc2's batch number,
-    reload source, and fuel type; loc2 takes on loc1's batch number and type
-    (re-encoded as fresh if loc1 was batch-1, otherwise inheriting loc1's
-    source).  Immediate downstream reload references for both positions are
-    updated so that the reload chain remains consistent.  This allows the GA to
-    explore different zoning map configurations during EQ optimisation runs.
-
-    In both modes the result is validated by checkChromosome and retried if invalid.
-
-    @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary of distributions associated with each gene
-          (used for CDF/PPF transforms in the same-batch case)
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          locs, list, the 2 locations of the genes to be swapped
-          mutationProb, float, probability that a mutation is attempted
-          variables, list, variable names
-          files, list, input file list (must contain a prlodata entry)
-    @ Out, children, xr.DataArray, the mutated chromosome.
-  """
-  # check for EQ input
-  EQFlag = False
-  if any("prlodata" in sublist for sublist in kwargs["files"]):
-    inpfile = [sublist[-1] for sublist in kwargs["files"] if sublist[1]=='prlodata'][0]
-    EQObject = EQChecker(os.path.normpath(os.path.join(inpfile.getPath(), inpfile.getFilename())))
-    symMult = EQObject.prloData.symmetricMultiplicity
-    effectiveType = EQObject.prloData.phase1CalcType if EQObject.prloData.calculationType == "coupled_transient" else EQObject.prloData.calculationType
-    EQFlag = effectiveType in ["eq_cycle","eq_uprate"]
-  if not EQFlag:
-    raise ValueError("'swapMutatorEQ' is only appropriate of the 'eq_cycle' calculationType.")
-
-  solnLen   = EQObject.prloData.solnLen
-  numBatches = EQObject.prloData.numBatches
-
-  # initializing children
-  children = xr.DataArray(np.zeros((np.shape(offSprings))),
-                          dims=['chromosome','Gene'],
-                          coords={'chromosome': np.arange(np.shape(offSprings)[0]),
-                                  'Gene':kwargs['variables']})
-
-  for i in range(np.shape(offSprings)[0]):
-    antihang = 0
-    flag = False
-    while not flag: # ensure a valid selection.
-      children[i] = offSprings[i]
-      antihang += 1
-      if antihang >= 1000:
-        raise ValueError("swapMutatorEQ has failed to generate a valid genome.")
-      loc1, loc2 = locationsGenerator(offSprings, kwargs['locs'])
-      if symMult[loc1+1] != symMult[loc2+1]:
-        flag = False
-        continue
-
-      if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
-        # Decode original gene values to determine swap mode.
-        decoded1 = EQObject.decodeFAID(int(offSprings[i,loc1].values), solnLen, numBatches)
-        decoded2 = EQObject.decodeFAID(int(offSprings[i,loc2].values), solnLen, numBatches)
-        source1, batchNum1, type1 = decoded1
-        source2, batchNum2, type2 = decoded2
-
-        if batchNum1 == batchNum2:
-          # Same-batch swap: spatial shuffle within the current zoning map.
-          cdf1 = distDict[offSprings.coords['Gene'].values[loc1]].cdf(float(offSprings[i,loc1].values))
-          cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
-          children[i,loc1] = distDict[offSprings.coords['Gene'].values[loc1]].ppf(cdf2)
-          children[i,loc2] = distDict[offSprings.coords['Gene'].values[loc2]].ppf(cdf1)
-          # update any reloaded FA's pointing to the swapped positions for loc1
-          reloadedFA = EQObject.encodeFAID((loc1+1, batchNum1+1, type1), solnLen, numBatches)
-          updatedFA  = EQObject.encodeFAID((loc2+1, batchNum1+1, type1), solnLen, numBatches)
-          for pos in range(np.shape(children[i])[0]):
-            if children[i,pos] == reloadedFA:
-              children[i,pos] = updatedFA
-          # update any reloaded FA's pointing to the swapped positions for loc2
-          reloadedFA = EQObject.encodeFAID((loc2+1, batchNum2+1, type2), solnLen, numBatches)
-          updatedFA  = EQObject.encodeFAID((loc1+1, batchNum2+1, type2), solnLen, numBatches)
-          for pos in range(np.shape(children[i])[0]):
-            if children[i,pos] == reloadedFA:
-              children[i,pos] = updatedFA
-
-        else:
-          # Cross-batch swap: exchange batch assignments to explore different zoning map configurations.
-          # Fresh assemblies (batch-1) must encode their own position as the source; reload assemblies
-          # inherit the source from the gene being moved to that location.
-          children[i,loc1] = (EQObject.encodeFAID((loc1+1, 1, type2), solnLen, numBatches)
-                              if batchNum2 == 1
-                              else EQObject.encodeFAID((source2, batchNum2, type2), solnLen, numBatches))
-          children[i,loc2] = (EQObject.encodeFAID((loc2+1, 1, type1), solnLen, numBatches)
-                              if batchNum1 == 1
-                              else EQObject.encodeFAID((source1, batchNum1, type1), solnLen, numBatches))
-          # Update downstream reload reference for loc1
-          if batchNum1 < numBatches:
-            oldReload = EQObject.encodeFAID((loc1+1, batchNum1+1, type1), solnLen, numBatches)
-            newReload = EQObject.encodeFAID((loc2+1, batchNum1+1, type1), solnLen, numBatches)
-            for pos in range(np.shape(children[i])[0]):
-              if children[i,pos] == oldReload:
-                children[i,pos] = newReload
-          # Update downstream reload reference for loc2
-          if batchNum2 < numBatches:
-            oldReload = EQObject.encodeFAID((loc2+1, batchNum2+1, type2), solnLen, numBatches)
-            newReload = EQObject.encodeFAID((loc1+1, batchNum2+1, type2), solnLen, numBatches)
-            for pos in range(np.shape(children[i])[0]):
-              if children[i,pos] == oldReload:
-                children[i,pos] = newReload
-
-      flag = EQObject.checkChromosome(children[i],symMult)[0]
-
-  return children
-
-def swapMutatorSingleCycle(offSprings, distDict, **kwargs):
-  """
-    Swap mutator for single-cycle (Nth cycle) shuffling schemes.
-    For each child, two genes at symmetry-equivalent locations are swapped and
-    the result is validated against the SingleCycleChecker. No reload chain
-    propagation is needed since reload sources are fixed by the reload geometry.
-    @ In, offSprings, xr.DataArray, children resulting from the crossover process
-    @ In, distDict, dict, dictionary containing distribution associated with each gene
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          locs, list, the 2 locations of the genes to be swapped
-          mutationProb, float, probability that governs the mutation process
-          variables, list, variables names.
-          files, list, list of input files (must include a prlodata file).
-    @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
-
-    #!TODO(rollnk): Deprecated. Replaced by PRLO/src/Optimizers/mutators.py::swapMutatorSingleCycle.
-    #!              Remove this copy once the PRLO version is validated in production.
-  """
-  if not any("prlodata" in sublist for sublist in kwargs["files"]):
-    raise ValueError("'swapMutatorSingleCycle' requires a File of type 'prlodata'.")
-  inpfile = [sublist[-1] for sublist in kwargs["files"] if sublist[1]=='prlodata'][0]
-  SCObject = SingleCycleChecker(os.path.normpath(os.path.join(inpfile.getPath(), inpfile.getFilename())))
-  symMult = SCObject.prloData.symmetricMultiplicity
-
-  children = xr.DataArray(np.zeros((np.shape(offSprings))),
-                          dims=['chromosome','Gene'],
-                          coords={'chromosome': np.arange(np.shape(offSprings)[0]),
-                                  'Gene':kwargs['variables']})
-
-  for i in range(np.shape(offSprings)[0]):
-    antihang = 0
-    flag = False
-    while not flag:
-      children[i] = offSprings[i]
-      antihang += 1
-      if antihang >= 1000:
-        raise ValueError("swapMutatorSingleCycle has failed to generate a valid genome.")
-      loc1, loc2 = locationsGenerator(offSprings, kwargs['locs'])
-      if symMult[loc1+1] != symMult[loc2+1]:
-        flag = False
-        continue
-
-      if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
-        gene1 = int(children[i,loc1].values)
-        gene2 = int(children[i,loc2].values)
-        _,b1,t1 = SCObject.decodeFAID(gene1,SCObject.prloData.solnLen,SCObject.prloData.numBatches)
-        _,b2,t2 = SCObject.decodeFAID(gene2,SCObject.prloData.solnLen,SCObject.prloData.numBatches)
-        # Re-encode with the new destination location
-        children[i,loc1] = SCObject.encodeFAID((loc1+1,1,t2),SCObject.prloData.solnLen,SCObject.prloData.numBatches) if b2==1 else gene2
-        children[i,loc2] = SCObject.encodeFAID((loc2+1,1,t1),SCObject.prloData.solnLen,SCObject.prloData.numBatches) if b1==1 else gene1
-
-      flag = SCObject.checkChromosome(children[i],symMult)[0]
-
   return children
 
 # @profile
@@ -400,18 +196,17 @@ def locationsGenerator(offSprings,locs):
   return loc1, loc2
 
 __mutators = {}
-__mutators['swapMutator']         = swapMutator
-__mutators['swapMutatorSS']       = swapMutatorSS
-__mutators['scrambleMutator']     = scrambleMutator
-__mutators['bitFlipMutator']      = bitFlipMutator
-__mutators['inversionMutator']    = inversionMutator
-__mutators['randomMutator']       = randomMutator
+__mutators['swapMutator']       = swapMutator
+__mutators['scrambleMutator']   = scrambleMutator
+__mutators['bitFlipMutator']    = bitFlipMutator
+__mutators['inversionMutator']  = inversionMutator
+__mutators['randomMutator']     = randomMutator
 
 
 def registerMutator(name, func):
   """
-    Register a mutator function under the given name.  Plugins call this from
-    their __init__.py to make custom operators discoverable by the GA.
+    Register a mutator operator function under the given name.  Plugins call
+    this from their __init__.py to make custom operators discoverable by the GA.
     @ In, name, str, operator name as it will appear in RAVEN XML input.
     @ In, func, callable, mutator function with signature func(offSprings, distDict, **kwargs).
     @ Out, None
