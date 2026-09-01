@@ -35,7 +35,7 @@ mh = getMessageHandler()
 #               We should make this method flexible to accept different set of params
 
 _defaultObjectiveScaling = 1.0
-_defaultPenaltyScaling = 1.0
+_defaultPenaltyScaling = 10.0
 
 # @profile
 def invLinear(rlz, **kwargs):
@@ -53,7 +53,7 @@ def invLinear(rlz, **kwargs):
         objVar, list of strings or single string, name(s) of the objective variable(s)
         constraintNum, int, number of constraints
         a, list of floats, linear coefficient(s) for the objective function (default = 1.0 for each objective)
-        b, list of floats, linear coefficient(s) for the penalty measure (default = 1.0 for each objective)
+        b, list of floats, linear coefficient(s) for the penalty measure (default = 10.0 for each objective)
         constraintFunction, xr.DataArray, measuring the severity of the constraint violation.
         type, list of strings, indicating 'min' or 'max' for each objective
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
@@ -167,7 +167,7 @@ def logistic(rlz, **kwargs):
         scale, list of floats, scaling coefficient(s) for the objective function (default = 1.0 for each objective)
         shift, list of floats, coefficient(s) for shifting the objective value (default = 0.0 for each objective)
         constraintFunction, xr.DataArray, measuring the severity of the constraint violation
-        penalty, list of floats, penalties for constraint violations (default = 1.0 for each objective)
+        penalty, list of floats, penalties for constraint violations (default = 10.0 for each objective)
         type, list of strings, indicating 'min' or 'max' for each objective
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
   """
