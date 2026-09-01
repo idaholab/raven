@@ -1214,7 +1214,7 @@ class GeneticAlgorithm(RavenSampled):
       if self._isMultiObjective:
         varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
         varList = [var for var in varList if var not in self._objectiveVar]
-        bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in list(self.toBeSampled.keys()))
+        bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in self.multiBestPoint)
         for i in range(len(self._objectiveVar)):
           bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestObjective]
         bestRlz['rank'] = self.multiBestRank
@@ -1289,6 +1289,11 @@ class GeneticAlgorithm(RavenSampled):
     optCD = CD.data[rankOneIDX]
 
     optPointsDic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(population.Gene.data))
+    # Carry along any extra solution-export output variables (e.g. model responses that are
+    # neither sampled inputs nor objectives) so they survive into the 'final' solution row.
+    extraVars = [var for var in selVars if var not in optPointsDic and var not in self._objectiveVar]
+    for var in extraVars:
+      optPointsDic[var] = np.atleast_1d(rlz[var].data)[rankOneIDX]
     optConstNew = [list(y) for y in zip(*optConstraintsV)]
     if len(optConstNew) > 0:
       optConstNew = xr.DataArray(optConstNew,
