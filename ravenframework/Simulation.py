@@ -304,7 +304,7 @@ class Simulation(MessageUser):
                                                                        # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
                                                                        # space is always added (e.g. --mycommand => --mycommand 10)
     self.runInfoDict['includeDashboard'  ] = False  # in case of internalParallel True, instantiate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
-    self.runInfoDict['WorkingDir'        ] = ''     # the directory where the framework should be running
+    self.runInfoDict['WorkingDir'        ] = '.'    # the directory where the framework should be running #NOTE(rollnk): Set default to the CWD
     self.runInfoDict['TempWorkingDir'    ] = ''     # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1      # the number of mpi process by run
     self.runInfoDict['NumThreads'        ] = 1      # Number of Threads by run

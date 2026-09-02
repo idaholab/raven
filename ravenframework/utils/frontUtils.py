@@ -60,6 +60,8 @@ def nonDominatedFrontier(data, returnMask,minMask=None, isFitness=False):
   nonDominatedFrontier = np.arange(nPoints)
   nextPointIndex = 0
 
+  if np.any(np.isnan(data)): #this should never happen, but if "nan" values makes it through then there is a possibility for the while loop to hang indefinitely.
+    raise ValueError("'NaN' value returned in place of fitness value. Check objective function.")
   while nextPointIndex < np.shape(data)[0]:
     if not isFitness:
       nondominatedPointMask = np.any(data < data[nextPointIndex], axis=1) | np.all(data == data[nextPointIndex], axis=1)

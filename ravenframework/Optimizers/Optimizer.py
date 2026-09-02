@@ -83,6 +83,14 @@ class Optimizer(AdaptiveSampler):
         descr=r"""Name of the response variable (or ``objective function'') that should be optimized
         (minimized or maximized)."""))
 
+    # deduplication
+    # RavenSampled consumes this flag in _queueSubmission to skip duplicate evaluations.
+    specs.addSub(InputData.parameterInputFactory('deduplication', contentType=InputTypes.BoolType, strictMode=True,
+        printPriority=91,
+        descr=r"""if True, skip model evaluations for duplicate optimization points that were already
+              evaluated earlier in this optimizer run. Duplicate detection is based on sampled variable
+              values and applies to all RavenSampled-based optimizers. \default{False}"""))
+
     # modify Sampler variable nodes
     variable = specs.getSub('variable')
     variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType,
@@ -179,6 +187,7 @@ the implicit constraints and False otherwise.""")
     self._constraintFunctions = []                                                       # list of constraint functions
     self._impConstraintFunctions = []                                                    # list of implicit constraint functions
     self._requireSolnExport = True                                                       # optimizers only produce result in solution export
+    self._deduplication = False                                                          # global dedup toggle; enforced by RavenSampled._queueSubmission
     self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files']       # List of assembler entities required to initialize an optmizer
     self._canHandleMultiObjective = False                                                # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
     # __private
@@ -256,6 +265,10 @@ the implicit constraints and False otherwise.""")
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
     self._objectiveVar = paramInput.findFirst('objective').value
     self._isMultiObjective = len(self._objectiveVar) > 1
+    # Keep dedup parsing centralized here so all RavenSampled-based optimizers share one input path.
+    dedup = paramInput.findFirst('deduplication')
+    if dedup is not None:
+      self._deduplication = dedup.value
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node
     init = paramInput.findFirst('samplerInit')

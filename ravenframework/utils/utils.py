@@ -1083,4 +1083,3 @@ def which(cmd):
         if _access_check(name):
           return name
   return None
-

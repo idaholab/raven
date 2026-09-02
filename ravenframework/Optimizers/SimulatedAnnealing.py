@@ -293,7 +293,7 @@ class SimulatedAnnealing(RavenSampled):
       @ In, traj, int, trajectory identifier
       @ In, step, int, iteration number identifier
       @ In, moreInfo, dict, optional, additional run-identifying information to track
-      @ Out, None
+      @ Out, queued, bool, True if the run was queued
     """
     info = {}
     if moreInfo is not None:
@@ -301,9 +301,7 @@ class SimulatedAnnealing(RavenSampled):
     info.update({'traj': traj,
                   'step': step
                 })
-    # NOTE: explicit constraints have been checked before this!
-    self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
-    self._submissionQueue.append((point, info))
+    return self._queueSubmission(point, info)
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
 

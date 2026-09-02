@@ -24,6 +24,7 @@ import shlex
 import time
 import numpy as np
 import pandas as pd
+from pathlib import Path
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -835,9 +836,10 @@ class Code(Model):
 
       ## Check if the user specified any file extensions for clean up
       for fileExt in fileExtensionsToDelete:
-        fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
-        for f in fileList:
-          os.remove(f)
+        pattern = '*.'+fileExt.removeprefix('.').removeprefix('*.')
+        for path in Path(metaData['subDirectory']).rglob(pattern):
+            if path.is_file():
+                path.unlink()
 
       return exportDict
 

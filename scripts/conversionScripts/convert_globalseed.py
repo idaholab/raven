@@ -66,4 +66,4 @@ if __name__=='__main__':
   import sys
   convert_utils.standardMain(sys.argv,convert)
   ## the following is provided as an example format for the expected content of the system arguments (sys.argv):
-  #sys.argv = ['/home/rollnk/LWRS-PRLO/raven_deployed/scripts/conversionScripts/convert_globalseed.py','--tests','--no-rewrite','--remove-comments','/home/rollnk/LWRS-PRLO/raven_deployed/tests/']
+  #sys.argv = ['/path/to/raven/scripts/conversionScripts/convert_globalseed.py','--tests','--no-rewrite','--remove-comments','/path/to/raven/tests/']

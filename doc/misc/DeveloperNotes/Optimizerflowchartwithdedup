@@ -1,0 +1,56 @@
+flowchart TD
+  A[Optimizer.initialize] --> B[initializeTrajectory]
+  B --> C[GA.initialize]
+  C --> C1[self.batch = populationSize]
+  C1 --> D["_submitRun(point, traj, step)"]
+  D --> E["_queueSubmission(point, info)"]
+
+  E -->|dedup off| Q[submissionQueue.append]
+  E -->|dedup on| K["_makeSubmissionKey(point)"]
+  K --> M{key in _evaluatedSubmissionKeys?}
+  M -->|No| Q
+  M -->|Yes| S["_recordDeduplicatedSubmission(key, info)<br/>return False"]
+
+  Q --> G[amIreadyToProvideAnInput]
+  S --> G
+  G --> GD{queue empty AND dedup pending<br/>AND no tracked prefixes?}
+  GD -->|Yes| GR["_restoreDeduplicatedSubmissions(None, None)"]
+  GR --> GB["_overwriteBatchId(restoredRlz)"]
+  GB --> USE["_useRealization(info, rlz)"]
+  GD -->|No| H[localGenerateInput]
+
+  H --> H1["runsToGenerate = min(batch, len(submissionQueue))"]
+  H1 --> H2{batch > 1?}
+  H2 -->|Yes| H3["batchMode=True<br/>batchId += 1"]
+  H2 -->|No| H4[batchMode=False]
+  H3 --> I[Pop queue + denormalize + register prefix]
+  H4 --> I
+  I --> I2{batch > 1?}
+  I2 -->|Yes| I3["build batchInfo:<br/>{nRuns=len(batchData), batchRealizations, batchId='gen_'+batchId}"]
+  I2 -->|No| J[Model submit via JobHandler]
+  I3 --> J
+
+  J --> L[localFinalizeActualSampling]
+  L --> L1[get info by prefix]
+  L1 --> L2{batch == 1?}
+  L2 -->|Yes| N1[Read rlz by prefix]
+  L2 -->|No| N2[Read rlz Dataset by batchId]
+  N1 --> O[Objective sign fix + normalizeData]
+  N2 --> O
+  O --> P["_cacheEvaluatedSubmissionPoints(rlz)"]
+  P --> R0["_restoreDeduplicatedSubmissions(info, rlz)"]
+  R0 --> R1["_overwriteBatchId(restoredRlz)"]
+  R1 --> USE
+
+  USE --> U{Converged or limit reached?}
+  U -->|No| T[Reproduction: generate children]
+  T --> D
+  U -->|Yes| V[_closeTrajectory / no active traj]
+  V --> W[finalizeSampler]
+
+  CA ~~~ LEGEND
+  LEGEND["[ Variable Legend ]<br/>point: one candidate solution dict<br/>traj: trajectory id<br/>step: iteration/generation index<br/>info: run metadata dict (traj, step)<br/>rlz: realization result (dict or xr.Dataset)<br/>key: hashable tuple from point<br/>batchInfo: run metadata only (nRuns, batchRealizations, batchId)"]
+
+  style USE fill:#f4f9ff,stroke:#1f5aa6,stroke-width:2px
+  style LEGEND fill:none,stroke:none,text-align:left
+  style CA fill:none,stroke:none,color:#000000
