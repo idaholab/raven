@@ -609,6 +609,60 @@ class CoreLayoutPlot(PlotInterface):
       ordered.append((stage, grid))
     return ordered
 
+  def _mapColumnToVals(self, df, column):
+    """
+      Build a {loc: value} dict from a per-assembly ("Map" format) dataframe column,
+      matching each (core_row, core_col) to its location via the geometry's locToCoords.
+      @ In, df, pandas.DataFrame, the core_rpf_map HistorySet as a dataframe
+      @ In, column, str, the column name to read the per-assembly value from
+      @ Out, vals, dict, {normalized_loc: float value} (empty if the column is absent)
+    """
+    if column not in df.columns:
+      return {}
+    vals = {}
+    for _, row in df.iterrows():
+      r, c = int(row['core_row']), int(row['core_col'])
+      for loc, coords in self.locToCoords.items():
+        if (r, c) in coords:
+          try:
+            vals[loc] = float(row[column])
+          except Exception:
+            vals[loc] = np.nan
+          break
+    return vals
+
+  def _collectStageGridsMap(self, df, color_col):
+    """
+      Path B (per-assembly map) stage collector: synthesize BOC->EOC animation stages
+      from the _boc/_eoc sibling columns of the selected field. A field with no
+      _boc/_eoc pair (e.g. core_enr, core_burn_tier) yields a single stage -> static bar.
+      @ In, df, pandas.DataFrame, the core_rpf_map HistorySet as a dataframe
+      @ In, color_col, str, the selected color column (color_prefix)
+      @ Out, ordered, list(tuple(stage_label, grid)), BOC then EOC when both are present
+    """
+    if not color_col:
+      return []
+    cols = set(df.columns)
+    low = color_col.lower()
+    # Derive the field base so <base>_boc / <base>_eoc can be paired.
+    if low.endswith('_boc') or low.endswith('_eoc'):
+      base = color_col[:-4]
+    else:
+      base = color_col
+    boc, eoc = f'{base}_boc', f'{base}_eoc'
+    if boc in cols and eoc in cols:
+      pairs = [('BOC', boc), ('EOC', eoc)]
+    elif color_col in cols:
+      pairs = [('', color_col)]
+    else:
+      return []
+    ordered = []
+    for label, col in pairs:
+      vals = self._mapColumnToVals(df, col)
+      if vals:
+        ordered.append((label, self._buildGrid(vals)))
+    return ordered
+
   def _emitPlotlySurface(self, grid_view, row_start, col_start, use_burn_tier):
     try:
       import plotly.graph_objects as go
@@ -1100,10 +1154,11 @@ class CoreLayoutPlot(PlotInterface):
     df = self.source.asDataset().to_dataframe()
 
     # Handle "Map" format (one pin per row) vs "Wide" format (one core per row)
-    if 'core_row' in df.columns and 'core_col' in df.columns:
+    map_format = 'core_row' in df.columns and 'core_col' in df.columns
+    color_col = self.colorPrefix if self.colorPrefix else 'core_rpf'
+    if map_format:
       # Map format: iterate through all rows to build the values dictionary
       active_vals = {}
-      color_col = self.colorPrefix if self.colorPrefix else 'core_rpf'
       for _, row in df.iterrows():
         r, c = int(row['core_row']), int(row['core_col'])
         # Find the location ID for these coordinates from the geometry
@@ -1171,8 +1226,13 @@ class CoreLayoutPlot(PlotInterface):
     stage_grids = []
     stage_labels = []
     if self.animateBar and self.bar3d and self.interactiveBar:
-      base_prefix = self._basePrefix() or (self.colorPrefix.lower() if self.colorPrefix else None)
-      collected = self._collectStageGrids(row, base_prefix)
+      if map_format:
+        # Path B (per-assembly core_rpf_map): synthesize BOC->EOC stages from the
+        # sibling _boc/_eoc columns of the selected field (e.g. core_rpf_boc/core_rpf_eoc).
+        collected = self._collectStageGridsMap(df, color_col)
+      else:
+        base_prefix = self._basePrefix() or (self.colorPrefix.lower() if self.colorPrefix else None)
+        collected = self._collectStageGrids(row, base_prefix)
       if collected:
         for lbl, g in collected:
           gv, _, _, _, _ = self._applySymmetry(g)
