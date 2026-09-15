@@ -227,7 +227,7 @@ class NumpyRNG:
       @ In, value, int or NoneType, RNG seed
       @ Out, None
     """
-    if value in [None,"none"]: # 'None' prompts the bitGenerator to grab a "high entropy seed from the OS", which defines the inital state.
+    if value in [None,"none","None"]: # 'None' prompts the bitGenerator to grab a "high entropy seed from the OS", which defines the inital state.
       self._seed = None
     elif str(value).lower() == 'legacynone': # Use the system clock as a source of entropy for a legacy-style seed.
       self._seed = int(time())
