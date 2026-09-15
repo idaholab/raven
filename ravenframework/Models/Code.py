@@ -24,6 +24,7 @@ import shlex
 import time
 import numpy as np
 import pandas as pd
+from pathlib import Path
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -543,6 +544,7 @@ class Code(Model):
     postcommand = kwargs['postcommand']
     bufferSize = kwargs['logfileBuffer']
     fileExtensionsToDelete = kwargs['deleteOutExtension']
+    deleteOutExtensionRecursive = kwargs['deleteOutExtensionRecursive']
     deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
 
     codeLogFile = self.outFileRoot
@@ -834,10 +836,15 @@ class Code(Model):
           os.remove(codeLofFileFullPath)
 
       ## Check if the user specified any file extensions for clean up
+      # recursion is opt-in (RunInfo/deleteOutExtension@recursive) so the default cleanup scope
+      # stays top-level-only; interfaces that nest repeated calculations in subdirectories can
+      # enable it to also clean up matching files there
+      globMethod = 'rglob' if deleteOutExtensionRecursive else 'glob'
       for fileExt in fileExtensionsToDelete:
-        fileList = [ os.path.join(metaData['subDirectory'],f) for f in os.listdir(metaData['subDirectory']) if f.endswith(fileExt) ]
-        for f in fileList:
-          os.remove(f)
+        pattern = '*.'+fileExt.removeprefix('.').removeprefix('*.')
+        for path in getattr(Path(metaData['subDirectory']), globMethod)(pattern):
+            if path.is_file():
+                path.unlink()
 
       return exportDict
 
@@ -1074,6 +1081,7 @@ class Code(Model):
       kw['postcommand'       ] = jobHandler.runInfoDict['postcommand']
       kw['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
       kw['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
+      kw['deleteOutExtensionRecursive'] = jobHandler.runInfoDict['deleteOutExtensionRecursive']
       kw['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
       kw['numberNodes'       ] = len(nodesList)
 

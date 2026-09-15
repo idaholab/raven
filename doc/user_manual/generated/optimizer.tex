@@ -143,6 +143,30 @@
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
           For multi-objective, this can be a list like min, max.
+
+        \item \xmlNode{writeCheckpoint}: \xmlDesc{boolean, optional},
+          when \xmlString{True}, enables automatic checkpoint writing after each completed optimizer
+          iteration. The optimizer state is written to an HDF5 \texttt{.ravenrst} file that can
+          later be used with \xmlNode{restartFrom} to resume an interrupted run.
+          \default{False}
+
+          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
+          \begin{itemize}
+            \item \xmlAttr{file}: \xmlDesc{string, optional},
+              path to the checkpoint output file. If omitted, the file is named
+              \texttt{<optimizerName>.ravenrst} in the working directory.
+            \item \xmlAttr{interval}: \xmlDesc{integer, optional},
+              number of completed iterations between checkpoint writes.
+              \default{1}
+          \end{itemize}
+
+        \item \xmlNode{restartFrom}: \xmlDesc{string, optional},
+          path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer should
+          resume. The optimizer validates that the settings recorded in the checkpoint file are
+          compatible with the current XML configuration (variable names, bounds, and
+          algorithm-specific parameters) before restoring state. The \xmlNode{SolutionExport}
+          DataObject is pre-populated with the historical solution path from the checkpoint so
+          that output files appear continuous.
       \end{itemize}
 
     \item \xmlNode{gradient}:
@@ -1141,6 +1165,30 @@ Simulated Annealing Example:
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
           For multi-objective, this can be a list like min, max.
+
+        \item \xmlNode{writeCheckpoint}: \xmlDesc{boolean, optional},
+          when \xmlString{True}, enables automatic checkpoint writing after each completed optimizer
+          iteration. The optimizer state is written to an HDF5 \texttt{.ravenrst} file that can
+          later be used with \xmlNode{restartFrom} to resume an interrupted run.
+          \default{False}
+
+          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
+          \begin{itemize}
+            \item \xmlAttr{file}: \xmlDesc{string, optional},
+              path to the checkpoint output file. If omitted, the file is named
+              \texttt{<optimizerName>.ravenrst} in the working directory.
+            \item \xmlAttr{interval}: \xmlDesc{integer, optional},
+              number of completed iterations between checkpoint writes.
+              \default{1}
+          \end{itemize}
+
+        \item \xmlNode{restartFrom}: \xmlDesc{string, optional},
+          path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer should
+          resume. The optimizer validates that the settings recorded in the checkpoint file are
+          compatible with the current XML configuration (variable names, bounds, population size,
+          and multi-objective mode) before restoring state. The \xmlNode{SolutionExport}
+          DataObject is pre-populated with the historical solution path from the checkpoint so
+          that output files appear continuous.
       \end{itemize}
 
     \item \xmlNode{GAparams}:

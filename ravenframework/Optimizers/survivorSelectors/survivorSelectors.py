@@ -36,13 +36,13 @@ from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
 def ageBased(newRlz,**kwargs):
   """
     ageBased survivorSelection mechanism for new generation selection.
-    It replaces the oldest parents with the new children regardless of the fitness.
+    It replaces the oldest grandparents with the new parents regardless of the fitness.
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           age, list, age list for each chromosome of the previous population
           variables, list of variable names to be sampled
           fitness, xr.DataArrays, fitness of the previous generation
-          offSpringsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offSpringsFitness) = nChildren x nGenes
+          individualsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(individualsFitness) = nChildren x nGenes
           population, xr.DataArray, population from previous generation
     @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
     @ Out, newFitness, xr.DataArray, fitness of the new population
@@ -54,8 +54,8 @@ def ageBased(newRlz,**kwargs):
     popAge = [0] * popSize
   else:
     popAge = kwargs['age']
-  offSpringsFitness = datasetToDataArray(kwargs['offSpringsFitness'], list(kwargs['offSpringsFitness'].keys())).data
-  offSprings = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
+  individualsFitness = datasetToDataArray(kwargs['individualsFitness'], list(kwargs['individualsFitness'].keys())).data
+  individuals = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
                             dims=['chromosome','Gene'],
                             coords={'chromosome':np.arange(np.shape(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()))[0]),
                                     'Gene': kwargs['variables']})
@@ -67,9 +67,9 @@ def ageBased(newRlz,**kwargs):
   newPopulation = sortedPopulation
   newFitness    = np.squeeze(sortedFitness)
   newAge = list(map(lambda x:x+1, sortedAge))
-  newPopulation[-1:-np.shape(offSprings)[0]-1:-1] = offSprings
-  newFitness[-1:-np.shape(offSprings)[0]-1:-1] = np.squeeze(offSpringsFitness)
-  newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0]
+  newPopulation[-1:-np.shape(individuals)[0]-1:-1] = individuals
+  newFitness[-1:-np.shape(individuals)[0]-1:-1] = np.squeeze(individualsFitness)
+  newAge[-1:-np.shape(individuals)[0]-1:-1] = [0]*np.shape(individuals)[0]
   # converting back to DataArrays
   newPopulation = xr.DataArray(newPopulation,
                                dims=['chromosome','Gene'],
@@ -86,12 +86,12 @@ def ageBased(newRlz,**kwargs):
 def fitnessBased(newRlz,**kwargs):
   """
     fitnessBased survivorSelection mechanism for new generation selection
-    It combines the parents and children/offsprings then keeps the fittest individuals
+    It combines the parents and children/individuals then keeps the fittest individuals
     to revert to the same population size.
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
           age, list, ages of each chromosome in the population of the previous generation
-          offSpringsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offSpringsFitness) = nChildren x nGenes
+          individualsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(individualsFitness) = nChildren x nGenes
           variables
           population
           fitness
@@ -106,25 +106,25 @@ def fitnessBased(newRlz,**kwargs):
   else:
     popAge = kwargs['age']
 
-  offSpringsFitness = datasetToDataArray(kwargs['offSpringsFitness'], list(kwargs['offSpringsFitness'].keys())).data
-  offSpringsFitness = np.array([item for sublist in offSpringsFitness for item in sublist])
-  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
+  individualsFitness = datasetToDataArray(kwargs['individualsFitness'], list(kwargs['individualsFitness'].keys())).data
+  individualsFitness = np.array([item for sublist in individualsFitness for item in sublist])
+  individuals = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
   popFitness = datasetToDataArray(kwargs['fitness'], list(kwargs['fitness'].keys())).data
   popFitness = popFitness.reshape((popFitness.size,))
   newPopulation = population
   newFitness = popFitness
   newAge = list(map(lambda x:x+1, popAge))
-  newPopulationMerged = np.concatenate([newPopulation,offSprings])
-  newFitness = np.concatenate([newFitness,offSpringsFitness])
-  newAge.extend([0]*len(offSpringsFitness))
+  newPopulationMerged = np.concatenate([newPopulation,individuals])
+  newFitness = np.concatenate([newFitness,individualsFitness])
+  newAge.extend([0]*len(individualsFitness))
 
   # sort population, popFitness according to age
   sortedFitness,sortedAge,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(newFitness,newAge,newPopulationMerged),reverse=True,key=lambda x: (x[0], -x[1]))])
   sortedFitnessT,sortedAgeT,sortedPopulationT = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation))
-  newPopulationSorted = sortedPopulationT[:-len(offSprings)]
-  newFitness = sortedFitnessT[:-len(offSprings)]
-  newAge = sortedAgeT[:-len(offSprings)]
+  newPopulationSorted = sortedPopulationT[:-len(individuals)]
+  newFitness = sortedFitnessT[:-len(individuals)]
+  newAge = sortedAgeT[:-len(individuals)]
 
   newPopulationArray = xr.DataArray(newPopulationSorted,
                                     dims=['chromosome','Gene'],
@@ -137,12 +137,12 @@ def fitnessBased(newRlz,**kwargs):
   return newPopulationArray,newFitnessDS,newAge,kwargs['popObjectiveVal']
 
 # @profile
-def rankNcrowdingBased(offsprings, **kwargs):
+def rankNcrowdingBased(individuals, **kwargs):
   """
     rankNcrowdingBased survivorSelection mechanism for new generation selection
-    It combines the parents and children/offsprings then calculates their rank and crowding distance.
+    It combines the grandparents and parents/individuals then calculates their rank and crowding distance.
     After having ranks and crowding distance, it keeps the lowest ranks (and highest crowding distance if indivisuals have same rank.
-    @ In, offsprings, xr.DataSet, containing either a single realization, or a batch of realizations.
+    @ In, individuals, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this survivor slection method:
           variables
           age
@@ -168,7 +168,7 @@ def rankNcrowdingBased(offsprings, **kwargs):
     popAge = kwargs['age']
 
   population = np.atleast_2d(kwargs['population'].data)
-  offSprings = np.atleast_2d(offsprings[kwargs['variables']].to_array().transpose().data)
+  individuals = np.atleast_2d(individuals[kwargs['variables']].to_array().transpose().data)
   popObjectiveVal = kwargs['popObjectiveVal']
   offObjectiveVal = kwargs['offObjectiveVal']
   popFit = kwargs['popFit']
@@ -203,8 +203,8 @@ def rankNcrowdingBased(offsprings, **kwargs):
                           coords={'CrowdingDistance': np.arange(np.shape(newPopCD)[0])})
 
   newAge = list(map(lambda x:x+1, popAge))
-  newPopulationMerged = np.concatenate([population,offSprings])
-  newAge.extend([0]*len(offSprings))
+  newPopulationMerged = np.concatenate([population,individuals])
+  newAge.extend([0]*len(individuals))
 
   #sort in rank/crowd comparison order
   sortedRank,sortedCD,sortedAge,sortedPopulation,sortedFit,sortedObjectives,sortedConstV = \
@@ -214,9 +214,9 @@ def rankNcrowdingBased(offsprings, **kwargs):
     np.atleast_1d(list(sortedRank)), list(sortedCD), list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFit)),np.atleast_1d(list(sortedObjectives)),np.atleast_1d(list(sortedConstV))
 
   #choose the best elements
-  newPopulation = sortedPopulationT[:-len(offSprings)]
-  newObjectives = sortedObjectivesT[:-len(offSprings)]
-  newFit        = sortedFitT[:-len(offSprings)]
+  newPopulation = sortedPopulationT[:-len(individuals)]
+  newObjectives = sortedObjectivesT[:-len(individuals)]
+  newFit        = sortedFitT[:-len(individuals)]
 
   newRank = frontUtils.rankNonDominatedFrontiers(newFit, isFitness=True)
   newRank = xr.DataArray(newRank,
@@ -229,8 +229,8 @@ def rankNcrowdingBased(offsprings, **kwargs):
                        dims=['CrowdingDistance'],
                        coords={'CrowdingDistance': np.arange(np.shape(newCD)[0])})
 
-  newAge = sortedAgeT[:-len(offSprings)]
-  newConstV = sortedConstVT[:-len(offSprings)]
+  newAge = sortedAgeT[:-len(individuals)]
+  newConstV = sortedConstVT[:-len(individuals)]
 
   for i in range(len(list(popFit.keys()))):
     fitness = xr.DataArray(newFit[:,i],

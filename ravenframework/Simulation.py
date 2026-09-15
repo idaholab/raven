@@ -304,7 +304,7 @@ class Simulation(MessageUser):
                                                                        # -omp %NUM_CPUS% (e.g. -omp 10). If not present, a blank
                                                                        # space is always added (e.g. --mycommand => --mycommand 10)
     self.runInfoDict['includeDashboard'  ] = False  # in case of internalParallel True, instantiate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
-    self.runInfoDict['WorkingDir'        ] = ''     # the directory where the framework should be running
+    self.runInfoDict['WorkingDir'        ] = '.'    # the directory where the framework should be running; defaults to the CWD
     self.runInfoDict['TempWorkingDir'    ] = ''     # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1      # the number of mpi process by run
     self.runInfoDict['NumThreads'        ] = 1      # Number of Threads by run
@@ -321,6 +321,7 @@ class Simulation(MessageUser):
     self.runInfoDict['postcommand'       ] = ''     # Added after the command that is run.
     self.runInfoDict['delSucLogFiles'    ] = False  # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []     # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
+    self.runInfoDict['deleteOutExtensionRecursive'] = False  # If True, deleteOutExtension cleanup also recurses into subdirectories of the run's working directory (needed by code interfaces that nest repeated calculations in subdirectories); default False preserves top-level-only cleanup scope
     self.runInfoDict['mode'              ] = ''     # Running mode.  Currently the only mode supported is mpi but others can be added with custom modes.
     self.runInfoDict['Nodes'             ] = []     # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00' # How long the complete input is expected to run.
@@ -733,6 +734,10 @@ class Simulation(MessageUser):
         self.runInfoDict['postcommand'] = element.text
       elif element.tag == 'deleteOutExtension':
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
+        # opt-in attribute keeps the default cleanup scope top-level-only; interfaces that nest
+        # repeated calculations in subdirectories can set recursive="True" to also clean those up
+        if 'recursive' in element.attrib:
+          self.runInfoDict['deleteOutExtensionRecursive'] = utils.interpretBoolean(element.attrib['recursive'])
       elif element.tag == 'headNode':
         self.runInfoDict['headNode'] = element.text.strip()
       elif element.tag == 'remoteNodes':

@@ -65,7 +65,11 @@ class DataSet(DataObject):
     self._neededForReload = [self.sampleTag] # metavariables required to reload this data object.
     self._samplerTag      = None
     self.inputKDTree      = None
-    self._autogenerate    = set()             # index vars in here are automatically generated
+    self._autogenerate    = set()            # index vars in here are automatically generated
+    # metavars registered with printByDefault=False: retained in _metavars (so addRealization
+    # keeps them and they remain accessible) but excluded from the default write-everything set
+    # in _getRequestedElements unless explicitly requested (by name, or via a declared Input/Output)
+    self._nonDefaultMeta  = set()
 
   ### INPUT SPECIFICATION ###
   @classmethod
@@ -99,13 +103,17 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addExpectedMeta(self, keys, params=None, overwrite=False):
+  def addExpectedMeta(self, keys, params=None, overwrite=False, printByDefault=True):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ In, overwrite, bool, optional, if True then allow existing data while changing keys
+      @ In, printByDefault, bool, optional, if False then these keys are still retained (addRealization
+        keeps them, and they remain fully accessible on this data object) but are excluded from the
+        default write-everything set used when no explicit "what" is requested at write time; they
+        are still written if explicitly requested (by name, or because they're also a declared Input/Output)
       @ Out, keys, list(str), extra keys that has been registered
     """
     if params is None: # -> grammar much?
@@ -127,6 +135,8 @@ class DataSet(DataObject):
     # add keys to _metavars if they are not already there
     monkeys = [key for key in keys if key not in self._metavars]
     self._metavars.extend(monkeys)
+    if not printByDefault:
+      self._nonDefaultMeta.update(monkeys)
     # do the same for _orderedVars
     okays = [key for key in keys if key not in self._orderedVars]
     self._orderedVars.extend(okays)
@@ -269,6 +279,9 @@ class DataSet(DataObject):
     #  This is because the cNDarray collector expects a LIST of realization, not a single realization.
     #  Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
     # set realizations as a list of realizations (which are ordered lists)
+    # TODO: consider whether filtering the vars in rlz through self._orderedVars here (and in the
+    # "append" line for self._collector below) is still necessary, or whether the data provided
+    # in rlz could be used directly. Open design question for a follow-up, not resolved here.
     newData = np.array(list(rlz[var] for var in self._orderedVars)+[0.0], dtype=object)
     newData = newData[:-1]
     # if data storage isn't set up, set it up
@@ -831,6 +844,7 @@ class DataSet(DataObject):
     """
     super().flush()
     self.types = None
+    self._nonDefaultMeta = set()
 
   ### BUILTINS AND PROPERTIES ###
   # These are special commands that RAVEN entities can use to interact with the data object
@@ -1862,7 +1876,8 @@ class DataSet(DataObject):
     else:
       # need the sampleTag meta to load histories
       # BY DEFAULT keep everything needed to reload this entity.  Inheritors can define _neededForReload to specify what that is.
-      keep = set(self._inputs + self._outputs + self._metavars + self._neededForReload)
+      # exclude metavars registered with printByDefault=False, unless they're also a declared Input/Output/reload var.
+      keep = set(self._inputs + self._outputs + self._metavars + self._neededForReload) - self._nonDefaultMeta
 
     return keep
 
