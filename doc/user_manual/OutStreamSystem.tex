@@ -99,6 +99,10 @@ Default implementations exist for \xmlNode{Print} and \xmlNode{Plot}, described 
 Sections \ref{sec:printing} and \ref{sec:plotting}. Other plotting strategies are described in section
 ``Specific Plots'' [\ref{sec:outstreams.subplots}] below.
 
+For optimizer-focused diagnostics (e.g., Pareto fronts, convergence animations, feasibility overlays),
+RAVEN ships a growing library of specialized \xmlNode{Plot} subTypes. The current list and example workflows
+are maintained in \texttt{OptimizationPlotsCatalogue.md} at the root of the RAVEN repository.
+
 \subsection{Defaults}
  %%%%%%%%%%%%%% OLD $$$$$$$$$$$$$$$$$$
 Actually, two different default OutStream types are available:
@@ -1832,6 +1836,21 @@ The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
       the evolution step. This variable must be included in the \xmlNode{source} DataObject.
 \end{itemize}
 
+Optional constraint encoding (feasible vs.\ infeasible paths) can be enabled using:
+\begin{itemize}
+  \item \xmlNode{constraints}, \xmlDesc{optional, comma-separated strings}, list of constraint evaluation columns (e.g. \xmlString{ConstraintEvaluation\_constraint1}).
+        Values $> 0$ are considered feasible; values $\le 0$ are considered violated. Use \xmlString{all} to include every column named \xmlString{ConstraintEvaluation\_*}.
+  \item \xmlNode{color\_mode}, \xmlDesc{optional, string}, controls infeasible coloring when constraints are provided. Options are \xmlString{feasibility} (default),
+        \xmlString{violation} (color encodes violation magnitude), or \xmlString{none}.
+  \item \xmlNode{thickness\_mode}, \xmlDesc{optional, string}, controls linewidth when constraints are provided. Options are \xmlString{none} (default) or \xmlString{violation}.
+  \item \xmlNode{violation\_metric}, \xmlDesc{optional, string}, reduces multiple constraint violations into a scalar (for \xmlNode{color\_mode} or \xmlNode{thickness\_mode}): \xmlString{sum} (default), \xmlString{max}, or \xmlString{l2}.
+  \item \xmlNode{linewidth\_bounds}, \xmlDesc{optional, comma-separated floats}, two values giving min/max linewidth when \xmlNode{thickness\_mode} is \xmlString{violation}.
+  \item \xmlNode{feasible\_color}, \xmlDesc{optional, string}, color for feasible paths (default \xmlString{\#2e7d32}).
+  \item \xmlNode{infeasible\_color}, \xmlDesc{optional, string}, color for infeasible paths when \xmlNode{color\_mode} is \xmlString{feasibility} (default \xmlString{\#d32f2f}).
+  \item \xmlNode{infeasible\_cmap}, \xmlDesc{optional, string}, Matplotlib colormap used for infeasible paths when \xmlNode{color\_mode} is \xmlString{violation} (default \xmlString{Reds}).
+  \item \xmlNode{show\_infeasible}, \xmlDesc{optional, boolean}, if false, infeasible paths are hidden (default true).
+\end{itemize}
+
 For example,
 \begin{lstlisting}[style=XML]
 <Simulation>
@@ -1845,3 +1864,96 @@ For example,
   </OutStreams>
 </Simulations>
 \end{lstlisting}
+
+\subsubsection{ProsectionMatrixPlot}
+The \xmlString{ProsectionMatrixPlot} \xmlAttr{subType} renders many pairwise scatter plots while selecting samples whose
+remaining dimensions are close to their median values (a ``prosection'' slice).
+This helps reveal local pairwise structure in a high-dimensional design space.
+
+The \xmlString{ProsectionMatrixPlot} \xmlAttr{subType} requires the following nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{required, string}, the DataObject containing samples.
+  \item \xmlNode{variables}, \xmlDesc{required, comma-separated strings}, list of variables to consider (at least three).
+  \item \xmlNode{tolerance}, \xmlDesc{optional, float}, normalised tolerance used for the median-based slice (default 0.1).
+\end{itemize}
+
+Optional usability controls:
+\begin{itemize}
+  \item \xmlNode{rows\_per\_fig}, \xmlDesc{optional, integer}, splits a large matrix into multiple output images.
+  \item \xmlNode{min\_slice\_points}, \xmlDesc{optional, integer}, minimum slice size before fallback selection is used.
+  \item \xmlNode{fallback\_points}, \xmlDesc{optional, integer}, number of nearest-to-median samples used as fallback.
+\end{itemize}
+
+\subsubsection{FeasibilityRadarPlot}
+The \xmlString{FeasibilityRadarPlot} \xmlAttr{subType} produces a radar/spider chart comparing aggregate (median/mean)
+profiles of selected variables for feasible vs.\ infeasible samples, where feasibility is defined by one or more
+\xmlString{ConstraintEvaluation\_*} columns ($> 0$ feasible, $\le 0$ violated).
+
+The \xmlString{FeasibilityRadarPlot} \xmlAttr{subType} requires the following nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{required, string}, the DataObject containing samples.
+  \item \xmlNode{variables}, \xmlDesc{required, comma-separated strings}, radar axes to summarize.
+  \item \xmlNode{constraints}, \xmlDesc{required, comma-separated strings}, constraint evaluation columns, or \xmlString{all}.
+\end{itemize}
+
+\subsubsection{ParetoChartPlot}
+The \xmlString{ParetoChartPlot} \xmlAttr{subType} produces a Pareto chart: categories are sorted in descending order as bars,
+with a cumulative percentage curve overlaid on a secondary axis. This is helpful for highlighting the ``vital few'' dominant drivers
+(for example, which constraints are most frequently violated).
+
+The plot supports two modes:
+\begin{itemize}
+  \item \textbf{Constraint mode:} provide \xmlNode{constraints} (or \xmlString{all}) and the bars show violation counts per constraint ($\texttt{ConstraintEvaluation\_*} \le 0$).
+  \item \textbf{Category-column mode:} provide \xmlNode{category} (and optional \xmlNode{value}) to count or sum per category label.
+\end{itemize}
+
+Optional nodes include \xmlNode{top\_n} (and \xmlNode{include\_other}) to limit displayed categories, plus \xmlNode{index}/\xmlNode{generation}/\xmlNode{use\_all\_generations} for generation filtering.
+
+\subsubsection{AdjustedEpsilonOptimalPlot}
+The \xmlString{AdjustedEpsilonOptimalPlot} \xmlAttr{subType} visualizes an ``epsilon'' grid overlay in a two-objective space and highlights
+an epsilon-efficient (non-epsilon-dominated) representative set. Objective space is partitioned into epsilon-sized boxes; samples in the same box
+are treated as equivalent for dominance purposes and one representative is selected.
+
+Provide \xmlNode{objectives} (two entries). Choose epsilon either directly with \xmlNode{epsilon} or indirectly with \xmlNode{search\_extent} (epsilon = 1/search\_extent).
+Optionally provide \xmlNode{constraints} to mark infeasible samples, and \xmlNode{goals} to indicate min/max directions.
+The \xmlNode{search\_extent} is a convenience control that sets the number of grid divisions per axis in normalized space; increasing it decreases epsilon and increases resolution.
+If both \xmlNode{epsilon} and \xmlNode{search\_extent} are provided, \xmlNode{epsilon} takes precedence.
+In this plot, normalization is used to compute epsilon boxes (so \xmlNode{epsilon} is interpreted in normalized objective space); \xmlNode{axis\_space} only controls how the axes are displayed.
+For improved readability when solutions occupy only a small region of the unit square, enable \xmlNode{auto\_limits} (default) to zoom to the occupied region,
+or provide explicit \xmlNode{xlim}/\xmlNode{ylim}. The \xmlNode{aspect} option controls whether epsilon boxes are forced square (\xmlString{equal}) or allowed to stretch (\xmlString{auto}).
+When normalized objectives appear overly compressed (e.g., most points clustered near 0 or 1 due to outliers), use \xmlNode{normalize\_mode}=\xmlString{quantile}
+with \xmlNode{normalize\_quantiles} to scale using robust percentile bounds instead of raw min/max.
+If you prefer to label axes in the original objective units instead of \([0,1]\), set \xmlNode{axis\_space}=\xmlString{objective}. In this mode the epsilon grid and boxes
+are still computed in normalized space but mapped back onto the objective axes for display.
+Note that objective axes can differ by orders of magnitude (e.g., efficiency vs cost); if \xmlNode{axis\_space}=\xmlString{objective} and \xmlNode{aspect} is not explicitly provided,
+the plot defaults to \xmlNode{aspect}=\xmlString{auto} to avoid collapsing the visible plot area.
+If \xmlNode{aspect}=\xmlString{equal} is explicitly requested in objective space but the objective magnitudes are highly imbalanced, the plot will fall back to \xmlString{auto} and emit a warning.
+
+Optional nodes:
+\begin{itemize}
+  \item \xmlNode{include\_failed}, \xmlDesc{optional, boolean}, include samples marked failed in the source. Defaults to \xmlString{false} to prevent invalid sentinel values from distorting limits.
+  \item \xmlNode{layout\_top}, \xmlDesc{optional, float}, top boundary passed to matplotlib \texttt{tight\_layout(rect=...)}. Use values below 1.0 to leave additional headroom above the title (default 0.96).
+  \item \xmlNode{show\_info}, \xmlDesc{optional, boolean}, if \xmlString{true} (default) prints ``if-cues'' under the legend: a \emph{Good signs} box and a \emph{Needs attention} box with quick interpretation guidance (e.g., gaps in blue suggest under-exploration; many points in one box suggests epsilon too large).
+  \item \xmlNode{info\_fontsize}, \xmlDesc{optional, float}, font size for the if-cues boxes (default 9).
+  \item \xmlNode{constraints}, \xmlDesc{optional, list}, feasibility definition. Provide constraint columns explicitly, or use \xmlString{all} to include all \xmlString{ConstraintEvaluation\_*} columns (values \(\le 0\) are treated as violations).
+  \item \xmlNode{goals}, \xmlDesc{optional, list}, objective directions \xmlString{min}/\xmlString{max}; used to convert objectives into a minimization space for epsilon boxing and dominance.
+  \item \xmlNode{rank}, \xmlDesc{optional, integer}, filters samples to the specified Pareto rank before computing epsilon boxes.
+  \item \xmlNode{index}, \xmlDesc{optional, string}, generation identifier column; if present and \xmlNode{use\_all\_generations} is \xmlString{false}, uses the last generation unless \xmlNode{generation} is supplied.
+  \item \xmlNode{generation}, \xmlDesc{optional, float}, specific generation to plot when \xmlNode{index} is provided.
+  \item \xmlNode{use\_all\_generations}, \xmlDesc{optional, boolean}, when \xmlNode{index} is present, include all generations (default \xmlString{true}).
+  \item \xmlNode{normalize}, \xmlDesc{optional, boolean}, if \xmlString{true} (default) normalizes objectives to \([0,1]\) prior to epsilon boxing.
+  \item \xmlNode{normalize\_mode}, \xmlDesc{optional, string}, \xmlString{minmax} (default) or \xmlString{quantile}.
+  \item \xmlNode{normalize\_quantiles}, \xmlDesc{optional, list}, two quantiles (e.g., 0.02,0.98) used when \xmlNode{normalize\_mode}=\xmlString{quantile}; values are clipped to \([0,1]\) after scaling.
+  \item \xmlNode{search\_extent}, \xmlDesc{optional, integer}, sets epsilon as \(1/\)search\_extent and draws a search\_extent\(\times\)search\_extent grid in normalized space.
+  \item \xmlNode{epsilon}, \xmlDesc{optional, float}, epsilon size in normalized space (overrides \xmlNode{search\_extent}).
+  \item \xmlNode{show\_grid}, \xmlDesc{optional, boolean}, show epsilon grid lines (default \xmlString{true}).
+  \item \xmlNode{show\_boxes}, \xmlDesc{optional, boolean}, show highlighted epsilon boxes for epsilon-efficient representatives (default \xmlString{true}).
+  \item \xmlNode{show\_all}, \xmlDesc{optional, boolean}, show all samples (default \xmlString{true}).
+  \item \xmlNode{show\_infeasible}, \xmlDesc{optional, boolean}, mark infeasible samples with red \texttt{x} when \xmlNode{constraints} are provided (default \xmlString{true}).
+  \item \xmlNode{auto\_limits}, \xmlDesc{optional, boolean}, zoom axes to the occupied region plus padding (default \xmlString{true}).
+  \item \xmlNode{limits\_padding}, \xmlDesc{optional, float}, fractional padding around occupied region when \xmlNode{auto\_limits} is enabled.
+  \item \xmlNode{xlim}, \xmlDesc{optional, list}, explicit x-axis limits (two values) overriding auto limits.
+  \item \xmlNode{ylim}, \xmlDesc{optional, list}, explicit y-axis limits (two values) overriding auto limits.
+  \item \xmlNode{aspect}, \xmlDesc{optional, string}, \xmlString{equal} or \xmlString{auto}; when \xmlNode{axis\_space}=\xmlString{objective} the default is \xmlString{auto} unless explicitly set.
+  \item \xmlNode{axis\_space}, \xmlDesc{optional, string}, \xmlString{normalized} (default) or \xmlString{objective}.
+\end{itemize}

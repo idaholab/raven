@@ -26,6 +26,13 @@ from itertools import cycle
 import numpy as np
 import numpy.ma as ma
 import matplotlib
+# Choose a non-interactive backend when running headless (e.g. HPC/SSH without X11),
+# unless the user explicitly requested a backend via RAVEN_BACKEND or MPLBACKEND.
+_forcedBackend = os.environ.get('RAVEN_BACKEND') or os.environ.get('MPLBACKEND')
+if _forcedBackend:
+  matplotlib.use(_forcedBackend)
+elif not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
+  matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from ...utils import utils, mathUtils
