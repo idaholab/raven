@@ -73,10 +73,10 @@ class PreferenceSweepAnimationPlot(PlotInterface):
         descr=r"""Frames per second for the produced animation (default 2)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combination."""))
-    spec.addSub(InputData.parameterInputFactory('save_frames', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('saveFrames', contentType=InputTypes.BoolType,
         descr=r"""If true, saves selected preference frames as PNG images alongside the animation."""))
-    spec.addSub(InputData.parameterInputFactory('frames_max', contentType=InputTypes.IntegerType,
-        descr=r"""Maximum number of PNG frames to save when <save_frames> is true (default 10)."""))
+    spec.addSub(InputData.parameterInputFactory('framesMax', contentType=InputTypes.IntegerType,
+        descr=r"""Maximum number of PNG frames to save when <saveFrames> is true (default 10)."""))
     return spec
 
   def __init__(self):
@@ -155,11 +155,11 @@ class PreferenceSweepAnimationPlot(PlotInterface):
       if parsed:
         self.formats = parsed
 
-    saveNode = spec.findFirst('save_frames')
+    saveNode = spec.findFirst('saveFrames')
     if saveNode is not None and saveNode.value is not None:
       self.save_frames = bool(saveNode.value)
 
-    framesMaxNode = spec.findFirst('frames_max')
+    framesMaxNode = spec.findFirst('framesMax')
     if framesMaxNode is not None and framesMaxNode.value is not None:
       self.frames_max = max(1, int(framesMaxNode.value))
 

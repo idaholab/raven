@@ -32,7 +32,7 @@ class MultiRunUncertaintyPlot(PlotInterface):
     spec = super().getInputSpecification()
     spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringType,
         descr=r"""Name of the SolutionExport DataObject containing samples from multiple runs."""))
-    spec.addSub(InputData.parameterInputFactory('run_id', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('runId', contentType=InputTypes.StringType,
         descr=r"""Column identifying independent runs. If omitted, all samples treated as one run."""))
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Generation identifier column (e.g., batchId)."""))
@@ -62,7 +62,7 @@ class MultiRunUncertaintyPlot(PlotInterface):
       self.raiseAnError(IOError, f'Missing <source> node for MultiRunUncertaintyPlot "{self.name}".')
     self.sourceName = src.value
 
-    runNode = spec.findFirst('run_id')
+    runNode = spec.findFirst('runId')
     if runNode is not None and runNode.value:
       self.runColumn = runNode.value
 

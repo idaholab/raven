@@ -39,9 +39,9 @@ class NSGAIIIReferenceDirectionPlot(PlotInterface):
         descr=r"""Optional explicit generation to analyse. Defaults to the latest."""))
     spec.addSub(InputData.parameterInputFactory('rank', contentType=InputTypes.IntegerType,
         descr=r"""Optional rank filter (applied when the data set provides a 'rank' column)."""))
-    spec.addSub(InputData.parameterInputFactory('population_size', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('populationSize', contentType=InputTypes.IntegerType,
         descr=r"""Override for the NSGA-III population size used to generate reference directions."""))
-    spec.addSub(InputData.parameterInputFactory('top_directions', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('topDirections', contentType=InputTypes.IntegerType,
         descr=r"""Number of niches to highlight in the occupancy bar chart (default 15)."""))
     return spec
 
@@ -77,10 +77,10 @@ class NSGAIIIReferenceDirectionPlot(PlotInterface):
     rank = spec.findFirst('rank')
     if rank is not None:
       self.rank = int(rank.value)
-    pop = spec.findFirst('population_size')
+    pop = spec.findFirst('populationSize')
     if pop is not None:
       self.population = max(1, int(pop.value))
-    top = spec.findFirst('top_directions')
+    top = spec.findFirst('topDirections')
     if top is not None and top.value:
       self.topDirections = max(1, int(top.value))
 

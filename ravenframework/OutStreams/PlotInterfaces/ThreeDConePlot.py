@@ -47,15 +47,15 @@ class ThreeDConePlot(PlotInterface):
         descr=r"""Optional rank filter before selecting cones (e.g., 1)."""))
     spec.addSub(InputData.parameterInputFactory('metric', contentType=InputTypes.StringType,
         descr=r"""Optional variable used to sort cones (descending). Defaults to vector norm."""))
-    spec.addSub(InputData.parameterInputFactory('top_k', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('topK', contentType=InputTypes.IntegerType,
         descr=r"""Number of cones to draw (default 8)."""))
     spec.addSub(InputData.parameterInputFactory('apex', contentType=InputTypes.FloatListType,
         descr=r"""Optional apex coordinates (three floats). Defaults to the origin."""))
     spec.addSub(InputData.parameterInputFactory('angle', contentType=InputTypes.FloatType,
         descr=r"""Cone half-angle in degrees (default 12)."""))
-    spec.addSub(InputData.parameterInputFactory('height_scale', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('heightScale', contentType=InputTypes.FloatType,
         descr=r"""Scalar applied to each cone height (default 1.0)."""))
-    spec.addSub(InputData.parameterInputFactory('view_angles', contentType=InputTypes.FloatListType,
+    spec.addSub(InputData.parameterInputFactory('viewAngles', contentType=InputTypes.FloatListType,
         descr=r"""Optional elevation and azimuth (degrees)."""))
     return spec
 
@@ -106,11 +106,11 @@ class ThreeDConePlot(PlotInterface):
     if metricNode is not None and metricNode.value:
       self.metric = metricNode.value
 
-    topNode = spec.findFirst('top_k')
+    topNode = spec.findFirst('topK')
     if topNode is not None and topNode.value:
       value = int(topNode.value)
       if value < 1:
-        self.raiseAnError(IOError, f'<top_k> for ThreeDConePlot "{self.name}" must be >= 1.')
+        self.raiseAnError(IOError, f'<topK> for ThreeDConePlot "{self.name}" must be >= 1.')
       self.topK = value
 
     apexNode = spec.findFirst('apex')
@@ -124,15 +124,15 @@ class ThreeDConePlot(PlotInterface):
     if angleNode is not None and angleNode.value:
       self.angle = max(0.1, float(angleNode.value))
 
-    scaleNode = spec.findFirst('height_scale')
+    scaleNode = spec.findFirst('heightScale')
     if scaleNode is not None and scaleNode.value:
       self.heightScale = max(0.01, float(scaleNode.value))
 
-    viewNode = spec.findFirst('view_angles')
+    viewNode = spec.findFirst('viewAngles')
     if viewNode is not None and viewNode.value:
       values = [float(val) for val in viewNode.value]
       if len(values) != 2:
-        self.raiseAnError(IOError, f'<view_angles> for ThreeDConePlot "{self.name}" expects two floats.')
+        self.raiseAnError(IOError, f'<viewAngles> for ThreeDConePlot "{self.name}" expects two floats.')
       self.viewAngles = (values[0], values[1])
 
   def initialize(self, stepEntities):

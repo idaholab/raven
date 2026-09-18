@@ -36,7 +36,7 @@ class AttainmentSurfacePlot(PlotInterface):
     objectives = InputData.parameterInputFactory('objectives', contentType=InputTypes.StringListType,
         descr=r"""Objective columns to evaluate. If more than two are provided, all pairwise combinations are plotted in a shared figure.""")
     spec.addSub(objectives)
-    spec.addSub(InputData.parameterInputFactory('run_id', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('runId', contentType=InputTypes.StringType,
         descr=r"""Optional column that distinguishes independent optimisation runs."""))
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Optional generation identifier column (e.g., batchId). If provided, only the last
@@ -45,7 +45,7 @@ class AttainmentSurfacePlot(PlotInterface):
         descr=r"""When <index> is supplied, optional explicit generation to analyse."""))
     spec.addSub(InputData.parameterInputFactory('levels', contentType=InputTypes.FloatListType,
         descr=r"""Optional probability contour levels (0-1). Defaults to 0.25,0.5,0.75."""))
-    spec.addSub(InputData.parameterInputFactory('grid_size', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('gridSize', contentType=InputTypes.IntegerType,
         descr=r"""Resolution of the attainment grid per axis (default 80)."""))
     return spec
 
@@ -81,7 +81,7 @@ class AttainmentSurfacePlot(PlotInterface):
     else:
       self.objective_pairs = [tuple(pair) for pair in itertools.combinations(objectives, 2)]
 
-    runNode = spec.findFirst('run_id')
+    runNode = spec.findFirst('runId')
     if runNode is not None and runNode.value:
       self.runColumn = runNode.value
 
@@ -102,7 +102,7 @@ class AttainmentSurfacePlot(PlotInterface):
           self.raiseAnError(IOError, f'Invalid attainment level "{lvl}" for AttainmentSurfacePlot "{self.name}".')
       self.levels = tuple(levels)
 
-    gridNode = spec.findFirst('grid_size')
+    gridNode = spec.findFirst('gridSize')
     if gridNode is not None and gridNode.value is not None:
       size = int(gridNode.value)
       if size < 10:

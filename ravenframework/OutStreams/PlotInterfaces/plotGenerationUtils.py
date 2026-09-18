@@ -41,7 +41,7 @@ from ...utils import InputData, InputTypes
 
 GENERATIONS_DESCR = r"""Optional list of specific generations (batch ids) to render, overriding the
       even-sampling cap. When omitted, the plotter shows an evenly-spaced overview limited by
-      <max_frames> (and, for saved PNGs, <frames_max>). Provide any mix of comma-separated tokens:
+      <maxFrames> (and, for saved PNGs, <framesMax>). Provide any mix of comma-separated tokens:
       an explicit generation id (e.g. "5"), the keywords "first" or "last", or an inclusive
       range "start:stop" / "start:stop:step" over generation ids (e.g. "0:20:5"). Requested
       generations that are not present in the data raise an error. Use this to compare specific
@@ -189,8 +189,8 @@ def resolveGenerations(generations, explicitTokens, defaultCap, maxFrames):
     exactly; otherwise the generations are evenly sampled up to the frame cap.
     @ In, generations, list, sorted unique generation identifiers
     @ In, explicitTokens, list or None, raw <generations> tokens (None -> auto-sample)
-    @ In, defaultCap, int, default cap used when <max_frames> is not supplied
-    @ In, maxFrames, int or None, user-supplied <max_frames> cap (None -> defaultCap)
+    @ In, defaultCap, int, default cap used when <maxFrames> is not supplied
+    @ In, maxFrames, int or None, user-supplied <maxFrames> cap (None -> defaultCap)
     @ Out, (gens, indices), tuple(list, list), selected generations and their indices
     Raises ValueError (from parseGenerationSelector) for a bad explicit selector.
   """
@@ -206,11 +206,11 @@ def frameIndicesToSave(numRendered, explicit, saveFrames, frameMax):
   """
     Choose which rendered frames become standalone PNGs. When the user explicitly selected
     generations, all of them are saved (the user already bounded the count); otherwise the
-    rendered frames are strided down to <frames_max>.
+    rendered frames are strided down to <framesMax>.
     @ In, numRendered, int, number of rendered frames
     @ In, explicit, bool, whether an explicit <generations> selector was used
-    @ In, saveFrames, bool, the plotter's <save_frames> flag
-    @ In, frameMax, int, the plotter's <frames_max> cap
+    @ In, saveFrames, bool, the plotter's <saveFrames> flag
+    @ In, frameMax, int, the plotter's <framesMax> cap
     @ Out, indices, list, positions (into the rendered sequence) to save as PNGs
   """
   if not saveFrames:

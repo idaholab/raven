@@ -58,18 +58,18 @@ class HypervolumeMoviePlot(PlotInterface):
     spec.addSub(objectives)
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Generation identifier column (e.g., batchId)."""))
-    spec.addSub(InputData.parameterInputFactory('reference_point', contentType=InputTypes.StringListType,
+    spec.addSub(InputData.parameterInputFactory('referencePoint', contentType=InputTypes.StringListType,
         descr=r"""Optional reference point for hypervolume computation. If omitted, the plot uses max objective values (+5%%)."""))
-    spec.addSub(InputData.parameterInputFactory('max_frames', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxFrames', contentType=InputTypes.IntegerType,
         descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 20)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combinations."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,
         descr=r"""Frames per second for the generated animations. Defaults to 2."""))
-    spec.addSub(InputData.parameterInputFactory('save_frames', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('saveFrames', contentType=InputTypes.BoolType,
         descr=r"""If true, saves sampled generations as standalone PNG frames alongside the animation outputs."""))
-    spec.addSub(InputData.parameterInputFactory('frames_max', contentType=InputTypes.IntegerType,
-        descr=r"""Maximum number of PNG frames to save when <save_frames> is true. Defaults to 10; generations are sampled evenly."""))
+    spec.addSub(InputData.parameterInputFactory('framesMax', contentType=InputTypes.IntegerType,
+        descr=r"""Maximum number of PNG frames to save when <saveFrames> is true. Defaults to 10; generations are sampled evenly."""))
     plotGenerationUtils.addGenerationSelectorSpec(spec)
     return spec
 
@@ -114,22 +114,22 @@ class HypervolumeMoviePlot(PlotInterface):
       self.raiseAnError(IOError, f'Missing <index> node for HypervolumeMoviePlot "{self.name}".')
     self.index = idxNode.value
 
-    refNode = spec.findFirst('reference_point')
+    refNode = spec.findFirst('referencePoint')
     if refNode is not None and refNode.value:
       try:
         ref_vals = [float(val) for val in refNode.value]
       except ValueError as err:
-        self.raiseAnError(IOError, f'Invalid <reference_point> values for HypervolumeMoviePlot "{self.name}": {err}')
+        self.raiseAnError(IOError, f'Invalid <referencePoint> values for HypervolumeMoviePlot "{self.name}": {err}')
       expected = 3 if self._use_three_d else 2
       if len(ref_vals) != expected:
-        self.raiseAnError(IOError, f'<reference_point> must contain exactly {expected} values for HypervolumeMoviePlot "{self.name}".')
+        self.raiseAnError(IOError, f'<referencePoint> must contain exactly {expected} values for HypervolumeMoviePlot "{self.name}".')
       self.reference_point = np.asarray(ref_vals, dtype=float)
 
-    maxNode = spec.findFirst('max_frames')
+    maxNode = spec.findFirst('maxFrames')
     if maxNode is not None and maxNode.value is not None:
       self.maxFrames = int(maxNode.value)
       if self.maxFrames <= 0:
-        self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" received non-positive <max_frames>.')
+        self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" received non-positive <maxFrames>.')
 
     formatNode = spec.findFirst('format')
     if formatNode is not None and formatNode.value is not None:
@@ -156,15 +156,15 @@ class HypervolumeMoviePlot(PlotInterface):
       if self.fps <= 0:
         self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" received non-positive <fps>.')
 
-    saveFramesNode = spec.findFirst('save_frames')
+    saveFramesNode = spec.findFirst('saveFrames')
     if saveFramesNode is not None and saveFramesNode.value is not None:
       self.save_frames = bool(saveFramesNode.value)
 
-    framesMaxNode = spec.findFirst('frames_max')
+    framesMaxNode = spec.findFirst('framesMax')
     if framesMaxNode is not None and framesMaxNode.value is not None:
       self.frame_max = int(framesMaxNode.value)
       if self.frame_max <= 0:
-        self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" received non-positive <frames_max>.')
+        self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
 

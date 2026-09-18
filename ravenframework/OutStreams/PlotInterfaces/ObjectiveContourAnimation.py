@@ -237,26 +237,26 @@ class ObjectiveContourAnimationPlot(PlotInterface):
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combinations."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,
         descr=r"""Frames per second for generated animations. Defaults to 2."""))
-    spec.addSub(InputData.parameterInputFactory('save_frames', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('saveFrames', contentType=InputTypes.BoolType,
         descr=r"""If true, saves each generation as a standalone PNG frame alongside the animation outputs."""))
     spec.addSub(InputData.parameterInputFactory('view', contentType=InputTypes.StringType,
         descr=r"""Optional legacy flag; values "2d", "3d", or "both" are accepted but the plot currently renders only the 2-D contour."""))
     spec.addSub(InputData.parameterInputFactory('surface', contentType=InputTypes.BoolType,
         descr=r"""Legacy flag; retained for compatibility but currently ignored (only the 2-D contour is rendered)."""))
-    spec.addSub(InputData.parameterInputFactory('frames_max', contentType=InputTypes.IntegerType,
-        descr=r"""Maximum number of PNG frames to save when <save_frames> is true. Defaults to 10; frames are sampled evenly across generations."""))
-    spec.addSub(InputData.parameterInputFactory('show_history', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('framesMax', contentType=InputTypes.IntegerType,
+        descr=r"""Maximum number of PNG frames to save when <saveFrames> is true. Defaults to 10; frames are sampled evenly across generations."""))
+    spec.addSub(InputData.parameterInputFactory('showHistory', contentType=InputTypes.BoolType,
         descr=r"""If true, retain points from earlier generations as muted grey markers to visualize exploration history."""))
-    spec.addSub(InputData.parameterInputFactory('history_alpha', contentType=InputTypes.FloatType,
-        descr=r"""Alpha value in [0, 1] applied to history markers when <show_history> is true. Defaults to 0.15."""))
-    spec.addSub(InputData.parameterInputFactory('history_color', contentType=InputTypes.StringType,
-        descr=r"""Matplotlib-compatible color for history markers when <show_history> is true. Defaults to a neutral grey."""))
-    spec.addSub(InputData.parameterInputFactory('infeasible_color', contentType=InputTypes.StringType,
-        descr=r"""Optional override for the infeasible sample color. When <show_history> is true, the default becomes orange unless overridden here."""))
-    spec.addSub(InputData.parameterInputFactory('display_fraction', contentType=InputTypes.FloatType,
-        descr=r"""Optional fraction (0-1] of each generation's population to plot when the population exceeds <display_threshold>. Defaults to 1.0 (show all)."""))
-    spec.addSub(InputData.parameterInputFactory('display_threshold', contentType=InputTypes.IntegerType,
-        descr=r"""Population size above which <display_fraction> filtering activates. Defaults to 20."""))
+    spec.addSub(InputData.parameterInputFactory('historyAlpha', contentType=InputTypes.FloatType,
+        descr=r"""Alpha value in [0, 1] applied to history markers when <showHistory> is true. Defaults to 0.15."""))
+    spec.addSub(InputData.parameterInputFactory('historyColor', contentType=InputTypes.StringType,
+        descr=r"""Matplotlib-compatible color for history markers when <showHistory> is true. Defaults to a neutral grey."""))
+    spec.addSub(InputData.parameterInputFactory('infeasibleColor', contentType=InputTypes.StringType,
+        descr=r"""Optional override for the infeasible sample color. When <showHistory> is true, the default becomes orange unless overridden here."""))
+    spec.addSub(InputData.parameterInputFactory('displayFraction', contentType=InputTypes.FloatType,
+        descr=r"""Optional fraction (0-1] of each generation's population to plot when the population exceeds <displayThreshold>. Defaults to 1.0 (show all)."""))
+    spec.addSub(InputData.parameterInputFactory('displayThreshold', contentType=InputTypes.IntegerType,
+        descr=r"""Population size above which <displayFraction> filtering activates. Defaults to 20."""))
     plotGenerationUtils.addGenerationSelectorSpec(spec)
     return spec
 
@@ -356,52 +356,52 @@ class ObjectiveContourAnimationPlot(PlotInterface):
       self.formats = self._parse_formats(fmtNode.value)
     else:
       self.formats = {'gif', 'html'}
-    framesNode = spec.findFirst('save_frames')
+    framesNode = spec.findFirst('saveFrames')
     if framesNode is not None:
       self.save_frames = bool(framesNode.value)
-    frameMaxNode = spec.findFirst('frames_max')
+    frameMaxNode = spec.findFirst('framesMax')
     if frameMaxNode is not None:
       raw = int(frameMaxNode.value)
       if raw <= 0:
-        self.raiseAnError(IOError, f'<frames_max> must be positive for ObjectiveContourAnimationPlot "{self.name}".')
+        self.raiseAnError(IOError, f'<framesMax> must be positive for ObjectiveContourAnimationPlot "{self.name}".')
       self.frame_max = raw
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
-    historyNode = spec.findFirst('show_history')
+    historyNode = spec.findFirst('showHistory')
     if historyNode is not None:
       self.show_history = bool(historyNode.value)
-    historyAlphaNode = spec.findFirst('history_alpha')
+    historyAlphaNode = spec.findFirst('historyAlpha')
     if historyAlphaNode is not None:
       alpha_val = float(historyAlphaNode.value)
       if not (0.0 <= alpha_val <= 1.0):
-        self.raiseAnError(IOError, f'<history_alpha> must be within [0, 1] for ObjectiveContourAnimationPlot "{self.name}".')
+        self.raiseAnError(IOError, f'<historyAlpha> must be within [0, 1] for ObjectiveContourAnimationPlot "{self.name}".')
       self.history_alpha = alpha_val
-    historyColorNode = spec.findFirst('history_color')
+    historyColorNode = spec.findFirst('historyColor')
     if historyColorNode is not None:
       color_val = historyColorNode.value
       try:
         mcolors.to_rgba(color_val)
       except ValueError as err:
-        self.raiseAnError(IOError, f'Invalid <history_color> value "{color_val}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
+        self.raiseAnError(IOError, f'Invalid <historyColor> value "{color_val}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
       self.history_color = color_val
-    infeasibleColorNode = spec.findFirst('infeasible_color')
+    infeasibleColorNode = spec.findFirst('infeasibleColor')
     if infeasibleColorNode is not None:
       infeasible_val = infeasibleColorNode.value
       try:
         mcolors.to_rgba(infeasible_val)
       except ValueError as err:
-        self.raiseAnError(IOError, f'Invalid <infeasible_color> value "{infeasible_val}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
+        self.raiseAnError(IOError, f'Invalid <infeasibleColor> value "{infeasible_val}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
       self._custom_infeasible_color = infeasible_val
-    displayFractionNode = spec.findFirst('display_fraction')
+    displayFractionNode = spec.findFirst('displayFraction')
     if displayFractionNode is not None:
       frac_val = float(displayFractionNode.value)
       if not (0.0 < frac_val <= 1.0):
-        self.raiseAnError(IOError, f'<display_fraction> must be in (0, 1] for ObjectiveContourAnimationPlot "{self.name}".')
+        self.raiseAnError(IOError, f'<displayFraction> must be in (0, 1] for ObjectiveContourAnimationPlot "{self.name}".')
       self.display_fraction = frac_val
-    displayThresholdNode = spec.findFirst('display_threshold')
+    displayThresholdNode = spec.findFirst('displayThreshold')
     if displayThresholdNode is not None:
       threshold_val = int(displayThresholdNode.value)
       if threshold_val < 1:
-        self.raiseAnError(IOError, f'<display_threshold> must be positive for ObjectiveContourAnimationPlot "{self.name}".')
+        self.raiseAnError(IOError, f'<displayThreshold> must be positive for ObjectiveContourAnimationPlot "{self.name}".')
       self.display_threshold = threshold_val
     self._update_visual_config()
 

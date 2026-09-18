@@ -46,24 +46,24 @@ class NSGAParetoFrontPlot(PlotInterface):
                    ConstraintEvaluation_*."""))
     spec.addSub(InputData.parameterInputFactory('color', contentType=InputTypes.StringType,
         descr=r"""Optional variable used to color points. Defaults to crowding distance if available."""))
-    spec.addSub(InputData.parameterInputFactory('color_mode', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('colorMode', contentType=InputTypes.StringType,
         descr=r"""How to color highlighted points. Options: "variable" (default, uses <color> or CD),
                    "violation" (total constraint violation magnitude), or "none"."""))
-    spec.addSub(InputData.parameterInputFactory('violation_metric', contentType=InputTypes.StringType,
-        descr=r"""When <color_mode> is "violation", reduce multiple constraints into a scalar using:
+    spec.addSub(InputData.parameterInputFactory('violationMetric', contentType=InputTypes.StringType,
+        descr=r"""When <colorMode> is "violation", reduce multiple constraints into a scalar using:
                    "sum" (default), "max", or "l2"."""))
-    spec.addSub(InputData.parameterInputFactory('infeasible_style', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('infeasibleStyle', contentType=InputTypes.StringType,
         descr=r"""How to render infeasible points when <constraints> are provided. Options: "fade" (default),
                    "cross", or "hide"."""))
-    spec.addSub(InputData.parameterInputFactory('show_all', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('showAll', contentType=InputTypes.BoolType,
         descr=r"""If true, also draws non-highlighted samples (e.g., ranks != <rank>) in the background."""))
-    spec.addSub(InputData.parameterInputFactory('active_constraints', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('activeConstraints', contentType=InputTypes.BoolType,
         descr=r"""If true, draws a red outline around feasible points that are near-active for any constraint."""))
-    spec.addSub(InputData.parameterInputFactory('active_tol', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('activeTol', contentType=InputTypes.FloatType,
         descr=r"""Threshold for "near-active" constraints (default 1e-3). A constraint is considered active
-                   when 0 < ConstraintEvaluation_* <= active_tol."""))
+                   when 0 < ConstraintEvaluation_* <= activeTol."""))
     spec.addSub(InputData.parameterInputFactory('cmap', contentType=InputTypes.StringType,
-        descr=r"""Matplotlib colormap name used for numeric <color_mode> (default viridis)."""))
+        descr=r"""Matplotlib colormap name used for numeric <colorMode> (default viridis)."""))
     spec.addSub(InputData.parameterInputFactory('rank', contentType=InputTypes.IntegerType,
         descr=r"""Pareto rank to display. Defaults to 1 (non-dominated front)."""))
     return spec
@@ -102,22 +102,22 @@ class NSGAParetoFrontPlot(PlotInterface):
           self.useAllConstraints = True
         else:
           self.constraints = normalized
-    colorMode = spec.findFirst('color_mode')
+    colorMode = spec.findFirst('colorMode')
     if colorMode is not None and colorMode.value is not None:
       self.colorMode = str(colorMode.value).strip().lower()
-    violationMetric = spec.findFirst('violation_metric')
+    violationMetric = spec.findFirst('violationMetric')
     if violationMetric is not None and violationMetric.value is not None:
       self.violationMetric = str(violationMetric.value).strip().lower()
-    infeasibleStyle = spec.findFirst('infeasible_style')
+    infeasibleStyle = spec.findFirst('infeasibleStyle')
     if infeasibleStyle is not None and infeasibleStyle.value is not None:
       self.infeasibleStyle = str(infeasibleStyle.value).strip().lower()
-    showAll = spec.findFirst('show_all')
+    showAll = spec.findFirst('showAll')
     if showAll is not None:
       self.showAll = bool(showAll.value)
-    activeConstraints = spec.findFirst('active_constraints')
+    activeConstraints = spec.findFirst('activeConstraints')
     if activeConstraints is not None:
       self.showActiveConstraints = bool(activeConstraints.value)
-    activeTol = spec.findFirst('active_tol')
+    activeTol = spec.findFirst('activeTol')
     if activeTol is not None and activeTol.value is not None:
       self.activeTol = float(activeTol.value)
     cmap = spec.findFirst('cmap')
@@ -156,13 +156,13 @@ class NSGAParetoFrontPlot(PlotInterface):
         self.constraints = [var for var in self.constraints if var in dataVars]
 
     if self.colorMode not in {'variable', 'violation', 'none'}:
-      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received unsupported <color_mode> "{self.colorMode}".')
+      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received unsupported <colorMode> "{self.colorMode}".')
     if self.violationMetric not in {'sum', 'max', 'l2'}:
-      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received unsupported <violation_metric> "{self.violationMetric}".')
+      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received unsupported <violationMetric> "{self.violationMetric}".')
     if self.infeasibleStyle not in {'fade', 'cross', 'hide'}:
-      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received unsupported <infeasible_style> "{self.infeasibleStyle}".')
+      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received unsupported <infeasibleStyle> "{self.infeasibleStyle}".')
     if self.activeTol <= 0.0:
-      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received non-positive <active_tol> {self.activeTol}.')
+      self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received non-positive <activeTol> {self.activeTol}.')
 
   @staticmethod
   def _is_feasible(df, constraints):

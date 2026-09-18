@@ -46,11 +46,11 @@ class BubbleTradeoffPlot(PlotInterface):
                   uses the maximum value observed unless <generation> is also supplied."""))
     spec.addSub(InputData.parameterInputFactory('generation', contentType=InputTypes.FloatType,
         descr=r"""When <index> is provided, optional explicit generation value to display."""))
-    spec.addSub(InputData.parameterInputFactory('size_bounds', contentType=InputTypes.FloatListType,
+    spec.addSub(InputData.parameterInputFactory('sizeBounds', contentType=InputTypes.FloatListType,
         descr=r"""Optional minimum and maximum marker areas (in points^2). Defaults to 50,500."""))
     spec.addSub(InputData.parameterInputFactory('normalize', contentType=InputTypes.BoolType,
-        descr=r"""If true (default) bubble areas are normalized between the provided <size_bounds>."""))
-    spec.addSub(InputData.parameterInputFactory('view_angles', contentType=InputTypes.FloatListType,
+        descr=r"""If true (default) bubble areas are normalized between the provided <sizeBounds>."""))
+    spec.addSub(InputData.parameterInputFactory('viewAngles', contentType=InputTypes.FloatListType,
         descr=r"""Optional elevation and azimuth (degrees) for 3D mode. Defaults to 25,-60."""))
     return spec
 
@@ -100,25 +100,25 @@ class BubbleTradeoffPlot(PlotInterface):
     if genNode is not None and genNode.value is not None:
       self.generation = float(genNode.value)
 
-    boundsNode = spec.findFirst('size_bounds')
+    boundsNode = spec.findFirst('sizeBounds')
     if boundsNode is not None and boundsNode.value:
       values = [float(val) for val in boundsNode.value]
       if len(values) != 2:
-        self.raiseAnError(IOError, f'<size_bounds> for BubbleTradeoffPlot "{self.name}" must provide exactly two entries.')
+        self.raiseAnError(IOError, f'<sizeBounds> for BubbleTradeoffPlot "{self.name}" must provide exactly two entries.')
       low, high = values
       if low <= 0 or high <= 0 or low >= high:
-        self.raiseAnError(IOError, f'Invalid <size_bounds> {values} for BubbleTradeoffPlot "{self.name}".')
+        self.raiseAnError(IOError, f'Invalid <sizeBounds> {values} for BubbleTradeoffPlot "{self.name}".')
       self.sizeBounds = (low, high)
 
     normalizeNode = spec.findFirst('normalize')
     if normalizeNode is not None and normalizeNode.value is not None:
       self.normalize = bool(normalizeNode.value)
 
-    viewNode = spec.findFirst('view_angles')
+    viewNode = spec.findFirst('viewAngles')
     if viewNode is not None and viewNode.value:
       values = [float(val) for val in viewNode.value]
       if len(values) != 2:
-        self.raiseAnError(IOError, f'<view_angles> for BubbleTradeoffPlot "{self.name}" expects two floats (elevation, azimuth).')
+        self.raiseAnError(IOError, f'<viewAngles> for BubbleTradeoffPlot "{self.name}" expects two floats (elevation, azimuth).')
       self.viewAngles = (values[0], values[1])
 
   def initialize(self, stepEntities):

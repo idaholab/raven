@@ -42,13 +42,13 @@ class ThreeDVectorPlot(PlotInterface):
         descr=r"""Monotonic generation identifier (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('rank', contentType=InputTypes.IntegerType,
         descr=r"""Optional integer Rank filter (e.g., 1 for Pareto front)."""))
-    spec.addSub(InputData.parameterInputFactory('max_vectors', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxVectors', contentType=InputTypes.IntegerType,
         descr=r"""Optional cap on how many arrows to draw (default 50)."""))
-    spec.addSub(InputData.parameterInputFactory('normalize_vectors', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('normalizeVectors', contentType=InputTypes.BoolType,
         descr=r"""If true (default), normalize arrow direction before scaling by <scale>."""))
     spec.addSub(InputData.parameterInputFactory('scale', contentType=InputTypes.FloatType,
         descr=r"""Length scaling factor applied after normalization (default 1.0)."""))
-    spec.addSub(InputData.parameterInputFactory('view_angles', contentType=InputTypes.FloatListType,
+    spec.addSub(InputData.parameterInputFactory('viewAngles', contentType=InputTypes.FloatListType,
         descr=r"""Optional elevation and azimuth (degrees) for the 3D camera view."""))
     return spec
 
@@ -89,14 +89,14 @@ class ThreeDVectorPlot(PlotInterface):
     if rankNode is not None and rankNode.value is not None:
       self.rankFilter = int(rankNode.value)
 
-    maxNode = spec.findFirst('max_vectors')
+    maxNode = spec.findFirst('maxVectors')
     if maxNode is not None and maxNode.value:
       value = int(maxNode.value)
       if value < 1:
-        self.raiseAnError(IOError, f'<max_vectors> for ThreeDVectorPlot "{self.name}" must be >= 1.')
+        self.raiseAnError(IOError, f'<maxVectors> for ThreeDVectorPlot "{self.name}" must be >= 1.')
       self.maxVectors = value
 
-    normalizeNode = spec.findFirst('normalize_vectors')
+    normalizeNode = spec.findFirst('normalizeVectors')
     if normalizeNode is not None and normalizeNode.value is not None:
       self.normalizeVectors = bool(normalizeNode.value)
 
@@ -104,11 +104,11 @@ class ThreeDVectorPlot(PlotInterface):
     if scaleNode is not None and scaleNode.value:
       self.scale = float(scaleNode.value)
 
-    viewNode = spec.findFirst('view_angles')
+    viewNode = spec.findFirst('viewAngles')
     if viewNode is not None and viewNode.value:
       values = [float(val) for val in viewNode.value]
       if len(values) != 2:
-        self.raiseAnError(IOError, f'<view_angles> for ThreeDVectorPlot "{self.name}" expects two floats (elev, azim).')
+        self.raiseAnError(IOError, f'<viewAngles> for ThreeDVectorPlot "{self.name}" expects two floats (elev, azim).')
       self.viewAngles = (values[0], values[1])
 
   def initialize(self, stepEntities):

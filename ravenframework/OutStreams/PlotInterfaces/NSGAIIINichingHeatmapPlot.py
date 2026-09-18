@@ -35,11 +35,11 @@ class NSGAIIINichingHeatmapPlot(PlotInterface):
         descr=r"""Generation identifier (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('rank', contentType=InputTypes.IntegerType,
         descr=r"""Optional rank filter before computing niche occupancy."""))
-    spec.addSub(InputData.parameterInputFactory('population_size', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('populationSize', contentType=InputTypes.IntegerType,
         descr=r"""Override for the NSGA-III population size used to build reference directions."""))
-    spec.addSub(InputData.parameterInputFactory('max_generations', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxGenerations', contentType=InputTypes.IntegerType,
         descr=r"""Optional limit on the number of generations to plot (most recent are kept)."""))
-    spec.addSub(InputData.parameterInputFactory('normalize_rows', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('normalizeRows', contentType=InputTypes.StringType,
         descr=r"""Set to 'true' to convert counts into per-generation fractions."""))
     return spec
 
@@ -72,13 +72,13 @@ class NSGAIIINichingHeatmapPlot(PlotInterface):
     rank = spec.findFirst('rank')
     if rank is not None:
       self.rank = int(rank.value)
-    pop = spec.findFirst('population_size')
+    pop = spec.findFirst('populationSize')
     if pop is not None:
       self.population = max(1, int(pop.value))
-    max_gen = spec.findFirst('max_generations')
+    max_gen = spec.findFirst('maxGenerations')
     if max_gen is not None and max_gen.value:
       self.maxGenerations = max(1, int(max_gen.value))
-    norm = spec.findFirst('normalize_rows')
+    norm = spec.findFirst('normalizeRows')
     if norm is not None and isinstance(norm.value, str):
       self.normalizeRows = norm.value.strip().lower() in {'true', '1', 'yes'}
 

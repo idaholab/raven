@@ -40,13 +40,13 @@ class ThreeDTubePlot(PlotInterface):
         descr=r"""Generation identifier column used to order the path."""))
     spec.addSub(InputData.parameterInputFactory('rank', contentType=InputTypes.IntegerType,
         descr=r"""Optional rank filter applied before selecting the generation representative."""))
-    spec.addSub(InputData.parameterInputFactory('selection_metric', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('selectionMetric', contentType=InputTypes.StringType,
         descr=r"""Optional variable whose minimum determines the representative sample per generation. Defaults to sum(objectives)."""))
-    spec.addSub(InputData.parameterInputFactory('line_width', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('lineWidth', contentType=InputTypes.FloatType,
         descr=r"""Base line width for the tube (default 3.0)."""))
-    spec.addSub(InputData.parameterInputFactory('max_points', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxPoints', contentType=InputTypes.IntegerType,
         descr=r"""Optional cap on how many points to retain along the path (default 200)."""))
-    spec.addSub(InputData.parameterInputFactory('view_angles', contentType=InputTypes.FloatListType,
+    spec.addSub(InputData.parameterInputFactory('viewAngles', contentType=InputTypes.FloatListType,
         descr=r"""Optional elevation and azimuth (degrees)."""))
     return spec
 
@@ -87,23 +87,23 @@ class ThreeDTubePlot(PlotInterface):
     if rankNode is not None and rankNode.value is not None:
       self.rankFilter = int(rankNode.value)
 
-    metricNode = spec.findFirst('selection_metric')
+    metricNode = spec.findFirst('selectionMetric')
     if metricNode is not None and metricNode.value:
       self.selectionMetric = metricNode.value
 
-    widthNode = spec.findFirst('line_width')
+    widthNode = spec.findFirst('lineWidth')
     if widthNode is not None and widthNode.value:
       self.lineWidth = max(0.5, float(widthNode.value))
 
-    maxNode = spec.findFirst('max_points')
+    maxNode = spec.findFirst('maxPoints')
     if maxNode is not None and maxNode.value:
       self.maxPoints = max(2, int(maxNode.value))
 
-    viewNode = spec.findFirst('view_angles')
+    viewNode = spec.findFirst('viewAngles')
     if viewNode is not None and viewNode.value:
       values = [float(val) for val in viewNode.value]
       if len(values) != 2:
-        self.raiseAnError(IOError, f'<view_angles> for ThreeDTubePlot "{self.name}" expects two floats.')
+        self.raiseAnError(IOError, f'<viewAngles> for ThreeDTubePlot "{self.name}" expects two floats.')
       self.viewAngles = (values[0], values[1])
 
   def initialize(self, stepEntities):

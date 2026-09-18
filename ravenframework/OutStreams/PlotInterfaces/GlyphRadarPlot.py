@@ -58,7 +58,7 @@ class GlyphRadarPlot(PlotInterface):
         descr=r"""Optional label column for the glyph titles."""))
     spec.addSub(InputData.parameterInputFactory('metric', contentType=InputTypes.StringType,
         descr=r"""Optional numeric column used to order samples when select="top"."""))
-    spec.addSub(InputData.parameterInputFactory('metric_goal', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('metricGoal', contentType=InputTypes.StringType,
         descr=r"""When <metric> is provided, interpret it as "min" (default) or "max" for ordering."""))
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Optional generation identifier column (e.g., batchId)."""))
@@ -71,11 +71,11 @@ class GlyphRadarPlot(PlotInterface):
                 - population: scale using the full filtered population (can highlight small differences)."""))
     spec.addSub(InputData.parameterInputFactory('deduplicate', contentType=InputTypes.BoolType,
         descr=r"""If true (default), do not repeat the same solution more than once. Solutions are compared using the
-              plotted <variables> and <deduplicate_tol>. When select="leaders", if the generation-best solution was already
+              plotted <variables> and <deduplicateTol>. When select="leaders", if the generation-best solution was already
               seen, the next-best in that generation is chosen."""))
-    spec.addSub(InputData.parameterInputFactory('deduplicate_tol', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('deduplicateTol', contentType=InputTypes.FloatType,
         descr=r"""Absolute tolerance used when identifying duplicate solutions in variable space (default 1e-9)."""))
-    spec.addSub(InputData.parameterInputFactory('label_first_seen', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('labelFirstSeen', contentType=InputTypes.BoolType,
         descr=r"""If true (default), include a "first seen" generation label when <index> is provided."""))
     return spec
 
@@ -131,11 +131,11 @@ class GlyphRadarPlot(PlotInterface):
     if metricNode is not None and metricNode.value:
       self.metric = metricNode.value
 
-    metricGoalNode = spec.findFirst('metric_goal')
+    metricGoalNode = spec.findFirst('metricGoal')
     if metricGoalNode is not None and metricGoalNode.value:
       value = str(metricGoalNode.value).strip().lower()
       if value not in ('min', 'max'):
-        self.raiseAnError(IOError, f'Invalid <metric_goal> "{metricGoalNode.value}" for GlyphRadarPlot "{self.name}".')
+        self.raiseAnError(IOError, f'Invalid <metricGoal> "{metricGoalNode.value}" for GlyphRadarPlot "{self.name}".')
       self.metric_goal = value
 
     idxNode = spec.findFirst('index')
@@ -157,13 +157,13 @@ class GlyphRadarPlot(PlotInterface):
     if dedupeNode is not None and dedupeNode.value is not None:
       self.deduplicate = bool(dedupeNode.value)
 
-    tolNode = spec.findFirst('deduplicate_tol')
+    tolNode = spec.findFirst('deduplicateTol')
     if tolNode is not None and tolNode.value is not None:
       self.deduplicate_tol = float(tolNode.value)
       if self.deduplicate_tol < 0:
-        self.raiseAnError(IOError, f'GlyphRadarPlot "{self.name}" received negative <deduplicate_tol>.')
+        self.raiseAnError(IOError, f'GlyphRadarPlot "{self.name}" received negative <deduplicateTol>.')
 
-    firstSeenNode = spec.findFirst('label_first_seen')
+    firstSeenNode = spec.findFirst('labelFirstSeen')
     if firstSeenNode is not None and firstSeenNode.value is not None:
       self.label_first_seen = bool(firstSeenNode.value)
 

@@ -72,7 +72,7 @@ class ParetoDiagnosticsPlot(PlotInterface):
         descr=r"""Optional list of goal directions for each objective when <space> is 'objective'.
               Provide as 'min,max' or 'min max'. Length must match <objectives>.
               If omitted, assumes all objectives are minimized."""))
-    spec.addSub(InputData.parameterInputFactory('reference_point', contentType=InputTypes.StringListType,
+    spec.addSub(InputData.parameterInputFactory('referencePoint', contentType=InputTypes.StringListType,
         descr=r"""Optional comma-separated reference point used for hypervolume computation, expressed in the same space as selected by <space>.
               If omitted, the plot auto-selects a conservative (worse-than-observed) reference point consistent with the minimization
               representation used for hypervolume:
@@ -121,14 +121,14 @@ class ParetoDiagnosticsPlot(PlotInterface):
     if idxNode is None:
       self.raiseAnError(IOError, 'Missing <index> node in ParetoDiagnosticsPlot "{}".'.format(self.name))
     self.index = idxNode.value
-    refNode = spec.findFirst('reference_point')
+    refNode = spec.findFirst('referencePoint')
     if refNode is not None and refNode.value:
       try:
         ref_vals = [float(val) for val in refNode.value]
       except ValueError as err:
-        self.raiseAnError(IOError, f'Invalid <reference_point> values for ParetoDiagnosticsPlot "{self.name}": {err}')
+        self.raiseAnError(IOError, f'Invalid <referencePoint> values for ParetoDiagnosticsPlot "{self.name}": {err}')
       if len(ref_vals) != len(self.objectives):
-        self.raiseAnError(IOError, f'<reference_point> must contain {len(self.objectives)} entries for ParetoDiagnosticsPlot "{self.name}".')
+        self.raiseAnError(IOError, f'<referencePoint> must contain {len(self.objectives)} entries for ParetoDiagnosticsPlot "{self.name}".')
       self.reference_point = np.asarray(ref_vals, dtype=float)
 
   def initialize(self, stepEntities):

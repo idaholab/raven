@@ -53,21 +53,21 @@ class ParetoChartPlot(PlotInterface):
         descr=r"""Optional generation identifier column (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('generation', contentType=InputTypes.FloatType,
         descr=r"""When <index> provided, limits the plot to the specified generation. If omitted, uses the last generation."""))
-    spec.addSub(InputData.parameterInputFactory('use_all_generations', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('useAllGenerations', contentType=InputTypes.BoolType,
         descr=r"""When <index> is provided, use all generations instead of only the last generation (or <generation>). Default false."""))
-    spec.addSub(InputData.parameterInputFactory('top_n', contentType=InputTypes.IntegerType,
-        descr=r"""Optional cap on categories shown (after sorting). Remaining categories are grouped into "Other" when <include_other> is true."""))
-    spec.addSub(InputData.parameterInputFactory('include_other', contentType=InputTypes.BoolType,
-        descr=r"""If true, collapses categories beyond <top_n> into an "Other" bucket. Default true."""))
+    spec.addSub(InputData.parameterInputFactory('topN', contentType=InputTypes.IntegerType,
+        descr=r"""Optional cap on categories shown (after sorting). Remaining categories are grouped into "Other" when <includeOther> is true."""))
+    spec.addSub(InputData.parameterInputFactory('includeOther', contentType=InputTypes.BoolType,
+        descr=r"""If true, collapses categories beyond <topN> into an "Other" bucket. Default true."""))
     spec.addSub(InputData.parameterInputFactory('title', contentType=InputTypes.StringType,
         descr=r"""Optional plot title."""))
-    spec.addSub(InputData.parameterInputFactory('bar_label', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('barLabel', contentType=InputTypes.StringType,
         descr=r"""Optional y-axis label for bars (default 'Frequency')."""))
-    spec.addSub(InputData.parameterInputFactory('line_label', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('lineLabel', contentType=InputTypes.StringType,
         descr=r"""Optional y-axis label for cumulative line (default 'Cumulative %')."""))
-    spec.addSub(InputData.parameterInputFactory('bar_color', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('barColor', contentType=InputTypes.StringType,
         descr=r"""Bar color (default '#1f77b4')."""))
-    spec.addSub(InputData.parameterInputFactory('line_color', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('lineColor', contentType=InputTypes.StringType,
         descr=r"""Cumulative line color (default '#ff7f0e')."""))
     spec.addSub(InputData.parameterInputFactory('rotate', contentType=InputTypes.FloatType,
         descr=r"""X tick rotation in degrees (default 20)."""))
@@ -122,32 +122,32 @@ class ParetoChartPlot(PlotInterface):
     genNode = spec.findFirst('generation')
     if genNode is not None and genNode.value is not None:
       self.generation = float(genNode.value)
-    uagNode = spec.findFirst('use_all_generations')
+    uagNode = spec.findFirst('useAllGenerations')
     if uagNode is not None and uagNode.value is not None:
       self.useAllGenerations = bool(uagNode.value)
 
-    tnNode = spec.findFirst('top_n')
+    tnNode = spec.findFirst('topN')
     if tnNode is not None and tnNode.value is not None:
       self.topN = int(tnNode.value)
       if self.topN <= 0:
-        self.raiseAnError(IOError, f'ParetoChartPlot "{self.name}" received non-positive <top_n>.')
-    ioNode = spec.findFirst('include_other')
+        self.raiseAnError(IOError, f'ParetoChartPlot "{self.name}" received non-positive <topN>.')
+    ioNode = spec.findFirst('includeOther')
     if ioNode is not None and ioNode.value is not None:
       self.includeOther = bool(ioNode.value)
 
     titleNode = spec.findFirst('title')
     if titleNode is not None and titleNode.value:
       self.title = str(titleNode.value)
-    blNode = spec.findFirst('bar_label')
+    blNode = spec.findFirst('barLabel')
     if blNode is not None and blNode.value:
       self.barLabel = str(blNode.value)
-    llNode = spec.findFirst('line_label')
+    llNode = spec.findFirst('lineLabel')
     if llNode is not None and llNode.value:
       self.lineLabel = str(llNode.value)
-    bcNode = spec.findFirst('bar_color')
+    bcNode = spec.findFirst('barColor')
     if bcNode is not None and bcNode.value:
       self.barColor = str(bcNode.value)
-    lcNode = spec.findFirst('line_color')
+    lcNode = spec.findFirst('lineColor')
     if lcNode is not None and lcNode.value:
       self.lineColor = str(lcNode.value)
     rotNode = spec.findFirst('rotate')

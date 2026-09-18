@@ -56,14 +56,14 @@ class ProsectionMatrixPlot(PlotInterface):
         descr=r"""Optional generation identifier column (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('generation', contentType=InputTypes.FloatType,
         descr=r"""When <index> provided, limits the plot to the specified generation."""))
-    spec.addSub(InputData.parameterInputFactory('rows_per_fig', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('rowsPerFig', contentType=InputTypes.IntegerType,
         descr=r"""Optional maximum number of subplot rows per output figure. If set, the matrix is split into
                    multiple images named <filename>_1.png, <filename>_2.png, etc. This improves readability when
                    many variable pairs are requested."""))
-    spec.addSub(InputData.parameterInputFactory('min_slice_points', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('minSlicePoints', contentType=InputTypes.IntegerType,
         descr=r"""Minimum number of samples required to plot a slice. If the median-based slice contains fewer
                    samples, the plot falls back to a nearest-to-median selection. Default 15."""))
-    spec.addSub(InputData.parameterInputFactory('fallback_points', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('fallbackPoints', contentType=InputTypes.IntegerType,
         descr=r"""Number of nearest-to-median samples to plot when the median-based slice is empty or too small.
                    Default 50."""))
     return spec
@@ -112,25 +112,25 @@ class ProsectionMatrixPlot(PlotInterface):
     if genNode is not None and genNode.value is not None:
       self.generation = float(genNode.value)
 
-    rpfNode = spec.findFirst('rows_per_fig')
+    rpfNode = spec.findFirst('rowsPerFig')
     if rpfNode is not None and rpfNode.value is not None:
       rpf = int(rpfNode.value)
       if rpf <= 0:
-        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <rows_per_fig>.')
+        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <rowsPerFig>.')
       self.rowsPerFig = rpf
 
-    mspNode = spec.findFirst('min_slice_points')
+    mspNode = spec.findFirst('minSlicePoints')
     if mspNode is not None and mspNode.value is not None:
       msp = int(mspNode.value)
       if msp <= 0:
-        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <min_slice_points>.')
+        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <minSlicePoints>.')
       self.minSlicePoints = msp
 
-    fpNode = spec.findFirst('fallback_points')
+    fpNode = spec.findFirst('fallbackPoints')
     if fpNode is not None and fpNode.value is not None:
       fp = int(fpNode.value)
       if fp <= 0:
-        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <fallback_points>.')
+        self.raiseAnError(IOError, f'ProsectionMatrixPlot "{self.name}" received non-positive <fallbackPoints>.')
       self.fallbackPoints = fp
 
   def initialize(self, stepEntities):

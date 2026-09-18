@@ -61,7 +61,7 @@ class FitnessFunnelPlot(PlotInterface):
     spec.addSub(InputData.parameterInputFactory('goal', contentType=InputTypes.StringListType,
         descr=r"""Optimisation goal per <metric>: "min" (default) or "max". Provide either one value
               (applied to every metric) or one value per metric, in the same order as <metric>."""))
-    spec.addSub(InputData.parameterInputFactory('max_per_figure', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxPerFigure', contentType=InputTypes.IntegerType,
         descr=r"""Maximum number of per-metric funnel panels drawn in a single figure (default 4). When the
               number of metrics exceeds this cap, the panels are split evenly across multiple figures
               (e.g., 6 metrics -> two figures of 3, 9 -> three of 3, 12 -> three of 4) so panels stay
@@ -115,11 +115,11 @@ class FitnessFunnelPlot(PlotInterface):
     else:
       self.goals = ['min'] * len(self.metrics)
 
-    maxNode = spec.findFirst('max_per_figure')
+    maxNode = spec.findFirst('maxPerFigure')
     if maxNode is not None and maxNode.value is not None:
       self.maxPerFigure = int(maxNode.value)
       if self.maxPerFigure <= 0:
-        self.raiseAnError(IOError, f'FitnessFunnelPlot "{self.name}" received non-positive <max_per_figure>.')
+        self.raiseAnError(IOError, f'FitnessFunnelPlot "{self.name}" received non-positive <maxPerFigure>.')
 
   def initialize(self, stepEntities):
     super().initialize(stepEntities)

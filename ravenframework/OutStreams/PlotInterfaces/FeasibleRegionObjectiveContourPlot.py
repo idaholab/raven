@@ -65,7 +65,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
         descr=r"""3-D camera elevation angle (default 25)."""))
     spec.addSub(InputData.parameterInputFactory('azim', contentType=InputTypes.FloatType,
         descr=r"""3-D camera azimuth angle (default -60)."""))
-    spec.addSub(InputData.parameterInputFactory('base_plane', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('basePlane', contentType=InputTypes.FloatType,
         descr=r"""Optional z-offset to use for the base plane. If omitted, computed per panel."""))
     return spec
 
@@ -124,7 +124,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
     if azimNode is not None and azimNode.value is not None:
       self.azim = float(azimNode.value)
 
-    baseNode = spec.findFirst('base_plane')
+    baseNode = spec.findFirst('basePlane')
     if baseNode is not None and baseNode.value is not None:
       self.basePlane = float(baseNode.value)
 

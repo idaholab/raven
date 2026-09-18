@@ -59,31 +59,31 @@ class DecisionObjectiveMappingPlot(PlotInterface):
                    column named ConstraintEvaluation_*."""))
     spec.addSub(InputData.parameterInputFactory('rank', contentType=InputTypes.IntegerType,
         descr=r"""Optional Pareto rank to filter on if a 'rank' column exists (default: no filtering)."""))
-    spec.addSub(InputData.parameterInputFactory('max_points', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxPoints', contentType=InputTypes.IntegerType,
         descr=r"""Maximum number of points to display and (if enabled) link. Default 250."""))
-    spec.addSub(InputData.parameterInputFactory('draw_links', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('drawLinks', contentType=InputTypes.BoolType,
         descr=r"""If true, draw linking segments for displayed points. Default true."""))
-    spec.addSub(InputData.parameterInputFactory('link_alpha', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('linkAlpha', contentType=InputTypes.FloatType,
         descr=r"""Alpha for linking segments. Default 0.15."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_all', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('boundaryAll', contentType=InputTypes.BoolType,
         descr=r"""If true, draw a 2D envelope (convex hull) around all displayed samples in both panels. Default false."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_all_fill', contentType=InputTypes.BoolType,
-        descr=r"""If true, fill the all-sample envelope with <boundary_all_alpha>. Default true."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_infeasible', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('boundaryAllFill', contentType=InputTypes.BoolType,
+        descr=r"""If true, fill the all-sample envelope with <boundaryAllAlpha>. Default true."""))
+    spec.addSub(InputData.parameterInputFactory('boundaryInfeasible', contentType=InputTypes.BoolType,
         descr=r"""If true and <constraints> are provided, draw a 2D envelope (convex hull) around infeasible samples. Default false."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_smooth_iters', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('boundarySmoothIters', contentType=InputTypes.IntegerType,
         descr=r"""Optional number of smoothing iterations applied to hull polygons (Chaikin). Default 2."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_all_color', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('boundaryAllColor', contentType=InputTypes.StringType,
         descr=r"""Color for the all-sample envelope outline/fill (default '#1565c0')."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_infeasible_color', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('boundaryInfeasibleColor', contentType=InputTypes.StringType,
         descr=r"""Color for the infeasible envelope outline (default '#616161')."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_all_alpha', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('boundaryAllAlpha', contentType=InputTypes.FloatType,
         descr=r"""Fill alpha for the all-sample envelope (default 0.10)."""))
-    spec.addSub(InputData.parameterInputFactory('boundary_linewidth', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('boundaryLinewidth', contentType=InputTypes.FloatType,
         descr=r"""Outline linewidth for envelopes (default 2.0)."""))
     spec.addSub(InputData.parameterInputFactory('title', contentType=InputTypes.StringType,
         descr=r"""Optional figure title. If omitted, a default title is generated."""))
-    spec.addSub(InputData.parameterInputFactory('legend_y', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('legendY', contentType=InputTypes.FloatType,
         descr=r"""Vertical placement of the shared legend (figure coordinates). Default 1.02."""))
     return spec
 
@@ -140,47 +140,47 @@ class DecisionObjectiveMappingPlot(PlotInterface):
     if rankNode is not None:
       self.rank = int(rankNode.value)
 
-    mp = spec.findFirst('max_points')
+    mp = spec.findFirst('maxPoints')
     if mp is not None:
       self.maxPoints = int(mp.value)
 
-    dl = spec.findFirst('draw_links')
+    dl = spec.findFirst('drawLinks')
     if dl is not None:
       self.drawLinks = bool(dl.value)
 
-    la = spec.findFirst('link_alpha')
+    la = spec.findFirst('linkAlpha')
     if la is not None:
       self.linkAlpha = float(la.value)
 
-    ba = spec.findFirst('boundary_all')
+    ba = spec.findFirst('boundaryAll')
     if ba is not None and ba.value is not None:
       self.boundaryAll = bool(ba.value)
-    baf = spec.findFirst('boundary_all_fill')
+    baf = spec.findFirst('boundaryAllFill')
     if baf is not None and baf.value is not None:
       self.boundaryAllFill = bool(baf.value)
-    bi = spec.findFirst('boundary_infeasible')
+    bi = spec.findFirst('boundaryInfeasible')
     if bi is not None and bi.value is not None:
       self.boundaryInfeasible = bool(bi.value)
-    bs = spec.findFirst('boundary_smooth_iters')
+    bs = spec.findFirst('boundarySmoothIters')
     if bs is not None and bs.value is not None:
       self.boundarySmoothIters = max(0, int(bs.value))
-    bac = spec.findFirst('boundary_all_color')
+    bac = spec.findFirst('boundaryAllColor')
     if bac is not None and bac.value:
       self.boundaryAllColor = str(bac.value).strip()
-    bic = spec.findFirst('boundary_infeasible_color')
+    bic = spec.findFirst('boundaryInfeasibleColor')
     if bic is not None and bic.value:
       self.boundaryInfeasibleColor = str(bic.value).strip()
-    baa = spec.findFirst('boundary_all_alpha')
+    baa = spec.findFirst('boundaryAllAlpha')
     if baa is not None and baa.value is not None:
       self.boundaryAllAlpha = float(baa.value)
-    blw = spec.findFirst('boundary_linewidth')
+    blw = spec.findFirst('boundaryLinewidth')
     if blw is not None and blw.value is not None:
       self.boundaryLinewidth = float(blw.value)
 
     titleNode = spec.findFirst('title')
     if titleNode is not None and titleNode.value:
       self.title = str(titleNode.value)
-    legendNode = spec.findFirst('legend_y')
+    legendNode = spec.findFirst('legendY')
     if legendNode is not None and legendNode.value is not None:
       self.legendY = float(legendNode.value)
 

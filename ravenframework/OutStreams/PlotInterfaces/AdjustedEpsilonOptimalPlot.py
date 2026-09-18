@@ -21,7 +21,7 @@ another point's box and strictly better in at least one objective box index.
 
 The "adjusted" view used here matches common pedagogical figures:
 - normalize objectives to [0, 1] (optional)
-- choose epsilon either directly (<epsilon>) or as 1/<search_extent>
+- choose epsilon either directly (<epsilon>) or as 1/<searchExtent>
 - show the epsilon grid, the occupied/selected epsilon boxes, and the
   resulting epsilon-efficient (non-epsilon-dominated) representatives.
 
@@ -62,34 +62,34 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
         descr=r"""Optional generation identifier column (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('generation', contentType=InputTypes.FloatType,
         descr=r"""When <index> provided, limits the plot to the specified generation. If omitted, uses the last generation."""))
-    spec.addSub(InputData.parameterInputFactory('use_all_generations', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('useAllGenerations', contentType=InputTypes.BoolType,
         descr=r"""When <index> is provided, use all generations instead of only the last generation (or <generation>). Default true."""))
-    spec.addSub(InputData.parameterInputFactory('include_failed', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('includeFailed', contentType=InputTypes.BoolType,
         descr=r"""If true, includes samples marked as failed (if the source contains a 'failed' column).
                    If false (default), failed samples are excluded to avoid invalid sentinel values (e.g., -1) distorting the plot."""))
     spec.addSub(InputData.parameterInputFactory('normalize', contentType=InputTypes.BoolType,
         descr=r"""If true (default), min-max normalizes objectives before applying epsilon boxes."""))
-    spec.addSub(InputData.parameterInputFactory('normalize_mode', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('normalizeMode', contentType=InputTypes.StringType,
         descr=r"""When <normalize> is true, choose the normalization method: "minmax" (default) or "quantile".
-                   Quantile normalization uses <normalize_quantiles> to reduce outlier compression."""))
-    spec.addSub(InputData.parameterInputFactory('normalize_quantiles', contentType=InputTypes.FloatListType,
-        descr=r"""When <normalize_mode> is "quantile", two quantiles (e.g., 0.02,0.98) used to scale objectives.
+                   Quantile normalization uses <normalizeQuantiles> to reduce outlier compression."""))
+    spec.addSub(InputData.parameterInputFactory('normalizeQuantiles', contentType=InputTypes.FloatListType,
+        descr=r"""When <normalizeMode> is "quantile", two quantiles (e.g., 0.02,0.98) used to scale objectives.
                    Values are clipped to [0,1] after scaling."""))
-    spec.addSub(InputData.parameterInputFactory('search_extent', contentType=InputTypes.IntegerType,
-        descr=r"""If provided, uses epsilon = 1/search_extent in normalized space and draws a search_extent x search_extent grid."""))
+    spec.addSub(InputData.parameterInputFactory('searchExtent', contentType=InputTypes.IntegerType,
+        descr=r"""If provided, uses epsilon = 1/searchExtent in normalized space and draws a searchExtent x searchExtent grid."""))
     spec.addSub(InputData.parameterInputFactory('epsilon', contentType=InputTypes.FloatType,
-        descr=r"""Optional epsilon size in normalized space. Overrides <search_extent> when provided."""))
-    spec.addSub(InputData.parameterInputFactory('show_grid', contentType=InputTypes.BoolType,
+        descr=r"""Optional epsilon size in normalized space. Overrides <searchExtent> when provided."""))
+    spec.addSub(InputData.parameterInputFactory('showGrid', contentType=InputTypes.BoolType,
         descr=r"""If true (default), draw epsilon grid lines."""))
-    spec.addSub(InputData.parameterInputFactory('show_boxes', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('showBoxes', contentType=InputTypes.BoolType,
         descr=r"""If true (default), shade epsilon boxes occupied by the epsilon-efficient set."""))
-    spec.addSub(InputData.parameterInputFactory('show_all', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('showAll', contentType=InputTypes.BoolType,
         descr=r"""If true (default), plot all samples as background points."""))
-    spec.addSub(InputData.parameterInputFactory('show_infeasible', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('showInfeasible', contentType=InputTypes.BoolType,
         descr=r"""If true, also plot infeasible points (as red x) when <constraints> are provided. Default true."""))
-    spec.addSub(InputData.parameterInputFactory('auto_limits', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('autoLimits', contentType=InputTypes.BoolType,
         descr=r"""If true (default), zoom axes to the occupied region (all samples and epsilon-efficient points)."""))
-    spec.addSub(InputData.parameterInputFactory('limits_padding', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('limitsPadding', contentType=InputTypes.FloatType,
         descr=r"""Padding fraction added around auto-limits (default 0.05)."""))
     spec.addSub(InputData.parameterInputFactory('xlim', contentType=InputTypes.FloatListType,
         descr=r"""Optional explicit x-axis limits [xmin, xmax] in plotted coordinates."""))
@@ -97,16 +97,16 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
         descr=r"""Optional explicit y-axis limits [ymin, ymax] in plotted coordinates."""))
     spec.addSub(InputData.parameterInputFactory('aspect', contentType=InputTypes.StringType,
         descr=r"""Axis aspect ratio: "equal" (default, keeps epsilon boxes square) or "auto"."""))
-    spec.addSub(InputData.parameterInputFactory('axis_space', contentType=InputTypes.StringType,
+    spec.addSub(InputData.parameterInputFactory('axisSpace', contentType=InputTypes.StringType,
         descr=r"""Axis coordinate system: "normalized" (default) or "objective".
                    If "objective", axes show original objective values (with goals applied for direction),
                    and epsilon grid/boxes are mapped from normalized space to objective space."""))
-    spec.addSub(InputData.parameterInputFactory('layout_top', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('layoutTop', contentType=InputTypes.FloatType,
         descr=r"""Top boundary (0-1] passed to matplotlib tight_layout(rect=...). Smaller values leave more headroom above the title. Default 0.96."""))
-    spec.addSub(InputData.parameterInputFactory('show_info', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('showInfo', contentType=InputTypes.BoolType,
         descr=r"""If true (default), prints a small "info cues" box under the legend summarizing key plot settings
                    (epsilon/extent, normalization, axis space, filters, and constraint usage)."""))
-    spec.addSub(InputData.parameterInputFactory('info_fontsize', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('infoFontsize', contentType=InputTypes.FloatType,
         descr=r"""Font size for the info box (default 9)."""))
     return spec
 
@@ -181,11 +181,11 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
     genNode = spec.findFirst('generation')
     if genNode is not None and genNode.value is not None:
       self.generation = float(genNode.value)
-    uagNode = spec.findFirst('use_all_generations')
+    uagNode = spec.findFirst('useAllGenerations')
     if uagNode is not None and uagNode.value is not None:
       self.useAllGenerations = bool(uagNode.value)
 
-    ifNode = spec.findFirst('include_failed')
+    ifNode = spec.findFirst('includeFailed')
     if ifNode is not None and ifNode.value is not None:
       self.includeFailed = bool(ifNode.value)
 
@@ -193,49 +193,49 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
     if normNode is not None and normNode.value is not None:
       self.normalize = bool(normNode.value)
 
-    nmNode = spec.findFirst('normalize_mode')
+    nmNode = spec.findFirst('normalizeMode')
     if nmNode is not None and nmNode.value:
       self.normalizeMode = str(nmNode.value).strip().lower()
     if self.normalizeMode not in {'minmax', 'quantile'}:
-      self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received unsupported <normalize_mode> "{self.normalizeMode}".')
-    nqNode = spec.findFirst('normalize_quantiles')
+      self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received unsupported <normalizeMode> "{self.normalizeMode}".')
+    nqNode = spec.findFirst('normalizeQuantiles')
     if nqNode is not None and nqNode.value:
       vals = [float(v) for v in nqNode.value]
       if len(vals) != 2:
-        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" requires two values in <normalize_quantiles>.')
+        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" requires two values in <normalizeQuantiles>.')
       qlo, qhi = min(vals[0], vals[1]), max(vals[0], vals[1])
       if not (0.0 <= qlo <= 1.0 and 0.0 <= qhi <= 1.0 and qlo < qhi):
-        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received invalid <normalize_quantiles> ({qlo}, {qhi}).')
+        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received invalid <normalizeQuantiles> ({qlo}, {qhi}).')
       self.normalizeQuantiles = (qlo, qhi)
 
-    seNode = spec.findFirst('search_extent')
+    seNode = spec.findFirst('searchExtent')
     if seNode is not None and seNode.value is not None:
       self.searchExtent = int(seNode.value)
       if self.searchExtent <= 0:
-        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received non-positive <search_extent>.')
+        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received non-positive <searchExtent>.')
     epsNode = spec.findFirst('epsilon')
     if epsNode is not None and epsNode.value is not None:
       self.epsilon = float(epsNode.value)
       if self.epsilon <= 0.0:
         self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received non-positive <epsilon>.')
 
-    sgNode = spec.findFirst('show_grid')
+    sgNode = spec.findFirst('showGrid')
     if sgNode is not None and sgNode.value is not None:
       self.showGrid = bool(sgNode.value)
-    sbNode = spec.findFirst('show_boxes')
+    sbNode = spec.findFirst('showBoxes')
     if sbNode is not None and sbNode.value is not None:
       self.showBoxes = bool(sbNode.value)
-    saNode = spec.findFirst('show_all')
+    saNode = spec.findFirst('showAll')
     if saNode is not None and saNode.value is not None:
       self.showAll = bool(saNode.value)
-    sifNode = spec.findFirst('show_infeasible')
+    sifNode = spec.findFirst('showInfeasible')
     if sifNode is not None and sifNode.value is not None:
       self.showInfeasible = bool(sifNode.value)
 
-    alNode = spec.findFirst('auto_limits')
+    alNode = spec.findFirst('autoLimits')
     if alNode is not None and alNode.value is not None:
       self.autoLimits = bool(alNode.value)
-    lpNode = spec.findFirst('limits_padding')
+    lpNode = spec.findFirst('limitsPadding')
     if lpNode is not None and lpNode.value is not None:
       self.limitsPadding = float(lpNode.value)
     xlimNode = spec.findFirst('xlim')
@@ -257,30 +257,30 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
     if self.aspect not in {'equal', 'auto'}:
       self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received unsupported <aspect> "{self.aspect}".')
 
-    asNode = spec.findFirst('axis_space')
+    asNode = spec.findFirst('axisSpace')
     if asNode is not None and asNode.value:
       self.axisSpace = str(asNode.value).strip().lower()
     if self.axisSpace not in {'normalized', 'objective'}:
-      self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received unsupported <axis_space> "{self.axisSpace}".')
+      self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received unsupported <axisSpace> "{self.axisSpace}".')
     # "equal" aspect is great for normalized space (0-1 box), but it can collapse the plot in objective space
     # when objective magnitudes differ by orders (e.g., eta ~ 0.3 vs cost ~ 2.5e6). Default to "auto" in that case.
     if self.axisSpace == 'objective' and not self._aspectFromInput and self.aspect == 'equal':
       self.aspect = 'auto'
 
-    ltNode = spec.findFirst('layout_top')
+    ltNode = spec.findFirst('layoutTop')
     if ltNode is not None and ltNode.value is not None:
       self.layoutTop = float(ltNode.value)
       if not (0.0 < self.layoutTop <= 1.0):
-        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received invalid <layout_top> {self.layoutTop}; expected (0, 1].')
+        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received invalid <layoutTop> {self.layoutTop}; expected (0, 1].')
 
-    siNode = spec.findFirst('show_info')
+    siNode = spec.findFirst('showInfo')
     if siNode is not None and siNode.value is not None:
       self.showInfo = bool(siNode.value)
-    fsNode = spec.findFirst('info_fontsize')
+    fsNode = spec.findFirst('infoFontsize')
     if fsNode is not None and fsNode.value is not None:
       self.infoFontsize = float(fsNode.value)
       if self.infoFontsize <= 0.0:
-        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received non-positive <info_fontsize>.')
+        self.raiseAnError(IOError, f'AdjustedEpsilonOptimalPlot "{self.name}" received non-positive <infoFontsize>.')
 
   def initialize(self, stepEntities):
     super().initialize(stepEntities)
@@ -561,7 +561,7 @@ class AdjustedEpsilonOptimalPlot(PlotInterface):
           ratio = np.inf
         if ratio > 50.0:
           self.raiseAWarning(
-            f'AdjustedEpsilonOptimalPlot "{self.name}": <aspect>=equal with <axis_space>=objective '
+            f'AdjustedEpsilonOptimalPlot "{self.name}": <aspect>=equal with <axisSpace>=objective '
             f'produces an unusable plot (axis span ratio ~ {ratio:.3g}); using aspect=auto instead. '
             f'Set explicit <xlim>/<ylim> if you need square scaling.'
           )

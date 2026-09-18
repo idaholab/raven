@@ -57,16 +57,16 @@ class ConstraintActivityTimelinePlot(PlotInterface):
         descr=r"""Optional list of constraint evaluation columns (values <= 0 indicate violation). Use "all" or omit this node to include every column named like ConstraintEvaluation_*."""))
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Generation identifier column (e.g., batchId)."""))
-    spec.addSub(InputData.parameterInputFactory('max_frames', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxFrames', contentType=InputTypes.IntegerType,
         descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 20)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combinations."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,
         descr=r"""Frames per second for the generated animations. Defaults to 2."""))
-    spec.addSub(InputData.parameterInputFactory('save_frames', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('saveFrames', contentType=InputTypes.BoolType,
         descr=r"""If true, saves sampled generations as standalone PNG frames alongside the animation outputs."""))
-    spec.addSub(InputData.parameterInputFactory('frames_max', contentType=InputTypes.IntegerType,
-        descr=r"""Maximum number of PNG frames to save when <save_frames> is true. Defaults to 10; generations are sampled evenly."""))
+    spec.addSub(InputData.parameterInputFactory('framesMax', contentType=InputTypes.IntegerType,
+        descr=r"""Maximum number of PNG frames to save when <saveFrames> is true. Defaults to 10; generations are sampled evenly."""))
     plotGenerationUtils.addGenerationSelectorSpec(spec)
     return spec
 
@@ -110,11 +110,11 @@ class ConstraintActivityTimelinePlot(PlotInterface):
       self.raiseAnError(IOError, f'Missing <index> node for ConstraintActivityTimelinePlot "{self.name}".')
     self.index = indexNode.value
 
-    maxNode = spec.findFirst('max_frames')
+    maxNode = spec.findFirst('maxFrames')
     if maxNode is not None and maxNode.value is not None:
       self.maxFrames = int(maxNode.value)
       if self.maxFrames <= 0:
-        self.raiseAnError(IOError, f'ConstraintActivityTimelinePlot "{self.name}" received non-positive <max_frames>.')
+        self.raiseAnError(IOError, f'ConstraintActivityTimelinePlot "{self.name}" received non-positive <maxFrames>.')
 
     formatNode = spec.findFirst('format')
     if formatNode is not None and formatNode.value is not None:
@@ -141,15 +141,15 @@ class ConstraintActivityTimelinePlot(PlotInterface):
       if self.fps <= 0:
         self.raiseAnError(IOError, f'ConstraintActivityTimelinePlot "{self.name}" received non-positive <fps>.')
 
-    saveNode = spec.findFirst('save_frames')
+    saveNode = spec.findFirst('saveFrames')
     if saveNode is not None and saveNode.value is not None:
       self.save_frames = bool(saveNode.value)
 
-    framesMaxNode = spec.findFirst('frames_max')
+    framesMaxNode = spec.findFirst('framesMax')
     if framesMaxNode is not None and framesMaxNode.value is not None:
       self.frame_max = int(framesMaxNode.value)
       if self.frame_max <= 0:
-        self.raiseAnError(IOError, f'ConstraintActivityTimelinePlot "{self.name}" received non-positive <frames_max>.')
+        self.raiseAnError(IOError, f'ConstraintActivityTimelinePlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
 

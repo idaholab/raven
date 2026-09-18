@@ -52,16 +52,16 @@ class TradeoffSlicePlot(PlotInterface):
     spec.addSub(objectives)
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Generation identifier column (e.g., batchId)."""))
-    spec.addSub(InputData.parameterInputFactory('max_frames', contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('maxFrames', contentType=InputTypes.IntegerType,
         descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 20)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combinations."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,
         descr=r"""Frames per second for generated animations. Defaults to 2."""))
-    spec.addSub(InputData.parameterInputFactory('save_frames', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('saveFrames', contentType=InputTypes.BoolType,
         descr=r"""If true, saves sampled generations as standalone PNG frames alongside the animation outputs."""))
-    spec.addSub(InputData.parameterInputFactory('frames_max', contentType=InputTypes.IntegerType,
-        descr=r"""Maximum number of PNG frames to save when <save_frames> is true. Defaults to 10; generations are sampled evenly."""))
+    spec.addSub(InputData.parameterInputFactory('framesMax', contentType=InputTypes.IntegerType,
+        descr=r"""Maximum number of PNG frames to save when <saveFrames> is true. Defaults to 10; generations are sampled evenly."""))
     pairs = InputData.parameterInputFactory('pairs',
         descr=r"""Optional list of <pair> entries selecting specific objective pairs to plot.""")
     pairs.addSub(InputData.parameterInputFactory('pair', contentType=InputTypes.StringListType,
@@ -103,11 +103,11 @@ class TradeoffSlicePlot(PlotInterface):
       self.raiseAnError(IOError, f'Missing <index> node for TradeoffSlicePlot "{self.name}".')
     self.index = indexNode.value
 
-    maxNode = spec.findFirst('max_frames')
+    maxNode = spec.findFirst('maxFrames')
     if maxNode is not None and maxNode.value is not None:
       self.maxFrames = int(maxNode.value)
       if self.maxFrames <= 0:
-        self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}" received non-positive <max_frames>.')
+        self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}" received non-positive <maxFrames>.')
     formatNode = spec.findFirst('format')
     if formatNode is not None and formatNode.value is not None:
       raw = formatNode.value.strip().lower()
@@ -131,14 +131,14 @@ class TradeoffSlicePlot(PlotInterface):
       self.fps = float(fpsNode.value)
       if self.fps <= 0:
         self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}" received non-positive <fps>.')
-    saveFramesNode = spec.findFirst('save_frames')
+    saveFramesNode = spec.findFirst('saveFrames')
     if saveFramesNode is not None and saveFramesNode.value is not None:
       self.save_frames = bool(saveFramesNode.value)
-    framesMaxNode = spec.findFirst('frames_max')
+    framesMaxNode = spec.findFirst('framesMax')
     if framesMaxNode is not None and framesMaxNode.value is not None:
       self.frame_max = int(framesMaxNode.value)
       if self.frame_max <= 0:
-        self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}" received non-positive <frames_max>.')
+        self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
 

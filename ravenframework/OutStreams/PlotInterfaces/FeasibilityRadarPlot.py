@@ -51,17 +51,17 @@ class FeasibilityRadarPlot(PlotInterface):
         descr=r"""When <index> provided, limits the plot to the specified generation. If omitted, uses the last generation."""))
     spec.addSub(InputData.parameterInputFactory('aggregate', contentType=InputTypes.StringType,
         descr=r"""Aggregate statistic per group: "median" (default) or "mean"."""))
-    spec.addSub(InputData.parameterInputFactory('include_all', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('includeAll', contentType=InputTypes.BoolType,
         descr=r"""If true, also draws an 'all samples' polygon. Default false."""))
-    spec.addSub(InputData.parameterInputFactory('use_all_generations', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('useAllGenerations', contentType=InputTypes.BoolType,
         descr=r"""When <index> is provided, use all generations instead of only the last generation (or <generation>). Default false."""))
     spec.addSub(InputData.parameterInputFactory('quantiles', contentType=InputTypes.FloatListType,
         descr=r"""Optional two quantiles (e.g., 0.1, 0.9) used to draw per-group bands around the aggregate profile."""))
     spec.addSub(InputData.parameterInputFactory('bands', contentType=InputTypes.StringListType,
         descr=r"""Which groups should have quantile bands when <quantiles> are provided. Options: feasible, infeasible, all. Default feasible,infeasible."""))
-    spec.addSub(InputData.parameterInputFactory('band_alpha', contentType=InputTypes.FloatType,
+    spec.addSub(InputData.parameterInputFactory('bandAlpha', contentType=InputTypes.FloatType,
         descr=r"""Fill alpha for quantile bands (default 0.10)."""))
-    spec.addSub(InputData.parameterInputFactory('show_empty_groups', contentType=InputTypes.BoolType,
+    spec.addSub(InputData.parameterInputFactory('showEmptyGroups', contentType=InputTypes.BoolType,
         descr=r"""If true, include legend entries even when a group has zero samples. Default true."""))
     return spec
 
@@ -117,11 +117,11 @@ class FeasibilityRadarPlot(PlotInterface):
     if self.aggregate not in {'median', 'mean'}:
       self.raiseAnError(IOError, f'FeasibilityRadarPlot "{self.name}" received unsupported <aggregate> "{self.aggregate}".')
 
-    allNode = spec.findFirst('include_all')
+    allNode = spec.findFirst('includeAll')
     if allNode is not None and allNode.value is not None:
       self.includeAll = bool(allNode.value)
 
-    uagNode = spec.findFirst('use_all_generations')
+    uagNode = spec.findFirst('useAllGenerations')
     if uagNode is not None and uagNode.value is not None:
       self.useAllGenerations = bool(uagNode.value)
 
@@ -147,11 +147,11 @@ class FeasibilityRadarPlot(PlotInterface):
         self.raiseAnError(IOError, f'FeasibilityRadarPlot "{self.name}" received invalid <bands> entries: {bad}.')
       self.bandGroups = groups if groups else {'feasible', 'infeasible'}
 
-    baNode = spec.findFirst('band_alpha')
+    baNode = spec.findFirst('bandAlpha')
     if baNode is not None and baNode.value is not None:
       self.bandAlpha = float(baNode.value)
 
-    segNode = spec.findFirst('show_empty_groups')
+    segNode = spec.findFirst('showEmptyGroups')
     if segNode is not None and segNode.value is not None:
       self.showEmptyGroups = bool(segNode.value)
 
