@@ -18,8 +18,6 @@ originating from a selected apex (typically the utopia point).
 
 import math
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection

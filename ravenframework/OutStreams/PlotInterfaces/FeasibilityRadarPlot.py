@@ -24,8 +24,6 @@ a polygon on a polar axis. This provides an at-a-glance view of how constraint
 violations shift the typical decision-variable/objective pattern.
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

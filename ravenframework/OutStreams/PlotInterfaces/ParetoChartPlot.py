@@ -26,8 +26,6 @@ This is useful for quickly identifying the "vital few" drivers (e.g., which
 constraints are most frequently violated, or which failure reasons dominate).
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

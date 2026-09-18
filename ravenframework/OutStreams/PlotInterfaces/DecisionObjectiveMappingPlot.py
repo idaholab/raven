@@ -30,8 +30,6 @@ Typical use cases:
 - visualizing how feasibility / Pareto rank in objective space relates to decision variables
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
 from matplotlib.lines import Line2D

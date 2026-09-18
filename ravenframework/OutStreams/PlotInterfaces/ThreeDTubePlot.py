@@ -16,8 +16,6 @@ Three-dimensional tube plot that highlights an optimizer's best-performing
 trajectory through objective space.
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 import numpy as np

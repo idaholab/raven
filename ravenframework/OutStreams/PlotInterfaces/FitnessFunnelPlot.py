@@ -35,8 +35,6 @@ Best oscillates while variance spikes -> potential instability (e.g., repair ope
 import math
 import os
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 

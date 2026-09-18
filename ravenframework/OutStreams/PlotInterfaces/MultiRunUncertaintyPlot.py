@@ -15,8 +15,6 @@
 Plot mean and spread of an objective across multiple optimisation runs.
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

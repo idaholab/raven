@@ -20,8 +20,6 @@ import math
 import os
 
 import imageio.v2 as imageio
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 import numpy as np

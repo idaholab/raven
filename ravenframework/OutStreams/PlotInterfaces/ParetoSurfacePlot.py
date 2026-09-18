@@ -24,8 +24,6 @@ Notes:
 - Use <constraints> to filter to feasible rank-1 points.
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 import numpy as np

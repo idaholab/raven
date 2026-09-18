@@ -25,8 +25,6 @@ import io
 import os
 
 import imageio.v2 as imageio
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import animation

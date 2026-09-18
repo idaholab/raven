@@ -8,8 +8,6 @@ generation, which decision variables remain tightly coupled, and which links
 disappear when I relax a constraint?"
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 from matplotlib import patches, path
 import numpy as np

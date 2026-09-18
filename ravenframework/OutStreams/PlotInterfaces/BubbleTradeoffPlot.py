@@ -17,8 +17,6 @@ Static two- or three-objective scatter plot that encodes an additional metric as
 
 import math
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 

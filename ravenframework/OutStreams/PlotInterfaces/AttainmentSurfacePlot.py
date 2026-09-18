@@ -17,8 +17,6 @@ Probability map showing attainment surfaces aggregated across optimisation runs.
 
 import itertools
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 

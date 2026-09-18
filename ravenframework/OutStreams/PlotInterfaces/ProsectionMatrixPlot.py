@@ -24,8 +24,6 @@ to see whether early vs late populations obey the same local structure.
 
 import itertools
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

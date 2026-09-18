@@ -17,6 +17,22 @@
   Created April 1, 2021
   @author: talbpaul
 """
+# Matplotlib backend selection for the whole PlotInterfaces package.
+# This MUST run before importing any plotting submodule: several of them (e.g.
+# SamplePlot) import matplotlib.pyplot at module load, and the first pyplot import
+# locks in the backend. Respect an explicit user choice (RAVEN_BACKEND / MPLBACKEND);
+# otherwise fall back to the non-interactive Agg backend only when running headless
+# (e.g. HPC/SSH with no X/Wayland display). This single, non-forcing selector is why
+# the individual plot modules do not (and must not) call matplotlib.use(..., force=True),
+# which would override the user's backend and GeneralPlot's interactive/screen destination.
+import os as _os
+import matplotlib as _matplotlib
+_ravenBackend = _os.environ.get('RAVEN_BACKEND') or _os.environ.get('MPLBACKEND')
+if _ravenBackend:
+  _matplotlib.use(_ravenBackend)
+elif not (_os.environ.get('DISPLAY') or _os.environ.get('WAYLAND_DISPLAY')):
+  _matplotlib.use('Agg')
+
 from .PlotInterface import PlotInterface
 from .SamplePlot import SamplePlot
 from .GeneralPlot import GeneralPlot as Plot

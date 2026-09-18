@@ -8,8 +8,6 @@ generation, do my decision variables still pull the nondominated designs
 toward distinct quadrants, or do they blend together after reweighting?"
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

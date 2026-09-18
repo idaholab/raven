@@ -15,8 +15,6 @@
 Overlay a smooth response surface (contours) with sampled optimizer points.
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 import numpy as np

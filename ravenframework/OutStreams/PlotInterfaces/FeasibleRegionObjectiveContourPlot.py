@@ -23,8 +23,6 @@ This plot mirrors classic constrained optimization visuals:
 - Pareto points projected onto the base plane
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 from matplotlib.collections import PolyCollection

@@ -9,8 +9,6 @@ different generation or constraint scenario?"
 
 import math
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

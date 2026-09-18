@@ -15,8 +15,6 @@
 Visualize the density of dominated vs non-dominated samples for two-objective optimizers.
 """
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 

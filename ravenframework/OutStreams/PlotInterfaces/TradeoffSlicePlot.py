@@ -20,8 +20,6 @@ import itertools
 import io
 import os
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np

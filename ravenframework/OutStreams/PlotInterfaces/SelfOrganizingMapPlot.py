@@ -11,8 +11,6 @@ and how would including earlier generations reshape the neighbourhoods?"
 import math
 import random
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

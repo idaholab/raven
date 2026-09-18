@@ -39,8 +39,6 @@ Hypervolume jumps upward while total samples drop → You may have over-aggressi
 import math
 import textwrap
 
-import matplotlib
-matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

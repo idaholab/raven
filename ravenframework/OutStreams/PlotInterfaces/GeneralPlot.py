@@ -26,13 +26,9 @@ from itertools import cycle
 import numpy as np
 import numpy.ma as ma
 import matplotlib
-# Choose a non-interactive backend when running headless (e.g. HPC/SSH without X11),
-# unless the user explicitly requested a backend via RAVEN_BACKEND or MPLBACKEND.
-_forcedBackend = os.environ.get('RAVEN_BACKEND') or os.environ.get('MPLBACKEND')
-if _forcedBackend:
-  matplotlib.use(_forcedBackend)
-elif not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
-  matplotlib.use('Agg')
+# The Matplotlib backend is selected once, before any plotting submodule is imported,
+# in ravenframework/OutStreams/PlotInterfaces/__init__.py (it respects RAVEN_BACKEND /
+# MPLBACKEND and falls back to Agg only when headless). No per-module matplotlib.use().
 import matplotlib.pyplot as plt
 
 from ...utils import utils, mathUtils
