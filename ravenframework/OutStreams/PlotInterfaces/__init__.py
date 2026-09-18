@@ -45,8 +45,6 @@ from .NSGAFrontAnimation import NSGAFrontAnimation
 from .NSGARankHistoryPlot import NSGARankHistoryPlot
 from .NSGACrowdingDistancePlot import NSGACrowdingDistancePlot
 from .NSGAFrontRankAnimation import NSGAFrontRankAnimation
-from .NSGAIIIReferenceDirectionPlot import NSGAIIIReferenceDirectionPlot
-from .NSGAIIINichingHeatmapPlot import NSGAIIINichingHeatmapPlot
 from .ObjectiveContourAnimation import ObjectiveContourAnimationPlot
 from .ParetoDiagnosticsPlot import ParetoDiagnosticsPlot
 from .DominanceHeatMapPlot import DominanceHeatMapPlot

@@ -32,8 +32,6 @@ from .NSGAFrontAnimation import NSGAFrontAnimation
 from .NSGARankHistoryPlot import NSGARankHistoryPlot
 from .NSGACrowdingDistancePlot import NSGACrowdingDistancePlot
 from .NSGAFrontRankAnimation import NSGAFrontRankAnimation
-from .NSGAIIIReferenceDirectionPlot import NSGAIIIReferenceDirectionPlot
-from .NSGAIIINichingHeatmapPlot import NSGAIIINichingHeatmapPlot
 from .ObjectiveContourAnimation import ObjectiveContourAnimationPlot
 from .ParetoDiagnosticsPlot import ParetoDiagnosticsPlot
 from .DominanceHeatMapPlot import DominanceHeatMapPlot
@@ -77,8 +75,6 @@ factory.registerType('NSGAFrontAnimation', NSGAFrontAnimation)
 factory.registerType('NSGARankHistoryPlot', NSGARankHistoryPlot)
 factory.registerType('NSGACrowdingDistancePlot', NSGACrowdingDistancePlot)
 factory.registerType('NSGAFrontRankAnimation', NSGAFrontRankAnimation)
-factory.registerType('NSGAIIIReferenceDirectionPlot', NSGAIIIReferenceDirectionPlot)
-factory.registerType('NSGAIIINichingHeatmapPlot', NSGAIIINichingHeatmapPlot)
 factory.registerType('ObjectiveContourAnimationPlot', ObjectiveContourAnimationPlot)
 factory.registerType('ParetoDiagnosticsPlot', ParetoDiagnosticsPlot)
 factory.registerType('DominanceHeatMapPlot', DominanceHeatMapPlot)
