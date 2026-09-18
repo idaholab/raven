@@ -224,8 +224,8 @@
       <vars>x1, x2, x3, obj1, obj2, obj3</vars>
       <index>batchId</index>
       <constraints>all</constraints>
-      <color_mode>violation</color_mode>
-      <thickness_mode>violation</thickness_mode>
+      <colorMode>violation</colorMode>
+      <thicknessMode>violation</thicknessMode>
     </Plot>
     <Plot name="vector_field" subType="ThreeDVectorPlot">
       <source>opt_export</source>
@@ -239,14 +239,14 @@
       <objectives>obj1, obj2, obj3</objectives>
       <index>batchId</index>
       <rank>1</rank>
-      <line_width>3.5</line_width>
+      <lineWidth>3.5</lineWidth>
     </Plot>
     <Plot name="dominance_cones" subType="ThreeDConePlot">
       <source>opt_export</source>
       <objectives>obj1, obj2, obj3</objectives>
       <index>batchId</index>
       <rank>1</rank>
-      <top_k>10</top_k>
+      <topK>10</topK>
       <angle>10.0</angle>
     </Plot>
     <Plot name="fitness_funnel" subType="FitnessFunnelPlot">
