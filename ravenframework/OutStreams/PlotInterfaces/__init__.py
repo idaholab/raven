@@ -21,16 +21,22 @@
 # This MUST run before importing any plotting submodule: several of them (e.g.
 # SamplePlot) import matplotlib.pyplot at module load, and the first pyplot import
 # locks in the backend. Respect an explicit user choice (RAVEN_BACKEND / MPLBACKEND);
-# otherwise fall back to the non-interactive Agg backend only when running headless
-# (e.g. HPC/SSH with no X/Wayland display). This single, non-forcing selector is why
-# the individual plot modules do not (and must not) call matplotlib.use(..., force=True),
-# which would override the user's backend and GeneralPlot's interactive/screen destination.
+# otherwise fall back to the non-interactive Agg backend whenever no usable display is
+# available. utils.displayAvailable() actually probes the display, so a set-but-unreachable
+# DISPLAY (e.g. HPC/SSH with broken X11 forwarding) correctly resolves to Agg instead of
+# leaving matplotlib to load an interactive backend (TkAgg) and crash at plot time. This
+# single, non-forcing selector is why the individual plot modules do not (and must not)
+# call matplotlib.use(..., force=True), which would override the user's backend and
+# GeneralPlot's interactive/screen destination.
 import os as _os
 import matplotlib as _matplotlib
+from ...utils import utils as _utils
 _ravenBackend = _os.environ.get('RAVEN_BACKEND') or _os.environ.get('MPLBACKEND')
 if _ravenBackend:
   _matplotlib.use(_ravenBackend)
-elif not (_os.environ.get('DISPLAY') or _os.environ.get('WAYLAND_DISPLAY')):
+elif not _utils.displayAvailable():
+  # Headless (no display, or DISPLAY set but no reachable X server, e.g. HPC/SSH
+  # with broken X11 forwarding): use the non-interactive Agg backend.
   _matplotlib.use('Agg')
 
 from .PlotInterface import PlotInterface
