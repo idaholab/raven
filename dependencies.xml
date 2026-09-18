@@ -92,6 +92,7 @@ limit our library choices.
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
+    <pillow source="pip"/>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->

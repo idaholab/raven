@@ -74,8 +74,9 @@ def parseGenerationSelectorNode(spec):
 
 def sampleGenerations(generations, limit):
   """
-    Evenly down-sample a sorted list of generations to at most `limit` entries, always
-    keeping the first and last generation.
+    Evenly down-sample a sorted list of generations to at most `limit` entries. The last
+    generation is always kept; the first is also kept whenever `limit` >= 2 (with `limit`
+    == 1 only the last generation is returned).
     @ In, generations, list, sorted unique generation identifiers
     @ In, limit, int, maximum number of generations to keep
     @ Out, (gens, indices), tuple(list, list), the selected generations and their
@@ -178,10 +179,7 @@ def parseGenerationSelector(tokens, generations):
         raise ValueError(f'range "{token}" matched no generations present in the data '
                          f'(available range {ordered[0]}..{ordered[-1]})')
     else:
-      try:
-        selected.add(_lookup(token))
-      except ValueError:
-        raise
+      selected.add(_lookup(token))
   return sorted(selected)
 
 
