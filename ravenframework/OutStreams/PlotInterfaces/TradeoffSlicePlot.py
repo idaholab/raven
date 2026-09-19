@@ -212,7 +212,7 @@ class TradeoffSlicePlot(PlotInterface):
         rankMask = self._prepareRankMask(subset)
         fig, axes = self._createFigure()
         self._populateAxes(axes, subset, rankMask)
-        fig.suptitle(f'{self.name}: Generation {self._format_generation(gen)}')
+        fig.suptitle(f'{self.name}: Generation {self._formatGeneration(gen)}')
         fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png', dpi=150)
@@ -228,7 +228,7 @@ class TradeoffSlicePlot(PlotInterface):
       subset = df[df[self.index] == generations[0]]
       rankMask = self._prepareRankMask(subset)
       self._populateAxes(axes, subset, rankMask)
-      fig.suptitle(f'{self.name}: Generation {self._format_generation(generations[0])}')
+      fig.suptitle(f'{self.name}: Generation {self._formatGeneration(generations[0])}')
       fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
       return fig.axes
 
@@ -236,7 +236,7 @@ class TradeoffSlicePlot(PlotInterface):
       subset = df[df[self.index] == gen]
       rankMask = self._prepareRankMask(subset)
       self._populateAxes(axes, subset, rankMask)
-      fig.suptitle(f'{self.name}: Generation {self._format_generation(gen)}')
+      fig.suptitle(f'{self.name}: Generation {self._formatGeneration(gen)}')
       fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
       return fig.axes
 
@@ -244,7 +244,7 @@ class TradeoffSlicePlot(PlotInterface):
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
     htmlStr = anim.to_jshtml()
-    centeredHtml = f'<div style="display:flex;justify-content:center;">{html_str}</div>'
+    centeredHtml = f'<div style="display:flex;justify-content:center;">{htmlStr}</div>'
     with open(filename, 'w', encoding='utf-8') as output:
       output.write(centeredHtml)
     plt.close(fig)
@@ -267,7 +267,7 @@ class TradeoffSlicePlot(PlotInterface):
       rankMask = self._prepareRankMask(subset)
       fig, axes = self._createFigure()
       self._populateAxes(axes, subset, rankMask)
-      fig.suptitle(f'{self.name}: Generation {self._format_generation(gen)}')
+      fig.suptitle(f'{self.name}: Generation {self._formatGeneration(gen)}')
       fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
       fig.savefig(template.format(index=idx), dpi=150)
       plt.close(fig)

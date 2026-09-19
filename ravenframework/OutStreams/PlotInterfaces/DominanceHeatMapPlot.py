@@ -109,7 +109,7 @@ class DominanceHeatMapPlot(PlotInterface):
 
     ax.set_xlabel(self.objectives[0])
     ax.set_ylabel(self.objectives[1])
-    ax.set_title(f'Dominance heatmap (generation {int(final_gen)})')
+    ax.set_title(f'Dominance heatmap (generation {int(finalGen)})')
     ax.grid(alpha=0.2)
     ax.legend()
 

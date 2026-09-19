@@ -265,7 +265,7 @@ class DiversityRadarPlot(PlotInterface):
       patch = fillContainer['patch']
       patch.remove()
       fillContainer['patch'] = ax.fill(anglesClosed, valuesClosed, color='#1f77b4', alpha=0.35)[0]
-      ax.set_title(f'Generation {self._format_generation(generation)}')
+      ax.set_title(f'Generation {self._formatGeneration(generation)}')
       return line, fillContainer['patch']
 
     anim = animation.FuncAnimation(fig, update, frames=len(indices),
@@ -273,7 +273,7 @@ class DiversityRadarPlot(PlotInterface):
                                    blit=False)
     htmlStr = anim.to_jshtml()
     with open(filename, 'w', encoding='utf-8') as out:
-      out.write(f'<div style="display:flex;justify-content:center;">{html_str}</div>')
+      out.write(f'<div style="display:flex;justify-content:center;">{htmlStr}</div>')
     plt.close(fig)
 
   def _writeFrames(self, gens, indices, angles, labels, normMatrix):
@@ -298,7 +298,7 @@ class DiversityRadarPlot(PlotInterface):
     line.set_data(anglesClosed, valuesClosed)
     fill.remove()
     fill = ax.fill(anglesClosed, valuesClosed, color='#1f77b4', alpha=0.35)[0]
-    ax.set_title(f'Generation {self._format_generation(generation)}')
+    ax.set_title(f'Generation {self._formatGeneration(generation)}')
     fig.tight_layout(rect=[0.05, 0.05, 0.95, 0.95])
     return fig
 

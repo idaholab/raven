@@ -258,7 +258,7 @@ class ProsectionMatrixPlot(PlotInterface):
 
       title = 'Prosection matrix'
       if nFigs > 1:
-        title += f' ({fig_idx + 1}/{n_figs})'
+        title += f' ({figIdx + 1}/{nFigs})'
       fig.suptitle(title)
       fig.tight_layout()
       # Respect <filename> if provided, but suffix per page to avoid overwriting.
@@ -267,10 +267,10 @@ class ProsectionMatrixPlot(PlotInterface):
       baseName = self.filename if self.filename is not None else f'{self.name}.png'
       root, ext = os.path.splitext(baseName)
       ext = ext if ext else '.png'
-      pageName = f'{root}{ext}' if nFigs == 1 else f'{root}_{fig_idx + 1}{ext}'
+      pageName = f'{root}{ext}' if nFigs == 1 else f'{root}_{figIdx + 1}{ext}'
 
       prefix = '' if self.overwrite else f'{self.counter}-'
-      filename = f'{prefix}{page_name}'
+      filename = f'{prefix}{pageName}'
       if self.subDirectory is not None:
         filename = os.path.join(self.subDirectory, filename)
       outDir = os.path.dirname(filename)

@@ -287,15 +287,15 @@ class FeasibilityRadarPlot(PlotInterface):
     if aggAll is not None:
       if 'all' in self.bandGroups:
         _plotBand(qAllLo, qAllHi, '#1565c0')
-      _plotPoly(aggAll, '#1565c0', f'All (n={len(norm_all)})')
+      _plotPoly(aggAll, '#1565c0', f'All (n={len(normAll)})')
     if aggFeas is not None or self.showEmptyGroups:
       if 'feasible' in self.bandGroups:
         _plotBand(qFeasLo, qFeasHi, '#2e7d32')
-      _plotPoly(aggFeas, '#2e7d32', f'Feasible (n={len(norm_feas)})')
+      _plotPoly(aggFeas, '#2e7d32', f'Feasible (n={len(normFeas)})')
     if aggInfeas is not None or self.showEmptyGroups:
       if 'infeasible' in self.bandGroups:
         _plotBand(qInfeasLo, qInfeasHi, '#d32f2f')
-      _plotPoly(aggInfeas, '#d32f2f', f'Infeasible (n={len(norm_infeas)})')
+      _plotPoly(aggInfeas, '#d32f2f', f'Infeasible (n={len(normInfeas)})')
 
     ax.set_title(f'Feasibility radar ({self.aggregate})', va='bottom')
     ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1.0), frameon=True)

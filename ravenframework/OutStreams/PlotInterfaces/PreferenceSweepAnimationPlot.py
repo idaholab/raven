@@ -286,7 +286,7 @@ class PreferenceSweepAnimationPlot(PlotInterface):
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
     htmlStr = anim.to_jshtml()
-    centeredHtml = f'<div style=\"display:flex;justify-content:center;\">{html_str}</div>'
+    centeredHtml = f'<div style=\"display:flex;justify-content:center;\">{htmlStr}</div>'
     with open(filename, 'w', encoding='utf-8') as out:
       out.write(centeredHtml)
     plt.close(fig)

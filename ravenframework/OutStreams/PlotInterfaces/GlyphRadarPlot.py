@@ -431,17 +431,17 @@ class GlyphRadarPlot(PlotInterface):
       parts = []
       if self.index and self.index in selectedIdx.columns:
         try:
-          parts.append(f'{self.index}={float(selected_idx.loc[idx, self.index]):.0f}')
+          parts.append(f'{self.index}={float(selectedIdx.loc[idx, self.index]):.0f}')
         except Exception:
-          parts.append(f'{self.index}={selected_idx.loc[idx, self.index]}')
+          parts.append(f'{self.index}={selectedIdx.loc[idx, self.index]}')
         if self.labelFirstSeen:
           sig = self._signature(selectedIdx.loc[idx])
           if sig in firstSeen:
-            parts.append(f'first={first_seen[sig]:.0f}')
+            parts.append(f'first={firstSeen[sig]:.0f}')
       if self.labelVar and self.labelVar in selectedIdx.columns:
-        parts.append(f'{self.labelVar}={selected_idx.loc[idx, self.labelVar]}')
+        parts.append(f'{self.labelVar}={selectedIdx.loc[idx, self.labelVar]}')
       if self.metric and self.metric in selectedIdx.columns:
-        parts.append(f'{self.metric}={float(selected_idx.loc[idx, self.metric]):.4g}')
+        parts.append(f'{self.metric}={float(selectedIdx.loc[idx, self.metric]):.4g}')
       if not parts:
         parts.append(f'{self.select} sample')
       title = ', '.join(parts)

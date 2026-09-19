@@ -154,7 +154,7 @@ class BubbleTradeoffPlot(PlotInterface):
         maxGen = subset[self.index].max()
         subset = subset[subset[self.index] == maxGen]
         if subset.empty:
-          self.raiseAWarning(f'No rows found for generation {max_gen} in BubbleTradeoffPlot "{self.name}".')
+          self.raiseAWarning(f'No rows found for generation {maxGen} in BubbleTradeoffPlot "{self.name}".')
     if subset.empty:
       return
 

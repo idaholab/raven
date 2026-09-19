@@ -152,7 +152,7 @@ class NSGAParetoFrontPlot(PlotInterface):
     elif self.constraints:
       missingConstraints = [var for var in self.constraints if var not in dataVars]
       if missingConstraints:
-        self.raiseAWarning(f'NSGAParetoFrontPlot "{self.name}" could not find constraint column(s) {missing_constraints}; proceeding with available constraints only.')
+        self.raiseAWarning(f'NSGAParetoFrontPlot "{self.name}" could not find constraint column(s) {missingConstraints}; proceeding with available constraints only.')
         self.constraints = [var for var in self.constraints if var in dataVars]
 
     if self.colorMode not in {'variable', 'violation', 'none'}:

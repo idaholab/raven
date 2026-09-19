@@ -227,6 +227,6 @@ class NSGAFrontRankAnimation(PlotInterface):
     randomSuffix = match.group(1)
     baseName = self.name if getattr(self, 'name', None) else 'animation'
     safeName = ''.join(ch if ch.isalnum() else '_' for ch in baseName)
-    seed = f'{self.__class__.__name__}:{safe_name}'
+    seed = f'{self.__class__.__name__}:{safeName}'
     deterministic = hashlib.md5(seed.encode('utf-8')).hexdigest()
     return htmlStr.replace(randomSuffix, deterministic)

@@ -381,7 +381,7 @@ class ObjectiveContourAnimationPlot(PlotInterface):
       try:
         mcolors.to_rgba(colorVal)
       except ValueError as err:
-        self.raiseAnError(IOError, f'Invalid <historyColor> value "{color_val}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
+        self.raiseAnError(IOError, f'Invalid <historyColor> value "{colorVal}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
       self.historyColor = colorVal
     infeasibleColorNode = spec.findFirst('infeasibleColor')
     if infeasibleColorNode is not None:
@@ -389,7 +389,7 @@ class ObjectiveContourAnimationPlot(PlotInterface):
       try:
         mcolors.to_rgba(infeasibleVal)
       except ValueError as err:
-        self.raiseAnError(IOError, f'Invalid <infeasibleColor> value "{infeasible_val}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
+        self.raiseAnError(IOError, f'Invalid <infeasibleColor> value "{infeasibleVal}" for ObjectiveContourAnimationPlot "{self.name}": {err}')
       self._customInfeasibleColor = infeasibleVal
     displayFractionNode = spec.findFirst('displayFraction')
     if displayFractionNode is not None:
@@ -535,7 +535,7 @@ class ObjectiveContourAnimationPlot(PlotInterface):
     anim = animation.FuncAnimation(fig, update, frames=generations, init_func=init,
                                    interval=1000.0 / self.fps, blit=False)
     htmlStr = anim.to_jshtml()
-    centeredHtml = f'<div style=\"display:flex;justify-content:center;\">{html_str}</div>'
+    centeredHtml = f'<div style=\"display:flex;justify-content:center;\">{htmlStr}</div>'
     with open(filename, 'w', encoding='utf-8') as out:
       out.write(centeredHtml)
     plt.close(fig)
@@ -737,7 +737,7 @@ class ObjectiveContourAnimationPlot(PlotInterface):
       ax.tick_params(labelbottom=False)
     ax.set_ylabel(axisY)
     label = metricLabel or payload['summary'].get('metric')
-    title = f'{axis_x} vs {axis_y}'
+    title = f'{axisX} vs {axisY}'
     if label:
       title += f' | objective: {label}'
     ax.set_title(title)
@@ -934,7 +934,7 @@ class ObjectiveContourAnimationPlot(PlotInterface):
     for radius, lvl, originalLvl in radii:
       circle = patches.Circle(center, radius, fill=False, linestyle='--', linewidth=0.8, alpha=0.6, color='lightgray', zorder=1)
       ax.add_patch(circle)
-      ax.text(center[0], center[1] + radius, f'{original_lvl:.4g}', fontsize=8, ha='center', va='bottom', color='gray', alpha=0.8, zorder=2)
+      ax.text(center[0], center[1] + radius, f'{originalLvl:.4g}', fontsize=8, ha='center', va='bottom', color='gray', alpha=0.8, zorder=2)
 
   def _updateSummary(self, ax, summary):
     text = self._formatSummary(summary)

@@ -221,7 +221,7 @@ class SamplingCoverageMapPlot(PlotInterface):
       if np.isfinite(density).any():
         im.set_clim(0.0, np.nanmax(density) or 1.0)
       scatter.set_offsets(samples)
-      ax.set_title(f'Generation {self._format_generation(generation)}')
+      ax.set_title(f'Generation {self._formatGeneration(generation)}')
       return im, scatter
 
     anim = animation.FuncAnimation(fig, update, frames=range(len(generations)),
@@ -229,7 +229,7 @@ class SamplingCoverageMapPlot(PlotInterface):
                                    blit=False)
     htmlStr = anim.to_jshtml()
     with open(filename, 'w', encoding='utf-8') as out:
-      out.write(f'<div style="display:flex;justify-content:center;">{html_str}</div>')
+      out.write(f'<div style="display:flex;justify-content:center;">{htmlStr}</div>')
     plt.close(fig)
 
   def _writeFrames(self, df, generations):
@@ -260,7 +260,7 @@ class SamplingCoverageMapPlot(PlotInterface):
     ax.set_ylim(self._ranges[1])
     ax.set_xlabel(self.variables[0])
     ax.set_ylabel(self.variables[1])
-    ax.set_title(f'Sampling coverage (Generation {self._format_generation(generation)})')
+    ax.set_title(f'Sampling coverage (Generation {self._formatGeneration(generation)})')
     ax.grid(alpha=0.2, linestyle='--')
     fig.colorbar(im, ax=ax, label='Sample density')
     fig.tight_layout()

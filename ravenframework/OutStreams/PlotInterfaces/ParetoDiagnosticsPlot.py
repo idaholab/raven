@@ -193,7 +193,7 @@ class ParetoDiagnosticsPlot(PlotInterface):
     axes[0].plot(generations, hvSeries, marker='o', color='tab:blue', linewidth=1.5)
     axes[0].set_ylabel('Hypervolume')
     spaceLabel = 'fitness' if self.space == 'fitness' else 'objective'
-    axes[0].set_title(f'Hypervolume progression ({space_label}: {", ".join(self.objectives)})')
+    axes[0].set_title(f'Hypervolume progression ({spaceLabel}: {", ".join(self.objectives)})')
     axes[0].grid(alpha=0.3)
 
     axes[1].plot(generations, paretoCounts, marker='o', color='tab:green', linewidth=1.5, label='Rank 1 count')

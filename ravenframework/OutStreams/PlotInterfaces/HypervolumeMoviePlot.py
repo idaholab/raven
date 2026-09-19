@@ -327,7 +327,7 @@ class HypervolumeMoviePlot(PlotInterface):
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
     htmlStr = anim.to_jshtml()
-    centeredHtml = f'<div style="display:flex;justify-content:center;">{html_str}</div>'
+    centeredHtml = f'<div style="display:flex;justify-content:center;">{htmlStr}</div>'
     with open(filename, 'w', encoding='utf-8') as out:
       out.write(centeredHtml)
     plt.close(fig)
@@ -365,13 +365,13 @@ class HypervolumeMoviePlot(PlotInterface):
     ax.set_xlabel(self.index)
     ax.set_ylabel('Hypervolume')
     label = ' vs '.join(pair) if len(pair) == 2 else ', '.join(pair)
-    ax.set_title(f'{label} (Generation {self._format_generation(upto_gens[-1])})')
+    ax.set_title(f'{label} (Generation {self._formatGeneration(uptoGens[-1])})')
     ax.grid(alpha=0.3, linestyle='--')
     ax.set_xlim(min(generations), max(generations))
     ymax = self._globalHvMax if self._globalHvMax > 0.0 else (np.max(hvSeries) if hvSeries.size else 1.0)
     ax.set_ylim(0.0, ymax * 1.05 if ymax > 0.0 else 1.0)
     ax.text(0.02, 0.92,
-            f'Latest: {upto_hv[-1]:.4g}\nBest: {np.max(upto_hv):.4g}',
+            f'Latest: {uptoHv[-1]:.4g}\nBest: {np.max(uptoHv):.4g}',
             transform=ax.transAxes, fontsize=9, va='top',
             bbox=dict(boxstyle='round,pad=0.35', facecolor='white', alpha=0.8, edgecolor='gray'))
 
