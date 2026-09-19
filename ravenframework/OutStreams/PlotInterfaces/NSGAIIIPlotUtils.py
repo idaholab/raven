@@ -18,9 +18,9 @@ from math import comb
 import numpy as np
 
 
-def generate_reference_directions(num_objectives, population_size):
+def generateReferenceDirections(numObjectives, populationSize):
   """Replicates the simplex-lattice reference direction generator used in NSGA-III."""
-  def lattice_points(m, divisions):
+  def latticePoints(m, divisions):
     points = []
     def recurse(remaining, depth, acc):
       if depth == m - 1:
@@ -38,74 +38,74 @@ def generate_reference_directions(num_objectives, population_size):
   directions = []
   H1 = 0
   while True:
-    temp = comb(H1 + num_objectives - 1, num_objectives - 1)
-    if temp > population_size or H1 > 20:
+    temp = comb(H1 + numObjectives - 1, numObjectives - 1)
+    if temp > populationSize or H1 > 20:
       break
     H1 += 1
   H1 = max(H1 - 1, 1)
-  directions.extend(lattice_points(num_objectives, H1))
+  directions.extend(latticePoints(numObjectives, H1))
 
-  if len(directions) < population_size:
+  if len(directions) < populationSize:
     H2 = 0
     while True:
-      temp = comb(H2 + num_objectives - 1, num_objectives - 1)
-      if len(directions) + temp > population_size or H2 > 10:
+      temp = comb(H2 + numObjectives - 1, numObjectives - 1)
+      if len(directions) + temp > populationSize or H2 > 10:
         break
       H2 += 1
     H2 = max(H2 - 1, 0)
     if H2 > 0:
-      second = lattice_points(num_objectives, H2)
+      second = latticePoints(numObjectives, H2)
       offset = 1.0 / (2.0 * H2)
-      directions.extend([(np.array(p) + offset) / (1.0 + offset * num_objectives) for p in second])
+      directions.extend([(np.array(p) + offset) / (1.0 + offset * numObjectives) for p in second])
 
   directions = np.asarray(directions, dtype=float)
   if directions.size == 0:
-    directions = np.eye(num_objectives)
+    directions = np.eye(numObjectives)
   norms = np.linalg.norm(directions, axis=1, keepdims=True)
   norms[norms == 0.0] = 1.0
-  unit_dirs = directions / norms
-  simplex_dirs = directions.copy()
-  sums = simplex_dirs.sum(axis=1, keepdims=True)
+  unitDirs = directions / norms
+  simplexDirs = directions.copy()
+  sums = simplexDirs.sum(axis=1, keepdims=True)
   sums[sums == 0.0] = 1.0
-  simplex_dirs = simplex_dirs / sums
-  return unit_dirs, simplex_dirs
+  simplexDirs = simplexDirs / sums
+  return unitDirs, simplexDirs
 
 
-def normalize_objectives(values):
+def normalizeObjectives(values):
   """Apply NSGA-III style objective normalisation."""
   if values.size == 0:
     return values
   ideal = np.min(values, axis=0)
   translated = values - ideal
-  extreme = _find_extreme_points(translated)
-  intercepts = _compute_intercepts(extreme, translated)
+  extreme = _findExtremePoints(translated)
+  intercepts = _computeIntercepts(extreme, translated)
   return _normalize(translated, intercepts)
 
 
-def _find_extreme_points(translated):
+def _findExtremePoints(translated):
   if translated.size == 0:
     return np.zeros((0, 0))
   m = translated.shape[1]
   weights = np.full((m, m), 1e-6)
   np.fill_diagonal(weights, 1.0)
-  extreme_points = []
+  extremePoints = []
   for weight in weights:
     denom = np.where(weight == 0.0, 1e-12, weight)
     asf = np.max(translated / denom, axis=1)
     idx = int(np.argmin(asf))
-    extreme_points.append(translated[idx])
-  return np.array(extreme_points)
+    extremePoints.append(translated[idx])
+  return np.array(extremePoints)
 
 
-def _compute_intercepts(extreme_points, translated):
+def _computeIntercepts(extremePoints, translated):
   if translated.size == 0:
     return np.ones(translated.shape[1] if translated.ndim > 1 else 1)
   m = translated.shape[1]
   intercepts = None
-  if extreme_points.shape[0] == m and np.linalg.matrix_rank(extreme_points) == m:
+  if extremePoints.shape[0] == m and np.linalg.matrix_rank(extremePoints) == m:
     try:
       u = np.ones(m)
-      solution = np.linalg.solve(extreme_points, u)
+      solution = np.linalg.solve(extremePoints, u)
       intercepts = 1.0 / solution
     except Exception:
       intercepts = None
@@ -121,17 +121,17 @@ def _normalize(translated, intercepts):
   return np.clip(normalized, 0.0, None)
 
 
-def associate_points(normalized_points, reference_dirs):
+def associatePoints(normalizedPoints, referenceDirs):
   """Assign each sample to the nearest reference direction."""
-  if normalized_points.size == 0:
+  if normalizedPoints.size == 0:
     return np.array([], dtype=int), np.array([], dtype=float)
-  proj = np.dot(normalized_points, reference_dirs.T)
-  direction_norms = np.linalg.norm(reference_dirs, axis=1)
-  direction_norms[direction_norms == 0.0] = 1.0
-  proj = proj / direction_norms
-  norm_sq = np.sum(np.square(normalized_points), axis=1, keepdims=True)
-  distances_sq = norm_sq - np.square(proj)
-  distances_sq = np.clip(distances_sq, 0.0, None)
-  assoc_indices = np.argmin(distances_sq, axis=1)
-  perpendicular = np.sqrt(distances_sq[np.arange(len(distances_sq)), assoc_indices])
-  return assoc_indices, perpendicular
+  proj = np.dot(normalizedPoints, referenceDirs.T)
+  directionNorms = np.linalg.norm(referenceDirs, axis=1)
+  directionNorms[directionNorms == 0.0] = 1.0
+  proj = proj / directionNorms
+  normSq = np.sum(np.square(normalizedPoints), axis=1, keepdims=True)
+  distancesSq = normSq - np.square(proj)
+  distancesSq = np.clip(distancesSq, 0.0, None)
+  assocIndices = np.argmin(distancesSq, axis=1)
+  perpendicular = np.sqrt(distancesSq[np.arange(len(distancesSq)), assocIndices])
+  return assocIndices, perpendicular

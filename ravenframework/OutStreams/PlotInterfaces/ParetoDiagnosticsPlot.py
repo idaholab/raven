@@ -89,8 +89,8 @@ class ParetoDiagnosticsPlot(PlotInterface):
     self.sourceName = None
     self.index = None
     self.objectives = []          # user-provided objective names
-    self._space_objectives = []   # actual dataframe columns used for hypervolume
-    self.reference_point = None
+    self._spaceObjectives = []   # actual dataframe columns used for hypervolume
+    self.referencePoint = None
     self.space = 'objective'      # 'objective' or 'fitness'
     self.goals = None             # list of 'min'/'max' or None
 
@@ -124,12 +124,12 @@ class ParetoDiagnosticsPlot(PlotInterface):
     refNode = spec.findFirst('referencePoint')
     if refNode is not None and refNode.value:
       try:
-        ref_vals = [float(val) for val in refNode.value]
+        refVals = [float(val) for val in refNode.value]
       except ValueError as err:
         self.raiseAnError(IOError, f'Invalid <referencePoint> values for ParetoDiagnosticsPlot "{self.name}": {err}')
-      if len(ref_vals) != len(self.objectives):
+      if len(refVals) != len(self.objectives):
         self.raiseAnError(IOError, f'<referencePoint> must contain {len(self.objectives)} entries for ParetoDiagnosticsPlot "{self.name}".')
-      self.reference_point = np.asarray(ref_vals, dtype=float)
+      self.referencePoint = np.asarray(refVals, dtype=float)
 
   def initialize(self, stepEntities):
     super().initialize(stepEntities)
@@ -138,33 +138,33 @@ class ParetoDiagnosticsPlot(PlotInterface):
       self.raiseAnError(IOError, 'Source "{}" not found for ParetoDiagnosticsPlot "{}".'.format(self.sourceName, self.name))
     available = self.source.getVars()
     if self.space == 'fitness':
-      self._space_objectives = [f'FitnessEvaluation_{name}' for name in self.objectives]
-      needed = list(self._space_objectives) + [self.index]
+      self._spaceObjectives = [f'FitnessEvaluation_{name}' for name in self.objectives]
+      needed = list(self._spaceObjectives) + [self.index]
     else:
-      self._space_objectives = list(self.objectives)
+      self._spaceObjectives = list(self.objectives)
       needed = list(self.objectives) + [self.index]
     missing = [var for var in needed if var not in available]
     if missing:
       self.raiseAnError(IOError, f'Source DataObject "{self.source.name}" is missing required variable(s) {missing} for ParetoDiagnosticsPlot "{self.name}".')
-    if self.reference_point is None:
+    if self.referencePoint is None:
       df = self.source.asDataset().to_dataframe()
-      ref_vals = []
-      for j, obj in enumerate(self._space_objectives):
+      refVals = []
+      for j, obj in enumerate(self._spaceObjectives):
         series = df[obj].astype(float)
-        series_max = float(series.max())
-        series_min = float(series.min())
-        span = series_max - series_min
-        margin = 0.05 * abs(span) if span != 0.0 else 0.05 * max(abs(series_max), abs(series_min), 1.0)
+        seriesMax = float(series.max())
+        seriesMin = float(series.min())
+        span = seriesMax - seriesMin
+        margin = 0.05 * abs(span) if span != 0.0 else 0.05 * max(abs(seriesMax), abs(seriesMin), 1.0)
         margin = max(margin, 0.05)
         if self.space == 'fitness':
-          ref_vals.append(series_min - margin)
+          refVals.append(seriesMin - margin)
           continue
         goal = (self.goals[j] if self.goals is not None else 'min')
         if goal == 'max':
-          ref_vals.append(series_min - margin)
+          refVals.append(seriesMin - margin)
         else:
-          ref_vals.append(series_max + margin)
-      self.reference_point = np.asarray(ref_vals, dtype=float)
+          refVals.append(seriesMax + margin)
+      self.referencePoint = np.asarray(refVals, dtype=float)
 
   def run(self):
     df = self.source.asDataset().to_dataframe()
@@ -174,37 +174,37 @@ class ParetoDiagnosticsPlot(PlotInterface):
     if not generations:
       self.raiseAWarning(f'No generations found for ParetoDiagnosticsPlot "{self.name}".')
       return
-    hv_series = []
-    pareto_counts = []
-    total_counts = []
+    hvSeries = []
+    paretoCounts = []
+    totalCounts = []
     for gen in generations:
       subset = df[df[self.index] == gen]
-      total_counts.append(len(subset))
-      hv = self._compute_hypervolume(subset)
-      hv_series.append(hv)
-      pareto_counts.append(self._count_rank_one(subset))
+      totalCounts.append(len(subset))
+      hv = self._computeHypervolume(subset)
+      hvSeries.append(hv)
+      paretoCounts.append(self._countRankOne(subset))
     fig = plt.figure(figsize=(9.0, 6.8))
     grid = fig.add_gridspec(3, 2, height_ratios=[1.0, 1.0, 0.55], hspace=0.35, wspace=0.25)
     axes = [fig.add_subplot(grid[0, :])]
     axes.append(fig.add_subplot(grid[1, :], sharex=axes[0]))
-    tip_axes = [fig.add_subplot(grid[2, 0]),
+    tipAxes = [fig.add_subplot(grid[2, 0]),
                 fig.add_subplot(grid[2, 1])]
 
-    axes[0].plot(generations, hv_series, marker='o', color='tab:blue', linewidth=1.5)
+    axes[0].plot(generations, hvSeries, marker='o', color='tab:blue', linewidth=1.5)
     axes[0].set_ylabel('Hypervolume')
-    space_label = 'fitness' if self.space == 'fitness' else 'objective'
+    spaceLabel = 'fitness' if self.space == 'fitness' else 'objective'
     axes[0].set_title(f'Hypervolume progression ({space_label}: {", ".join(self.objectives)})')
     axes[0].grid(alpha=0.3)
 
-    axes[1].plot(generations, pareto_counts, marker='o', color='tab:green', linewidth=1.5, label='Rank 1 count')
-    axes[1].plot(generations, total_counts, marker='o', color='tab:gray', linewidth=1.0, linestyle='--', label='Total samples')
+    axes[1].plot(generations, paretoCounts, marker='o', color='tab:green', linewidth=1.5, label='Rank 1 count')
+    axes[1].plot(generations, totalCounts, marker='o', color='tab:gray', linewidth=1.0, linestyle='--', label='Total samples')
     axes[1].set_xlabel(self.index)
     axes[1].set_ylabel('Population')
     axes[1].set_title('Dominance statistics')
     axes[1].grid(alpha=0.3)
     axes[1].legend()
 
-    def _write_tips(ax, title, messages):
+    def _writeTips(ax, title, messages):
       ax.set_axis_off()
       ax.set_xlim(0.0, 1.0)
       ax.set_ylim(0.0, 1.0)
@@ -219,13 +219,13 @@ class ParetoDiagnosticsPlot(PlotInterface):
         y -= 0.18 * lines
         y -= 0.05
 
-    _write_tips(tip_axes[0], 'Hypervolume notes:', [
+    _writeTips(tipAxes[0], 'Hypervolume notes:', [
         ('Steady rise -> Pareto set expanding (often good exploration/exploitation balance).', 'green'),
         ('Sharp drop -> can indicate lost elites OR changing feasibility/penalties; verify objective directions.', 'red'),
         ('Large oscillation -> mutation/restart/constraint oscillations; check scaling and survivor selection.', 'red'),
     ])
 
-    _write_tips(tip_axes[1], 'Dominance notes:', [
+    _writeTips(tipAxes[1], 'Dominance notes:', [
         ('Rank-1 ~= population -> front densifying (exploit, monitor diversity).', 'green'),
         ('Shrinking population with flat Rank-1 -> pruning may erode diversity.', 'red'),
         ('Rank-1 collapse -> constraints or scaling likely rejected most samples.', 'red'),
@@ -239,7 +239,7 @@ class ParetoDiagnosticsPlot(PlotInterface):
     fig.savefig(filename, dpi=144)
     plt.close(fig)
 
-  def _compute_hypervolume(self, subset):
+  def _computeHypervolume(self, subset):
     """
     Hypervolume computation for bi-objective problems on a minimization representation.
 
@@ -250,8 +250,8 @@ class ParetoDiagnosticsPlot(PlotInterface):
     """
     if subset.empty:
       return 0.0
-    objs = subset[self._space_objectives].astype(float).to_numpy()
-    ref = np.asarray(self.reference_point, dtype=float).copy()
+    objs = subset[self._spaceObjectives].astype(float).to_numpy()
+    ref = np.asarray(self.referencePoint, dtype=float).copy()
     if self.space == 'fitness':
       objs = -objs
       ref = -ref
@@ -263,20 +263,20 @@ class ParetoDiagnosticsPlot(PlotInterface):
           ref[j] = -ref[j]
     # Sort by first objective ascending
     order = np.argsort(objs[:, 0])
-    sorted_objs = objs[order]
+    sortedObjs = objs[order]
     hv = 0.0
-    prev_x = ref[0]
-    for x, y in sorted_objs[::-1]:
-      width = prev_x - x
+    prevX = ref[0]
+    for x, y in sortedObjs[::-1]:
+      width = prevX - x
       if width < 0:
         width = 0
       height = max(0.0, ref[1] - y)
       hv += width * height
-      prev_x = x
+      prevX = x
     return hv
 
   @staticmethod
-  def _count_rank_one(subset):
+  def _countRankOne(subset):
     if subset.empty or 'rank' not in subset.columns:
       return 0
     try:

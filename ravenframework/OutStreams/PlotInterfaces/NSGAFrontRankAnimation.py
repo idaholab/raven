@@ -101,21 +101,21 @@ class NSGAFrontRankAnimation(PlotInterface):
       self.raiseAWarning(f'No generations found for NSGAFrontRankAnimation "{self.name}".')
       return
     xVar, yVar = self.objectives
-    xMin, xMax = self._scaled_bounds(df[xVar].min(), df[xVar].max())
-    yMin, yMax = self._scaled_bounds(df[yVar].min(), df[yVar].max())
-    unique_ranks = sorted(df['rank'].unique())
-    cmap = get_cmap('tab10', len(unique_ranks))
-    color_lookup = {rank: cmap(idx) for idx, rank in enumerate(unique_ranks)}
+    xMin, xMax = self._scaledBounds(df[xVar].min(), df[xVar].max())
+    yMin, yMax = self._scaledBounds(df[yVar].min(), df[yVar].max())
+    uniqueRanks = sorted(df['rank'].unique())
+    cmap = get_cmap('tab10', len(uniqueRanks))
+    colorLookup = {rank: cmap(idx) for idx, rank in enumerate(uniqueRanks)}
 
     if self.format == 'html':
-      self._write_html(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, unique_ranks, color_lookup,
-                       filename_default=f'{self.name}_rank_animation.html')
+      self._writeHtml(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, uniqueRanks, colorLookup,
+                       filenameDefault=f'{self.name}_rank_animation.html')
     else:
-      self._write_gif(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, unique_ranks, color_lookup,
-                      filename_default=f'{self.name}_rank_animation.gif')
+      self._writeGif(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, uniqueRanks, colorLookup,
+                      filenameDefault=f'{self.name}_rank_animation.gif')
 
-  def _write_gif(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, ranks, color_lookup, filename_default):
-    filename = self._createFilename(defaultName=filename_default)
+  def _writeGif(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, ranks, colorLookup, filenameDefault):
+    filename = self._createFilename(defaultName=filenameDefault)
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=1) as writer:
       for gen in generations:
@@ -125,16 +125,16 @@ class NSGAFrontRankAnimation(PlotInterface):
           front = subset[subset['rank'] == rank]
           if front.empty:
             continue
-          ax.scatter(front[xVar], front[yVar], color=color_lookup[rank], label=f'Rank {rank}', edgecolors='k', linewidths=0.3)
+          ax.scatter(front[xVar], front[yVar], color=colorLookup[rank], label=f'Rank {rank}', edgecolors='k', linewidths=0.3)
           if len(front) > 1:
             ordered = front.sort_values(by=xVar)
-            ax.plot(ordered[xVar], ordered[yVar], color=color_lookup[rank], linewidth=0.8, alpha=0.6)
+            ax.plot(ordered[xVar], ordered[yVar], color=colorLookup[rank], linewidth=0.8, alpha=0.6)
         ax.set_xlim(xMin, xMax)
         ax.set_ylim(yMin, yMax)
         ax.set_xlabel(xVar)
         ax.set_ylabel(yVar)
         ax.set_title(f'Generation {gen}')
-        self._add_rank_annotation(ax, subset, ranks)
+        self._addRankAnnotation(ax, subset, ranks)
         handles, labels = ax.get_legend_handles_labels()
         if handles:
           ax.legend(loc='best')
@@ -145,20 +145,20 @@ class NSGAFrontRankAnimation(PlotInterface):
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, ranks, color_lookup, filename_default):
-    filename = self._createFilename(defaultName=filename_default)
+  def _writeHtml(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, ranks, colorLookup, filenameDefault):
+    filename = self._createFilename(defaultName=filenameDefault)
     fig, ax = plt.subplots()
     scatters = {}
     lines = {}
     for rank in ranks:
-      scatters[rank] = ax.scatter([], [], color=color_lookup[rank], label=f'Rank {rank}', edgecolors='k', linewidths=0.3)
-      lines[rank], = ax.plot([], [], color=color_lookup[rank], linewidth=0.8, alpha=0.6)
+      scatters[rank] = ax.scatter([], [], color=colorLookup[rank], label=f'Rank {rank}', edgecolors='k', linewidths=0.3)
+      lines[rank], = ax.plot([], [], color=colorLookup[rank], linewidth=0.8, alpha=0.6)
     ax.set_xlim(xMin, xMax)
     ax.set_ylim(yMin, yMax)
     ax.set_xlabel(xVar)
     ax.set_ylabel(yVar)
     title = ax.set_title('')
-    annotation_texts = [ax.text(0.02, 0.95 - idx * 0.05, '', transform=ax.transAxes, fontsize=9, va='top')
+    annotationTexts = [ax.text(0.02, 0.95 - idx * 0.05, '', transform=ax.transAxes, fontsize=9, va='top')
                         for idx in range(len(ranks))]
     if ranks:
       ax.legend(loc='best')
@@ -168,10 +168,10 @@ class NSGAFrontRankAnimation(PlotInterface):
         sc.set_offsets(np.empty((0, 2)))
       for line in lines.values():
         line.set_data([], [])
-      for txt in annotation_texts:
+      for txt in annotationTexts:
         txt.set_text('')
       title.set_text('')
-      return list(scatters.values()) + list(lines.values()) + annotation_texts
+      return list(scatters.values()) + list(lines.values()) + annotationTexts
 
     def update(gen):
       subset = df[df[self.index] == gen]
@@ -184,20 +184,20 @@ class NSGAFrontRankAnimation(PlotInterface):
           lines[rank].set_data(ordered[xVar].to_numpy(), ordered[yVar].to_numpy())
         else:
           lines[rank].set_data([], [])
-        annotation_texts[idx].set_text(f'Rank {rank}: {len(front)} pts')
+        annotationTexts[idx].set_text(f'Rank {rank}: {len(front)} pts')
       title.set_text(f'Generation {gen}')
-      return list(scatters.values()) + list(lines.values()) + annotation_texts
+      return list(scatters.values()) + list(lines.values()) + annotationTexts
 
     anim = animation.FuncAnimation(fig, update, frames=generations, init_func=init,
                                    interval=1000.0 / self.fps, blit=False)
-    html_str = anim.to_jshtml()
-    html_str = self._normalize_animation_ids(html_str)
+    htmlStr = anim.to_jshtml()
+    htmlStr = self._normalizeAnimationIds(htmlStr)
     with open(filename, 'w', encoding='utf-8') as out:
-      out.write(html_str)
+      out.write(htmlStr)
     plt.close(fig)
 
   @staticmethod
-  def _add_rank_annotation(ax, subset, ranks):
+  def _addRankAnnotation(ax, subset, ranks):
     y = 0.95
     for rank in ranks:
       count = (subset['rank'] == rank).sum()
@@ -205,28 +205,28 @@ class NSGAFrontRankAnimation(PlotInterface):
       y -= 0.05
 
   @staticmethod
-  def _scaled_bounds(min_val, max_val):
-    if np.isclose(min_val, max_val):
-      delta = abs(min_val) if min_val != 0 else 1.0
-      return min_val - 0.1 * delta, max_val + 0.1 * delta
-    low = min_val * 0.9 if min_val >= 0 else min_val * 1.1
-    high = max_val * 1.1 if max_val >= 0 else max_val * 0.9
+  def _scaledBounds(minVal, maxVal):
+    if np.isclose(minVal, maxVal):
+      delta = abs(minVal) if minVal != 0 else 1.0
+      return minVal - 0.1 * delta, maxVal + 0.1 * delta
+    low = minVal * 0.9 if minVal >= 0 else minVal * 1.1
+    high = maxVal * 1.1 if maxVal >= 0 else maxVal * 0.9
     if np.isclose(low, high):
       delta = abs(low) if low != 0 else 1.0
       low -= 0.1 * delta
       high += 0.1 * delta
     return low, high
 
-  def _normalize_animation_ids(self, html_str):
+  def _normalizeAnimationIds(self, htmlStr):
     """
     Replace randomly generated Matplotlib animation element ids with deterministic ones.
     """
-    match = re.search(r'_anim_img([0-9a-f]+)', html_str)
+    match = re.search(r'_anim_img([0-9a-f]+)', htmlStr)
     if not match:
-      return html_str
-    random_suffix = match.group(1)
-    base_name = self.name if getattr(self, 'name', None) else 'animation'
-    safe_name = ''.join(ch if ch.isalnum() else '_' for ch in base_name)
+      return htmlStr
+    randomSuffix = match.group(1)
+    baseName = self.name if getattr(self, 'name', None) else 'animation'
+    safeName = ''.join(ch if ch.isalnum() else '_' for ch in baseName)
     seed = f'{self.__class__.__name__}:{safe_name}'
     deterministic = hashlib.md5(seed.encode('utf-8')).hexdigest()
-    return html_str.replace(random_suffix, deterministic)
+    return htmlStr.replace(randomSuffix, deterministic)

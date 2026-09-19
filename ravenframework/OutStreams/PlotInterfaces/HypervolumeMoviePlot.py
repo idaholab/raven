@@ -79,18 +79,18 @@ class HypervolumeMoviePlot(PlotInterface):
     self.source = None
     self.sourceName = None
     self.objectives = []
-    self.objective_pairs = []
-    self._use_three_d = False
+    self.objectivePairs = []
+    self._useThreeD = False
     self.index = None
-    self.reference_point = None
-    self._reference_points = {}
+    self.referencePoint = None
+    self._referencePoints = {}
     self.maxFrames = None
     self.explicitGenerations = None
     self.formats = {'gif', 'html'}
     self.fps = 2.0
-    self.save_frames = False
-    self.frame_max = 10
-    self._global_hv_max = 0.0
+    self.saveFrames = False
+    self.frameMax = 10
+    self._globalHvMax = 0.0
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -104,11 +104,11 @@ class HypervolumeMoviePlot(PlotInterface):
     self.objectives = [entry for entry in objNode.value if entry]
     if len(self.objectives) < 2:
       self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" requires at least two objectives.')
-    self._use_three_d = len(self.objectives) == 3
-    if len(self.objectives) == 2 or self._use_three_d:
-      self.objective_pairs = [tuple(self.objectives)]
+    self._useThreeD = len(self.objectives) == 3
+    if len(self.objectives) == 2 or self._useThreeD:
+      self.objectivePairs = [tuple(self.objectives)]
     else:
-      self.objective_pairs = [tuple(pair) for pair in itertools.combinations(self.objectives, 2)]
+      self.objectivePairs = [tuple(pair) for pair in itertools.combinations(self.objectives, 2)]
     idxNode = spec.findFirst('index')
     if idxNode is None or idxNode.value is None:
       self.raiseAnError(IOError, f'Missing <index> node for HypervolumeMoviePlot "{self.name}".')
@@ -117,13 +117,13 @@ class HypervolumeMoviePlot(PlotInterface):
     refNode = spec.findFirst('referencePoint')
     if refNode is not None and refNode.value:
       try:
-        ref_vals = [float(val) for val in refNode.value]
+        refVals = [float(val) for val in refNode.value]
       except ValueError as err:
         self.raiseAnError(IOError, f'Invalid <referencePoint> values for HypervolumeMoviePlot "{self.name}": {err}')
-      expected = 3 if self._use_three_d else 2
-      if len(ref_vals) != expected:
+      expected = 3 if self._useThreeD else 2
+      if len(refVals) != expected:
         self.raiseAnError(IOError, f'<referencePoint> must contain exactly {expected} values for HypervolumeMoviePlot "{self.name}".')
-      self.reference_point = np.asarray(ref_vals, dtype=float)
+      self.referencePoint = np.asarray(refVals, dtype=float)
 
     maxNode = spec.findFirst('maxFrames')
     if maxNode is not None and maxNode.value is not None:
@@ -158,12 +158,12 @@ class HypervolumeMoviePlot(PlotInterface):
 
     saveFramesNode = spec.findFirst('saveFrames')
     if saveFramesNode is not None and saveFramesNode.value is not None:
-      self.save_frames = bool(saveFramesNode.value)
+      self.saveFrames = bool(saveFramesNode.value)
 
     framesMaxNode = spec.findFirst('framesMax')
     if framesMaxNode is not None and framesMaxNode.value is not None:
-      self.frame_max = int(framesMaxNode.value)
-      if self.frame_max <= 0:
+      self.frameMax = int(framesMaxNode.value)
+      if self.frameMax <= 0:
         self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
@@ -193,14 +193,14 @@ class HypervolumeMoviePlot(PlotInterface):
       self.raiseAWarning(f'HypervolumeMoviePlot "{self.name}" found no generations in column "{self.index}".')
       return
 
-    hv_series = self._compute_hypervolume_series(df, generations)
-    if hv_series is None or not hv_series:
+    hvSeries = self._computeHypervolumeSeries(df, generations)
+    if hvSeries is None or not hvSeries:
       self.raiseAWarning(f'HypervolumeMoviePlot "{self.name}" could not compute hypervolume; aborting.')
       return
-    self._global_hv_max = 0.0
-    for series in hv_series.values():
+    self._globalHvMax = 0.0
+    for series in hvSeries.values():
       if series.size:
-        self._global_hv_max = max(self._global_hv_max, float(np.max(series)))
+        self._globalHvMax = max(self._globalHvMax, float(np.max(series)))
 
     try:
       _, indices = plotGenerationUtils.resolveGenerations(
@@ -209,166 +209,166 @@ class HypervolumeMoviePlot(PlotInterface):
       self.raiseAnError(IOError, f'HypervolumeMoviePlot "{self.name}": {err}')
 
     if 'gif' in self.formats:
-      self._write_gif(generations, hv_series, indices)
+      self._writeGif(generations, hvSeries, indices)
     if 'html' in self.formats:
-      self._write_html(generations, hv_series, indices)
-    if self.save_frames:
-      self._write_frames(generations, hv_series, indices)
+      self._writeHtml(generations, hvSeries, indices)
+    if self.saveFrames:
+      self._writeFrames(generations, hvSeries, indices)
 
-  def _compute_hypervolume_series(self, df, generations):
-    hv_by_pair = {}
-    self._reference_points = {}
-    if self._use_three_d:
-      if self.reference_point is None:
+  def _computeHypervolumeSeries(self, df, generations):
+    hvByPair = {}
+    self._referencePoints = {}
+    if self._useThreeD:
+      if self.referencePoint is None:
         maxima = df[self.objectives].max().to_numpy(dtype=float)
         delta = np.abs(maxima) * 0.05
         delta[delta == 0.0] = 0.05
-        ref_point = maxima + delta
+        refPoint = maxima + delta
       else:
-        ref_point = np.asarray(self.reference_point, dtype=float)
+        refPoint = np.asarray(self.referencePoint, dtype=float)
       key = tuple(self.objectives)
-      self._reference_points[key] = ref_point
-      hv_values = []
+      self._referencePoints[key] = refPoint
+      hvValues = []
       for gen in generations:
         subset = df[df[self.index] == gen]
-        hv_values.append(self._compute_hypervolume(subset[self.objectives].to_numpy(dtype=float), ref_point))
-      hv_by_pair[key] = np.asarray(hv_values, dtype=float)
-      return hv_by_pair
+        hvValues.append(self._computeHypervolume(subset[self.objectives].to_numpy(dtype=float), refPoint))
+      hvByPair[key] = np.asarray(hvValues, dtype=float)
+      return hvByPair
 
-    for pair in self.objective_pairs:
-      if self.reference_point is None:
+    for pair in self.objectivePairs:
+      if self.referencePoint is None:
         maxima = df[list(pair)].max().to_numpy(dtype=float)
         delta = np.abs(maxima) * 0.05
         delta[delta == 0.0] = 0.05
-        ref_point = maxima + delta
+        refPoint = maxima + delta
       else:
-        ref_point = np.asarray(self.reference_point, dtype=float)
-      self._reference_points[pair] = ref_point
-      hv_values = []
+        refPoint = np.asarray(self.referencePoint, dtype=float)
+      self._referencePoints[pair] = refPoint
+      hvValues = []
       for gen in generations:
         subset = df[df[self.index] == gen]
-        hv = self._compute_hypervolume(subset[list(pair)].to_numpy(dtype=float), ref_point)
-        hv_values.append(hv)
-      hv_by_pair[pair] = np.asarray(hv_values, dtype=float)
-    return hv_by_pair
+        hv = self._computeHypervolume(subset[list(pair)].to_numpy(dtype=float), refPoint)
+        hvValues.append(hv)
+      hvByPair[pair] = np.asarray(hvValues, dtype=float)
+    return hvByPair
 
   @staticmethod
-  def _compute_hypervolume(points, ref):
+  def _computeHypervolume(points, ref):
     if points.size == 0:
       return 0.0
     if points.shape[1] != len(ref):
       raise ValueError('Points dimensionality does not match reference point.')
     if points.shape[1] == 2:
-      return HypervolumeMoviePlot._compute_hypervolume_2d(points, ref)
+      return HypervolumeMoviePlot._computeHypervolume2d(points, ref)
     if points.shape[1] == 3:
-      return HypervolumeMoviePlot._compute_hypervolume_3d(points, ref)
+      return HypervolumeMoviePlot._computeHypervolume3d(points, ref)
     raise ValueError('HypervolumeMoviePlot supports hypervolume up to 3 objectives.')
 
   @staticmethod
-  def _compute_hypervolume_2d(points, ref):
+  def _computeHypervolume2d(points, ref):
     order = np.argsort(points[:, 0])
-    sorted_pts = points[order]
+    sortedPts = points[order]
     hv = 0.0
-    prev_x = ref[0]
-    for x, y in sorted_pts[::-1]:
-      width = prev_x - x
+    prevX = ref[0]
+    for x, y in sortedPts[::-1]:
+      width = prevX - x
       if width < 0:
         width = 0.0
       height = max(0.0, ref[1] - y)
       hv += width * height
-      prev_x = x
+      prevX = x
     return hv
 
   @staticmethod
-  def _compute_hypervolume_3d(points, ref):
+  def _computeHypervolume3d(points, ref):
     # Slice the 3D volume along the first objective and accumulate 2D slices.
-    sorted_idx = np.argsort(points[:, 0])
-    sorted_pts = points[sorted_idx]
+    sortedIdx = np.argsort(points[:, 0])
+    sortedPts = points[sortedIdx]
     hv = 0.0
-    prev_x = ref[0]
-    for i in range(len(sorted_pts) - 1, -1, -1):
-      x = sorted_pts[i, 0]
-      width = max(0.0, prev_x - x)
-      yz_slice = sorted_pts[:i + 1, 1:]
-      area = HypervolumeMoviePlot._compute_hypervolume_2d(yz_slice, ref[1:])
+    prevX = ref[0]
+    for i in range(len(sortedPts) - 1, -1, -1):
+      x = sortedPts[i, 0]
+      width = max(0.0, prevX - x)
+      yzSlice = sortedPts[:i + 1, 1:]
+      area = HypervolumeMoviePlot._computeHypervolume2d(yzSlice, ref[1:])
       hv += width * area
-      prev_x = x
+      prevX = x
     return hv
 
-  def _write_gif(self, generations, hv_series, indices):
+  def _writeGif(self, generations, hvSeries, indices):
     filename = self._createFilename(defaultName=f'{self.name}.gif')
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=0) as writer:
       for idx in indices:
-        fig = self._render_frame(generations, hv_series, idx)
+        fig = self._renderFrame(generations, hvSeries, idx)
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png', dpi=150)
         plt.close(fig)
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html(self, generations, hv_series, indices):
+  def _writeHtml(self, generations, hvSeries, indices):
     filename = self._createFilename(defaultName=f'{self.name}.html')
-    fig, axes = self._create_figure()
+    fig, axes = self._createFigure()
 
     def init():
-      for axis, pair in zip(axes, self.objective_pairs):
-        self._draw_series(axis, generations, hv_series[pair], indices[0], pair)
+      for axis, pair in zip(axes, self.objectivePairs):
+        self._drawSeries(axis, generations, hvSeries[pair], indices[0], pair)
       fig.tight_layout(rect=(0.05, 0.05, 0.98, 0.92))
       return fig.axes
 
     def update(idx):
-      for axis, pair in zip(axes, self.objective_pairs):
-        self._draw_series(axis, generations, hv_series[pair], idx, pair)
+      for axis, pair in zip(axes, self.objectivePairs):
+        self._drawSeries(axis, generations, hvSeries[pair], idx, pair)
       fig.tight_layout(rect=(0.05, 0.05, 0.98, 0.92))
       return fig.axes
 
     anim = animation.FuncAnimation(fig, update, frames=indices,
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
-    html_str = anim.to_jshtml()
-    centered_html = f'<div style="display:flex;justify-content:center;">{html_str}</div>'
+    htmlStr = anim.to_jshtml()
+    centeredHtml = f'<div style="display:flex;justify-content:center;">{html_str}</div>'
     with open(filename, 'w', encoding='utf-8') as out:
-      out.write(centered_html)
+      out.write(centeredHtml)
     plt.close(fig)
 
-  def _write_frames(self, generations, hv_series, indices):
-    frame_idx = plotGenerationUtils.frameIndicesToSave(
-        len(indices), bool(self.explicitGenerations), self.save_frames, self.frame_max)
-    if not frame_idx:
+  def _writeFrames(self, generations, hvSeries, indices):
+    frameIdx = plotGenerationUtils.frameIndicesToSave(
+        len(indices), bool(self.explicitGenerations), self.saveFrames, self.frameMax)
+    if not frameIdx:
       return
     base = self._createFilename(defaultName=f'{self.name}_frames')
     template = os.path.splitext(base)[0] + '_{index:04d}.png'
     directory = os.path.dirname(template)
     if directory:
       os.makedirs(directory, exist_ok=True)
-    for frame_pos in frame_idx:
-      idx = indices[frame_pos]
-      fig = self._render_frame(generations, hv_series, idx)
+    for framePos in frameIdx:
+      idx = indices[framePos]
+      fig = self._renderFrame(generations, hvSeries, idx)
       fig.tight_layout(rect=(0.05, 0.05, 0.98, 0.92))
       fig.savefig(template.format(index=idx), dpi=150)
       plt.close(fig)
 
-  def _render_frame(self, generations, hv_series, idx):
-    fig, axes = self._create_figure()
-    for axis, pair in zip(axes, self.objective_pairs):
-      self._draw_series(axis, generations, hv_series[pair], idx, pair)
+  def _renderFrame(self, generations, hvSeries, idx):
+    fig, axes = self._createFigure()
+    for axis, pair in zip(axes, self.objectivePairs):
+      self._drawSeries(axis, generations, hvSeries[pair], idx, pair)
     fig.tight_layout(rect=(0.05, 0.05, 0.98, 0.92))
     return fig
 
-  def _draw_series(self, ax, generations, hv_series, idx, pair):
+  def _drawSeries(self, ax, generations, hvSeries, idx, pair):
     ax.clear()
-    upto_gens = generations[:idx + 1]
-    upto_hv = hv_series[:idx + 1]
-    ax.plot(upto_gens, upto_hv, color='tab:blue', linewidth=2.0)
-    ax.scatter([upto_gens[-1]], [upto_hv[-1]], color='tab:orange', edgecolor='black', s=60, zorder=3)
+    uptoGens = generations[:idx + 1]
+    uptoHv = hvSeries[:idx + 1]
+    ax.plot(uptoGens, uptoHv, color='tab:blue', linewidth=2.0)
+    ax.scatter([uptoGens[-1]], [uptoHv[-1]], color='tab:orange', edgecolor='black', s=60, zorder=3)
     ax.set_xlabel(self.index)
     ax.set_ylabel('Hypervolume')
     label = ' vs '.join(pair) if len(pair) == 2 else ', '.join(pair)
     ax.set_title(f'{label} (Generation {self._format_generation(upto_gens[-1])})')
     ax.grid(alpha=0.3, linestyle='--')
     ax.set_xlim(min(generations), max(generations))
-    ymax = self._global_hv_max if self._global_hv_max > 0.0 else (np.max(hv_series) if hv_series.size else 1.0)
+    ymax = self._globalHvMax if self._globalHvMax > 0.0 else (np.max(hvSeries) if hvSeries.size else 1.0)
     ax.set_ylim(0.0, ymax * 1.05 if ymax > 0.0 else 1.0)
     ax.text(0.02, 0.92,
             f'Latest: {upto_hv[-1]:.4g}\nBest: {np.max(upto_hv):.4g}',
@@ -376,14 +376,14 @@ class HypervolumeMoviePlot(PlotInterface):
             bbox=dict(boxstyle='round,pad=0.35', facecolor='white', alpha=0.8, edgecolor='gray'))
 
   @staticmethod
-  def _format_generation(genID):
+  def _formatGeneration(genID):
     if float(genID).is_integer():
       return int(genID)
     return genID
 
-  def _create_figure(self):
-    n_pairs = len(self.objective_pairs) if self.objective_pairs else 1
-    cols = max(1, n_pairs)
+  def _createFigure(self):
+    nPairs = len(self.objectivePairs) if self.objectivePairs else 1
+    cols = max(1, nPairs)
     fig, axes = plt.subplots(1, cols, figsize=(4.8 * cols, 4.2))
     if not isinstance(axes, np.ndarray):
       axes = [axes]
@@ -392,7 +392,7 @@ class HypervolumeMoviePlot(PlotInterface):
     return fig, axes
 
   @staticmethod
-  def _sample_generations(generations, limit):
+  def _sampleGenerations(generations, limit):
     if limit >= len(generations):
       return list(generations), list(range(len(generations)))
     positions = np.linspace(0, len(generations) - 1, limit, dtype=int)
@@ -412,15 +412,15 @@ class HypervolumeMoviePlot(PlotInterface):
       selected[-1] = len(generations) - 1
     return [generations[i] for i in selected], selected
 
-  def _select_frame_indices(self, total):
-    if not self.save_frames or total <= 0 or self.frame_max <= 0:
+  def _selectFrameIndices(self, total):
+    if not self.saveFrames or total <= 0 or self.frameMax <= 0:
       return []
-    if total <= self.frame_max:
+    if total <= self.frameMax:
       return list(range(total))
-    stride = int(math.ceil(total / float(self.frame_max)))
+    stride = int(math.ceil(total / float(self.frameMax)))
     indices = list(range(0, total, stride))
     if indices and indices[-1] != total - 1:
-      if len(indices) >= self.frame_max:
+      if len(indices) >= self.frameMax:
         indices[-1] = total - 1
       else:
         indices.append(total - 1)

@@ -202,7 +202,7 @@ class DecisionObjectiveMappingPlot(PlotInterface):
       self.raiseAnError(IOError, f'Source DataObject "{self.source.name}" is missing variable(s) {missing} required by DecisionObjectiveMappingPlot "{self.name}".')
 
   @staticmethod
-  def _convex_hull(points):
+  def _convexHull(points):
     """Monotonic chain convex hull. Returns hull vertices in CCW order."""
     pts = np.asarray(points, dtype=float)
     pts = pts[np.isfinite(pts).all(axis=1)]
@@ -233,7 +233,7 @@ class DecisionObjectiveMappingPlot(PlotInterface):
     return hull
 
   @staticmethod
-  def _chaikin_smooth(poly, iters):
+  def _chaikinSmooth(poly, iters):
     """Chaikin corner cutting for a closed polygon."""
     if poly is None:
       return None
@@ -241,21 +241,21 @@ class DecisionObjectiveMappingPlot(PlotInterface):
     if pts.shape[0] < 3 or iters <= 0:
       return pts
     for _ in range(iters):
-      new_pts = []
+      newPts = []
       for i in range(len(pts)):
         p0 = pts[i]
         p1 = pts[(i + 1) % len(pts)]
         q = 0.75 * p0 + 0.25 * p1
         r = 0.25 * p0 + 0.75 * p1
-        new_pts.extend([q, r])
-      pts = np.asarray(new_pts, dtype=float)
+        newPts.extend([q, r])
+      pts = np.asarray(newPts, dtype=float)
     return pts
 
-  def _draw_envelope(self, ax, xy, color, fill=False, alpha=0.10, linewidth=2.0, linestyle='-'):
-    hull = self._convex_hull(xy)
+  def _drawEnvelope(self, ax, xy, color, fill=False, alpha=0.10, linewidth=2.0, linestyle='-'):
+    hull = self._convexHull(xy)
     if hull is None:
       return False
-    hull = self._chaikin_smooth(hull, self.boundarySmoothIters)
+    hull = self._chaikinSmooth(hull, self.boundarySmoothIters)
     if hull is None or hull.shape[0] < 3:
       return False
     if fill:
@@ -265,7 +265,7 @@ class DecisionObjectiveMappingPlot(PlotInterface):
     return True
 
   @staticmethod
-  def _is_feasible(df, constraints):
+  def _isFeasible(df, constraints):
     if df is None or df.empty or not constraints:
       return np.ones(0 if df is None else len(df), dtype=bool)
     feasible = np.ones(len(df), dtype=bool)
@@ -283,21 +283,21 @@ class DecisionObjectiveMappingPlot(PlotInterface):
     cols = list(self.decisions) + list(self.objectives) + list(self.constraints)
     if self.rank is not None and 'rank' in df.columns:
       cols.append('rank')
-    data_all = df[cols].copy()
+    dataAll = df[cols].copy()
     for col in cols:
-      data_all[col] = pd.to_numeric(data_all[col], errors='coerce')
-    data_all = data_all.dropna(subset=self.decisions + self.objectives)
-    if data_all.empty:
+      dataAll[col] = pd.to_numeric(dataAll[col], errors='coerce')
+    dataAll = dataAll.dropna(subset=self.decisions + self.objectives)
+    if dataAll.empty:
       self.raiseAWarning(f'DecisionObjectiveMappingPlot "{self.name}" has no finite samples after coercion; skipping.')
       return
 
-    if self.rank is not None and 'rank' in data_all.columns:
-      data_all = data_all[data_all['rank'].astype(float) == float(self.rank)]
+    if self.rank is not None and 'rank' in dataAll.columns:
+      dataAll = dataAll[dataAll['rank'].astype(float) == float(self.rank)]
 
-    feasibleMaskAll = self._is_feasible(data_all, self.constraints) if self.constraints else np.ones(len(data_all), dtype=bool)
+    feasibleMaskAll = self._isFeasible(dataAll, self.constraints) if self.constraints else np.ones(len(dataAll), dtype=bool)
 
     # Display subset (optionally downsampled for readability), but keep envelopes based on all samples.
-    data = data_all.reset_index(drop=True)
+    data = dataAll.reset_index(drop=True)
     feasibleMask = feasibleMaskAll
 
     n = len(data)
@@ -348,23 +348,23 @@ class DecisionObjectiveMappingPlot(PlotInterface):
     axObj.grid(alpha=0.25)
 
     # Optional envelopes (in both panels)
-    legend_boundary_all = False
-    legend_boundary_infeas = False
+    legendBoundaryAll = False
+    legendBoundaryInfeas = False
     if self.boundaryAll:
-      xy_dec = data_all[[self.decisions[0], self.decisions[1]]].to_numpy(dtype=float)
-      xy_obj = data_all[[self.objectives[0], self.objectives[1]]].to_numpy(dtype=float)
+      xyDec = dataAll[[self.decisions[0], self.decisions[1]]].to_numpy(dtype=float)
+      xyObj = dataAll[[self.objectives[0], self.objectives[1]]].to_numpy(dtype=float)
       filled = bool(self.boundaryAllFill)
-      legend_boundary_all |= self._draw_envelope(axDec, xy_dec, self.boundaryAllColor, fill=filled,
+      legendBoundaryAll |= self._drawEnvelope(axDec, xyDec, self.boundaryAllColor, fill=filled,
                                                 alpha=self.boundaryAllAlpha, linewidth=self.boundaryLinewidth, linestyle='-')
-      legend_boundary_all |= self._draw_envelope(axObj, xy_obj, self.boundaryAllColor, fill=filled,
+      legendBoundaryAll |= self._drawEnvelope(axObj, xyObj, self.boundaryAllColor, fill=filled,
                                                 alpha=self.boundaryAllAlpha, linewidth=self.boundaryLinewidth, linestyle='-')
     if self.boundaryInfeasible and self.constraints and (~feasibleMaskAll).any():
-      infeas_df = data_all.loc[~feasibleMaskAll]
-      xy_dec = infeas_df[[self.decisions[0], self.decisions[1]]].to_numpy(dtype=float)
-      xy_obj = infeas_df[[self.objectives[0], self.objectives[1]]].to_numpy(dtype=float)
-      legend_boundary_infeas |= self._draw_envelope(axDec, xy_dec, self.boundaryInfeasibleColor, fill=False,
+      infeasDf = dataAll.loc[~feasibleMaskAll]
+      xyDec = infeasDf[[self.decisions[0], self.decisions[1]]].to_numpy(dtype=float)
+      xyObj = infeasDf[[self.objectives[0], self.objectives[1]]].to_numpy(dtype=float)
+      legendBoundaryInfeas |= self._drawEnvelope(axDec, xyDec, self.boundaryInfeasibleColor, fill=False,
                                                    alpha=0.0, linewidth=self.boundaryLinewidth, linestyle='--')
-      legend_boundary_infeas |= self._draw_envelope(axObj, xy_obj, self.boundaryInfeasibleColor, fill=False,
+      legendBoundaryInfeas |= self._drawEnvelope(axObj, xyObj, self.boundaryInfeasibleColor, fill=False,
                                                    alpha=0.0, linewidth=self.boundaryLinewidth, linestyle='--')
 
     handles = []
@@ -375,14 +375,14 @@ class DecisionObjectiveMappingPlot(PlotInterface):
       handles.append(Patch(facecolor='tab:blue', edgecolor='none', alpha=0.85, label='Samples'))
     if self.drawLinks:
       handles.append(Line2D([0], [0], color='0.25', lw=1.0, alpha=float(self.linkAlpha), label='Mapping link'))
-    if legend_boundary_all:
+    if legendBoundaryAll:
       handles.append(Line2D([0], [0], color=self.boundaryAllColor, lw=float(self.boundaryLinewidth), label='All-sample envelope'))
-    if legend_boundary_infeas:
+    if legendBoundaryInfeas:
       handles.append(Line2D([0], [0], color=self.boundaryInfeasibleColor, lw=float(self.boundaryLinewidth), linestyle='--', label='Infeasible envelope'))
     fig.legend(handles=handles, loc='upper center', bbox_to_anchor=(0.5, float(self.legendY)), ncol=len(handles), frameon=True, fontsize=9)
 
-    default_title = f'Decision ↔ Objective mapping ({self.decisions[0]}, {self.decisions[1]}) → ({self.objectives[0]}, {self.objectives[1]})'
-    fig.suptitle(self.title if self.title else default_title, y=min(0.995, float(self.legendY) + 0.06), fontsize=11)
+    defaultTitle = f'Decision ↔ Objective mapping ({self.decisions[0]}, {self.decisions[1]}) → ({self.objectives[0]}, {self.objectives[1]})'
+    fig.suptitle(self.title if self.title else defaultTitle, y=min(0.995, float(self.legendY) + 0.06), fontsize=11)
     fig.tight_layout(rect=[0.0, 0.0, 1.0, 0.90])
     filename = self._createFilename(defaultName=f'{self.name}.png')
     fig.savefig(filename, dpi=160)

@@ -157,13 +157,13 @@ class FitnessFunnelPlot(PlotInterface):
     anyPlotted = False
     for pageNum, page in enumerate(pages, start=1):
       filename = f'{stem}_p{pageNum:02d}{ext}' if multiPage else baseName
-      plotted = self._render_figure(df, generations, page, filename)
+      plotted = self._renderFigure(df, generations, page, filename)
       anyPlotted = anyPlotted or plotted
 
     if not anyPlotted:
       self.raiseAWarning(f'FitnessFunnelPlot "{self.name}" could not compute statistics for any metric; nothing written.')
 
-  def _render_figure(self, df, generations, page, filename):
+  def _renderFigure(self, df, generations, page, filename):
     """
       Draw and save a single figure holding the funnels for one page of metrics.
       @ In, df, pandas.DataFrame, the solution export data
@@ -173,7 +173,7 @@ class FitnessFunnelPlot(PlotInterface):
       @ Out, plotted, bool, True if at least one panel was drawn
     """
     nPanels = len(page)
-    nrows, ncols = self._grid_shape(nPanels)
+    nrows, ncols = self._gridShape(nPanels)
     if ncols == 1:
       figsize = (7.0, 4.2 * nrows)
     else:
@@ -184,7 +184,7 @@ class FitnessFunnelPlot(PlotInterface):
     plotted = False
     for idx, (metric, goal) in enumerate(page):
       ax = flat[idx]
-      stats = self._compute_statistics(df, generations, metric, goal)
+      stats = self._computeStatistics(df, generations, metric, goal)
       if stats is None:
         self.raiseAWarning(f'FitnessFunnelPlot "{self.name}" could not compute statistics for metric "{metric}".')
         ax.set_axis_off()
@@ -246,7 +246,7 @@ class FitnessFunnelPlot(PlotInterface):
       cursor += size
     return pages
 
-  def _grid_shape(self, n):
+  def _gridShape(self, n):
     """
       Choose a subplot grid (rows, cols) for @ n per-metric funnels within one figure.
       Up to three panels stack in a single column (preserving funnel width and a shared generation
@@ -262,7 +262,7 @@ class FitnessFunnelPlot(PlotInterface):
     nrows = int(math.ceil(n / float(ncols)))
     return nrows, ncols
 
-  def _compute_statistics(self, df, generations, metric, goal):
+  def _computeStatistics(self, df, generations, metric, goal):
     best = []
     mean = []
     std = []

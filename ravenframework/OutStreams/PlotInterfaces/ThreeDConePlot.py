@@ -163,8 +163,8 @@ class ThreeDConePlot(PlotInterface):
       mask = np.isclose(df[self.index].to_numpy(dtype=float), self.generation)
       subset = df[mask]
     else:
-      max_gen = df[self.index].max()
-      subset = df[df[self.index] == max_gen]
+      maxGen = df[self.index].max()
+      subset = df[df[self.index] == maxGen]
     return subset
 
   def _makeConeFaces(self, apex, tip):
@@ -176,26 +176,26 @@ class ThreeDConePlot(PlotInterface):
     if length <= 0:
       return []
     height = length * self.heightScale
-    dir_unit = direction / length
+    dirUnit = direction / length
     # choose vector not parallel to dir_unit
-    if abs(dir_unit[0]) < 0.9:
+    if abs(dirUnit[0]) < 0.9:
       ref = np.array([1.0, 0.0, 0.0])
     else:
       ref = np.array([0.0, 1.0, 0.0])
-    u = np.cross(dir_unit, ref)
+    u = np.cross(dirUnit, ref)
     if np.linalg.norm(u) == 0:
       u = np.array([0.0, 0.0, 1.0])
     u = u / np.linalg.norm(u)
-    v = np.cross(dir_unit, u)
+    v = np.cross(dirUnit, u)
     v = v / np.linalg.norm(v)
-    angle_rad = math.radians(self.angle)
-    radius = math.tan(angle_rad) * height
-    center = apex + dir_unit * height
+    angleRad = math.radians(self.angle)
+    radius = math.tan(angleRad) * height
+    center = apex + dirUnit * height
     segments = 32
     rim = []
     for theta in np.linspace(0.0, 2.0 * math.pi, num=segments, endpoint=False):
-      rim_point = center + radius * (math.cos(theta) * u + math.sin(theta) * v)
-      rim.append(rim_point)
+      rimPoint = center + radius * (math.cos(theta) * u + math.sin(theta) * v)
+      rim.append(rimPoint)
     faces = []
     for i in range(len(rim)):
       faces.append([apex, rim[i], rim[(i + 1) % len(rim)]])

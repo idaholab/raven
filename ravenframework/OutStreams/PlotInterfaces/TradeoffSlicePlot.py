@@ -82,8 +82,8 @@ class TradeoffSlicePlot(PlotInterface):
     self.explicitGenerations = None
     self.formats = {'gif', 'html'}
     self.fps = 2.0
-    self.save_frames = False
-    self.frame_max = 10
+    self.saveFrames = False
+    self.frameMax = 10
     self.gridPoints = 60
 
   def handleInput(self, spec):
@@ -133,11 +133,11 @@ class TradeoffSlicePlot(PlotInterface):
         self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}" received non-positive <fps>.')
     saveFramesNode = spec.findFirst('saveFrames')
     if saveFramesNode is not None and saveFramesNode.value is not None:
-      self.save_frames = bool(saveFramesNode.value)
+      self.saveFrames = bool(saveFramesNode.value)
     framesMaxNode = spec.findFirst('framesMax')
     if framesMaxNode is not None and framesMaxNode.value is not None:
-      self.frame_max = int(framesMaxNode.value)
-      if self.frame_max <= 0:
+      self.frameMax = int(framesMaxNode.value)
+      if self.frameMax <= 0:
         self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
@@ -186,22 +186,22 @@ class TradeoffSlicePlot(PlotInterface):
       self.raiseAWarning(f'TradeoffSlicePlot "{self.name}" found no generations in column "{self.index}".')
       return
     try:
-      gens_to_render, _ = plotGenerationUtils.resolveGenerations(
+      gensToRender, _ = plotGenerationUtils.resolveGenerations(
           generations, self.explicitGenerations, defaultCap=20, maxFrames=self.maxFrames)
     except ValueError as err:
       self.raiseAnError(IOError, f'TradeoffSlicePlot "{self.name}": {err}')
-    if not gens_to_render:
+    if not gensToRender:
       self.raiseAWarning(f'TradeoffSlicePlot "{self.name}" did not select any generations to render.')
       return
 
     if 'gif' in self.formats:
-      self._write_gif(df, gens_to_render)
+      self._writeGif(df, gensToRender)
     if 'html' in self.formats:
-      self._write_html(df, gens_to_render)
-    if self.save_frames:
-      self._write_frames(df, gens_to_render)
+      self._writeHtml(df, gensToRender)
+    if self.saveFrames:
+      self._writeFrames(df, gensToRender)
 
-  def _write_gif(self, df, generations):
+  def _writeGif(self, df, generations):
     filename = self._createFilename(defaultName=f'{self.name}.gif')
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=0) as writer:
@@ -209,9 +209,9 @@ class TradeoffSlicePlot(PlotInterface):
         subset = df[df[self.index] == gen]
         if subset.empty:
           continue
-        rank_mask = self._prepare_rank_mask(subset)
-        fig, axes = self._create_figure()
-        self._populate_axes(axes, subset, rank_mask)
+        rankMask = self._prepareRankMask(subset)
+        fig, axes = self._createFigure()
+        self._populateAxes(axes, subset, rankMask)
         fig.suptitle(f'{self.name}: Generation {self._format_generation(gen)}')
         fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
         buffer = io.BytesIO()
@@ -220,22 +220,22 @@ class TradeoffSlicePlot(PlotInterface):
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html(self, df, generations):
+  def _writeHtml(self, df, generations):
     filename = self._createFilename(defaultName=f'{self.name}.html')
-    fig, axes = self._create_figure()
+    fig, axes = self._createFigure()
 
     def init():
       subset = df[df[self.index] == generations[0]]
-      rank_mask = self._prepare_rank_mask(subset)
-      self._populate_axes(axes, subset, rank_mask)
+      rankMask = self._prepareRankMask(subset)
+      self._populateAxes(axes, subset, rankMask)
       fig.suptitle(f'{self.name}: Generation {self._format_generation(generations[0])}')
       fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
       return fig.axes
 
     def update(gen):
       subset = df[df[self.index] == gen]
-      rank_mask = self._prepare_rank_mask(subset)
-      self._populate_axes(axes, subset, rank_mask)
+      rankMask = self._prepareRankMask(subset)
+      self._populateAxes(axes, subset, rankMask)
       fig.suptitle(f'{self.name}: Generation {self._format_generation(gen)}')
       fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
       return fig.axes
@@ -243,45 +243,45 @@ class TradeoffSlicePlot(PlotInterface):
     anim = animation.FuncAnimation(fig, update, frames=generations,
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
-    html_str = anim.to_jshtml()
-    centered_html = f'<div style="display:flex;justify-content:center;">{html_str}</div>'
+    htmlStr = anim.to_jshtml()
+    centeredHtml = f'<div style="display:flex;justify-content:center;">{html_str}</div>'
     with open(filename, 'w', encoding='utf-8') as output:
-      output.write(centered_html)
+      output.write(centeredHtml)
     plt.close(fig)
 
-  def _write_frames(self, df, generations):
-    frame_indices = plotGenerationUtils.frameIndicesToSave(
-        len(generations), bool(self.explicitGenerations), self.save_frames, self.frame_max)
-    if not frame_indices:
+  def _writeFrames(self, df, generations):
+    frameIndices = plotGenerationUtils.frameIndicesToSave(
+        len(generations), bool(self.explicitGenerations), self.saveFrames, self.frameMax)
+    if not frameIndices:
       return
     base = self._createFilename(defaultName=f'{self.name}_frames')
     template = os.path.splitext(base)[0] + '_{index:04d}.png'
     directory = os.path.dirname(template)
     if directory:
       os.makedirs(directory, exist_ok=True)
-    for idx in frame_indices:
+    for idx in frameIndices:
       gen = generations[idx]
       subset = df[df[self.index] == gen]
       if subset.empty:
         continue
-      rank_mask = self._prepare_rank_mask(subset)
-      fig, axes = self._create_figure()
-      self._populate_axes(axes, subset, rank_mask)
+      rankMask = self._prepareRankMask(subset)
+      fig, axes = self._createFigure()
+      self._populateAxes(axes, subset, rankMask)
       fig.suptitle(f'{self.name}: Generation {self._format_generation(gen)}')
       fig.tight_layout(rect=(0.02, 0.02, 0.98, 0.94))
       fig.savefig(template.format(index=idx), dpi=150)
       plt.close(fig)
 
-  def _create_figure(self):
-    n_pairs = len(self.pairs)
-    ncols = min(3, n_pairs)
-    nrows = int(math.ceil(n_pairs / ncols))
+  def _createFigure(self):
+    nPairs = len(self.pairs)
+    ncols = min(3, nPairs)
+    nrows = int(math.ceil(nPairs / ncols))
     fig, axes = plt.subplots(nrows, ncols, figsize=(4.5 * ncols, 3.8 * nrows), squeeze=False)
     return fig, axes
 
-  def _populate_axes(self, axes, subset, rank_mask):
+  def _populateAxes(self, axes, subset, rankMask):
     nrows, ncols = axes.shape
-    total_axes = nrows * ncols
+    totalAxes = nrows * ncols
     handles = []
     labels = []
     for idx, pair in enumerate(self.pairs):
@@ -294,86 +294,86 @@ class TradeoffSlicePlot(PlotInterface):
       if x.size == 0:
         ax.set_axis_off()
         continue
-      self._draw_density(ax, x, y)
-      dominated_mask = ~rank_mask if rank_mask is not None else np.zeros_like(x, dtype=bool)
-      if dominated_mask.any():
-        scatter_pop = ax.scatter(x[dominated_mask], y[dominated_mask], s=20,
+      self._drawDensity(ax, x, y)
+      dominatedMask = ~rankMask if rankMask is not None else np.zeros_like(x, dtype=bool)
+      if dominatedMask.any():
+        scatterPop = ax.scatter(x[dominatedMask], y[dominatedMask], s=20,
                                  color='gray', alpha=0.45,
                                  label='Population' if 'Population' not in labels else None)
-        if scatter_pop.get_label():
-          handles.append(scatter_pop)
-          labels.append(scatter_pop.get_label())
-      if rank_mask is not None and rank_mask.any():
-        scatter_rank = ax.scatter(x[rank_mask], y[rank_mask], s=40, color='tab:orange',
+        if scatterPop.get_label():
+          handles.append(scatterPop)
+          labels.append(scatterPop.get_label())
+      if rankMask is not None and rankMask.any():
+        scatterRank = ax.scatter(x[rankMask], y[rankMask], s=40, color='tab:orange',
                                   edgecolor='black', linewidth=0.6,
                                   label='Rank-1' if 'Rank-1' not in labels else None, zorder=3)
-        if scatter_rank.get_label():
-          handles.append(scatter_rank)
-          labels.append(scatter_rank.get_label())
+        if scatterRank.get_label():
+          handles.append(scatterRank)
+          labels.append(scatterRank.get_label())
       ax.set_xlabel(pair[0])
       ax.set_ylabel(pair[1])
       ax.set_title(f'{pair[0]} vs {pair[1]}')
       ax.grid(alpha=0.3, linestyle='--')
-    for idx in range(len(self.pairs), total_axes):
+    for idx in range(len(self.pairs), totalAxes):
       row = idx // ncols
       col = idx % ncols
       axes[row][col].set_axis_off()
     if handles:
       axes[0][0].legend(handles, labels, loc='best', frameon=True)
 
-  def _prepare_rank_mask(self, subset):
-    rank_mask = None
+  def _prepareRankMask(self, subset):
+    rankMask = None
     if 'rank' in subset.columns:
       try:
-        rank_mask = subset['rank'].astype(float).to_numpy() == 1.0
+        rankMask = subset['rank'].astype(float).to_numpy() == 1.0
       except (ValueError, TypeError):
-        rank_mask = None
-    if rank_mask is None:
-      rank_mask = self._compute_pareto_mask(subset[self.objectives].to_numpy(dtype=float))
-    return rank_mask
+        rankMask = None
+    if rankMask is None:
+      rankMask = self._computeParetoMask(subset[self.objectives].to_numpy(dtype=float))
+    return rankMask
 
-  def _select_frame_indices(self, total):
-    if not self.save_frames or total <= 0 or self.frame_max <= 0:
+  def _selectFrameIndices(self, total):
+    if not self.saveFrames or total <= 0 or self.frameMax <= 0:
       return []
-    if total <= self.frame_max:
+    if total <= self.frameMax:
       return list(range(total))
-    stride = int(math.ceil(total / float(self.frame_max)))
+    stride = int(math.ceil(total / float(self.frameMax)))
     indices = list(range(0, total, stride))
     if indices and indices[-1] != total - 1:
-      if len(indices) >= self.frame_max:
+      if len(indices) >= self.frameMax:
         indices[-1] = total - 1
       else:
         indices.append(total - 1)
     return sorted(set(indices))
 
   @staticmethod
-  def _select_generations(all_gens, limit):
-    if limit >= len(all_gens):
-      return list(all_gens)
-    positions = np.linspace(0, len(all_gens) - 1, limit, dtype=int)
+  def _selectGenerations(allGens, limit):
+    if limit >= len(allGens):
+      return list(allGens)
+    positions = np.linspace(0, len(allGens) - 1, limit, dtype=int)
     selected = []
     for idx in positions:
       if idx not in selected:
         selected.append(idx)
     cursor = 0
-    while len(selected) < limit and cursor < len(all_gens):
+    while len(selected) < limit and cursor < len(allGens):
       if cursor not in selected:
         selected.append(cursor)
       cursor += 1
     selected = sorted(set(selected))
     if len(selected) > limit:
-      selected = selected[:limit - 1] + [len(all_gens) - 1]
-    elif selected[-1] != len(all_gens) - 1:
-      selected[-1] = len(all_gens) - 1
-    return [all_gens[i] for i in sorted(selected)]
+      selected = selected[:limit - 1] + [len(allGens) - 1]
+    elif selected[-1] != len(allGens) - 1:
+      selected[-1] = len(allGens) - 1
+    return [allGens[i] for i in sorted(selected)]
 
   @staticmethod
-  def _format_generation(genID):
+  def _formatGeneration(genID):
     if float(genID).is_integer():
       return int(genID)
     return genID
 
-  def _draw_density(self, ax, x, y):
+  def _drawDensity(self, ax, x, y):
     if x.size < 5 or np.allclose(x, x[0]) or np.allclose(y, y[0]):
       return
     xmin, xmax = float(np.min(x)), float(np.max(x))
@@ -384,28 +384,28 @@ class TradeoffSlicePlot(PlotInterface):
     yi = np.linspace(ymin, ymax, self.gridPoints)
     X, Y = np.meshgrid(xi, yi)
 
-    range_x = max(xmax - xmin, 1e-8)
-    range_y = max(ymax - ymin, 1e-8)
-    bw_x = max(np.std(x), 0.15 * range_x, 1e-8)
-    bw_y = max(np.std(y), 0.15 * range_y, 1e-8)
+    rangeX = max(xmax - xmin, 1e-8)
+    rangeY = max(ymax - ymin, 1e-8)
+    bwX = max(np.std(x), 0.15 * rangeX, 1e-8)
+    bwY = max(np.std(y), 0.15 * rangeY, 1e-8)
 
-    dx = (X[..., np.newaxis] - x[np.newaxis, np.newaxis, :]) / bw_x
-    dy = (Y[..., np.newaxis] - y[np.newaxis, np.newaxis, :]) / bw_y
+    dx = (X[..., np.newaxis] - x[np.newaxis, np.newaxis, :]) / bwX
+    dy = (Y[..., np.newaxis] - y[np.newaxis, np.newaxis, :]) / bwY
     density = np.exp(-0.5 * (dx ** 2 + dy ** 2))
     density = density.sum(axis=2)
-    density /= (x.size * 2.0 * math.pi * bw_x * bw_y)
+    density /= (x.size * 2.0 * math.pi * bwX * bwY)
     levels = np.linspace(np.min(density), np.max(density), 8)
     if np.allclose(levels[0], levels[-1]):
       return
     ax.contourf(xi, yi, density, levels=levels, cmap='Blues', alpha=0.6)
 
   @staticmethod
-  def _compute_pareto_mask(values):
+  def _computeParetoMask(values):
     if values.size == 0:
       return np.array([], dtype=bool)
-    n_points = values.shape[0]
-    mask = np.ones(n_points, dtype=bool)
-    for i in range(n_points):
+    nPoints = values.shape[0]
+    mask = np.ones(nPoints, dtype=bool)
+    for i in range(nPoints):
       if not mask[i]:
         continue
       dominates = np.all(values <= values[i], axis=1) & np.any(values < values[i], axis=1)

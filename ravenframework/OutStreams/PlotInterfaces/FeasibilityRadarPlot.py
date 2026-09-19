@@ -172,7 +172,7 @@ class FeasibilityRadarPlot(PlotInterface):
     self.source = src
 
   @staticmethod
-  def _is_feasible(df, constraints):
+  def _isFeasible(df, constraints):
     if df is None or df.empty or not constraints:
       return np.ones(0 if df is None else len(df), dtype=bool)
     feasible = np.ones(len(df), dtype=bool)
@@ -181,14 +181,14 @@ class FeasibilityRadarPlot(PlotInterface):
       feasible &= vals > 0.0
     return feasible
 
-  def _aggregate_row(self, df):
+  def _aggregateRow(self, df):
     if df.empty:
       return None
     if self.aggregate == 'mean':
       return df.mean(axis=0)
     return df.median(axis=0)
 
-  def _quantile_rows(self, df):
+  def _quantileRows(self, df):
     if df.empty or self.quantiles is None:
       return None, None
     qlo, qhi = self.quantiles
@@ -207,8 +207,8 @@ class FeasibilityRadarPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'FeasibilityRadarPlot "{self.name}" had no samples after filtering.')
       return
@@ -222,27 +222,27 @@ class FeasibilityRadarPlot(PlotInterface):
       self.raiseAWarning(f'FeasibilityRadarPlot "{self.name}" has no finite samples after coercion.')
       return
 
-    feasible_mask = self._is_feasible(data, self.constraints)
-    feas = data.loc[feasible_mask, self.variables]
-    infeas = data.loc[~feasible_mask, self.variables]
+    feasibleMask = self._isFeasible(data, self.constraints)
+    feas = data.loc[feasibleMask, self.variables]
+    infeas = data.loc[~feasibleMask, self.variables]
 
     # Normalize variables to [0,1] across all samples shown.
     mins = data[self.variables].min(axis=0)
     maxs = data[self.variables].max(axis=0)
     span = (maxs - mins).replace(0.0, np.nan)
-    norm_all = (data[self.variables] - mins) / span
-    norm_all = norm_all.fillna(0.5)
-    norm_feas = norm_all.loc[feas.index] if not feas.empty else pd.DataFrame(columns=self.variables)
-    norm_infeas = norm_all.loc[infeas.index] if not infeas.empty else pd.DataFrame(columns=self.variables)
+    normAll = (data[self.variables] - mins) / span
+    normAll = normAll.fillna(0.5)
+    normFeas = normAll.loc[feas.index] if not feas.empty else pd.DataFrame(columns=self.variables)
+    normInfeas = normAll.loc[infeas.index] if not infeas.empty else pd.DataFrame(columns=self.variables)
 
-    agg_feas = self._aggregate_row(norm_feas)
-    agg_infeas = self._aggregate_row(norm_infeas)
-    agg_all = self._aggregate_row(norm_all) if self.includeAll else None
-    q_feas_lo, q_feas_hi = self._quantile_rows(norm_feas)
-    q_infeas_lo, q_infeas_hi = self._quantile_rows(norm_infeas)
-    q_all_lo, q_all_hi = self._quantile_rows(norm_all) if self.includeAll else (None, None)
+    aggFeas = self._aggregateRow(normFeas)
+    aggInfeas = self._aggregateRow(normInfeas)
+    aggAll = self._aggregateRow(normAll) if self.includeAll else None
+    qFeasLo, qFeasHi = self._quantileRows(normFeas)
+    qInfeasLo, qInfeasHi = self._quantileRows(normInfeas)
+    qAllLo, qAllHi = self._quantileRows(normAll) if self.includeAll else (None, None)
 
-    if agg_feas is None and agg_infeas is None:
+    if aggFeas is None and aggInfeas is None:
       self.raiseAWarning(f'FeasibilityRadarPlot "{self.name}" had no feasible or infeasible samples to plot.')
       return
 
@@ -262,40 +262,40 @@ class FeasibilityRadarPlot(PlotInterface):
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(labels, fontsize=9)
 
-    def _series_values(series):
+    def _seriesValues(series):
       values = np.asarray([float(series[var]) for var in labels], dtype=float)
       values = np.clip(values, 0.0, 1.0)
       return np.concatenate([values, values[:1]])
 
-    def _plot_band(lo, hi, color):
+    def _plotBand(lo, hi, color):
       if lo is None or hi is None:
         return
-      r_lo = _series_values(lo)
-      r_hi = _series_values(hi)
+      rLo = _seriesValues(lo)
+      rHi = _seriesValues(hi)
       # build a closed polygon between the two curves
-      poly_theta = np.concatenate([angles, angles[::-1]])
-      poly_r = np.concatenate([r_hi, r_lo[::-1]])
-      ax.fill(poly_theta, poly_r, color=color, alpha=float(self.bandAlpha), edgecolor='none')
+      polyTheta = np.concatenate([angles, angles[::-1]])
+      polyR = np.concatenate([rHi, rLo[::-1]])
+      ax.fill(polyTheta, polyR, color=color, alpha=float(self.bandAlpha), edgecolor='none')
 
-    def _plot_poly(series, color, label):
+    def _plotPoly(series, color, label):
       if series is None:
         return
-      values = _series_values(series)
+      values = _seriesValues(series)
       ax.plot(angles, values, color=color, linewidth=2.2, label=label)
       ax.fill(angles, values, color=color, alpha=0.10)
 
-    if agg_all is not None:
+    if aggAll is not None:
       if 'all' in self.bandGroups:
-        _plot_band(q_all_lo, q_all_hi, '#1565c0')
-      _plot_poly(agg_all, '#1565c0', f'All (n={len(norm_all)})')
-    if agg_feas is not None or self.showEmptyGroups:
+        _plotBand(qAllLo, qAllHi, '#1565c0')
+      _plotPoly(aggAll, '#1565c0', f'All (n={len(norm_all)})')
+    if aggFeas is not None or self.showEmptyGroups:
       if 'feasible' in self.bandGroups:
-        _plot_band(q_feas_lo, q_feas_hi, '#2e7d32')
-      _plot_poly(agg_feas, '#2e7d32', f'Feasible (n={len(norm_feas)})')
-    if agg_infeas is not None or self.showEmptyGroups:
+        _plotBand(qFeasLo, qFeasHi, '#2e7d32')
+      _plotPoly(aggFeas, '#2e7d32', f'Feasible (n={len(norm_feas)})')
+    if aggInfeas is not None or self.showEmptyGroups:
       if 'infeasible' in self.bandGroups:
-        _plot_band(q_infeas_lo, q_infeas_hi, '#d32f2f')
-      _plot_poly(agg_infeas, '#d32f2f', f'Infeasible (n={len(norm_infeas)})')
+        _plotBand(qInfeasLo, qInfeasHi, '#d32f2f')
+      _plotPoly(aggInfeas, '#d32f2f', f'Infeasible (n={len(norm_infeas)})')
 
     ax.set_title(f'Feasibility radar ({self.aggregate})', va='bottom')
     ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1.0), frameon=True)

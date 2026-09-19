@@ -156,26 +156,26 @@ class ThreeDVectorPlot(PlotInterface):
       vectors = vectors / norms
     vectors = vectors * self.scale
 
-    gen_mid = 0.5 * (generations[1:] + generations[:-1])
+    genMid = 0.5 * (generations[1:] + generations[:-1])
     if len(vectors) > self.maxVectors:
       step = math.ceil(len(vectors) / self.maxVectors)
       origins = origins[::step]
       vectors = vectors[::step]
-      gen_mid = gen_mid[::step]
+      genMid = genMid[::step]
 
     fig = plt.figure(figsize=(6.6, 5.6))
     ax = fig.add_subplot(111, projection='3d')
     ax.view_init(elev=self.viewAngles[0], azim=self.viewAngles[1])
 
     cmap = plt.cm.plasma
-    norm_colors = None
-    if len(gen_mid) > 0:
-      norm_colors = (gen_mid - gen_mid.min()) / max(gen_mid.ptp(), 1e-9)
+    normColors = None
+    if len(genMid) > 0:
+      normColors = (genMid - genMid.min()) / max(genMid.ptp(), 1e-9)
     else:
-      norm_colors = np.zeros(len(origins))
+      normColors = np.zeros(len(origins))
     quiv = ax.quiver(origins[:, 0], origins[:, 1], origins[:, 2],
                      vectors[:, 0], vectors[:, 1], vectors[:, 2],
-                     color=cmap(norm_colors), arrow_length_ratio=0.12, linewidth=1.5, alpha=0.95)
+                     color=cmap(normColors), arrow_length_ratio=0.12, linewidth=1.5, alpha=0.95)
 
     scatter = ax.scatter(points[:, 0], points[:, 1], points[:, 2],
                          c=np.linspace(0.0, 1.0, len(points)),

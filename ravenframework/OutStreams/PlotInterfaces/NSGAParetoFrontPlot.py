@@ -150,8 +150,8 @@ class NSGAParetoFrontPlot(PlotInterface):
       if not self.constraints:
         self.raiseAWarning(f'NSGAParetoFrontPlot "{self.name}" requested <constraints>all</constraints> but no ConstraintEvaluation_* columns were found; proceeding without constraint styling.')
     elif self.constraints:
-      missing_constraints = [var for var in self.constraints if var not in dataVars]
-      if missing_constraints:
+      missingConstraints = [var for var in self.constraints if var not in dataVars]
+      if missingConstraints:
         self.raiseAWarning(f'NSGAParetoFrontPlot "{self.name}" could not find constraint column(s) {missing_constraints}; proceeding with available constraints only.')
         self.constraints = [var for var in self.constraints if var in dataVars]
 
@@ -165,7 +165,7 @@ class NSGAParetoFrontPlot(PlotInterface):
       self.raiseAnError(IOError, f'NSGAParetoFrontPlot "{self.name}" received non-positive <activeTol> {self.activeTol}.')
 
   @staticmethod
-  def _is_feasible(df, constraints):
+  def _isFeasible(df, constraints):
     if not constraints or df.empty:
       return np.ones(len(df), dtype=bool)
     feasible = np.ones(len(df), dtype=bool)
@@ -176,7 +176,7 @@ class NSGAParetoFrontPlot(PlotInterface):
       feasible &= vals > 0.0
     return feasible
 
-  def _constraint_violation(self, df):
+  def _constraintViolation(self, df):
     if not self.constraints or df.empty:
       return np.zeros(len(df), dtype=float)
     values = []
@@ -194,12 +194,12 @@ class NSGAParetoFrontPlot(PlotInterface):
       return np.sqrt(np.sum(stacked * stacked, axis=0))
     return np.sum(stacked, axis=0)
 
-  def _active_mask(self, df, feasible_mask):
+  def _activeMask(self, df, feasibleMask):
     if not self.constraints or df.empty:
       return np.zeros(len(df), dtype=bool)
-    if not feasible_mask.any():
+    if not feasibleMask.any():
       return np.zeros(len(df), dtype=bool)
-    active_tol = float(self.activeTol)
+    activeTol = float(self.activeTol)
     mins = np.full(len(df), np.inf, dtype=float)
     for var in self.constraints:
       if var not in df.columns:
@@ -207,15 +207,15 @@ class NSGAParetoFrontPlot(PlotInterface):
       vals = df[var].astype(float).to_numpy()
       pos = np.where(vals > 0.0, vals, np.inf)
       mins = np.minimum(mins, pos)
-    return feasible_mask & np.isfinite(mins) & (mins <= active_tol)
+    return feasibleMask & np.isfinite(mins) & (mins <= activeTol)
 
-  def _color_payload(self, df):
+  def _colorPayload(self, df):
     if df.empty:
       return None, False, None
     if self.colorMode == 'none':
       return None, False, None
     if self.colorMode == 'violation':
-      colors = self._constraint_violation(df)
+      colors = self._constraintViolation(df)
       return colors, True, 'constraint violation'
 
     colorVar = self.colorVar
@@ -228,34 +228,34 @@ class NSGAParetoFrontPlot(PlotInterface):
       return None, False, None
 
     series = df[colorVar]
-    raw_values = series.to_numpy() if hasattr(series, 'to_numpy') else np.asarray(series)
-    flat = np.asarray(raw_values).ravel()
+    rawValues = series.to_numpy() if hasattr(series, 'to_numpy') else np.asarray(series)
+    flat = np.asarray(rawValues).ravel()
     if flat.size == 0:
       self.raiseAWarning('Color variable "{}" contains no samples; using uniform color.'.format(colorVar))
       return None, False, None
 
     try:
-      numeric_values = flat.astype(float)
+      numericValues = flat.astype(float)
     except (ValueError, TypeError):
-      numeric_values = None
+      numericValues = None
 
-    if numeric_values is not None:
-      finite_mask = np.isfinite(numeric_values)
-      if not finite_mask.any():
+    if numericValues is not None:
+      finiteMask = np.isfinite(numericValues)
+      if not finiteMask.any():
         self.raiseAWarning('Color variable "{}" has no finite numeric values; using uniform color.'.format(colorVar))
         return None, False, None
-      numeric_values = numeric_values.astype(float, copy=False)
-      numeric_values[~finite_mask] = np.nan
-      return numeric_values, True, colorVar
+      numericValues = numericValues.astype(float, copy=False)
+      numericValues[~finiteMask] = np.nan
+      return numericValues, True, colorVar
 
-    string_values = np.array([str(val).strip() for val in flat], dtype=object)
-    if not string_values.size:
+    stringValues = np.array([str(val).strip() for val in flat], dtype=object)
+    if not stringValues.size:
       self.raiseAWarning('Color variable "{}" has no usable categorical values; using uniform color.'.format(colorVar))
       return None, False, None
-    if not all(val and val.lower() not in {'nan', 'none'} and is_color_like(val) for val in string_values):
+    if not all(val and val.lower() not in {'nan', 'none'} and is_color_like(val) for val in stringValues):
       self.raiseAWarning('Color variable "{}" cannot be interpreted as numeric or named colors; using uniform color.'.format(colorVar))
       return None, False, None
-    return string_values, False, colorVar
+    return stringValues, False, colorVar
 
   def run(self):
     df = self.source.asDataset().to_dataframe()
@@ -273,15 +273,15 @@ class NSGAParetoFrontPlot(PlotInterface):
       background = df[df['rank'] != self.rank]
 
     constraints = self.constraints if self.constraints else []
-    highlight_feasible = self._is_feasible(highlight, constraints)
-    background_feasible = self._is_feasible(background, constraints) if background is not None else None
+    highlightFeasible = self._isFeasible(highlight, constraints)
+    backgroundFeasible = self._isFeasible(background, constraints) if background is not None else None
 
-    good = highlight[highlight_feasible] if constraints else highlight
+    good = highlight[highlightFeasible] if constraints else highlight
     if constraints and good.empty:
       self.raiseAWarning(f'NSGAParetoFrontPlot "{self.name}" found no feasible points to highlight; plotting infeasible points only.')
       good = highlight.copy()
 
-    colors, useColorbar, colorLabel = self._color_payload(good)
+    colors, useColorbar, colorLabel = self._colorPayload(good)
     scatterKwargs = {}
     if colors is not None:
       scatterKwargs['c'] = colors
@@ -294,8 +294,8 @@ class NSGAParetoFrontPlot(PlotInterface):
       if background is not None and not background.empty:
         ax.scatter(background[self.objectives[0]], background[self.objectives[1]],
                    c='#bdbdbd', s=22, alpha=0.20, linewidths=0.0)
-        if constraints and self.infeasibleStyle != 'hide' and not background_feasible.all():
-          bad = background[~background_feasible]
+        if constraints and self.infeasibleStyle != 'hide' and not backgroundFeasible.all():
+          bad = background[~backgroundFeasible]
           if not bad.empty:
             if self.infeasibleStyle == 'cross':
               ax.scatter(bad[self.objectives[0]], bad[self.objectives[1]],
@@ -304,8 +304,8 @@ class NSGAParetoFrontPlot(PlotInterface):
               ax.scatter(bad[self.objectives[0]], bad[self.objectives[1]],
                          c='#7f7f7f', s=22, alpha=0.12, linewidths=0.0)
 
-      if constraints and self.infeasibleStyle != 'hide' and not highlight_feasible.all():
-        bad = highlight[~highlight_feasible]
+      if constraints and self.infeasibleStyle != 'hide' and not highlightFeasible.all():
+        bad = highlight[~highlightFeasible]
         if not bad.empty:
           if self.infeasibleStyle == 'cross':
             ax.scatter(bad[self.objectives[0]], bad[self.objectives[1]],
@@ -324,7 +324,7 @@ class NSGAParetoFrontPlot(PlotInterface):
         cbar = fig.colorbar(sc, ax=ax)
         cbar.set_label(colorLabel)
       if constraints and self.showActiveConstraints:
-        active = self._active_mask(highlight, highlight_feasible)
+        active = self._activeMask(highlight, highlightFeasible)
         if active.any():
           ax.scatter(highlight.loc[active, self.objectives[0]], highlight.loc[active, self.objectives[1]],
                      facecolors='none', edgecolors='tab:red', s=110, linewidths=1.2)
@@ -335,8 +335,8 @@ class NSGAParetoFrontPlot(PlotInterface):
       if background is not None and not background.empty:
         ax.scatter(background[self.objectives[0]], background[self.objectives[1]], background[self.objectives[2]],
                    c='#bdbdbd', s=18, alpha=0.18, depthshade=True)
-        if constraints and self.infeasibleStyle != 'hide' and not background_feasible.all():
-          bad = background[~background_feasible]
+        if constraints and self.infeasibleStyle != 'hide' and not backgroundFeasible.all():
+          bad = background[~backgroundFeasible]
           if not bad.empty:
             if self.infeasibleStyle == 'cross':
               ax.scatter(bad[self.objectives[0]], bad[self.objectives[1]], bad[self.objectives[2]],
@@ -345,8 +345,8 @@ class NSGAParetoFrontPlot(PlotInterface):
               ax.scatter(bad[self.objectives[0]], bad[self.objectives[1]], bad[self.objectives[2]],
                          c='#7f7f7f', s=18, alpha=0.12, depthshade=True)
 
-      if constraints and self.infeasibleStyle != 'hide' and not highlight_feasible.all():
-        bad = highlight[~highlight_feasible]
+      if constraints and self.infeasibleStyle != 'hide' and not highlightFeasible.all():
+        bad = highlight[~highlightFeasible]
         if not bad.empty:
           if self.infeasibleStyle == 'cross':
             ax.scatter(bad[self.objectives[0]], bad[self.objectives[1]], bad[self.objectives[2]],
@@ -366,7 +366,7 @@ class NSGAParetoFrontPlot(PlotInterface):
         cbar = fig.colorbar(sc, ax=ax, shrink=0.6, aspect=12, pad=0.1)
         cbar.set_label(colorLabel)
       if constraints and self.showActiveConstraints:
-        active = self._active_mask(highlight, highlight_feasible)
+        active = self._activeMask(highlight, highlightFeasible)
         if active.any():
           ax.scatter(highlight.loc[active, self.objectives[0]], highlight.loc[active, self.objectives[1]],
                      highlight.loc[active, self.objectives[2]],

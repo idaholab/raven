@@ -127,11 +127,11 @@ class MultiRunUncertaintyPlot(PlotInterface):
       self.raiseAWarning(f'MultiRunUncertaintyPlot "{self.name}" found no aggregated data.')
       return
     generations = pivot.index.to_numpy(dtype=float)
-    run_values = pivot.to_numpy(dtype=float)
+    runValues = pivot.to_numpy(dtype=float)
 
-    mean = np.nanmean(run_values, axis=1)
-    lower = np.nanquantile(run_values, q=self.quantiles[0], axis=1)
-    upper = np.nanquantile(run_values, q=self.quantiles[1], axis=1)
+    mean = np.nanmean(runValues, axis=1)
+    lower = np.nanquantile(runValues, q=self.quantiles[0], axis=1)
+    upper = np.nanquantile(runValues, q=self.quantiles[1], axis=1)
 
     fig, ax = plt.subplots(figsize=(6.4, 5.0))
     ax.plot(generations, mean, color='tab:blue', label='Mean')
@@ -140,10 +140,10 @@ class MultiRunUncertaintyPlot(PlotInterface):
 
     if self.goal:
       if self.goal == 'min':
-        best_line = np.minimum.accumulate(mean)
+        bestLine = np.minimum.accumulate(mean)
       else:
-        best_line = np.maximum.accumulate(mean)
-      ax.plot(generations, best_line, color='tab:orange', linestyle='--',
+        bestLine = np.maximum.accumulate(mean)
+      ax.plot(generations, bestLine, color='tab:orange', linestyle='--',
               label=f'Best-so-far ({self.goal})')
 
     ax.set_xlabel(self.index)

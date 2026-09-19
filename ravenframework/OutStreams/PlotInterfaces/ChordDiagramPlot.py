@@ -112,29 +112,29 @@ class ChordDiagramPlot(PlotInterface):
     self.source = src
 
   @staticmethod
-  def _bezier_arc(start_angle, end_angle, radius=1.0):
+  def _bezierArc(startAngle, endAngle, radius=1.0):
     """
     Construct a cubic Bezier path approximating an arc from start_angle to end_angle.
     """
-    if end_angle < start_angle:
-      end_angle += 2.0 * np.pi
-    angle = end_angle - start_angle
-    n_segments = int(np.ceil(abs(angle) / (np.pi / 2.0)))
-    angle_step = angle / n_segments
-    path_segments = []
-    current_angle = start_angle
-    for _ in range(n_segments):
-      next_angle = current_angle + angle_step
-      alpha = np.tan(angle_step / 4.0)
-      p0 = np.array([radius * np.cos(current_angle), radius * np.sin(current_angle)])
-      p3 = np.array([radius * np.cos(next_angle), radius * np.sin(next_angle)])
-      p1 = p0 + alpha * np.array([-radius * np.sin(current_angle), radius * np.cos(current_angle)])
-      p2 = p3 - alpha * np.array([-radius * np.sin(next_angle), radius * np.cos(next_angle)])
-      path_segments.append((p0, p1, p2, p3))
-      current_angle = next_angle
-    vertices = [path_segments[0][0]]
+    if endAngle < startAngle:
+      endAngle += 2.0 * np.pi
+    angle = endAngle - startAngle
+    nSegments = int(np.ceil(abs(angle) / (np.pi / 2.0)))
+    angleStep = angle / nSegments
+    pathSegments = []
+    currentAngle = startAngle
+    for _ in range(nSegments):
+      nextAngle = currentAngle + angleStep
+      alpha = np.tan(angleStep / 4.0)
+      p0 = np.array([radius * np.cos(currentAngle), radius * np.sin(currentAngle)])
+      p3 = np.array([radius * np.cos(nextAngle), radius * np.sin(nextAngle)])
+      p1 = p0 + alpha * np.array([-radius * np.sin(currentAngle), radius * np.cos(currentAngle)])
+      p2 = p3 - alpha * np.array([-radius * np.sin(nextAngle), radius * np.cos(nextAngle)])
+      pathSegments.append((p0, p1, p2, p3))
+      currentAngle = nextAngle
+    vertices = [pathSegments[0][0]]
     codes = [path.Path.MOVETO]
-    for seg in path_segments:
+    for seg in pathSegments:
       vertices.extend(seg[1:])
       codes.extend([path.Path.CURVE4, path.Path.CURVE4, path.Path.CURVE4])
     return path.Path(vertices, codes)
@@ -151,8 +151,8 @@ class ChordDiagramPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'ChordDiagramPlot "{self.name}" had no samples after filtering.')
       return
@@ -169,32 +169,32 @@ class ChordDiagramPlot(PlotInterface):
       corr = numeric.corr(method='pearson')
     corr = corr.fillna(0.0)
 
-    n_vars = len(self.variables)
-    angles = np.linspace(0.0, 2.0 * np.pi, num=n_vars + 1)
-    var_to_angle = {var: (angles[i], angles[i + 1]) for i, var in enumerate(self.variables)}
+    nVars = len(self.variables)
+    angles = np.linspace(0.0, 2.0 * np.pi, num=nVars + 1)
+    varToAngle = {var: (angles[i], angles[i + 1]) for i, var in enumerate(self.variables)}
 
     fig, ax = plt.subplots(figsize=(6.8, 6.8), subplot_kw={'projection': 'polar'})
     ax.set_axis_off()
 
     for idx, var in enumerate(self.variables):
-      start_angle, end_angle = var_to_angle[var]
-      mid_angle = 0.5 * (start_angle + end_angle)
-      ax.bar(x=[mid_angle], height=[1.0], width=end_angle - start_angle,
+      startAngle, endAngle = varToAngle[var]
+      midAngle = 0.5 * (startAngle + endAngle)
+      ax.bar(x=[midAngle], height=[1.0], width=endAngle - startAngle,
              bottom=0.95, color='#e0e0e0', edgecolor='gray', linewidth=1.0, alpha=0.8)
-      ax.text(mid_angle, 1.1, var, ha='center', va='center', rotation=np.degrees(mid_angle),
+      ax.text(midAngle, 1.1, var, ha='center', va='center', rotation=np.degrees(midAngle),
               rotation_mode='anchor', fontsize=9)
 
-    for i in range(n_vars):
-      for j in range(i + 1, n_vars):
+    for i in range(nVars):
+      for j in range(i + 1, nVars):
         strength = corr.iloc[i, j]
         if abs(strength) < self.threshold:
           continue
-        start_a = 0.5 * sum(var_to_angle[self.variables[i]])
-        end_a = 0.5 * sum(var_to_angle[self.variables[j]])
-        chords_path = self._bezier_arc(start_a, end_a, radius=0.9)
+        startA = 0.5 * sum(varToAngle[self.variables[i]])
+        endA = 0.5 * sum(varToAngle[self.variables[j]])
+        chordsPath = self._bezierArc(startA, endA, radius=0.9)
         color = plt.cm.coolwarm((strength + 1.0) / 2.0)
         width = 2.0 + 4.0 * abs(strength)
-        patch = patches.PathPatch(chords_path, facecolor='none', edgecolor=color,
+        patch = patches.PathPatch(chordsPath, facecolor='none', edgecolor=color,
                                   linewidth=width, alpha=0.7)
         ax.add_patch(patch)
 

@@ -151,8 +151,8 @@ class BubbleTradeoffPlot(PlotInterface):
         if subset.empty:
           self.raiseAWarning(f'No rows matched generation {self.generation} in BubbleTradeoffPlot "{self.name}".')
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
         if subset.empty:
           self.raiseAWarning(f'No rows found for generation {max_gen} in BubbleTradeoffPlot "{self.name}".')
     if subset.empty:
@@ -165,22 +165,22 @@ class BubbleTradeoffPlot(PlotInterface):
     if is3d:
       z = subset[self.objectives[2]].astype(float).to_numpy()
     sizeRaw = subset[self.sizeVar].astype(float).to_numpy()
-    finite_mask = np.isfinite(sizeRaw)
-    if not finite_mask.any():
+    finiteMask = np.isfinite(sizeRaw)
+    if not finiteMask.any():
       self.raiseAWarning(f'No finite values in <size> variable "{self.sizeVar}" for BubbleTradeoffPlot "{self.name}".')
       return
     sizeClean = np.zeros_like(sizeRaw, dtype=float)
-    sizeClean[finite_mask] = sizeRaw[finite_mask]
+    sizeClean[finiteMask] = sizeRaw[finiteMask]
     if self.normalize:
-      min_val = sizeClean[finite_mask].min()
-      max_val = sizeClean[finite_mask].max()
-      if math.isclose(min_val, max_val):
+      minVal = sizeClean[finiteMask].min()
+      maxVal = sizeClean[finiteMask].max()
+      if math.isclose(minVal, maxVal):
         norm = np.ones_like(sizeClean) * 0.5
       else:
-        norm = (sizeClean - min_val) / (max_val - min_val)
+        norm = (sizeClean - minVal) / (maxVal - minVal)
         norm = np.clip(norm, 0.0, 1.0)
-      min_area, max_area = self.sizeBounds
-      sizes = min_area + norm * (max_area - min_area)
+      minArea, maxArea = self.sizeBounds
+      sizes = minArea + norm * (maxArea - minArea)
     else:
       sizes = np.clip(sizeClean, self.sizeBounds[0], self.sizeBounds[1])
 
@@ -221,9 +221,9 @@ class BubbleTradeoffPlot(PlotInterface):
       cbar = fig.colorbar(sc, ax=ax)
       cbar.set_label(self.colorVar)
 
-    legend_handle = plt.Line2D([], [], marker='o', color='w', markerfacecolor='#1f77b4',
+    legendHandle = plt.Line2D([], [], marker='o', color='w', markerfacecolor='#1f77b4',
                                markeredgecolor='k', markersize=8, label=self.sizeVar)
-    ax.legend(handles=[legend_handle], title='Bubble encodes', loc='best')
+    ax.legend(handles=[legendHandle], title='Bubble encodes', loc='best')
 
     fig.tight_layout()
     filename = self._createFilename(defaultName=f'{self.name}.png')

@@ -115,25 +115,25 @@ class NSGAFrontAnimation(PlotInterface):
       return
 
     xVar, yVar = self.objectives
-    xMin, xMax = self._scaled_bounds(df[xVar].min(), df[xVar].max())
-    yMin, yMax = self._scaled_bounds(df[yVar].min(), df[yVar].max())
-    cd_limits = self._determine_color_limits(df)
+    xMin, xMax = self._scaledBounds(df[xVar].min(), df[xVar].max())
+    yMin, yMax = self._scaledBounds(df[yVar].min(), df[yVar].max())
+    cdLimits = self._determineColorLimits(df)
 
     if self.format == 'html':
-      self._write_html_animation(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cd_limits,
-                                 filename_default=f'{self.name}.html')
+      self._writeHtmlAnimation(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cdLimits,
+                                 filenameDefault=f'{self.name}.html')
     else:
-      self._write_gif_animation(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cd_limits,
-                                filename_default=f'{self.name}.gif')
+      self._writeGifAnimation(df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cdLimits,
+                                filenameDefault=f'{self.name}.gif')
 
-  def _write_gif_animation(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cd_limits, filename_default):
-    filename = self._createFilename(defaultName=filename_default)
+  def _writeGifAnimation(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cdLimits, filenameDefault):
+    filename = self._createFilename(defaultName=filenameDefault)
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=1) as writer:
       for gen in generations:
         subset = df[df[self.index] == gen]
         fig, ax = plt.subplots()
-        scatterArgs, color_data = self._build_scatter_args(subset, cd_limits)
+        scatterArgs, colorData = self._buildScatterArgs(subset, cdLimits)
         sc = ax.scatter(subset[xVar], subset[yVar], **scatterArgs)
         if len(subset) > 1:
           ordered = subset.sort_values(by=xVar)
@@ -143,11 +143,11 @@ class NSGAFrontAnimation(PlotInterface):
         ax.set_xlabel(xVar)
         ax.set_ylabel(yVar)
         ax.set_title(f'Generation {gen}')
-        if color_data is not None and np.size(color_data) > 0:
+        if colorData is not None and np.size(colorData) > 0:
           cbar = fig.colorbar(sc, ax=ax)
           cbar.set_label('CD')
-          if cd_limits is not None:
-            sc.set_clim(*cd_limits)
+          if cdLimits is not None:
+            sc.set_clim(*cdLimits)
         fig.tight_layout()
         buffer = io.BytesIO()
         plt.savefig(buffer, format='png')
@@ -155,11 +155,11 @@ class NSGAFrontAnimation(PlotInterface):
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html_animation(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cd_limits, filename_default):
-    filename = self._createFilename(defaultName=filename_default)
+  def _writeHtmlAnimation(self, df, generations, xVar, yVar, xMin, xMax, yMin, yMax, cdLimits, filenameDefault):
+    filename = self._createFilename(defaultName=filenameDefault)
     fig, ax = plt.subplots()
-    init_subset = df[df[self.index] == generations[0]]
-    scatterArgs, color_data = self._build_scatter_args(init_subset, cd_limits)
+    initSubset = df[df[self.index] == generations[0]]
+    scatterArgs, colorData = self._buildScatterArgs(initSubset, cdLimits)
     scatterArgs.pop('c', None)
     scatterArgs.pop('cmap', None)
     scatterArgs.pop('vmin', None)
@@ -172,13 +172,13 @@ class NSGAFrontAnimation(PlotInterface):
     ax.set_ylabel(yVar)
     title = ax.set_title('')
     cbar = None
-    if color_data is not None and np.size(color_data) > 0:
+    if colorData is not None and np.size(colorData) > 0:
       cbar = fig.colorbar(sc, ax=ax)
       cbar.set_label('CD')
 
     def init():
       sc.set_offsets(np.empty((0, 2)))
-      if color_data is not None:
+      if colorData is not None:
         sc.set_array(np.array([]))
       line.set_data([], [])
       title.set_text('')
@@ -193,12 +193,12 @@ class NSGAFrontAnimation(PlotInterface):
         line.set_data(ordered[xVar].to_numpy(), ordered[yVar].to_numpy())
       else:
         line.set_data([], [])
-      _, frame_colors = self._build_scatter_args(subset, cd_limits)
-      if frame_colors is not None and np.size(frame_colors) > 0:
-        sc.set_array(np.asarray(frame_colors))
+      _, frameColors = self._buildScatterArgs(subset, cdLimits)
+      if frameColors is not None and np.size(frameColors) > 0:
+        sc.set_array(np.asarray(frameColors))
         sc.set_cmap('viridis')
-        if cd_limits is not None:
-          sc.set_clim(*cd_limits)
+        if cdLimits is not None:
+          sc.set_clim(*cdLimits)
         if cbar is not None:
           cbar.update_normal(sc)
       else:
@@ -208,37 +208,37 @@ class NSGAFrontAnimation(PlotInterface):
 
     anim = animation.FuncAnimation(fig, update, frames=generations, init_func=init,
                                    interval=1000.0 / self.fps, blit=False)
-    html_str = anim.to_jshtml()
-    html_str = self._normalize_animation_ids(html_str)
+    htmlStr = anim.to_jshtml()
+    htmlStr = self._normalizeAnimationIds(htmlStr)
     with open(filename, 'w', encoding='utf-8') as out:
-      out.write(html_str)
+      out.write(htmlStr)
     plt.close(fig)
 
-  def _build_scatter_args(self, subset, cd_limits):
+  def _buildScatterArgs(self, subset, cdLimits):
     scatterArgs = {'edgecolors': 'k', 'linewidths': 0.3}
-    color_data = None
+    colorData = None
     if 'CD' in subset.columns and not subset.empty:
       cdValues = subset['CD'].replace([np.inf, -np.inf], np.nan)
       if cdValues.notna().any():
         fillValue = cdValues[cdValues.notna()].mean()
-        color_data = cdValues.fillna(fillValue if np.isfinite(fillValue) else 0.0).to_numpy()
+        colorData = cdValues.fillna(fillValue if np.isfinite(fillValue) else 0.0).to_numpy()
       else:
-        color_data = np.zeros(len(cdValues))
-      if cd_limits is not None:
-        vmin, vmax = cd_limits
+        colorData = np.zeros(len(cdValues))
+      if cdLimits is not None:
+        vmin, vmax = cdLimits
       else:
-        vmin = np.nanmin(color_data)
-        vmax = np.nanmax(color_data)
-      scatterArgs.update({'c': color_data, 'cmap': 'viridis', 'vmin': vmin, 'vmax': vmax})
-    return scatterArgs, color_data
+        vmin = np.nanmin(colorData)
+        vmax = np.nanmax(colorData)
+      scatterArgs.update({'c': colorData, 'cmap': 'viridis', 'vmin': vmin, 'vmax': vmax})
+    return scatterArgs, colorData
 
   @staticmethod
-  def _scaled_bounds(min_val, max_val):
-    if np.isclose(min_val, max_val):
-      delta = abs(min_val) if min_val != 0 else 1.0
-      return min_val - 0.1 * delta, max_val + 0.1 * delta
-    low = min_val * 0.9 if min_val >= 0 else min_val * 1.1
-    high = max_val * 1.1 if max_val >= 0 else max_val * 0.9
+  def _scaledBounds(minVal, maxVal):
+    if np.isclose(minVal, maxVal):
+      delta = abs(minVal) if minVal != 0 else 1.0
+      return minVal - 0.1 * delta, maxVal + 0.1 * delta
+    low = minVal * 0.9 if minVal >= 0 else minVal * 1.1
+    high = maxVal * 1.1 if maxVal >= 0 else maxVal * 0.9
     if np.isclose(low, high):
       delta = abs(low) if low != 0 else 1.0
       low -= 0.1 * delta
@@ -246,7 +246,7 @@ class NSGAFrontAnimation(PlotInterface):
     return low, high
 
   @staticmethod
-  def _determine_color_limits(df):
+  def _determineColorLimits(df):
     if 'CD' not in df.columns or df['CD'].empty:
       return None
     cdValues = df['CD'].replace([np.inf, -np.inf], np.nan)
@@ -257,16 +257,16 @@ class NSGAFrontAnimation(PlotInterface):
         return (vmin, vmax)
     return None
 
-  def _normalize_animation_ids(self, html_str):
+  def _normalizeAnimationIds(self, htmlStr):
     """
     Replace randomly generated Matplotlib animation element ids with deterministic ones.
     """
-    match = re.search(r'_anim_img([0-9a-f]+)', html_str)
+    match = re.search(r'_anim_img([0-9a-f]+)', htmlStr)
     if not match:
-      return html_str
-    random_suffix = match.group(1)
-    base_name = self.name if getattr(self, 'name', None) else 'animation'
-    safe_name = ''.join(ch if ch.isalnum() else '_' for ch in base_name)
+      return htmlStr
+    randomSuffix = match.group(1)
+    baseName = self.name if getattr(self, 'name', None) else 'animation'
+    safeName = ''.join(ch if ch.isalnum() else '_' for ch in baseName)
     seed = f'{self.__class__.__name__}:{safe_name}:{self.rank}'
     deterministic = hashlib.md5(seed.encode('utf-8')).hexdigest()
-    return html_str.replace(random_suffix, deterministic)
+    return htmlStr.replace(randomSuffix, deterministic)

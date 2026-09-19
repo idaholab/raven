@@ -110,7 +110,7 @@ class StarCoordinatesPlot(PlotInterface):
     self.source = src
 
   @staticmethod
-  def _minmax_scale(df):
+  def _minmaxScale(df):
     mins = df.min(axis=0)
     maxs = df.max(axis=0)
     ranges = maxs - mins
@@ -135,8 +135,8 @@ class StarCoordinatesPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'StarCoordinatesPlot "{self.name}" had no samples after filtering.')
       return
@@ -148,14 +148,14 @@ class StarCoordinatesPlot(PlotInterface):
       return
 
     if self.normalize:
-      data = self._minmax_scale(numeric)
+      data = self._minmaxScale(numeric)
     else:
       data = numeric
 
-    n_vars = len(self.variables)
-    angles = np.linspace(0.0, 2.0 * np.pi, num=n_vars, endpoint=False)
-    unit_vectors = np.column_stack((np.cos(angles), np.sin(angles)))
-    coords = data.to_numpy(dtype=float) @ unit_vectors
+    nVars = len(self.variables)
+    angles = np.linspace(0.0, 2.0 * np.pi, num=nVars, endpoint=False)
+    unitVectors = np.column_stack((np.cos(angles), np.sin(angles)))
+    coords = data.to_numpy(dtype=float) @ unitVectors
 
     labels = None
     cmap = None
@@ -165,16 +165,16 @@ class StarCoordinatesPlot(PlotInterface):
         cmap = 'viridis'
     fig, ax = plt.subplots(figsize=(6.4, 6.0))
 
-    scatter_kwargs = dict(alpha=0.75, edgecolors='k', linewidths=0.3, s=36)
+    scatterKwargs = dict(alpha=0.75, edgecolors='k', linewidths=0.3, s=36)
     if labels is not None:
-      scatter_kwargs['c'] = labels if cmap else labels.astype(str)
+      scatterKwargs['c'] = labels if cmap else labels.astype(str)
       if cmap:
-        scatter_kwargs['cmap'] = cmap
-    ax.scatter(coords[:, 0], coords[:, 1], **scatter_kwargs)
+        scatterKwargs['cmap'] = cmap
+    ax.scatter(coords[:, 0], coords[:, 1], **scatterKwargs)
 
     # Draw axes
-    max_radius = np.linalg.norm(coords, axis=1).max()
-    radius = max(max_radius * 1.1, 1.0)
+    maxRadius = np.linalg.norm(coords, axis=1).max()
+    radius = max(maxRadius * 1.1, 1.0)
     for angle, var in zip(angles, self.variables):
       ax.plot([0.0, radius * np.cos(angle)], [0.0, radius * np.sin(angle)],
               color='gray', linewidth=1.0, alpha=0.5)

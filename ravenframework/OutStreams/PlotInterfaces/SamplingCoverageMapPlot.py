@@ -83,8 +83,8 @@ class SamplingCoverageMapPlot(PlotInterface):
     self.explicitGenerations = None
     self.formats = {'gif', 'html'}
     self.fps = 2.0
-    self.save_frames = False
-    self.frame_max = 10
+    self.saveFrames = False
+    self.frameMax = 10
     self._ranges = None
 
   def handleInput(self, spec):
@@ -143,12 +143,12 @@ class SamplingCoverageMapPlot(PlotInterface):
 
     saveNode = spec.findFirst('saveFrames')
     if saveNode is not None and saveNode.value is not None:
-      self.save_frames = bool(saveNode.value)
+      self.saveFrames = bool(saveNode.value)
 
     framesNode = spec.findFirst('framesMax')
     if framesNode is not None and framesNode.value is not None:
-      self.frame_max = int(framesNode.value)
-      if self.frame_max <= 0:
+      self.frameMax = int(framesNode.value)
+      if self.frameMax <= 0:
         self.raiseAnError(IOError, f'SamplingCoverageMapPlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
@@ -176,36 +176,36 @@ class SamplingCoverageMapPlot(PlotInterface):
     if not generations:
       self.raiseAWarning(f'SamplingCoverageMapPlot "{self.name}" found no generations in column "{self.index}".')
       return
-    self._ranges = self._compute_ranges(df)
+    self._ranges = self._computeRanges(df)
 
     try:
-      selected_generations, indices = plotGenerationUtils.resolveGenerations(
+      selectedGenerations, indices = plotGenerationUtils.resolveGenerations(
           generations, self.explicitGenerations, defaultCap=10, maxFrames=self.maxFrames)
     except ValueError as err:
       self.raiseAnError(IOError, f'SamplingCoverageMapPlot "{self.name}": {err}')
 
     if 'gif' in self.formats:
-      self._write_gif(df, selected_generations)
+      self._writeGif(df, selectedGenerations)
     if 'html' in self.formats:
-      self._write_html(df, selected_generations)
-    if self.save_frames:
-      self._write_frames(df, selected_generations)
+      self._writeHtml(df, selectedGenerations)
+    if self.saveFrames:
+      self._writeFrames(df, selectedGenerations)
 
-  def _write_gif(self, df, generations):
+  def _writeGif(self, df, generations):
     filename = self._createFilename(defaultName=f'{self.name}.gif')
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=0) as writer:
       for generation in generations:
-        fig = self._render_frame(df, generation)
+        fig = self._renderFrame(df, generation)
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png', dpi=150)
         plt.close(fig)
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html(self, df, generations):
+  def _writeHtml(self, df, generations):
     filename = self._createFilename(defaultName=f'{self.name}.html')
-    fig, ax, im, scatter = self._setup_axes()
+    fig, ax, im, scatter = self._setupAxes()
 
     def init():
       im.set_data(np.zeros((self.bins, self.bins)))
@@ -215,7 +215,7 @@ class SamplingCoverageMapPlot(PlotInterface):
 
     def update(idx):
       generation = generations[idx]
-      density, xedges, yedges, samples = self._compute_density(df, generation)
+      density, xedges, yedges, samples = self._computeDensity(df, generation)
       im.set_extent([xedges[0], xedges[-1], yedges[0], yedges[-1]])
       im.set_data(density.T)
       if np.isfinite(density).any():
@@ -227,29 +227,29 @@ class SamplingCoverageMapPlot(PlotInterface):
     anim = animation.FuncAnimation(fig, update, frames=range(len(generations)),
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
-    html_str = anim.to_jshtml()
+    htmlStr = anim.to_jshtml()
     with open(filename, 'w', encoding='utf-8') as out:
       out.write(f'<div style="display:flex;justify-content:center;">{html_str}</div>')
     plt.close(fig)
 
-  def _write_frames(self, df, generations):
-    frame_positions = plotGenerationUtils.frameIndicesToSave(
-        len(generations), bool(self.explicitGenerations), self.save_frames, self.frame_max)
-    if not frame_positions:
+  def _writeFrames(self, df, generations):
+    framePositions = plotGenerationUtils.frameIndicesToSave(
+        len(generations), bool(self.explicitGenerations), self.saveFrames, self.frameMax)
+    if not framePositions:
       return
     base = self._createFilename(defaultName=f'{self.name}_frames')
     template = os.path.splitext(base)[0] + '_{index:04d}.png'
     directory = os.path.dirname(template)
     if directory:
       os.makedirs(directory, exist_ok=True)
-    for pos in frame_positions:
+    for pos in framePositions:
       generation = generations[pos]
-      fig = self._render_frame(df, generation)
+      fig = self._renderFrame(df, generation)
       fig.savefig(template.format(index=int(generation)), dpi=150)
       plt.close(fig)
 
-  def _render_frame(self, df, generation):
-    density, xedges, yedges, samples = self._compute_density(df, generation)
+  def _renderFrame(self, df, generation):
+    density, xedges, yedges, samples = self._computeDensity(df, generation)
     fig, ax = plt.subplots(figsize=(6.4, 5.6))
     im = ax.imshow(density.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]],
                    origin='lower', aspect='auto', cmap='viridis')
@@ -266,7 +266,7 @@ class SamplingCoverageMapPlot(PlotInterface):
     fig.tight_layout()
     return fig
 
-  def _setup_axes(self):
+  def _setupAxes(self):
     fig, ax = plt.subplots(figsize=(6.4, 5.6))
     im = ax.imshow(np.zeros((self.bins, self.bins)), origin='lower', aspect='auto',
                    cmap='viridis', extent=[self._ranges[0][0], self._ranges[0][1],
@@ -280,7 +280,7 @@ class SamplingCoverageMapPlot(PlotInterface):
     fig.tight_layout()
     return fig, ax, im, scatter
 
-  def _compute_density(self, df, generation):
+  def _computeDensity(self, df, generation):
     subset = df[df[self.index] == generation]
     samples = subset[self.variables].to_numpy(dtype=float)
     samples = samples[np.isfinite(samples).all(axis=1)]
@@ -297,7 +297,7 @@ class SamplingCoverageMapPlot(PlotInterface):
     density = density.astype(float)
     return density, xedges, yedges, samples
 
-  def _compute_ranges(self, df):
+  def _computeRanges(self, df):
     ranges = []
     for var in self.variables:
       data = df[var].to_numpy(dtype=float)
@@ -316,7 +316,7 @@ class SamplingCoverageMapPlot(PlotInterface):
     return tuple(ranges)
 
   @staticmethod
-  def _sample_generations(generations, limit):
+  def _sampleGenerations(generations, limit):
     if limit >= len(generations):
       return generations, list(range(len(generations)))
     positions = np.linspace(0, len(generations) - 1, limit, dtype=int)
@@ -334,22 +334,22 @@ class SamplingCoverageMapPlot(PlotInterface):
       selected[-1] = len(generations) - 1
     return [generations[i] for i in selected], selected
 
-  def _select_frame_indices(self, total):
-    if not self.save_frames or total <= 0 or self.frame_max <= 0:
+  def _selectFrameIndices(self, total):
+    if not self.saveFrames or total <= 0 or self.frameMax <= 0:
       return []
-    if total <= self.frame_max:
+    if total <= self.frameMax:
       return list(range(total))
-    stride = int(math.ceil(total / float(self.frame_max)))
+    stride = int(math.ceil(total / float(self.frameMax)))
     indices = list(range(0, total, stride))
     if indices and indices[-1] != total - 1:
-      if len(indices) >= self.frame_max:
+      if len(indices) >= self.frameMax:
         indices[-1] = total - 1
       else:
         indices.append(total - 1)
     return sorted(set(indices))
 
   @staticmethod
-  def _format_generation(genID):
+  def _formatGeneration(genID):
     if float(genID).is_integer():
       return int(genID)
     return genID

@@ -55,7 +55,7 @@ class AttainmentSurfacePlot(PlotInterface):
     self.source = None
     self.sourceName = None
     self.objectives = []
-    self.objective_pairs = []
+    self.objectivePairs = []
     self.runColumn = None
     self.index = None
     self.generation = None
@@ -77,9 +77,9 @@ class AttainmentSurfacePlot(PlotInterface):
       self.raiseAnError(IOError, f'AttainmentSurfacePlot "{self.name}" requires at least two objectives; got {len(objectives)}.')
     self.objectives = objectives
     if len(objectives) == 2:
-      self.objective_pairs = [tuple(objectives)]
+      self.objectivePairs = [tuple(objectives)]
     else:
-      self.objective_pairs = [tuple(pair) for pair in itertools.combinations(objectives, 2)]
+      self.objectivePairs = [tuple(pair) for pair in itertools.combinations(objectives, 2)]
 
     runNode = spec.findFirst('runId')
     if runNode is not None and runNode.value:
@@ -138,45 +138,45 @@ class AttainmentSurfacePlot(PlotInterface):
     else:
       runs = [None]
 
-    samples_per_pair = {pair: [] for pair in self.objective_pairs}
-    for run_id in runs:
+    samplesPerPair = {pair: [] for pair in self.objectivePairs}
+    for runId in runs:
       if self.runColumn:
-        run_subset = subset[subset[self.runColumn] == run_id]
+        runSubset = subset[subset[self.runColumn] == runId]
       else:
-        run_subset = subset
-      if run_subset.empty:
+        runSubset = subset
+      if runSubset.empty:
         continue
       if self.index:
         if self.generation is not None:
-          mask = np.isclose(run_subset[self.index].to_numpy(dtype=float), self.generation)
-          run_subset = run_subset[mask]
+          mask = np.isclose(runSubset[self.index].to_numpy(dtype=float), self.generation)
+          runSubset = runSubset[mask]
         else:
-          max_gen = run_subset[self.index].max()
-          run_subset = run_subset[run_subset[self.index] == max_gen]
-      if run_subset.empty:
+          maxGen = runSubset[self.index].max()
+          runSubset = runSubset[runSubset[self.index] == maxGen]
+      if runSubset.empty:
         continue
-      for pair in self.objective_pairs:
-        arr = run_subset[list(pair)].astype(float).to_numpy()
+      for pair in self.objectivePairs:
+        arr = runSubset[list(pair)].astype(float).to_numpy()
         arr = arr[np.isfinite(arr).all(axis=1)]
         if arr.size == 0:
           continue
-        samples_per_pair[pair].append(arr)
+        samplesPerPair[pair].append(arr)
 
-    valid_pairs = [pair for pair, arrays in samples_per_pair.items() if arrays]
-    if not valid_pairs:
+    validPairs = [pair for pair, arrays in samplesPerPair.items() if arrays]
+    if not validPairs:
       self.raiseAWarning(f'AttainmentSurfacePlot "{self.name}" found no usable samples.')
       return
 
-    fig, axes = self._create_figure(len(valid_pairs))
-    contour_levels = np.append([0.0], list(self.levels) + [1.0])
-    contour_mappable = None
-    axes_with_data = []
+    fig, axes = self._createFigure(len(validPairs))
+    contourLevels = np.append([0.0], list(self.levels) + [1.0])
+    contourMappable = None
+    axesWithData = []
 
-    for ax, pair in zip(axes, valid_pairs):
-      runs_for_pair = samples_per_pair[pair]
-      all_samples = np.vstack(runs_for_pair)
-      mins = np.nanmin(all_samples, axis=0)
-      maxs = np.nanmax(all_samples, axis=0)
+    for ax, pair in zip(axes, validPairs):
+      runsForPair = samplesPerPair[pair]
+      allSamples = np.vstack(runsForPair)
+      mins = np.nanmin(allSamples, axis=0)
+      maxs = np.nanmax(allSamples, axis=0)
       if np.any(~np.isfinite(mins)) or np.any(~np.isfinite(maxs)):
         self.raiseAWarning(f'Non-finite objective bounds for AttainmentSurfacePlot "{self.name}" on pair {pair}; skipping subplot.')
         ax.set_visible(False)
@@ -184,36 +184,36 @@ class AttainmentSurfacePlot(PlotInterface):
 
       padding = 0.05 * (maxs - mins)
       padding[padding == 0.0] = 0.05
-      x_vals = np.linspace(mins[0] - padding[0], maxs[0] + padding[0], self.gridSize)
-      y_vals = np.linspace(mins[1] - padding[1], maxs[1] + padding[1], self.gridSize)
-      x_mesh, y_mesh = np.meshgrid(x_vals, y_vals, indexing='xy')
+      xVals = np.linspace(mins[0] - padding[0], maxs[0] + padding[0], self.gridSize)
+      yVals = np.linspace(mins[1] - padding[1], maxs[1] + padding[1], self.gridSize)
+      xMesh, yMesh = np.meshgrid(xVals, yVals, indexing='xy')
 
-      prob = np.zeros_like(x_mesh, dtype=float)
-      for arr in runs_for_pair:
-        dom_x = arr[:, 0][:, None, None] <= x_mesh
-        dom_y = arr[:, 1][:, None, None] <= y_mesh
-        attained = np.logical_and(dom_x, dom_y).any(axis=0)
+      prob = np.zeros_like(xMesh, dtype=float)
+      for arr in runsForPair:
+        domX = arr[:, 0][:, None, None] <= xMesh
+        domY = arr[:, 1][:, None, None] <= yMesh
+        attained = np.logical_and(domX, domY).any(axis=0)
         prob += attained.astype(float)
-      prob /= len(runs_for_pair)
+      prob /= len(runsForPair)
 
-      contour = ax.contourf(x_mesh, y_mesh, prob, levels=contour_levels,
+      contour = ax.contourf(xMesh, yMesh, prob, levels=contourLevels,
                             cmap='Blues', alpha=0.85, vmin=0.0, vmax=1.0)
-      ax.contour(x_mesh, y_mesh, prob, levels=list(self.levels), colors='k', linewidths=0.8)
+      ax.contour(xMesh, yMesh, prob, levels=list(self.levels), colors='k', linewidths=0.8)
       ax.set_xlabel(pair[0])
       ax.set_ylabel(pair[1])
       ax.set_title(f'Attainment: {pair[0]} vs {pair[1]}')
       ax.grid(alpha=0.25)
-      contour_mappable = contour if contour_mappable is None else contour_mappable
-      axes_with_data.append(ax)
+      contourMappable = contour if contourMappable is None else contourMappable
+      axesWithData.append(ax)
 
-    if not axes_with_data:
+    if not axesWithData:
       self.raiseAWarning(f'AttainmentSurfacePlot "{self.name}" could not render any subplots due to invalid data.')
       plt.close(fig)
       return
 
     fig.tight_layout(rect=[0, 0, 0.94, 1])
-    if contour_mappable is not None:
-      cbar = self._add_shared_colorbar(fig, axes_with_data, contour_mappable)
+    if contourMappable is not None:
+      cbar = self._addSharedColorbar(fig, axesWithData, contourMappable)
       if cbar is not None:
         cbar.set_label('P(attained)')
     filename = self._createFilename(defaultName=f'{self.name}.png')
@@ -221,8 +221,8 @@ class AttainmentSurfacePlot(PlotInterface):
     plt.close(fig)
 
   @staticmethod
-  def _create_figure(num_panels):
-    fig, axes = plt.subplots(1, num_panels, figsize=(6.4 * num_panels, 5.2))
+  def _createFigure(numPanels):
+    fig, axes = plt.subplots(1, numPanels, figsize=(6.4 * numPanels, 5.2))
     if not isinstance(axes, np.ndarray):
       axes = [axes]
     else:
@@ -230,24 +230,24 @@ class AttainmentSurfacePlot(PlotInterface):
     return fig, axes
 
   @staticmethod
-  def _add_shared_colorbar(fig, axes, mappable):
+  def _addSharedColorbar(fig, axes, mappable):
     if fig is None or mappable is None or not axes:
       return None
-    axes_list = [ax for ax in axes if ax.get_visible()]
-    if not axes_list:
+    axesList = [ax for ax in axes if ax.get_visible()]
+    if not axesList:
       return None
     fig.canvas.draw()
-    positions = [ax.get_position() for ax in axes_list]
-    max_right = max(pos.x1 for pos in positions)
-    min_bottom = min(pos.y0 for pos in positions)
-    max_top = max(pos.y1 for pos in positions)
+    positions = [ax.get_position() for ax in axesList]
+    maxRight = max(pos.x1 for pos in positions)
+    minBottom = min(pos.y0 for pos in positions)
+    maxTop = max(pos.y1 for pos in positions)
     pad = 0.025
     width = 0.02
-    left = max_right + pad
+    left = maxRight + pad
     if left + width > 0.98:
       width = max(0.01, 0.98 - left)
       left = 0.98 - width
     if width <= 0:
       return None
-    cax = fig.add_axes([left, min_bottom, width, max_top - min_bottom])
+    cax = fig.add_axes([left, minBottom, width, maxTop - minBottom])
     return fig.colorbar(mappable, cax=cax)

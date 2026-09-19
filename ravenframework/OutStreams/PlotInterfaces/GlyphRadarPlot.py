@@ -89,13 +89,13 @@ class GlyphRadarPlot(PlotInterface):
     self.count = 6
     self.labelVar = None
     self.metric = None
-    self.metric_goal = 'min'
+    self.metricGoal = 'min'
     self.index = None
     self.generation = None
     self.scale = 'selected'
     self.deduplicate = True
-    self.deduplicate_tol = 1.0e-9
-    self.label_first_seen = True
+    self.deduplicateTol = 1.0e-9
+    self.labelFirstSeen = True
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -136,7 +136,7 @@ class GlyphRadarPlot(PlotInterface):
       value = str(metricGoalNode.value).strip().lower()
       if value not in ('min', 'max'):
         self.raiseAnError(IOError, f'Invalid <metricGoal> "{metricGoalNode.value}" for GlyphRadarPlot "{self.name}".')
-      self.metric_goal = value
+      self.metricGoal = value
 
     idxNode = spec.findFirst('index')
     if idxNode is not None and idxNode.value:
@@ -159,13 +159,13 @@ class GlyphRadarPlot(PlotInterface):
 
     tolNode = spec.findFirst('deduplicateTol')
     if tolNode is not None and tolNode.value is not None:
-      self.deduplicate_tol = float(tolNode.value)
-      if self.deduplicate_tol < 0:
+      self.deduplicateTol = float(tolNode.value)
+      if self.deduplicateTol < 0:
         self.raiseAnError(IOError, f'GlyphRadarPlot "{self.name}" received negative <deduplicateTol>.')
 
     firstSeenNode = spec.findFirst('labelFirstSeen')
     if firstSeenNode is not None and firstSeenNode.value is not None:
-      self.label_first_seen = bool(firstSeenNode.value)
+      self.labelFirstSeen = bool(firstSeenNode.value)
 
   def initialize(self, stepEntities):
     super().initialize(stepEntities)
@@ -192,11 +192,11 @@ class GlyphRadarPlot(PlotInterface):
       @ Out, sig, tuple
     """
     vals = np.asarray([row[var] for var in self.variables], dtype=float)
-    if self.deduplicate_tol <= 0:
+    if self.deduplicateTol <= 0:
       return tuple(np.round(vals, 12))
-    return tuple(np.round(vals / self.deduplicate_tol).astype(np.int64))
+    return tuple(np.round(vals / self.deduplicateTol).astype(np.int64))
 
-  def _select_samples(self, df):
+  def _selectSamples(self, df):
     df = df.copy()
     if self.select == 'random':
       selection = df.sample(n=min(self.count, len(df)), random_state=0)
@@ -212,7 +212,7 @@ class GlyphRadarPlot(PlotInterface):
         seen.add(sig)
         keep.append(idx)
       return selection.loc[keep]
-    ascending = True if self.metric_goal == 'min' else False
+    ascending = True if self.metricGoal == 'min' else False
     if self.select == 'leaders':
       if not self.index or self.index not in df.columns:
         self.raiseAWarning(f'GlyphRadarPlot "{self.name}" select="leaders" requires <index>; falling back to select="top".')
@@ -228,14 +228,14 @@ class GlyphRadarPlot(PlotInterface):
         picked = []
         seen = set()
         for gen in gens:
-          gen_rows = ordered[ordered[self.index] == gen]
-          if gen_rows.empty:
+          genRows = ordered[ordered[self.index] == gen]
+          if genRows.empty:
             continue
-          for idx in gen_rows.index:
+          for idx in genRows.index:
             if not self.deduplicate:
               picked.append(idx)
               break
-            sig = self._signature(gen_rows.loc[idx])
+            sig = self._signature(genRows.loc[idx])
             if sig in seen:
               continue
             seen.add(sig)
@@ -249,15 +249,15 @@ class GlyphRadarPlot(PlotInterface):
         remaining = df.drop(index=leaders.index, errors='ignore')
         if remaining.empty:
           return leaders
-        extras_needed = self.count - len(leaders)
-        extra_idx = self._select_diverse_indices(remaining, seed_indices=list(leaders.index), count=extras_needed, excluded_sigs=seen)
-        extras = remaining.loc[extra_idx] if extra_idx else remaining.head(0)
+        extrasNeeded = self.count - len(leaders)
+        extraIdx = self._selectDiverseIndices(remaining, seedIndices=list(leaders.index), count=extrasNeeded, excludedSigs=seen)
+        extras = remaining.loc[extraIdx] if extraIdx else remaining.head(0)
         return pd.concat([leaders, extras], axis=0)
     if self.select == 'diverse':
-      excluded_sigs = set()
+      excludedSigs = set()
       if self.deduplicate:
-        excluded_sigs = set()
-      idxs = self._select_diverse_indices(df, seed_indices=[], count=self.count, excluded_sigs=excluded_sigs)
+        excludedSigs = set()
+      idxs = self._selectDiverseIndices(df, seedIndices=[], count=self.count, excludedSigs=excludedSigs)
       if not idxs:
         return df.head(0)
       return df.loc[idxs]
@@ -279,7 +279,7 @@ class GlyphRadarPlot(PlotInterface):
         break
     return ordered.loc[keep]
 
-  def _select_diverse_indices(self, df, *, seed_indices, count, excluded_sigs=None):
+  def _selectDiverseIndices(self, df, *, seedIndices, count, excludedSigs=None):
     """
       Select indices from df that are diverse in variable space.
       Greedy farthest-point sampling in min-max scaled coordinates.
@@ -291,65 +291,65 @@ class GlyphRadarPlot(PlotInterface):
     """
     if count <= 0 or df.empty:
       return []
-    excluded_sigs = excluded_sigs or set()
+    excludedSigs = excludedSigs or set()
     numeric = df[self.variables].astype(float)
     numeric = numeric.replace([np.inf, -np.inf], np.nan).dropna()
     if numeric.empty:
       return []
     # Filter out excluded signatures early.
-    if excluded_sigs:
+    if excludedSigs:
       keep = []
       for idx in numeric.index:
         sig = self._signature(df.loc[idx])
-        if sig in excluded_sigs:
+        if sig in excludedSigs:
           continue
         keep.append(idx)
       numeric = numeric.loc[keep]
       if numeric.empty:
         return []
-    scaled = self._minmax_scale(numeric).to_numpy(dtype=float)
-    cand_index = list(numeric.index)
+    scaled = self._minmaxScale(numeric).to_numpy(dtype=float)
+    candIndex = list(numeric.index)
     # Build an initial set of selected points from seeds that are present in candidates.
-    selected_positions = []
-    seed_set = set(seed_indices or [])
-    for pos, idx in enumerate(cand_index):
-      if idx in seed_set:
-        selected_positions.append(pos)
+    selectedPositions = []
+    seedSet = set(seedIndices or [])
+    for pos, idx in enumerate(candIndex):
+      if idx in seedSet:
+        selectedPositions.append(pos)
     # If no seeds present among candidates, start from a deterministic point.
-    if not selected_positions:
+    if not selectedPositions:
       start = 0
       if self.metric and self.metric in df.columns:
-        ascending = True if self.metric_goal == 'min' else False
+        ascending = True if self.metricGoal == 'min' else False
         ordered = df.loc[numeric.index].sort_values(by=self.metric, ascending=ascending)
         if not ordered.empty:
-          start_idx = ordered.index[0]
+          startIdx = ordered.index[0]
           try:
-            start = cand_index.index(start_idx)
+            start = candIndex.index(startIdx)
           except ValueError:
             start = 0
-      selected_positions = [start]
-    chosen = set(selected_positions)
+      selectedPositions = [start]
+    chosen = set(selectedPositions)
     picks = []
     # Precompute per-candidate min distance to selected set, update incrementally.
-    sel_pts = scaled[selected_positions, :]
-    min_dist = np.full(len(cand_index), np.inf, dtype=float)
-    for p in selected_positions:
+    selPts = scaled[selectedPositions, :]
+    minDist = np.full(len(candIndex), np.inf, dtype=float)
+    for p in selectedPositions:
       d = np.linalg.norm(scaled - scaled[p], axis=1)
-      min_dist = np.minimum(min_dist, d)
-    for _ in range(min(count, len(cand_index) - len(chosen))):
+      minDist = np.minimum(minDist, d)
+    for _ in range(min(count, len(candIndex) - len(chosen))):
       # Do not pick already-selected points.
-      min_dist[list(chosen)] = -1.0
-      next_pos = int(np.argmax(min_dist))
-      if min_dist[next_pos] < 0:
+      minDist[list(chosen)] = -1.0
+      nextPos = int(np.argmax(minDist))
+      if minDist[nextPos] < 0:
         break
-      chosen.add(next_pos)
-      picks.append(cand_index[next_pos])
-      d = np.linalg.norm(scaled - scaled[next_pos], axis=1)
-      min_dist = np.minimum(min_dist, d)
+      chosen.add(nextPos)
+      picks.append(candIndex[nextPos])
+      d = np.linalg.norm(scaled - scaled[nextPos], axis=1)
+      minDist = np.minimum(minDist, d)
     return picks
 
   @staticmethod
-  def _minmax_scale(df):
+  def _minmaxScale(df):
     mins = df.min(axis=0)
     maxs = df.max(axis=0)
     ranges = maxs - mins
@@ -368,8 +368,8 @@ class GlyphRadarPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       elif self.select != 'leaders':
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'GlyphRadarPlot "{self.name}" had no samples after filtering.')
       return
@@ -380,19 +380,19 @@ class GlyphRadarPlot(PlotInterface):
       self.raiseAWarning(f'GlyphRadarPlot "{self.name}" found no finite samples for variables {self.variables}.')
       return
 
-    selected_idx = self._select_samples(subset.loc[numeric.index])
-    if selected_idx.empty:
+    selectedIdx = self._selectSamples(subset.loc[numeric.index])
+    if selectedIdx.empty:
       self.raiseAWarning(f'GlyphRadarPlot "{self.name}" could not select samples with strategy "{self.select}".')
       return
 
-    selected_numeric = numeric.loc[selected_idx.index]
+    selectedNumeric = numeric.loc[selectedIdx.index]
     if self.scale == 'population':
-      scaled = self._minmax_scale(numeric).loc[selected_idx.index]
+      scaled = self._minmaxScale(numeric).loc[selectedIdx.index]
     else:
-      scaled = self._minmax_scale(selected_numeric)
+      scaled = self._minmaxScale(selectedNumeric)
 
-    first_seen = {}
-    if self.index and self.label_first_seen and self.index in subset.columns:
+    firstSeen = {}
+    if self.index and self.labelFirstSeen and self.index in subset.columns:
       # Determine the first generation a solution appeared (based on variable signature).
       try:
         gens = subset[self.index].astype(float)
@@ -402,16 +402,16 @@ class GlyphRadarPlot(PlotInterface):
         for idx in numeric.index:
           sig = self._signature(subset.loc[idx])
           gen = float(subset.loc[idx, self.index])
-          if sig not in first_seen or gen < first_seen[sig]:
-            first_seen[sig] = gen
+          if sig not in firstSeen or gen < firstSeen[sig]:
+            firstSeen[sig] = gen
 
-    n_vars = len(self.variables)
-    angles = np.linspace(0.0, 2.0 * np.pi, num=n_vars, endpoint=False).tolist()
+    nVars = len(self.variables)
+    angles = np.linspace(0.0, 2.0 * np.pi, num=nVars, endpoint=False).tolist()
     angles += angles[:1]
 
-    n_samples = len(selected_idx)
-    ncols = min(3, n_samples)
-    nrows = int(math.ceil(n_samples / ncols))
+    nSamples = len(selectedIdx)
+    ncols = min(3, nSamples)
+    nrows = int(math.ceil(nSamples / ncols))
     fig, axes = plt.subplots(nrows, ncols, figsize=(4.0 * ncols, 4.0 * nrows),
                              subplot_kw=dict(polar=True))
     axes = np.atleast_2d(axes)
@@ -429,18 +429,18 @@ class GlyphRadarPlot(PlotInterface):
       ax.fill(angles, values, color='tab:blue', alpha=0.35)
       # Titles: make them unique and informative (trajID alone is often identical across samples).
       parts = []
-      if self.index and self.index in selected_idx.columns:
+      if self.index and self.index in selectedIdx.columns:
         try:
           parts.append(f'{self.index}={float(selected_idx.loc[idx, self.index]):.0f}')
         except Exception:
           parts.append(f'{self.index}={selected_idx.loc[idx, self.index]}')
-        if self.label_first_seen:
-          sig = self._signature(selected_idx.loc[idx])
-          if sig in first_seen:
+        if self.labelFirstSeen:
+          sig = self._signature(selectedIdx.loc[idx])
+          if sig in firstSeen:
             parts.append(f'first={first_seen[sig]:.0f}')
-      if self.labelVar and self.labelVar in selected_idx.columns:
+      if self.labelVar and self.labelVar in selectedIdx.columns:
         parts.append(f'{self.labelVar}={selected_idx.loc[idx, self.labelVar]}')
-      if self.metric and self.metric in selected_idx.columns:
+      if self.metric and self.metric in selectedIdx.columns:
         parts.append(f'{self.metric}={float(selected_idx.loc[idx, self.metric]):.4g}')
       if not parts:
         parts.append(f'{self.select} sample')

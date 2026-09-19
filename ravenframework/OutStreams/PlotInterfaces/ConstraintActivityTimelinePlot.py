@@ -82,9 +82,9 @@ class ConstraintActivityTimelinePlot(PlotInterface):
     self.explicitGenerations = None
     self.formats = {'gif', 'html'}
     self.fps = 2.0
-    self.save_frames = False
-    self.frame_max = 10
-    self._subplot_layout = (1, 1)
+    self.saveFrames = False
+    self.frameMax = 10
+    self._subplotLayout = (1, 1)
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -143,12 +143,12 @@ class ConstraintActivityTimelinePlot(PlotInterface):
 
     saveNode = spec.findFirst('saveFrames')
     if saveNode is not None and saveNode.value is not None:
-      self.save_frames = bool(saveNode.value)
+      self.saveFrames = bool(saveNode.value)
 
     framesMaxNode = spec.findFirst('framesMax')
     if framesMaxNode is not None and framesMaxNode.value is not None:
-      self.frame_max = int(framesMaxNode.value)
-      if self.frame_max <= 0:
+      self.frameMax = int(framesMaxNode.value)
+      if self.frameMax <= 0:
         self.raiseAnError(IOError, f'ConstraintActivityTimelinePlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
@@ -189,24 +189,24 @@ class ConstraintActivityTimelinePlot(PlotInterface):
       self.raiseAWarning(f'ConstraintActivityTimelinePlot "{self.name}" found no generations in column "{self.index}".')
       return
 
-    fractions = self._compute_violation_fractions(df, generations)
+    fractions = self._computeViolationFractions(df, generations)
     try:
-      gens_to_render, indices = plotGenerationUtils.resolveGenerations(
+      gensToRender, indices = plotGenerationUtils.resolveGenerations(
           generations, self.explicitGenerations, defaultCap=20, maxFrames=self.maxFrames)
     except ValueError as err:
       self.raiseAnError(IOError, f'ConstraintActivityTimelinePlot "{self.name}": {err}')
-    if not gens_to_render:
+    if not gensToRender:
       self.raiseAWarning(f'ConstraintActivityTimelinePlot "{self.name}" did not select any generations to render.')
       return
 
     if 'gif' in self.formats:
-      self._write_gif(generations, fractions, indices)
+      self._writeGif(generations, fractions, indices)
     if 'html' in self.formats:
-      self._write_html(generations, fractions, indices)
-    if self.save_frames:
-      self._write_frames(generations, fractions, indices)
+      self._writeHtml(generations, fractions, indices)
+    if self.saveFrames:
+      self._writeFrames(generations, fractions, indices)
 
-  def _compute_violation_fractions(self, df, generations):
+  def _computeViolationFractions(self, df, generations):
     results = []
     for gen in generations:
       subset = df[df[self.index] == gen]
@@ -221,118 +221,118 @@ class ConstraintActivityTimelinePlot(PlotInterface):
       results.append(row)
     return np.asarray(results, dtype=float)
 
-  def _write_gif(self, generations, fractions, indices):
+  def _writeGif(self, generations, fractions, indices):
     filename = self._createFilename(defaultName=f'{self.name}.gif')
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=0) as writer:
       for idx in indices:
-        fig = self._render_frame(generations, fractions, idx)
+        fig = self._renderFrame(generations, fractions, idx)
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png', dpi=150)
         plt.close(fig)
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html(self, generations, fractions, indices):
+  def _writeHtml(self, generations, fractions, indices):
     filename = self._createFilename(defaultName=f'{self.name}.html')
-    fig, axes = self._create_figure()
+    fig, axes = self._createFigure()
 
     def init():
-      self._draw_timelines(axes, generations, fractions, indices[0])
+      self._drawTimelines(axes, generations, fractions, indices[0])
       fig.tight_layout(rect=(0.04, 0.05, 0.98, 0.92))
       return fig.axes
 
     def update(idx):
-      self._draw_timelines(axes, generations, fractions, idx)
+      self._drawTimelines(axes, generations, fractions, idx)
       fig.tight_layout(rect=(0.04, 0.05, 0.98, 0.92))
       return fig.axes
 
     anim = animation.FuncAnimation(fig, update, frames=indices,
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
-    html_str = anim.to_jshtml()
-    centered_html = f'<div style="display:flex;justify-content:center;">{html_str}</div>'
+    htmlStr = anim.to_jshtml()
+    centeredHtml = f'<div style="display:flex;justify-content:center;">{htmlStr}</div>'
     with open(filename, 'w', encoding='utf-8') as out:
-      out.write(centered_html)
+      out.write(centeredHtml)
     plt.close(fig)
 
-  def _write_frames(self, generations, fractions, indices):
-    frame_idx = plotGenerationUtils.frameIndicesToSave(
-        len(indices), bool(self.explicitGenerations), self.save_frames, self.frame_max)
-    if not frame_idx:
+  def _writeFrames(self, generations, fractions, indices):
+    frameIdx = plotGenerationUtils.frameIndicesToSave(
+        len(indices), bool(self.explicitGenerations), self.saveFrames, self.frameMax)
+    if not frameIdx:
       return
     base = self._createFilename(defaultName=f'{self.name}_frames')
     template = os.path.splitext(base)[0] + '_{index:04d}.png'
     directory = os.path.dirname(template)
     if directory:
       os.makedirs(directory, exist_ok=True)
-    for position in frame_idx:
+    for position in frameIdx:
       idx = indices[position]
-      fig = self._render_frame(generations, fractions, idx)
+      fig = self._renderFrame(generations, fractions, idx)
       fig.tight_layout(rect=(0.05, 0.05, 0.98, 0.92))
       fig.savefig(template.format(index=idx), dpi=150)
       plt.close(fig)
 
-  def _render_frame(self, generations, fractions, idx):
-    fig, axes = self._create_figure()
-    self._draw_timelines(axes, generations, fractions, idx)
+  def _renderFrame(self, generations, fractions, idx):
+    fig, axes = self._createFigure()
+    self._drawTimelines(axes, generations, fractions, idx)
     fig.tight_layout(rect=(0.04, 0.05, 0.98, 0.92))
     return fig
 
-  def _draw_timelines(self, axes, generations, fractions, idx):
-    upto_idx = idx + 1
-    x_positions = np.arange(upto_idx)
-    formatted_generations = [self._format_generation(gen) for gen in generations[:upto_idx]]
+  def _drawTimelines(self, axes, generations, fractions, idx):
+    uptoIdx = idx + 1
+    xPositions = np.arange(uptoIdx)
+    formattedGenerations = [self._formatGeneration(gen) for gen in generations[:uptoIdx]]
     colors = plt.get_cmap('tab10').colors
-    rows, cols = self._subplot_layout
-    for c_idx, axis in enumerate(axes):
+    rows, cols = self._subplotLayout
+    for cIdx, axis in enumerate(axes):
       axis.clear()
-      heights = fractions[:upto_idx, c_idx]
-      axis.bar(x_positions, heights, width=0.8,
-               color=colors[c_idx % len(colors)], alpha=0.85, linewidth=0)
+      heights = fractions[:uptoIdx, cIdx]
+      axis.bar(xPositions, heights, width=0.8,
+               color=colors[cIdx % len(colors)], alpha=0.85, linewidth=0)
       axis.set_ylim(0.0, 1.05)
-      axis.set_xticks(x_positions)
-      axis.set_xticklabels(formatted_generations, rotation=40, ha='right')
+      axis.set_xticks(xPositions)
+      axis.set_xticklabels(formattedGenerations, rotation=40, ha='right')
       axis.grid(axis='y', alpha=0.3, linestyle='--')
-      clean_name = self.constraints[c_idx].replace('ConstraintEvaluation_', '')
-      axis.set_title(clean_name or self.constraints[c_idx])
+      cleanName = self.constraints[cIdx].replace('ConstraintEvaluation_', '')
+      axis.set_title(cleanName or self.constraints[cIdx])
       # Only annotate axes that form the outer frame to avoid clutter
-      if c_idx % cols == 0:
+      if cIdx % cols == 0:
         axis.set_ylabel('Violation fraction')
       else:
         axis.set_ylabel('')
-      if c_idx // cols == rows - 1:
+      if cIdx // cols == rows - 1:
         axis.set_xlabel(self.index)
       else:
         axis.set_xlabel('')
-    current_gen = self._format_generation(generations[idx])
+    currentGen = self._formatGeneration(generations[idx])
     if axes:
-      axes[0].figure.suptitle(f'Constraint activity (Generation {current_gen})')
+      axes[0].figure.suptitle(f'Constraint activity (Generation {currentGen})')
 
-  def _create_figure(self):
+  def _createFigure(self):
     count = max(1, len(self.constraints))
     cols = min(3, count)
     rows = int(math.ceil(float(count) / float(cols)))
     # Aim for compact subplots while keeping room for labels and titles
     width = max(6.0, 3.1 * cols)
     height = max(3.2, 2.6 * rows)
-    fig, axes_grid = plt.subplots(rows, cols, figsize=(width, height), squeeze=False, sharey=True)
-    axes_flat = axes_grid.flatten()
-    axes = list(axes_flat[:count])
+    fig, axesGrid = plt.subplots(rows, cols, figsize=(width, height), squeeze=False, sharey=True)
+    axesFlat = axesGrid.flatten()
+    axes = list(axesFlat[:count])
     # Remove any unused trailing axes generated by the grid helper
-    for extra in axes_flat[count:]:
+    for extra in axesFlat[count:]:
       fig.delaxes(extra)
-    self._subplot_layout = (rows, cols)
+    self._subplotLayout = (rows, cols)
     return fig, axes
 
   @staticmethod
-  def _format_generation(genID):
+  def _formatGeneration(genID):
     if float(genID).is_integer():
       return int(genID)
     return genID
 
   @staticmethod
-  def _sample_generations(generations, limit):
+  def _sampleGenerations(generations, limit):
     if limit >= len(generations):
       return list(generations), list(range(len(generations)))
     positions = np.linspace(0, len(generations) - 1, limit, dtype=int)
@@ -352,15 +352,15 @@ class ConstraintActivityTimelinePlot(PlotInterface):
       selected[-1] = len(generations) - 1
     return [generations[i] for i in selected], selected
 
-  def _select_frame_indices(self, total):
-    if not self.save_frames or total <= 0 or self.frame_max <= 0:
+  def _selectFrameIndices(self, total):
+    if not self.saveFrames or total <= 0 or self.frameMax <= 0:
       return []
-    if total <= self.frame_max:
+    if total <= self.frameMax:
       return list(range(total))
-    stride = int(math.ceil(total / float(self.frame_max)))
+    stride = int(math.ceil(total / float(self.frameMax)))
     indices = list(range(0, total, stride))
     if indices and indices[-1] != total - 1:
-      if len(indices) >= self.frame_max:
+      if len(indices) >= self.frameMax:
         indices[-1] = total - 1
       else:
         indices.append(total - 1)

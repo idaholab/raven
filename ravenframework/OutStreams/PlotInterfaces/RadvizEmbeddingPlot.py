@@ -115,8 +115,8 @@ class RadvizEmbeddingPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'RadvizEmbeddingPlot "{self.name}" had no samples after filtering.')
       return
@@ -136,13 +136,13 @@ class RadvizEmbeddingPlot(PlotInterface):
     else:
       labels = pd.Series(['samples'] * len(data), index=data.index)
 
-    plot_df = data.copy()
-    label_col = '_label'
-    plot_df[label_col] = labels
+    plotDf = data.copy()
+    labelCol = '_label'
+    plotDf[labelCol] = labels
 
     fig, ax = plt.subplots(figsize=(6.4, 6.0))
     try:
-      radviz(plot_df, label_col, ax=ax, color=None, alpha=0.85)
+      radviz(plotDf, labelCol, ax=ax, color=None, alpha=0.85)
     except Exception as err:
       self.raiseAWarning(f'Radviz embedding failed for "{self.name}": {err}')
       return

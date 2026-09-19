@@ -147,7 +147,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
     self.source = src
 
   @staticmethod
-  def _is_feasible(df, constraints):
+  def _isFeasible(df, constraints):
     if df is None or df.empty or not constraints:
       return np.ones(0 if df is None else len(df), dtype=bool)
     feasible = np.ones(len(df), dtype=bool)
@@ -169,7 +169,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
     return triang
 
   @staticmethod
-  def _panel_shape(count):
+  def _panelShape(count):
     if count <= 1:
       return (1, 1)
     if count == 2:
@@ -185,7 +185,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
       return
 
     nPanels = len(self.surfaces)
-    nRows, nCols = self._panel_shape(nPanels)
+    nRows, nCols = self._panelShape(nPanels)
     fig = plt.figure(figsize=(6.2 * nCols, 5.0 * nRows))
 
     anyFeasible = False
@@ -197,7 +197,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
       cols = [self.axes[0], self.axes[1], var] + list(self.constraints)
       points = df[cols].copy()
 
-      def _coerce_numeric_column(frame, key):
+      def _coerceNumericColumn(frame, key):
         """Ensure frame[key] is a numeric Series even if selection yields a DataFrame."""
         try:
           selection = frame[key]
@@ -213,11 +213,11 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
           frame[key] = series
         frame[key] = pd.to_numeric(frame[key], errors='coerce')
 
-      _coerce_numeric_column(points, self.axes[0])
-      _coerce_numeric_column(points, self.axes[1])
-      _coerce_numeric_column(points, var)
+      _coerceNumericColumn(points, self.axes[0])
+      _coerceNumericColumn(points, self.axes[1])
+      _coerceNumericColumn(points, var)
       for cons in self.constraints:
-        _coerce_numeric_column(points, cons)
+        _coerceNumericColumn(points, cons)
       points = points.dropna(subset=[self.axes[0], self.axes[1], var])
       if points.shape[0] < 3:
         self.raiseAWarning(f'FeasibleRegionObjectiveContourPlot "{self.name}" has too few points for "{var}"; skipping panel.')
@@ -252,7 +252,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
       # Feasible region shading (green) on the surface + base plane
       feasibleMask = None
       if self.constraints:
-        feasibleMask = self._is_feasible(points, self.constraints)
+        feasibleMask = self._isFeasible(points, self.constraints)
       if feasibleMask is None:
         feasibleMask = np.ones(len(points), dtype=bool)
 
@@ -289,17 +289,17 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
       if 'rank' in df.columns:
         pointCols.append('rank')
       p = df[pointCols].copy()
-      _coerce_numeric_column(p, self.axes[0])
-      _coerce_numeric_column(p, self.axes[1])
+      _coerceNumericColumn(p, self.axes[0])
+      _coerceNumericColumn(p, self.axes[1])
       for cons in self.constraints:
-        _coerce_numeric_column(p, cons)
+        _coerceNumericColumn(p, cons)
       if 'rank' in p.columns:
-        _coerce_numeric_column(p, 'rank')
+        _coerceNumericColumn(p, 'rank')
       p = p.dropna(subset=[self.axes[0], self.axes[1]])
       if 'rank' in p.columns and np.isfinite(p['rank']).any():
         p = p[p['rank'].astype(float) == float(self.rank)]
       if self.constraints and not p.empty:
-        feasP = self._is_feasible(p, self.constraints)
+        feasP = self._isFeasible(p, self.constraints)
         p = p[feasP]
       if not p.empty:
         ax.scatter(p[self.axes[0]].to_numpy(dtype=float),

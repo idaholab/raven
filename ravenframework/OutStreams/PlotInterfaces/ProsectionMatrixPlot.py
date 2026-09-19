@@ -149,14 +149,14 @@ class ProsectionMatrixPlot(PlotInterface):
       self.raiseAnError(IOError, f'Source DataObject "{src.name}" is missing variable(s) {missing} required by ProsectionMatrixPlot "{self.name}".')
     self.source = src
 
-  def _select_slice(self, df, xVar, yVar, other_vars):
+  def _selectSlice(self, df, xVar, yVar, otherVars):
     """
     Returns indices of samples close to median in other variables (normalised by range).
     If the slice is empty or too small, falls back to the nearest-to-median samples.
     """
-    if not other_vars:
+    if not otherVars:
       return df.index
-    subset = df[other_vars].copy()
+    subset = df[otherVars].copy()
     # Normalise to [0,1] using min/max; protect against constant columns.
     mins = subset.min(axis=0)
     maxs = subset.max(axis=0)
@@ -191,8 +191,8 @@ class ProsectionMatrixPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'ProsectionMatrixPlot "{self.name}" had no samples after filtering.')
       return
@@ -205,76 +205,76 @@ class ProsectionMatrixPlot(PlotInterface):
 
     combos = list(itertools.combinations(self.variables, 2))
     ncols = min(3, len(combos))
-    total_rows = int(np.ceil(len(combos) / ncols))
-    rows_per_fig = self.rowsPerFig if self.rowsPerFig is not None else total_rows
-    rows_per_fig = max(1, int(rows_per_fig))
-    per_fig = rows_per_fig * ncols
-    n_figs = int(np.ceil(len(combos) / per_fig))
-    color_series = None
+    totalRows = int(np.ceil(len(combos) / ncols))
+    rowsPerFig = self.rowsPerFig if self.rowsPerFig is not None else totalRows
+    rowsPerFig = max(1, int(rowsPerFig))
+    perFig = rowsPerFig * ncols
+    nFigs = int(np.ceil(len(combos) / perFig))
+    colorSeries = None
     cmap = None
     if self.colorVar and self.colorVar in subset.columns:
-      color_series = subset.loc[numeric.index, self.colorVar]
-      if np.issubdtype(color_series.dtype, np.number):
+      colorSeries = subset.loc[numeric.index, self.colorVar]
+      if np.issubdtype(colorSeries.dtype, np.number):
         cmap = 'viridis'
 
-    for fig_idx in range(n_figs):
-      start = fig_idx * per_fig
-      end = min(len(combos), (fig_idx + 1) * per_fig)
-      page_combos = combos[start:end]
-      page_rows = int(np.ceil(len(page_combos) / ncols))
+    for figIdx in range(nFigs):
+      start = figIdx * perFig
+      end = min(len(combos), (figIdx + 1) * perFig)
+      pageCombos = combos[start:end]
+      pageRows = int(np.ceil(len(pageCombos) / ncols))
 
-      fig, axes = plt.subplots(page_rows, ncols, figsize=(4.5 * ncols, 3.8 * page_rows), squeeze=False)
+      fig, axes = plt.subplots(pageRows, ncols, figsize=(4.5 * ncols, 3.8 * pageRows), squeeze=False)
 
-      for ax, (xVar, yVar) in zip(axes.flat, page_combos):
+      for ax, (xVar, yVar) in zip(axes.flat, pageCombos):
         others = [var for var in self.variables if var not in (xVar, yVar)]
-        slice_idx = self._select_slice(numeric, xVar, yVar, others)
-        if slice_idx.empty:
+        sliceIdx = self._selectSlice(numeric, xVar, yVar, others)
+        if sliceIdx.empty:
           ax.text(0.5, 0.5, 'No slice\nselected', ha='center', va='center', transform=ax.transAxes)
           ax.set_xlabel(xVar)
           ax.set_ylabel(yVar)
           continue
-        x = numeric.loc[slice_idx, xVar]
-        y = numeric.loc[slice_idx, yVar]
-        color_values = None
-        if color_series is not None:
-          color_values = color_series.loc[slice_idx]
-          if not np.issubdtype(color_values.dtype, np.number):
-            color_values = color_values.astype(str)
+        x = numeric.loc[sliceIdx, xVar]
+        y = numeric.loc[sliceIdx, yVar]
+        colorValues = None
+        if colorSeries is not None:
+          colorValues = colorSeries.loc[sliceIdx]
+          if not np.issubdtype(colorValues.dtype, np.number):
+            colorValues = colorValues.astype(str)
 
-        scatter_kwargs = dict(alpha=0.8, edgecolors='k', linewidths=0.2, s=30)
-        if color_values is not None:
-          scatter_kwargs['c'] = color_values
-          if cmap and np.issubdtype(color_series.dtype, np.number):
-            scatter_kwargs['cmap'] = cmap
-        ax.scatter(x, y, **scatter_kwargs)
+        scatterKwargs = dict(alpha=0.8, edgecolors='k', linewidths=0.2, s=30)
+        if colorValues is not None:
+          scatterKwargs['c'] = colorValues
+          if cmap and np.issubdtype(colorSeries.dtype, np.number):
+            scatterKwargs['cmap'] = cmap
+        ax.scatter(x, y, **scatterKwargs)
         ax.set_xlabel(xVar)
         ax.set_ylabel(yVar)
         ax.grid(alpha=0.2)
 
       # Hide unused axes if page_combos < grid size
-      total_axes = page_rows * ncols
-      for idx in range(len(page_combos), total_axes):
+      totalAxes = pageRows * ncols
+      for idx in range(len(pageCombos), totalAxes):
         axes.flat[idx].set_visible(False)
 
       title = 'Prosection matrix'
-      if n_figs > 1:
+      if nFigs > 1:
         title += f' ({fig_idx + 1}/{n_figs})'
       fig.suptitle(title)
       fig.tight_layout()
       # Respect <filename> if provided, but suffix per page to avoid overwriting.
       # NOTE: PlotInterface._createFilename always prefers self.filename over defaultName,
       # so we manually apply the same rules here using the per-page name.
-      base_name = self.filename if self.filename is not None else f'{self.name}.png'
-      root, ext = os.path.splitext(base_name)
+      baseName = self.filename if self.filename is not None else f'{self.name}.png'
+      root, ext = os.path.splitext(baseName)
       ext = ext if ext else '.png'
-      page_name = f'{root}{ext}' if n_figs == 1 else f'{root}_{fig_idx + 1}{ext}'
+      pageName = f'{root}{ext}' if nFigs == 1 else f'{root}_{fig_idx + 1}{ext}'
 
       prefix = '' if self.overwrite else f'{self.counter}-'
       filename = f'{prefix}{page_name}'
       if self.subDirectory is not None:
         filename = os.path.join(self.subDirectory, filename)
-      out_dir = os.path.dirname(filename)
-      if out_dir:
-        os.makedirs(out_dir, exist_ok=True)
+      outDir = os.path.dirname(filename)
+      if outDir:
+        os.makedirs(outDir, exist_ok=True)
       fig.savefig(filename, dpi=150)
       plt.close(fig)

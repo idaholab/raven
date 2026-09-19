@@ -136,7 +136,7 @@ class ParetoSurfacePlot(PlotInterface):
       self.raiseAnError(IOError, f'Source DataObject "{self.source.name}" is missing variable(s) {missing} required by ParetoSurfacePlot "{self.name}".')
 
   @staticmethod
-  def _is_feasible(df, constraints):
+  def _isFeasible(df, constraints):
     if df is None or df.empty or not constraints:
       return np.ones(0 if df is None else len(df), dtype=bool)
     feasible = np.ones(len(df), dtype=bool)
@@ -179,7 +179,7 @@ class ParetoSurfacePlot(PlotInterface):
       data = data[data['rank'].astype(float) == float(self.rank)]
 
     if self.constraints and not data.empty:
-      feasibleMask = self._is_feasible(data, self.constraints)
+      feasibleMask = self._isFeasible(data, self.constraints)
       data = data.loc[feasibleMask]
 
     if data.shape[0] < 3:

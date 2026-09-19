@@ -179,16 +179,16 @@ class ParetoChartPlot(PlotInterface):
     self.source = src
 
   @staticmethod
-  def _collapse_top(series, top_n, include_other):
-    if top_n is None or top_n >= len(series):
+  def _collapseTop(series, topN, includeOther):
+    if topN is None or topN >= len(series):
       return series
-    head = series.iloc[:top_n].copy()
-    if include_other:
-      other_sum = float(series.iloc[top_n:].sum())
-      head.loc['Other'] = other_sum
+    head = series.iloc[:topN].copy()
+    if includeOther:
+      otherSum = float(series.iloc[topN:].sum())
+      head.loc['Other'] = otherSum
     return head
 
-  def _extract_series(self, df):
+  def _extractSeries(self, df):
     if self.constraints:
       counts = {}
       for c in self.constraints:
@@ -219,19 +219,19 @@ class ParetoChartPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'ParetoChartPlot "{self.name}" had no samples after filtering.')
       return
 
-    series = self._extract_series(subset)
+    series = self._extractSeries(subset)
     series = series[series > 0.0]
     if series.empty:
       self.raiseAWarning(f'ParetoChartPlot "{self.name}" had no positive counts to plot.')
       return
 
-    series = self._collapse_top(series, self.topN, self.includeOther)
+    series = self._collapseTop(series, self.topN, self.includeOther)
     total = float(series.sum())
     cumulative = series.cumsum() / total * 100.0
 

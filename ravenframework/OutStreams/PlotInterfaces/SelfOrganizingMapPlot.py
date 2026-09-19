@@ -143,32 +143,32 @@ class SelfOrganizingMapPlot(PlotInterface):
     scaled = (data - mins) / np.where(ranges == 0.0, 1.0, ranges)
     return scaled, mins, ranges
 
-  def _train_som(self, data):
+  def _trainSom(self, data):
     rows, cols = self.grid
-    n_features = data.shape[1]
+    nFeatures = data.shape[1]
     rng = np.random.default_rng(self.seed)
-    weights = rng.random((rows, cols, n_features))
+    weights = rng.random((rows, cols, nFeatures))
     positions = np.array([(r, c) for r in range(rows) for c in range(cols)], dtype=float)
 
-    time_constant = max(rows, cols) / math.log(max(rows, cols))
-    learning_rate0 = 0.5
+    timeConstant = max(rows, cols) / math.log(max(rows, cols))
+    learningRate0 = 0.5
     sigma0 = max(rows, cols) / 2.0
     for t in range(self.iterations):
       sample = data[rng.integers(0, data.shape[0])]
       diff = weights - sample
       dist = np.sum(diff * diff, axis=2)
-      bmu_index = np.unravel_index(np.argmin(dist), (rows, cols))
-      bmu_pos = np.array(bmu_index, dtype=float)
+      bmuIndex = np.unravel_index(np.argmin(dist), (rows, cols))
+      bmuPos = np.array(bmuIndex, dtype=float)
 
-      lr = learning_rate0 * math.exp(-t / self.iterations)
-      sigma = sigma0 * math.exp(-t / time_constant) if time_constant > 0 else sigma0
+      lr = learningRate0 * math.exp(-t / self.iterations)
+      sigma = sigma0 * math.exp(-t / timeConstant) if timeConstant > 0 else sigma0
       if sigma < 1e-6:
         sigma = 1e-6
 
       # Update neighbourhood
-      grid_positions = positions.reshape(rows, cols, 2)
-      sq_dist = np.sum((grid_positions - bmu_pos) ** 2, axis=2)
-      influence = np.exp(-sq_dist / (2.0 * sigma * sigma))
+      gridPositions = positions.reshape(rows, cols, 2)
+      sqDist = np.sum((gridPositions - bmuPos) ** 2, axis=2)
+      influence = np.exp(-sqDist / (2.0 * sigma * sigma))
       weights += lr * influence[..., np.newaxis] * (sample - weights)
     return weights
 
@@ -184,8 +184,8 @@ class SelfOrganizingMapPlot(PlotInterface):
         mask = np.isclose(subset[self.index].to_numpy(dtype=float), self.generation)
         subset = subset[mask]
       else:
-        max_gen = subset[self.index].max()
-        subset = subset[subset[self.index] == max_gen]
+        maxGen = subset[self.index].max()
+        subset = subset[subset[self.index] == maxGen]
     if subset.empty:
       self.raiseAWarning(f'SelfOrganizingMapPlot "{self.name}" had no samples after filtering.')
       return
@@ -197,38 +197,38 @@ class SelfOrganizingMapPlot(PlotInterface):
       return
 
     data = numeric.to_numpy(dtype=float)
-    scaled_data, mins, ranges = self._scale(data)
-    weights = self._train_som(scaled_data)
+    scaledData, mins, ranges = self._scale(data)
+    weights = self._trainSom(scaledData)
 
     rows, cols = self.grid
-    grid_positions = np.array([(r, c) for r in range(rows) for c in range(cols)], dtype=float)
+    gridPositions = np.array([(r, c) for r in range(rows) for c in range(cols)], dtype=float)
     # Assign samples to BMUs
-    diff = weights.reshape(rows * cols, -1)[np.newaxis, :, :] - scaled_data[:, np.newaxis, :]
+    diff = weights.reshape(rows * cols, -1)[np.newaxis, :, :] - scaledData[:, np.newaxis, :]
     dists = np.sum(diff * diff, axis=2)
     assignments = np.argmin(dists, axis=1)
 
     counts = np.bincount(assignments, minlength=rows * cols).reshape(rows, cols)
-    color_values = None
+    colorValues = None
     if self.colorVar and self.colorVar in subset.columns:
-      color_series = subset.loc[numeric.index, self.colorVar]
-      if np.issubdtype(color_series.dtype, np.number):
+      colorSeries = subset.loc[numeric.index, self.colorVar]
+      if np.issubdtype(colorSeries.dtype, np.number):
         sums = np.zeros((rows * cols,), dtype=float)
-        sums += np.bincount(assignments, weights=color_series.to_numpy(dtype=float),
+        sums += np.bincount(assignments, weights=colorSeries.to_numpy(dtype=float),
                             minlength=rows * cols)
         with np.errstate(invalid='ignore'):
           averages = np.divide(sums, counts.reshape(-1), where=counts.reshape(-1) > 0)
-        color_values = averages.reshape(rows, cols)
+        colorValues = averages.reshape(rows, cols)
       else:
         # For categorical, store dominant label index
-        labels = color_series.astype(str).to_numpy()
-        unique_labels = sorted(set(labels))
-        label_to_idx = {lab: idx for idx, lab in enumerate(unique_labels)}
-        label_sums = np.zeros((rows * cols, len(unique_labels)), dtype=float)
+        labels = colorSeries.astype(str).to_numpy()
+        uniqueLabels = sorted(set(labels))
+        labelToIdx = {lab: idx for idx, lab in enumerate(uniqueLabels)}
+        labelSums = np.zeros((rows * cols, len(uniqueLabels)), dtype=float)
         for idx, node in enumerate(assignments):
-          label_sums[node, label_to_idx[labels[idx]]] += 1.0
-        dominant = np.argmax(label_sums, axis=1)
-        color_values = dominant.reshape(rows, cols)
-        color_values = (color_values, unique_labels)
+          labelSums[node, labelToIdx[labels[idx]]] += 1.0
+        dominant = np.argmax(labelSums, axis=1)
+        colorValues = dominant.reshape(rows, cols)
+        colorValues = (colorValues, uniqueLabels)
 
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.8))
 
@@ -238,18 +238,18 @@ class SelfOrganizingMapPlot(PlotInterface):
     axes[0].set_ylabel('Row')
     fig.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
 
-    if color_values is None:
+    if colorValues is None:
       im1 = axes[1].imshow(np.sqrt(counts), cmap='viridis', origin='lower')
       axes[1].set_title('Node intensity (sqrt counts)')
       fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
-    elif isinstance(color_values, tuple):
-      values, labels = color_values
+    elif isinstance(colorValues, tuple):
+      values, labels = colorValues
       im1 = axes[1].imshow(values, cmap='tab20', origin='lower', vmin=0, vmax=len(labels) - 1)
       axes[1].set_title(f'Dominant {self.colorVar}')
       cbar = fig.colorbar(im1, ax=axes[1], ticks=range(len(labels)), fraction=0.046, pad=0.04)
       cbar.ax.set_yticklabels(labels)
     else:
-      im1 = axes[1].imshow(color_values, cmap='coolwarm', origin='lower')
+      im1 = axes[1].imshow(colorValues, cmap='coolwarm', origin='lower')
       axes[1].set_title(f'Mean {self.colorVar}')
       fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
 

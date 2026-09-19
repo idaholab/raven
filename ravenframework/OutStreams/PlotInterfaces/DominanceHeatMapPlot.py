@@ -81,29 +81,29 @@ class DominanceHeatMapPlot(PlotInterface):
       self.raiseAWarning(f'Source DataObject "{self.source.name}" is empty; skipping DominanceHeatMapPlot "{self.name}".')
       return
     df[self.index] = df[self.index].astype(float)
-    final_gen = df[self.index].max()
-    subset = df[df[self.index] == final_gen]
+    finalGen = df[self.index].max()
+    subset = df[df[self.index] == finalGen]
     if subset.empty:
       self.raiseAWarning(f'No data found for final generation in DominanceHeatMapPlot "{self.name}".')
       return
-    obj_vals = subset[self.objectives].astype(float).to_numpy()
-    dominated_mask = self._dominated_mask(subset)
-    heat_data, xedges, yedges = np.histogram2d(obj_vals[:, 0], obj_vals[:, 1],
+    objVals = subset[self.objectives].astype(float).to_numpy()
+    dominatedMask = self._dominatedMask(subset)
+    heatData, xedges, yedges = np.histogram2d(objVals[:, 0], objVals[:, 1],
                                                bins=self.bins)
-    heat_data = heat_data.T  # align with imshow expectation
+    heatData = heatData.T  # align with imshow expectation
 
     fig, ax = plt.subplots(figsize=(6.5, 6.0))
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
     cmap = plt.get_cmap('Blues')
-    im = ax.imshow(heat_data, extent=extent, origin='lower', cmap=cmap, aspect='auto')
+    im = ax.imshow(heatData, extent=extent, origin='lower', cmap=cmap, aspect='auto')
 
-    dominated_points = obj_vals[dominated_mask]
-    nondominated_points = obj_vals[~dominated_mask]
-    if len(dominated_points):
-      ax.scatter(dominated_points[:, 0], dominated_points[:, 1],
+    dominatedPoints = objVals[dominatedMask]
+    nondominatedPoints = objVals[~dominatedMask]
+    if len(dominatedPoints):
+      ax.scatter(dominatedPoints[:, 0], dominatedPoints[:, 1],
                  s=20, c='#d62728', alpha=0.6, label='Dominated')
-    if len(nondominated_points):
-      ax.scatter(nondominated_points[:, 0], nondominated_points[:, 1],
+    if len(nondominatedPoints):
+      ax.scatter(nondominatedPoints[:, 0], nondominatedPoints[:, 1],
                  s=28, edgecolors='k', linewidths=0.4,
                  c='#2ca02c', alpha=0.9, label='Rank 1')
 
@@ -122,7 +122,7 @@ class DominanceHeatMapPlot(PlotInterface):
     plt.close(fig)
 
   @staticmethod
-  def _dominated_mask(subset):
+  def _dominatedMask(subset):
     if subset.empty:
       return np.zeros(0, dtype=bool)
     if 'rank' in subset.columns:

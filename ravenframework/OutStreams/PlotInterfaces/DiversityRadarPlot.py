@@ -85,8 +85,8 @@ class DiversityRadarPlot(PlotInterface):
     self.explicitGenerations = None
     self.formats = {'gif', 'html'}
     self.fps = 2.0
-    self.save_frames = False
-    self.frame_max = 10
+    self.saveFrames = False
+    self.frameMax = 10
 
   def handleInput(self, spec):
     super().handleInput(spec)
@@ -150,12 +150,12 @@ class DiversityRadarPlot(PlotInterface):
 
     saveNode = spec.findFirst('saveFrames')
     if saveNode is not None and saveNode.value is not None:
-      self.save_frames = bool(saveNode.value)
+      self.saveFrames = bool(saveNode.value)
 
     framesNode = spec.findFirst('framesMax')
     if framesNode is not None and framesNode.value is not None:
-      self.frame_max = int(framesNode.value)
-      if self.frame_max <= 0:
+      self.frameMax = int(framesNode.value)
+      if self.frameMax <= 0:
         self.raiseAnError(IOError, f'DiversityRadarPlot "{self.name}" received non-positive <framesMax>.')
 
     self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
@@ -184,28 +184,28 @@ class DiversityRadarPlot(PlotInterface):
       self.raiseAWarning(f'DiversityRadarPlot "{self.name}" found no generations in column "{self.index}".')
       return
 
-    quant_matrix = self._compute_quantiles(data, generations)
-    if quant_matrix.size == 0:
+    quantMatrix = self._computeQuantiles(data, generations)
+    if quantMatrix.size == 0:
       self.raiseAWarning(f'DiversityRadarPlot "{self.name}" could not compute quantiles for metric "{self.metric}".')
       return
     try:
-      selected_generations, indices = plotGenerationUtils.resolveGenerations(
+      selectedGenerations, indices = plotGenerationUtils.resolveGenerations(
           generations, self.explicitGenerations, defaultCap=10, maxFrames=self.maxFrames)
     except ValueError as err:
       self.raiseAnError(IOError, f'DiversityRadarPlot "{self.name}": {err}')
 
-    angles = self._compute_angles(len(self.quantiles))
+    angles = self._computeAngles(len(self.quantiles))
     labels = [f'Q{int(q*100)}' for q in self.quantiles]
-    norm_matrix = self._normalize(quant_matrix)
+    normMatrix = self._normalize(quantMatrix)
 
     if 'gif' in self.formats:
-      self._write_gif(selected_generations, indices, angles, labels, norm_matrix)
+      self._writeGif(selectedGenerations, indices, angles, labels, normMatrix)
     if 'html' in self.formats:
-      self._write_html(selected_generations, indices, angles, labels, norm_matrix)
-    if self.save_frames:
-      self._write_frames(selected_generations, indices, angles, labels, norm_matrix)
+      self._writeHtml(selectedGenerations, indices, angles, labels, normMatrix)
+    if self.saveFrames:
+      self._writeFrames(selectedGenerations, indices, angles, labels, normMatrix)
 
-  def _compute_quantiles(self, df, generations):
+  def _computeQuantiles(self, df, generations):
     quantiles = []
     for gen in generations:
       subset = df[df[self.index] == gen]
@@ -218,7 +218,7 @@ class DiversityRadarPlot(PlotInterface):
     return np.asarray(quantiles, dtype=float)
 
   @staticmethod
-  def _compute_angles(count):
+  def _computeAngles(count):
     if count <= 0:
       return np.asarray([], dtype=float)
     base = np.linspace(0.0, 2.0 * math.pi, count, endpoint=False)
@@ -226,83 +226,83 @@ class DiversityRadarPlot(PlotInterface):
 
   @staticmethod
   def _normalize(matrix):
-    max_val = np.nanmax(matrix)
-    if not np.isfinite(max_val) or np.isclose(max_val, 0.0):
-      max_val = 1.0
-    return np.clip(matrix / max_val, 0.0, 1.0)
+    maxVal = np.nanmax(matrix)
+    if not np.isfinite(maxVal) or np.isclose(maxVal, 0.0):
+      maxVal = 1.0
+    return np.clip(matrix / maxVal, 0.0, 1.0)
 
-  def _write_gif(self, gens, indices, angles, labels, norm_matrix):
+  def _writeGif(self, gens, indices, angles, labels, normMatrix):
     filename = self._createFilename(defaultName=f'{self.name}.gif')
     duration = 1.0 / self.fps
     with imageio.get_writer(filename, mode='I', duration=duration, loop=0) as writer:
       for i, idx in enumerate(indices):
-        fig = self._render_frame(gens[i], angles, labels, norm_matrix[idx])
+        fig = self._renderFrame(gens[i], angles, labels, normMatrix[idx])
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png', dpi=150)
         plt.close(fig)
         buffer.seek(0)
         writer.append_data(imageio.imread(buffer))
 
-  def _write_html(self, gens, indices, angles, labels, norm_matrix):
+  def _writeHtml(self, gens, indices, angles, labels, normMatrix):
     filename = self._createFilename(defaultName=f'{self.name}.html')
-    fig, ax, line, fill = self._setup_radar_axes(angles, labels)
-    fill_container = {'patch': fill}
+    fig, ax, line, fill = self._setupRadarAxes(angles, labels)
+    fillContainer = {'patch': fill}
 
     def init():
       line.set_data([], [])
-      patch = fill_container['patch']
+      patch = fillContainer['patch']
       patch.remove()
-      fill_container['patch'] = ax.fill([], [], color='#1f77b4', alpha=0.35)[0]
+      fillContainer['patch'] = ax.fill([], [], color='#1f77b4', alpha=0.35)[0]
       ax.set_title('')
-      return line, fill_container['patch']
+      return line, fillContainer['patch']
 
     def update(i):
       idx = indices[i]
       generation = gens[i]
-      values = norm_matrix[idx]
-      angles_closed, values_closed = self._close_polygon(angles, values)
-      line.set_data(angles_closed, values_closed)
-      patch = fill_container['patch']
+      values = normMatrix[idx]
+      anglesClosed, valuesClosed = self._closePolygon(angles, values)
+      line.set_data(anglesClosed, valuesClosed)
+      patch = fillContainer['patch']
       patch.remove()
-      fill_container['patch'] = ax.fill(angles_closed, values_closed, color='#1f77b4', alpha=0.35)[0]
+      fillContainer['patch'] = ax.fill(anglesClosed, valuesClosed, color='#1f77b4', alpha=0.35)[0]
       ax.set_title(f'Generation {self._format_generation(generation)}')
-      return line, fill_container['patch']
+      return line, fillContainer['patch']
 
     anim = animation.FuncAnimation(fig, update, frames=len(indices),
                                    init_func=init, interval=1000.0 / self.fps,
                                    blit=False)
-    html_str = anim.to_jshtml()
+    htmlStr = anim.to_jshtml()
     with open(filename, 'w', encoding='utf-8') as out:
       out.write(f'<div style="display:flex;justify-content:center;">{html_str}</div>')
     plt.close(fig)
 
-  def _write_frames(self, gens, indices, angles, labels, norm_matrix):
-    frame_positions = plotGenerationUtils.frameIndicesToSave(
-        len(indices), bool(self.explicitGenerations), self.save_frames, self.frame_max)
-    if not frame_positions:
+  def _writeFrames(self, gens, indices, angles, labels, normMatrix):
+    framePositions = plotGenerationUtils.frameIndicesToSave(
+        len(indices), bool(self.explicitGenerations), self.saveFrames, self.frameMax)
+    if not framePositions:
       return
     base = self._createFilename(defaultName=f'{self.name}_frames')
     template = os.path.splitext(base)[0] + '_{index:04d}.png'
     directory = os.path.dirname(template)
     if directory:
       os.makedirs(directory, exist_ok=True)
-    for pos in frame_positions:
+    for pos in framePositions:
       idx = indices[pos]
-      fig = self._render_frame(gens[pos], angles, labels, norm_matrix[idx])
+      fig = self._renderFrame(gens[pos], angles, labels, normMatrix[idx])
       fig.savefig(template.format(index=int(gens[pos])), dpi=150)
       plt.close(fig)
 
-  def _render_frame(self, generation, angles, labels, values):
-    fig, ax, line, fill = self._setup_radar_axes(angles, labels)
-    angles_closed, values_closed = self._close_polygon(angles, values)
-    line.set_data(angles_closed, values_closed)
+  def _renderFrame(self, generation, angles, labels, values):
+    fig, ax, line, fill = self._setupRadarAxes(angles, labels)
+    anglesClosed, valuesClosed = self._closePolygon(angles, values)
+    line.set_data(anglesClosed, valuesClosed)
     fill.remove()
-    fill = ax.fill(angles_closed, values_closed, color='#1f77b4', alpha=0.35)[0]
+    fill = ax.fill(anglesClosed, valuesClosed, color='#1f77b4', alpha=0.35)[0]
     ax.set_title(f'Generation {self._format_generation(generation)}')
     fig.tight_layout(rect=[0.05, 0.05, 0.95, 0.95])
     return fig
 
-  def _setup_radar_axes(self, angles, labels):
+  def _setupRadarAxes(self, angles, labels):
     fig = plt.figure(figsize=(6.4, 6.4))
     ax = fig.add_subplot(111, polar=True)
     ax.set_ylim(0.0, 1.05)
@@ -311,27 +311,27 @@ class DiversityRadarPlot(PlotInterface):
     ax.set_yticklabels(['0.2', '0.4', '0.6', '0.8', '1.0'])
     ax.grid(True, linewidth=0.6, alpha=0.3)
     ax.spines['polar'].set_visible(False)
-    angles_closed, values_closed = self._close_polygon(angles, np.zeros(len(angles)))
-    line, = ax.plot(angles_closed, values_closed, color='#1f77b4', linewidth=2.0)
-    fill = ax.fill(angles_closed, values_closed, color='#1f77b4', alpha=0.35)[0]
+    anglesClosed, valuesClosed = self._closePolygon(angles, np.zeros(len(angles)))
+    line, = ax.plot(anglesClosed, valuesClosed, color='#1f77b4', linewidth=2.0)
+    fill = ax.fill(anglesClosed, valuesClosed, color='#1f77b4', alpha=0.35)[0]
     return fig, ax, line, fill
 
   @staticmethod
-  def _close_polygon(angles, values):
+  def _closePolygon(angles, values):
     if values.size == 0:
       return np.asarray([]), np.asarray([])
-    angles_closed = np.concatenate([angles, [angles[0]]])
-    values_closed = np.concatenate([values, [values[0]]])
-    return angles_closed, values_closed
+    anglesClosed = np.concatenate([angles, [angles[0]]])
+    valuesClosed = np.concatenate([values, [values[0]]])
+    return anglesClosed, valuesClosed
 
   @staticmethod
-  def _format_generation(genID):
+  def _formatGeneration(genID):
     if float(genID).is_integer():
       return int(genID)
     return genID
 
   @staticmethod
-  def _sample_generations(generations, limit):
+  def _sampleGenerations(generations, limit):
     if limit >= len(generations):
       indices = list(range(len(generations)))
       return generations, indices
@@ -350,15 +350,15 @@ class DiversityRadarPlot(PlotInterface):
       selected[-1] = len(generations) - 1
     return [generations[i] for i in selected], selected
 
-  def _select_frame_indices(self, total):
-    if not self.save_frames or total <= 0 or self.frame_max <= 0:
+  def _selectFrameIndices(self, total):
+    if not self.saveFrames or total <= 0 or self.frameMax <= 0:
       return []
-    if total <= self.frame_max:
+    if total <= self.frameMax:
       return list(range(total))
-    stride = int(math.ceil(total / float(self.frame_max)))
+    stride = int(math.ceil(total / float(self.frameMax)))
     indices = list(range(0, total, stride))
     if indices and indices[-1] != total - 1:
-      if len(indices) >= self.frame_max:
+      if len(indices) >= self.frameMax:
         indices[-1] = total - 1
       else:
         indices.append(total - 1)
