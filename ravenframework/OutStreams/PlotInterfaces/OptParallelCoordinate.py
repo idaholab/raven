@@ -245,14 +245,14 @@ class OptParallelCoordinatePlot(PlotInterface):
       msg += ', '.join(f'"{m}"' for m in missing)
       self.raiseAnError(IOError, msg)
     if self.enhanced and self.constraints:
-      missing_constraints = [var for var in self.constraints if var not in dataVars]
-      if missing_constraints:
-        self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" could not find constraint column(s) {missing_constraints}; proceeding with available constraints only.')
+      missingConstraints = [var for var in self.constraints if var not in dataVars]
+      if missingConstraints:
+        self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" could not find constraint column(s) {missingConstraints}; proceeding with available constraints only.')
         self.constraints = [var for var in self.constraints if var in dataVars]
       if self.constraints:
         data = self.source.asDataset().to_dataframe().copy()
         if not data.empty:
-          self._globalViolationMax = float(np.nanmax(self._constraint_violation(data)))
+          self._globalViolationMax = float(np.nanmax(self._constraintViolation(data)))
         else:
           self._globalViolationMax = 0.0
 
@@ -302,7 +302,7 @@ class OptParallelCoordinatePlot(PlotInterface):
         writer.append_data(image)
 
   @staticmethod
-  def _is_feasible(df, constraints):
+  def _isFeasible(df, constraints):
     if df is None or df.empty or not constraints:
       return np.ones(0 if df is None else len(df), dtype=bool)
     feasible = np.ones(len(df), dtype=bool)
@@ -313,7 +313,7 @@ class OptParallelCoordinatePlot(PlotInterface):
       feasible &= vals > 0.0
     return feasible
 
-  def _constraint_violation(self, df):
+  def _constraintViolation(self, df):
     if df is None or df.empty or not self.constraints:
       return np.zeros(0 if df is None else len(df), dtype=float)
     values = []
@@ -353,47 +353,47 @@ class OptParallelCoordinatePlot(PlotInterface):
     yMax = numeric.max().to_numpy()
 
     try:
-      gens_to_render, _ = plotGenerationUtils.resolveGenerations(generations, self.explicitGenerations,
+      gensToRender, _ = plotGenerationUtils.resolveGenerations(generations, self.explicitGenerations,
                                                                  defaultCap=10, maxFrames=self.maxFrames)
     except ValueError as err:
       self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}": {err}')
-    index_lookup = {gen: idx for idx, gen in enumerate(generations)}
+    indexLookup = {gen: idx for idx, gen in enumerate(generations)}
 
-    trail_len = self.trailGenerations if self.trailGenerations is not None else min(5, len(generations))
-    trail_len = max(1, trail_len)
+    trailLen = self.trailGenerations if self.trailGenerations is not None else min(5, len(generations))
+    trailLen = max(1, trailLen)
 
     filesID = []
 
-    for genID in gens_to_render:
-      gen_position = index_lookup[genID]
-      trail_start = max(0, gen_position - trail_len + 1)
-      trail_gens = generations[trail_start:gen_position + 1]
-      if len(trail_gens) == 1:
-        alpha_values = np.array([1.0])
+    for genID in gensToRender:
+      genPosition = indexLookup[genID]
+      trailStart = max(0, genPosition - trailLen + 1)
+      trailGens = generations[trailStart:genPosition + 1]
+      if len(trailGens) == 1:
+        alphaValues = np.array([1.0])
       else:
-        alpha_values = np.linspace(0.3, 1.0, len(trail_gens))
-      line_blocks = []
-      alpha_blocks = []
-      color_blocks = []
-      width_blocks = []
-      for alpha, trail_gen in zip(alpha_values, trail_gens):
-        population = data[data[self.index] == trail_gen]
+        alphaValues = np.linspace(0.3, 1.0, len(trailGens))
+      lineBlocks = []
+      alphaBlocks = []
+      colorBlocks = []
+      widthBlocks = []
+      for alpha, trailGen in zip(alphaValues, trailGens):
+        population = data[data[self.index] == trailGen]
         if population.empty:
           continue
         if self.constraints:
-          feasibleMask = self._is_feasible(population, self.constraints)
+          feasibleMask = self._isFeasible(population, self.constraints)
           if not self.showInfeasible:
             population = population[feasibleMask]
             feasibleMask = np.ones(len(population), dtype=bool)
-          violation = self._constraint_violation(population) if not population.empty else np.zeros(0, dtype=float)
+          violation = self._constraintViolation(population) if not population.empty else np.zeros(0, dtype=float)
           denom = float(self._globalViolationMax) if self._globalViolationMax is not None else float(np.nanmax(violation) if violation.size else 0.0)
           denom = denom if np.isfinite(denom) and denom > 0.0 else 1.0
           vnorm = np.clip(violation / denom, 0.0, 1.0)
           if self.colorMode == 'violation':
             cmap = cm.get_cmap(self.infeasibleCmap)
             colors = []
-            for is_feas, v in zip(feasibleMask, vnorm):
-              if is_feas:
+            for isFeas, v in zip(feasibleMask, vnorm):
+              if isFeas:
                 colors.append(self.feasibleColor)
               else:
                 colors.append(cmap(float(v)))
@@ -403,33 +403,33 @@ class OptParallelCoordinatePlot(PlotInterface):
           else:
             colors = np.where(feasibleMask, self.feasibleColor, self.infeasibleColor).astype(object)
           if self.thicknessMode == 'violation':
-            lw_min, lw_max = self.linewidthBounds
-            widths = np.where(feasibleMask, lw_min, (lw_min + (lw_max - lw_min) * vnorm)).astype(float)
+            lwMin, lwMax = self.linewidthBounds
+            widths = np.where(feasibleMask, lwMin, (lwMin + (lwMax - lwMin) * vnorm)).astype(float)
           else:
             widths = np.where(feasibleMask, 0.9, 1.6).astype(float)
         else:
           colors = np.asarray(['tab:blue'] * len(population), dtype=object)
           widths = np.ones(len(population), dtype=float)
         values = population[self.vars].astype(float).to_numpy()
-        line_blocks.append(values)
-        alpha_blocks.extend([alpha] * len(values))
-        color_blocks.extend(list(colors))
-        width_blocks.extend(list(widths))
-      if not line_blocks:
+        lineBlocks.append(values)
+        alphaBlocks.extend([alpha] * len(values))
+        colorBlocks.extend(list(colors))
+        widthBlocks.extend(list(widths))
+      if not lineBlocks:
         continue
-      stacked = np.vstack(line_blocks)
+      stacked = np.vstack(lineBlocks)
       fileID = f'{self.name}' + str(int(genID)) + '.png'
-      legend_entries = None
+      legendEntries = None
       if self.constraints:
-        legend_entries = [
+        legendEntries = [
           {'label': 'Feasible (all constraints > 0)', 'color': self.feasibleColor, 'linewidth': 2.0},
           {'label': 'Infeasible (violation encoded)', 'color': self.infeasibleColor if self.colorMode != 'violation' else cm.get_cmap(self.infeasibleCmap)(0.85), 'linewidth': 2.0},
         ]
       plotUtils.generateConstraintParallelPlot(stacked, genID, yMin, yMax, self.vars, fileID,
-                                     line_alphas=alpha_blocks,
-                                     line_colors=color_blocks,
-                                     line_widths=width_blocks,
-                                     legend_entries=legend_entries)
+                                     line_alphas=alphaBlocks,
+                                     line_colors=colorBlocks,
+                                     line_widths=widthBlocks,
+                                     legendEntries=legendEntries)
       filesID.append(fileID)
 
     if not filesID:

@@ -103,7 +103,7 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
   plt.close()
 
 
-def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, line_alphas=None, line_colors=None, line_widths=None, legend_entries=None):
+def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, lineAlphas=None, lineColors=None, lineWidths=None, legendEntries=None):
   """
     Generate a constraint-aware parallel coordinate plot. Unlike generateParallelPlot, this
     variant renders every polyline on a shared normalized scale and accepts optional per-line
@@ -128,12 +128,12 @@ def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, li
   N = zs.shape[0]
   zs = zs.astype(np.float64)
   # enforce a shared scale across all axes so relative slopes reflect actual magnitudes
-  global_min = np.min(ymins)
-  global_max = np.max(ymaxs)
-  span = global_max - global_min
+  globalMin = np.min(ymins)
+  globalMax = np.max(ymaxs)
+  span = globalMax - globalMin
   if span == 0.0:
     span = 1.0
-  zs = (zs - global_min) / span
+  zs = (zs - globalMin) / span
   zs = np.clip(zs, 0.0, 1.0)
 
   fig, host = plt.subplots(figsize=(15, 8))
@@ -143,20 +143,20 @@ def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, li
     ax.set_aspect('auto')
     ax.set_ylim((0.0, 1.0))
     # highlight the span that contains data for this variable
-    var_min = np.clip((ymins[i] - global_min) / span, 0.0, 1.0)
-    var_max = np.clip((ymaxs[i] - global_min) / span, 0.0, 1.0)
-    if np.isclose(var_min, var_max):
-      var_min = max(0.0, var_min - 0.01)
-      var_max = min(1.0, var_max + 0.01)
-    ax.axhspan(var_min, var_max, color='#d9d9d9', alpha=0.35, zorder=0)
+    varMin = np.clip((ymins[i] - globalMin) / span, 0.0, 1.0)
+    varMax = np.clip((ymaxs[i] - globalMin) / span, 0.0, 1.0)
+    if np.isclose(varMin, varMax):
+      varMin = max(0.0, varMin - 0.01)
+      varMax = min(1.0, varMax + 0.01)
+    ax.axhspan(varMin, varMax, color='#d9d9d9', alpha=0.35, zorder=0)
     # map evenly spaced raw ticks back to the normalized coordinate space
     if np.isclose(ymaxs[i], ymins[i]):
-      raw_ticks = np.asarray([ymins[i]])
+      rawTicks = np.asarray([ymins[i]])
     else:
-      raw_ticks = np.linspace(ymins[i], ymaxs[i], 5)
-    norm_ticks = (raw_ticks - global_min) / span
-    ax.set_yticks(norm_ticks)
-    ax.set_yticklabels([f'{val:g}' for val in raw_ticks])
+      rawTicks = np.linspace(ymins[i], ymaxs[i], 5)
+    normTicks = (rawTicks - globalMin) / span
+    ax.set_yticks(normTicks)
+    ax.set_yticklabels([f'{val:g}' for val in rawTicks])
     ax.spines['top'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
     if ax != host:
@@ -174,45 +174,45 @@ def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, li
   plot_title = 'Batch ' + str(batchID)
   host.set_title(plot_title, fontsize=14)
 
-  if line_alphas is None:
-    line_alphas = np.ones(N, dtype=float)
+  if lineAlphas is None:
+    lineAlphas = np.ones(N, dtype=float)
   else:
-    line_alphas = np.asarray(line_alphas, dtype=float)
-    if line_alphas.size != N:
-      raise ValueError(f'line_alphas length {line_alphas.size} does not match number of lines {N}.')
+    lineAlphas = np.asarray(lineAlphas, dtype=float)
+    if lineAlphas.size != N:
+      raise ValueError(f'line_alphas length {lineAlphas.size} does not match number of lines {N}.')
 
-  if line_colors is None:
-    line_colors = np.asarray(['tab:blue'] * N, dtype=object)
+  if lineColors is None:
+    lineColors = np.asarray(['tab:blue'] * N, dtype=object)
   else:
-    raw_colors = np.asarray(line_colors, dtype=object)
-    if raw_colors.ndim > 1:
-      if raw_colors.shape[0] != N:
-        raise ValueError(f'line_colors length {raw_colors.size} does not match number of lines {N}.')
-      packed_colors = np.empty(N, dtype=object)
-      packed_colors[:] = [tuple(np.asarray(row).tolist()) for row in raw_colors]
-      line_colors = packed_colors
+    rawColors = np.asarray(lineColors, dtype=object)
+    if rawColors.ndim > 1:
+      if rawColors.shape[0] != N:
+        raise ValueError(f'line_colors length {rawColors.size} does not match number of lines {N}.')
+      packedColors = np.empty(N, dtype=object)
+      packedColors[:] = [tuple(np.asarray(row).tolist()) for row in rawColors]
+      lineColors = packedColors
     else:
-      if raw_colors.size != N:
-        raise ValueError(f'line_colors length {raw_colors.size} does not match number of lines {N}.')
-      line_colors = raw_colors
+      if rawColors.size != N:
+        raise ValueError(f'line_colors length {rawColors.size} does not match number of lines {N}.')
+      lineColors = rawColors
 
-  if line_widths is None:
-    line_widths = np.ones(N, dtype=float)
+  if lineWidths is None:
+    lineWidths = np.ones(N, dtype=float)
   else:
-    line_widths = np.asarray(line_widths, dtype=float)
-    if line_widths.size != N:
-      raise ValueError(f'line_widths length {line_widths.size} does not match number of lines {N}.')
+    lineWidths = np.asarray(lineWidths, dtype=float)
+    if lineWidths.size != N:
+      raise ValueError(f'line_widths length {lineWidths.size} does not match number of lines {N}.')
 
   for j in range(N):
     host.plot(range(zs.shape[1]), zs[j,:],
-              color=line_colors[j],
-              linewidth=float(max(0.1, line_widths[j])),
-              alpha=float(np.clip(line_alphas[j], 0.05, 1.0)))
+              color=lineColors[j],
+              linewidth=float(max(0.1, lineWidths[j])),
+              alpha=float(np.clip(lineAlphas[j], 0.05, 1.0)))
 
-  if legend_entries:
+  if legendEntries:
     from matplotlib.lines import Line2D
     handles = []
-    for entry in legend_entries:
+    for entry in legendEntries:
       if not entry or 'label' not in entry:
         continue
       handles.append(Line2D([0], [0],
