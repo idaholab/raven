@@ -93,6 +93,11 @@ limit our library choices.
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
     <pillow source="pip"/>
+    <plotly source="pip"/>
+    <!-- kaleido renders plotly figures to static images (PNG/GIF). kaleido>=1 needs an
+         external Chrome, installed once via `plotly_get_chrome`; without it the plotters
+         fall back to matplotlib. Marked optional so envs without Chrome still build. -->
+    <kaleido source="pip" optional='True'/>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->
