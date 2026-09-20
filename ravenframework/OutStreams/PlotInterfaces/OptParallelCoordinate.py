@@ -426,9 +426,9 @@ class OptParallelCoordinatePlot(PlotInterface):
           {'label': 'Infeasible (violation encoded)', 'color': self.infeasibleColor if self.colorMode != 'violation' else cm.get_cmap(self.infeasibleCmap)(0.85), 'linewidth': 2.0},
         ]
       plotUtils.generateConstraintParallelPlot(stacked, genID, yMin, yMax, self.vars, fileID,
-                                     line_alphas=alphaBlocks,
-                                     line_colors=colorBlocks,
-                                     line_widths=widthBlocks,
+                                     lineAlphas=alphaBlocks,
+                                     lineColors=colorBlocks,
+                                     lineWidths=widthBlocks,
                                      legendEntries=legendEntries)
       filesID.append(fileID)
 

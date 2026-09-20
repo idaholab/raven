@@ -116,10 +116,10 @@ def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, li
     @ In, ymaxs, np.array, maximum value for each variable
     @ In, ynames, list, list of string containing the ID of each variable
     @ In, fileID, string, name of the file containing the plot
-    @ In, line_alphas, array-like, optional, alpha values for each polyline
-    @ In, line_colors, array-like, optional, colors for each polyline
-    @ In, line_widths, array-like, optional, linewidths for each polyline
-    @ In, legend_entries, list, optional, list of dicts describing legend line samples; expected keys:
+    @ In, lineAlphas, array-like, optional, alpha values for each polyline
+    @ In, lineColors, array-like, optional, colors for each polyline
+    @ In, lineWidths, array-like, optional, linewidths for each polyline
+    @ In, legendEntries, list, optional, list of dicts describing legend line samples; expected keys:
          label (str), color (str), linewidth (float), linestyle (str, optional)
     @ Out, None
   """
@@ -179,7 +179,7 @@ def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, li
   else:
     lineAlphas = np.asarray(lineAlphas, dtype=float)
     if lineAlphas.size != N:
-      raise ValueError(f'line_alphas length {lineAlphas.size} does not match number of lines {N}.')
+      raise ValueError(f'lineAlphas length {lineAlphas.size} does not match number of lines {N}.')
 
   if lineColors is None:
     lineColors = np.asarray(['tab:blue'] * N, dtype=object)
@@ -187,13 +187,13 @@ def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, li
     rawColors = np.asarray(lineColors, dtype=object)
     if rawColors.ndim > 1:
       if rawColors.shape[0] != N:
-        raise ValueError(f'line_colors length {rawColors.size} does not match number of lines {N}.')
+        raise ValueError(f'lineColors length {rawColors.size} does not match number of lines {N}.')
       packedColors = np.empty(N, dtype=object)
       packedColors[:] = [tuple(np.asarray(row).tolist()) for row in rawColors]
       lineColors = packedColors
     else:
       if rawColors.size != N:
-        raise ValueError(f'line_colors length {rawColors.size} does not match number of lines {N}.')
+        raise ValueError(f'lineColors length {rawColors.size} does not match number of lines {N}.')
       lineColors = rawColors
 
   if lineWidths is None:
@@ -201,7 +201,7 @@ def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, li
   else:
     lineWidths = np.asarray(lineWidths, dtype=float)
     if lineWidths.size != N:
-      raise ValueError(f'line_widths length {lineWidths.size} does not match number of lines {N}.')
+      raise ValueError(f'lineWidths length {lineWidths.size} does not match number of lines {N}.')
 
   for j in range(N):
     host.plot(range(zs.shape[1]), zs[j,:],
