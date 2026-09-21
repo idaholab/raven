@@ -2087,7 +2087,7 @@ The \xmlString{FeasibleRegionObjectiveContourPlot} \xmlAttr{subType} plot: Build
 The \xmlNode{FeasibleRegionObjectiveContourPlot} plot recognizes the following input nodes:
 \begin{itemize}
   \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
-  \item \xmlNode{surfaces}, \xmlDesc{comma-separated strings}, List of variables to render as 3-D surfaces (e.g., objectives and/or constraint evaluations). One variable -\textgreater{} single panel; four variables -\textgreater{} 2x2 panels.
+  \item \xmlNode{surfaces}, \xmlDesc{comma-separated strings}, List of variables to render as 3-D surfaces (e.g., objectives and/or constraint evaluations). One variable -\textgreater{} single panel; four variables -\textgreater{} 2\(\times\)2 panels.
   \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional constraint evaluation columns used to define feasibility and boundary lines. Values \textgreater{} 0 are feasible; values \textless{}= 0 indicate violation. Use "all" to include every column named ConstraintEvaluation\_*.
   \item \xmlNode{rank}, \xmlDesc{integer}, Pareto rank to display as projected points. Defaults to 1.
   \item \xmlNode{levels}, \xmlDesc{integer}, Number of contour levels to project onto the base plane (default 12).
@@ -2105,7 +2105,7 @@ The \xmlNode{FitnessFunnelPlot} plot recognizes the following input nodes:
   \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
   \item \xmlNode{metric}, \xmlDesc{comma-separated strings}, One or more columns containing the objective/fitness values to evaluate. When more than one is given, the plot renders one funnel subplot per column (e.g., two objectives produce two stacked subplots); a single column reproduces the classic single-objective funnel.
   \item \xmlNode{goal}, \xmlDesc{comma-separated strings}, Optimisation goal per \xmlNode{metric}: "min" (default) or "max". Provide either one value (applied to every metric) or one value per metric, in the same order as \xmlNode{metric}.
-  \item \xmlNode{maxPerFigure}, \xmlDesc{integer}, Maximum number of per-metric funnel panels drawn in a single figure (default 4). When the number of metrics exceeds this cap, the panels are split evenly across multiple figures (e.g., 6 metrics -\textgreater{} two figures of 3, 9 -\textgreater{} three of 3, 12 -\textgreater{} three of 4) so panels stay legible for high-objective problems. Within a figure, up to three panels stack in a single column (sharing the generation axis) and four use a 2x2 grid. A single figure is written as "\xmlNode{name}.png"; multiple figures are written as "\xmlNode{name}\_p01.png", "\xmlNode{name}\_p02.png", ...
+  \item \xmlNode{maxPerFigure}, \xmlDesc{integer}, Maximum number of per-metric funnel panels drawn in a single figure (default 4). When the number of metrics exceeds this cap, the panels are split evenly across multiple figures (e.g., 6 metrics -\textgreater{} two figures of 3, 9 -\textgreater{} three of 3, 12 -\textgreater{} three of 4) so panels stay legible for high-objective problems. Within a figure, up to three panels stack in a single column (sharing the generation axis) and four use a 2\(\times\)2 grid. A single figure is written as "\xmlNode{name}.png"; multiple figures are written as "\xmlNode{name}\_p01.png", "\xmlNode{name}\_p02.png", ...
 \end{itemize}
 
 \subsubsection{GlyphRadarPlot}

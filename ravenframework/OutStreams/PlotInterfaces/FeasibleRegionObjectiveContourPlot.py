@@ -52,7 +52,7 @@ class FeasibleRegionObjectiveContourPlot(PlotInterface):
     spec.addSub(axes)
     spec.addSub(InputData.parameterInputFactory('surfaces', contentType=InputTypes.StringListType,
         descr=r"""List of variables to render as 3-D surfaces (e.g., objectives and/or constraint evaluations).
-                   One variable -> single panel; four variables -> 2x2 panels."""))
+                   One variable -> single panel; four variables -> 2\(\times\)2 panels."""))
     spec.addSub(InputData.parameterInputFactory('constraints', contentType=InputTypes.StringListType,
         descr=r"""Optional constraint evaluation columns used to define feasibility and boundary lines.
                    Values > 0 are feasible; values <= 0 indicate violation. Use "all" to include every

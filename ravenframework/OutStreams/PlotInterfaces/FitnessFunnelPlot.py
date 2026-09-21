@@ -66,7 +66,7 @@ class FitnessFunnelPlot(PlotInterface):
               number of metrics exceeds this cap, the panels are split evenly across multiple figures
               (e.g., 6 metrics -> two figures of 3, 9 -> three of 3, 12 -> three of 4) so panels stay
               legible for high-objective problems. Within a figure, up to three panels stack in a single
-              column (sharing the generation axis) and four use a 2x2 grid. A single figure is written as
+              column (sharing the generation axis) and four use a 2\(\times\)2 grid. A single figure is written as
               "<name>.png"; multiple figures are written as "<name>_p01.png", "<name>_p02.png", ..."""))
     return spec
 
