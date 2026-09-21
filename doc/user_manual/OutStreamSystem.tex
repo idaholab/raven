@@ -2136,7 +2136,7 @@ The \xmlNode{HypervolumeMoviePlot} plot recognizes the following input nodes:
   \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
   \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Ordered list of objective columns (minimized). Two objectives render a single curve; three objectives compute a true 3D hypervolume curve; more than three objectives fall back to animating all pairwise combinations.
   \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
-  \item \xmlNode{referencePoint}, \xmlDesc{comma-separated strings}, Optional reference point for hypervolume computation. If omitted, the plot uses max objective values (+5\%\%).
+  \item \xmlNode{referencePoint}, \xmlDesc{comma-separated strings}, Optional reference point for hypervolume computation. If omitted, the plot uses max objective values (+5\%).
   \item \xmlNode{maxFrames}, \xmlDesc{integer}, Optional cap on the number of generations rendered. Defaults to min(total generations, 20).
   \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
   \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for the generated animations. Defaults to 2.
@@ -2231,7 +2231,7 @@ The \xmlNode{ObjectiveContourAnimationPlot} plot recognizes the following input 
   \item \xmlNode{objective}, \xmlDesc{string}, Name of the metric column defining contour levels (or "all" to render each objective column separately). Optional attribute type="fitness" treats it as a maximized fitness value.
   \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional list of constraint evaluation columns (e.g., ConstraintEvaluation\_constraint1). Values \textgreater{} 0 are considered feasible; values \textless{}= 0 indicate constraint violation.
   \item \xmlNode{index}, \xmlDesc{string}, Name of the generation identifier (e.g., batchId).
-  \item \xmlNode{top}, \xmlDesc{float}, Highlight threshold. Values \textgreater{}1 indicate a count; values in (0,1] indicate a population fraction. Defaults to 0.2 (20\%\%).
+  \item \xmlNode{top}, \xmlDesc{float}, Highlight threshold. Values \textgreater{}1 indicate a count; values in (0,1] indicate a population fraction. Defaults to 0.2 (20\%).
   \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
   \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for generated animations. Defaults to 2.
   \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves each generation as a standalone PNG frame alongside the animation outputs.

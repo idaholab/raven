@@ -232,7 +232,7 @@ class ObjectiveContourAnimationPlot(PlotInterface):
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Name of the generation identifier (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('top', contentType=InputTypes.FloatType,
-        descr=r"""Highlight threshold. Values >1 indicate a count; values in (0,1] indicate a population fraction. Defaults to 0.2 (20%%)."""))
+        descr=r"""Highlight threshold. Values >1 indicate a count; values in (0,1] indicate a population fraction. Defaults to 0.2 (20%)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
         descr=r"""Output format. Options: "gif", "html", "both", or comma-separated combinations."""))
     spec.addSub(InputData.parameterInputFactory('fps', contentType=InputTypes.FloatType,

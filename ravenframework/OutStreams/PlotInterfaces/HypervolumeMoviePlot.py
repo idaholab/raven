@@ -59,7 +59,7 @@ class HypervolumeMoviePlot(PlotInterface):
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Generation identifier column (e.g., batchId)."""))
     spec.addSub(InputData.parameterInputFactory('referencePoint', contentType=InputTypes.StringListType,
-        descr=r"""Optional reference point for hypervolume computation. If omitted, the plot uses max objective values (+5%%)."""))
+        descr=r"""Optional reference point for hypervolume computation. If omitted, the plot uses max objective values (+5%)."""))
     spec.addSub(InputData.parameterInputFactory('maxFrames', contentType=InputTypes.IntegerType,
         descr=r"""Optional cap on the number of generations rendered. Defaults to min(total generations, 20)."""))
     spec.addSub(InputData.parameterInputFactory('format', contentType=InputTypes.StringType,
