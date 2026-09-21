@@ -1059,6 +1059,65 @@ checkFails('Add old-named data after renaming variables','Provided realization d
 
 
 
+######################################
+#         SCALING FACTORS            #
+######################################
+# _setScalingFactors computes (mean, scale=population std, ddof=0) per numeric variable.
+# The vectorized implementation must (a) match the reference per-variable numpy moments for
+# all-finite numeric data, (b) mask non-finite (NaN / +/-inf) entries, and (c) skip
+# non-numeric variables entirely. These are the DataObjects behaviors relied on by
+# normalization and nearest-neighbor matching, so they are exercised directly here.
+
+# (a) all-finite numeric data matches numpy mean/std (ddof=0)
+xml = createElement('DataSet', attrib={'name':'scaling'})
+xml.append(createElement('Input', text='x'))
+xml.append(createElement('Output', text='y,z'))
+dataSF = DataObjects.DataSet()
+dataSF.messageHandler = mh
+dataSF._readMoreXML(xml)
+dataSF.addRealization({'x':np.array([1.0]), 'y':np.array([10.0]), 'z':np.array([-2.0])})
+dataSF.addRealization({'x':np.array([2.0]), 'y':np.array([20.0]), 'z':np.array([ 4.0])})
+dataSF.addRealization({'x':np.array([3.0]), 'y':np.array([30.0]), 'z':np.array([ 9.0])})
+dataSF.asDataset()
+dataSF._setScalingFactors()
+for _var, _vals in [('x',[1.0,2.0,3.0]), ('y',[10.0,20.0,30.0]), ('z',[-2.0,4.0,9.0])]:
+  _arr = np.array(_vals)
+  _loc, _scale = dataSF._scaleFactors[_var]
+  checkFloat('scaling mean "%s"' % _var, _loc, float(np.mean(_arr)))
+  checkFloat('scaling scale "%s"' % _var, _scale, float(np.std(_arr)))
+
+# (b) non-finite entries (+/-inf and NaN) are ignored in the moments
+xml = createElement('DataSet', attrib={'name':'scalingNonFinite'})
+xml.append(createElement('Input', text='x'))
+xml.append(createElement('Output', text='w'))
+dataSF2 = DataObjects.DataSet()
+dataSF2.messageHandler = mh
+dataSF2._readMoreXML(xml)
+dataSF2.addRealization({'x':np.array([1.0]), 'w':np.array([5.0])})
+dataSF2.addRealization({'x':np.array([2.0]), 'w':np.array([np.inf])})
+dataSF2.addRealization({'x':np.array([3.0]), 'w':np.array([7.0])})
+dataSF2.addRealization({'x':np.array([4.0]), 'w':np.array([np.nan])})
+dataSF2.asDataset()
+dataSF2._setScalingFactors()
+_finiteW = np.array([5.0, 7.0])
+_locW, _scaleW = dataSF2._scaleFactors['w']
+checkFloat('scaling mean masks non-finite', _locW, float(np.mean(_finiteW)))
+checkFloat('scaling scale masks non-finite', _scaleW, float(np.std(_finiteW)))
+
+# (c) non-numeric variables are skipped, numeric ones retained
+xml = createElement('DataSet', attrib={'name':'scalingNonNumeric'})
+xml.append(createElement('Input', text='x'))
+xml.append(createElement('Output', text='tag'))
+dataSF3 = DataObjects.DataSet()
+dataSF3.messageHandler = mh
+dataSF3._readMoreXML(xml)
+dataSF3.addRealization({'x':np.array([1.0]), 'tag':np.array(['a'])})
+dataSF3.addRealization({'x':np.array([2.0]), 'tag':np.array(['b'])})
+dataSF3.asDataset()
+dataSF3._setScalingFactors()
+checkTrue('scaling skips non-numeric variable', 'tag' not in dataSF3._scaleFactors)
+checkTrue('scaling keeps numeric variable', 'x' in dataSF3._scaleFactors)
+
 print(results)
 
 sys.exit(results["fail"])

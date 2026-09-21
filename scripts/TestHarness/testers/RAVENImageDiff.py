@@ -18,7 +18,7 @@ import os
 import sys
 
 try:
-  from imageio import imread
+  from imageio import imread, mimread
   correctImport = True
 except ImportError:
   correctImport = False
@@ -112,6 +112,34 @@ class ImageDiff:
                                                             goldFilename,
                                                             testFilename)
           self.__same = False
+        # imageio.imread only decodes the first frame, so for multi-frame images
+        # (e.g. animated GIFs) also compare the last frame to catch differences that
+        # only appear at the end of the animation. Single-frame formats (e.g. PNG)
+        # are skipped, leaving their comparison byte-for-byte identical to before.
+        if testFilename.lower().endswith('.gif'):
+          try:
+            testFrames = mimread(testFilename)
+            goldFrames = mimread(goldFilename)
+          except (IOError, RuntimeError, ValueError):
+            testFrames = goldFrames = None
+          if testFrames and goldFrames and len(testFrames) > 1 and len(goldFrames) > 1:
+            goldLast = goldFrames[-1]
+            testLast = testFrames[-1]
+            if goldLast.shape != testLast.shape:
+              self.__message += 'Gold and test image (last frame) are not the same shape: '+\
+                str(goldLast.shape)+', '+str(testLast.shape)+' for '+goldFilename
+              self.__same = False
+            else:
+              diffLast = goldLast - testLast
+              onlyDiffsLast = diffLast[abs(diffLast) > self.__zero_threshold]
+              pctNumDiffLast = onlyDiffsLast.size/float(diffLast.size)
+              if pctNumDiffLast > self.__rel_err:
+                self.__message += 'Difference between images (last frame) is too large:'+\
+                  ' %2.2f pct (allowable: %2.2f) for %s and %s' %(100*pctNumDiffLast,\
+                                                                  100*self.__rel_err,
+                                                                  goldFilename,
+                                                                  testFilename)
+                self.__same = False
     return (self.__same, self.__message)
 
 

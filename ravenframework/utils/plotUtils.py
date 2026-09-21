@@ -101,3 +101,128 @@ def generateParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID):
   plt.tight_layout()
   plt.savefig(fileID)
   plt.close()
+
+
+def generateConstraintParallelPlot(zs, batchID, ymins, ymaxs, ynames, fileID, lineAlphas=None, lineColors=None, lineWidths=None, legendEntries=None):
+  """
+    Generate a constraint-aware parallel coordinate plot. Unlike generateParallelPlot, this
+    variant renders every polyline on a shared normalized scale and accepts optional per-line
+    styling (alpha/color/width) plus an optional legend, so callers can encode feasibility or
+    constraint-violation information. It is used by the enhanced OptParallelCoordinatePlot path and
+    is kept separate so the original generateParallelPlot behavior (and its gold images) is unchanged.
+    @ In, zs, np.array, batch containing the set of points to be plotted
+    @ In, batchID, string, ID of the batch
+    @ In, ymins, np.array, minimum value for each variable
+    @ In, ymaxs, np.array, maximum value for each variable
+    @ In, ynames, list, list of string containing the ID of each variable
+    @ In, fileID, string, name of the file containing the plot
+    @ In, lineAlphas, array-like, optional, alpha values for each polyline
+    @ In, lineColors, array-like, optional, colors for each polyline
+    @ In, lineWidths, array-like, optional, linewidths for each polyline
+    @ In, legendEntries, list, optional, list of dicts describing legend line samples; expected keys:
+         label (str), color (str), linewidth (float), linestyle (str, optional)
+    @ Out, None
+  """
+  if zs.size == 0:
+    return
+  N = zs.shape[0]
+  zs = zs.astype(np.float64)
+  # enforce a shared scale across all axes so relative slopes reflect actual magnitudes
+  globalMin = np.min(ymins)
+  globalMax = np.max(ymaxs)
+  span = globalMax - globalMin
+  if span == 0.0:
+    span = 1.0
+  zs = (zs - globalMin) / span
+  zs = np.clip(zs, 0.0, 1.0)
+
+  fig, host = plt.subplots(figsize=(15, 8))
+
+  axes = [host] + [host.twinx() for i in range(zs.shape[1] - 1)]
+  for i, ax in enumerate(axes):
+    ax.set_aspect('auto')
+    ax.set_ylim((0.0, 1.0))
+    # highlight the span that contains data for this variable
+    varMin = np.clip((ymins[i] - globalMin) / span, 0.0, 1.0)
+    varMax = np.clip((ymaxs[i] - globalMin) / span, 0.0, 1.0)
+    if np.isclose(varMin, varMax):
+      varMin = max(0.0, varMin - 0.01)
+      varMax = min(1.0, varMax + 0.01)
+    ax.axhspan(varMin, varMax, color='#d9d9d9', alpha=0.35, zorder=0)
+    # map evenly spaced raw ticks back to the normalized coordinate space
+    if np.isclose(ymaxs[i], ymins[i]):
+      rawTicks = np.asarray([ymins[i]])
+    else:
+      rawTicks = np.linspace(ymins[i], ymaxs[i], 5)
+    normTicks = (rawTicks - globalMin) / span
+    ax.set_yticks(normTicks)
+    ax.set_yticklabels([f'{val:g}' for val in rawTicks])
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    if ax != host:
+      ax.spines['left'].set_visible(False)
+      ax.yaxis.set_ticks_position('right')
+      ax.spines["right"].set_position(("axes", i / (zs.shape[1] - 1)))
+      ax.tick_params(axis='y', which='major', pad=7)
+
+  host.set_xlim(0, zs.shape[1] - 1)
+  host.set_xticks(range(zs.shape[1]))
+  host.set_xticklabels(ynames, fontsize=14)
+  host.tick_params(axis='x', which='major', pad=7)
+  host.spines['right'].set_visible(False)
+  host.xaxis.tick_top()
+  plot_title = 'Batch ' + str(batchID)
+  host.set_title(plot_title, fontsize=14)
+
+  if lineAlphas is None:
+    lineAlphas = np.ones(N, dtype=float)
+  else:
+    lineAlphas = np.asarray(lineAlphas, dtype=float)
+    if lineAlphas.size != N:
+      raise ValueError(f'lineAlphas length {lineAlphas.size} does not match number of lines {N}.')
+
+  if lineColors is None:
+    lineColors = np.asarray(['tab:blue'] * N, dtype=object)
+  else:
+    rawColors = np.asarray(lineColors, dtype=object)
+    if rawColors.ndim > 1:
+      if rawColors.shape[0] != N:
+        raise ValueError(f'lineColors length {rawColors.size} does not match number of lines {N}.')
+      packedColors = np.empty(N, dtype=object)
+      packedColors[:] = [tuple(np.asarray(row).tolist()) for row in rawColors]
+      lineColors = packedColors
+    else:
+      if rawColors.size != N:
+        raise ValueError(f'lineColors length {rawColors.size} does not match number of lines {N}.')
+      lineColors = rawColors
+
+  if lineWidths is None:
+    lineWidths = np.ones(N, dtype=float)
+  else:
+    lineWidths = np.asarray(lineWidths, dtype=float)
+    if lineWidths.size != N:
+      raise ValueError(f'lineWidths length {lineWidths.size} does not match number of lines {N}.')
+
+  for j in range(N):
+    host.plot(range(zs.shape[1]), zs[j,:],
+              color=lineColors[j],
+              linewidth=float(max(0.1, lineWidths[j])),
+              alpha=float(np.clip(lineAlphas[j], 0.05, 1.0)))
+
+  if legendEntries:
+    from matplotlib.lines import Line2D
+    handles = []
+    for entry in legendEntries:
+      if not entry or 'label' not in entry:
+        continue
+      handles.append(Line2D([0], [0],
+                            color=entry.get('color', 'tab:blue'),
+                            linewidth=float(entry.get('linewidth', 1.5)),
+                            linestyle=entry.get('linestyle', '-'),
+                            label=entry['label']))
+    if handles:
+      host.legend(handles=handles, loc='upper right', frameon=True, fontsize=10)
+
+  plt.tight_layout()
+  plt.savefig(fileID)
+  plt.close()
