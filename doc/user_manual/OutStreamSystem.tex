@@ -1840,15 +1840,15 @@ Optional constraint encoding (feasible vs.\ infeasible paths) can be enabled usi
 \begin{itemize}
   \item \xmlNode{constraints}, \xmlDesc{optional, comma-separated strings}, list of constraint evaluation columns (e.g. \xmlString{ConstraintEvaluation\_constraint1}).
         Values $> 0$ are considered feasible; values $\le 0$ are considered violated. Use \xmlString{all} to include every column named \xmlString{ConstraintEvaluation\_*}.
-  \item \xmlNode{color\_mode}, \xmlDesc{optional, string}, controls infeasible coloring when constraints are provided. Options are \xmlString{feasibility} (default),
+  \item \xmlNode{colorMode}, \xmlDesc{optional, string}, controls infeasible coloring when constraints are provided. Options are \xmlString{feasibility} (default),
         \xmlString{violation} (color encodes violation magnitude), or \xmlString{none}.
-  \item \xmlNode{thickness\_mode}, \xmlDesc{optional, string}, controls linewidth when constraints are provided. Options are \xmlString{none} (default) or \xmlString{violation}.
-  \item \xmlNode{violation\_metric}, \xmlDesc{optional, string}, reduces multiple constraint violations into a scalar (for \xmlNode{color\_mode} or \xmlNode{thickness\_mode}): \xmlString{sum} (default), \xmlString{max}, or \xmlString{l2}.
-  \item \xmlNode{linewidth\_bounds}, \xmlDesc{optional, comma-separated floats}, two values giving min/max linewidth when \xmlNode{thickness\_mode} is \xmlString{violation}.
-  \item \xmlNode{feasible\_color}, \xmlDesc{optional, string}, color for feasible paths (default \xmlString{\#2e7d32}).
-  \item \xmlNode{infeasible\_color}, \xmlDesc{optional, string}, color for infeasible paths when \xmlNode{color\_mode} is \xmlString{feasibility} (default \xmlString{\#d32f2f}).
-  \item \xmlNode{infeasible\_cmap}, \xmlDesc{optional, string}, Matplotlib colormap used for infeasible paths when \xmlNode{color\_mode} is \xmlString{violation} (default \xmlString{Reds}).
-  \item \xmlNode{show\_infeasible}, \xmlDesc{optional, boolean}, if false, infeasible paths are hidden (default true).
+  \item \xmlNode{thicknessMode}, \xmlDesc{optional, string}, controls linewidth when constraints are provided. Options are \xmlString{none} (default) or \xmlString{violation}.
+  \item \xmlNode{violationMetric}, \xmlDesc{optional, string}, reduces multiple constraint violations into a scalar (for \xmlNode{colorMode} or \xmlNode{thicknessMode}): \xmlString{sum} (default), \xmlString{max}, or \xmlString{l2}.
+  \item \xmlNode{linewidthBounds}, \xmlDesc{optional, comma-separated floats}, two values giving min/max linewidth when \xmlNode{thicknessMode} is \xmlString{violation}.
+  \item \xmlNode{feasibleColor}, \xmlDesc{optional, string}, color for feasible paths (default \xmlString{\#2e7d32}).
+  \item \xmlNode{infeasibleColor}, \xmlDesc{optional, string}, color for infeasible paths when \xmlNode{colorMode} is \xmlString{feasibility} (default \xmlString{\#d32f2f}).
+  \item \xmlNode{infeasibleCmap}, \xmlDesc{optional, string}, Matplotlib colormap used for infeasible paths when \xmlNode{colorMode} is \xmlString{violation} (default \xmlString{Reds}).
+  \item \xmlNode{showInfeasible}, \xmlDesc{optional, boolean}, if false, infeasible paths are hidden (default true).
 \end{itemize}
 
 For example,
@@ -1879,9 +1879,9 @@ The \xmlString{ProsectionMatrixPlot} \xmlAttr{subType} requires the following no
 
 Optional usability controls:
 \begin{itemize}
-  \item \xmlNode{rows\_per\_fig}, \xmlDesc{optional, integer}, splits a large matrix into multiple output images.
-  \item \xmlNode{min\_slice\_points}, \xmlDesc{optional, integer}, minimum slice size before fallback selection is used.
-  \item \xmlNode{fallback\_points}, \xmlDesc{optional, integer}, number of nearest-to-median samples used as fallback.
+  \item \xmlNode{rowsPerFig}, \xmlDesc{optional, integer}, splits a large matrix into multiple output images.
+  \item \xmlNode{minSlicePoints}, \xmlDesc{optional, integer}, minimum slice size before fallback selection is used.
+  \item \xmlNode{fallbackPoints}, \xmlDesc{optional, integer}, number of nearest-to-median samples used as fallback.
 \end{itemize}
 
 \subsubsection{FeasibilityRadarPlot}
@@ -1907,53 +1907,529 @@ The plot supports two modes:
   \item \textbf{Category-column mode:} provide \xmlNode{category} (and optional \xmlNode{value}) to count or sum per category label.
 \end{itemize}
 
-Optional nodes include \xmlNode{top\_n} (and \xmlNode{include\_other}) to limit displayed categories, plus \xmlNode{index}/\xmlNode{generation}/\xmlNode{use\_all\_generations} for generation filtering.
+Optional nodes include \xmlNode{topN} (and \xmlNode{includeOther}) to limit displayed categories, plus \xmlNode{index}/\xmlNode{generation}/\xmlNode{useAllGenerations} for generation filtering.
 
 \subsubsection{AdjustedEpsilonOptimalPlot}
 The \xmlString{AdjustedEpsilonOptimalPlot} \xmlAttr{subType} visualizes an ``epsilon'' grid overlay in a two-objective space and highlights
 an epsilon-efficient (non-epsilon-dominated) representative set. Objective space is partitioned into epsilon-sized boxes; samples in the same box
 are treated as equivalent for dominance purposes and one representative is selected.
 
-Provide \xmlNode{objectives} (two entries). Choose epsilon either directly with \xmlNode{epsilon} or indirectly with \xmlNode{search\_extent} (epsilon = 1/search\_extent).
+Provide \xmlNode{objectives} (two entries). Choose epsilon either directly with \xmlNode{epsilon} or indirectly with \xmlNode{searchExtent} (epsilon = 1/searchExtent).
 Optionally provide \xmlNode{constraints} to mark infeasible samples, and \xmlNode{goals} to indicate min/max directions.
-The \xmlNode{search\_extent} is a convenience control that sets the number of grid divisions per axis in normalized space; increasing it decreases epsilon and increases resolution.
-If both \xmlNode{epsilon} and \xmlNode{search\_extent} are provided, \xmlNode{epsilon} takes precedence.
-In this plot, normalization is used to compute epsilon boxes (so \xmlNode{epsilon} is interpreted in normalized objective space); \xmlNode{axis\_space} only controls how the axes are displayed.
-For improved readability when solutions occupy only a small region of the unit square, enable \xmlNode{auto\_limits} (default) to zoom to the occupied region,
+The \xmlNode{searchExtent} is a convenience control that sets the number of grid divisions per axis in normalized space; increasing it decreases epsilon and increases resolution.
+If both \xmlNode{epsilon} and \xmlNode{searchExtent} are provided, \xmlNode{epsilon} takes precedence.
+In this plot, normalization is used to compute epsilon boxes (so \xmlNode{epsilon} is interpreted in normalized objective space); \xmlNode{axisSpace} only controls how the axes are displayed.
+For improved readability when solutions occupy only a small region of the unit square, enable \xmlNode{autoLimits} (default) to zoom to the occupied region,
 or provide explicit \xmlNode{xlim}/\xmlNode{ylim}. The \xmlNode{aspect} option controls whether epsilon boxes are forced square (\xmlString{equal}) or allowed to stretch (\xmlString{auto}).
-When normalized objectives appear overly compressed (e.g., most points clustered near 0 or 1 due to outliers), use \xmlNode{normalize\_mode}=\xmlString{quantile}
-with \xmlNode{normalize\_quantiles} to scale using robust percentile bounds instead of raw min/max.
-If you prefer to label axes in the original objective units instead of \([0,1]\), set \xmlNode{axis\_space}=\xmlString{objective}. In this mode the epsilon grid and boxes
+When normalized objectives appear overly compressed (e.g., most points clustered near 0 or 1 due to outliers), use \xmlNode{normalizeMode}=\xmlString{quantile}
+with \xmlNode{normalizeQuantiles} to scale using robust percentile bounds instead of raw min/max.
+If you prefer to label axes in the original objective units instead of \([0,1]\), set \xmlNode{axisSpace}=\xmlString{objective}. In this mode the epsilon grid and boxes
 are still computed in normalized space but mapped back onto the objective axes for display.
-Note that objective axes can differ by orders of magnitude (e.g., efficiency vs cost); if \xmlNode{axis\_space}=\xmlString{objective} and \xmlNode{aspect} is not explicitly provided,
+Note that objective axes can differ by orders of magnitude (e.g., efficiency vs cost); if \xmlNode{axisSpace}=\xmlString{objective} and \xmlNode{aspect} is not explicitly provided,
 the plot defaults to \xmlNode{aspect}=\xmlString{auto} to avoid collapsing the visible plot area.
 If \xmlNode{aspect}=\xmlString{equal} is explicitly requested in objective space but the objective magnitudes are highly imbalanced, the plot will fall back to \xmlString{auto} and emit a warning.
 
 Optional nodes:
 \begin{itemize}
-  \item \xmlNode{include\_failed}, \xmlDesc{optional, boolean}, include samples marked failed in the source. Defaults to \xmlString{false} to prevent invalid sentinel values from distorting limits.
-  \item \xmlNode{layout\_top}, \xmlDesc{optional, float}, top boundary passed to matplotlib \texttt{tight\_layout(rect=...)}. Use values below 1.0 to leave additional headroom above the title (default 0.96).
-  \item \xmlNode{show\_info}, \xmlDesc{optional, boolean}, if \xmlString{true} (default) prints ``if-cues'' under the legend: a \emph{Good signs} box and a \emph{Needs attention} box with quick interpretation guidance (e.g., gaps in blue suggest under-exploration; many points in one box suggests epsilon too large).
-  \item \xmlNode{info\_fontsize}, \xmlDesc{optional, float}, font size for the if-cues boxes (default 9).
+  \item \xmlNode{includeFailed}, \xmlDesc{optional, boolean}, include samples marked failed in the source. Defaults to \xmlString{false} to prevent invalid sentinel values from distorting limits.
+  \item \xmlNode{layoutTop}, \xmlDesc{optional, float}, top boundary passed to matplotlib \texttt{tight\_layout(rect=...)}. Use values below 1.0 to leave additional headroom above the title (default 0.96).
+  \item \xmlNode{showInfo}, \xmlDesc{optional, boolean}, if \xmlString{true} (default) prints ``if-cues'' under the legend: a \emph{Good signs} box and a \emph{Needs attention} box with quick interpretation guidance (e.g., gaps in blue suggest under-exploration; many points in one box suggests epsilon too large).
+  \item \xmlNode{infoFontsize}, \xmlDesc{optional, float}, font size for the if-cues boxes (default 9).
   \item \xmlNode{constraints}, \xmlDesc{optional, list}, feasibility definition. Provide constraint columns explicitly, or use \xmlString{all} to include all \xmlString{ConstraintEvaluation\_*} columns (values \(\le 0\) are treated as violations).
   \item \xmlNode{goals}, \xmlDesc{optional, list}, objective directions \xmlString{min}/\xmlString{max}; used to convert objectives into a minimization space for epsilon boxing and dominance.
   \item \xmlNode{rank}, \xmlDesc{optional, integer}, filters samples to the specified Pareto rank before computing epsilon boxes.
-  \item \xmlNode{index}, \xmlDesc{optional, string}, generation identifier column; if present and \xmlNode{use\_all\_generations} is \xmlString{false}, uses the last generation unless \xmlNode{generation} is supplied.
+  \item \xmlNode{index}, \xmlDesc{optional, string}, generation identifier column; if present and \xmlNode{useAllGenerations} is \xmlString{false}, uses the last generation unless \xmlNode{generation} is supplied.
   \item \xmlNode{generation}, \xmlDesc{optional, float}, specific generation to plot when \xmlNode{index} is provided.
-  \item \xmlNode{use\_all\_generations}, \xmlDesc{optional, boolean}, when \xmlNode{index} is present, include all generations (default \xmlString{true}).
+  \item \xmlNode{useAllGenerations}, \xmlDesc{optional, boolean}, when \xmlNode{index} is present, include all generations (default \xmlString{true}).
   \item \xmlNode{normalize}, \xmlDesc{optional, boolean}, if \xmlString{true} (default) normalizes objectives to \([0,1]\) prior to epsilon boxing.
-  \item \xmlNode{normalize\_mode}, \xmlDesc{optional, string}, \xmlString{minmax} (default) or \xmlString{quantile}.
-  \item \xmlNode{normalize\_quantiles}, \xmlDesc{optional, list}, two quantiles (e.g., 0.02,0.98) used when \xmlNode{normalize\_mode}=\xmlString{quantile}; values are clipped to \([0,1]\) after scaling.
-  \item \xmlNode{search\_extent}, \xmlDesc{optional, integer}, sets epsilon as \(1/\)search\_extent and draws a search\_extent\(\times\)search\_extent grid in normalized space.
-  \item \xmlNode{epsilon}, \xmlDesc{optional, float}, epsilon size in normalized space (overrides \xmlNode{search\_extent}).
-  \item \xmlNode{show\_grid}, \xmlDesc{optional, boolean}, show epsilon grid lines (default \xmlString{true}).
-  \item \xmlNode{show\_boxes}, \xmlDesc{optional, boolean}, show highlighted epsilon boxes for epsilon-efficient representatives (default \xmlString{true}).
-  \item \xmlNode{show\_all}, \xmlDesc{optional, boolean}, show all samples (default \xmlString{true}).
-  \item \xmlNode{show\_infeasible}, \xmlDesc{optional, boolean}, mark infeasible samples with red \texttt{x} when \xmlNode{constraints} are provided (default \xmlString{true}).
-  \item \xmlNode{auto\_limits}, \xmlDesc{optional, boolean}, zoom axes to the occupied region plus padding (default \xmlString{true}).
-  \item \xmlNode{limits\_padding}, \xmlDesc{optional, float}, fractional padding around occupied region when \xmlNode{auto\_limits} is enabled.
+  \item \xmlNode{normalizeMode}, \xmlDesc{optional, string}, \xmlString{minmax} (default) or \xmlString{quantile}.
+  \item \xmlNode{normalizeQuantiles}, \xmlDesc{optional, list}, two quantiles (e.g., 0.02,0.98) used when \xmlNode{normalizeMode}=\xmlString{quantile}; values are clipped to \([0,1]\) after scaling.
+  \item \xmlNode{searchExtent}, \xmlDesc{optional, integer}, sets epsilon as \(1/\)searchExtent and draws a searchExtent\(\times\)searchExtent grid in normalized space.
+  \item \xmlNode{epsilon}, \xmlDesc{optional, float}, epsilon size in normalized space (overrides \xmlNode{searchExtent}).
+  \item \xmlNode{showGrid}, \xmlDesc{optional, boolean}, show epsilon grid lines (default \xmlString{true}).
+  \item \xmlNode{showBoxes}, \xmlDesc{optional, boolean}, show highlighted epsilon boxes for epsilon-efficient representatives (default \xmlString{true}).
+  \item \xmlNode{showAll}, \xmlDesc{optional, boolean}, show all samples (default \xmlString{true}).
+  \item \xmlNode{showInfeasible}, \xmlDesc{optional, boolean}, mark infeasible samples with red \texttt{x} when \xmlNode{constraints} are provided (default \xmlString{true}).
+  \item \xmlNode{autoLimits}, \xmlDesc{optional, boolean}, zoom axes to the occupied region plus padding (default \xmlString{true}).
+  \item \xmlNode{limitsPadding}, \xmlDesc{optional, float}, fractional padding around occupied region when \xmlNode{autoLimits} is enabled.
   \item \xmlNode{xlim}, \xmlDesc{optional, list}, explicit x-axis limits (two values) overriding auto limits.
   \item \xmlNode{ylim}, \xmlDesc{optional, list}, explicit y-axis limits (two values) overriding auto limits.
-  \item \xmlNode{aspect}, \xmlDesc{optional, string}, \xmlString{equal} or \xmlString{auto}; when \xmlNode{axis\_space}=\xmlString{objective} the default is \xmlString{auto} unless explicitly set.
-  \item \xmlNode{axis\_space}, \xmlDesc{optional, string}, \xmlString{normalized} (default) or \xmlString{objective}.
+  \item \xmlNode{aspect}, \xmlDesc{optional, string}, \xmlString{equal} or \xmlString{auto}; when \xmlNode{axisSpace}=\xmlString{objective} the default is \xmlString{auto} unless explicitly set.
+  \item \xmlNode{axisSpace}, \xmlDesc{optional, string}, \xmlString{normalized} (default) or \xmlString{objective}.
+\end{itemize}
+
+\subsubsection{AttainmentSurfacePlot}
+The \xmlString{AttainmentSurfacePlot} \xmlAttr{subType} plot: Estimate empirical attainment probabilities for objective pairs using multiple runs.
+
+The \xmlNode{AttainmentSurfacePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the SolutionExport DataObject containing samples from one or more runs.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Objective columns to evaluate. If more than two are provided, all pairwise combinations are plotted in a shared figure.
+  \item \xmlNode{runId}, \xmlDesc{string}, Optional column that distinguishes independent optimisation runs.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId). If provided, only the last generation per run is considered unless \xmlNode{generation} is supplied.
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} is supplied, optional explicit generation to analyse.
+  \item \xmlNode{levels}, \xmlDesc{comma-separated floats}, Optional probability contour levels (0-1). Defaults to 0.25,0.5,0.75.
+  \item \xmlNode{gridSize}, \xmlDesc{integer}, Resolution of the attainment grid per axis (default 80).
+\end{itemize}
+
+\subsubsection{BubbleTradeoffPlot}
+The \xmlString{BubbleTradeoffPlot} \xmlAttr{subType} plot: Render a two-objective trade-off scatter in which each sample's bubble area represents an additional metric (for example, constraint slack or a third objective).
+
+The \xmlNode{BubbleTradeoffPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the SolutionExport DataObject produced by the optimizer.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Two or three objective variable names to use for the scatter axes. Three objectives trigger a 3D scatter view.
+  \item \xmlNode{size}, \xmlDesc{string}, Variable whose magnitude should be mapped to bubble size.
+  \item \xmlNode{color}, \xmlDesc{string}, Optional variable used to color points (numeric or named colors).
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId). If provided, the plot uses the maximum value observed unless \xmlNode{generation} is also supplied.
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} is provided, optional explicit generation value to display.
+  \item \xmlNode{sizeBounds}, \xmlDesc{comma-separated floats}, Optional minimum and maximum marker areas (in points\textasciicircum{}2). Defaults to 50,500.
+  \item \xmlNode{normalize}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true (default) bubble areas are normalized between the provided \xmlNode{sizeBounds}.
+  \item \xmlNode{viewAngles}, \xmlDesc{comma-separated floats}, Optional elevation and azimuth (degrees) for 3D mode. Defaults to 25,-60.
+\end{itemize}
+
+\subsubsection{ChordDiagramPlot}
+The \xmlString{ChordDiagramPlot} \xmlAttr{subType} plot: Draw a chord diagram to highlight variable associations. Adjust filters or thresholds to perform what-if studies---e.g., raising \xmlNode{threshold} to show only the strongest correlations after a design change surfaces different couplings in the population.
+
+The \xmlNode{ChordDiagramPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject providing the samples.
+  \item \xmlNode{variables}, \xmlDesc{comma-separated strings}, Variables to include in the chord diagram (at least three).
+  \item \xmlNode{metric}, \xmlDesc{string}, Association metric: "pearson" (default) or "spearman".
+  \item \xmlNode{threshold}, \xmlDesc{float}, Minimum absolute association strength to draw a chord (default 0.3).
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} present, restrict to a specific generation.
+\end{itemize}
+
+\subsubsection{ConstraintActivityTimelinePlot}
+The \xmlString{ConstraintActivityTimelinePlot} \xmlAttr{subType} plot: Animated constraint violation timelines with one subplot per constraint.
+
+The \xmlNode{ConstraintActivityTimelinePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional list of constraint evaluation columns (values \textless{}= 0 indicate violation). Use "all" or omit this node to include every column named like ConstraintEvaluation\_*.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
+  \item \xmlNode{maxFrames}, \xmlDesc{integer}, Optional cap on the number of generations rendered. Defaults to min(total generations, 20).
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for the generated animations. Defaults to 2.
+  \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves sampled generations as standalone PNG frames alongside the animation outputs.
+  \item \xmlNode{framesMax}, \xmlDesc{integer}, Maximum number of PNG frames to save when \xmlNode{saveFrames} is true. Defaults to 10; generations are sampled evenly.
+  \item \xmlNode{generations}, \xmlDesc{comma-separated strings}, Optional list of specific generations (batch ids) to render, overriding the even-sampling cap. When omitted, the plotter shows an evenly-spaced overview limited by \xmlNode{maxFrames} (and, for saved PNGs, \xmlNode{framesMax}). Provide any mix of comma-separated tokens: an explicit generation id (e.g. "5"), the keywords "first" or "last", or an inclusive range "start:stop" / "start:stop:step" over generation ids (e.g. "0:20:5"). Requested generations that are not present in the data raise an error. Use this to compare specific generations side-by-side without emitting hundreds of frames.
+\end{itemize}
+
+\subsubsection{ConstraintViolationHeatmapPlot}
+The \xmlString{ConstraintViolationHeatmapPlot} \xmlAttr{subType} plot: Heatmap showing average constraint violation magnitude across a 2D variable grid.
+
+The \xmlNode{ConstraintViolationHeatmapPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional list of constraint evaluation columns (values \textless{}= 0 mean violation). Defaults to all columns starting with ConstraintEvaluation\_.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} supplied, optionally select a specific generation to plot.
+  \item \xmlNode{bins}, \xmlDesc{integer}, Number of bins per axis (default 40).
+\end{itemize}
+
+\subsubsection{DecisionObjectiveMappingPlot}
+The \xmlString{DecisionObjectiveMappingPlot} \xmlAttr{subType} plot: Side-by-side decision/objective scatter with optional linking lines.
+
+The \xmlNode{DecisionObjectiveMappingPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject to plot.
+  \item \xmlNode{decisions}, \xmlDesc{comma-separated strings}, Exactly two decision-variable names (x-axis, y-axis) for decision space.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Exactly two objective names (x-axis, y-axis) for objective space.
+  \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional constraint evaluation columns used to define feasibility. Values \textgreater{} 0 are feasible; values \textless{}= 0 indicate violation. Use "all" to include every column named ConstraintEvaluation\_*.
+  \item \xmlNode{rank}, \xmlDesc{integer}, Optional Pareto rank to filter on if a 'rank' column exists (default: no filtering).
+  \item \xmlNode{maxPoints}, \xmlDesc{integer}, Maximum number of points to display and (if enabled) link. Default 250.
+  \item \xmlNode{drawLinks}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, draw linking segments for displayed points. Default true.
+  \item \xmlNode{linkAlpha}, \xmlDesc{float}, Alpha for linking segments. Default 0.15.
+  \item \xmlNode{boundaryAll}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, draw a 2D envelope (convex hull) around all displayed samples in both panels. Default false.
+  \item \xmlNode{boundaryAllFill}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, fill the all-sample envelope with \xmlNode{boundaryAllAlpha}. Default true.
+  \item \xmlNode{boundaryInfeasible}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true and \xmlNode{constraints} are provided, draw a 2D envelope (convex hull) around infeasible samples. Default false.
+  \item \xmlNode{boundarySmoothIters}, \xmlDesc{integer}, Optional number of smoothing iterations applied to hull polygons (Chaikin). Default 2.
+  \item \xmlNode{boundaryAllColor}, \xmlDesc{string}, Color for the all-sample envelope outline/fill (default '\#1565c0').
+  \item \xmlNode{boundaryInfeasibleColor}, \xmlDesc{string}, Color for the infeasible envelope outline (default '\#616161').
+  \item \xmlNode{boundaryAllAlpha}, \xmlDesc{float}, Fill alpha for the all-sample envelope (default 0.10).
+  \item \xmlNode{boundaryLinewidth}, \xmlDesc{float}, Outline linewidth for envelopes (default 2.0).
+  \item \xmlNode{legendY}, \xmlDesc{float}, Vertical placement of the shared legend (figure coordinates). Default 1.02.
+\end{itemize}
+
+\subsubsection{DiversityRadarPlot}
+The \xmlString{DiversityRadarPlot} \xmlAttr{subType} plot: Animated radar visual of crowding-distance quantiles across generations.
+
+The \xmlNode{DiversityRadarPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
+  \item \xmlNode{metric}, \xmlDesc{string}, Column to analyse for diversity. Defaults to CD (crowding distance).
+  \item \xmlNode{quantiles}, \xmlDesc{comma-separated floats}, Quantiles (0-1) to display on the radar chart. Defaults to 0.1,0.25,0.5,0.75,0.9.
+  \item \xmlNode{maxFrames}, \xmlDesc{integer}, Optional cap on the number of generations rendered. Defaults to min(total generations, 10).
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for generated animations. Defaults to 2.
+  \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves sampled generations as standalone PNG frames alongside the animation outputs.
+  \item \xmlNode{framesMax}, \xmlDesc{integer}, Maximum number of PNG frames to save when \xmlNode{saveFrames} is true. Defaults to 10; generations are sampled evenly.
+  \item \xmlNode{generations}, \xmlDesc{comma-separated strings}, Optional list of specific generations (batch ids) to render, overriding the even-sampling cap. When omitted, the plotter shows an evenly-spaced overview limited by \xmlNode{maxFrames} (and, for saved PNGs, \xmlNode{framesMax}). Provide any mix of comma-separated tokens: an explicit generation id (e.g. "5"), the keywords "first" or "last", or an inclusive range "start:stop" / "start:stop:step" over generation ids (e.g. "0:20:5"). Requested generations that are not present in the data raise an error. Use this to compare specific generations side-by-side without emitting hundreds of frames.
+\end{itemize}
+
+\subsubsection{DominanceHeatMapPlot}
+The \xmlString{DominanceHeatMapPlot} \xmlAttr{subType} plot: Generates a 2D heatmap comparing dominated and non-dominated samples of the final population.
+
+The \xmlNode{DominanceHeatMapPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Exactly two objective columns to visualize in the heatmap.
+  \item \xmlNode{index}, \xmlDesc{string}, Name of the generation identifier column (e.g., batchId).
+  \item \xmlNode{bins}, \xmlDesc{integer}, Number of bins per objective axis (default 40).
+\end{itemize}
+
+\subsubsection{FeasibleRegionObjectiveContourPlot}
+The \xmlString{FeasibleRegionObjectiveContourPlot} \xmlAttr{subType} plot: Builds 3-D surfaces from scattered samples and overlays feasibility + contour projections.
+
+The \xmlNode{FeasibleRegionObjectiveContourPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{surfaces}, \xmlDesc{comma-separated strings}, List of variables to render as 3-D surfaces (e.g., objectives and/or constraint evaluations). One variable -\textgreater{} single panel; four variables -\textgreater{} 2x2 panels.
+  \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional constraint evaluation columns used to define feasibility and boundary lines. Values \textgreater{} 0 are feasible; values \textless{}= 0 indicate violation. Use "all" to include every column named ConstraintEvaluation\_*.
+  \item \xmlNode{rank}, \xmlDesc{integer}, Pareto rank to display as projected points. Defaults to 1.
+  \item \xmlNode{levels}, \xmlDesc{integer}, Number of contour levels to project onto the base plane (default 12).
+  \item \xmlNode{elev}, \xmlDesc{float}, 3-D camera elevation angle (default 25).
+  \item \xmlNode{azim}, \xmlDesc{float}, 3-D camera azimuth angle (default -60).
+  \item \xmlNode{basePlane}, \xmlDesc{float}, Optional z-offset to use for the base plane. If omitted, computed per panel.
+\end{itemize}
+
+\subsubsection{FitnessFunnelPlot}
+The \xmlString{FitnessFunnelPlot} \xmlAttr{subType} plot: Static line/scatter plot summarising best and mean fitness per generation.
+
+The \xmlNode{FitnessFunnelPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
+  \item \xmlNode{metric}, \xmlDesc{comma-separated strings}, One or more columns containing the objective/fitness values to evaluate. When more than one is given, the plot renders one funnel subplot per column (e.g., two objectives produce two stacked subplots); a single column reproduces the classic single-objective funnel.
+  \item \xmlNode{goal}, \xmlDesc{comma-separated strings}, Optimisation goal per \xmlNode{metric}: "min" (default) or "max". Provide either one value (applied to every metric) or one value per metric, in the same order as \xmlNode{metric}.
+  \item \xmlNode{maxPerFigure}, \xmlDesc{integer}, Maximum number of per-metric funnel panels drawn in a single figure (default 4). When the number of metrics exceeds this cap, the panels are split evenly across multiple figures (e.g., 6 metrics -\textgreater{} two figures of 3, 9 -\textgreater{} three of 3, 12 -\textgreater{} three of 4) so panels stay legible for high-objective problems. Within a figure, up to three panels stack in a single column (sharing the generation axis) and four use a 2x2 grid. A single figure is written as "\xmlNode{name}.png"; multiple figures are written as "\xmlNode{name}\_p01.png", "\xmlNode{name}\_p02.png", ...
+\end{itemize}
+
+\subsubsection{GlyphRadarPlot}
+The \xmlString{GlyphRadarPlot} \xmlAttr{subType} plot: Plot selected samples as radar glyphs. Adjust \xmlNode{select} filters or choose different ranking metrics to explore what-if scenarios---for example, how the glyph profiles evolve when the optimiser prioritises another objective or when you compare early vs late-generation candidates.
+
+The \xmlNode{GlyphRadarPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject providing samples for glyphs.
+  \item \xmlNode{variables}, \xmlDesc{comma-separated strings}, Variables to include on each glyph (at least three).
+  \item \xmlNode{select}, \xmlDesc{string}, Selection strategy: - "top": best samples by \xmlNode{metric} (or first rows if no metric) - "random": random selection (deterministic seed) - "leaders": prefer one representative per generation, earliest-to-latest - "diverse": greedy farthest-point selection to maximize diversity in variable space Default is "top".
+  \item \xmlNode{count}, \xmlDesc{integer}, Number of samples to display (default 6).
+  \item \xmlNode{label}, \xmlDesc{string}, Optional label column for the glyph titles.
+  \item \xmlNode{metric}, \xmlDesc{string}, Optional numeric column used to order samples when select="top".
+  \item \xmlNode{metricGoal}, \xmlDesc{string}, When \xmlNode{metric} is provided, interpret it as "min" (default) or "max" for ordering.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} present, restrict to a specific generation.
+  \item \xmlNode{scale}, \xmlDesc{string}, Min-max scaling reference for glyph axes. Options: - selected (default): scale each variable using only the selected samples - population: scale using the full filtered population (can highlight small differences).
+  \item \xmlNode{deduplicate}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true (default), do not repeat the same solution more than once. Solutions are compared using the plotted \xmlNode{variables} and \xmlNode{deduplicateTol}. When select="leaders", if the generation-best solution was already seen, the next-best in that generation is chosen.
+  \item \xmlNode{deduplicateTol}, \xmlDesc{float}, Absolute tolerance used when identifying duplicate solutions in variable space (default 1e-9).
+  \item \xmlNode{labelFirstSeen}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true (default), include a "first seen" generation label when \xmlNode{index} is provided.
+\end{itemize}
+
+\subsubsection{HypervolumeMoviePlot}
+The \xmlString{HypervolumeMoviePlot} \xmlAttr{subType} plot: Animated hypervolume progression (gif/html) for multi-objective optimizers.
+
+The \xmlNode{HypervolumeMoviePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Ordered list of objective columns (minimized). Two objectives render a single curve; three objectives compute a true 3D hypervolume curve; more than three objectives fall back to animating all pairwise combinations.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
+  \item \xmlNode{referencePoint}, \xmlDesc{comma-separated strings}, Optional reference point for hypervolume computation. If omitted, the plot uses max objective values (+5\%\%).
+  \item \xmlNode{maxFrames}, \xmlDesc{integer}, Optional cap on the number of generations rendered. Defaults to min(total generations, 20).
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for the generated animations. Defaults to 2.
+  \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves sampled generations as standalone PNG frames alongside the animation outputs.
+  \item \xmlNode{framesMax}, \xmlDesc{integer}, Maximum number of PNG frames to save when \xmlNode{saveFrames} is true. Defaults to 10; generations are sampled evenly.
+  \item \xmlNode{generations}, \xmlDesc{comma-separated strings}, Optional list of specific generations (batch ids) to render, overriding the even-sampling cap. When omitted, the plotter shows an evenly-spaced overview limited by \xmlNode{maxFrames} (and, for saved PNGs, \xmlNode{framesMax}). Provide any mix of comma-separated tokens: an explicit generation id (e.g. "5"), the keywords "first" or "last", or an inclusive range "start:stop" / "start:stop:step" over generation ids (e.g. "0:20:5"). Requested generations that are not present in the data raise an error. Use this to compare specific generations side-by-side without emitting hundreds of frames.
+\end{itemize}
+
+\subsubsection{MultiRunUncertaintyPlot}
+The \xmlString{MultiRunUncertaintyPlot} \xmlAttr{subType} plot: Aggregate repeated runs by generation and display mean plus confidence band.
+
+The \xmlNode{MultiRunUncertaintyPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the SolutionExport DataObject containing samples from multiple runs.
+  \item \xmlNode{runId}, \xmlDesc{string}, Column identifying independent runs. If omitted, all samples treated as one run.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
+  \item \xmlNode{metric}, \xmlDesc{string}, Objective or metric column to summarise.
+  \item \xmlNode{quantiles}, \xmlDesc{comma-separated floats}, Optional lower and upper quantiles for shading (default 0.1,0.9).
+  \item \xmlNode{goal}, \xmlDesc{string}, Optional goal ('min' or 'max') to annotate best-so-far trajectory.
+\end{itemize}
+
+\subsubsection{NSGACrowdingDistancePlot}
+The \xmlString{NSGACrowdingDistancePlot} \xmlAttr{subType} plot: Tracks distribution statistics for the crowding distance metric across generations.
+
+The \xmlNode{NSGACrowdingDistancePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the SolutionExport DataObject.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier (typically batchId).
+  \item \xmlNode{percentiles}, \xmlDesc{comma-separated strings}, Optional list of percentile strings (0-100) to report. Defaults to 10,50,90.
+\end{itemize}
+
+\subsubsection{NSGAFrontAnimation}
+The \xmlString{NSGAFrontAnimation} \xmlAttr{subType} plot: Produces a GIF showing how the Pareto front evolves across generations.
+
+The \xmlNode{NSGAFrontAnimation} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Two objective names describing the axes of the scatter plot.
+  \item \xmlNode{index}, \xmlDesc{string}, Name of the variable containing the generation identifier (typically batchId).
+  \item \xmlNode{rank}, \xmlDesc{integer}, Pareto rank to display. Defaults to 1.
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second to use for the animation GIF. Defaults to 2.
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif" (default) or "html" for an interactive animation with play/pause controls.
+\end{itemize}
+
+\subsubsection{NSGAFrontRankAnimation}
+The \xmlString{NSGAFrontRankAnimation} \xmlAttr{subType} plot: Visualizes the evolution of all Pareto fronts coloured by rank, with per-frame annotations.
+
+The \xmlNode{NSGAFrontRankAnimation} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Two objective names to use for the scatter plot axes.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier (e.g., batchId).
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for the animation. Defaults to 2.
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif" (default) or "html".
+\end{itemize}
+
+\subsubsection{NSGAParetoFrontPlot}
+The \xmlString{NSGAParetoFrontPlot} \xmlAttr{subType} plot: Static scatter plot of the dominant (rank-1) Pareto front.
+
+The \xmlNode{NSGAParetoFrontPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the SolutionExport DataObject produced by the optimizer.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, List of objective variables to plot. Two objectives renders a 2D scatter while three objectives renders a 3D scatter. More than three objectives are not supported.
+  \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional list of constraint evaluation columns. Values \textgreater{} 0 are treated as feasible; values \textless{}= 0 indicate violation. Use "all" to include every column named ConstraintEvaluation\_*.
+  \item \xmlNode{color}, \xmlDesc{string}, Optional variable used to color points. Defaults to crowding distance if available.
+  \item \xmlNode{colorMode}, \xmlDesc{string}, How to color highlighted points. Options: "variable" (default, uses \xmlNode{color} or CD), "violation" (total constraint violation magnitude), or "none".
+  \item \xmlNode{violationMetric}, \xmlDesc{string}, When \xmlNode{colorMode} is "violation", reduce multiple constraints into a scalar using: "sum" (default), "max", or "l2".
+  \item \xmlNode{infeasibleStyle}, \xmlDesc{string}, How to render infeasible points when \xmlNode{constraints} are provided. Options: "fade" (default), "cross", or "hide".
+  \item \xmlNode{showAll}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, also draws non-highlighted samples (e.g., ranks != \xmlNode{rank}) in the background.
+  \item \xmlNode{activeConstraints}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, draws a red outline around feasible points that are near-active for any constraint.
+  \item \xmlNode{activeTol}, \xmlDesc{float}, Threshold for "near-active" constraints (default 1e-3). A constraint is considered active when 0 \textless{} ConstraintEvaluation\_* \textless{}= activeTol.
+  \item \xmlNode{cmap}, \xmlDesc{string}, Matplotlib colormap name used for numeric \xmlNode{colorMode} (default viridis).
+  \item \xmlNode{rank}, \xmlDesc{integer}, Pareto rank to display. Defaults to 1 (non-dominated front).
+\end{itemize}
+
+\subsubsection{NSGARankHistoryPlot}
+The \xmlString{NSGARankHistoryPlot} \xmlAttr{subType} plot: Visualizes the fraction of the population belonging to each Pareto rank over time.
+
+The \xmlNode{NSGARankHistoryPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the SolutionExport DataObject.
+  \item \xmlNode{index}, \xmlDesc{string}, Variable denoting the generation identifier (e.g., batchId).
+  \item \xmlNode{normalize}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true (default) plot rank proportions, otherwise plot absolute counts.
+\end{itemize}
+
+\subsubsection{ObjectiveContourAnimationPlot}
+The \xmlString{ObjectiveContourAnimationPlot} \xmlAttr{subType} plot: Draws optimizer populations over concentric contour lines of equal combined objective value. Points animate across generations with colors indicating relative quality.
+
+The \xmlNode{ObjectiveContourAnimationPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objective}, \xmlDesc{string}, Name of the metric column defining contour levels (or "all" to render each objective column separately). Optional attribute type="fitness" treats it as a maximized fitness value.
+  \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional list of constraint evaluation columns (e.g., ConstraintEvaluation\_constraint1). Values \textgreater{} 0 are considered feasible; values \textless{}= 0 indicate constraint violation.
+  \item \xmlNode{index}, \xmlDesc{string}, Name of the generation identifier (e.g., batchId).
+  \item \xmlNode{top}, \xmlDesc{float}, Highlight threshold. Values \textgreater{}1 indicate a count; values in (0,1] indicate a population fraction. Defaults to 0.2 (20\%\%).
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for generated animations. Defaults to 2.
+  \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves each generation as a standalone PNG frame alongside the animation outputs.
+  \item \xmlNode{view}, \xmlDesc{string}, Optional legacy flag; values "2d", "3d", or "both" are accepted but the plot currently renders only the 2-D contour.
+  \item \xmlNode{surface}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, Legacy flag; retained for compatibility but currently ignored (only the 2-D contour is rendered).
+  \item \xmlNode{framesMax}, \xmlDesc{integer}, Maximum number of PNG frames to save when \xmlNode{saveFrames} is true. Defaults to 10; frames are sampled evenly across generations.
+  \item \xmlNode{showHistory}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, retain points from earlier generations as muted grey markers to visualize exploration history.
+  \item \xmlNode{historyAlpha}, \xmlDesc{float}, Alpha value in [0, 1] applied to history markers when \xmlNode{showHistory} is true. Defaults to 0.15.
+  \item \xmlNode{historyColor}, \xmlDesc{string}, Matplotlib-compatible color for history markers when \xmlNode{showHistory} is true. Defaults to a neutral grey.
+  \item \xmlNode{infeasibleColor}, \xmlDesc{string}, Optional override for the infeasible sample color. When \xmlNode{showHistory} is true, the default becomes orange unless overridden here.
+  \item \xmlNode{displayFraction}, \xmlDesc{float}, Optional fraction (0-1] of each generation's population to plot when the population exceeds \xmlNode{displayThreshold}. Defaults to 1.0 (show all).
+  \item \xmlNode{displayThreshold}, \xmlDesc{integer}, Population size above which \xmlNode{displayFraction} filtering activates. Defaults to 20.
+  \item \xmlNode{generations}, \xmlDesc{comma-separated strings}, Optional list of specific generations (batch ids) to render, overriding the even-sampling cap. When omitted, the plotter shows an evenly-spaced overview limited by \xmlNode{maxFrames} (and, for saved PNGs, \xmlNode{framesMax}). Provide any mix of comma-separated tokens: an explicit generation id (e.g. "5"), the keywords "first" or "last", or an inclusive range "start:stop" / "start:stop:step" over generation ids (e.g. "0:20:5"). Requested generations that are not present in the data raise an error. Use this to compare specific generations side-by-side without emitting hundreds of frames.
+\end{itemize}
+
+\subsubsection{ParetoDiagnosticsPlot}
+The \xmlString{ParetoDiagnosticsPlot} \xmlAttr{subType} plot: Generates line plots of hypervolume and dominance statistics across generations. Currently supports two-objective problems.
+
+The \xmlNode{ParetoDiagnosticsPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Ordered list of objective columns (exactly two are currently supported).
+  \item \xmlNode{index}, \xmlDesc{string}, Name of the generation identifier column (e.g., batchId).
+  \item \xmlNode{space}, \xmlDesc{string}, Which columns define the Pareto space and hypervolume computation. Options: - objective (default): use the columns named in \xmlNode{objectives}. - fitness: use FitnessEvaluation\_\textless{}objective\textgreater{} columns (and convert to a minimization space). Note: Hypervolume is always computed on a minimization representation.
+  \item \xmlNode{goals}, \xmlDesc{comma-separated strings}, Optional list of goal directions for each objective when \xmlNode{space} is 'objective'. Provide as 'min,max' or 'min max'. Length must match \xmlNode{objectives}. If omitted, assumes all objectives are minimized.
+  \item \xmlNode{referencePoint}, \xmlDesc{comma-separated strings}, Optional comma-separated reference point used for hypervolume computation, expressed in the same space as selected by \xmlNode{space}. If omitted, the plot auto-selects a conservative (worse-than-observed) reference point consistent with the minimization representation used for hypervolume: - for minimized objectives: max(value) + margin - for maximized objectives: min(value) - margin - for fitness space (larger is better): min(fitness) - margin
+\end{itemize}
+
+\subsubsection{ParetoSurfacePlot}
+The \xmlString{ParetoSurfacePlot} \xmlAttr{subType} plot: Triangulated surface + scatter for three objectives.
+
+The \xmlNode{ParetoSurfacePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Exactly three objective variables to plot as (x, y, z).
+  \item \xmlNode{constraints}, \xmlDesc{comma-separated strings}, Optional constraint evaluation columns used to define feasibility. Values \textgreater{} 0 are feasible; values \textless{}= 0 indicate violation. Use "all" to include every column named ConstraintEvaluation\_*.
+  \item \xmlNode{rank}, \xmlDesc{integer}, Pareto rank to display (default 1).
+  \item \xmlNode{elev}, \xmlDesc{float}, 3-D camera elevation angle (default 25).
+  \item \xmlNode{azim}, \xmlDesc{float}, 3-D camera azimuth angle (default -60).
+  \item \xmlNode{alpha}, \xmlDesc{float}, Surface alpha (default 0.35).
+  \item \xmlNode{cmap}, \xmlDesc{string}, Matplotlib colormap name (default viridis).
+\end{itemize}
+
+\subsubsection{PreferenceSweepAnimationPlot}
+The \xmlString{PreferenceSweepAnimationPlot} \xmlAttr{subType} plot: Sweep preference weights between two objectives and highlight the incumbent best solution. Use the produced GIF/HTML frames to answer what-if scenarios such as how the preferred design changes when stakeholders gradually shift emphasis from one criterion to the other or when weights are pinned to a specific value of interest.
+
+The \xmlNode{PreferenceSweepAnimationPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Exactly two objective columns to evaluate under weighted preference.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} supplied, reduce the animation to a specific generation.
+  \item \xmlNode{rank}, \xmlDesc{integer}, Optional Pareto rank filter (e.g., 1 to consider only nondominated points).
+  \item \xmlNode{space}, \xmlDesc{string}, Which columns define the preference space. Options: - objective (default): use the columns named in \xmlNode{objectives}. - fitness: use FitnessEvaluation\_\textless{}objective\textgreater{} columns. Note: preference selection is performed on a minimization representation.
+  \item \xmlNode{goals}, \xmlDesc{comma-separated strings}, Optional list of goal directions for each objective when \xmlNode{space} is 'objective'. Provide as 'min,max' or 'min max'. Length must match \xmlNode{objectives}. If omitted, assumes all objectives are minimized.
+  \item \xmlNode{normalize}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true (default), min-max normalizes objectives before applying preference weights.
+  \item \xmlNode{frames}, \xmlDesc{integer}, Number of preference weights to sweep across (default 15).
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for the produced animation (default 2).
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combination.
+  \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves selected preference frames as PNG images alongside the animation.
+  \item \xmlNode{framesMax}, \xmlDesc{integer}, Maximum number of PNG frames to save when \xmlNode{saveFrames} is true (default 10).
+\end{itemize}
+
+\subsubsection{RadvizEmbeddingPlot}
+The \xmlString{RadvizEmbeddingPlot} \xmlAttr{subType} plot: Project multiple variables onto a Radviz embedding to inspect high-dimensional trade-offs. Supports what-if exploration by switching generations or colour labels to compare how candidate sets re-balance when objectives or constraints shift.
+
+The \xmlNode{RadvizEmbeddingPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject providing the samples to visualise.
+  \item \xmlNode{variables}, \xmlDesc{comma-separated strings}, List of variables (at least three) used for the Radviz embedding.
+  \item \xmlNode{label}, \xmlDesc{string}, Optional column used to colour samples (categorical or numeric).
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} is provided, limits the plot to a specific generation.
+\end{itemize}
+
+\subsubsection{ResponseSurfaceOverlayPlot}
+The \xmlString{ResponseSurfaceOverlayPlot} \xmlAttr{subType} plot: Construct a contour map of an objective (or metric) across two variables and overlay sampled points.
+
+The \xmlNode{ResponseSurfaceOverlayPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{response}, \xmlDesc{string}, Objective or metric column to contour.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} provided, optionally select a specific generation.
+  \item \xmlNode{levels}, \xmlDesc{integer}, Number of contour levels (default 12).
+  \item \xmlNode{cmap}, \xmlDesc{string}, Matplotlib colormap name (default viridis).
+\end{itemize}
+
+\subsubsection{SamplingCoverageMapPlot}
+The \xmlString{SamplingCoverageMapPlot} \xmlAttr{subType} plot: Animated 2D density map coupled with scatter samples across generations.
+
+The \xmlNode{SamplingCoverageMapPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
+  \item \xmlNode{variables}, \xmlDesc{comma-separated strings}, Two spatial variables to monitor for coverage.
+  \item \xmlNode{bins}, \xmlDesc{integer}, Number of histogram bins per axis (default 40).
+  \item \xmlNode{maxFrames}, \xmlDesc{integer}, Optional cap on the number of generations rendered. Defaults to min(total generations, 10).
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for generated animations. Defaults to 2.
+  \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves sampled generations as standalone PNG frames alongside the animation outputs.
+  \item \xmlNode{framesMax}, \xmlDesc{integer}, Maximum number of PNG frames to save when \xmlNode{saveFrames} is true. Defaults to 10; generations are sampled evenly.
+  \item \xmlNode{generations}, \xmlDesc{comma-separated strings}, Optional list of specific generations (batch ids) to render, overriding the even-sampling cap. When omitted, the plotter shows an evenly-spaced overview limited by \xmlNode{maxFrames} (and, for saved PNGs, \xmlNode{framesMax}). Provide any mix of comma-separated tokens: an explicit generation id (e.g. "5"), the keywords "first" or "last", or an inclusive range "start:stop" / "start:stop:step" over generation ids (e.g. "0:20:5"). Requested generations that are not present in the data raise an error. Use this to compare specific generations side-by-side without emitting hundreds of frames.
+\end{itemize}
+
+\subsubsection{SelfOrganizingMapPlot}
+The \xmlString{SelfOrganizingMapPlot} \xmlAttr{subType} plot: Project samples onto a 2-D self-organising map lattice. Toggle generation filters or colour variables to investigate what-if scenarios: how the map occupancy changes if you emphasise a different objective, or how constraint handling shifts the clusters that survive to the final iteration.
+
+The \xmlNode{SelfOrganizingMapPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject providing the samples to train on.
+  \item \xmlNode{variables}, \xmlDesc{comma-separated strings}, List of variables to feed the SOM (at least two).
+  \item \xmlNode{grid}, \xmlDesc{string}, Grid shape "rows,cols" for the SOM lattice (default 10,10).
+  \item \xmlNode{iterations}, \xmlDesc{integer}, Number of training iterations (default 500).
+  \item \xmlNode{color}, \xmlDesc{string}, Optional variable whose mean per node controls colour.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} present, restrict to a specific generation.
+  \item \xmlNode{seed}, \xmlDesc{integer}, Random seed for reproducible map initialisation.
+\end{itemize}
+
+\subsubsection{StarCoordinatesPlot}
+The \xmlString{StarCoordinatesPlot} \xmlAttr{subType} plot: Render multi-dimensional samples in a star coordinates layout. Adjust the \xmlNode{index}/\xmlNode{generation} filters or colour labels to explore what-if scenarios where objective priorities or constraint handling shift, and the population migrates along different rays.
+
+The \xmlNode{StarCoordinatesPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject providing the samples.
+  \item \xmlNode{variables}, \xmlDesc{comma-separated strings}, List of variables to project (at least three).
+  \item \xmlNode{label}, \xmlDesc{string}, Optional column used to colour the samples.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier column (e.g., batchId).
+  \item \xmlNode{generation}, \xmlDesc{float}, When \xmlNode{index} present, restrict to a specific generation.
+  \item \xmlNode{normalize}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true (default), min-max normalise each variable before projection.
+\end{itemize}
+
+\subsubsection{ThreeDConePlot}
+The \xmlString{ThreeDConePlot} \xmlAttr{subType} plot: Render cones from an apex toward top-performing samples to highlight their dominance/coverage directions in the three-objective space.
+
+The \xmlNode{ThreeDConePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject containing objective evaluations.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Exactly three objective variable names used as X/Y/Z axes.
+  \item \xmlNode{index}, \xmlDesc{string}, Optional generation identifier used to pick the final generation.
+  \item \xmlNode{generation}, \xmlDesc{float}, Optional explicit generation value. Defaults to the maximum \xmlNode{index}.
+  \item \xmlNode{rank}, \xmlDesc{integer}, Optional rank filter before selecting cones (e.g., 1).
+  \item \xmlNode{metric}, \xmlDesc{string}, Optional variable used to sort cones (descending). Defaults to vector norm.
+  \item \xmlNode{topK}, \xmlDesc{integer}, Number of cones to draw (default 8).
+  \item \xmlNode{apex}, \xmlDesc{comma-separated floats}, Optional apex coordinates (three floats). Defaults to the origin.
+  \item \xmlNode{angle}, \xmlDesc{float}, Cone half-angle in degrees (default 12).
+  \item \xmlNode{heightScale}, \xmlDesc{float}, Scalar applied to each cone height (default 1.0).
+  \item \xmlNode{viewAngles}, \xmlDesc{comma-separated floats}, Optional elevation and azimuth (degrees).
+\end{itemize}
+
+\subsubsection{ThreeDTubePlot}
+The \xmlString{ThreeDTubePlot} \xmlAttr{subType} plot: Selects a representative point per generation and renders a thick path (tube) through the three-objective space to convey convergence trends.
+
+The \xmlNode{ThreeDTubePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the history DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Exactly three objective variable names used as X/Y/Z axes.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column used to order the path.
+  \item \xmlNode{rank}, \xmlDesc{integer}, Optional rank filter applied before selecting the generation representative.
+  \item \xmlNode{selectionMetric}, \xmlDesc{string}, Optional variable whose minimum determines the representative sample per generation. Defaults to sum(objectives).
+  \item \xmlNode{lineWidth}, \xmlDesc{float}, Base line width for the tube (default 3.0).
+  \item \xmlNode{maxPoints}, \xmlDesc{integer}, Optional cap on how many points to retain along the path (default 200).
+  \item \xmlNode{viewAngles}, \xmlDesc{comma-separated floats}, Optional elevation and azimuth (degrees).
+\end{itemize}
+
+\subsubsection{ThreeDVectorPlot}
+The \xmlString{ThreeDVectorPlot} \xmlAttr{subType} plot: Aggregate consecutive generations into a centroid trajectory and visualize the direction of travel as 3D arrows.
+
+The \xmlNode{ThreeDVectorPlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the DataObject produced by the optimizer history export.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, Exactly three objective variable names used as X/Y/Z axes.
+  \item \xmlNode{index}, \xmlDesc{string}, Monotonic generation identifier (e.g., batchId).
+  \item \xmlNode{rank}, \xmlDesc{integer}, Optional integer Rank filter (e.g., 1 for Pareto front).
+  \item \xmlNode{maxVectors}, \xmlDesc{integer}, Optional cap on how many arrows to draw (default 50).
+  \item \xmlNode{normalizeVectors}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true (default), normalize arrow direction before scaling by \xmlNode{scale}.
+  \item \xmlNode{scale}, \xmlDesc{float}, Length scaling factor applied after normalization (default 1.0).
+  \item \xmlNode{viewAngles}, \xmlDesc{comma-separated floats}, Optional elevation and azimuth (degrees) for the 3D camera view.
+\end{itemize}
+
+\subsubsection{TradeoffSlicePlot}
+The \xmlString{TradeoffSlicePlot} \xmlAttr{subType} plot: Generate density contours for objective pairs and emphasize nondominated samples per generation. Each frame looks at one generation and, for every requested objective pair, shades the joint density of the whole population with a quick Gaussian KDE. Rank-1 (nondominated) samples are overplotted in orange with a thin black edge, while dominated points stay semi-transparent gray. This makes it easy to see where the front is filling the map versus where the population is still exploring.
+
+What-if Scenarios
+
+Front looks like a narrow ridge: the nondominated points collapse along a line or tight contour -\textgreater{} your objectives are heavily correlated; consider adding diversity pressure or re-scaling objectives to spread the front. Bright contour blobs with few orange points: the population is visiting promising areas but not landing nondominated samples -\textgreater{} mutation/crossover might be jumping too far; tighten step sizes or add elitism. Orange points scattered outside dense contours: the algorithm is finding new tradeoffs while most of the population lags -\textgreater{} try increasing survivor selection pressure or seeding elites to pull the crowd forward. Contours banded but orange points only near one corner: constraints or penalties may be eliminating wide portions of the space -\textgreater{} review feasibility filters or relax penalties to regain coverage of the other leg of the front.
+
+The \xmlNode{TradeoffSlicePlot} plot recognizes the following input nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{string}, Name of the optimizer SolutionExport DataObject.
+  \item \xmlNode{objectives}, \xmlDesc{comma-separated strings}, List of objective columns to consider; at least two are required.
+  \item \xmlNode{index}, \xmlDesc{string}, Generation identifier column (e.g., batchId).
+  \item \xmlNode{maxFrames}, \xmlDesc{integer}, Optional cap on the number of generations rendered. Defaults to min(total generations, 20).
+  \item \xmlNode{format}, \xmlDesc{string}, Output format. Options: "gif", "html", "both", or comma-separated combinations.
+  \item \xmlNode{fps}, \xmlDesc{float}, Frames per second for generated animations. Defaults to 2.
+  \item \xmlNode{saveFrames}, \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, If true, saves sampled generations as standalone PNG frames alongside the animation outputs.
+  \item \xmlNode{framesMax}, \xmlDesc{integer}, Maximum number of PNG frames to save when \xmlNode{saveFrames} is true. Defaults to 10; generations are sampled evenly.
+  \item \xmlNode{pairs}, \xmlDesc{node}, Optional list of \xmlNode{pair} entries selecting specific objective pairs to plot.
+  \item \xmlNode{generations}, \xmlDesc{comma-separated strings}, Optional list of specific generations (batch ids) to render, overriding the even-sampling cap. When omitted, the plotter shows an evenly-spaced overview limited by \xmlNode{maxFrames} (and, for saved PNGs, \xmlNode{framesMax}). Provide any mix of comma-separated tokens: an explicit generation id (e.g. "5"), the keywords "first" or "last", or an inclusive range "start:stop" / "start:stop:step" over generation ids (e.g. "0:20:5"). Requested generations that are not present in the data raise an error. Use this to compare specific generations side-by-side without emitting hundreds of frames.
 \end{itemize}
