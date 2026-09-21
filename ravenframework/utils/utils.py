@@ -1020,24 +1020,45 @@ def getAllSubclasses(cls):
   """
   return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
 
+_displayAvailableCache = None
+
 def displayAvailable():
   """
     The return variable for backend default setting of whether a display is
     available or not. For instance, if we are running on the HPC without an X11
     instance, then we don't have the ability to display the plot, only to save it
-    to a file
+    to a file.
+
+    Note: a set 'DISPLAY' environment variable does not guarantee a usable X
+    server. On HPC login nodes reached over SSH with X11 forwarding, 'DISPLAY'
+    is typically set (e.g. "localhost:10.0") even when no X server can actually
+    be reached; trusting it blindly makes matplotlib load an interactive backend
+    (TkAgg) and crash. We therefore verify the display can actually be opened
+    before reporting it as available. The result is cached since display
+    availability does not change during a run.
     @ In, None
-    @ Out, dispaly, bool, return True if platform is Windows or environment varialbe
-      'DISPLAY' is available, otherwise return False
+    @ Out, display, bool, True if platform is Windows or a usable display can be
+      opened, otherwise False
   """
+  global _displayAvailableCache
+  if _displayAvailableCache is not None:
+    return _displayAvailableCache
   display = False
   if platform.system() == 'Windows':
     display = True
-  else:
-    if os.getenv('DISPLAY'):
+  elif os.getenv('DISPLAY'):
+    # 'DISPLAY' is set, but confirm we can actually connect to it before trusting it.
+    try:
+      import tkinter
+      root = tkinter.Tk()
+      root.destroy()
       display = True
-    else:
+    except Exception:
+      # No reachable X server (e.g. broken SSH X11 forwarding) or tkinter missing.
       display = False
+  else:
+    display = False
+  _displayAvailableCache = display
   return display
 
 def which(cmd):

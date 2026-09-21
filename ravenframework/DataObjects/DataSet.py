@@ -2038,12 +2038,23 @@ class DataSet(DataObject):
     # TODO someday make KDTree too!
     assert(self._data is not None) # TODO check against collector entries?
     ds = self._data[varList] if var is not None else self._data
-    mean = ds.mean().variables
-    scale = ds.std().variables
-    for name in mean:
-      m = mean[name].values[()]
-      s = scale[name].values[()]
-      self._scaleFactors[name] = (m,s)
+    # Restrict to numeric variables (skip strings/objects); this is a cheap dtype
+    # metadata check, not a per-element scan.
+    numericVars = [name for name in ds.data_vars
+                   if np.issubdtype(ds[name].dtype, np.number)]
+    if numericVars:
+      numeric = ds[numericVars]
+      # Mask non-finite entries (NaN and +/-inf) so they do not corrupt the moments,
+      # then let xarray reduce every variable at once (vectorized, NaN-skipping)
+      # instead of looping in Python -- this keeps the cost flat as the number of
+      # variables grows. An all-non-finite variable yields NaN mean/scale.
+      finite = numeric.where(np.isfinite(numeric))
+      mean = finite.mean(skipna=True).variables
+      scale = finite.std(skipna=True).variables
+      for name in numericVars:
+        m = float(mean[name].values[()])
+        s = float(scale[name].values[()])
+        self._scaleFactors[name] = (m, s)
 
   def _setStructureFromMetaXML(self, meta):
     """
