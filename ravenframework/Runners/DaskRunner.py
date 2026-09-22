@@ -18,6 +18,7 @@ Created on Mar 13, 2023
 """
 #External Modules------------------------------------------------------------------------------------
 import sys
+import traceback
 import gc
 import copy
 import threading
@@ -136,15 +137,17 @@ class DaskRunner(InternalRunner):
     with self.__funcLock:
       if not self.hasBeenAdded:
         if self.__func is not None:
-          #if the function threw an exception, result will rethrow it.
+          #if the function threw an exception, result() will rethrow it here.
           try:
             self.runReturn = self.__func.result()
+            self.runSucceeded = True
           except Exception as ae:
             self.runReturn = None
             self.hasBeenAdded = True
             self.returnCode = -1
-            self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedErrorInCollect')
-            raise ae
+            self.runSucceeded = False
+            self.failureInfo = traceback.format_exc()
+            self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !\n"+self.failureInfo,'ExceptedErrorInCollect')
         else:
           self.runReturn = None
         self.hasBeenAdded = True
@@ -163,11 +166,9 @@ class DaskRunner(InternalRunner):
       return
 
     except Exception as ae:
-      #Uncomment if you need the traceback
       self.exceptionTrace = sys.exc_info()
-      #exc_type, exc_value, exc_traceback = sys.exc_info()
-      #import traceback
-      #traceback.print_exception(exc_type, exc_value, exc_traceback)
+      self.failureInfo = traceback.format_exc()
+      self.runSucceeded = False
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedErrorInStart')
       self.returnCode = -1
 
@@ -178,6 +179,14 @@ class DaskRunner(InternalRunner):
       @ Out, None
     """
     with self.__funcLock:
+      if self.__func is not None:
+        # actually cancel the task on the cluster; simply dropping the Future
+        # leaves the task running and consuming cluster resources
+        try:
+          self.__func.cancel()
+        except Exception as exc:
+          self.raiseAWarning('Unable to cancel dask future for job "'
+                             +self.identifier+'": '+repr(exc))
       del self.__func
       self.__func = None
     self.returnCode = -1
