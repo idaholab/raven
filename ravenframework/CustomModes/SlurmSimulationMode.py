@@ -40,6 +40,7 @@ class SlurmSimulationMode(Simulation.SimulationMode):
     super().__init__(*args)
     #figure out if we are in Slurm
     self.__inSlurm = "SLURM_JOB_ID" in os.environ
+    self.__runSbatch = False
     self.__nodeFile = False
     self.__coresNeeded = None #If not none, use this instead of calculating it
     self.__memNeeded = None #If not none, use this for mem=

@@ -74,7 +74,9 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Laplace' : 'LaplaceDistribution',
                               'Geometric' : 'GeometricDistribution',
                               'LogUniform' : 'LogUniformDistribution',
-                              'UniformDiscrete' : 'UniformDiscreteDistribution'
+                              'UniformDiscrete' : 'UniformDiscreteDistribution',
+                              'Pert': 'PertDistribution'
+
 }
 
 
@@ -2804,6 +2806,140 @@ class LogNormal(BoostDistribution):
       self._distribution = Distributions1D.BasicLogNormalDistribution(self.mean,self.sigma,self.low,self.lowerBound,self.upperBound)
 
 DistributionsCollection.addSub(LogNormal.getInputSpecification())
+
+class BetaPert(BoostDistribution):
+  """
+    BetaPert distribution
+  """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(BetaPert, cls).getInputSpecification()
+    inputSpecification.description = r"""Beta-Pert distribution. The probability density function for the
+      Beta-Pert distribution is given by
+      See \url{https://en.wikipedia.org/wiki/PERT_distribution} for more details.
+      """
+    inputSpecification.addSub(InputData.parameterInputFactory("minimum",
+        descr=r"""minimum of the distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("mode",
+        descr=r"""most likely of the distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("maximum",
+        descr=r"""maximum of the distribution""",
+        contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda",
+        descr=r"""PERT shape parameter, smaller values give a wider probability spread""",
+        contentType=InputTypes.FloatType))
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    super().__init__()
+    self.mode = 1.0
+    self.minimum = 0.0
+    self.maximum = 2.0
+    self.lamb = 4.0
+    self.type = 'BetaPert'
+    self.distType = distType.continuous
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.mode  = pdict.pop('mode' )
+    self.minimum = pdict.pop('minimum')
+    self.maximum = pdict.pop('maximum')
+    self.lamb = pdict.pop('lambda')
+
+  def getCrowDistDict(self):
+    """
+      Returns a dictionary of the keys and values that would be
+      used to create the distribution for a Crow input file.
+      @ In, None
+      @ Out, retDict, dict, the dictionary of crow distributions
+    """
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['mode'] = self.mode
+    retDict['minimum'] = self.minimum
+    retDict['maximum'] = self.maximum
+    retDict['lambda'] = self.lamb
+    return retDict
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    modeFind = paramInput.findFirst('mode')
+    if modeFind != None:
+      self.mode = modeFind.value
+    else:
+      self.raiseAnError(IOError,'Mode value needed for BetaPert distribution')
+    minimumFind = paramInput.findFirst('minimum')
+    if minimumFind != None:
+      self.minimum = minimumFind.value
+    else:
+      self.raiseAnError(IOError,'minimum value needed for BetaPert distribution')
+    if maximumFind != None:
+      self.maximum = maximumFind.value
+    else:
+      self.raiseAnError(IOError,'maximum value needed for BetaPert distribution')
+    lambFind = paramInput.findFirst('lambda')
+    if lambFind != None:
+      self.lamb = lambFind.value
+    else:
+      self.low = 4.0
+    self.initializeDistribution()
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = BoostDistribution.getInitParams(self)
+    paramDict['mode' ] = self.mode
+    paramDict['minimum'] = self.minimum
+    paramDict['maximum'] = self.maximum
+    paramDict['lambda'] = self.lamb
+    return paramDict
+
+  def initializeDistribution(self):
+    """
+      Method to initialize the distribution
+      @ In, None
+      @ Out, None
+    """
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self._distribution = Distributions1D.BasicPertDistribution(self.minimum, self.maximum, self.mode, self.lamb)
+      self.lowerBound = 0.0
+      self.upperBound =  sys.float_info.max
+    else:
+      if self.lowerBoundUsed == False:
+        self.lowerBound = self.minimum
+      if self.upperBoundUsed == False:
+        self.upperBound = self.maximum
+      self._distribution = Distributions1D.BasicPertDistribution(self.minimum, self.maximum, self.mode, self.lamb, self.lowerBound,self.upperBound)
+
+DistributionsCollection.addSub(BetaPert.getInputSpecification())
 
 class Weibull(BoostDistribution):
   """
