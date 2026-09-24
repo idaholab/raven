@@ -99,7 +99,7 @@ PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 
 CROW_DIR=$RAVEN_BUILD_DIR/crow
 
-unset CXX CC
+#unset CXX CC
 
 #Conda sets too old of a MACOSX_DEPLOYMENT_TARGET
 if test `uname` = Darwin; then

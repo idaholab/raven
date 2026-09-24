@@ -18,11 +18,11 @@ source $RAVEN_DIR/scripts/read_ravenrc.sh
 CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
 source ${CONDA_DEFS}
 
-conda env remove --name python310_pip
-conda create -y --name python310_pip python=3.10 swig
+conda env remove -y --name python310_pip
+conda create -y --name python310_pip python=3.10
 
-conda env remove --name python311_pip
-conda create -y --name python311_pip python=3.11 swig
+conda env remove -y --name python311_pip
+conda create -y --name python311_pip python=3.11
 
 cd $RAVEN_DIR
 
