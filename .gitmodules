@@ -22,3 +22,12 @@
 [submodule "plugins/DOVE"]
 	path = plugins/DOVE
 	url = https://github.com/idaholab/DOVE.git
+[submodule "plugins/PRLO"]
+	path = plugins/PRLO
+	url = https://github.inl.gov/congjian-wang/PRLO.git
+	# PRLO is access-controlled (INL-internal). `update = none` keeps it opt-in:
+	# `git clone --recursive` and a blanket `git submodule update --init` skip it,
+	# so the public clone/CI experience is unaffected for users without access.
+	# Licensed users fetch it explicitly: `git submodule update --init plugins/PRLO`
+	# (or `scripts/install_plugins.py PRLO`).
+	update = none
