@@ -27,7 +27,11 @@ def test_feasible_first_uses_worst_objective_for_penalty(fitness_inputs):
     type=['min'],
   )
   values = result['obj'].values
-  np.testing.assert_allclose(values, np.array([-1.0, -5.0, -7.0]))
+  # Deb (2000) anchors each infeasible penalty at the WORST FEASIBLE objective, which here is
+  # obj[0]=1.0 (the only feasible individual), not the whole-population worst (2.0).
+  # ind0 feasible: -a*obj = -1.0; ind1 infeasible: -1*1.0 - 10*0.3 = -4.0;
+  # ind2 infeasible: -1*1.0 - 10*0.5 = -6.0.
+  np.testing.assert_allclose(values, np.array([-1.0, -4.0, -6.0]))
 
 
 def test_logistic_adjusts_for_maximization_and_penalties(fitness_inputs):

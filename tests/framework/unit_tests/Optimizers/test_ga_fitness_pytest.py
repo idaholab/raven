@@ -33,7 +33,11 @@ def test_feasible_first_uses_worst_objective_for_infeasible(fitness_inputs):
     b=[2.0],
     type=["min"],
   )
-  expected = np.array([-1.0, -2.6, -3.0])
+  # Deb (2000) anchors each infeasible penalty at the WORST FEASIBLE objective, which here is
+  # obj[0]=1.0 (the only feasible individual), not the whole-population worst (2.0).
+  # ind0 feasible: -a*obj = -1.0; ind1 infeasible: -1*1.0 - 2*0.3 = -1.6;
+  # ind2 infeasible: -1*1.0 - 2*0.5 = -2.0.
+  expected = np.array([-1.0, -1.6, -2.0])
   assert np.allclose(result["obj"].data, expected)
 
 
