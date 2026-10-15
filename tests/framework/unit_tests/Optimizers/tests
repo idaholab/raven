@@ -114,6 +114,10 @@
     type = 'PyTest'
     input = 'test_repair_operator_pytest.py'
   [../]
+  [./pytestGaWithoutReplacementInitial]
+    type = 'PyTest'
+    input = 'test_without_replacement_initial_pytest.py'
+  [../]
   [./pytestGaSurvivorSelectors]
     type = 'PyTest'
     input = 'test_survivor_selectors_pytest.py'

@@ -114,6 +114,11 @@
       output = 'discrete/unconstrained/MinwoReplacement/1-parallel_coordinates.gif'
     [../]
   [../]
+  [./woRepInfeasible]
+    type = 'RavenErrors'
+    input = 'discrete/unconstrained/testGAwoRepInfeasible.xml'
+    expect_err = 'uses the "withoutReplacement" strategy but offers only 2 distinct value(s), while 3 variables'
+  [../]
 
   [./MinwoReplacementConvAHDp]
     type = 'RavenFramework'

@@ -944,6 +944,15 @@ In case the ``with replacement'' strategy is used, the distribution samples alwa
   %
 \end{itemize}
 
+\nb When a \textbf{UniformDiscrete} distribution with the ``withoutReplacement'' strategy is shared by several
+optimization variables (e.g.\ the genes of a Genetic Algorithm), the values assigned to those variables within a
+single sample must be distinct. This is only possible when the number of variables sharing the distribution does not
+exceed the number $N$ of available values. The Genetic Algorithm enforces this requirement up front: if more variables
+share a ``withoutReplacement'' distribution than it has distinct values, the run is stopped at initialization with an
+error identifying the distribution, its value count, and the sharing variables, rather than failing later during the
+offspring-repair step. In addition, the initial population is repaired so that generation~0 already satisfies the
+``withoutReplacement'' constraint, consistent with all subsequent generations.
+
 Example:
 \begin{lstlisting}[style=XML]
 <Distributions>

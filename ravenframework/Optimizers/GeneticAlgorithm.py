@@ -763,6 +763,71 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
 
+  def _withoutReplacementPoolSize(self, dist):
+    """
+      Number of distinct values a UniformDiscrete-like distribution can draw without
+      replacement, or None if the pool size cannot be determined for this distribution type.
+      @ In, dist, Distribution, the distribution instance
+      @ Out, poolSize, int or None, count of distinct selectable values (None if unknown)
+    """
+    if getattr(dist, 'nPoints', None) is not None:
+      return int(dist.nPoints)
+    lower, upper = getattr(dist, 'lowerBound', None), getattr(dist, 'upperBound', None)
+    if lower is not None and upper is not None:
+      return int(upper) - int(lower) + 1
+    return None
+
+  def _checkWithoutReplacementFeasible(self):
+    """
+      Fail fast on an infeasible 'withoutReplacement' setup. When more variables share a
+      withoutReplacement distribution than that distribution has distinct values, no
+      duplicate-free chromosome exists. Without this guard the run proceeds with duplicate
+      genes and later divides by zero in Distributions.selectedRvs when the value pool is
+      exhausted during repair.
+      @ In, None
+      @ Out, None
+    """
+    sharingVars = {}
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      if getattr(dist, 'strategy', None) == 'withoutReplacement':
+        sharingVars.setdefault(self.toBeSampled[var], []).append(var)
+    for distName, varsSharing in sharingVars.items():
+      poolSize = self._withoutReplacementPoolSize(self.distDict[varsSharing[0]])
+      if poolSize is not None and len(varsSharing) > poolSize:
+        self.raiseAnError(IOError,
+            f'Distribution "{distName}" uses the "withoutReplacement" strategy but offers only '
+            f'{poolSize} distinct value(s), while {len(varsSharing)} variables '
+            f'({", ".join(sorted(varsSharing))}) sample from it. A duplicate-free assignment is '
+            f'impossible: provide at least {len(varsSharing)} distinct values (widen the bounds '
+            f'or increase nPoints), or use the "withReplacement" strategy.')
+
+  def _repairInitialValue(self, init):
+    """
+      Enforce the 'withoutReplacement' strategy on a single initial-population chromosome.
+      The initial population is drawn variable-by-variable, so it can contain duplicate genes
+      for variables that share a withoutReplacement distribution; the uniqueness constraint is
+      otherwise applied only after crossover/mutation. This brings generation 0 in line with
+      every subsequent generation. Operates in the distribution's own value space (the GA does
+      not normalize, see needDenormalized).
+      @ In, init, dict, a chromosome as {varName: value}
+      @ Out, repaired, dict, the chromosome with duplicate withoutReplacement genes resolved
+    """
+    repaired = dict(init)
+    usedByDist = {}
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      if getattr(dist, 'strategy', None) != 'withoutReplacement':
+        continue
+      distName = self.toBeSampled[var]
+      used = usedByDist.setdefault(distName, [])
+      value = repaired[var]
+      if value in used:
+        value = dist.selectedRvs(list(used))
+        repaired[var] = value
+      used.append(value)
+    return repaired
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -775,6 +840,9 @@ class GeneticAlgorithm(RavenSampled):
     meta = ['batchId']
     self.addMetaKeys(meta)
     self.batch = self._populationSize
+    # Reject an impossible withoutReplacement setup before any run is submitted (fail fast),
+    # then repair the initial population so generation 0 respects the strategy too.
+    self._checkWithoutReplacementFeasible()
     if self._checkpointRestored:
       # Submission queue already populated from checkpoint state; skip initial population submission.
       self.raiseAMessage('Resuming from checkpoint; skipping initial population submission.')
@@ -782,7 +850,7 @@ class GeneticAlgorithm(RavenSampled):
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, f'Number of initial values provided for each variable is {len(self._initialValues)}, while the population size is {self._populationSize}')
     for _, init in enumerate(self._initialValues):
-      self._submitRun(init, 0, self.getIteration(0) + 1)
+      self._submitRun(self._repairInitialValue(init), 0, self.getIteration(0) + 1)
 
   def initializeTrajectory(self, traj=None):
     """
