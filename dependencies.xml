@@ -105,6 +105,11 @@ limit our library choices.
          newer releases break establish_conda_env / set-python-env resolution. -->
     <statsforecast source="pip">1.7.8</statsforecast>
     <utilsforecast source="pip">0.1.4</utilsforecast>
+    <!-- pyarrow is pulled in transitively by statsforecast (via fugue/triad). pyarrow>=18 ships
+         wheels built against the NumPy 2.x ABI and raises "pyarrow requires NumPy 2.0 or newer"
+         at import against our pinned numpy 1.26, which breaks the AutoARMA test. 17.0 is the last
+         line that supports numpy 1.26 (requires numpy>=1.16.6). -->
+    <pyarrow source="pip">17.0</pyarrow>
     <pywavelets source="pip">1.4</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
