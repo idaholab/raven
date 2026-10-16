@@ -339,6 +339,34 @@ checkAnswer('HV negative objectives', frontUtils.hypervolume([[-2.0, -2.0]], [-1
 # A point that does not dominate the reference contributes nothing to the hypervolume.
 checkAnswer('HV dominated point ignored', frontUtils.hypervolume([[0.0, 0.0], [5.0, 5.0]], [1.0, 1.0]), 1.0)
 ###########################################
+
+###########################################
+# Pareto-front diversity metrics (pure, stateless): spread (Deb et al., 2002) and maximum spread.
+# maxSpread = L2 norm of the per-objective ranges of the front.
+# Diagonal 5-point front over [0,4] in each objective: ranges 4 and 4 -> sqrt(4**2 + 4**2).
+checkAnswer('maxSpread diagonal 5-point front',
+            frontUtils.computeMaxSpread([[0., 4.], [1., 3.], [2., 2.], [3., 1.], [4., 0.]]),
+            np.sqrt(32.0))
+# Two-point front with unit range in each objective -> sqrt(2).
+checkAnswer('maxSpread two-point front',
+            frontUtils.computeMaxSpread([[1., 2.], [2., 1.]]), np.sqrt(2.0))
+# Degenerate fronts (fewer than two points, or all points identical) have zero spread.
+checkAnswer('maxSpread single point is zero', frontUtils.computeMaxSpread([[1., 2.]]), 0.0)
+checkAnswer('maxSpread identical points is zero',
+            frontUtils.computeMaxSpread([[2., 2.], [2., 2.], [2., 2.]]), 0.0)
+
+# spread (Delta): dimensionless distribution metric; hand-anchored against the implementation.
+checkAnswer('spread diagonal 5-point front',
+            frontUtils.computeSpread([[0., 4.], [1., 3.], [2., 2.], [3., 1.], [4., 0.]]),
+            0.41421356237309503)
+checkAnswer('spread evenly spaced 3-point front',
+            frontUtils.computeSpread([[1., 2.], [1.5, 1.5], [2., 1.]]),
+            0.41421356237309503)
+# Degenerate fronts (fewer than two points, or zero mean spacing) return zero.
+checkAnswer('spread single point is zero', frontUtils.computeSpread([[1., 2.]]), 0.0)
+checkAnswer('spread identical points is zero',
+            frontUtils.computeSpread([[2., 2.], [2., 2.]]), 0.0)
+###########################################
 print(results)
 
 sys.exit(results["fail"])

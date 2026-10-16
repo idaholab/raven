@@ -96,16 +96,16 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self._stochasticRankingPf = 0.45                 # probability of objective-only ranking per generation
     self._rankingAlgorithmType = 'constrainedDomination'  # ranking-handler operator (see <rankingAlgorithm>); default = Deb-2002
     self._rankingAlgorithmInstance = None            # resolved ranking-handler function (set in handleInput)
-    self.popRanks = None
-    self.popCrowdingDist = None
-    self.multiBestPoint = None
-    self.multiBestFitVals = None
-    self.multiBestMinObjVals = None
-    self.multiBestConstraintVals = None
-    self.multiBestRank = None
-    self.multiBestCD = None
-    self.multiBestOutputs = None
-    self._populationCache = {}
+    self.popRanks = None                             # non-dominated-sorting rank per individual in the current population
+    self.popCrowdingDist = None                      # crowding distance per individual in the current population
+    self.multiBestPoint = None                       # rank-1 archive: decision variables of the non-dominated set
+    self.multiBestFitVals = None                     # rank-1 archive: fitness values of the non-dominated set
+    self.multiBestMinObjVals = None                  # rank-1 archive: minimization-space objective values of the non-dominated set
+    self.multiBestConstraintVals = None              # rank-1 archive: constraint values of the non-dominated set
+    self.multiBestRank = None                        # rank-1 archive: ranks (all ones) of the non-dominated set
+    self.multiBestCD = None                          # rank-1 archive: crowding distances of the non-dominated set
+    self.multiBestOutputs = None                     # rank-1 archive: model output values of the non-dominated set
+    self._populationCache = {}                       # memo of evaluated chromosomes keyed by decision vector (avoids re-evaluation)
 
   def flush(self):
     """

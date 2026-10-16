@@ -451,3 +451,58 @@ def _hypervolumeHSO(points, reference):
     # Cross-section of the slice = hypervolume of points 0..i projected onto the remaining objectives.
     hv += width * _hypervolumeHSO(ordered[:i + 1, 1:], reference[1:])
   return hv
+
+
+def computeSpread(front):
+  """
+    Compute the spread metric (Delta) from Deb et al. (2002) NSGA-II paper. This is a pure,
+    stateless front-diversity metric; it depends only on the geometry of the given front.
+    Delta = (d_f + d_l + sum|d_i - d_bar|) / (d_f + d_l + (N-1) d_bar)
+    @ In, front, list of lists, Pareto-front points (each point is a list of objective values)
+    @ Out, spread, float, spread value (0 = perfect distribution)
+  """
+  n = len(front)
+  if n < 2:
+    return 0.0
+  numObj = len(front[0])
+  # Euclidean distances between consecutive solutions, per objective ordering
+  distances = []
+  for obj in range(numObj):
+    sortedIndices = sorted(range(n), key=lambda i: front[i][obj])
+    sortedFront = [front[i] for i in sortedIndices]
+    for i in range(len(sortedFront) - 1):
+      dist = np.linalg.norm(np.array(sortedFront[i + 1]) - np.array(sortedFront[i]))
+      distances.append(dist)
+  if len(distances) == 0:
+    return 0.0
+  # Extreme distances: first solution to the ideal point and last solution to the nadir point
+  ideal = [min(p[i] for p in front) for i in range(numObj)]
+  nadir = [max(p[i] for p in front) for i in range(numObj)]
+  sortedByFirstObj = sorted(front, key=lambda p: p[0])
+  distFirst = np.linalg.norm(np.array(sortedByFirstObj[0]) - np.array(ideal))
+  distLast = np.linalg.norm(np.array(sortedByFirstObj[-1]) - np.array(nadir))
+  meanDist = np.mean(distances)
+  if meanDist == 0:
+    return 0.0
+  numerator = distFirst + distLast + sum(abs(d - meanDist) for d in distances)
+  denominator = distFirst + distLast + (len(distances)) * meanDist
+  if denominator == 0:
+    return 0.0
+  return numerator / denominator
+
+
+def computeMaxSpread(front):
+  """
+    Compute the maximum-spread metric: the Euclidean norm of the per-objective ranges of the
+    front. Pure, stateless; depends only on the geometry of the given front.
+    @ In, front, list of lists, Pareto-front points (each point is a list of objective values)
+    @ Out, ms, float, maximum spread
+  """
+  if len(front) < 2:
+    return 0.0
+  numObj = len(front[0])
+  ranges = []
+  for obj in range(numObj):
+    objValues = [p[obj] for p in front]
+    ranges.append(max(objValues) - min(objValues))
+  return np.sqrt(sum(r ** 2 for r in ranges))

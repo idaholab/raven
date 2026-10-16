@@ -249,7 +249,7 @@ from copy import deepcopy
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ..utils import mathUtils, InputData, InputTypes
+from ..utils import mathUtils, frontUtils, InputData, InputTypes
 from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
@@ -1755,7 +1755,7 @@ class GeneticAlgorithm(RavenSampled):
         point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
         front.append(point)
 
-    spread = self._computeSpread(front)
+    spread = frontUtils.computeSpread(front)
 
     converged = spread < self._convergenceCriteria.get('spread', 0.5)
 
@@ -1768,62 +1768,6 @@ class GeneticAlgorithm(RavenSampled):
 
     return converged
 
-  def _computeSpread(self, front):
-    """
-    Compute spread metric (Δ) from Deb et al. (2002) NSGA-II paper.
-
-    Δ = (d_f + d_l + Σ|d_i - d̄|) / (d_f + d_l + (N-1)d̄)
-
-    @ In, front, list of lists, Pareto front points
-    @ Out, spread, float, spread value (0 = perfect distribution)
-    """
-    n = len(front)
-    if n < 2:
-        return 0.0
-
-    numObj = len(front[0])
-
-    # Calculate Euclidean distances between consecutive solutions
-    distances = []
-
-    for obj in range(numObj):
-        # Sort front by this objective
-        sortedIndices = sorted(range(n), key=lambda i: front[i][obj])
-        sortedFront = [front[i] for i in sortedIndices]
-
-        # Distance between consecutive points
-        for i in range(len(sortedFront) - 1):
-            dist = np.linalg.norm(np.array(sortedFront[i+1]) - np.array(sortedFront[i]))
-            distances.append(dist)
-
-    if len(distances) == 0:
-        return 0.0
-
-    # Extreme distances (distance to boundary solutions)
-    # For simplicity, use distance from first to ideal and last to nadir
-    ideal = [min(p[i] for p in front) for i in range(numObj)]
-    nadir = [max(p[i] for p in front) for i in range(numObj)]
-
-    sortedByFirstObj = sorted(front, key=lambda p: p[0])
-    distFirst = np.linalg.norm(np.array(sortedByFirstObj[0]) - np.array(ideal))
-    distLast = np.linalg.norm(np.array(sortedByFirstObj[-1]) - np.array(nadir))
-
-    # Mean distance
-    meanDist = np.mean(distances)
-
-    if meanDist == 0:
-        return 0.0
-
-    # Spread calculation
-    numerator = distFirst + distLast + sum(abs(d - meanDist) for d in distances)
-    denominator = distFirst + distLast + (len(distances)) * meanDist
-
-    if denominator == 0:
-        return 0.0
-
-    spread = numerator / denominator
-
-    return spread
   def _checkConvMaxSpread(self, traj, **kwargs):
     """
     Checks convergence based on maximum spread stabilization.
@@ -1850,8 +1794,8 @@ class GeneticAlgorithm(RavenSampled):
         prevFront.append(point)
 
     # Compute MS
-    currentMS = self._computeMaxSpread(currentFront)
-    prevMS = self._computeMaxSpread(prevFront)
+    currentMS = frontUtils.computeMaxSpread(currentFront)
+    prevMS = frontUtils.computeMaxSpread(prevFront)
 
     # Check relative change
     if prevMS == 0:
@@ -1869,26 +1813,6 @@ class GeneticAlgorithm(RavenSampled):
     ))
 
     return converged
-
-  def _computeMaxSpread(self, front):
-    """
-    Compute maximum spread metric.
-    @ In, front, list of lists, Pareto front
-    @ Out, ms, float, maximum spread
-    """
-    if len(front) < 2:
-        return 0.0
-
-    numObj = len(front[0])
-    ranges = []
-
-    for obj in range(numObj):
-        objValues = [p[obj] for p in front]
-        ranges.append(max(objValues) - min(objValues))
-
-    ms = np.sqrt(sum(r**2 for r in ranges))
-
-    return ms
 
   def _checkConvRank1Ratio(self, traj, **kwargs):
     """
