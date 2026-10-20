@@ -45,8 +45,6 @@
  [./lineHistoryLabel]
   type = 'RavenFramework'
   input = 'line_plot_history_label.xml'
-  ## image comparison is not available; the test checks that the figure is generated without errors
-  ## (mixing colorMap/no colorMap sub-plots and duplicated step inputs used to crash)
   output = 'historyLabelPlot/labeledPlot.png'
  [../]
 
