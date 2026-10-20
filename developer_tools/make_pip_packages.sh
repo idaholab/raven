@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This script builds 3.9 and 3.8 wheels and puts them in the dist directory
-# It will create python39_pip and python38_pip conda environments
+# This script builds 3.11 and 3.10 wheels and puts them in the dist directory
+# It will create python311_pip and python310_pip conda environments
 # and use them for building pip packages.
 # It requires that .ravenrc has a working CONDA_DEFS statement.
 # To run from the raven directory:
@@ -18,10 +18,10 @@ source $RAVEN_DIR/scripts/read_ravenrc.sh
 CONDA_DEFS=$(read_ravenrc "CONDA_DEFS")
 source ${CONDA_DEFS}
 
-conda env remove --name python310_pip
+conda env remove -y --name python310_pip
 conda create -y --name python310_pip python=3.10 swig
 
-conda env remove --name python311_pip
+conda env remove -y --name python311_pip
 conda create -y --name python311_pip python=3.11 swig
 
 cd $RAVEN_DIR
