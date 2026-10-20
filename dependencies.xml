@@ -86,6 +86,9 @@ limit our library choices.
     <libstdcxx-ng os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
+    <!-- Pin pyarrow (pulled in by dask[complete]) to 25: pyarrow 26 requires numpy 2 at import
+         time but does not declare it, so pip keeps it alongside numpy 1.26. Remove when numpy is updated. -->
+    <pyarrow source="pip">25</pyarrow>
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <typing-extensions source="pip">4.14</typing-extensions>
     <ray source="pip" pip_extra="[default]">2.52</ray>
