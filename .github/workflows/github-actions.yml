@@ -514,12 +514,15 @@ jobs:
         run: |
           ./run_tests --library-report --skip-load-env
 
+      # Call rook directly rather than ./run_tests: "run_tests --raven" also runs the PluginAPI
+      # tests, which need ExamplePlugin registered in plugins/plugin_directory.xml (done by
+      # establish_conda_env.sh), and no plugins are installed for the release test.
       # The user_guide tests are simple and quick; use them to check the installed package works
       - name: Test RAVEN Release (user_guide)
         run: |
-          ./run_tests -j4 --raven --re="user_guide" --tester-command RavenFramework raven_framework --skip-load-env
+          python rook/main.py -j4 --config-file=developer_tools/rook.ini --re="user_guide" --tester-command RavenFramework raven_framework
 
       - name: Test RAVEN Release (all RavenFramework tests)
         run: |
-          ./run_tests -j4 --raven --only-testers RavenFramework --tester-command RavenFramework raven_framework --skip-load-env
+          python rook/main.py -j4 --config-file=developer_tools/rook.ini --only-testers RavenFramework --tester-command RavenFramework raven_framework
         continue-on-error: true
