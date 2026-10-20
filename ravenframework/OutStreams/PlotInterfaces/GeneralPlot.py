@@ -154,6 +154,7 @@ class GeneralPlot(PlotInterface):
     self.zValues = None           # dictionary of z values
     self.colorMapCoordinates = {} # color map coordinates
     self.colorMapValues = {}      # color map values
+    self.historyLabels = {}       # per-history legend labels (HistorySet only, from <historyLabel>)
 
     # For the data-mining plot, I think?
     self.clusterLabels = None
@@ -415,6 +416,7 @@ class GeneralPlot(PlotInterface):
         self.mixtureValues.append(defaultdict(list))
       if self.colorMapCoordinates[pltIndex] is not None:
         self.colorMapValues[pltIndex] = defaultdict(list)
+      self.historyLabels[pltIndex] = {}
 
     # fill x,y,z Values, clusterValues, mixtureValues, and colorMapValues
     for pltIndex in range(len(self.outStreamTypes)):
@@ -457,8 +459,16 @@ class GeneralPlot(PlotInterface):
       else:
         # HistorySet
         pivotParam = self.sourceData[pltIndex].indexes[0]
+        plotSettings = self.options['plotSettings']['plot'][pltIndex]
         for cnt in range(len(self.sourceData[pltIndex])):
           maxSize = 0
+          if 'historyLabel' in plotSettings:
+            labelVar = plotSettings['historyLabel'].split('|')[-1].strip()
+            labelValue = dataSet.isel({'RAVEN_sample_ID': cnt}, False)[labelVar].values
+            labelValue = labelValue.item() if labelValue.size == 1 else labelValue
+            if isinstance(labelValue, float) and labelValue.is_integer():
+              labelValue = int(labelValue)
+            self.historyLabels[pltIndex][cnt] = plotSettings.get('historyLabelFormat', '{}').format(labelValue)
           for i in range(len(self.xCoordinates[pltIndex])):
             xSplit = self._returnSplitIndexHS('x', pltIndex, i)
             # for variable from input space, it will return array(float), not 1d array
@@ -1310,12 +1320,12 @@ class GeneralPlot(PlotInterface):
       #   LINE PLOT   #
       #################
       elif self.outStreamTypes[pltIndex] == 'line':
-        minV = 0
-        maxV = 0
+        minV = np.inf
+        maxV = -np.inf
         # If the user does not define an appropriate cmap, then use matplotlib's default.
         if 'cmap' not in plotSettings or plotSettings['cmap'] not in matplotlib.cm.datad:
           plotSettings['cmap'] = None
-        if bool(self.colorMapValues):
+        if self.colorMapCoordinates[pltIndex] is not None:
           for key in self.xValues[pltIndex]:
             minV = min(minV,self.colorMapValues[pltIndex][key][-1][-1])
             maxV = max(maxV,self.colorMapValues[pltIndex][key][-1][-1])
@@ -1330,16 +1340,17 @@ class GeneralPlot(PlotInterface):
                 if self.yValues[pltIndex][key][yIndex].size < 2:
                   return
                 xi, yi = mathUtils.interpolateFunction(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], plotSettings, returnCoordinate=True)
+                historyLabel = {'label': self.historyLabels[pltIndex][key]} if key in self.historyLabels[pltIndex] else {}
                 if self.colorMapCoordinates[pltIndex] is not None:
-                  self.ax.plot(xi, yi, c=cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1]/(maxV-minV)))
+                  self.ax.plot(xi, yi, c=cmap.to_rgba(self.colorMapValues[pltIndex][key][-1][-1]), **historyLabel)
                   if 'colorbar' not in self.options or self.options['colorbar']['colorbar'] != 'off':
                     if self.actcm is None:
-                      self.actcm = self.fig.colorbar(cmap)
+                      self.actcm = self.fig.colorbar(cmap, ax=self.ax)
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
                       self.actcm.draw_all()
                 else:
-                  self.actPlot = self.ax.plot(xi, yi, **plotSettings.get('attributes', {}))
+                  self.actPlot = self.ax.plot(xi, yi, **{**plotSettings.get('attributes', {}), **historyLabel})
               else:
                 for zIndex in range(len(self.zValues[pltIndex][key])):
                   if self.zValues[pltIndex][key][zIndex].size <= 3:
@@ -1348,10 +1359,10 @@ class GeneralPlot(PlotInterface):
                     self.ax.plot(self.xValues[pltIndex][key][xIndex],
                                  self.yValues[pltIndex][key][yIndex],
                                  self.zValues[pltIndex][key][zIndex],
-                                 c=cmap.cmap(self.colorMapValues[pltIndex][key][-1][-1]/(maxV-minV)))
+                                 c=cmap.to_rgba(self.colorMapValues[pltIndex][key][-1][-1]))
                     if 'colorbar' not in self.options or self.options['colorbar']['colorbar'] != 'off':
                       if self.actcm is None:
-                        self.actcm = self.fig.colorbar(cmap)
+                        self.actcm = self.fig.colorbar(cmap, ax=self.ax)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
                         self.actcm.draw_all()
