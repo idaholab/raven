@@ -461,7 +461,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        # raven-framework 3.3rc1 wheels are built for Python 3.10 and 3.11
+        # combinations without a built wheel for the release are skipped by 'Check Release Package'
         python-version: ['3.10', '3.11']
     env:
       RAVEN_VERSION: 3.3rc1
@@ -475,35 +475,46 @@ jobs:
           echo " This job is now running on a ${{ runner.os }} server"
           echo " Testing raven-framework==${RAVEN_VERSION} from TestPyPI with Python ${{ matrix.python-version }}"
 
-      # The regression tests and test harness come from the source tree matching the release
-      - name: Fetch Release Source
-        uses: actions/checkout@v4
-        with:
-          ref: RAVENv${{ env.RAVEN_VERSION }}
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      # No Linux wheel is published, so pip builds from the sdist, which needs swig
-      - name: Install Build Tools (Linux)
-        if: runner.os == 'Linux'
+      # Only test platforms with a built wheel for this release; e.g. 3.3rc1 has no Linux wheel.
+      # pip picks wheels by this interpreter's tags, so it decides what matches this OS/Python.
+      - name: Check Release Package
+        id: release
         run: |
-          python -m pip install --upgrade pip setuptools wheel swig
+          python -m pip install --upgrade pip
+          if python -m pip download -i https://test.pypi.org/simple/ --no-deps --only-binary=:all: \
+              -d "${RUNNER_TEMP}/raven_wheel" raven-framework==${RAVEN_VERSION}; then
+            ls "${RUNNER_TEMP}/raven_wheel"
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No raven-framework==${RAVEN_VERSION} wheel for ${{ runner.os }} / Python ${{ matrix.python-version }}; skipping release test."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The regression tests and test harness come from the source tree matching the release
+      - name: Fetch Release Source
+        if: steps.release.outputs.available == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: RAVENv${{ env.RAVEN_VERSION }}
 
       # Only raven-framework comes from TestPyPI; its dependencies come from PyPI so that
       # unrelated (and untrusted) packages on TestPyPI are never picked up.
       - name: Install RAVEN Release
+        if: steps.release.outputs.available == 'true'
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -i https://test.pypi.org/simple/ --no-deps raven-framework==${RAVEN_VERSION}
+          python -m pip install --no-deps "${RUNNER_TEMP}"/raven_wheel/*.whl
           python -c "from importlib.metadata import requires; print('\n'.join(requires('raven_framework')))" > raven_requirements.txt
           cat raven_requirements.txt
           python -m pip install -r raven_requirements.txt
           python -m pip show raven-framework
 
       - name: Check Installed Package
+        if: steps.release.outputs.available == 'true'
         # run from outside the source tree so the installed package, not the checkout, is imported
         working-directory: ${{ runner.temp }}
         run: |
@@ -511,6 +522,7 @@ jobs:
           command -v raven_framework
 
       - name: Library Report
+        if: steps.release.outputs.available == 'true'
         run: |
           ./run_tests --library-report --skip-load-env
 
@@ -519,10 +531,12 @@ jobs:
       # establish_conda_env.sh), and no plugins are installed for the release test.
       # The user_guide tests are simple and quick; use them to check the installed package works
       - name: Test RAVEN Release (user_guide)
+        if: steps.release.outputs.available == 'true'
         run: |
           python rook/main.py -j4 --config-file=developer_tools/rook.ini --re="user_guide" --tester-command RavenFramework raven_framework
 
       - name: Test RAVEN Release (all RavenFramework tests)
+        if: steps.release.outputs.available == 'true'
         run: |
           python rook/main.py -j4 --config-file=developer_tools/rook.ini --only-testers RavenFramework --tester-command RavenFramework raven_framework
         continue-on-error: true
