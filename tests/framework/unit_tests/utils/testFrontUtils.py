@@ -366,6 +366,27 @@ checkAnswer('spread evenly spaced 3-point front',
 checkAnswer('spread single point is zero', frontUtils.computeSpread([[1., 2.]]), 0.0)
 checkAnswer('spread identical points is zero',
             frontUtils.computeSpread([[2., 2.], [2., 2.]]), 0.0)
+
+# Pareto archive must not accumulate duplicates: elitism resubmits the same front every generation.
+dupFront = np.array([[1.0, 3.0], [2.0, 2.0], [3.0, 1.0]])
+dupArchive = np.empty((0, 2))
+dupSizes = []
+for _ in range(4):
+  dupComb, dupKept = frontUtils.updateParetoArchive(dupArchive, dupFront, minMask=np.array([True, True]))
+  dupArchive = dupComb[dupKept]
+  dupSizes.append(len(dupKept))
+checkArray('pareto archive dedupes resubmitted front', dupSizes, [3, 3, 3, 3])
+checkArray('pareto archive keeps one copy of each point', np.sort(dupArchive, axis=0).ravel(), np.sort(dupFront, axis=0).ravel())
+
+# The constrained ranker rejects NaN objectives, like the unconstrained one (a failed run must not
+# land on the Pareto front).
+try:
+  frontUtils.rankNonDominatedFrontiers(np.array([[np.nan, 0.0], [1.0, 1.0], [2.0, 2.0]]),
+                                       constraintVals=np.zeros((3, 1)))
+  nanRaised = False
+except ValueError:
+  nanRaised = True
+checkAnswer('constrained ranker rejects NaN objectives', nanRaised, True)
 ###########################################
 print(results)
 

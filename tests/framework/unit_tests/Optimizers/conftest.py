@@ -1,3 +1,19 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+  Shared pytest fixtures for the GA optimizer unit tests.
+"""
 import sys
 from pathlib import Path
 
@@ -32,6 +48,11 @@ collect_ignore_glob = [
 
 @pytest.fixture
 def fitness_inputs():
+  """
+    Three-individual, single-objective realization with two constraints.
+    @ In, None
+    @ Out, inputs, dict, {"rlz": xr.Dataset, "constraints": xr.DataArray, "obj_var": list}
+  """
   rlz = xr.Dataset(
     {
       "obj": xr.DataArray(
@@ -51,6 +72,11 @@ def fitness_inputs():
 
 @pytest.fixture
 def ga_dataset():
+  """
+    Two-chromosome, two-gene dataset.
+    @ In, None
+    @ Out, data, dict, {"dataset": xr.Dataset, "variables": list}
+  """
   dataset = xr.Dataset(
     {
       "x1": xr.DataArray(
@@ -70,6 +96,11 @@ def ga_dataset():
 
 @pytest.fixture
 def nsga_combined_data():
+  """
+    Combined parent+offspring pool R(t) for rank-and-crowding selection, with the expected survivors.
+    @ In, None
+    @ Out, data, dict, {"params": dict, "expected_indices": list}
+  """
   combined_inputs = np.array(
     [
       [0.1, 1.0],
@@ -115,6 +146,11 @@ def nsga_combined_data():
 
 @pytest.fixture
 def repair_builder():
+  """
+    Factory that builds a chromosome array and stub withoutReplacement distributions for repair tests.
+    @ In, None
+    @ Out, builder, callable, builder(values) -> (array, distInfo, variables)
+  """
   variables = ["x1", "x2", "x3"]
   candidate_pool = {
     "x1": [0.0, 1.0, 2.0, 3.0],
@@ -123,17 +159,35 @@ def repair_builder():
   }
 
   class DummyDistribution:
+    """
+      withoutReplacement distribution stand-in that draws the first allowed value not excluded.
+    """
     def __init__(self, allowed):
+      """
+        Constructor.
+        @ In, allowed, list, candidate values
+        @ Out, None
+      """
       self.strategy = "withoutReplacement"
       self._allowed = list(allowed)
 
     def selectedRvs(self, excluded):
+      """
+        Draw the first allowed value not in excluded.
+        @ In, excluded, list, values already used
+        @ Out, value, float, the drawn value
+      """
       for value in self._allowed:
         if value not in excluded:
           return value
       raise RuntimeError("No available values for repair.")
 
   def builder(values):
+    """
+      Build the repair inputs for the given chromosome values.
+      @ In, values, list, chromosome rows
+      @ Out, (array, distInfo, variables), tuple, inputs for the repair operator
+    """
     array = xr.DataArray(
       np.array(values, dtype=float),
       dims=["chromosome", "Gene"],

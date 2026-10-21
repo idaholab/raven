@@ -118,18 +118,19 @@ for i in range(np.shape(offspring)[0]):
     var = optVars[j]
     val = offspring[i][j]
     d[var] = {'dims':() ,'data': val}
+  d[objVar[0]] = {'dims':(), 'data': offspringFitness[i]}
   rlz.append(xr.Dataset.from_dict(d))
 rlz = xr.concat(rlz,dim='data')
 
-newPop2,newFit2,newAge2,popObjVal2 = ageBased(rlz,
+newPop2,newFit2,newAge2,popObjVal2,_ = ageBased(rlz,
                                               age=popAge,
                                               popSize=np.shape(population)[0],
                                               variables=optVars,
-                                              objVar=objVar,
+                                              objVar=objVar[0],
                                               population=population,
                                               popFitVals=popFitnessDS,
                                               offspringFitVals=offspringFitnessDS,
-                                              popMinObjVals=popFitnessDS)
+                                              popMinObjVals=popFitness)
 
 print('Age Based Selection')
 print('*'*19)

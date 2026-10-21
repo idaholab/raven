@@ -118,6 +118,14 @@
     type = 'PyTest'
     input = 'test_without_replacement_initial_pytest.py'
   [../]
+  [./pytestGaRankingVariant]
+    type = 'PyTest'
+    input = 'test_ranking_variant_pytest.py'
+  [../]
+  [./pytestGaRealCodedOperatorsMath]
+    type = 'PyTest'
+    input = 'test_real_coded_operators_math_pytest.py'
+  [../]
   [./pytestGaSurvivorSelectors]
     type = 'PyTest'
     input = 'test_survivor_selectors_pytest.py'

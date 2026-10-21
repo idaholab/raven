@@ -400,7 +400,7 @@
     input = 'discrete/unconstrained/GA_discreteIntWithReplacement.xml'
     [./csv]
      type = OrderedCSV
-     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv'
+     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv ./discrete/unconstrained/discreteIntWithReplacement/PrintOptOut.csv'
      rel_err = 0.001
     [../]
     [./plot_opt_path]
@@ -828,6 +828,16 @@
     [../]
   [../]
 
+  [./NSGA-II_MinwoRepMultiObjectivePenaltyPerPair]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/MinwoRepMultiObjectivePenaltyPerPair.xml'
+    [./csv]
+      type = UnorderedCSV
+      output = 'discrete/constrained/Multi_MinwoReplacementPenaltyPerPair/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
   [./NSGA-II_MinwoRepMultiObjective]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
@@ -891,20 +901,13 @@
   [./NSGA-II_MinwoRepFeasibleFirst]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst.xml'
+    image = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
     required_libraries = 'imageio'
     rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MultiwoReplacementFeasibleFirst/1-population.png'
     [../]
   [../]
 
@@ -951,20 +954,13 @@
   [./NSGA-II_ZDT1]
     type = 'RavenFramework'
     input = 'continuous/unconstrained/ZDT1.xml'
+    image = 'continuous/unconstrained/ZDT1/1-opt_path.png continuous/unconstrained/ZDT1/1-population.png'
     required_libraries = 'imageio'
-    rel_err = 0.5
+    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'continuous/unconstrained/ZDT1/opt_export_0.csv'
       rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'continuous/unconstrained/ZDT1/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'continuous/unconstrained/ZDT1/1-population.png'
     [../]
   [../]
 
