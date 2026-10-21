@@ -20,4 +20,14 @@
     rel_err = 0.02 # limited by ARMA__signal_fa__constant
     zero_threshold = 1e-12
   [../]
+  [./ExponentialResponse]
+    type = 'RavenFramework'
+    input = 'exponential_response.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'ExponentialResponse/chz.csv'
+      rel_err = 1e-5 # deterministic fit; tolerance covers optimizer round-off across platforms
+      zero_threshold = 1e-12
+    [../]
+  [../]
 []
