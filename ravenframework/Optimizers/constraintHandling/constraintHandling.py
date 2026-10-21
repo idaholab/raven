@@ -21,14 +21,12 @@
 import xarray as xr
 import numpy as np
 
-def constraintHandling(self, info, rlz, offspring, minObjVals, multiObjective=False):
+def constraintHandling(self, rlz, offspring, minObjVals):
     """
     This function handles the constraints for both single and multi-objective optimization.
-    @ In, info, dict, dictionary containing information about the run
-    @ In, rlz, dict, dictionary containing the results of the run
+    @ In, rlz, xr.Dataset, evaluated realizations of the offspring
     @ In, offspring, xr.DataArray, offspring individuals
     @ In, minObjVals, list, RAVEN minimization-space objective values. Objectives declared as max have already been multiplied by -1.
-    @ In, multiObjective, bool, indicates if it's a multi-objective optimization
     @ Out, constraintVals, xr.DataArray, constraint evaluations for each chromosome and constraint
     """
     allConstraintFunctions = self._constraintFunctions + self._impConstraintFunctions

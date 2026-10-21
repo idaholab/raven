@@ -818,7 +818,8 @@ class RavenSampled(Optimizer):
 
     self._solutionExport.asDataset() #empty _collector into _data
     ## Search the rest of the population (GA-only: _sampledPopulationInfo is set in
-    ## GeneticAlgorithm.__init__ and populated by survivorSelection; other RavenSampled
+    ## GeneticAlgorithm.__init__ and filled by GeneticAlgorithm._recordSampledPopulation for single-objective
+    ## runs only (multi-objective GAs leave it empty, see MultiObjectiveGeneticAlgorithm._useRealization); other RavenSampled
     ## optimizers never define this attribute, so hasattr() correctly skips them here.
     ## NOTE: this was previously misnamed "_sampledHistoryInfo" during a 2026-09-01
     ## generalization pass, which silently disabled this block for every optimizer, GA included.
@@ -872,14 +873,19 @@ class RavenSampled(Optimizer):
       self.raiseAMessage('*' * 80)
       # write final best solution to soln export
       if bestPoint not in self._finals:
-          if hasattr(self, '_validateFinalFront'):
-            try:
-              self._validateFinalFront(optElm)
-            except Exception as error:
-              self.raiseADebug(f'Final-front validation failed: {error}')
+          self._validateFinalFront(optElm)
           self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
           self._finals.append(bestPoint)
 
+
+  def _validateFinalFront(self, candidate):
+    """
+      Hook to sanity-check a final optimal point before it is exported. No-op by default;
+      multi-objective optimizers override it.
+      @ In, candidate, dict, the final optimal point (minimization space)
+      @ Out, None
+    """
+    return
 
   def flush(self):
     """
@@ -1175,10 +1181,10 @@ class RavenSampled(Optimizer):
       @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
-    oldMinObjVal = normed[self._objectiveVar[0]]
-    normed.pop(self._objectiveVar[0], oldMinObjVal)
+    oldVal = normed[self._objectiveVar[0]]
+    normed.pop(self._objectiveVar[0], oldVal)
     denormed = self.denormalizeData(normed)
-    denormed[self._objectiveVar[0]] = oldMinObjVal * self._objMult[self._objectiveVar[0]]
+    denormed[self._objectiveVar[0]] = oldVal
     accept = self._checkImpFunctionalConstraints(denormed)
 
     return accept

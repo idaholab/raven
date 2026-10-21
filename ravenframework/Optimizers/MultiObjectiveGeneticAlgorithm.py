@@ -514,6 +514,14 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
         collected[var].append(value)
     return collected
 
+  def _canBeMultiObjective(self):
+    """
+      Multi-objective genetic algorithms accept more than one objective.
+      @ In, None
+      @ Out, canBeMultiObjective, bool, True
+    """
+    return True
+
   def handleInput(self, paramInput):
     """
     handleInput method.
@@ -553,6 +561,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     rankingAlgorithmNode = paramInput.findFirst('rankingAlgorithm')
     if rankingAlgorithmNode is not None:
       self._rankingAlgorithmType = rankingAlgorithmNode.parameterValues.get('type', 'constrainedDomination')
+    self._reconcileRankingVariant()
     self._rankingAlgorithmInstance = rankingHandlerReturnInstance(self, name=self._rankingAlgorithmType)
     # Did the user supply a <fitness> node? (base GeneticAlgorithm.handleInput read it already.)
     gaParamsNode = paramInput.findFirst('GAparams')
@@ -585,6 +594,38 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                              'result and affects the exported "fitness" column only. It is load-bearing '
                              'for single-objective GA and for <rankingAlgorithm type="feasibleFirstPenalty">.',
                              color='red')
+
+  def _reconcileRankingVariant(self):
+    """
+      Keep <rankingAlgorithm type> and its behavior nodes consistent. The epsilon-constrained and
+      stochastic-ranking variants are switched on by <constraintEpsilon> and <stochasticRanking>;
+      selecting the matching type without its node turns the behavior on with its documented default,
+      and a node that contradicts the selected type is rejected instead of silently winning.
+      @ In, None
+      @ Out, None
+    """
+    rankType = self._rankingAlgorithmType
+    if rankType == 'epsilonConstrained' and self._constraintEpsilon <= 0.0:
+      self.raiseAnError(IOError, '<rankingAlgorithm type="epsilonConstrained"> needs a positive '
+                        '<constraintEpsilon> (the constraint-violation tolerance); without it the '
+                        'ranking is plain Deb-2002 constrained domination.')
+    if rankType == 'stochasticRanking' and not self._stochasticRanking:
+      self.raiseAMessage('<rankingAlgorithm type="stochasticRanking"> selected: enabling stochastic '
+                         f'ranking with pf={self._stochasticRankingPf}.')
+      self._stochasticRanking = True
+    if rankType == 'constrainedDomination' and self._constraintEpsilon > 0.0:
+      self.raiseAMessage(f'<constraintEpsilon>{self._constraintEpsilon}</constraintEpsilon> given: using '
+                         'epsilon-constrained ranking (Takahama & Sato).')
+      self._rankingAlgorithmType = 'epsilonConstrained'
+    if rankType == 'constrainedDomination' and self._stochasticRanking:
+      self._rankingAlgorithmType = 'stochasticRanking'
+    if rankType == 'feasibleFirstPenalty' and (self._constraintEpsilon > 0.0 or self._stochasticRanking):
+      self.raiseAnError(IOError, '<rankingAlgorithm type="feasibleFirstPenalty"> ranks the penalized '
+                        'scalar fitness; <constraintEpsilon> and <stochasticRanking> apply only to '
+                        'constrained-domination ranking and cannot be combined with it.')
+    if self._constraintEpsilon > 0.0 and self._stochasticRanking:
+      self.raiseAnError(IOError, '<constraintEpsilon> and <stochasticRanking> select different ranking '
+                        'variants (epsilonConstrained and stochasticRanking); choose one.')
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
@@ -897,47 +938,48 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     @ In, candidate, dict, realization for the candidate final-front point.
     @ Out, None.
     """
+    if getattr(self, 'popFitVals', None) is None or getattr(self, 'popMinObjVals', None) is None:
+      return
+
+    def asArray(values):
+      """
+      Cast a DataArray or list of objective values to a 1-D float numpy array.
+      @ In, values, array-like, values from a DataArray or list to cast to ndarray.
+      @ Out, array, np.ndarray, values converted to a float array.
+      """
+      return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
+
+    popMinObjVals = np.column_stack([np.atleast_1d(asArray(vals)) for vals in self.popMinObjVals])
+    # Finalization candidates are stored in minimization space; convert to original
+    # signs below only for Pareto ranking with explicit objective directions.
     try:
-      if not hasattr(self, 'popFitVals') or self.popFitVals is None:
-        return
-      if not hasattr(self, 'popMinObjVals') or self.popMinObjVals is None:
-        return
+      candidateMinObjVals = np.array([float(np.atleast_1d(candidate[obj])[0]) for obj in self._objectiveVar], dtype=float)
+    except KeyError:
+      self.raiseADebug('Final-front validation skipped: candidate lacks objective entries.')
+      return
 
-      def asArray(values):
-        """
-        Cast a DataArray or list of objective values to a 1-D float numpy array.
-        @ In, values, array-like, values from a DataArray or list to cast to ndarray.
-        @ Out, array, np.ndarray, values converted to a float array.
-        """
-        return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
-
-      popMinObjVals = np.column_stack([np.atleast_1d(asArray(vals)) for vals in self.popMinObjVals])
-      # Finalization candidates are stored in minimization space; convert to original
-      # signs below only for Pareto ranking with explicit objective directions.
-      try:
-        candidateMinObjVals = np.array([float(np.atleast_1d(candidate[obj])[0]) for obj in self._objectiveVar], dtype=float)
-      except KeyError:
-        self.raiseADebug('Final-front validation skipped: candidate lacks objective entries.')
-        return
-
-      combined = np.vstack([popMinObjVals, candidateMinObjVals])
-      # Rank final-front candidates with user-facing objective signs and
-      # explicit objective directions, matching the NSGA-II survivor ranking.
-      combinedExternalObjVals = np.array(
-          [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
-           for solution in combined], dtype=float)
-      minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
-      ranks = np.array(frontUtils.rankNonDominatedFrontiers(combinedExternalObjVals, minMask=minMask))
-      candidateRank = ranks[-1]
-      bestRank = ranks[:-1].min() if combined.shape[0] > 1 else candidateRank
-      if candidateRank > bestRank:
-        self.raiseAWarning('Final export candidate is dominated by existing population members '
-                           f'(rank {candidateRank} vs best rank {bestRank}).')
-    except Exception as exc:
-      self.raiseADebug(f'Final-front validation encountered an exception: {exc}')
+    combined = np.vstack([popMinObjVals, candidateMinObjVals])
+    # Rank final-front candidates with user-facing objective signs and
+    # explicit objective directions, matching the NSGA-II survivor ranking.
+    combinedExternalObjVals = np.array(
+        [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
+         for solution in combined], dtype=float)
+    minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
+    ranks = np.array(frontUtils.rankNonDominatedFrontiers(combinedExternalObjVals, minMask=minMask))
+    candidateRank = ranks[-1]
+    bestRank = ranks[:-1].min() if combined.shape[0] > 1 else candidateRank
+    if candidateRank > bestRank:
+      self.raiseAWarning('Final export candidate is dominated by existing population members '
+                         f'(rank {candidateRank} vs best rank {bestRank}).')
 
   def _useRealization(self, info, rlz):
-    """Process evaluated offspring for multi-objective optimization."""
+    """
+      Process the evaluated offspring of one multi-objective generation: compute constraints and
+      fitness, then hand the generation to the algorithm-specific _processGeneration.
+      @ In, info, dict, identifying information about the realization (step, traj, etc.)
+      @ In, rlz, xr.Dataset, evaluated offspring realizations for this generation
+      @ Out, None
+    """
     info['step'] = self.counter
     traj = info['traj']
     for t in self._activeTraj[1:]:
@@ -951,8 +993,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     # have already been multiplied by -1 by RavenSampled before GA/NSGA-II ranking.
     offspringMinObjVals = [list(np.atleast_1d(rlz[obj].data)) for obj in self._objectiveVar]
 
-    offspringConstraintVals = constraintHandling(self, info, rlz, offspring,
-                                      offspringMinObjVals, multiObjective=True)
+    offspringConstraintVals = constraintHandling(self, rlz, offspring, offspringMinObjVals)
 
     normRlz, offspringConstraintVals = self._normalizeRealization(rlz, offspringConstraintVals)
 
@@ -964,6 +1005,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                                               constraintFunction=offspringConstraintVals,
                                               constraintNum=self._numOfConst,
                                               type=self._minMax)
+
+    # NOTE: _sampledPopulationInfo is deliberately NOT filled here. The RavenSampled population search
+    # compares fitness with an elementwise any(), which admits Pareto-dominated points into the final
+    # export; the multi-objective final front comes from the survivor population / Pareto archive.
 
     self._processGeneration(info,
                             rlz,

@@ -1396,7 +1396,11 @@ Simulated Annealing Example:
               a: The weight of objective function(s). \default{list of ones}
 
             \item \xmlNode{b}: \xmlDesc{comma-separated floats},
-              b: The weight of constraint penalty. \default{list of ones}
+              b: The weight of the constraint penalty. Give one value (applied to every objective
+              and        constraint), one value per objective (applied to all of that objective's
+              constraints), or one value per        (objective, constraint) pair listed objective-
+              major, i.e. $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$ counts both
+              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
               scale: in case of logistic fitness, this is the multiplier of the onjective(s).
@@ -2005,7 +2009,11 @@ Genetic Algorithm Example:
               a: The weight of objective function(s). \default{list of ones}
 
             \item \xmlNode{b}: \xmlDesc{comma-separated floats},
-              b: The weight of constraint penalty. \default{list of ones}
+              b: The weight of the constraint penalty. Give one value (applied to every objective
+              and        constraint), one value per objective (applied to all of that objective's
+              constraints), or one value per        (objective, constraint) pair listed objective-
+              major, i.e. $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$ counts both
+              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
               scale: in case of logistic fitness, this is the multiplier of the onjective(s).

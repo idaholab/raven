@@ -71,6 +71,7 @@ limit our library choices.
     <swig skip_check='True'/>
     <pylint/>
     <coverage/>
+    <pytest/>
     <lxml source="pip"/>
     <psutil/>
     <pip/>

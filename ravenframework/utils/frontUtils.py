@@ -145,6 +145,9 @@ def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None, ep
   data = np.asarray(data, dtype=float)
   if data.ndim != 2:
     raise IOError("rankNonDominatedFrontiers method: data must be a 2-D array")
+  # same guard as the unconstrained path: a NaN objective (e.g. a failed run) must not reach a front
+  if np.any(np.isnan(data)):
+    raise ValueError("'NaN' value returned in place of an objective value. Check objective function.")
   violation = _constraintViolation(constraintVals)
   if violation is None:
     violation = np.zeros(data.shape[0], dtype=float)
@@ -368,7 +371,7 @@ def updateParetoArchive(archiveObjectives, newObjectives, minMask=None, maxArchi
     @ In, minMask, np.array, optional, True per minimized objective and False per maximized objective
     @ In, maxArchiveSize, int, optional, maximum number of points to retain (None = unbounded)
     @ Out, combined, np.array, (nArchive+nNew, nObjectives) stacked objective vectors
-    @ Out, keptIndices, list, sorted indices into combined that form the updated archive
+    @ Out, keptIndices, list, sorted indices into combined that form the updated archive (one per distinct objective vector)
   """
   archiveObjectives = np.asarray(archiveObjectives, dtype=float)
   newObjectives = np.asarray(newObjectives, dtype=float)
@@ -377,7 +380,12 @@ def updateParetoArchive(archiveObjectives, newObjectives, minMask=None, maxArchi
     return np.empty((0, 0)), []
   combined = np.vstack(pieces)
   nonDominatedMask = nonDominatedFrontier(combined.copy(), returnMask=True, minMask=minMask)
-  keptIndices = list(np.where(nonDominatedMask)[0])
+  keptIndices = np.where(nonDominatedMask)[0]
+  # elitism resubmits the same rank-1 points every generation; keep one copy of each objective vector
+  # (the earliest, so existing archive members win over identical newcomers) so the archive cannot grow
+  # without bound and does not report duplicates
+  _, firstOccurrence = np.unique(combined[keptIndices], axis=0, return_index=True)
+  keptIndices = list(keptIndices[np.sort(firstOccurrence)])
   if maxArchiveSize is not None and len(keptIndices) > maxArchiveSize:
     keptObjectives = combined[keptIndices]
     ranks = np.ones(len(keptIndices), dtype=int)

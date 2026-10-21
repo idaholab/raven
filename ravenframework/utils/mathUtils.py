@@ -1280,16 +1280,6 @@ def getNumpyTypes(typ):
 
   return nTypes
 
-def minDistanceToPopulation(ai, b, q=2):
-  r"""
-    Minimum Minkowski distance from a single individual a_i to population B (nearest point in B).
-    @ In, ai, np.array, a single individual (chromosome)
-    @ In, b, np.array, population B (rows are individuals)
-    @ In, q, int, order of the Minkowski norm
-    @ Out, minDistanceToPopulation, float, the minimum distance from ai to B
-  """
-  return cdist(np.atleast_2d(ai), np.atleast_2d(b), metric='minkowski', p=q).min()
-
 def generationalDistanceP(a, b, p):
   r"""
     Modified Generational Distance Indicator: the p-averaged minimum (Euclidean) distance from
@@ -1308,7 +1298,7 @@ def averageHausdorffDistanceP(a, b, p):
     p-average Hausdorff Distance, used as a generation-convergence metric.
     @ In, a, np.array, population A
     @ In, b, np.array, population B
-    @ In, p, float, the order of the Minkowski norm
+    @ In, p, float, the averaging exponent applied to the nearest-neighbor (Euclidean) distances
     @ Out, averageHausdorffDistanceP, float, average Hausdorff distance
   """
   return max(generationalDistanceP(a, b, p), generationalDistanceP(b, a, p))
@@ -1341,9 +1331,9 @@ def populationEnvelopeSize(a, b):
     @ In, b, np.array, population B (rows are individuals)
     @ Out, populationEnvelopeSize, float, the envelope hyper-diagonal length
   """
-  aLenght = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
-  bLenght = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
-  sides = np.amax(np.stack([aLenght, bLenght], axis=0), axis=0).tolist()
+  aLength = np.abs(np.amax(a, axis=0) -  np.amin(a, axis=0))
+  bLength = np.abs(np.amax(b, axis=0) -  np.amin(b, axis=0))
+  sides = np.amax(np.stack([aLength, bLength], axis=0), axis=0).tolist()
   return hyperdiagonal(sides)
 
 def hausdorffDistanceSimilarityMeasure(a, b):

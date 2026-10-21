@@ -2113,6 +2113,16 @@ class UniformDiscrete(Distribution):
       self.pot = np.resize(self.pot, self.pot.size - 1)
     return rvsValue
 
+  def numberOfOutcomes(self):
+    """
+      Number of distinct values this distribution can take
+      @ In, None
+      @ Out, numberOfOutcomes, int, size of the support
+    """
+    if self.nPoints is None:
+      return int(self.upperBound) - int(self.lowerBound) + 1
+    return int(self.nPoints)
+
   def selectedRvs(self,discardedElems):
     """
       Return a random state of the distribution without discardedElems
@@ -2125,6 +2135,10 @@ class UniformDiscrete(Distribution):
       self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
 
     self.xArray = np.setdiff1d(self.xArray,discardedElems)
+    if self.xArray.size == 0:
+      self.raiseAnError(RuntimeError, f'UniformDiscrete distribution "{self.name}" has no values left to draw: '
+                        'every value is discarded. Under the "withoutReplacement" strategy, the number of '
+                        'variables sharing this distribution must not exceed its number of distinct values.')
 
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}

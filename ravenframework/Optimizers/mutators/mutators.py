@@ -254,7 +254,8 @@ def registerMutator(name, func):
     Register a mutator operator function under the given name.  Plugins call
     this from their __init__.py to make custom operators discoverable by the GA.
     @ In, name, str, operator name as it will appear in RAVEN XML input.
-    @ In, func, callable, mutator function with signature func(offSprings, distDict, **kwargs).
+    @ In, func, callable, mutator function with signature func(offspring, distDict, **kwargs); the GA passes
+      the offspring and distDict positionally, so the parameter names are free (e.g. offSprings).
     @ Out, None
   """
   __mutators[name] = func
@@ -265,7 +266,7 @@ def returnInstance(cls, name):
     Method designed to return class instance:
     @ In, cls, class type
     @ In, name, string, name of class
-    @ Out, __crossovers[name], instance of class
+    @ Out, __mutators[name], the registered mutation operator
   """
   if name not in __mutators:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))

@@ -26,7 +26,7 @@ import numpy as np
 def replacementRepair(offspring,**kwargs):
   """
     @ In, offspring, xr.DataArray, distorted offspring resulting from the mating process.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this repair method:
           variables, list, variables names.
           distInfo, dict, Distribution information.
           distDict, dict, Distribution dictionary.
@@ -61,7 +61,7 @@ def returnInstance(cls, name):
     Method designed to return class instance
     @ In, cls, class type
     @ In, name, string, name of class
-    @ Out, __crossovers[name], instance of class
+    @ Out, __repairs[name], the registered repair operator
   """
   if name not in __repairs:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))

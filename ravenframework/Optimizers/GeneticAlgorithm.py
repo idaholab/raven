@@ -558,7 +558,10 @@ class GeneticAlgorithm(RavenSampled):
     penaltyCoeff = InputData.parameterInputFactory('b', strictMode=True,
         contentType=InputTypes.FloatListType,
         printPriority=108,
-        descr=r""" b: The weight of constraint penalty. \default{list of ones}""")
+        descr=r""" b: The weight of the constraint penalty. Give one value (applied to every objective and
+        constraint), one value per objective (applied to all of that objective's constraints), or one value per
+        (objective, constraint) pair listed objective-major, i.e. $b_{1,1},\ldots,b_{1,n_c},b_{2,1},\ldots$, where
+        $n_c$ counts both \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. \default{10.0}""")
     fitness.addSub(penaltyCoeff)
     scale = InputData.parameterInputFactory('scale', strictMode=False,
         contentType=InputTypes.FloatListType,
@@ -633,6 +636,14 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
+    # Reject a multi-objective <GeneticAlgorithm> at input time, before any model is run.
+    # MultiObjectiveGeneticAlgorithm (a subclass) owns multi-objective runs.
+    if self._isMultiObjective and not self._canBeMultiObjective():
+      self.raiseAnError(IOError, f'<GeneticAlgorithm name="{self.name}"> lists {len(self._objectiveVar)} objectives '
+                        f'({", ".join(self._objectiveVar)}), but <GeneticAlgorithm> is single-objective. Use '
+                        '<MultiObjectiveGeneticAlgorithm type="NSGA-II"> instead (and type="MultiObjectiveGeneticAlgorithm" '
+                        'in the <Optimizer> node of <Steps>). To convert existing inputs run: '
+                        'python scripts/conversionScripts/toMultiObjectiveGA.py <input.xml>')
     ####################################################################################
     # GAparams                                                                         #
     ####################################################################################
@@ -740,9 +751,14 @@ class GeneticAlgorithm(RavenSampled):
       self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External'])
     else:
       self._numOfConst = 0
-    if (self._expConstr is not None) and (self._impConstr is not None) and (self._penaltyCoeff is not None):
-      if len(self._penaltyCoeff) is not len(self._objectiveVar) * self._numOfConst:
-        self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
+    if self._penaltyCoeff is not None:
+      nObj = len(self._objectiveVar)
+      allowed = sorted({1, nObj, nObj * self._numOfConst} - {0})
+      if len(self._penaltyCoeff) not in allowed:
+        self.raiseAnError(IOError, f'<b> has {len(self._penaltyCoeff)} value(s); it must have 1 (applied to every objective and '
+                          f'constraint), {nObj} (one per objective), or {nObj * self._numOfConst} (one per objective and '
+                          f'constraint, objective-major: b_(1,1),...,b_(1,{self._numOfConst}),b_(2,1),...), with '
+                          f'{nObj} objective(s) and {self._numOfConst} constraint(s) (<Constraint> plus <ImplicitConstraint>).')
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
@@ -763,70 +779,28 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
 
-  def _withoutReplacementPoolSize(self, dist):
+  def _recordSampledPopulation(self, offspring, offspringFitVals):
     """
-      Number of distinct values a UniformDiscrete-like distribution can draw without
-      replacement, or None if the pool size cannot be determined for this distribution type.
-      @ In, dist, Distribution, the distribution instance
-      @ Out, poolSize, int or None, count of distinct selectable values (None if unknown)
-    """
-    if getattr(dist, 'nPoints', None) is not None:
-      return int(dist.nPoints)
-    lower, upper = getattr(dist, 'lowerBound', None), getattr(dist, 'upperBound', None)
-    if lower is not None and upper is not None:
-      return int(upper) - int(lower) + 1
-    return None
-
-  def _checkWithoutReplacementFeasible(self):
-    """
-      Fail fast on an infeasible 'withoutReplacement' setup. When more variables share a
-      withoutReplacement distribution than that distribution has distinct values, no
-      duplicate-free chromosome exists. Without this guard the run proceeds with duplicate
-      genes and later divides by zero in Distributions.selectedRvs when the value pool is
-      exhausted during repair.
-      @ In, None
+      Store each evaluated chromosome's fitness, keyed by its genes. RavenSampled.finalizeSampler
+      reads this to look for population members better than the tracked optimal point.
+      @ In, offspring, xr.DataArray, evaluated chromosomes (chromosome x Gene)
+      @ In, offspringFitVals, xr.Dataset, fitness of each chromosome, one variable per objective
       @ Out, None
     """
-    sharingVars = {}
-    for var in self.toBeSampled:
-      dist = self.distDict[var]
-      if getattr(dist, 'strategy', None) == 'withoutReplacement':
-        sharingVars.setdefault(self.toBeSampled[var], []).append(var)
-    for distName, varsSharing in sharingVars.items():
-      poolSize = self._withoutReplacementPoolSize(self.distDict[varsSharing[0]])
-      if poolSize is not None and len(varsSharing) > poolSize:
-        self.raiseAnError(IOError,
-            f'Distribution "{distName}" uses the "withoutReplacement" strategy but offers only '
-            f'{poolSize} distinct value(s), while {len(varsSharing)} variables '
-            f'({", ".join(sorted(varsSharing))}) sample from it. A duplicate-free assignment is '
-            f'impossible: provide at least {len(varsSharing)} distinct values (widen the bounds '
-            f'or increase nPoints), or use the "withReplacement" strategy.')
+    if offspringFitVals is None:
+      return
+    fitness = offspringFitVals.to_dataarray()
+    for i in range(offspring.shape[0]):
+      self._sampledPopulationInfo[tuple(offspring[i].data)] = fitness[:, i]
 
-  def _repairInitialValue(self, init):
+  def _canBeMultiObjective(self):
     """
-      Enforce the 'withoutReplacement' strategy on a single initial-population chromosome.
-      The initial population is drawn variable-by-variable, so it can contain duplicate genes
-      for variables that share a withoutReplacement distribution; the uniqueness constraint is
-      otherwise applied only after crossover/mutation. This brings generation 0 in line with
-      every subsequent generation. Operates in the distribution's own value space (the GA does
-      not normalize, see needDenormalized).
-      @ In, init, dict, a chromosome as {varName: value}
-      @ Out, repaired, dict, the chromosome with duplicate withoutReplacement genes resolved
+      Whether this optimizer class accepts more than one objective. The single-objective
+      GeneticAlgorithm does not; MultiObjectiveGeneticAlgorithm overrides this.
+      @ In, None
+      @ Out, canBeMultiObjective, bool, True if multiple objectives are allowed
     """
-    repaired = dict(init)
-    usedByDist = {}
-    for var in self.toBeSampled:
-      dist = self.distDict[var]
-      if getattr(dist, 'strategy', None) != 'withoutReplacement':
-        continue
-      distName = self.toBeSampled[var]
-      used = usedByDist.setdefault(distName, [])
-      value = repaired[var]
-      if value in used:
-        value = dist.selectedRvs(list(used))
-        repaired[var] = value
-      used.append(value)
-    return repaired
+    return False
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -840,9 +814,6 @@ class GeneticAlgorithm(RavenSampled):
     meta = ['batchId']
     self.addMetaKeys(meta)
     self.batch = self._populationSize
-    # Reject an impossible withoutReplacement setup before any run is submitted (fail fast),
-    # then repair the initial population so generation 0 respects the strategy too.
-    self._checkWithoutReplacementFeasible()
     if self._checkpointRestored:
       # Submission queue already populated from checkpoint state; skip initial population submission.
       self.raiseAMessage('Resuming from checkpoint; skipping initial population submission.')
@@ -850,7 +821,7 @@ class GeneticAlgorithm(RavenSampled):
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, f'Number of initial values provided for each variable is {len(self._initialValues)}, while the population size is {self._populationSize}')
     for _, init in enumerate(self._initialValues):
-      self._submitRun(self._repairInitialValue(init), 0, self.getIteration(0) + 1)
+      self._submitRun(init, 0, self.getIteration(0) + 1)
 
   def initializeTrajectory(self, traj=None):
     """
@@ -975,9 +946,6 @@ class GeneticAlgorithm(RavenSampled):
                                            ↓
                                      (cycle repeats)
     """
-    if self._isMultiObjective:
-      self.raiseAnError(IOError, 'GeneticAlgorithm supports only single-objective optimization. '
-                        'Use MultiObjectiveGeneticAlgorithm/NSGAII for multi-objective problems.')
     info['step'] = self.counter
     traj = info['traj']
     for t in self._activeTraj[1:]:
@@ -998,8 +966,7 @@ class GeneticAlgorithm(RavenSampled):
       offspringMinObjVals.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
 
     # Step 3: Compute constraints for offspring Q(t)
-    offspringConstraintVals = constraintHandling(self, info, rlz, offspring,
-                                      offspringMinObjVals, multiObjective=False)
+    offspringConstraintVals = constraintHandling(self, rlz, offspring, offspringMinObjVals)
 
     # Step 4: Normalize if requested (shared, vectorized helper)
     normRlz, offspringConstraintVals = self._normalizeRealization(rlz, offspringConstraintVals)
@@ -1013,6 +980,10 @@ class GeneticAlgorithm(RavenSampled):
                                                constraintFunction=offspringConstraintVals,
                                                constraintNum=self._numOfConst,
                                                type=self._minMax)
+
+    # record every evaluated chromosome with its fitness so RavenSampled.finalizeSampler can search
+    # the whole population for points better than the tracked optimum
+    self._recordSampledPopulation(offspring, offspringFitVals)
 
     if self._activeTraj:
       # ============================================================
@@ -1096,8 +1067,7 @@ class GeneticAlgorithm(RavenSampled):
                                               distDict=self.distDict)
 
       # Mutation
-      childrenMutated = self._mutationInstance(offspring=childrenXover,
-                                               distDict=self.distDict,
+      childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                                locs=self._mutationLocs,
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled))

@@ -261,7 +261,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
           combinedFitVals=combinedFitVals,
           combinedConstraintVals=combinedConstraintVals,
           popSize=self._populationSize,
-          objectiveNames=objectiveNames)
+          objectiveNames=objectiveNames,
+          constraintNames=offspringConstraintVals.coords['Constraint'].values if 'Constraint' in offspringConstraintVals.coords else None)
     else:
       currentPopExternalObjValsBySolution = np.array(
           [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
@@ -334,8 +335,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                                             points=self._crossoverPoints,
                                             distDict=self.distDict)
 
-    childrenMutated = self._mutationInstance(offspring=childrenXover,
-                                             distDict=self.distDict,
+    childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                              locs=self._mutationLocs,
                                              mutationProb=self._effectiveMutationProb(),
                                              variables=list(self.toBeSampled))
