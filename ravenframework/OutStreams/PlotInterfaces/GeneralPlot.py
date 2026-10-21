@@ -463,7 +463,20 @@ class GeneralPlot(PlotInterface):
         for cnt in range(len(self.sourceData[pltIndex])):
           maxSize = 0
           if 'historyLabel' in plotSettings:
-            labelVar = plotSettings['historyLabel'].split('|')[-1].strip()
+            historyLabelComponents = plotSettings['historyLabel'].split('|')
+            if len(historyLabelComponents) != 3:
+              self.raiseAnError(IOError, f'<historyLabel> nomenclature must obey to the following structure:'
+                                         f' "DataObject Name|Input or Output|variableName". Got {plotSettings["historyLabel"]}')
+            sourceName, space, labelVar  = [comp.strip() for comp in historyLabelComponents]
+            if space.lower() not in ['input','output']:
+              self.raiseAnError(IOError,  '<historyLabel> nomenclature must obey to the following structure: "DataObject Name|Input or Output|variableName". '
+                                         f'Got {plotSettings["historyLabel"]}. The second element must be either Input or Output. Got {space}')
+            
+            if sourceName != self.sourceName[pltIndex]:
+              self.raiseAnError(IOError,  'The <historyLabel> can be linked to the current Dataobject only. '
+                                         f'<historyLabel> {plotSettings["historyLabel"]} is linked to {sourceName} '
+                                         f'but the current DataObject source is {self.sourceName[pltIndex]} ')
+            
             labelValue = dataSet.isel({'RAVEN_sample_ID': cnt}, False)[labelVar].values
             labelValue = labelValue.item() if labelValue.size == 1 else labelValue
             if isinstance(labelValue, float) and labelValue.is_integer():
