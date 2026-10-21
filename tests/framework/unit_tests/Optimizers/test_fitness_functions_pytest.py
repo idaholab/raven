@@ -102,13 +102,18 @@ def test_penalty_per_pair_is_objective_major(fitness_inputs):
   np.testing.assert_allclose(result['obj2'].values, np.array([-2.0, -7.0, -10.0]))
 
 
-def test_penalty_default_is_one(fitness_inputs):
-  """Without <b> the penalty weight is 1.0, as documented in the manual."""
+def test_penalty_default_matches_explicit(fitness_inputs):
+  """Without <b> the penalty weight is the documented default (10.0), not 1.0."""
   withDefault = fitness.invLinear(fitness_inputs['rlz'], objVar=fitness_inputs['obj_var'],
                                   constraintFunction=fitness_inputs['constraints'], constraintNum=2, type=['min'])
+  explicitDefault = fitness.invLinear(fitness_inputs['rlz'], objVar=fitness_inputs['obj_var'], b=[fitness._defaultPenaltyScaling],
+                                      constraintFunction=fitness_inputs['constraints'], constraintNum=2, type=['min'])
+  np.testing.assert_allclose(withDefault['obj'].values, explicitDefault['obj'].values)
+  # and it must NOT match b=1.0 (guards against the default silently reverting)
   explicitOne = fitness.invLinear(fitness_inputs['rlz'], objVar=fitness_inputs['obj_var'], b=[1.0],
                                   constraintFunction=fitness_inputs['constraints'], constraintNum=2, type=['min'])
-  np.testing.assert_allclose(withDefault['obj'].values, explicitOne['obj'].values)
+  assert not np.allclose(withDefault['obj'].values, explicitOne['obj'].values)
+  assert fitness._defaultPenaltyScaling == 10.0
 
 
 def test_penalty_bad_length_raises(fitness_inputs):

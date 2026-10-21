@@ -12,82 +12,121 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Unit tests for the Genetic Algorithm 'withoutReplacement' initial-population handling:
-  the fail-fast feasibility guard and the generation-0 duplicate repair. The two methods
-  under test (_checkWithoutReplacementFeasible, _repairInitialValue) depend only on
-  self.toBeSampled and self.distDict, so they are exercised here on a light stand-in that
-  borrows the real GeneticAlgorithm implementations, avoiding a full optimizer build.
+  Unit tests for the optimizer 'withoutReplacement' initial-point handling shared by every
+  optimizer (Optimizer base class): the fail-fast feasibility guard and the initial-point
+  duplicate repair. The methods under test (_withoutReplacementGroups,
+  _checkWithoutReplacementFeasible, _repairInitialValue) depend only on self.toBeSampled and
+  self.distDict, so they are exercised on a light stand-in that borrows the real Optimizer
+  implementations, with real UniformDiscrete distributions.
 """
+import os
+import sys
+import xml.etree.ElementTree as ET
+
 import pytest
 
-from ravenframework.Optimizers.GeneticAlgorithm import GeneticAlgorithm
+ravenDir = os.path.abspath(os.path.join(*([os.path.dirname(__file__)] + [os.pardir] * 4)))
+if ravenDir not in sys.path:
+  sys.path.append(ravenDir)
+
+from ravenframework.utils.utils import find_crow
+find_crow(os.path.join(ravenDir, 'framework'))
+
+from ravenframework import MessageHandler
+from ravenframework import Distributions
+from ravenframework.Optimizers.Optimizer import Optimizer
+from ravenframework.utils import randomUtils
+
+mh = MessageHandler.MessageHandler()
+mh.initialize({'verbosity': 'silent'})
 
 
-class DummyUniformDiscrete:
-  """Minimal UniformDiscrete stand-in exposing the attributes the guard/repair read."""
-  def __init__(self, strategy, lowerBound=None, upperBound=None, nPoints=None):
-    self.strategy = strategy
-    self.lowerBound = lowerBound
-    self.upperBound = upperBound
-    self.nPoints = nPoints
+def makeUniformDiscrete(lowerBound, upperBound, strategy='withoutReplacement', nPoints=None, name='woRep_dist'):
+  """
+    Build a real UniformDiscrete distribution through its input specification.
+    @ In, lowerBound, int, lower bound
+    @ In, upperBound, int, upper bound
+    @ In, strategy, str, optional, sampling strategy
+    @ In, nPoints, int, optional, number of grid points
+    @ In, name, str, optional, distribution name
+    @ Out, dist, UniformDiscrete, the initialized distribution
+  """
+  node = ET.Element('UniformDiscrete', {'name': name})
+  for tag, text in (('lowerBound', lowerBound), ('upperBound', upperBound), ('strategy', strategy), ('nPoints', nPoints)):
+    if text is not None:
+      sub = ET.SubElement(node, tag)
+      sub.text = str(text)
+  dist = Distributions.factory.returnInstance('UniformDiscrete')
+  dist.setMessageHandler(mh)
+  spec = dist.getInputSpecification()()
+  spec.parseNode(node)
+  dist._handleInput(spec)
+  return dist
 
-  def selectedRvs(self, discardedElems):
-    """Return the first in-range integer value not in discardedElems (mirrors the real draw)."""
-    if self.nPoints is not None:
-      pool = [self.lowerBound + i * (self.upperBound - self.lowerBound) / (self.nPoints - 1)
-              for i in range(self.nPoints)]
-    else:
-      pool = list(range(int(self.lowerBound), int(self.upperBound) + 1))
-    for value in pool:
-      if value not in discardedElems:
-        return float(value)
-    raise RuntimeError("value pool exhausted")
 
-
-class _GAStub:
-  """Carries toBeSampled/distDict and borrows the real GA methods under test."""
-  _withoutReplacementPoolSize = GeneticAlgorithm._withoutReplacementPoolSize
-  _checkWithoutReplacementFeasible = GeneticAlgorithm._checkWithoutReplacementFeasible
-  _repairInitialValue = GeneticAlgorithm._repairInitialValue
+class _OptimizerStub:
+  """
+    Carries toBeSampled/distDict and borrows the real Optimizer methods under test.
+  """
+  _withoutReplacementGroups = Optimizer._withoutReplacementGroups
+  _checkWithoutReplacementFeasible = Optimizer._checkWithoutReplacementFeasible
+  _repairInitialValue = Optimizer._repairInitialValue
 
   def __init__(self, toBeSampled, distDict):
+    """
+      Constructor.
+      @ In, toBeSampled, dict, {varName: distributionName}
+      @ In, distDict, dict, {varName: distribution}
+      @ Out, None
+    """
     self.toBeSampled = toBeSampled
     self.distDict = distDict
 
   def raiseAnError(self, etype, msg):
-    """Match the BaseClasses signature so the guard's error path is testable."""
+    """
+      Match the MessageUser signature so the guard's error path is testable.
+      @ In, etype, Exception, error type
+      @ In, msg, str, message
+      @ Out, None
+    """
     raise etype(msg)
 
+  def raiseADebug(self, *args, **kwargs):
+    """
+      Silence debug output.
+      @ In, args, list, unused
+      @ In, kwargs, dict, unused
+      @ Out, None
+    """
 
-def _makeStub(nVars, strategy='withoutReplacement', lowerBound=1, upperBound=6, nPoints=None):
-  dist = DummyUniformDiscrete(strategy, lowerBound, upperBound, nPoints)
+
+def makeStub(nVars, **distKwargs):
+  """
+    Build a stub whose nVars variables all share one UniformDiscrete.
+    @ In, nVars, int, number of variables
+    @ In, distKwargs, dict, UniformDiscrete settings
+    @ Out, (stub, variables), tuple, the stub and its variable names
+  """
+  dist = makeUniformDiscrete(**distKwargs)
   variables = [f'x{i+1}' for i in range(nVars)]
-  toBeSampled = {var: 'woRep_dist' for var in variables}
-  distDict = {var: dist for var in variables}
-  return _GAStub(toBeSampled, distDict), variables
+  return _OptimizerStub({var: dist.name for var in variables}, {var: dist for var in variables}), variables
 
 
-def test_pool_size_from_range():
-  """Pool size for an integer-range UniformDiscrete is (upper - lower + 1)."""
-  stub, _ = _makeStub(1, lowerBound=1, upperBound=6)
-  assert stub._withoutReplacementPoolSize(stub.distDict['x1']) == 6
-
-
-def test_pool_size_from_npoints():
-  """Pool size for an nPoints grid is nPoints."""
-  stub, _ = _makeStub(1, lowerBound=0, upperBound=10, nPoints=4)
-  assert stub._withoutReplacementPoolSize(stub.distDict['x1']) == 4
+def test_number_of_outcomes():
+  """numberOfOutcomes counts the integer range or the nPoints grid."""
+  assert makeUniformDiscrete(1, 6).numberOfOutcomes() == 6
+  assert makeUniformDiscrete(0, 10, nPoints=4).numberOfOutcomes() == 4
 
 
 def test_feasible_setup_passes():
   """vars == pool is feasible; the guard must not raise."""
-  stub, _ = _makeStub(6, lowerBound=1, upperBound=6)
-  stub._checkWithoutReplacementFeasible()  # no exception
+  stub, _ = makeStub(6, lowerBound=1, upperBound=6)
+  stub._checkWithoutReplacementFeasible()
 
 
 def test_infeasible_setup_raises():
   """More variables than distinct values is infeasible; the guard must raise IOError."""
-  stub, _ = _makeStub(3, lowerBound=1, upperBound=2)  # pool {1,2} < 3 vars
+  stub, _ = makeStub(3, lowerBound=1, upperBound=2)
   with pytest.raises(IOError) as info:
     stub._checkWithoutReplacementFeasible()
   message = str(info.value)
@@ -96,29 +135,65 @@ def test_infeasible_setup_raises():
   assert '3 variables' in message
 
 
+def test_khang_report_setup_is_infeasible():
+  """The reported case: six variables on {5, 6, 7} without replacement is rejected up front."""
+  stub, _ = makeStub(6, lowerBound=5, upperBound=7)
+  with pytest.raises(IOError):
+    stub._checkWithoutReplacementFeasible()
+
+
 def test_withreplacement_never_blocks():
   """A withReplacement distribution is never subject to the uniqueness guard."""
-  stub, _ = _makeStub(10, strategy='withReplacement', lowerBound=1, upperBound=2)
-  stub._checkWithoutReplacementFeasible()  # no exception even though 10 > pool of 2
+  stub, _ = makeStub(10, lowerBound=1, upperBound=2, strategy='withReplacement')
+  stub._checkWithoutReplacementFeasible()
+  init = {f'x{i+1}': 1.0 for i in range(10)}
+  assert stub._repairInitialValue(init) == init
 
 
 def test_initial_value_deduplicated():
-  """A gen-0 chromosome with duplicate withoutReplacement genes is repaired to be unique."""
-  stub, variables = _makeStub(3, lowerBound=1, upperBound=6)
-  init = {'x1': 5.0, 'x2': 5.0, 'x3': 6.0}  # x2 duplicates x1
+  """An initial point with duplicate withoutReplacement values is repaired to be unique and in range."""
+  randomUtils.randomSeed(42)
+  stub, variables = makeStub(3, lowerBound=1, upperBound=6)
+  init = {'x1': 5.0, 'x2': 5.0, 'x3': 6.0}
   repaired = stub._repairInitialValue(init)
   values = [repaired[v] for v in variables]
-  assert len(set(values)) == len(values)       # all distinct
+  assert len(set(values)) == len(values)
+  assert all(1 <= v <= 6 for v in values)
   assert repaired['x1'] == 5.0                   # first occurrence kept
-  assert repaired['x3'] == 6.0                   # untouched unique gene kept
 
 
 def test_initial_value_unique_untouched():
-  """A gen-0 chromosome already satisfying the constraint is returned unchanged."""
-  stub, variables = _makeStub(3, lowerBound=1, upperBound=6)
+  """An initial point already satisfying the constraint is returned unchanged."""
+  stub, _ = makeStub(3, lowerBound=1, upperBound=6)
   init = {'x1': 1.0, 'x2': 2.0, 'x3': 3.0}
-  repaired = stub._repairInitialValue(init)
-  assert repaired == init
+  assert stub._repairInitialValue(init) == init
+
+
+def test_full_pool_permutation_is_reachable():
+  """With as many variables as values, repair always yields a permutation of the support."""
+  randomUtils.randomSeed(7)
+  stub, variables = makeStub(3, lowerBound=5, upperBound=7)
+  for init in ({'x1': 5.0, 'x2': 5.0, 'x3': 5.0}, {'x1': 7.0, 'x2': 6.0, 'x3': 7.0}):
+    repaired = stub._repairInitialValue(init)
+    assert sorted(repaired[v] for v in variables) == [5.0, 6.0, 7.0]
+
+
+def test_independent_distributions_repaired_separately():
+  """Values are only required to be distinct among variables sharing the same distribution."""
+  distA = makeUniformDiscrete(1, 3, name='a')
+  distB = makeUniformDiscrete(1, 3, name='b')
+  stub = _OptimizerStub({'x1': 'a', 'x2': 'a', 'y1': 'b', 'y2': 'b'},
+                        {'x1': distA, 'x2': distA, 'y1': distB, 'y2': distB})
+  repaired = stub._repairInitialValue({'x1': 1.0, 'x2': 2.0, 'y1': 1.0, 'y2': 2.0})
+  assert repaired == {'x1': 1.0, 'x2': 2.0, 'y1': 1.0, 'y2': 2.0}
+
+
+def test_selected_rvs_exhausted_raises():
+  """Drawing with every value discarded raises a clear error instead of ZeroDivisionError."""
+  dist = makeUniformDiscrete(5, 7)
+  with pytest.raises(RuntimeError) as info:
+    dist.selectedRvs([5.0, 6.0, 7.0])
+  assert 'no values left to draw' in str(info.value)
 
 
 if __name__ == "__main__":
