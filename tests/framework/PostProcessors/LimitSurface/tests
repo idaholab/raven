@@ -5,12 +5,7 @@
   input = 'test_LimitSurface.xml'
   csv = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
   max_time = 300
-  # The limit surface is traced from a LinearSVC (liblinear) classifier that does not converge within
-  # the default max_iter (the run logs "Liblinear failed to converge"), so the decision boundary -- and
-  # thus the surface's y-values -- drift by ~1e-2 across machines/BLAS. The old 1e-4 tolerance only held
-  # on the machine that produced the gold; 0.02 absorbs the cross-machine wobble while still catching a
-  # real change in the surface.
-  rel_err = 0.02
+  rel_err = 0.0001
   #skip = 'need to be fixed'
  [../]
 
