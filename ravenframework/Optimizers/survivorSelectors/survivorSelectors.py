@@ -237,7 +237,7 @@ def rankNcrowdingBased(**kwargs):
     Compatible with frontUtils.rankNonDominatedFrontiers and frontUtils.crowdingDistance
 
     @ In, kwargs, dict, must contain:
-          - combinedPop: R(t) = P(t) ∪ Q(t) as np.array (nPoints, nGenes)
+          - combinedPop: R(t) = P(t) U Q(t) as np.array (nPoints, nGenes)
           - combinedRanks: ranks for all individuals in R(t) as list
           - combinedCD: crowding distances for all individuals in R(t) as np.array
           - combinedMinObjVals: minimization-space objective values for R(t) as list of lists

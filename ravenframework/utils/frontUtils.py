@@ -304,7 +304,9 @@ def crowdingDistance(rank, popSize, objectiveValues, normalizationBounds=None):
   # Keep track of which points are on each front
   frontIndices = {f: [] for f in fronts}
   for i, r in enumerate(rank):
-    frontIndices[r].append(i)
+    # an infinite rank marks an individual outside every front; it keeps a crowding distance of 0
+    if r in frontIndices:
+      frontIndices[r].append(i)
 
   for f in fronts:
     numObjectives = objectiveValues.shape[1]
@@ -339,8 +341,9 @@ def crowdingDistance(rank, popSize, objectiveValues, normalizationBounds=None):
       else:
         objMax = objectiveValues[sortedFront, obj].max()
         objMin = objectiveValues[sortedFront, obj].min()
-      # Skip normalization if the range is degenerate
-      if objMax == objMin:
+      # Skip normalization if the range is degenerate, or not finite (an infinite objective value would
+      # make every interior distance inf/inf = NaN); the boundary points above already carry inf
+      if objMax == objMin or not np.isfinite(objMax - objMin):
         continue
 
       # Calculate normalized distances for interior points
@@ -413,6 +416,11 @@ def hypervolume(points, reference):
     not strictly dominate the reference contribute nothing). It is computed with
     the Hypervolume-by-Slicing-Objectives (HSO) recursion of While et al. (2006),
     which is exact for any number of objectives.
+
+    Cost: HSO is exponential in the number of objectives M (worst case O(n^(M-1))
+    for n points). It is fast for M <= 4; for n = 100 points and M = 5 one call
+    takes several seconds, and the convergence check calls it twice per generation,
+    so hypervolume-based convergence is not recommended for M >= 5.
 
     @ In, points, list or np.array, (nPoints, nObjectives) objective vectors in minimization space
     @ In, reference, list or np.array, (nObjectives,) reference point, no better than any point in every objective

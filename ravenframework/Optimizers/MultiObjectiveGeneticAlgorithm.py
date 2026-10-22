@@ -62,7 +62,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                         between successive generations. The hypervolume is measured in RAVEN's internal
                         minimization space against a common nadir-based reference point (offset by a positive
                         margin so it is valid for zero or negative objectives); convergence is declared once
-                        the relative change in hypervolume falls below the provided value."""})
+                        the relative change in hypervolume falls below the provided value. The hypervolume is
+                        computed exactly, at a cost that grows exponentially with the number of objectives; it is
+                        fast for up to four objectives, but with five or more each generation can take seconds,
+                        so another criterion is recommended there."""})
 
   def __init__(self):
     """
@@ -1068,6 +1071,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if previousFront is None:
       # No earlier front to compare against yet; record this one and continue.
       return False
+    if len(self._objectiveVar) >= 5 and not getattr(self, '_hypervolumeCostWarned', False):
+      # exact hypervolume (HSO) is exponential in the number of objectives; warn once per run
+      self.raiseAWarning(f'The hypervolume convergence check is exact but its cost grows exponentially with the '
+                         f'number of objectives ({len(self._objectiveVar)} here): each generation may take '
+                         'seconds or more. Consider the rank1Ratio, spread, maxSpread, or AHDp criteria instead.')
+      self._hypervolumeCostWarned = True
     reference = self._hypervolumeReference(currentFront, previousFront)
     currentHV = frontUtils.hypervolume(currentFront, reference)
     previousHV = frontUtils.hypervolume(previousFront, reference)

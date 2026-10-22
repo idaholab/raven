@@ -387,6 +387,16 @@ try:
 except ValueError:
   nanRaised = True
 checkAnswer('constrained ranker rejects NaN objectives', nanRaised, True)
+
+# crowdingDistance edge cases: an infinite rank (outside every front) must not raise, and an infinite
+# objective value must not turn interior distances into NaN.
+infRankCD = frontUtils.crowdingDistance(np.array([1, 1, 1, np.inf]), 4,
+                                        np.array([[0.0, 3.0], [1.0, 2.0], [2.0, 1.0], [9.0, 9.0]]))
+checkAnswer('crowding distance ignores infinite rank', infRankCD[3], 0.0)
+checkAnswer('crowding distance infinite rank leaves front boundaries', infRankCD[0], np.inf)
+infObjCD = frontUtils.crowdingDistance(np.array([1, 1, 1, 1]), 4,
+                                       np.array([[0.0, np.inf], [1.0, 2.0], [2.0, 1.5], [3.0, 1.0]]))
+checkAnswer('crowding distance has no NaN with an infinite objective', int(np.isnan(infObjCD).sum()), 0)
 ###########################################
 print(results)
 

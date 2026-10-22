@@ -53,7 +53,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                       v
         +---------------------------+
         | Fast non-dominated sort   |
-        | (rank fronts F0, F1, …)   |
+        | (rank fronts F0, F1, ...)   |
         +-------------+-------------+
                       |
                       v
@@ -65,7 +65,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                       v
         +---------------------------+
         | Elitist survivor merge    |
-        | (parents ∪ offspring)     |
+        | (parents U offspring)     |
         +-------------+-------------+
                       |
                       v
@@ -135,7 +135,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
           + evaluate offspring population
           + fast non-dominated sorting (frontUtils.rankNonDominatedFrontiers)
           + crowding-distance assignment per front
-          + elitist survivor selection (parents ∪ offspring -> next gen)
+          + elitist survivor selection (parents U offspring -> next gen)
           + tournament parent selection biased by (rank, distance)
           + variation operators (crossover, mutation) to spawn next batch
 

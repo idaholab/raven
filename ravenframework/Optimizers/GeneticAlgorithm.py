@@ -388,7 +388,7 @@ class GeneticAlgorithm(RavenSampled):
                             individual solutions, introducing diversity into the population and enabling exploration of new regions in the solution space.
                             Crossover, on the other hand, mimics genetic recombination by exchanging genetic material between two parent solutions to create
                             offspring with combined traits. Survivor selection determines which solutions will advance to the next generation based on
-                            their fitness—how well they perform in solving the problem at hand. Solutions with higher fitness scores are more likely to
+                            their fitness -- how well they perform in solving the problem at hand. Solutions with higher fitness scores are more likely to
                             survive and reproduce, passing their genetic material to subsequent generations. This iterative process continues
                             until a stopping criterion is met, typically when a satisfactory solution is found or after a predetermined number of generations.
                             More information can be found in:\\\\
@@ -892,58 +892,58 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, identifying information about the realization
       @ In, rlz, xr.Dataset, new batched realizations with EVALUATED objectives
       @ Out, None
-                    ┌─────────────────────────────────────────────────────────────┐
-                    │  Model evaluates Q(t) objectives [EXPENSIVE - EXTERNAL]     │
-                    └──────────────────────┬──────────────────────────────────────┘
-                                           │
-                                           ↓
-                    ┌─────────────────────────────────────────────────────────────┐
-                    │  _useRealization receives Q(t) with evaluated objectives    │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 1: Process Q(t) [CHEAP - INTERNAL]               │ │
-                    │  │  • Extract inputs, objectives from rlz                 │ │
-                    │  │  • Compute constraints for Q(t)                        │ │
-                    │  │  • Compute fitness for Q(t)                            │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 2: Elitist Selection [CHEAP - INTERNAL]          │ │
-                    │  │  • Combine: R(t) = P(t) ∪ Q(t)                         │ │
-                    │  │  • Rank R(t) using constraint-domination               │ │
-                    │  │  • Compute CD for each front in R(t)                   │ │
-                    │  │  • Select best N individuals → P(t+1)                  │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 3: Record & Export [CHEAP - INTERNAL]            │ │
-                    │  │  • Extract Pareto front (rank 1) from P(t+1)           │ │
-                    │  │  • Check convergence (objective, spread, etc.)         │ │
-                    │  │  • Export P(t+1) with rank/CD to solution export       │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 4: Generate Q(t+1) [CHEAP - INTERNAL]            │ │
-                    │  │  • Select parents from P(t+1) using tournament         │ │
-                    │  │  • Crossover → offspring                               │ │
-                    │  │  • Mutation → offspring                                │ │
-                    │  │  • Create Q(t+1) (decision variables only)             │ │
-                    │  │  • Submit Q(t+1) to model                              │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 5: Store State                                   │ │
-                    │  │  • Save P(t+1) as pop for next iteration   │ │
-                    │  │  • Save objectives, fitness, rank, CD                  │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    └──────────────────────┬──────────────────────────────────────┘
-                                           │
-                                           ↓
-                    ┌─────────────────────────────────────────────────────────────┐
-                    │  Model evaluates Q(t+1) objectives [EXPENSIVE - EXTERNAL]   │
-                    └──────────────────────┬──────────────────────────────────────┘
-                                           │
-                                           ↓
+                    +-------------------------------------------------------------+
+                    |  Model evaluates Q(t) objectives [EXPENSIVE - EXTERNAL]     |
+                    +----------------------+--------------------------------------+
+                                           |
+                                           v
+                    +-------------------------------------------------------------+
+                    |  _useRealization receives Q(t) with evaluated objectives    |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 1: Process Q(t) [CHEAP - INTERNAL]               | |
+                    |  |  * Extract inputs, objectives from rlz                 | |
+                    |  |  * Compute constraints for Q(t)                        | |
+                    |  |  * Compute fitness for Q(t)                            | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 2: Elitist Selection [CHEAP - INTERNAL]          | |
+                    |  |  * Combine: R(t) = P(t) U Q(t)                       | |
+                    |  |  * Rank R(t) using constraint-domination               | |
+                    |  |  * Compute CD for each front in R(t)                   | |
+                    |  |  * Select best N individuals -> P(t+1)                 | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 3: Record & Export [CHEAP - INTERNAL]            | |
+                    |  |  * Extract Pareto front (rank 1) from P(t+1)           | |
+                    |  |  * Check convergence (objective, spread, etc.)         | |
+                    |  |  * Export P(t+1) with rank/CD to solution export       | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 4: Generate Q(t+1) [CHEAP - INTERNAL]            | |
+                    |  |  * Select parents from P(t+1) using tournament         | |
+                    |  |  * Crossover -> offspring                              | |
+                    |  |  * Mutation -> offspring                               | |
+                    |  |  * Create Q(t+1) (decision variables only)             | |
+                    |  |  * Submit Q(t+1) to model                              | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 5: Store State                                   | |
+                    |  |  * Save P(t+1) as pop for next iteration               | |
+                    |  |  * Save objectives, fitness, rank, CD                  | |
+                    |  +--------------------------------------------------------+ |
+                    +----------------------+--------------------------------------+
+                                           |
+                                           v
+                    +-------------------------------------------------------------+
+                    |  Model evaluates Q(t+1) objectives [EXPENSIVE - EXTERNAL]   |
+                    +----------------------+--------------------------------------+
+                                           |
+                                           v
                                      (cycle repeats)
     """
     info['step'] = self.counter
@@ -992,7 +992,7 @@ class GeneticAlgorithm(RavenSampled):
 
       if self.counter > 1:
         # We have parent population P(t) from previous iteration
-        # Combine P(t) ∪ Q(t) → R(t)
+        # Combine P(t) U Q(t) -> R(t)
 
         # Single-objective survivor selection (multi-objective uses MultiObjectiveGeneticAlgorithm).
         # singleObjSurvivorSelect assigns self.population, self.popFitVals, self.popAges, and
