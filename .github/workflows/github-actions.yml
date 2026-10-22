@@ -453,18 +453,93 @@ jobs:
           bash ./run_tests -j4 --plugins
         continue-on-error: true
 
+  Release-Info:
+    # Decide whether the release test is needed and which release version to test.
+    # It runs for a pushed RAVENv* tag, a PR labeled 'release-candidate', or a change to
+    # the release packaging (setup.py, MANIFEST.in, dependencies.xml, this workflow).
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      version: ${{ steps.version.outputs.raven_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed for the release tags and the changed files
+
+      - name: Check Release Test Trigger
+        id: gate
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          RC_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'release-candidate') }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          run=false
+          if [ "$REF_TYPE" = tag ] || [ "$RC_LABEL" = true ]; then
+            run=true
+          elif git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            if git diff --name-only "$BASE_SHA" "$GITHUB_SHA" \
+                | grep -qxE 'setup\.py|MANIFEST\.in|dependencies\.xml|\.github/workflows/github-actions\.yml'; then
+              run=true
+            fi
+          fi
+          echo "Release test needed: ${run}"
+          echo "run=${run}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Python
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # The version in setup.py is not committed for a release (e.g. setup.py at RAVENv3.3rc1
+      # still reads 3.2; only the packaged setup.py has 3.3rc1), so the version is taken from
+      # the release tag instead: the pushed RAVENv* tag, or else the newest RAVENv* tag.
+      - name: Extract RAVEN Version
+        id: version
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          if [ "${{ github.ref_type }}" = tag ]; then
+            tag="${{ github.ref_name }}"
+          else
+            python -m pip install packaging
+            tag=$(git tag -l 'RAVENv*' | python -c "
+          import sys
+          from packaging.version import InvalidVersion, Version
+          def key(tag):
+            try:
+              return Version(tag[len('RAVENv'):])
+            except InvalidVersion:
+              return Version('0')
+          print(max(sys.stdin.read().split(), key=key))")
+          fi
+          VERSION="${tag#RAVENv}"
+          echo "Detected RAVEN_VERSION=${VERSION} from tag ${tag}"
+          echo "raven_version=${VERSION}" >> "$GITHUB_OUTPUT"
+
   Test-RAVEN-Release:
     # Test the raven-framework release candidate installed from TestPyPI (no plugins)
-    name: Test-RAVEN-Release (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    name: Test-RAVEN-Release (${{ matrix.os }}, Python ${{ matrix.python-version }}, ${{ matrix.dist }})
+    needs: Release-Info
+    if: needs.Release-Info.outputs.run == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        # combinations without a built wheel for the release are skipped by 'Check Release Package'
+        # combinations without a built package for the release are skipped by 'Check Release Package'
         python-version: ['3.10', '3.11']
+        # Linux installs are expected to build from the source tar.gz (sdist); others use wheels
+        include:
+          - os: ubuntu-latest
+            dist: sdist
+          - os: macos-latest
+            dist: wheel
+          - os: windows-latest
+            dist: wheel
     env:
-      RAVEN_VERSION: 3.3rc1
+      RAVEN_VERSION: ${{ needs.Release-Info.outputs.version }}
     defaults:
       run:
         shell: bash
@@ -473,25 +548,33 @@ jobs:
         run: |
           echo " The job was automatically triggered by a ${{ github.event_name }} event."
           echo " This job is now running on a ${{ runner.os }} server"
-          echo " Testing raven-framework==${RAVEN_VERSION} from TestPyPI with Python ${{ matrix.python-version }}"
+          echo " Testing raven-framework==${RAVEN_VERSION} (${{ matrix.dist }}) from TestPyPI with Python ${{ matrix.python-version }}"
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Only test platforms with a built wheel for this release; e.g. 3.3rc1 has no Linux wheel.
+      # Only test platforms with a built package for this release; e.g. 3.3rc1 has no Linux wheel.
       # pip picks wheels by this interpreter's tags, so it decides what matches this OS/Python.
+      # The sdist is built without build isolation: an isolated build would look for setuptools
+      # on TestPyPI, so the build tools (setuptools, wheel, swig) are installed from PyPI instead.
       - name: Check Release Package
         id: release
         run: |
           python -m pip install --upgrade pip
-          if python -m pip download -i https://test.pypi.org/simple/ --no-deps --only-binary=:all: \
-              -d "${RUNNER_TEMP}/raven_wheel" raven-framework==${RAVEN_VERSION}; then
-            ls "${RUNNER_TEMP}/raven_wheel"
+          if [ "${{ matrix.dist }}" = sdist ]; then
+            python -m pip install setuptools wheel swig
+            dist_opts="--no-binary=:all: --no-build-isolation"
+          else
+            dist_opts="--only-binary=:all:"
+          fi
+          if python -m pip download -i https://test.pypi.org/simple/ --no-deps ${dist_opts} \
+              -d "${RUNNER_TEMP}/raven_dist" raven-framework==${RAVEN_VERSION}; then
+            ls "${RUNNER_TEMP}/raven_dist"
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::No raven-framework==${RAVEN_VERSION} wheel for ${{ runner.os }} / Python ${{ matrix.python-version }}; skipping release test."
+            echo "::notice::No raven-framework==${RAVEN_VERSION} ${{ matrix.dist }} for ${{ runner.os }} / Python ${{ matrix.python-version }}; skipping release test."
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -507,7 +590,7 @@ jobs:
       - name: Install RAVEN Release
         if: steps.release.outputs.available == 'true'
         run: |
-          python -m pip install --no-deps "${RUNNER_TEMP}"/raven_wheel/*.whl
+          python -m pip install --no-deps --no-build-isolation "${RUNNER_TEMP}"/raven_dist/*
           python -c "from importlib.metadata import requires; print('\n'.join(requires('raven_framework')))" > raven_requirements.txt
           cat raven_requirements.txt
           python -m pip install -r raven_requirements.txt
