@@ -71,8 +71,10 @@ def _encodeCheckpointState(obj):
     @ Out, obj, any, JSON-serializable representation
   """
   if isinstance(obj, float):
-    if math.isnan(obj):  return _NAN_SENTINEL
-    if math.isinf(obj):  return _POSINF_SENTINEL if obj > 0 else _NEGINF_SENTINEL
+    if math.isnan(obj):
+      return _NAN_SENTINEL
+    if math.isinf(obj):
+      return _POSINF_SENTINEL if obj > 0 else _NEGINF_SENTINEL
     return obj
   if isinstance(obj, np.floating):
     return _encodeCheckpointState(float(obj))
@@ -107,9 +109,12 @@ def _decodeCheckpointState(obj):
     @ Out, obj, any, restored Python object with original types
   """
   if isinstance(obj, str):
-    if obj == _NAN_SENTINEL:    return float('nan')
-    if obj == _POSINF_SENTINEL: return float('inf')
-    if obj == _NEGINF_SENTINEL: return float('-inf')
+    if obj == _NAN_SENTINEL:
+      return float('nan')
+    if obj == _POSINF_SENTINEL:
+      return float('inf')
+    if obj == _NEGINF_SENTINEL:
+      return float('-inf')
     return obj
   if isinstance(obj, list):
     return [_decodeCheckpointState(i) for i in obj]
@@ -123,7 +128,8 @@ def _decodeCheckpointState(obj):
       return deque((_decodeCheckpointState(i) for i in obj['data']), maxlen=obj['maxlen'])
     if t == 'set':
       def _toHashable(x):
-        if isinstance(x, list): return tuple(_toHashable(i) for i in x)
+        if isinstance(x, list):
+          return tuple(_toHashable(i) for i in x)
         return _decodeCheckpointState(x)
       return set(_toHashable(i) for i in obj['data'])
     if t == 'tuple':
