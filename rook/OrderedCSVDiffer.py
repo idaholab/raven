@@ -38,7 +38,7 @@ class OrderedCSVDiffer:
   """
     Used for comparing two CSV files without regard for column, row orders
   """
-  def __init__(self, out_files, gold_files, relative_error=1e-10,
+  def __init__(self, out_files, gold_files, *, relative_error=1e-10,
                absolute_check=False, zero_threshold=None, ignore_sign=False):
     """
       Create an UnorderedCSVDiffer class
