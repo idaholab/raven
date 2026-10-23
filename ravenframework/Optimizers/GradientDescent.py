@@ -568,7 +568,7 @@ class GradientDescent(RavenSampled):
       @ In, step, int, iteration number identifier
       @ In, purpose, str, purpose of run (usually "opt" or "grad" or similar)
       @ In, moreInfo, dict, optional, additional run-identifying information to track
-      @ Out, None
+      @ Out, queued, bool, True if the run was queued
     """
     info = {}
     if moreInfo is not None:
@@ -577,9 +577,7 @@ class GradientDescent(RavenSampled):
                  'step': step,
                  'purpose': purpose,
                 })
-    # NOTE: explicit constraints have been checked before this!
-    self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
-    self._submissionQueue.append((point, info))
+    return self._queueSubmission(point, info)
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
 

@@ -17,6 +17,7 @@
   <RunInfo>
     <WorkingDir>StuckCorner</WorkingDir>
     <Sequence>optimize</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

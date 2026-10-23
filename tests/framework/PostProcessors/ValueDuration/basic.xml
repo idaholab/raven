@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/ValueDuration.Basic</name>
@@ -7,11 +8,15 @@
     <description>
       Tests the basic functionality of the ValueDuration postprocessor to create their unique brand of cumulative histograms.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Basic</WorkingDir>
     <Sequence>read,process</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -51,8 +56,8 @@
           <x>durations|Output|counts_Speed</x>
           <y>durations|Output|bins_Speed</y>
         </plot>
-          <xlabel>Number Exceeding Value</xlabel>
-          <ylabel>Value</ylabel>
+        <xlabel>Number Exceeding Value</xlabel>
+        <ylabel>Value</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -75,4 +80,5 @@
       </options>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

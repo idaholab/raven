@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontier</name>
@@ -7,6 +8,9 @@
     <description>
       This post-processor identifies the points lying on the Pareto Frontier in a cost-value space
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -17,25 +21,26 @@
     <WorkingDir>ParetoFrontier</WorkingDir>
     <Sequence>LoadPS,PP</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <objective goal='min'>cost</objective>
-      <objective goal='max'>value</objective>
+      <objective goal="min">cost</objective>
+      <objective goal="max">value</objective>
     </PostProcessor>
   </Models>
 
   <Steps>
-    <IOStep      name='LoadPS'>
-      <Input     class='Files'        type=''                >data</Input>
-      <Output    class='DataObjects'  type='PointSet'        >candidates</Output>
+    <IOStep name="LoadPS">
+      <Input class="Files" type="">data</Input>
+      <Output class="DataObjects" type="PointSet">candidates</Output>
     </IOStep>
     <PostProcess name="PP">
-      <Input     class="DataObjects"  type="PointSet"        >candidates</Input>
-      <Model     class="Models"       type="PostProcessor"   >paretoPP</Model>
-      <Output    class="DataObjects"  type="PointSet"        >paretoPoints</Output>
-      <Output    class="OutStreams"   type="Print"           >PrintPareto</Output>
+      <Input class="DataObjects" type="PointSet">candidates</Input>
+      <Model class="Models" type="PostProcessor">paretoPP</Model>
+      <Output class="DataObjects" type="PointSet">paretoPoints</Output>
+      <Output class="OutStreams" type="Print">PrintPareto</Output>
     </PostProcess>
   </Steps>
 

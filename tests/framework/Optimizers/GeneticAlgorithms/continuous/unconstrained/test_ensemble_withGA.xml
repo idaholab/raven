@@ -8,12 +8,16 @@
     <description>
        Example of usage of the Ensemble Model with GA optmization methods
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>ensemble_withGA</WorkingDir>
     <Sequence>testMetamodelHeatTransfer</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>
@@ -70,7 +74,6 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-
       <GAparams>
         <populationSize>20</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
@@ -82,35 +85,32 @@
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="invLinear"></fitness>
+        <fitness type="invLinear"/>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
-
       <convergence>
         <AHDp>0.0</AHDp>
       </convergence>
-
       <variable name="leftTemperature">
         <distribution>leftTemperatureDist</distribution>
       </variable>
       <variable name="rightTemperature">
         <distribution>rightTemperatureDist</distribution>
       </variable>
-
       <objective>k</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">metaModelOutputTest</TargetEvaluation>
-    <Sampler    class="Samplers"  type="MonteCarlo" >MC_samp</Sampler>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
 
   <Steps>
     <MultiRun name="testMetamodelHeatTransfer">
-      <Input          class="DataObjects"  type="PointSet"         >inputHolder</Input>
-      <Model          class="Models"       type="EnsembleModel"    >heatTransferEnsembleModel</Model>
-      <Optimizer      class="Optimizers"   type="GeneticAlgorithm" >GAopt</Optimizer>
-      <SolutionExport class="DataObjects"  type="PointSet"         >opt_export</SolutionExport>
-      <Output         class="DataObjects"  type="PointSet"         >metaModelOutputTest</Output>
-      <Output         class="OutStreams"   type="Print"            >metaModelOutputTestDump</Output>
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="EnsembleModel">heatTransferEnsembleModel</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
+      <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
     </MultiRun>
   </Steps>
 
@@ -154,6 +154,5 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
-
 
 </Simulation>

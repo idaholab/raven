@@ -10,6 +10,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-IS-7</requirements>
   </TestInfo>
@@ -22,6 +23,7 @@
     <NumMPI>2</NumMPI>
     <expectedTime>0:10:00</expectedTime>
     <JobName>test_mpiqsu</JobName>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -57,12 +59,6 @@
       <apex>1</apex>
       <min>-0.1</min>
       <max>3</max>
-      <!--
-        <lowerBound>0</lowerBound>
-         This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-      -->
     </Triangular>
   </Distributions>
 

@@ -10,12 +10,14 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2020-08-21">Optimizer rework compatability</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Simple</WorkingDir>
     <Sequence>optimize,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -35,11 +37,11 @@
   <Optimizers>
     <GradientDescent name="opter">
       <objective>ans</objective>
-      <variable name='x'>
+      <variable name="x">
         <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
@@ -64,7 +66,7 @@
   </Optimizers>
 
   <Distributions>
-    <Uniform name='beale_domain'>
+    <Uniform name="beale_domain">
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>

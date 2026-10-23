@@ -6,8 +6,8 @@
     <created>2014-12-06</created>
     <classesTested>Sampler.ResponseSurfaceDesign</classesTested>
     <description>
-       This test is aimed to check the capability in RAVEN to employ a ResponseSurfaceDesign sampling strategy. Since the goal of the test is to testify 
-       that the Grid sampling strategy is functional, a Dummy model is used. 
+       This test is aimed to check the capability in RAVEN to employ a ResponseSurfaceDesign sampling strategy. Since the goal of the test is to testify
+       that the Grid sampling strategy is functional, a Dummy model is used.
        Both available Response Surface design strategies are tested (BoxBehnken, CentralComposite)
     </description>
     <revisions>
@@ -20,12 +20,15 @@
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ResponseDesign</WorkingDir>
     <Sequence>BoxBehnkenRespDesignStep,CentralCompositeRespDesignStep</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>

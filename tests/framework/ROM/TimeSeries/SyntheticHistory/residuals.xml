@@ -8,12 +8,16 @@
     <description>
       Tests saving residuals from TSA algorithms to the ROM metadata
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Residuals</WorkingDir>
     <Sequence>read, train, meta</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -43,7 +47,7 @@
       <saveResiduals>True</saveResiduals>
       <pivotParameter>seconds</pivotParameter>
       <fourier target="signal1, signal2">
-        <periods>3, 5, 7, 10</periods> <!-- training signal also has period=2, left for the residual -->
+        <periods>3, 5, 7, 10</periods>
       </fourier>
     </ROM>
   </Models>

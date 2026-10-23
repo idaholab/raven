@@ -15,24 +15,23 @@
       <revision author="maljdan" date="2017-01-17">Added an additional example that addresses Josh's comment</revision>
       <revision author="alfoa" date="2016-10-04">Adding test descriptions for the tests related to the ExternalPostProcessor</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
-  <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>testHistorySetDeletingHistories</WorkingDir>
     <Sequence>FirstMRun,applyFunctions</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
-  <!-- The external methods will be defined in the files pointed to by these guys -->
   <Functions>
     <External file="partitionHistorySetAndRemoveSomeHistories" name="partitionHistorySetAndRemoveSomeHistories">
       <variables>x,y,z,x0,y0,z0,time</variables>
     </External>
   </Functions>
 
-  <!-- STEPS -->
   <Steps>
     <MultiRun name="FirstMRun" re-seeding="20021986">
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
@@ -40,7 +39,6 @@
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">originalHistorySet</Output>
     </MultiRun>
-    <!-- Perform the partitioning of the history set -->
     <PostProcess name="applyFunctions">
       <Input class="DataObjects" type="HistorySet">originalHistorySet</Input>
       <Model class="Models" type="PostProcessor">functionPP</Model>
@@ -50,22 +48,18 @@
     </PostProcess>
   </Steps>
 
-  <!-- MODELS -->
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractorWithCustomNode" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0,customVariable2</variables>
       <customNode1>It is a string that is read in the external model directly</customNode1>
       <customNode2>20021986</customNode2>
     </ExternalModel>
-    <!-- This post-processor will call methods defined in two external python
-     scripts compatible with RAVEN -->
     <PostProcessor name="functionPP" subType="External" verbosity="debug">
       <method>time,x,y,z</method>
       <Function class="Functions" type="External">partitionHistorySetAndRemoveSomeHistories</Function>
     </PostProcessor>
   </Models>
 
-  <!-- DISTRIBUTIONS -->
   <Distributions>
     <Normal name="x0_distrib">
       <mean>4</mean>
@@ -81,7 +75,6 @@
     </Normal>
   </Distributions>
 
-  <!-- SAMPLERS -->
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
@@ -99,7 +92,6 @@
     </MonteCarlo>
   </Samplers>
 
-  <!-- OUTSTREAMS -->
   <OutStreams>
     <Print name="originalHistorySet_dump">
       <type>csv</type>
@@ -111,7 +103,6 @@
     </Print>
   </OutStreams>
 
-  <!-- DATA OBJECTS -->
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>x0,y0,z0</Input>

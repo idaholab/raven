@@ -14,11 +14,15 @@
       This test uses the NDSlant function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>ConstrainBoundary</WorkingDir>
     <Sequence>optimize, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -36,7 +40,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='slant_dist'>
+    <Uniform name="slant_dist">
       <lowerBound>0</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>

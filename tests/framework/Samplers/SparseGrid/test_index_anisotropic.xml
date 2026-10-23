@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/anisotropicGrid</name>
@@ -7,12 +8,16 @@
     <description>
       This tests the creation of an anisotropic sparse grid (using the interpolation weights in the ROM).
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>grid</WorkingDir>
     <Sequence>Amake, Atrain, Atest, stats, Aprint</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>

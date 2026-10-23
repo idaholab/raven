@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/user_guide/Simple</name>
@@ -7,11 +8,15 @@
     <description>
       Provides a user case of a simple ensemble model.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>run_basic</WorkingDir>
     <Sequence>sample,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -102,23 +107,23 @@
     <Grid name="grid">
       <variable name="y0">
         <distribution>y0_dist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="1">0 1</grid>
       </variable>
       <variable name="ang">
         <distribution>ang_dist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="1">0 1</grid>
       </variable>
       <variable name="v0">
         <distribution>v0_dist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
+        <grid type="CDF" construction="equal" steps="1">0.01 0.99</grid>
       </variable>
       <variable name="m">
         <distribution>m_dist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
+        <grid type="CDF" construction="equal" steps="1">0.01 0.99</grid>
       </variable>
       <variable name="r">
         <distribution>r_dist</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
+        <grid type="CDF" construction="equal" steps="1">0.01 0.99</grid>
       </variable>
     </Grid>
   </Samplers>

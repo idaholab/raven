@@ -4,7 +4,9 @@
     <WorkingDir>StochasticPolyPickleTest</WorkingDir>
     <Sequence>make,train,pkDump,pkLoad,sampleNatural,samplePickle,write</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/stochPolyPickleTest</name>
     <author>talbpaul</author>
@@ -13,6 +15,9 @@
     <description>
       This test checks the pickling and unpickling of the GaussPolynomialROM
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>

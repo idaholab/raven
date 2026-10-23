@@ -11,10 +11,15 @@
       in the tests file).  If the CSV check passes, then this will fail the
       test.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>fail_csv</WorkingDir>
     <Sequence>External_Model,MakeSet</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>

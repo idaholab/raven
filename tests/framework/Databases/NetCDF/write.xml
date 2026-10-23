@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Databases/NetCDF.Write</name>
@@ -7,11 +8,15 @@
     <description>
       Tests using NetCDF as a writable database format.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Write</WorkingDir>
     <Sequence>sample,write</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -49,7 +54,7 @@
         <pivotParameter>x</pivotParameter>
       </options>
     </HistorySet>
-    <DataSet name='nd_data'>
+    <DataSet name="nd_data">
       <Input>c</Input>
       <Output>f</Output>
       <Index var="x">f</Index>

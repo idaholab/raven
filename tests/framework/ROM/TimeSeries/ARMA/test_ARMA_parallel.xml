@@ -18,6 +18,7 @@
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -26,6 +27,7 @@
     <Sequence>readIn,ARMATrain,runARMA,writeOut</Sequence>
     <batchSize>2</batchSize>
     <internalParallel>True</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

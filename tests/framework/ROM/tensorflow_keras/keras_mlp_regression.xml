@@ -11,12 +11,16 @@
       CustomSampler is used to convert the csv format data into PointSet, and it is also used to test the trained
       mlpc with the test data.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>keras_mlp_regression</WorkingDir>
     <Sequence>CustomSampler,train,stats,resample,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -111,10 +115,10 @@
       <validation_split>0.25</validation_split>
       <random_seed>1986</random_seed>
       <Dense name="layer1">
-          <dim_out>30</dim_out>
+        <dim_out>30</dim_out>
       </Dense>
       <Dense name="layer2">
-          <dim_out>12</dim_out>
+        <dim_out>12</dim_out>
       </Dense>
       <Dense name="outLayer">
       </Dense>
@@ -134,4 +138,5 @@
       <source>rom_stats</source>
     </Print>
   </OutStreams>
+
 </Simulation>

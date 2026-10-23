@@ -11,11 +11,15 @@
       ComparisonStatistics class.
     </description>
     <requirements>R-IS-5</requirements>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>calc_and_transfer</WorkingDir>
     <Sequence>External_Model,MakeSet,TrainROM,NewHDF5,MakeROMSet,ComparisonStats</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

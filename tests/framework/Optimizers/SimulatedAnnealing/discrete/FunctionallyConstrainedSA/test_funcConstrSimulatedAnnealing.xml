@@ -6,14 +6,18 @@
     <created>2024-05-15</created>
     <classesTested>Optimizer.SimulatedAnnealing</classesTested>
     <description>
-     This test assesses the usage of Simulated Annealing with discrete variables and functional constraints. 
+     This test assesses the usage of Simulated Annealing with discrete variables and functional constraints.
      The test is an adaptation of the test ``framework.Optimizers.SimulatedAnnealing.continuous.FuncionallyConstrainedSA'' using discrete distributions.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>optimize, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -34,13 +38,13 @@
   </Steps>
 
   <Distributions>
-    <UniformDiscrete name='distx'>
+    <UniformDiscrete name="distx">
       <lowerBound>-1</lowerBound>
       <upperBound>1</upperBound>
       <nPoints>1000</nPoints>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
-    <Uniform name='disty'>
+    <Uniform name="disty">
       <lowerBound>-0.5</lowerBound>
       <upperBound>0.5</upperBound>
     </Uniform>
@@ -74,7 +78,7 @@
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-            <Constraint class='Functions' type='External'>goal</Constraint>
+      <Constraint class="Functions" type="External">goal</Constraint>
     </SimulatedAnnealing>
   </Optimizers>
 

@@ -14,12 +14,15 @@
       <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="talbpaul" date="2018-03-26">Nested ExternalXML nodes in OutStream</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ExternalXMLTest</WorkingDir>
     <Sequence>CustomSampler</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -37,7 +40,7 @@
   </DataObjects>
 
   <OutStreams>
-    <ExternalXML node='Print' xmlToLoad='ExternalXMLTest/external_print.xml'/>
+    <ExternalXML node="Print" xmlToLoad="ExternalXMLTest/external_print.xml"/>
   </OutStreams>
 
   <Steps>

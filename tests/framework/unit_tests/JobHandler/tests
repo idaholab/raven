@@ -1,0 +1,6 @@
+[Tests]
+ [./jobHandlerEvents]
+  type = 'RavenPython'
+  input = 'testJobHandlerEvents.py'
+ [../]
+[]

@@ -10,12 +10,15 @@
     </description>
     <revisions>
       <revision author="maljdan" date="2017-08-07">Modifying this test case to exercise putting the data into a new data object different than the input of to the clustering algorithm</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>Agglomerative</WorkingDir>
     <Sequence>input,cluster,output</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -63,8 +66,7 @@
       <source>dataOut</source>
       <what>Output|labels</what>
     </Print>
-
-    <Plot  name="plot" overwrite="True">
+    <Plot name="plot" overwrite="True">
       <plotSettings>
         <plot>
           <type>scatter</type>

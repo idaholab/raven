@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Databases/NetCDF.Sample</name>
@@ -7,11 +8,15 @@
     <description>
       Tests using NetCDF as a writable database format while sampling.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Sample</WorkingDir>
     <Sequence>sample</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

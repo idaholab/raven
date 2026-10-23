@@ -8,12 +8,16 @@
     <description>
       Tests of the HS2PS interfaced post-processor
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>HS2PS</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -22,17 +26,17 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC_external</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >outMC</Output>
-      <Output  class="OutStreams"  type="Print"         >PrintHistorySet_dump</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Output class="OutStreams" type="Print">PrintHistorySet_dump</Output>
     </MultiRun>
     <PostProcess name="PP">
-      <Input  class="DataObjects" type="HistorySet"     >outMC</Input>
-      <Model  class="Models"      type="PostProcessor"  >HS2PS</Model>
-      <Output class="DataObjects" type="PointSet"       >outMC_PP</Output>
-      <Output class="OutStreams"  type="Print"          >PrintPPPointSet_dump</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">HS2PS</Model>
+      <Output class="DataObjects" type="PointSet">outMC_PP</Output>
+      <Output class="OutStreams" type="Print">PrintPPPointSet_dump</Output>
     </PostProcess>
   </Steps>
 

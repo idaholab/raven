@@ -253,13 +253,13 @@ def get_testers_and_differs(directory):
     if filename.endswith(".py") and not filename.startswith("__"):
       try:
         module = __import__(filename[:-3]) #[:-3] to remove .py
-        for name, val in module.__dict__.items():
+        for mod_name, val in module.__dict__.items():
           if inspect.isclass(val) and val is not Tester\
              and issubclass(val, Tester):
-            tester_dict[name] = val
+            tester_dict[mod_name] = val
           if inspect.isclass(val) and val is not Differ\
              and issubclass(val, Differ):
-            differ_dict[name] = val
+            differ_dict[mod_name] = val
       except Exception as ex:
         print("Failed loading",filename,"with exception:",ex)
         traceback.print_exc()
@@ -276,6 +276,19 @@ def sec_format(runtime):
   if isinstance(runtime, float):
     return "{:6.2f}sec".format(runtime)
   return "  None!  "
+
+#These globals are set up in the "__main__" block below, but are declared
+# here so static analysis does not flag process_result as possibly using
+# them before assignment.
+test_name_list = []
+results = {}
+function_postreq = {}
+name_to_id = {}
+run_pool = None
+Colors = NoColors
+skipped_list = []
+failed_list = []
+function_list = []
 
 def process_result(index, _input_data, output_data):
   """
@@ -297,6 +310,7 @@ def process_result(index, _input_data, output_data):
     okaycolor = Colors.okay
   elif group == Tester.group_skip:
     results["skipped"] += 1
+    skipped_list.append((process_test_name, output_data.message))
     print(output_data.message)
     okaycolor = Colors.skip
   else:
@@ -499,9 +513,20 @@ if __name__ == "__main__":
 
   results = {"pass":0, "fail":0, "skipped":0}
   failed_list = []
+  skipped_list = []
 
   output_list = run_pool.process_results(process_result)
   run_pool.wait()
+
+  # Surface every skipped test with its skip reason so silent skips (missing optional libs,
+  # stale skip directives, OS guards, heavy/normal mismatches) cannot hide regressions.
+  # The inline SKIPPED messages above scroll off long runs; a final list keeps them visible.
+  # Listed before FAILED so the more-actionable failures stay closest to the final counts.
+  if results["skipped"] > 0:
+    print("{}SKIPPED tests:{}".format(Colors.skip, Colors.norm))
+    for name, reason in skipped_list:
+      reason_text = reason if reason else "(no reason given)"
+      print("  {} -- {}".format(name, reason_text))
 
   if results["fail"] > 0:
     print("{}FAILED:".format(Colors.fail))

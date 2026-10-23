@@ -4,7 +4,9 @@
     <WorkingDir>gridSplit</WorkingDir>
     <Sequence>makeCoarse,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/Restart.Grid</name>
     <author>cogljj</author>
@@ -14,6 +16,9 @@
       This is just a standard grid sampler, that generates incomplete data,
       that will be loaded in the part2, and added to.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Steps>

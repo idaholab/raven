@@ -12,12 +12,16 @@
        for Cycle 1 should be notably higher than Cycle 0 on average.
        As a check, for each realization, the ratio between cycle 1 and cycle 0 should be near 2.5.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Multicycle</WorkingDir>
     <Sequence>load, sample, dump</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

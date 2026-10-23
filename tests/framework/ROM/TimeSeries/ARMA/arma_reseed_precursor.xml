@@ -17,6 +17,7 @@
       <revision author="talbpaul" date="2018-12-20">ROM IO to data object added</revision>
       <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
       <revision author="zhouj" date="2019-05-06">Modified location of the test to arma reseed </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -24,6 +25,7 @@
     <WorkingDir>ARMAreseed</WorkingDir>
     <Sequence>readIn,ARMATrain,rommeta,dump,run,write</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -107,7 +109,7 @@
     <DataSet name="rommeta"/>
   </DataObjects>
 
-<OutStreams>
+  <OutStreams>
     <Print name="rommeta">
       <type>csv</type>
       <source>rommeta</source>
@@ -116,6 +118,6 @@
       <type>csv</type>
       <source>signals</source>
     </Print>
-</OutStreams>
+  </OutStreams>
 
 </Simulation>

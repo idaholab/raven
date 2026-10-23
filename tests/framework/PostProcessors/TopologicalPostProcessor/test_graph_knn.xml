@@ -8,7 +8,7 @@
     <description>
        A simple example of the approximate Morse-Smale complex (AMSC) interface
        that exercises the k-nearest neighbor graph structure as the underlying
-       connectivity model for the point cloud. Note, each of the "graph" test
+       connectivity model for the point cloud. Note, each of the &quot;graph&quot; test
        cases uses the GaussianPeaks test case which consists of 4 distinctly
        shaped Gaussian peaks in a 2D input domain.
     </description>
@@ -18,21 +18,23 @@
       <revision author="talbpaul" date="2016-02-08">Converted failing tests.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
       decomposeNN
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="../GaussianPeaks" name="test" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <!-- Nearest neighbor -->
     <PostProcessor name="AMSC_NN" subType="TopologicalDecomposition">
       <graph>Approximate KNN</graph>
       <gradient>steepest</gradient>
@@ -68,14 +70,12 @@
   </Samplers>
 
   <Steps>
-    <!-- Sample the data from the test function -->
     <MultiRun name="sampleData" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">test</Model>
       <Sampler class="Samplers" type="MonteCarlo">sampler</Sampler>
       <Output class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
-    <!-- Perform the topological decomposition -->
     <PostProcess name="decomposeNN">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC_NN</Model>
@@ -85,7 +85,6 @@
   </Steps>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="segNN">
       <type>csv</type>
       <source>outNN</source>
@@ -93,7 +92,6 @@
   </OutStreams>
 
   <DataObjects>
-    <!-- The input PointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
@@ -102,7 +100,6 @@
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <!-- The output PointSet objects -->
     <PointSet name="outNN">
       <Input>X,Y</Input>
       <Output>Z</Output>

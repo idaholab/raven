@@ -4,6 +4,7 @@
     <WorkingDir>PhysicsGuidedCoverageMapping</WorkingDir>
     <Sequence>load,PCM</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -12,13 +13,16 @@
     <created>2023-04-23</created>
     <classesTested>PostProcessors.Validation.PhysicsGuidedCoverageMapping</classesTested>
     <description>
-        This test is aimed to show how Tdep_PCM works.This test uses the coefficients of SETH-C and SETH-D data 
+        This test is aimed to show how Tdep_PCM works.This test uses the coefficients of SETH-C and SETH-D data
         based on their U subspace as experiment (Feature) and application (Target) models.
         Here, coefficients of SETH-C are used as experiemnt responses (Features);
         coefficients of SETH-C and SETH-D temperatures data are used as application responses (Target)
         The outputs are posterior mean, and fraction value reflecting the error between posterior and prior mean
         of Target, and has columns:'time', 'Tdep_post_mean', 'Error'.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -58,22 +62,22 @@
   <DataObjects>
     <HistorySet name="exp">
       <options>
-       <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempC</Output>     
+      <Output>TempC</Output>
     </HistorySet>
     <HistorySet name="app">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempD</Output>     
-    </HistorySet>      
+      <Output>TempD</Output>
+    </HistorySet>
     <HistorySet name="msr">
       <options>
-        <pivotParameter>time</pivotParameter> 
+        <pivotParameter>time</pivotParameter>
       </options>
-      <Output>TempMsrC</Output>     
-    </HistorySet>    
+      <Output>TempMsrC</Output>
+    </HistorySet>
     <HistorySet name="pcmTdep_metric">
       <options>
         <pivotParameter>time</pivotParameter>
@@ -83,7 +87,7 @@
     </HistorySet>
   </DataObjects>
 
-  <OutStreams>       
+  <OutStreams>
     <Print name="pcmTdep_results">
       <type>csv</type>
       <source>pcmTdep_metric</source>

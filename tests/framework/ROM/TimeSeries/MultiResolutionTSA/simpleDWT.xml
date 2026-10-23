@@ -9,12 +9,16 @@
       Tests the MultiResolutionTSA ROM using a singular macroStep and the FilterBankDWT algorithm.
       An ARMA model is trained on each detail level. Two signals trained.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>SimpleDWT</WorkingDir>
     <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -58,11 +62,12 @@
     <ROM name="synth" subType="MultiResolutionTSA">
       <Target>signal0,signal1, pivot</Target>
       <Features>scaling</Features>
-      <pivotParameter>pivot</pivotParameter>s
+      <pivotParameter>pivot</pivotParameter>
+      s
       <fourier target="signal0">
         <periods>10, 20</periods>
       </fourier>
-      <filterbankdwt target="signal0,signal1" seed='42'>
+      <filterbankdwt target="signal0,signal1" seed="42">
         <family>coif10</family>
         <levels>4</levels>
       </filterbankdwt>
@@ -72,7 +77,7 @@
         <macroParameter>macro</macroParameter>
         <pivotParameter>pivot</pivotParameter>
         <gaussianize target="signal0,signal1"/>
-        <arma target="signal0,signal1" seed='42'>
+        <arma target="signal0,signal1" seed="42">
           <P>1,1</P>
           <Q>1,2</Q>
         </arma>

@@ -9,11 +9,16 @@
        This test verifies that multiple csv files can be loaded into a single
        history set without destroying the information from each other.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>csv</WorkingDir>
     <Sequence>in,out</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

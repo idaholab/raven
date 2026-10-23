@@ -18,6 +18,7 @@
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
       <revision author="zhouj" date="2019-05-06">Modified location of the test to the same with precursor,
       change batchsize to 1, delete the internal parallel option, delete distribution block </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -25,6 +26,7 @@
     <WorkingDir>ARMAreseed</WorkingDir>
     <Sequence>read,run,write</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

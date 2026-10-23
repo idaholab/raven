@@ -94,9 +94,11 @@ class GenericParser():
               varformat = var[min(optionalPos[1]+1,len(var)):len(var)] if optionalPos[0] < optionalPos[1] else var[optionalPos[1]+1:min(optionalPos[0],len(var))]
               var = var[0:min(optionalPos)]
               if var in self.defaults.keys() and optionalPos[0] != sys.maxsize:
-                print('multiple default values given for variable',var)
+                if self.defaults[var][infileName] != defval:
+                  print('multiple default values given for variable',var)
               if var in self.formats.keys() and optionalPos[1] != sys.maxsize:
-                print('multiple format values given for variable',var)
+                if self.formats[var][infileName] != varformat:
+                  print('multiple format values given for variable',var)
               #TODO allow the user to specify take-last or take-first?
               if var not in self.defaults.keys() and optionalPos[0] != sys.maxsize:
                 self.defaults[var] = {}

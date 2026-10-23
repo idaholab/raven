@@ -13,6 +13,7 @@
         As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
         the output data object will be renamed, and the variable name of labels will be explicitly defined.
       </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -20,6 +21,7 @@
     <WorkingDir>VariationalGMM</WorkingDir>
     <Sequence>readIn,VariationalGMMBlobs,output</Sequence>
     <batchSize>100</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

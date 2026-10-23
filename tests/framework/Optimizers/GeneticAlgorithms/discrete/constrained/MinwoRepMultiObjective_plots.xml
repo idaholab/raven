@@ -1,0 +1,268 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_MinwoRepMultiObjective_plots</name>
+    <author>mandd</author>
+    <created>2026-09-16</created>
+    <classesTested>OutStreams.PlotInterfaces</classesTested>
+    <description>
+      Three-objective, constrained multiobjective GeneticAlgorithm (min,max,min) exercising the
+      optimization plot interfaces that require constraints and/or three objectives, which cannot
+      be verified on the two-objective unconstrained ZDT1_plots input. Runs on devel's existing
+      GeneticAlgorithm entity (no refactored NSGA-II optimizer) so the plot implementations can be
+      verified against the current framework.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Multi_MinwoReplacement_conplots</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">myLocalSum</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">constraint_heatmap</Output>
+      <Output class="OutStreams" type="Plot">feasibility_radar</Output>
+      <Output class="OutStreams" type="Plot">feasible_region_contour</Output>
+      <Output class="OutStreams" type="Plot">pareto_chart</Output>
+      <Output class="OutStreams" type="Plot">pareto_surface</Output>
+      <Output class="OutStreams" type="Plot">constraint_parallel</Output>
+      <Output class="OutStreams" type="Plot">vector_field</Output>
+      <Output class="OutStreams" type="Plot">tube_trajectory</Output>
+      <Output class="OutStreams" type="Plot">dominance_cones</Output>
+      <Output class="OutStreams" type="Plot">fitness_funnel</Output>
+      <Output class="OutStreams" type="Plot">constraint_activity</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/myLocalSum_multi.py" name="myLocalSum" subType="">
+      <variables>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3</variables>
+    </ExternalModel>
+  </Models>
+
+  <Functions>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="expConstr3">
+      <variables>x1,x2,x3,x4,x5,x6</variables>
+    </External>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr2">
+      <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
+    </External>
+    <External file="../../../../AnalyticModels/optimizing/myConstraints.py" name="impConstr3">
+      <variables>x1,x2,x3,x4,x5,x6,obj1</variables>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <UniformDiscrete name="woRep_dist">
+      <lowerBound>2</lowerBound>
+      <upperBound>7</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>500</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min, max, min</type>
+      </samplerInit>
+      <GAparams>
+        <populationSize>50</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="twoPointsCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.8</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst">
+        </fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+      <convergence>
+        <objective>78.0,19.0,32.0</objective>
+      </convergence>
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <objective>obj1, obj2, obj3</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+      <Constraint class="Functions" type="External">expConstr3</Constraint>
+      <ImplicitConstraint class="Functions" type="External">impConstr2</ImplicitConstraint>
+      <ImplicitConstraint class="Functions" type="External">impConstr3</ImplicitConstraint>
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>050877</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x4">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x5">
+        <distribution>woRep_dist</distribution>
+      </variable>
+      <variable name="x6">
+        <distribution>woRep_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x1,x2,x3,x4,x5,x6</Input>
+      <Output>obj1, obj2, obj3</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted,conv_objective</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x1, x2, x3, x4, x5, x6, obj1, obj2, obj3</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source> opt_export</source>
+      <vars>x1, x2, x3, x4, x5, x6, obj1, obj2, obj3</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+    <Plot name="constraint_heatmap" subType="ConstraintViolationHeatmapPlot">
+      <source>opt_export</source>
+      <axes>x1, x2</axes>
+      <constraints>ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3</constraints>
+      <bins>50</bins>
+    </Plot>
+    <Plot name="feasibility_radar" subType="FeasibilityRadarPlot">
+      <source>opt_export</source>
+      <variables>x1, x2, x3, x4, x5, x6</variables>
+      <constraints>all</constraints>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="feasible_region_contour" subType="FeasibleRegionObjectiveContourPlot">
+      <source>opt_export</source>
+      <axes>x1, x2</axes>
+      <surfaces>obj1</surfaces>
+      <constraints>all</constraints>
+      <rank>1</rank>
+      <levels>14</levels>
+    </Plot>
+    <Plot name="pareto_chart" subType="ParetoChartPlot">
+      <source>opt_export</source>
+      <constraints>all</constraints>
+      <index>batchId</index>
+    </Plot>
+    <Plot name="pareto_surface" subType="ParetoSurfacePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <rank>1</rank>
+    </Plot>
+    <Plot name="constraint_parallel" subType="OptParallelCoordinatePlot">
+      <source>opt_export</source>
+      <vars>x1, x2, x3, obj1, obj2, obj3</vars>
+      <index>batchId</index>
+      <constraints>all</constraints>
+      <colorMode>violation</colorMode>
+      <thicknessMode>violation</thicknessMode>
+    </Plot>
+    <Plot name="vector_field" subType="ThreeDVectorPlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <scale>0.8</scale>
+    </Plot>
+    <Plot name="tube_trajectory" subType="ThreeDTubePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <lineWidth>3.5</lineWidth>
+    </Plot>
+    <Plot name="dominance_cones" subType="ThreeDConePlot">
+      <source>opt_export</source>
+      <objectives>obj1, obj2, obj3</objectives>
+      <index>batchId</index>
+      <rank>1</rank>
+      <topK>10</topK>
+      <angle>10.0</angle>
+    </Plot>
+    <Plot name="fitness_funnel" subType="FitnessFunnelPlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <metric>obj1, obj2, obj3, FitnessEvaluation_obj1, FitnessEvaluation_obj2, FitnessEvaluation_obj3</metric>
+      <goal>min, max, min, min, max, min</goal>
+    </Plot>
+    <Plot name="constraint_activity" subType="ConstraintActivityTimelinePlot">
+      <source>opt_export</source>
+      <index>batchId</index>
+      <constraints>all</constraints>
+      <format>both</format>
+      <fps>2.0</fps>
+      <generations>first,last</generations>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

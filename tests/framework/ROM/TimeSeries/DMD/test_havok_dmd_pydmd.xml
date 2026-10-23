@@ -1,15 +1,17 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-    <TestInfo>
-      <name>framework/ROM/TimeSeries/DMD.havokDMD</name>
-      <author>alfoa</author>
-      <created>2024-07-26</created>
-      <classesTested>SupervisedLearning.DMD.HAVOK</classesTested>
-      <description>
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/DMD.havokDMD</name>
+    <author>alfoa</author>
+    <created>2024-07-26</created>
+    <classesTested>SupervisedLearning.DMD.HAVOK</classesTested>
+    <description>
          This test is aimed to check the mechanics of the DMD ROM using the HAVOK variation of the DMD.
       </description>
-
-    </TestInfo>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
+  </TestInfo>
 
   <RunInfo>
     <WorkingDir>HAVOK</WorkingDir>
@@ -23,10 +25,10 @@
              writeOut
     </Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-    <!--  we load the data from the PolyExponential database -->
     <Input name="rawDataFile">../../PolyExponential/data/decay_heat.csv</Input>
     <Input name="ROMpk" type="">ROMpk</Input>
   </Files>
@@ -77,7 +79,6 @@
       <pivotParameter>t</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
-
   </Models>
 
   <Steps>
@@ -86,10 +87,10 @@
       <Output class="DataObjects" type="HistorySet">rawData</Output>
     </IOStep>
     <PostProcess name="make_uniform">
-      <Input   class="DataObjects"  type="HistorySet">rawData</Input>
-      <Model   class="Models"       type="PostProcessor">resample_uniform</Model>
-      <Output  class="DataObjects"  type="HistorySet">rawDataUniform</Output>
-      <Output  class="OutStreams"   type="Print">outputUniformData</Output>
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Model class="Models" type="PostProcessor">resample_uniform</Model>
+      <Output class="DataObjects" type="HistorySet">rawDataUniform</Output>
+      <Output class="OutStreams" type="Print">outputUniformData</Output>
     </PostProcess>
     <RomTrainer name="DMDTrain">
       <Input class="DataObjects" type="HistorySet">rawDataUniform</Input>

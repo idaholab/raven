@@ -29,6 +29,9 @@ frameworkDir = os.path.join(ravenDir, 'framework')
 from ravenframework.utils.utils import find_crow
 find_crow(frameworkDir)
 
+from ravenframework.utils import randomUtils
+randomUtils.randomSeed(5489) #initialize numpy RNG with set seed
+
 from ravenframework import MessageHandler
 from ravenframework import Distributions
 

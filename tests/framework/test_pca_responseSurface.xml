@@ -4,7 +4,9 @@
     <WorkingDir>responseSurfacePCA</WorkingDir>
     <Sequence>BoxBehnkenRespDesignStep,CentralCompositeRespDesignStep</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pcaResponseSurface</name>
     <author>wangc</author>
@@ -13,6 +15,9 @@
     <description>
       Tests responseSurface sampler in connection with PCA.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Models>

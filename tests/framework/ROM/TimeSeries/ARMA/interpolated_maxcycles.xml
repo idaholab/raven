@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.InterpolatedMaxCycles</name>
@@ -10,11 +11,15 @@
       \texttt{resynthetic.csv} should have Year values of (0, 1).
       Also tests the nyquistScalar option.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>InterpolatedMaxCycles</WorkingDir>
     <Sequence>load, train, serialize, sample, deserialize, resample</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -95,15 +100,15 @@
       <preserveInputCDF>False</preserveInputCDF>
       <seed>42</seed>
       <reseedCopies>False</reseedCopies>
-      <Peaks target='Signal' threshold='-2' period='10'>
-        <window width='0.5' >-1,1</window>
-        <window width='0.55' >6,7</window>
+      <Peaks target="Signal" threshold="-2" period="10">
+        <window width="0.5">-1,1</window>
+        <window width="0.55">6,7</window>
         <nbin>5</nbin>
       </Peaks>
-      <Segment grouping='interpolate'>
+      <Segment grouping="interpolate">
         <macroParameter>Year</macroParameter>
-        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
-        <subspace divisions='10'>Time</subspace>
+        <Classifier class="Models" type="PostProcessor">classifier</Classifier>
+        <subspace divisions="10">Time</subspace>
         <maxCycles>3</maxCycles>
       </Segment>
     </ROM>
@@ -150,4 +155,5 @@
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
+
 </Simulation>

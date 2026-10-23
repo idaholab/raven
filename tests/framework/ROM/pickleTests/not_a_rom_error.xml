@@ -1,10 +1,12 @@
 <?xml version="1.0" ?>
-<Simulation verbosity='all'>
+<Simulation verbosity="all">
   <RunInfo>
     <WorkingDir>UntrainedError</WorkingDir>
     <Sequence>pkLoad</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/ROM/pickleTests/loadNorROMError</name>
     <author>talbpaul</author>
@@ -14,6 +16,9 @@
       This test checks that a reasonable error is given to the user if they attempt to unpickle
       a pickled object that isn't a ROM.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>

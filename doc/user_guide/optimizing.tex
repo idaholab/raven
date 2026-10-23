@@ -342,6 +342,67 @@ resolution of valleys, while too small a shrink factor results in many unnecessa
 % Note these are only guidelines; individual models may behave differently and require more or less resamples to
 % provide a clear optimization path.
 
+\subsection{Checkpoint and Restart} \label{subsec:opt checkpoint restart}
+Long optimization runs may be interrupted before convergence due to wall-time limits, system
+failures, or other external factors.  RAVEN's checkpoint/restart system allows an optimizer to
+save its state periodically and resume from that saved state in a subsequent run, avoiding the
+need to start over.
+
+\subsubsection{Writing Checkpoints}
+To enable checkpoint writing, add \xmlNode{writeCheckpoint} inside the \xmlNode{samplerInit}
+block of your optimizer:
+\begin{lstlisting}[style=XML]
+<samplerInit>
+  <limit>500</limit>
+  <writeCheckpoint file="opt_checkpoint.ravenrst" interval="10">True</writeCheckpoint>
+</samplerInit>
+\end{lstlisting}
+The two optional attributes are:
+\begin{itemize}
+  \item \xmlAttr{file}: the path for the checkpoint file.  Defaults to
+    \texttt{<optimizerName>.ravenrst} in the working directory if omitted.
+  \item \xmlAttr{interval}: how many completed iterations pass between checkpoint writes.
+    A value of \texttt{1} (the default) writes after every iteration; \texttt{10} writes every
+    tenth iteration.
+\end{itemize}
+The checkpoint file is written in HDF5 format and contains the full optimizer state, including
+variable values, convergence history, and enough metadata to reconstruct the
+\xmlNode{SolutionExport} output.
+
+\subsubsection{Restarting from a Checkpoint}
+To resume an interrupted run, add \xmlNode{restartFrom} to \xmlNode{samplerInit} pointing at
+the checkpoint file produced by the previous run:
+\begin{lstlisting}[style=XML]
+<samplerInit>
+  <limit>500</limit>
+  <writeCheckpoint file="opt_checkpoint.ravenrst" interval="10">True</writeCheckpoint>
+  <restartFrom>opt_checkpoint.ravenrst</restartFrom>
+</samplerInit>
+\end{lstlisting}
+Before restoring state the optimizer validates that the checkpoint is compatible with the current
+input file.  Incompatibilities that raise an error (and therefore prevent the restart) include:
+\begin{itemize}
+  \item a different optimizer type (e.g.\ a \xmlNode{GradientDescent} checkpoint used with a
+    \xmlNode{GeneticAlgorithm} input);
+  \item mismatched variable names or bounds; and
+  \item for \xmlNode{GeneticAlgorithm}, a different population size or multi-objective mode.
+\end{itemize}
+Differences in optimizer \xmlAttr{name} or file version produce warnings but do not prevent the
+restart.  Once the checkpoint is loaded, the \xmlNode{SolutionExport} DataObject is
+pre-populated with the historical solution path so that output CSV files appear continuous
+across the interrupted and resumed runs.
+
+\subsubsection{Typical Workflow}
+\begin{enumerate}
+  \item Run the optimizer with \xmlNode{writeCheckpoint} enabled.  The \texttt{.ravenrst} file
+    is updated at the requested interval throughout the run.
+  \item If the run is interrupted, the most recent checkpoint captures the optimizer state as of
+    the last completed write interval.
+  \item Add \xmlNode{restartFrom} pointing to the checkpoint file and resubmit.  RAVEN will
+    restore the optimizer state and continue from where it left off, respecting the original
+    \xmlNode{limit}.
+\end{enumerate}
+
 \subsection{Functional Constraints} \label{subsec:opt explicit constraint}
 Sometimes an optimization problem has a constrained input space, possibly where there is a tradeoff between
 two inputs.  In this event, RAVEN allows the user to define a \emph{constraint} function, which will cause

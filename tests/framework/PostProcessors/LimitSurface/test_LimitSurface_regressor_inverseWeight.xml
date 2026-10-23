@@ -17,6 +17,7 @@
           Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
       </revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -24,6 +25,7 @@
     <WorkingDir>limitSurfaceWithRegressor</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositive,ComputeLimitSurfaceNegative,ComputeLimitSurfacePositiveNegative</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -39,21 +41,18 @@
       <parameters>x0,y0</parameters>
       <side>positive</side>
       <ROM class="Models" type="ROM">Acc</ROM>
-      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="computeLimitSurfaceNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>negative</side>
       <ROM class="Models" type="ROM">Acc</ROM>
-      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface">
       <parameters>x0,y0</parameters>
       <side>both</side>
       <ROM class="Models" type="ROM">Acc</ROM>
-      <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
       <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
     </PostProcessor>
     <ROM name="Acc" subType="NDinvDistWeight">

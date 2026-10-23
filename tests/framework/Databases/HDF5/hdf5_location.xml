@@ -9,12 +9,15 @@
       Tests that the location specified for the HDF5 is relative to the working dir, not to the run dir.
     </description>
     <revisions>
-        <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+      <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>HDF5_location</WorkingDir>
     <Sequence>load,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -45,4 +48,5 @@
       <source>dataWorks</source>
     </Print>
   </OutStreams>
+
 </Simulation>

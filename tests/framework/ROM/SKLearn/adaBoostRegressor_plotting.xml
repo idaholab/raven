@@ -12,6 +12,7 @@
     </description>
     <revisions>
       <revision author="wangc" date="2021-11-23">Compare AdaBoost Regressor with individual DecisionTreeRegressor regressor</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -26,6 +27,7 @@
       resampleDecisionTree,
       plot
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -86,11 +88,11 @@
       <Output class="Models" type="ROM">dtr</Output>
     </RomTrainer>
     <IOStep name="plot">
-      <Input   class="DataObjects"  type="PointSet">outData</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataAdaBoost</Input>
-      <Input   class="DataObjects"  type="PointSet">outDataDTR</Input>
+      <Input class="DataObjects" type="PointSet">outData</Input>
+      <Input class="DataObjects" type="PointSet">outDataAdaBoost</Input>
+      <Input class="DataObjects" type="PointSet">outDataDTR</Input>
       <Output class="OutStreams" type="Print">outData</Output>
-      <Output  class="OutStreams"   type="Plot">AdaBoostRegressor</Output>
+      <Output class="OutStreams" type="Plot">AdaBoostRegressor</Output>
     </IOStep>
   </Steps>
 
@@ -133,13 +135,12 @@
   </Distributions>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>
       <filename>outAdaBoostRegressor_plotting</filename>
     </Print>
-    <Plot  name="AdaBoostRegressor">
+    <Plot name="AdaBoostRegressor">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -187,7 +188,6 @@
   </OutStreams>
 
   <DataObjects>
-    <!-- The input PointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
@@ -196,7 +196,6 @@
       <Input>X,Y</Input>
       <Output>ans</Output>
     </PointSet>
-    <!-- The output PointSet objects -->
     <PointSet name="outData">
       <Input>prefix, X,Y</Input>
       <Output>ans</Output>

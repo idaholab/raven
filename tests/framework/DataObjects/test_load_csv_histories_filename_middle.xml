@@ -10,11 +10,16 @@
        containg the filename of the subfiles in any column (e.g. in the
        middle). This tests the fix to issue #1778.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>csv</WorkingDir>
     <Sequence>in,out</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

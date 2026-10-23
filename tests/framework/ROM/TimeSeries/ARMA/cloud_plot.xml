@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.CloudPlot</name>
@@ -7,11 +8,15 @@
     <description>
       Tests the custom synthetic history cloud plot.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Interpolated</WorkingDir>
     <Sequence>load_inp, load_pk, sample, plot</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -82,4 +87,5 @@
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
+
 </Simulation>

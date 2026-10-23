@@ -9,11 +9,16 @@
        This test verifies that multiple files can be loaded into a single point
        set without destroying the information from each other.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>csv</WorkingDir>
     <Sequence>in,out</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -29,7 +34,7 @@
       <Input class="Files" type="">input</Input>
       <Input class="Files" type="">input2</Input>
       <Output class="DataObjects" type="PointSet">data</Output>
-      <Output class="DataObjects" type="PointSet">data</Output>      
+      <Output class="DataObjects" type="PointSet">data</Output>
     </IOStep>
     <IOStep name="out">
       <Input class="DataObjects" type="PointSet">data</Input>

@@ -117,6 +117,8 @@ class MessageHandler(object):
   def printWarnings(self):
     """
       Prints a summary of warnings collected during the run.
+      After printing, clears the warning list so they are not re-printed
+      on subsequent calls (e.g. when error() triggers printWarnings()).
       @ In, None
       @ Out, None
     """
@@ -133,6 +135,9 @@ class MessageHandler(object):
         print('-'*50)
       else:
         print(f'There were {sum(self.warningCount)} warnings during the simulation run.')
+      # Clear after printing to prevent re-dumping on next error() call
+      self.warnings.clear()
+      self.warningCount.clear()
 
   def paint(self, string, color):
     """

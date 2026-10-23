@@ -12,11 +12,15 @@
       you can tell which samples came from which sampling strategy. Further, the solution export for
       the restart should contain all the sample points, not merely the newly-sampled points.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>AMC</WorkingDir>
     <Sequence>makeCoarse,makeRestart,makeFine,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

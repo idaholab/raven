@@ -7,7 +7,7 @@
     <classesTested>Samplers.Sampler, Functions.External</classesTested>
     <description>
        This test is aimed to check the capability of RAVEN to treat variables that are
-       defined through function relations of the sampled variables that are interdependent: variables that depends 
+       defined through function relations of the sampled variables that are interdependent: variables that depends
        on the value of other variables that are defined through functions as well.
        In this test the variables ``b'' and ``z,l'' solely depend on sampled variable a. Variable ``c'' depends
        on the variable ``b'' and the variable ``e'' on variable ``c'' and sampled variable ``a''.
@@ -16,6 +16,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2024-05-14">Implemented variable function interdependency (Closes #2302)</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -23,12 +24,12 @@
     <WorkingDir>InterdependentVariableFunctions</WorkingDir>
     <Sequence>sim_py_MC</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
     <Input name="input.py" type="">../RedundantInputs/input.py</Input>
     <Input name="simp_imp.py" type="">../RedundantInputs/simp_imp.py</Input>
-    
   </Files>
 
   <Steps>
@@ -55,7 +56,6 @@
         <initialSeed>452508</initialSeed>
         <reseedEachIteration>false</reseedEachIteration>
       </samplerInit>
-
       <variable name="a">
         <distribution>a_dist</distribution>
       </variable>
@@ -122,4 +122,3 @@
   </OutStreams>
 
 </Simulation>
-

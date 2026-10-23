@@ -10,13 +10,16 @@
       and PointSet to distribution.
     </description>
     <revisions>
-        <revision author="alfoa" date="2017-10-17">Removed support for PointSet output for ComparisonStatisticsModule</revision>
+      <revision author="alfoa" date="2017-10-17">Removed support for PointSet output for ComparisonStatisticsModule</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
     <Sequence>test_read_in,test_stats_step</Sequence>
     <batchSize>3</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -35,16 +38,12 @@
       </compare>
       <compare>
         <data>fullprint_Pointset|outputs|normal2</data>
-        <!-- Note that normal2 actually is mean=20, sigma = 3.0 -->
         <reference name="normal_30_5"/>
       </compare>
       <compare>
         <data>fullprint_Pointset|outputs|uniform1</data>
         <data>fullprint_Pointset|outputs|uniform2p</data>
       </compare>
-      <!--
-        <fz>True</fz>
-      -->
       <Distribution class="Distributions" type="Normal">normal_20_3</Distribution>
       <Distribution class="Distributions" type="Normal">normal_30_5</Distribution>
     </PostProcessor>
@@ -61,17 +60,6 @@
     </Normal>
   </Distributions>
 
-  <!--
-    <Samplers>
-      <MonteCarlo name="RAVENmc3">
-        <samplerInit>
-          <limit>1</limit>
-          <initialSeed>1</initialSeed>
-        </samplerInit>
-      </MonteCarlo>
-    </Samplers>
-  -->
-
   <Steps>
     <IOStep fromDirectory="../input_for_test_cc" name="test_read_in">
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
@@ -79,9 +67,6 @@
     </IOStep>
     <PostProcess name="test_stats_step">
       <Input class="DataObjects" type="PointSet">fullprint_Pointset</Input>
-      <!--
-        <Input class="Databases" type="HDF5">MC_TEST_REWRITE</Input>
-      -->
       <Model class="Models" type="PostProcessor">test_stats</Model>
       <Output class="Files" type="">output.csv</Output>
     </PostProcess>
@@ -104,7 +89,7 @@
 
   <DataObjects>
     <PointSet name="fullprint_Pointset">
-          <Output>normal1,normal2,uniform1,uniform2p</Output>
+      <Output>normal1,normal2,uniform1,uniform2p</Output>
     </PointSet>
     <PointSet name="out_data">
       <Input>DummyIn</Input>

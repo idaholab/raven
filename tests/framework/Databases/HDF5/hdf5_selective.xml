@@ -11,17 +11,15 @@
        With selectivity, the resulting HDF5 is 187 KB (sine.hdf5).
     </description>
     <revisions>
-        <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+      <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
-    <!--We should find a better way to test the contents of the HDF5, as loading back into a CSV filters through
-         the DataObject as well, but we currently don't have a way to test the file sizes against each other.
-
-         For now, I'll make this an error test that loads "square" from "all.hdf5" but errors trying to load
-         "square" from "sine.hdf5".-->
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>HDF5_selective</WorkingDir>
     <Sequence>sample,load,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -108,4 +106,5 @@
       <source>dataErrs</source>
     </Print>
   </OutStreams>
+
 </Simulation>

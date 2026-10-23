@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
-
   <TestInfo>
     <name>framework/OutStreams.legend</name>
     <author>maljdan</author>
@@ -10,9 +9,10 @@
         Test to check the functionalities of OutStreams system in RAVEN of type Plot, when a legend is added.
     </description>
     <revisions>
-        <revision author="maljdan" date="2016-05-04">Fixing the test for the compare executable to test the gold image against itself, if this returns a non-zero code, then the version of imageMagick cannot be used to get a valid difference. Also, I am removing the difference image and instead doing null: to remove the output file when using compare.</revision>
-        <revision author="chenj" date="2016-07-07">edit docstring</revision>
-        <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+      <revision author="maljdan" date="2016-05-04">Fixing the test for the compare executable to test the gold image against itself, if this returns a non-zero code, then the version of imageMagick cannot be used to get a valid difference. Also, I am removing the difference image and instead doing null: to remove the output file when using compare.</revision>
+      <revision author="chenj" date="2016-07-07">edit docstring</revision>
+      <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -20,16 +20,15 @@
     <WorkingDir>plot</WorkingDir>
     <Sequence>sample,plot</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files/>
   <ExternalXML node="Models" xmlToLoad="sharedModel.xml"/>
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
-
-
   <OutStreams>
-    <Plot name='test' interactive='True' overwrite='True'>
+    <Plot name="test" interactive="True" overwrite="True">
       <filename>legendTest</filename>
       <actions>
         <how>png</how>
@@ -40,17 +39,17 @@
       <plotSettings>
         <plot>
           <type>line</type>
-            <x>PointSet|Input|X</x>
-            <y>PointSet|Output|Z</y>
-         </plot>
+          <x>PointSet|Input|X</x>
+          <y>PointSet|Output|Z</y>
+        </plot>
         <plot>
           <type>line</type>
-            <x>PointSet|Input|Y</x>
-            <y>PointSet|Output|Z</y>
-            <kwargs>
-              <label>Y</label>
-            </kwargs>
-         </plot>
+          <x>PointSet|Input|Y</x>
+          <y>PointSet|Output|Z</y>
+          <kwargs>
+            <label>Y</label>
+          </kwargs>
+        </plot>
         <xlabel>X</xlabel>
         <ylabel>Y</ylabel>
         <legend>
@@ -63,5 +62,4 @@
 
   <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/>
   <ExternalXML node="DataObjects" xmlToLoad="sharedDataObjects.xml"/>
-
 </Simulation>

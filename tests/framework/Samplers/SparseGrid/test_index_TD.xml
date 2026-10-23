@@ -4,7 +4,9 @@
     <WorkingDir>grid</WorkingDir>
     <Sequence>TDmake,TDtrain,TDtest,TDprint</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/SparseGrid/totalDegreeGrid</name>
     <author>talbpaul</author>
@@ -13,6 +15,9 @@
     <description>
       This tests the creation of a TotalDegree construction sparse grid.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Distributions>

@@ -4,6 +4,7 @@
     <WorkingDir>Basic</WorkingDir>
     <Sequence>Sample,Process_min,Process_max,Process_index</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -19,6 +20,7 @@
     </description>
     <revisions>
       <revision date="2018-11-06" author="talbpaul">added index selection method to test</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -35,10 +37,9 @@
       <criterion> max </criterion>
     </PostProcessor>
     <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
-      <criterion value='3'> index </criterion>
+      <criterion value="3"> index </criterion>
     </PostProcessor>
   </Models>
-
 
   <Distributions>
     <Normal name="x0_distrib">

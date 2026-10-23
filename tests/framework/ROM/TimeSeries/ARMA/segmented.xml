@@ -20,12 +20,14 @@
           Deleted the longest Fourier period for this test, because the phase of this period would have results between
           PI and negative PI( a result of arctan(infinity) ), and cannnot be detected from the xml check.
       </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Segmented</WorkingDir>
     <Sequence>load,train,rommeta,dump,unpickle,sample,print,reload,stats</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

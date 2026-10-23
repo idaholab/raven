@@ -16,14 +16,17 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
       <revision author="alfoa" date="2025-04-11">Moved this test in its own folder (Generic)</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-IS-6</requirements>
   </TestInfo>
+
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
     <Sequence>sample</Sequence>
     <WorkingDir>GenericInterface</WorkingDir>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

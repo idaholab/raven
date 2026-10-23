@@ -8,36 +8,40 @@
     <description>
        This test checks the capability of RAVEN to use 1D LogUniform distributions (decimal base).
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>test_log10Uniform/</WorkingDir>
     <Sequence>MCrun,importAnalytical,OutStreams</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
-    <Input name='analytical' type=''>analytical.csv</Input>
+    <Input name="analytical" type="">analytical.csv</Input>
   </Files>
 
   <Steps>
-    <MultiRun  name="MCrun">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    <MultiRun name="MCrun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet_MC</Output>
     </MultiRun>
     <IOStep name="importAnalytical">
-      <Input   class='Files'       type=''              >analytical</Input>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_Analytical</Output>
+      <Input class="Files" type="">analytical</Input>
+      <Output class="DataObjects" type="PointSet">PointSet_Analytical</Output>
     </IOStep>
     <IOStep name="OutStreams">
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_Analytical</Input>
-      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
-      <Output class="OutStreams"   type="Plot"          >histogramX</Output>
-      <Output class="OutStreams"   type="Plot"          >histogramY</Output>
-      <Output class="OutStreams"   type="Plot"          >lineAnalytical</Output>
+      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
+      <Input class="DataObjects" type="PointSet">PointSet_Analytical</Input>
+      <Output class="OutStreams" type="Print">MC_dump</Output>
+      <Output class="OutStreams" type="Plot">histogramX</Output>
+      <Output class="OutStreams" type="Plot">histogramY</Output>
+      <Output class="OutStreams" type="Plot">lineAnalytical</Output>
     </IOStep>
   </Steps>
 
@@ -71,9 +75,9 @@
     <Print name="MC_dump">
       <type>csv</type>
       <source>PointSet_MC</source>
-       <what>input,output</what>
+      <what>input,output</what>
     </Print>
-   <Plot name='histogramX' overwrite='false' verbosity='debug'>
+    <Plot name="histogramX" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -88,7 +92,7 @@
         <how>png</how>
       </actions>
     </Plot>
-   <Plot name='histogramY' overwrite='false' verbosity='debug'>
+    <Plot name="histogramY" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -103,7 +107,7 @@
         <how>png</how>
       </actions>
     </Plot>
-   <Plot name='lineAnalytical' overwrite='false' verbosity='debug'>
+    <Plot name="lineAnalytical" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>

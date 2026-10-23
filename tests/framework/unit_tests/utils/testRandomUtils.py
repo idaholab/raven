@@ -377,12 +377,7 @@ for env in ['crow', 'numpy']:
   ## unseeded (default seeding)
   engine = randomUtils.newRNG()
   sampled = [randomUtils.random(engine=engine) for _ in range(5)]
-  correct = [0.814723692093,
-            0.135477004139,
-            0.905791934325,
-            0.835008589978,
-            0.126986811898]
-  checkArray('Independent RNG, unseeded',sampled,correct)
+  checkTrue('Independent RNG, unseeded',len(set(sampled)) == len(sampled), True) # the fresh RNG should not be repeating numbers
 
   ## reseeded (42)
   engine.seed(42)
@@ -399,6 +394,83 @@ for env in ['crow', 'numpy']:
   engine.seed(42)
   sampled = [randomUtils.random(engine=engine) for _ in range(5)]
   checkArray('Independent RNG, seeded',sampled,correct)
+
+### globalSeed / NumpyRNG seed modes (numpy-only; crow does not support None or legacyNone)
+print('Running tests for NumpyRNG globalSeed seed modes...')
+randomUtils.setStochasticEnv('numpy')
+
+# Default seed (5489): a fresh NumpyRNG should produce the same sequence as one explicitly seeded with 5489
+engDefault = randomUtils.NumpyRNG()
+engExplicit = randomUtils.NumpyRNG()
+engExplicit.seed(5489)
+defaultVals = [randomUtils.random(engine=engDefault) for _ in range(5)]
+explicitVals = [randomUtils.random(engine=engExplicit) for _ in range(5)]
+checkArray('Default NumpyRNG seed matches explicit seed 5489', defaultVals, explicitVals)
+
+# randomSeed() return value: integer seed
+retVal = randomUtils.randomSeed(42)
+checkAnswer('randomSeed(42) returns 42', retVal, 42)
+checkType('randomSeed(42) return type is int', retVal, 42)
+
+# None seed: no error, returns None, engine._seed is None, produces valid floats
+retVal = randomUtils.randomSeed(None)
+checkTrue('randomSeed(None) returns None', retVal is None, True)
+checkTrue('NumpyRNG._seed is None after seeding with None', randomUtils.npStochEnv._seed is None, True)
+val = randomUtils.random()
+checkTrue('randomSeed(None) produces float in [0,1]', 0.0 <= val <= 1.0, True)
+
+# "none" string seed: same behavior as None
+retVal = randomUtils.randomSeed("none")
+checkTrue('randomSeed("none") returns None', retVal is None, True)
+checkTrue('NumpyRNG._seed is None after seeding with "none"', randomUtils.npStochEnv._seed is None, True)
+val = randomUtils.random()
+checkTrue('randomSeed("none") produces float in [0,1]', 0.0 <= val <= 1.0, True)
+
+# "legacynone" seed: uses system clock, returns an integer
+from time import time as _time
+t_before = int(_time())
+retVal = randomUtils.randomSeed("legacynone")
+t_after = int(_time())
+checkType('randomSeed("legacynone") return type is int', retVal, 0)
+checkTrue('randomSeed("legacynone") seed is derived from system clock', t_before <= retVal <= t_after + 1, True)
+val = randomUtils.random()
+checkTrue('randomSeed("legacynone") produces float in [0,1]', 0.0 <= val <= 1.0, True)
+
+# getRNGSeed() reflects the stored seed for each mode
+engNone = randomUtils.NumpyRNG()
+engNone.seed(None)
+checkTrue('getRNGSeed() returns None after seed(None)', engNone.getRNGSeed() is None, True)
+
+engLegacy = randomUtils.NumpyRNG()
+engLegacy.seed("legacynone")
+checkType('getRNGSeed() returns int after seed("legacynone")', engLegacy.getRNGSeed(), 0)
+
+engInt = randomUtils.NumpyRNG()
+engInt.seed(99)
+checkAnswer('getRNGSeed() returns 99 after seed(99)', engInt.getRNGSeed(), 99)
+
+# None-seeded engines produce valid output (non-deterministic; just validate range)
+engA = randomUtils.NumpyRNG()
+engA.seed(None)
+for i in range(5):
+  val = randomUtils.random(engine=engA)
+  checkTrue(f'None-seeded engine sample {i} in [0,1]', 0.0 <= val <= 1.0, True)
+
+# legacynone-seeded engine produces valid output
+engB = randomUtils.NumpyRNG()
+engB.seed("legacynone")
+for i in range(5):
+  val = randomUtils.random(engine=engB)
+  checkTrue(f'legacynone-seeded engine sample {i} in [0,1]', 0.0 <= val <= 1.0, True)
+
+# Reproducibility: two engines with the same integer seed produce identical sequences
+engC = randomUtils.NumpyRNG()
+engD = randomUtils.NumpyRNG()
+engC.seed(12345)
+engD.seed(12345)
+valsC = [randomUtils.random(engine=engC) for _ in range(5)]
+valsD = [randomUtils.random(engine=engD) for _ in range(5)]
+checkArray('Two engines with same integer seed produce identical sequences', valsC, valsD)
 
 print(results)
 

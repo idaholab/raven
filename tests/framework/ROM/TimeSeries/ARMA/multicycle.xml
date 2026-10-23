@@ -11,12 +11,16 @@
        should be near 1.5, and the ratio between cycles 2 and 0 should be 2.25.
        Further, check that when ensembled the pass-through value is usable (mostly a check for ND data).
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Multicycle</WorkingDir>
     <Sequence>read, train, print, pickle, sample, dump</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -71,9 +75,6 @@
       <pivotParameter>Time</pivotParameter>
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>100, 5</Fourier>
-      <!--
-        <Fourier>604800, 302400, 86400, 43200</Fourier>
-      -->
       <seed>42</seed>
       <P>0</P>
       <Q>0</Q>

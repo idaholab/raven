@@ -450,4 +450,39 @@
       rel_err = 0.001
     [../]
   [../]
+
+  [./NSGA-II_ZDT1_plots]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/ZDT1_plots.xml'
+    required_libraries = 'imageio'
+    image = 'continuous/unconstrained/ZDT1_plots/1-adjusted_epsilon.png continuous/unconstrained/ZDT1_plots/1-attainment_surface.png continuous/unconstrained/ZDT1_plots/1-bubble_tradeoff.png continuous/unconstrained/ZDT1_plots/1-chord_diagram.png continuous/unconstrained/ZDT1_plots/1-crowding_distance.png continuous/unconstrained/ZDT1_plots/1-decision_objective_mapping.png continuous/unconstrained/ZDT1_plots/1-dominance_heatmap.png continuous/unconstrained/ZDT1_plots/1-fitness_funnel.png continuous/unconstrained/ZDT1_plots/1-glyph_profiles.png continuous/unconstrained/ZDT1_plots/1-multi_run_uncertainty.png continuous/unconstrained/ZDT1_plots/1-opt_path.png continuous/unconstrained/ZDT1_plots/1-pareto_diagnostics.png continuous/unconstrained/ZDT1_plots/1-pareto_front.png continuous/unconstrained/ZDT1_plots/1-population.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0000.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0002.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0005.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0008.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0011.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0014.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0017.png continuous/unconstrained/ZDT1_plots/1-preference_sweep_frames_0020.png continuous/unconstrained/ZDT1_plots/1-prosection_matrix.png continuous/unconstrained/ZDT1_plots/1-radviz_embedding.png continuous/unconstrained/ZDT1_plots/1-rank_history.png continuous/unconstrained/ZDT1_plots/1-response_surface_overlay.png continuous/unconstrained/ZDT1_plots/1-sampling_coverage_frames_0001.png continuous/unconstrained/ZDT1_plots/1-sampling_coverage_frames_0004.png continuous/unconstrained/ZDT1_plots/1-sampling_coverage_frames_0007.png continuous/unconstrained/ZDT1_plots/1-sampling_coverage_frames_0010.png continuous/unconstrained/ZDT1_plots/1-sampling_coverage_frames_0013.png continuous/unconstrained/ZDT1_plots/1-sampling_coverage_frames_0015.png continuous/unconstrained/ZDT1_plots/1-star_coordinates.png continuous/unconstrained/ZDT1_plots/1-diversity_radar.gif continuous/unconstrained/ZDT1_plots/1-front_evolution_gif.gif continuous/unconstrained/ZDT1_plots/1-front_rank_animation_gif_rank_animation.gif continuous/unconstrained/ZDT1_plots/1-hypervolume_movie.gif continuous/unconstrained/ZDT1_plots/1-objective_contour_animation.gif continuous/unconstrained/ZDT1_plots/1-objective_contour_animation2.gif continuous/unconstrained/ZDT1_plots/1-parallel_trails.gif continuous/unconstrained/ZDT1_plots/1-preference_sweep.gif continuous/unconstrained/ZDT1_plots/1-sampling_coverage.gif continuous/unconstrained/ZDT1_plots/1-tradeoff_slices.gif'
+    rel_err = 0.25
+    [./som]
+      # The self-organizing map quantizes continuous optimization samples onto a
+      # discrete lattice; tiny cross-platform floating-point differences in the
+      # upstream data flip which lattice cell some points occupy, which shifts
+      # whole heatmap squares. This amplifies sub-pixel noise into ~26-30% pixel
+      # differences across OSes, so this one plot gets a looser tolerance than
+      # the other (portable) images checked above at rel_err = 0.25.
+      type = ImageDiffer
+      output = 'continuous/unconstrained/ZDT1_plots/1-som_map.png'
+      rel_err = 0.40
+    [../]
+    [./html]
+      type = Exists
+      output = 'continuous/unconstrained/ZDT1_plots/1-diversity_radar.html continuous/unconstrained/ZDT1_plots/1-front_evolution.html continuous/unconstrained/ZDT1_plots/1-front_rank_animation_rank_animation.html continuous/unconstrained/ZDT1_plots/1-hypervolume_movie.html continuous/unconstrained/ZDT1_plots/1-objective_contour_animation.html continuous/unconstrained/ZDT1_plots/1-objective_contour_animation2.html continuous/unconstrained/ZDT1_plots/1-preference_sweep.html continuous/unconstrained/ZDT1_plots/1-sampling_coverage.html continuous/unconstrained/ZDT1_plots/1-tradeoff_slices.html'
+    [../]
+  [../]
+
+  [./NSGA-II_MinwoRepMultiObjective_plots]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/MinwoRepMultiObjective_plots.xml'
+    required_libraries = 'imageio'
+    image = 'discrete/constrained/Multi_MinwoReplacement_conplots/1-constraint_heatmap.png discrete/constrained/Multi_MinwoReplacement_conplots/1-dominance_cones.png discrete/constrained/Multi_MinwoReplacement_conplots/1-feasibility_radar.png discrete/constrained/Multi_MinwoReplacement_conplots/1-feasible_region_contour.png discrete/constrained/Multi_MinwoReplacement_conplots/1-fitness_funnel_p01.png discrete/constrained/Multi_MinwoReplacement_conplots/1-fitness_funnel_p02.png discrete/constrained/Multi_MinwoReplacement_conplots/1-opt_path.png discrete/constrained/Multi_MinwoReplacement_conplots/1-pareto_chart.png discrete/constrained/Multi_MinwoReplacement_conplots/1-pareto_surface.png discrete/constrained/Multi_MinwoReplacement_conplots/1-population.png discrete/constrained/Multi_MinwoReplacement_conplots/1-tube_trajectory.png discrete/constrained/Multi_MinwoReplacement_conplots/1-vector_field.png discrete/constrained/Multi_MinwoReplacement_conplots/1-constraint_activity.gif discrete/constrained/Multi_MinwoReplacement_conplots/1-constraint_parallel.gif'
+    rel_err = 0.25
+    [./html]
+      type = Exists
+      output = 'discrete/constrained/Multi_MinwoReplacement_conplots/1-constraint_activity.html'
+    [../]
+  [../]
 []

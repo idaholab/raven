@@ -9,15 +9,21 @@
       This test is used to exercise the ability of RAVEN to
       export an FMU of the RAVEN external model class to be used in any FMI FMU compatible framework.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>SerializeWrkd</WorkingDir>
     <Sequence>extFMUexport</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <Files>
     <Input name="attenuate_pk2.fmu" type="FMU">attenuate_pk2.fmu</Input>
   </Files>
+
   <Steps>
     <IOStep name="extFMUexport">
       <Input class="Models" type="ExternalModel">attenuate</Input>

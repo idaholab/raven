@@ -18,6 +18,7 @@
     </description>
     <revisions>
       <revision author="wangc" date="2021-08-10">Replace subType of SciKitLearn ROM with SKLtype, and Remove SKLtype</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -29,6 +30,7 @@
       resample,
       writemodel
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -64,8 +66,6 @@
 
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
-  <!-- <ExternalXML node="Steps" xmlToLoad="sharedSteps.xml"/> -->
-
   <Steps>
     <MultiRun name="sample" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
@@ -92,7 +92,6 @@
   </Steps>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>

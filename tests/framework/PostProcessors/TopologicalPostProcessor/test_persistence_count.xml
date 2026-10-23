@@ -10,7 +10,7 @@
        where select a persistence level using the count of points in each
        partition, that is if a partition has fewer than x points, it will be
        merged into a neighboring partition. Note, that all of the
-       "persistence" tests will use the Schwefel function for testing.
+       &quot;persistence&quot; tests will use the Schwefel function for testing.
     </description>
     <revisions>
       <revision author="cogljj" date="2015-09-29">Modifying external modules to use relative to working directory.</revision>
@@ -20,21 +20,23 @@
       <revision author="talbpaul" date="2016-02-08">Converted failing tests.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
       decomposeCount
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="../Schwefel" name="testFunction" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <!-- Persistence related to relative size of each cluster -->
     <PostProcessor name="AMSC_Count" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -69,14 +71,12 @@
   </Samplers>
 
   <Steps>
-    <!-- Sample the test function as an External Model -->
     <MultiRun name="sampleData" pauseAtEnd="False" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
       <Output class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
-    <!-- Perform the topological decomposition -->
     <PostProcess name="decomposeCount">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC_Count</Model>
@@ -86,7 +86,6 @@
   </Steps>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="segCount">
       <type>csv</type>
       <source>dataCount</source>
@@ -94,7 +93,6 @@
   </OutStreams>
 
   <DataObjects>
-    <!-- The input TimePointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
@@ -103,7 +101,6 @@
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <!-- The output TimePointSet objects -->
     <PointSet name="dataCount">
       <Input>X,Y</Input>
       <Output>Z</Output>

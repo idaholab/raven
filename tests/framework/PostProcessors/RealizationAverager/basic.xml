@@ -11,11 +11,15 @@
       The RealizationAverager simply averages the three samples, maintaining the year and time dimensions.
       This test was checked analytically at creation to assure the average of the three samples is the resulting averaged values.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Basic</WorkingDir>
     <Sequence>load, process</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

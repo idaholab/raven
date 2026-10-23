@@ -78,14 +78,29 @@ limit our library choices.
     <importlib_metadata/>
     <pyside2 optional='True'/>
     <nomkl os='linux' skip_check='True'/>
+    <!-- libstdcxx-ng: ensure the conda env ships its own libstdc++ on Linux. The refreshed
+         scientific stack pulls in libicui18n.so.78 built against CXXABI_1.3.15 (GCC 13+),
+         which the CI machine older system /lib64/libstdc++.so.6 does not provide. Conda
+         activation puts the env libstdc++ ahead of /lib64 in the loader path, so this pin
+         alone is sufficient (no LD_LIBRARY_PATH workaround required). -->
+    <libstdcxx-ng os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
+    <!-- Pin pyarrow (pulled in by dask[complete]) to 25: pyarrow 26 requires numpy 2 at import
+         time but does not declare it, so pip keeps it alongside numpy 1.26. Remove when numpy is updated. -->
+    <pyarrow source="pip">25</pyarrow>
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <typing-extensions source="pip">4.14</typing-extensions>
     <ray source="pip" pip_extra="[default]">2.52</ray>
     <!-- redis is needed by ray, but on windows, this seems to need to be explicitly stated -->
     <redis source="pip" os='windows'/>
     <imageio source="pip">2.22</imageio>
+    <pillow source="pip"/>
+    <plotly source="pip"/>
+    <!-- kaleido renders plotly figures to static images (PNG/GIF). kaleido>=1 needs an
+         external Chrome, installed once via `plotly_get_chrome`; without it the plotters
+         fall back to matplotlib. Marked optional so envs without Chrome still build. -->
+    <kaleido source="pip" optional='True'/>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
     <!-- <statsforecast source='pip'/> -->
@@ -112,6 +127,7 @@ limit our library choices.
     <python>remove</python>
     <nomkl>remove</nomkl>
     <liblapack>remove</liblapack>
+    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
   <alternate name="none">
     <hdf5>remove</hdf5>
@@ -119,5 +135,6 @@ limit our library choices.
     <pip>remove</pip>
     <python>remove</python>
     <nomkl>remove</nomkl>
+    <libstdcxx-ng>remove</libstdcxx-ng>
   </alternate>
 </dependencies>

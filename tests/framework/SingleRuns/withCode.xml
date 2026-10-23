@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation color="True" verbosity="debug">
   <TestInfo>
     <name>framework/SingleRuns/codeModel</name>
@@ -7,12 +8,16 @@
     <description>
        This test assures the SingleRun works in conjunction with the Code model.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>run</WorkingDir>
     <Sequence>sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -46,7 +51,7 @@
   </DataObjects>
 
   <Databases>
-      <HDF5 name="testDBwithSingleRun" readMode="overwrite"/>
+    <HDF5 name="testDBwithSingleRun" readMode="overwrite"/>
   </Databases>
 
   <OutStreams>
@@ -55,4 +60,5 @@
       <source>sample</source>
     </Print>
   </OutStreams>
+
 </Simulation>

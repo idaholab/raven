@@ -12,11 +12,16 @@
       windows, the entire optimization process is golded; however, due to seeding issues between OS's, the linux
       tests only consider the final solutions proximity to the correct answer for the analytical test.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>load_data, train, optimize, collect_final, print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -28,13 +33,11 @@
       <Input class="Files" type="">samples</Input>
       <Output class="DataObjects" type="PointSet">samples</Output>
     </IOStep>
-
     <RomTrainer name="train">
       <Input class="DataObjects" type="PointSet">samples</Input>
       <Output class="Models" type="ROM">gpROM</Output>
     </RomTrainer>
-
-    <MultiRun name="optimize" >
+    <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">mat</Model>
       <Optimizer class="Optimizers" type="BayesianOptimizer">BOopt</Optimizer>
@@ -84,8 +87,8 @@
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
-      <Sampler    class="Samplers"  type="Stratified" >LHS_samp</Sampler>
-      <ROM  class="Models" type="ROM">gpROM</ROM>
+      <Sampler class="Samplers" type="Stratified">LHS_samp</Sampler>
+      <ROM class="Models" type="ROM">gpROM</ROM>
       <ModelSelection>
         <Duration>10</Duration>
         <Method>Internal</Method>
@@ -140,7 +143,7 @@
       <multioutput>False</multioutput>
     </ROM>
     <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
-      <criterion value='-1'> index </criterion>
+      <criterion value="-1"> index </criterion>
     </PostProcessor>
   </Models>
 
@@ -179,4 +182,5 @@
       <source>selected_index</source>
     </Print>
   </OutStreams>
+
 </Simulation>

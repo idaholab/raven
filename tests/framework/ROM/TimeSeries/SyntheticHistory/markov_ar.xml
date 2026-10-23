@@ -8,12 +8,16 @@
     <description>
       Tests the SyntheticHistory ROM using only the MarkovAR TimeSeriesAnalyzer algorithm.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>MarkovAR</WorkingDir>
     <Sequence>read, train, print, sample</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -58,7 +62,7 @@
       <Target>signal0, pivot</Target>
       <Features>scaling</Features>
       <pivotParameter>pivot</pivotParameter>
-      <MarkovAR target="signal0" seed='42'>
+      <MarkovAR target="signal0" seed="42">
         <P>1</P>
         <MarkovStates>2</MarkovStates>
       </MarkovAR>

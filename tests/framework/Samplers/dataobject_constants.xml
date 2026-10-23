@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Samplers.DataObjectConstants</name>
@@ -9,11 +10,15 @@
       The models are very simple, so to regold, assure the correct values pass through for
       the constants and final result is obtained according to the models.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>DataObjectConstants</WorkingDir>
     <Sequence>presample, sample, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

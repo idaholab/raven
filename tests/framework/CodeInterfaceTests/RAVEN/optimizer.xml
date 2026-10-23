@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/RAVEN.Optimizer</name>
@@ -8,10 +9,12 @@
       Tests RAVEN Running RAVEN with an optimizer to test
       DistributedMemoryRunner running in that threading environment.
       This will cause JobHandler to call terminateJobs
-
       Outer raven runs an optimizer by changing the upper and lower bounds of the sampledVars distribution on the inner raven.
       Inner raven runs 100 MC samples, does basic stats, and returns the mean, sigma to the outer raven.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -19,13 +22,13 @@
     <Sequence>sample,print</Sequence>
     <internalParallel>True</internalParallel>
     <batchSize>2</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
     <MultiRun name="sample">
       <Input class="Files" type="raven">inner_input</Input>
       <Model class="Models" type="Code">raven</Model>
-      <!-- <Sampler class="Samplers" type="Grid">grid</Sampler> -->
       <Optimizer class="Optimizers" type="GradientDescent">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">outer_samples</Output>
@@ -39,21 +42,20 @@
   </Steps>
 
   <Files>
-    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+    <Input name="inner_input" type="raven">inner_sample.xml</Input>
   </Files>
 
   <Models>
     <Code name="raven" subType="RAVEN">
-        <executable>%RAVENEXECUTABLE%</executable>
-        <outputExportOutStreams>inner_out</outputExportOutStreams>
-        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
-        <alias variable="innerUpperBound" type="input">
+      <executable>%RAVENEXECUTABLE%</executable>
+      <outputExportOutStreams>inner_out</outputExportOutStreams>
+      <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
+      <alias variable="innerUpperBound" type="input">
           Distributions|Uniform@name:dist|upperBound,
           Samplers|Grid|constant@name:testSecondAlias
         </alias>
     </Code>
   </Models>
-
 
   <Distributions>
     <Uniform name="dist_lower">
@@ -102,16 +104,15 @@
     </GradientDescent>
   </Optimizers>
 
-
   <Samplers>
     <Grid name="grid">
       <variable name="innerLowerBound">
         <distribution>dist_lower</distribution>
-        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="2">0 1</grid>
       </variable>
       <variable name="innerUpperBound">
         <distribution>dist_upper</distribution>
-        <grid type='CDF' construction='equal' steps='2'>0 1</grid>
+        <grid type="CDF" construction="equal" steps="2">0 1</grid>
       </variable>
     </Grid>
   </Samplers>

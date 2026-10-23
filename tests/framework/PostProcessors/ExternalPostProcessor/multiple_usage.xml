@@ -11,7 +11,8 @@
       processor on multiple data objects does not cause naming issues.
     </description>
     <revisions>
-        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -22,6 +23,7 @@
       test1,
       test2
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -35,8 +37,6 @@
     </PostProcessor>
   </Models>
 
-  <!-- The external methods will be defined in the files pointed to by these
-     guys -->
   <Functions>
     <External file="externalPostProcessor/BasicOperators" name="basicOps">
       <variables>X,Y</variables>
@@ -44,19 +44,16 @@
   </Functions>
 
   <Steps>
-    <!-- Read the data from a csv into a dataObject -->
     <IOStep fromDirectory="." name="loadData">
       <Input class="Files" type="">csv</Input>
       <Output class="DataObjects" type="PointSet">testData</Output>
     </IOStep>
-    <!-- Run the post-processor and get the sums and products -->
     <PostProcess name="test1">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">functionPP</Model>
       <Output class="DataObjects" type="PointSet">functionPP_data1</Output>
       <Output class="OutStreams" type="Print">dump1</Output>
     </PostProcess>
-    <!-- Run the post-processor again and get the deltas and products -->
     <PostProcess name="test2">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">functionPP</Model>
@@ -66,7 +63,6 @@
   </Steps>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="dump1">
       <filename>multiple_usage_1</filename>
       <type>csv</type>
@@ -84,12 +80,10 @@
   </Databases>
 
   <DataObjects>
-    <!-- The input PointSet objects -->
     <PointSet name="testData">
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <!-- The output PointSet object -->
     <PointSet name="functionPP_data1">
       <Input>X,Y</Input>
       <Output>Z,basicOps_Sum,basicOps_Product</Output>

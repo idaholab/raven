@@ -1,6 +1,5 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation>
-
   <TestInfo>
     <name>framework/unit_tests/SupervisedLearning.pickle_rom</name>
     <author>dgarrett622</author>
@@ -9,6 +8,9 @@
     <description>
        This test creates the DMDc ROM used for the testScriptROMInputs.py unit test.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -17,29 +19,26 @@
               meta,
               writeOut
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
-	  <IOStep name="load">
+    <IOStep name="load">
       <Input class="Files" type="">histories</Input>
       <Output class="DataObjects" type="HistorySet">TrainData</Output>
     </IOStep>
-
     <RomTrainer name="DMDCTrain">
       <Input class="DataObjects" type="HistorySet">TrainData</Input>
       <Output class="Models" type="ROM">DMDcROM</Output>
     </RomTrainer>
-
     <IOStep name="pickleRom">
       <Input class="Models" type="ROM">DMDcROM</Input>
       <Output class="Files" type="">ROMpk</Output>
     </IOStep>
-
     <IOStep name="meta">
       <Input class="Models" type="ROM">DMDcROM</Input>
       <Output class="DataObjects" type="DataSet">rom_meta</Output>
     </IOStep>
-
     <IOStep name="writeOut" pauseAtEnd="True">
       <Input class="DataObjects" type="DataSet">rom_meta</Input>
       <Output class="OutStreams" type="Print">DMDcCxCoeff </Output>
@@ -57,8 +56,8 @@
       <actuators>u1, u2</actuators>
       <stateVariables>x1</stateVariables>
       <pivotParameter>Time</pivotParameter>
-      <rankSVD>-1</rankSVD>        <!-- -1 = No truncation -->
-      <subtractNormUXY>False</subtractNormUXY> <!-- False = will not subtract the initial values from U,X,Y -->
+      <rankSVD>-1</rankSVD>
+      <subtractNormUXY>False</subtractNormUXY>
       <Features>u1,u2,x1_init</Features>
       <initStateVariables>x1_init</initStateVariables>
     </ROM>

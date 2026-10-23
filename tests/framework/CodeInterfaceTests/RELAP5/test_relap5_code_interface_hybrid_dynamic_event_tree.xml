@@ -25,6 +25,7 @@
       <WorkingDir>RELAP5interfaceHybridDynamicEventTree</WorkingDir>
       <Sequence>RELAP_DET,Outfiles</Sequence>
       <batchSize>1</batchSize>
+      <globalSeed>5489</globalSeed>
     </RunInfo>
     <Files>
       <Input name="RELAPtrinp" type="">input.i</Input>

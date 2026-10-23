@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
   <TestInfo>
     <name>framework/Samplers/SparseGrid/exponential</name>
@@ -8,12 +8,16 @@
     <description>
       This tests using SparseGridCollocation with exponential-distributed inputs.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>scgpc</WorkingDir>
     <Sequence>Emake, Etrain, Etest, stats, Eprint</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>

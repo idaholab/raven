@@ -13,6 +13,7 @@
     <revisions>
       <revision author="alfoa" date="2017-12-20">replaced median absolute error with average absolute error score </revision>
       <revision author="wangc" date="2019-07-09">Move cross validation asssemble from HybridModel to ROM</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -21,6 +22,7 @@
     <Sequence>runModel, trainRom, runHybridModel</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>

@@ -15,6 +15,7 @@
         added a function to show how the constant variables can be used in conjunction with a function
       </revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -22,6 +23,7 @@
     <WorkingDir>GridTestWithConstants</WorkingDir>
     <Sequence>CustomSampler</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>

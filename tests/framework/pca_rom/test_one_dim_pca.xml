@@ -4,7 +4,9 @@
     <WorkingDir>oneDimPCA</WorkingDir>
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_rom/oneDim</name>
     <author>wangc</author>
@@ -13,6 +15,9 @@
     <description>
       Tests fix for Issue #389 where the code errored when the problem is reduced to 1 dimension.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>

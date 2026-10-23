@@ -8,12 +8,16 @@
     <description>
       Tests of the HistorySetSync interfaced post-processor
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>HistorySetSync</WorkingDir>
     <Sequence>FirstMRun,PP1,plot1,PP2,plot2</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -115,7 +119,7 @@
       <type>csv</type>
       <source>outMC_PP2</source>
     </Print>
-    <Plot  name="plot1" overwrite="False">
+    <Plot name="plot1" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -139,7 +143,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot  name="plot2" overwrite="False">
+    <Plot name="plot2" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>

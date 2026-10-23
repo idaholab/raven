@@ -4,6 +4,7 @@
     <WorkingDir>multipleInputObjects</WorkingDir>
     <Sequence>mcRun, PP1</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -17,6 +18,7 @@
     <revisions>
       <revision author="wangc" date="2017-12-06">convert to using new data objects</revision>
       <revision author="wangc" date="2017-11-20">restructure metric system, add time-dependent capability</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 

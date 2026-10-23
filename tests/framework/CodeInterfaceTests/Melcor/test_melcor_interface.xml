@@ -21,6 +21,7 @@
     <WorkingDir>MelcorInterface</WorkingDir>
     <Sequence>testMelcor,dumpResults</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

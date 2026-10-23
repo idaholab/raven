@@ -79,6 +79,16 @@ else
     fi
 fi
 
+# On Linux, force the env's libstdc++ to be loaded before any other shared object so
+# the dynamic linker doesn't bind libstdc++ from /lib64 (which on CentOS 7/8 is older
+# than the conda env's GCC-built libs and lacks CXXABI_1.3.15 required by libicui18n).
+# LD_PRELOAD propagates to test subprocesses, where ravenframework imports happen
+# after numpy/xarray (whose C extensions would otherwise pull in /lib64's copy first).
+if [[ "$(uname)" == "Linux" ]] && [[ -n "$CONDA_PREFIX" ]] && [[ -f "$CONDA_PREFIX/lib/libstdc++.so.6" ]]; then
+    export LD_PRELOAD="$CONDA_PREFIX/lib/libstdc++.so.6${LD_PRELOAD:+:$LD_PRELOAD}"
+    echo "Pre-loading $CONDA_PREFIX/lib/libstdc++.so.6 via LD_PRELOAD"
+fi
+
 # pick tests to run
 ## test set 0 is normal raven tests
 ## test set 1 is plugins only tests

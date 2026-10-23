@@ -296,7 +296,7 @@ class BayesianOptimizer(RavenSampled):
       @ In, traj, int, trajectory identifier
       @ In, step, int, iteration number identifier
       @ In, moreInfo, dict, optional, additional run-identifying information to track
-      @ Out, None
+      @ Out, queued, bool, True if the run was queued
     """
     info = {}
     if moreInfo is not None:
@@ -304,8 +304,7 @@ class BayesianOptimizer(RavenSampled):
     info.update({ 'traj': traj,
                   'step': step,
                   'batchSize': self.batch})
-    self.raiseADebug(f'Adding run to queue: {self.denormalizeData(point)} | {info}')
-    self._submissionQueue.append((point, info))
+    return self._queueSubmission(point, info)
 
   ###############
   # Run Methods #

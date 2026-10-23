@@ -4,6 +4,7 @@
     <WorkingDir>basicStatisticsGeneral</WorkingDir>
     <Sequence>FirstMRun,PP1,PP2,PP3,PP4,PP5,PP6</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <TestInfo>
@@ -27,6 +28,7 @@
           Disable multipleFeatures option for input output sensitivity calcuation, since the condition number
           is ver big for this case which will cause unstable test results in Windows system.
       </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
     <requirements>R-RA-5</requirements>
   </TestInfo>

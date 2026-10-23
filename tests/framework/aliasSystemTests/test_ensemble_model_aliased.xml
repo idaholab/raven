@@ -11,13 +11,16 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>ensembleModelAliased</WorkingDir>
     <Sequence>testMetamodelHeatTransfer,dumpResults</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Distributions>
@@ -106,7 +109,7 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    <Plot   name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -134,7 +137,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot   name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

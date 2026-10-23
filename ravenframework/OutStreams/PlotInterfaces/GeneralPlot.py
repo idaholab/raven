@@ -26,6 +26,9 @@ from itertools import cycle
 import numpy as np
 import numpy.ma as ma
 import matplotlib
+# The Matplotlib backend is selected once, before any plotting submodule is imported,
+# in ravenframework/OutStreams/PlotInterfaces/__init__.py (it respects RAVEN_BACKEND /
+# MPLBACKEND and falls back to Agg only when headless). No per-module matplotlib.use().
 import matplotlib.pyplot as plt
 
 from ...utils import utils, mathUtils

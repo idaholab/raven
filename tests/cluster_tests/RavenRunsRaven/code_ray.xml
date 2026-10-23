@@ -13,6 +13,7 @@
       <revision author="alfoa" date="2021-04-21">Modified test to add test the internalParallel with outer initialization (RAY) and inner usage (using the new
          nodes headNode and remoteNodes
       </revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -26,6 +27,7 @@
     <NodeParameter>--hostfile</NodeParameter>
     <RemoteRunCommand>raven_ec_qsub_command.sh</RemoteRunCommand>
     <parallelMethod>ray</parallelMethod>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

@@ -13,6 +13,7 @@
     <revisions>
       <revision author="aalfonsi" date="2022-11-16">Added feature selection test (variance threshold)
                                                     for SKlearn model</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -24,6 +25,7 @@
       stats_rom,
       export_rom_stats
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
@@ -76,9 +78,8 @@
       <Output class="OutStreams" type="Print">rom_stats_sklearn_var_red</Output>
     </IOStep>
   </Steps>
-  
+
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="outData">
       <type>csv</type>
       <source>outData</source>

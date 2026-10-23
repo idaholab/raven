@@ -6,18 +6,22 @@
     <created>2021-08-17</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      Tests optimization against the "valley problem" where a dominant gradient leads to a
+      Tests optimization against the &quot;valley problem&quot; where a dominant gradient leads to a
       diagonal valley with an optimal point along it. Generally quite challenging for gradient
       descent methods. Note we cut this run short before it really starts converging well.
     </description>
     <analytic>
       This test uses the Parabolic Valley analytic case, documented in the analytic case definitions.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Valley</WorkingDir>
     <Sequence>optimize, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -35,7 +39,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='dist'>
+    <Uniform name="dist">
       <lowerBound>-2</lowerBound>
       <upperBound>2</upperBound>
     </Uniform>

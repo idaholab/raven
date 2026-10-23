@@ -8,12 +8,16 @@
     <description>
       Tests clustering for the SyntheticHistory ROM with Fourier and ARMA steps.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>AutoARMA</WorkingDir>
     <Sequence>read, train, print, sample, plot</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -68,12 +72,12 @@
         <periods>2, 5, 10, 20, 50</periods>
       </fourier>
       <gaussianize target="signal0, signal1"/>
-      <autoarma target="signal0, signal1" seed='42'>
+      <autoarma target="signal0, signal1" seed="42">
         <P_upper>5</P_upper>
         <Q_upper>5</Q_upper>
         <criterion>bic</criterion>
       </autoarma>
-      <arma target="signal0, signal1" auto_select="True" seed='42'/>
+      <arma target="signal0, signal1" auto_select="True" seed="42"/>
     </ROM>
   </Models>
 

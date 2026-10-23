@@ -25,6 +25,10 @@ print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
 from ravenframework.CustomDrivers import DriverUtils
 DriverUtils.doSetup()
+
+from ravenframework.utils import randomUtils
+randomUtils.randomSeed(5489) #initialize numpy RNG with set seed
+
 from ravenframework.Optimizers.crossOverOperators.crossovers import returnInstance
 
 onePointCrossover = returnInstance('tester', 'onePointCrossover')

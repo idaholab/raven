@@ -4,7 +4,9 @@
     <WorkingDir>stratifiedCdf</WorkingDir>
     <Sequence>stratifiedRun,Dump</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_LHS/stratifiedCdf</name>
     <author>wangc</author>
@@ -13,6 +15,9 @@
     <description>
       Tests use of the PCA method to sample in LHS surrogate input space with grid by CDF.
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <Files>

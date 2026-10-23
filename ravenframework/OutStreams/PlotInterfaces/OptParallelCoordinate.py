@@ -15,21 +15,49 @@
 Created on November 20th, 2021
 
 @author: mandd
+
+Parallel coordinate plotter for optimization SolutionExports.
+
+By default this reproduces the classic behavior: one parallel-coordinate frame per generation,
+assembled into an animated GIF. When any enhancement node is supplied
+(<constraints>, <trailGenerations>, <maxFrames>, <generations>, or any of the constraint
+styling nodes) the plotter switches to the enhanced renderer, which adds optional constraint
+encoding, fading trail overlays, a cap on the number of rendered generations, and an explicit
+generation selector. Inputs that provide only <source>, <vars>, and <index> keep the original
+output unchanged.
 """
 
 # External Imports
 import numpy as np
 import imageio
+from PIL import Image
 
 # Internal Imports
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 from ...utils import plotUtils
 from .PlotInterface import PlotInterface
 from ...utils import InputData, InputTypes
+from . import plotGenerationUtils
+
 
 class OptParallelCoordinatePlot(PlotInterface):
   """
-    Plots input coordinate in a parallel coordinate plot
+    Plots input coordinates in a parallel coordinate plot.
+
+    The default (no enhancement nodes) renders one frame per generation as a simple GIF.
+    Optional constraint encoding can be enabled via <constraints>:
+    - feasible polylines are colored with <feasibleColor>
+    - infeasible polylines are colored either with <infeasibleColor> or (if <colorMode>='violation') a colormap
+    - linewidth can optionally scale with total constraint violation (<thicknessMode>='violation')
+    Optional <trailGenerations>, <maxFrames>, and <generations> control how many/which
+    generations are drawn.
   """
+  # nodes whose presence switches the plotter into the enhanced renderer
+  _enhancementNodes = ('constraints', 'trailGenerations', 'maxFrames', 'generations',
+                       'colorMode', 'violationMetric', 'thicknessMode', 'linewidthBounds',
+                       'feasibleColor', 'infeasibleColor', 'infeasibleCmap', 'showInfeasible')
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -45,6 +73,36 @@ class OptParallelCoordinatePlot(PlotInterface):
         descr=r"""Names of the variables from the DataObject whose optimization paths should be plotted."""))
     spec.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.StringType,
         descr=r"""Names of the variable that refers to the batch index"""))
+    spec.addSub(InputData.parameterInputFactory('maxFrames', contentType=InputTypes.IntegerType,
+        descr=r"""(enhanced) Optional cap on the number of generations rendered. If omitted, the plotter
+              shows at most ten evenly spaced generations."""))
+    spec.addSub(InputData.parameterInputFactory('trailGenerations', contentType=InputTypes.IntegerType,
+        descr=r"""(enhanced) Optional count of historical generations to overlay (with fading) in each frame.
+              Older trails are drawn with lower opacity."""))
+    spec.addSub(InputData.parameterInputFactory('constraints', contentType=InputTypes.StringListType,
+        descr=r"""(enhanced) Optional list of constraint evaluation columns. Values > 0 are treated as feasible;
+                   values <= 0 indicate violation. Use "all" to include every column named
+                   ConstraintEvaluation_*."""))
+    spec.addSub(InputData.parameterInputFactory('colorMode', contentType=InputTypes.StringType,
+        descr=r"""(enhanced) How to color infeasible paths when <constraints> are provided.
+                   Options: "feasibility" (default; infeasible uses <infeasibleColor>),
+                   "violation" (infeasible color encodes violation magnitude), or "none"."""))
+    spec.addSub(InputData.parameterInputFactory('violationMetric', contentType=InputTypes.StringType,
+        descr=r"""(enhanced) When <colorMode> or <thicknessMode> uses violations, reduce multiple constraints into a scalar using:
+                   "sum" (default), "max", or "l2"."""))
+    spec.addSub(InputData.parameterInputFactory('thicknessMode', contentType=InputTypes.StringType,
+        descr=r"""(enhanced) How to set linewidths when <constraints> are provided. Options: "none" (default) or "violation"."""))
+    spec.addSub(InputData.parameterInputFactory('linewidthBounds', contentType=InputTypes.FloatListType,
+        descr=r"""(enhanced) Two floats giving min,max linewidth for infeasible samples when using <thicknessMode>='violation' (default 0.6,2.6)."""))
+    spec.addSub(InputData.parameterInputFactory('feasibleColor', contentType=InputTypes.StringType,
+        descr=r"""(enhanced) Color for feasible paths when <constraints> are provided (default '#2e7d32')."""))
+    spec.addSub(InputData.parameterInputFactory('infeasibleColor', contentType=InputTypes.StringType,
+        descr=r"""(enhanced) Color for infeasible paths when <constraints> are provided and <colorMode>='feasibility' (default '#d32f2f')."""))
+    spec.addSub(InputData.parameterInputFactory('infeasibleCmap', contentType=InputTypes.StringType,
+        descr=r"""(enhanced) Matplotlib colormap for infeasible paths when <colorMode>='violation' (default 'Reds')."""))
+    spec.addSub(InputData.parameterInputFactory('showInfeasible', contentType=InputTypes.BoolType,
+        descr=r"""(enhanced) If false, hide infeasible paths when <constraints> are provided (default true)."""))
+    plotGenerationUtils.addGenerationSelectorSpec(spec)
     return spec
 
   def __init__(self):
@@ -59,6 +117,21 @@ class OptParallelCoordinatePlot(PlotInterface):
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
     self.index = None       # index ID for each batch
+    self.enhanced = False   # whether any enhancement node was supplied
+    self.maxFrames = None   # user-specified generation cap
+    self.explicitGenerations = None  # explicit <generations> selector tokens
+    self.trailGenerations = None  # number of trailing generations to overlay
+    self.constraints = []
+    self.useAllConstraints = False
+    self.colorMode = 'feasibility'
+    self.violationMetric = 'sum'
+    self.thicknessMode = 'none'
+    self.linewidthBounds = (0.6, 2.6)
+    self.feasibleColor = '#2e7d32'
+    self.infeasibleColor = '#d32f2f'
+    self.infeasibleCmap = 'Reds'
+    self.showInfeasible = True
+    self._globalViolationMax = None
 
   def handleInput(self, spec):
     """
@@ -76,6 +149,78 @@ class OptParallelCoordinatePlot(PlotInterface):
       self.vars       = params['vars']
       self.index      = params['index']
 
+    # switch to the enhanced renderer if any enhancement node is present
+    self.enhanced = any(spec.findFirst(node) is not None for node in self._enhancementNodes)
+    if not self.enhanced:
+      return
+
+    maxNode = spec.findFirst('maxFrames')
+    if maxNode is not None and maxNode.value is not None:
+      self.maxFrames = int(maxNode.value)
+      if self.maxFrames <= 0:
+        self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received non-positive <maxFrames>.')
+
+    self.explicitGenerations = plotGenerationUtils.parseGenerationSelectorNode(spec)
+
+    trailNode = spec.findFirst('trailGenerations')
+    if trailNode is not None and trailNode.value is not None:
+      self.trailGenerations = int(trailNode.value)
+      if self.trailGenerations <= 0:
+        self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received non-positive <trailGenerations>.')
+
+    consNode = spec.findFirst('constraints')
+    if consNode is not None and consNode.value:
+      entries = [str(entry).strip() for entry in consNode.value if str(entry).strip()]
+      if any(entry.lower() == 'all' for entry in entries):
+        self.useAllConstraints = True
+      else:
+        self.constraints = entries
+
+    modeNode = spec.findFirst('colorMode')
+    if modeNode is not None and modeNode.value:
+      self.colorMode = str(modeNode.value).strip()
+
+    vmNode = spec.findFirst('violationMetric')
+    if vmNode is not None and vmNode.value:
+      self.violationMetric = str(vmNode.value).strip()
+
+    tmNode = spec.findFirst('thicknessMode')
+    if tmNode is not None and tmNode.value:
+      self.thicknessMode = str(tmNode.value).strip()
+
+    lwNode = spec.findFirst('linewidthBounds')
+    if lwNode is not None and lwNode.value:
+      vals = [float(v) for v in lwNode.value]
+      if len(vals) != 2:
+        self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" requires two values in <linewidthBounds>.')
+      self.linewidthBounds = (min(vals[0], vals[1]), max(vals[0], vals[1]))
+
+    fcNode = spec.findFirst('feasibleColor')
+    if fcNode is not None and fcNode.value:
+      self.feasibleColor = str(fcNode.value).strip()
+
+    icNode = spec.findFirst('infeasibleColor')
+    if icNode is not None and icNode.value:
+      self.infeasibleColor = str(icNode.value).strip()
+
+    cmapNode = spec.findFirst('infeasibleCmap')
+    if cmapNode is not None and cmapNode.value:
+      self.infeasibleCmap = str(cmapNode.value).strip()
+
+    siNode = spec.findFirst('showInfeasible')
+    if siNode is not None and siNode.value is not None:
+      self.showInfeasible = bool(siNode.value)
+
+    if self.colorMode not in {'feasibility', 'violation', 'none'}:
+      self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received unsupported <colorMode> "{self.colorMode}".')
+    if self.violationMetric not in {'sum', 'max', 'l2'}:
+      self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received unsupported <violationMetric> "{self.violationMetric}".')
+    if self.thicknessMode not in {'none', 'violation'}:
+      self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received unsupported <thicknessMode> "{self.thicknessMode}".')
+    if not mcolors.is_color_like(self.feasibleColor):
+      self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received invalid <feasibleColor> "{self.feasibleColor}".')
+    if not mcolors.is_color_like(self.infeasibleColor):
+      self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}" received invalid <infeasibleColor> "{self.infeasibleColor}".')
 
   def initialize(self, stepEntities):
     """
@@ -88,19 +233,43 @@ class OptParallelCoordinatePlot(PlotInterface):
     super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
     if src is None:
-      self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')
+      self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for OptParallelCoordinatePlot "{self.name}"!')
     self.source = src
     dataVars = self.source.getVars()
+    if self.enhanced and self.useAllConstraints:
+      self.constraints = sorted(var for var in dataVars if var.startswith('ConstraintEvaluation_'))
     missing = [var for var in (self.vars) if var not in dataVars]
     if missing:
       msg = f'Source DataObject "{self.source.name}" is missing the following variables ' +\
             f'expected by OptPath plotter "{self.name}": '
       msg += ', '.join(f'"{m}"' for m in missing)
       self.raiseAnError(IOError, msg)
+    if self.enhanced and self.constraints:
+      missingConstraints = [var for var in self.constraints if var not in dataVars]
+      if missingConstraints:
+        self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" could not find constraint column(s) {missingConstraints}; proceeding with available constraints only.')
+        self.constraints = [var for var in self.constraints if var in dataVars]
+      if self.constraints:
+        data = self.source.asDataset().to_dataframe().copy()
+        if not data.empty:
+          self._globalViolationMax = float(np.nanmax(self._constraintViolation(data)))
+        else:
+          self._globalViolationMax = 0.0
 
   def run(self):
     """
-      Main run method
+      Main run method; dispatches to the classic or enhanced renderer.
+      @ In, None
+      @ Out, None
+    """
+    if self.enhanced:
+      self._runEnhanced()
+    else:
+      self._runClassic()
+
+  def _runClassic(self):
+    """
+      Original behavior: one parallel-coordinate frame per generation, assembled into a GIF.
       @ In, None
       @ Out, None
     """
@@ -132,6 +301,147 @@ class OptParallelCoordinatePlot(PlotInterface):
         image = imageio.imread(filename)
         writer.append_data(image)
 
+  @staticmethod
+  def _isFeasible(df, constraints):
+    if df is None or df.empty or not constraints:
+      return np.ones(0 if df is None else len(df), dtype=bool)
+    feasible = np.ones(len(df), dtype=bool)
+    for var in constraints:
+      if var not in df.columns:
+        continue
+      vals = df[var].astype(float).to_numpy()
+      feasible &= vals > 0.0
+    return feasible
 
+  def _constraintViolation(self, df):
+    if df is None or df.empty or not self.constraints:
+      return np.zeros(0 if df is None else len(df), dtype=float)
+    values = []
+    for var in self.constraints:
+      if var not in df.columns:
+        continue
+      vals = df[var].astype(float).to_numpy()
+      values.append(np.maximum(0.0, -vals))
+    if not values:
+      return np.zeros(len(df), dtype=float)
+    stacked = np.vstack(values)
+    if self.violationMetric == 'max':
+      return np.max(stacked, axis=0)
+    if self.violationMetric == 'l2':
+      return np.sqrt(np.sum(stacked * stacked, axis=0))
+    return np.sum(stacked, axis=0)
 
+  def _runEnhanced(self):
+    """
+      Enhanced behavior: constraint encoding, fading trails, and generation selection/capping.
+      @ In, None
+      @ Out, None
+    """
+    data = self.source.asDataset().to_dataframe().copy()
+    if data.empty:
+      self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" received an empty dataset; no plot generated.')
+      return
+    data[self.index] = data[self.index].astype(float)
 
+    generations = sorted(data[self.index].unique())
+    if not generations:
+      self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" found no generations in "{self.index}".')
+      return
+
+    numeric = data[self.vars].astype(float)
+    yMin = numeric.min().to_numpy()
+    yMax = numeric.max().to_numpy()
+
+    try:
+      gensToRender, _ = plotGenerationUtils.resolveGenerations(generations, self.explicitGenerations,
+                                                                 defaultCap=10, maxFrames=self.maxFrames)
+    except ValueError as err:
+      self.raiseAnError(IOError, f'OptParallelCoordinatePlot "{self.name}": {err}')
+    indexLookup = {gen: idx for idx, gen in enumerate(generations)}
+
+    trailLen = self.trailGenerations if self.trailGenerations is not None else min(5, len(generations))
+    trailLen = max(1, trailLen)
+
+    filesID = []
+
+    for genID in gensToRender:
+      genPosition = indexLookup[genID]
+      trailStart = max(0, genPosition - trailLen + 1)
+      trailGens = generations[trailStart:genPosition + 1]
+      if len(trailGens) == 1:
+        alphaValues = np.array([1.0])
+      else:
+        alphaValues = np.linspace(0.3, 1.0, len(trailGens))
+      lineBlocks = []
+      alphaBlocks = []
+      colorBlocks = []
+      widthBlocks = []
+      for alpha, trailGen in zip(alphaValues, trailGens):
+        population = data[data[self.index] == trailGen]
+        if population.empty:
+          continue
+        if self.constraints:
+          feasibleMask = self._isFeasible(population, self.constraints)
+          if not self.showInfeasible:
+            population = population[feasibleMask]
+            feasibleMask = np.ones(len(population), dtype=bool)
+          violation = self._constraintViolation(population) if not population.empty else np.zeros(0, dtype=float)
+          denom = float(self._globalViolationMax) if self._globalViolationMax is not None else float(np.nanmax(violation) if violation.size else 0.0)
+          denom = denom if np.isfinite(denom) and denom > 0.0 else 1.0
+          vnorm = np.clip(violation / denom, 0.0, 1.0)
+          if self.colorMode == 'violation':
+            cmap = cm.get_cmap(self.infeasibleCmap)
+            colors = []
+            for isFeas, v in zip(feasibleMask, vnorm):
+              if isFeas:
+                colors.append(self.feasibleColor)
+              else:
+                colors.append(cmap(float(v)))
+            colors = np.asarray(colors, dtype=object)
+          elif self.colorMode == 'none':
+            colors = np.asarray(['tab:blue'] * len(population), dtype=object)
+          else:
+            colors = np.where(feasibleMask, self.feasibleColor, self.infeasibleColor).astype(object)
+          if self.thicknessMode == 'violation':
+            lwMin, lwMax = self.linewidthBounds
+            widths = np.where(feasibleMask, lwMin, (lwMin + (lwMax - lwMin) * vnorm)).astype(float)
+          else:
+            widths = np.where(feasibleMask, 0.9, 1.6).astype(float)
+        else:
+          colors = np.asarray(['tab:blue'] * len(population), dtype=object)
+          widths = np.ones(len(population), dtype=float)
+        values = population[self.vars].astype(float).to_numpy()
+        lineBlocks.append(values)
+        alphaBlocks.extend([alpha] * len(values))
+        colorBlocks.extend(list(colors))
+        widthBlocks.extend(list(widths))
+      if not lineBlocks:
+        continue
+      stacked = np.vstack(lineBlocks)
+      fileID = f'{self.name}' + str(int(genID)) + '.png'
+      legendEntries = None
+      if self.constraints:
+        legendEntries = [
+          {'label': 'Feasible (all constraints > 0)', 'color': self.feasibleColor, 'linewidth': 2.0},
+          {'label': 'Infeasible (violation encoded)', 'color': self.infeasibleColor if self.colorMode != 'violation' else cm.get_cmap(self.infeasibleCmap)(0.85), 'linewidth': 2.0},
+        ]
+      plotUtils.generateConstraintParallelPlot(stacked, genID, yMin, yMax, self.vars, fileID,
+                                     lineAlphas=alphaBlocks,
+                                     lineColors=colorBlocks,
+                                     lineWidths=widthBlocks,
+                                     legendEntries=legendEntries)
+      filesID.append(fileID)
+
+    if not filesID:
+      self.raiseAWarning(f'OptParallelCoordinatePlot "{self.name}" did not produce any frames.')
+      return
+
+    # create filename
+    giffilename = self._createFilename(defaultName=f'{self.name}.gif')
+
+    frames = []
+    for filename in filesID:
+      with Image.open(filename) as image:
+        frames.append(image.copy())
+    if frames:
+      frames[0].save(giffilename, save_all=True, append_images=frames[1:], duration=500, loop=0)

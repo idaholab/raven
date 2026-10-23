@@ -4,7 +4,9 @@
     <WorkingDir>ExternalNodes</WorkingDir>
     <Sequence>sample,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
+
   <TestInfo>
     <name>framework/VariableGroups/ExternalNodes</name>
     <author>talbpaul</author>
@@ -13,6 +15,9 @@
     <description>
       tests variable groups used in external XML
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <ExternalXML node="VariableGroups" xmlToLoad="ExternalNodes/vargroups.xml"/>

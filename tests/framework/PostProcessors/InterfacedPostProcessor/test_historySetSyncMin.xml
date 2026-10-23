@@ -9,7 +9,8 @@
       Tests of the HistorySetSync interfaced post-processor and in particular the MIN syncMethod
     </description>
     <revisions>
-      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobjects</revision>
+      <revision author="talbpaul" date="2019-01-09">moving from ROM-file to ROM-dataobjects</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -17,6 +18,7 @@
     <WorkingDir>hs_sync_min</WorkingDir>
     <Sequence>make,sync,train,stats,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>
@@ -31,8 +33,8 @@
       <Output class="DataObjects" type="HistorySet">solns</Output>
     </MultiRun>
     <IOStep name="stats">
-      <Input  class="Models"       type="ROM"        >rom</Input>
-      <Output  class="DataObjects" type="DataSet"    >rom_stats</Output>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
     </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">solns</Input>

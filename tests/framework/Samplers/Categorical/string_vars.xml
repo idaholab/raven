@@ -14,13 +14,15 @@
       taken).
     </description>
     <revisions>
-        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>StringVars</WorkingDir>
     <Sequence>sample,print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>

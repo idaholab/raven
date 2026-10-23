@@ -17,15 +17,19 @@
       This test uses eggHolder's function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>optimize, print</Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
+    <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">eggHolder</Model>
       <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
@@ -42,7 +46,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='eggHolder_dist'>
+    <Uniform name="eggHolder_dist">
       <lowerBound>-512</lowerBound>
       <upperBound>512</upperBound>
     </Uniform>
@@ -108,4 +112,5 @@
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
+
 </Simulation>

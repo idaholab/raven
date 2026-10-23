@@ -17,6 +17,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
       <revision author="alfoa" date="2024-05-14">Moved test to dedicated subfolder for test reorganization</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
 
@@ -24,6 +25,7 @@
     <WorkingDir>RedundantInputs</WorkingDir>
     <Sequence>sim_py_SC</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Files>

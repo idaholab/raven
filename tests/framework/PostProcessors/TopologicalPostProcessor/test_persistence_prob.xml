@@ -11,7 +11,7 @@
        probability. That is, if the total probability weight of a partition is
        too small, then that partition will be merged into a neighboring
        partition given the normal rules of persistence simplification. Note,
-       that all of the "persistence" tests will use the Schwefel function for
+       that all of the &quot;persistence&quot; tests will use the Schwefel function for
        testing.
     </description>
     <revisions>
@@ -22,21 +22,23 @@
       <revision author="talbpaul" date="2016-02-08">Converted failing tests.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>
       sampleData,
       decomposeProbability
     </Sequence>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Models>
     <ExternalModel ModuleToLoad="../Schwefel" name="testFunction" subType="">
       <variables>X,Y,Z</variables>
     </ExternalModel>
-    <!-- Persistence related to relative probability of each cluster -->
     <PostProcessor name="AMSC_Probability" subType="TopologicalDecomposition">
       <graph>Beta Skeleton</graph>
       <gradient>steepest</gradient>
@@ -45,9 +47,6 @@
       <normalization>None</normalization>
       <parameters>X,Y</parameters>
       <response>Z</response>
-      <!--
-        <simplification>0.1</simplification>
-      -->
       <simplification>9e-9</simplification>
       <weighted>true</weighted>
       <persistence>probability</persistence>
@@ -75,14 +74,12 @@
   </Samplers>
 
   <Steps>
-    <!-- Sample the test function as an External Model -->
     <MultiRun name="sampleData" pauseAtEnd="False" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="Grid">gridSampler</Sampler>
       <Output class="DataObjects" type="PointSet">testData</Output>
     </MultiRun>
-    <!-- Perform the topological decomposition -->
     <PostProcess name="decomposeProbability">
       <Input class="DataObjects" type="PointSet">testData</Input>
       <Model class="Models" type="PostProcessor">AMSC_Probability</Model>
@@ -92,7 +89,6 @@
   </Steps>
 
   <OutStreams>
-    <!-- A csv file containing the output of the example -->
     <Print name="segProb">
       <type>csv</type>
       <source>dataProb</source>
@@ -100,7 +96,6 @@
   </OutStreams>
 
   <DataObjects>
-    <!-- The input TimePointSet object -->
     <PointSet name="dummyIN">
       <Input>X,Y</Input>
       <Output>OutputPlaceHolder</Output>
@@ -109,7 +104,6 @@
       <Input>X,Y</Input>
       <Output>Z</Output>
     </PointSet>
-    <!-- The output TimePointSet objects -->
     <PointSet name="dataProb">
       <Input>X,Y</Input>
       <Output>Z</Output>
