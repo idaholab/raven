@@ -461,6 +461,8 @@ jobs:
     outputs:
       run: ${{ steps.gate.outputs.run }}
       version: ${{ steps.version.outputs.raven_version }}
+      index-name: ${{ steps.version.outputs.index_name }}
+      index-url: ${{ steps.version.outputs.index_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -495,31 +497,56 @@ jobs:
 
       # The version in setup.py is not committed for a release (e.g. setup.py at RAVENv3.3rc1
       # still reads 3.2; only the packaged setup.py has 3.3rc1), so the version is taken from
-      # the release tag instead: the pushed RAVENv* tag, or else the newest RAVENv* tag.
+      # the package indexes instead: the newest raven-framework release on either PyPI or
+      # TestPyPI (PyPI wins a tie). For a pushed RAVENv* tag, the tag's version is tested,
+      # from PyPI if it has been published there, or else from TestPyPI.
       - name: Extract RAVEN Version
         id: version
         if: steps.gate.outputs.run == 'true'
+        env:
+          TAG_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: |
-          if [ "${{ github.ref_type }}" = tag ]; then
-            tag="${{ github.ref_name }}"
-          else
-            python -m pip install packaging
-            tag=$(git tag -l 'RAVENv*' | python -c "
-          import sys
+          python -m pip install packaging
+          python - <<'EOF'
+          import json
+          import os
+          import urllib.request
           from packaging.version import InvalidVersion, Version
-          def key(tag):
-            try:
-              return Version(tag[len('RAVENv'):])
-            except InvalidVersion:
-              return Version('0')
-          print(max(sys.stdin.read().split(), key=key))")
-          fi
-          VERSION="${tag#RAVENv}"
-          echo "Detected RAVEN_VERSION=${VERSION} from tag ${tag}"
-          echo "raven_version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+          indexes = {'PyPI': 'https://pypi.org', 'TestPyPI': 'https://test.pypi.org'}
+
+          def releases(host):
+            """ Versions on the index with at least one non-yanked file """
+            with urllib.request.urlopen(f'{host}/pypi/raven-framework/json') as response:
+              data = json.load(response)
+            versions = set()
+            for version, files in data['releases'].items():
+              if any(not f.get('yanked', False) for f in files):
+                try:
+                  versions.add(Version(version))
+                except InvalidVersion:
+                  pass
+            return versions
+
+          found = {name: releases(host) for name, host in indexes.items()}
+          for name, versions in found.items():
+            print(f'Latest on {name}: {max(versions) if versions else None}')
+          tagVersion = os.environ['TAG_VERSION'].removeprefix('RAVENv')
+          if tagVersion:
+            version = Version(tagVersion)
+          else:
+            version = max(found['PyPI'] | found['TestPyPI'])
+          # PyPI first, so it is chosen when both indexes have the version
+          index = next((name for name in indexes if version in found[name]), 'TestPyPI')
+          print(f'Detected RAVEN_VERSION={version} on {index}')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+            out.write(f'raven_version={version}\n')
+            out.write(f'index_name={index}\n')
+            out.write(f'index_url={indexes[index]}/simple/\n')
+          EOF
 
   Test-RAVEN-Release:
-    # Test the raven-framework release candidate installed from TestPyPI (no plugins)
+    # Test the latest raven-framework release installed from PyPI or TestPyPI (no plugins)
     name: Test-RAVEN-Release (${{ matrix.os }}, Python ${{ matrix.python-version }}, ${{ matrix.dist }})
     needs: Release-Info
     if: needs.Release-Info.outputs.run == 'true'
@@ -540,6 +567,8 @@ jobs:
             dist: wheel
     env:
       RAVEN_VERSION: ${{ needs.Release-Info.outputs.version }}
+      RAVEN_INDEX_NAME: ${{ needs.Release-Info.outputs.index-name }}
+      RAVEN_INDEX_URL: ${{ needs.Release-Info.outputs.index-url }}
     defaults:
       run:
         shell: bash
@@ -548,7 +577,7 @@ jobs:
         run: |
           echo " The job was automatically triggered by a ${{ github.event_name }} event."
           echo " This job is now running on a ${{ runner.os }} server"
-          echo " Testing raven-framework==${RAVEN_VERSION} (${{ matrix.dist }}) from TestPyPI with Python ${{ matrix.python-version }}"
+          echo " Testing raven-framework==${RAVEN_VERSION} (${{ matrix.dist }}) from ${RAVEN_INDEX_NAME} with Python ${{ matrix.python-version }}"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -558,7 +587,7 @@ jobs:
       # Only test platforms with a built package for this release; e.g. 3.3rc1 has no Linux wheel.
       # pip picks wheels by this interpreter's tags, so it decides what matches this OS/Python.
       # The sdist is built without build isolation: an isolated build would look for setuptools
-      # on TestPyPI, so the build tools (setuptools, wheel, swig) are installed from PyPI instead.
+      # on the release index, so the build tools (setuptools, wheel, swig) are installed from PyPI instead.
       - name: Check Release Package
         id: release
         run: |
@@ -569,12 +598,12 @@ jobs:
           else
             dist_opts="--only-binary=:all:"
           fi
-          if python -m pip download -i https://test.pypi.org/simple/ --no-deps ${dist_opts} \
+          if python -m pip download -i "${RAVEN_INDEX_URL}" --no-deps ${dist_opts} \
               -d "${RUNNER_TEMP}/raven_dist" raven-framework==${RAVEN_VERSION}; then
             ls "${RUNNER_TEMP}/raven_dist"
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::No raven-framework==${RAVEN_VERSION} ${{ matrix.dist }} for ${{ runner.os }} / Python ${{ matrix.python-version }}; skipping release test."
+            echo "::notice::No raven-framework==${RAVEN_VERSION} ${{ matrix.dist }} on ${RAVEN_INDEX_NAME} for ${{ runner.os }} / Python ${{ matrix.python-version }}; skipping release test."
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -585,8 +614,8 @@ jobs:
         with:
           ref: RAVENv${{ env.RAVEN_VERSION }}
 
-      # Only raven-framework comes from TestPyPI; its dependencies come from PyPI so that
-      # unrelated (and untrusted) packages on TestPyPI are never picked up.
+      # Only raven-framework comes from the release index; its dependencies come from PyPI so
+      # that unrelated (and untrusted) packages on TestPyPI are never picked up.
       - name: Install RAVEN Release
         if: steps.release.outputs.available == 'true'
         run: |
