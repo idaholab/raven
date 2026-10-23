@@ -948,7 +948,8 @@ class GeneticAlgorithm(RavenSampled):
       # initialize multi-objective containers
       # TODO it would be cleaner to call _parentSelectionInstance two different ways (single- vs.
       # multi-objective) rather than requiring these placeholders to be initialized here.
-      currentPopRanks = []; currentPopCD = []
+      currentPopRanks = []
+      currentPopCD = []
   ## Single-objective post-processing
       if not self._isMultiObjective:
           self._collectOptPoint(rlz, currentPopFitness, currentPopObjVals[0], currentPopG)
