@@ -178,7 +178,8 @@ with tempfile.TemporaryDirectory() as tmpDir:
 # Validation failures: mismatched optimizer type, mismatched sampled-variable set
 #
 ga = makeGA()
-matchingSettings = {'variables': sorted(ga.toBeSampled.keys()), 'objectiveVars': ga._objectiveVar, 'minMax': ga._minMax}
+matchingSettings = {'variables': sorted(ga.toBeSampled.keys()), 'objectiveVars': ga._objectiveVar, 'minMax': ga._minMax,
+                    'stateSchemaVersion': ga._checkpointStateSchemaVersion}
 mismatchedTypeCheckpoint = {
   'version': RavenSampledModule._CHECKPOINT_VERSION,
   'optimizerType': 'SomeOtherOptimizerClass',
@@ -226,6 +227,35 @@ except Exception as err:
   print('checking bool', 'validate: older-but-supported checkpoint version passes validation',
         '| unexpected exception:', err)
   results['fail'] += 1
+
+#
+# State-schema version: a mismatch here must be a hard error even when the outer file-format
+# ``version`` is itself "supported" -- this is the exact real-world failure mode the state-schema
+# check was added to catch (see RavenSampled._checkpointStateSchemaVersion's docstring): a
+# checkpoint whose file format is nominally fine but whose optimizer-subclass-specific state
+# fields (or SolutionExport row contents) have since changed incompatibly.
+#
+staleStateSchemaCheckpoint = {
+  'version': RavenSampledModule._CHECKPOINT_VERSION,
+  'optimizerType': ga.__class__.__name__,
+  'optimizerName': ga.name,
+  'settings': {**matchingSettings, 'stateSchemaVersion': '1.0'},
+}
+checkTrue('GeneticAlgorithm state-schema version has been bumped past the legacy default',
+          ga._checkpointStateSchemaVersion != '1.0')
+checkRaises('validate: mismatched state-schema version is rejected even with a supported file-format version',
+            lambda: ga._validateCheckpoint(staleStateSchemaCheckpoint), IOError)
+
+# A checkpoint written before this field existed at all (every real checkpoint on disk predating
+# this change) must be treated as the implicit legacy default, not silently skipped.
+legacyNoStateSchemaFieldCheckpoint = {
+  'version': RavenSampledModule._CHECKPOINT_VERSION,
+  'optimizerType': ga.__class__.__name__,
+  'optimizerName': ga.name,
+  'settings': {'variables': sorted(ga.toBeSampled.keys()), 'objectiveVars': ga._objectiveVar, 'minMax': ga._minMax},
+}
+checkRaises('validate: a checkpoint missing stateSchemaVersion entirely is rejected (legacy-default fallback)',
+            lambda: ga._validateCheckpoint(legacyNoStateSchemaFieldCheckpoint), IOError)
 
 #
 # end

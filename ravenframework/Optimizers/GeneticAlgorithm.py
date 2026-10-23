@@ -302,6 +302,15 @@ class GeneticAlgorithm(RavenSampled):
   ##TODO: Explore MOEA/D (Multi-Objective Evolutionary Algorithm based on Decomposition) or
   # PESA-II (Pareto Envelope-Based Selection Algorithm II)
   # These algorithms can offer better performance and robustness in certain scenarios
+
+  # Bumped from the inherited '1.0' baseline by PR #2583, which renamed this class's own
+  # checkpoint state fields (matingPop_g -> matingPopG, currentPop_ages -> currentPopAges,
+  # prevPop_inputs -> prevPopInputs) and started adding ConstraintEvaluation_*/rejectReason/
+  # modelRuns/AHDp/AHD/HDSM/conv_* columns to every per-realization SolutionExport row -- a
+  # checkpoint written before this change cannot be restored by the code after it (see
+  # RavenSampled._checkpointStateSchemaVersion's docstring for why this is a hard error).
+  _checkpointStateSchemaVersion = '2.0'
+
   def __init__(self):
     """
       Constructor.
