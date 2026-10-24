@@ -59,6 +59,16 @@ class SimulationMode(MessageUser):
     and other parameters.  remoteRunCommand lets a command to run RAVEN
     remotely be specified.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    spec = InputData.parameterInputFactory(cls.__name__)
+    return spec
+
   def __init__(self, *args):
     """
       Constructor
@@ -194,6 +204,68 @@ class Simulation(MessageUser):
 
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
+  # this dictionary contains the static factory that returns the instance of one of the allowed entities in the simulation
+  # the keys are the name of the module that contains the instance of that specific entity
+  # Note that this is a class variable, not an instance variable because getInputSpecification uses it.
+  entityModules  = {}
+  entityModules['Steps'        ] = Steps
+  entityModules['DataObjects'  ] = DataObjects
+  entityModules['Samplers'     ] = Samplers
+  entityModules['Optimizers'   ] = Optimizers
+  entityModules['Models'       ] = Models
+  entityModules['Distributions'] = Distributions
+  entityModules['Databases'    ] = Databases
+  entityModules['Functions'    ] = Functions
+  entityModules['Files'        ] = Files
+  entityModules['Metrics'      ] = Metrics
+  entityModules['OutStreams'   ] = OutStreams
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class "cls". Warning, this class has missing sub input specifications.
+      @ In, None
+      @ Out, spec, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.ParameterInput)
+    verbs = InputTypes.makeEnumType('verbosity', 'verbosityType', ['silent', 'quiet', 'all', 'debug'])
+    spec.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity')
+    toFake = ["TestInfo", "RunInfo"]
+    for moduleName, module in cls.entityModules.items():
+      if module.factory.returnInputParameter:
+        spec.addSub(module.returnInputParameter())
+      else:
+        toFake.append(moduleName)
+        print(f"WARNING: missing returnInputParameter for {module}")
+    # XXX these should be handled by InputData, instead of faked.
+    for moduleName in toFake:
+      fakeSub = InputData.parameterInputFactory(moduleName,
+                                                contentType=InputTypes.LegacyAnyType)
+      spec.addSub(fakeSub)
+    return spec
+
+  @classmethod
+  def getXSDSchema(cls):
+    """
+      Method to get a full xsd schema element for a RAVEN input.
+      This can be written to a file, such as:
+      ET.ElementTree(Simulation.getXSDSchema()).write("raven.xsd")
+      Warning, there are multiple unspecified (AnyType) elements in this because
+      parts of RAVEN do not yet implement InputData all the way down to Simulation.
+      @ In, None
+      @ Out, base, ElementTree.Element, the root element of the schema.
+    """
+    inputSpecification = cls.getInputSpecification()
+    # the things needed for a XSD schema
+    base = ET.Element("xsd:schema")
+    base.set("version","1.0")
+    base.set("xmlns:xsd","http://www.w3.org/2001/XMLSchema")
+    # Create the simulation element
+    simElement = ET.SubElement(base, "xsd:element")
+    simElement.set("name", "Simulation")
+    simElement.set("type", inputSpecification.__name__ + "_type")
+    inputSpecification.generateXSD(base,{})
+    return base
 
   # this dictionary contains the static factory that returns the instance of one of the allowed entities in the simulation
   # the keys are the name of the module that contains the instance of that specific entity
@@ -352,6 +424,9 @@ class Simulation(MessageUser):
     # Dictionary of mode handlers
     self.__modeHandlerDict = CustomModes.modeHandlers
 
+    # copy entity modules for instance-level customization without mutating the class map
+    self.entityModules = dict(self.entityModules)
+
     # Mapping between an entity type and the dictionary containing the instances for the simulation
     self.entities = {}
     self.entities['Steps'        ] = self.stepsDict
@@ -442,7 +517,7 @@ class Simulation(MessageUser):
       with open(fileName, 'w') as outFile:
         outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
     if not set(self.__stepSequenceList).issubset(set(self.stepsDict.keys())):
-      self.raiseAnError(IOError, f'The <Sequence> list: {self.__stepSequenceList} contains steps that have not been declared in <Steps>. <Steps> only contains {list(self.stepsDict.keys())}')
+      self.raiseAnError(IOError, f'The step list: {self.__stepSequenceList} contains steps that have not been declared: {list(self.stepsDict.keys())}')
 
   def setOptionalAttributes(self, xmlNode):
     """

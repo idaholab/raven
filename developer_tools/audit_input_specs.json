@@ -1,0 +1,79 @@
+{
+  "coverage": {
+    "DataObjects": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Databases": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Distributions": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Files": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Functions": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Metrics": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Models": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Optimizers": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "OutStreams": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "PostProcessors": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Samplers": {
+      "errors": [],
+      "missing_spec": []
+    },
+    "Steps": {
+      "errors": [],
+      "missing_spec": []
+    }
+  },
+  "schema_version": 1,
+  "xsd_diff": {
+    "DataObjects": {
+      "extra_in_xsd": []
+    },
+    "Databases": {
+      "extra_in_xsd": []
+    },
+    "Distributions": {
+      "extra_in_xsd": []
+    },
+    "Files": {
+      "extra_in_xsd": []
+    },
+    "Functions": {
+      "extra_in_xsd": []
+    },
+    "Optimizers": {
+      "extra_in_xsd": []
+    },
+    "Samplers": {
+      "extra_in_xsd": []
+    },
+    "Steps": {
+      "extra_in_xsd": []
+    }
+  }
+}
