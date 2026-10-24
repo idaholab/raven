@@ -148,14 +148,14 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object), MessageUser):
       @ In, data, DataObjects.DataSet, data collected through optimization so far (SolutionExport)
     """
 
-  def modifyAcceptance(self, oldPoint, oldVal, newPoint, newVal):
+  def modifyAcceptance(self, oldPoint, oldMinObjVal, newPoint, newMinObjVal):
     """
       Allows modification of acceptance criteria.
       Note this is only called if self.needsAccessToAcceptance is True.
       @ In, oldPoint, dict, old opt point
-      @ In, oldVal, float, old objective function value
+      @ In, oldMinObjVal, float, old minimization-space objective value
       @ In, newPoint, dict, new opt point
-      @ In, newVal, float, new objective function value
+      @ In, newMinObjVal, float, new minimization-space objective value
     """
 
   def needDenormalized(self):

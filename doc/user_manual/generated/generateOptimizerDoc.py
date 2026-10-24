@@ -211,12 +211,14 @@ Genetic Algorithm Example:
     ...
   </Optimizers>
 \end{lstlisting}
+"""
 
+minimalMultiObjectiveGeneticAlgorithm = r"""
 \hspace{24pt}
-Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
+Multiobjective Genetic Algorithm Example (NSGA-II):
 \begin{lstlisting}[style=XML]
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>15</limit>
         <initialSeed>42</initialSeed>
@@ -228,11 +230,11 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
         <populationSize>10</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
-          <crossover type="twoPointsCrossover">
-            <crossoverProb>1.0</crossoverProb>
+          <crossover type="sbxCrossover">
+            <crossoverProb>0.9</crossoverProb>
           </crossover>
-          <mutation type="randomMutator">
-            <mutationProb>1.0</mutationProb>
+          <mutation type="polynomialMutator">
+            <mutationProb>0.333</mutationProb>
           </mutation>
         </reproduction>
         <fitness type="feasibleFirst">
@@ -253,10 +255,10 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
       <variable name="x3">
         <distribution>unifDist</distribution>
       </variable>
-      <objective>obj1, obj2 </objective>
+      <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </GeneticAlgorithm>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 \end{lstlisting}
 """
@@ -303,7 +305,7 @@ Bayesian Optimizer Example:
 
 """
 # examples Factory
-exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm,'BayesianOptimizer':minimalBayesianOptimizer}
+exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm,'MultiObjectiveGeneticAlgorithm':minimalMultiObjectiveGeneticAlgorithm,'BayesianOptimizer':minimalBayesianOptimizer}
 
 #------------#
 # OPTIMIZERS #

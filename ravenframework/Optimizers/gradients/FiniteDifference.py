@@ -74,10 +74,10 @@ class FiniteDifference(GradientApproximator):
     directions = np.atleast_1d(randomUtils.random(self.N) < 0.5) * 2 - 1
     for o, optVar in enumerate(self._optVars):
       # pick a new grad eval point
-      optValue = opt[optVar]
+      optVarValue = opt[optVar]
       new = copy.deepcopy(opt)
       delta = dh * directions[o] # note this is NORMALIZED space delta
-      new[optVar] = optValue + delta
+      new[optVar] = optVarValue + delta
       # constraint handling
       if constraints is not None:
         # all constraints speak DENORM space, not NORM space

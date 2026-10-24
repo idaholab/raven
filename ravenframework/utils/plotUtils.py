@@ -18,6 +18,8 @@
 """
 
 # External Imports
+# the backend is chosen once by OutStreams/PlotInterfaces/__init__.py (honoring RAVEN_BACKEND/MPLBACKEND);
+# do not call matplotlib.use() here, it would override the user's choice for every RAVEN run
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
