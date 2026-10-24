@@ -34,10 +34,15 @@ clean:
 libraries.tex : $(LIB_FILES)
 	python ../../scripts/library_handler.py manual > libraries.tex
 
-# right now we have a catch-22, need to build RAVEN to build docs, but need docs to know how to build RAVEN
-#   so for now we do NOT automatically generate docs, but leave tools for developers to do so in place.
-#optimizer.tex : generated/generateOptimizerDoc.py
-#	./generate_docs.sh
+# The generated optimizer manual (generated/optimizer.tex) is a committed artifact regenerated from
+#   the optimizer input specifications by generate_docs.sh (which imports RAVEN). Because building the
+#   docs must not hard-require a built RAVEN environment (the historical catch-22), this rule attempts
+#   the regeneration but falls back gracefully to the committed artifact when RAVEN cannot be imported,
+#   emitting a warning instead of failing the doc build. The CI staleness gate (see
+#   .github/workflows/github-actions.yml) is what actually enforces that the committed artifact is in
+#   sync with the input specifications, since CI always has a built RAVEN environment available.
+generated/optimizer.tex : generated/generateOptimizerDoc.py ../../ravenframework/Optimizers/*.py
+	./generate_docs.sh || echo "WARNING: could not regenerate generated/optimizer.tex (RAVEN not importable?); using the committed version. Run doc/user_manual/generate_docs.sh in a built RAVEN environment and commit the result."
 
 conda_command.txt : $(LIB_FILES)
 	./create_command.sh

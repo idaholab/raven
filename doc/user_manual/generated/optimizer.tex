@@ -45,6 +45,14 @@
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
+    \item \xmlNode{deduplication}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, skip model evaluations for duplicate optimization points that were already
+      evaluated earlier in this optimizer run. Duplicate detection is based on exact equality of
+      sampled variable values and applies to all RavenSampled-based optimizers; points that differ
+      by even a small floating-point amount are not considered duplicates. Only a bounded number
+      of the most recently evaluated points are remembered for this purpose; older points may be
+      re-evaluated instead of being detected as duplicates. \default{False}
+
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
       The \xmlNode{variable} node recognizes the following parameters:
@@ -135,6 +143,28 @@
           In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
           iteration               of the Optimizer.
 
+        \item \xmlNode{writeCheckpoint}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+          Enables writing of optimizer state checkpoints after each completed iteration.
+          When \xmlString{True}, the optimizer writes a \texttt{.ravenrst} restart file that
+          can later be provided to \xmlNode{restartFrom} to resume an interrupted run. The
+          optional \xmlAttr{file} attribute sets the checkpoint file path; if omitted, the
+          file is named \texttt{<optimizerName>.ravenrst} in the working directory. The
+          optional \xmlAttr{interval} attribute controls how many completed iterations occur
+          between writes (default: 1).
+          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{file}: \xmlDesc{string, optional},
+                Path for the checkpoint output file. Defaults to \texttt{<optimizerName>.ravenrst}.
+              \item \xmlAttr{interval}: \xmlDesc{integer, optional},
+                Number of completed iterations between checkpoint writes. Default: 1.
+          \end{itemize}
+
+        \item \xmlNode{restartFrom}: \xmlDesc{string},
+          Path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer
+          should resume. The optimizer validates that the settings in the restart file are
+          compatible with the current XML configuration before restoring state. See
+          \xmlNode{writeCheckpoint} for producing restart files.
+
         \item \xmlNode{initialSeed}: \xmlDesc{integer},
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
@@ -143,30 +173,6 @@
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
           For multi-objective, this can be a list like min, max.
-
-        \item \xmlNode{writeCheckpoint}: \xmlDesc{boolean, optional},
-          when \xmlString{True}, enables automatic checkpoint writing after each completed optimizer
-          iteration. The optimizer state is written to an HDF5 \texttt{.ravenrst} file that can
-          later be used with \xmlNode{restartFrom} to resume an interrupted run.
-          \default{False}
-
-          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
-          \begin{itemize}
-            \item \xmlAttr{file}: \xmlDesc{string, optional},
-              path to the checkpoint output file. If omitted, the file is named
-              \texttt{<optimizerName>.ravenrst} in the working directory.
-            \item \xmlAttr{interval}: \xmlDesc{integer, optional},
-              number of completed iterations between checkpoint writes.
-              \default{1}
-          \end{itemize}
-
-        \item \xmlNode{restartFrom}: \xmlDesc{string, optional},
-          path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer should
-          resume. The optimizer validates that the settings recorded in the checkpoint file are
-          compatible with the current XML configuration (variable names, bounds, and
-          algorithm-specific parameters) before restoring state. The \xmlNode{SolutionExport}
-          DataObject is pre-populated with the historical solution path from the checkpoint so
-          that output files appear continuous.
       \end{itemize}
 
     \item \xmlNode{gradient}:
@@ -621,6 +627,14 @@ Gradient Descent Example:
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
+    \item \xmlNode{deduplication}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, skip model evaluations for duplicate optimization points that were already
+      evaluated earlier in this optimizer run. Duplicate detection is based on exact equality of
+      sampled variable values and applies to all RavenSampled-based optimizers; points that differ
+      by even a small floating-point amount are not considered duplicates. Only a bounded number
+      of the most recently evaluated points are remembered for this purpose; older points may be
+      re-evaluated instead of being detected as duplicates. \default{False}
+
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
       The \xmlNode{variable} node recognizes the following parameters:
@@ -710,6 +724,28 @@ Gradient Descent Example:
           of \xmlString{final}, only the final optimal solution for each trajectory will be written.
           In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
           iteration               of the Optimizer.
+
+        \item \xmlNode{writeCheckpoint}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+          Enables writing of optimizer state checkpoints after each completed iteration.
+          When \xmlString{True}, the optimizer writes a \texttt{.ravenrst} restart file that
+          can later be provided to \xmlNode{restartFrom} to resume an interrupted run. The
+          optional \xmlAttr{file} attribute sets the checkpoint file path; if omitted, the
+          file is named \texttt{<optimizerName>.ravenrst} in the working directory. The
+          optional \xmlAttr{interval} attribute controls how many completed iterations occur
+          between writes (default: 1).
+          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{file}: \xmlDesc{string, optional},
+                Path for the checkpoint output file. Defaults to \texttt{<optimizerName>.ravenrst}.
+              \item \xmlAttr{interval}: \xmlDesc{integer, optional},
+                Number of completed iterations between checkpoint writes. Default: 1.
+          \end{itemize}
+
+        \item \xmlNode{restartFrom}: \xmlDesc{string},
+          Path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer
+          should resume. The optimizer validates that the settings in the restart file are
+          compatible with the current XML configuration before restoring state. See
+          \xmlNode{writeCheckpoint} for producing restart files.
 
         \item \xmlNode{initialSeed}: \xmlDesc{integer},
           seed for random number generation. Note that by default RAVEN uses an internal seed,
@@ -1012,7 +1048,7 @@ Simulated Annealing Example:
   Crossover, on the other hand, mimics genetic recombination by exchanging genetic material between
   two parent solutions to create                             offspring with combined traits.
   Survivor selection determines which solutions will advance to the next generation based on
-  their fitness—how well they perform in solving the problem at hand. Solutions with higher fitness
+  their fitness-how well they perform in solving the problem at hand. Solutions with higher fitness
   scores are more likely to                             survive and reproduce, passing their genetic
   material to subsequent generations. This iterative process continues
   until a stopping criterion is met, typically when a satisfactory solution is found or after a
@@ -1066,6 +1102,14 @@ Simulated Annealing Example:
       Name of the objective variable(s) (or ``objective function'') that should be optimized
       (minimized or maximized). It can be a single string or a list of strings if it is a multi-
       objective problem.         Note that only genetic algorithm supports multi-objective.
+
+    \item \xmlNode{deduplication}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, skip model evaluations for duplicate optimization points that were already
+      evaluated earlier in this optimizer run. Duplicate detection is based on exact equality of
+      sampled variable values and applies to all RavenSampled-based optimizers; points that differ
+      by even a small floating-point amount are not considered duplicates. Only a bounded number
+      of the most recently evaluated points are remembered for this purpose; older points may be
+      re-evaluated instead of being detected as duplicates. \default{False}
 
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
@@ -1157,6 +1201,28 @@ Simulated Annealing Example:
           In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
           iteration               of the Optimizer.
 
+        \item \xmlNode{writeCheckpoint}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+          Enables writing of optimizer state checkpoints after each completed iteration.
+          When \xmlString{True}, the optimizer writes a \texttt{.ravenrst} restart file that
+          can later be provided to \xmlNode{restartFrom} to resume an interrupted run. The
+          optional \xmlAttr{file} attribute sets the checkpoint file path; if omitted, the
+          file is named \texttt{<optimizerName>.ravenrst} in the working directory. The
+          optional \xmlAttr{interval} attribute controls how many completed iterations occur
+          between writes (default: 1).
+          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{file}: \xmlDesc{string, optional},
+                Path for the checkpoint output file. Defaults to \texttt{<optimizerName>.ravenrst}.
+              \item \xmlAttr{interval}: \xmlDesc{integer, optional},
+                Number of completed iterations between checkpoint writes. Default: 1.
+          \end{itemize}
+
+        \item \xmlNode{restartFrom}: \xmlDesc{string},
+          Path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer
+          should resume. The optimizer validates that the settings in the restart file are
+          compatible with the current XML configuration before restoring state. See
+          \xmlNode{writeCheckpoint} for producing restart files.
+
         \item \xmlNode{initialSeed}: \xmlDesc{integer},
           seed for random number generation. Note that by default RAVEN uses an internal seed,
           so this seed must be changed to observe changed behavior. \default{RAVEN-determined}
@@ -1165,30 +1231,6 @@ Simulated Annealing Example:
           the type of optimization to perform. \xmlString{min} will search for the lowest
           \xmlNode{objective} value, while \xmlString{max} will search for the highest value.
           For multi-objective, this can be a list like min, max.
-
-        \item \xmlNode{writeCheckpoint}: \xmlDesc{boolean, optional},
-          when \xmlString{True}, enables automatic checkpoint writing after each completed optimizer
-          iteration. The optimizer state is written to an HDF5 \texttt{.ravenrst} file that can
-          later be used with \xmlNode{restartFrom} to resume an interrupted run.
-          \default{False}
-
-          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
-          \begin{itemize}
-            \item \xmlAttr{file}: \xmlDesc{string, optional},
-              path to the checkpoint output file. If omitted, the file is named
-              \texttt{<optimizerName>.ravenrst} in the working directory.
-            \item \xmlAttr{interval}: \xmlDesc{integer, optional},
-              number of completed iterations between checkpoint writes.
-              \default{1}
-          \end{itemize}
-
-        \item \xmlNode{restartFrom}: \xmlDesc{string, optional},
-          path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer should
-          resume. The optimizer validates that the settings recorded in the checkpoint file are
-          compatible with the current XML configuration (variable names, bounds, population size,
-          and multi-objective mode) before restoring state. The \xmlNode{SolutionExport}
-          DataObject is pre-populated with the historical solution path from the checkpoint so
-          that output files appear continuous.
       \end{itemize}
 
     \item \xmlNode{GAparams}:
@@ -1271,7 +1313,7 @@ Simulated Annealing Example:
               mutates the gene.                 \end{itemize}
               The \xmlNode{mutation} node recognizes the following parameters:
                 \begin{itemize}
-                  \item \xmlAttr{type}: \xmlDesc{[swapMutator, scrambleMutator, inversionMutator, randomMutator], required},
+                  \item \xmlAttr{type}: \xmlDesc{[swapMutator, scrambleMutator, bitFlipMutator, inversionMutator, randomMutator], required},
                     type of mutation operation to be used. See the list of options above.
               \end{itemize}
 
@@ -1344,6 +1386,10 @@ Simulated Annealing Example:
             \item \xmlNode{shift}: \xmlDesc{comma-separated floats},
               shift: in case of logistic fitness, this is the shift in the exponential function for
               the onjective(s). \default{list of zeros}
+
+            \item \xmlNode{normalize}: \xmlDesc{string},
+              normalize: input and output data will be normalized prior to calculating fitness for
+              each iteration of the optimizer. \default{zscore}
           \end{itemize}
       \end{itemize}
 
@@ -1700,6 +1746,14 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
       Name of the response variable (or ``objective function'') that should be optimized
       (minimized or maximized).
 
+    \item \xmlNode{deduplication}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, skip model evaluations for duplicate optimization points that were already
+      evaluated earlier in this optimizer run. Duplicate detection is based on exact equality of
+      sampled variable values and applies to all RavenSampled-based optimizers; points that differ
+      by even a small floating-point amount are not considered duplicates. Only a bounded number
+      of the most recently evaluated points are remembered for this purpose; older points may be
+      re-evaluated instead of being detected as duplicates. \default{False}
+
     \item \xmlNode{variable}:
       defines the input space variables to be sampled through various means.
       The \xmlNode{variable} node recognizes the following parameters:
@@ -1789,6 +1843,28 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
           of \xmlString{final}, only the final optimal solution for each trajectory will be written.
           In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each
           iteration               of the Optimizer.
+
+        \item \xmlNode{writeCheckpoint}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+          Enables writing of optimizer state checkpoints after each completed iteration.
+          When \xmlString{True}, the optimizer writes a \texttt{.ravenrst} restart file that
+          can later be provided to \xmlNode{restartFrom} to resume an interrupted run. The
+          optional \xmlAttr{file} attribute sets the checkpoint file path; if omitted, the
+          file is named \texttt{<optimizerName>.ravenrst} in the working directory. The
+          optional \xmlAttr{interval} attribute controls how many completed iterations occur
+          between writes (default: 1).
+          The \xmlNode{writeCheckpoint} node recognizes the following parameters:
+            \begin{itemize}
+              \item \xmlAttr{file}: \xmlDesc{string, optional},
+                Path for the checkpoint output file. Defaults to \texttt{<optimizerName>.ravenrst}.
+              \item \xmlAttr{interval}: \xmlDesc{integer, optional},
+                Number of completed iterations between checkpoint writes. Default: 1.
+          \end{itemize}
+
+        \item \xmlNode{restartFrom}: \xmlDesc{string},
+          Path to an existing \texttt{.ravenrst} checkpoint file from which the optimizer
+          should resume. The optimizer validates that the settings in the restart file are
+          compatible with the current XML configuration before restoring state. See
+          \xmlNode{writeCheckpoint} for producing restart files.
 
         \item \xmlNode{initialSeed}: \xmlDesc{integer},
           seed for random number generation. Note that by default RAVEN uses an internal seed,
