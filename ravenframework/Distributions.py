@@ -2194,7 +2194,8 @@ class UniformDiscrete(Distribution):
     if self.strategy == 'withReplacement':
       rvsValue = self.categoricalDist.rvs()
       self._lastRvsValue = rvsValue
-      self._lastRvsProbability = self.categoricalDist.pdf(rvsValue)
+      # with replacement, a draw's probability is just the pmf; getSampleProbability would return this cached value
+      self._lastRvsProbability = self.pdf(rvsValue)
       return rvsValue
     else:
       if self.pot.size == 0:

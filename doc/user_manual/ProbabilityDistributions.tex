@@ -924,9 +924,20 @@ reduced by the previously sampled values.
 After, the sampler has generated values for all variables, the distribution is
 resetted (i.e., the set of values that can be sampled is returned to $N$).
 In case the ``with replacement'' strategy is used, the distribution samples always from the complete set of specified $N$ values.
-The support can be defined either by an explicit \xmlNode{values} list, by bounds plus \xmlNode{nPoints},
-or by bounds plus \xmlNode{step}. If \xmlNode{nPoints} and \xmlNode{step} are both omitted,
-the bounds must be integer-valued and the support is all integers between them (inclusive).
+The support can be defined in one of four ways:
+\begin{itemize}
+  \item an explicit \xmlNode{values} list;
+  \item \xmlNode{lowerBound} and \xmlNode{upperBound} plus \xmlNode{nPoints}, giving \xmlNode{nPoints}
+        evenly spaced values from the lower to the upper bound (inclusive);
+  \item \xmlNode{lowerBound} and \xmlNode{upperBound} plus \xmlNode{step}, giving the values from the lower
+        to the upper bound (inclusive) spaced by \xmlNode{step};
+  \item \xmlNode{lowerBound} and \xmlNode{upperBound} alone, giving every integer from the lower to the
+        upper bound (inclusive).
+\end{itemize}
+The bounds are floating-point numbers and may take any value with \xmlNode{nPoints} or \xmlNode{step}
+(e.g., $0.5$ to $2.5$ with a step of $0.5$). Only in the last case, with neither \xmlNode{nPoints} nor
+\xmlNode{step}, must both bounds be whole numbers (e.g., \texttt{3} or \texttt{3.0}, not \texttt{3.5});
+otherwise RAVEN reports an error.
 
 \specBlock{a}{UniformDiscrete}
 %
@@ -939,8 +950,10 @@ the bounds must be integer-valued and the support is all integers between them (
 \vspace{-5mm}
 \subnodeIntro
 \begin{itemize}
-  \item \xmlNode{lowerBound}, \xmlDesc{float, conditionally required parameter}, lower bound; required unless \xmlNode{values} is provided.
-  \item \xmlNode{upperBound}, \xmlDesc{float, conditionally required parameter}, upper bound; required unless \xmlNode{values} is provided.
+  \item \xmlNode{lowerBound}, \xmlDesc{float, conditionally required parameter}, lower bound; required unless
+        \xmlNode{values} is provided. Must be a whole number when neither \xmlNode{nPoints} nor \xmlNode{step} is given.
+  \item \xmlNode{upperBound}, \xmlDesc{float, conditionally required parameter}, upper bound; required unless
+        \xmlNode{values} is provided. Must be a whole number when neither \xmlNode{nPoints} nor \xmlNode{step} is given.
   \item \xmlNode{nPoints},    \xmlDesc{integer, optional parameter}, number of points between lower and upper bound (mutually exclusive with \xmlNode{step}).
   \item \xmlNode{step},       \xmlDesc{float, optional parameter}, spacing between adjacent points from lower to upper bound; must evenly divide the range (mutually exclusive with \xmlNode{nPoints}).
   \item \xmlNode{values},     \xmlDesc{comma-separated float list, optional parameter}, explicit support values (mutually exclusive with \xmlNode{lowerBound}, \xmlNode{upperBound}, \xmlNode{nPoints}, and \xmlNode{step}).
@@ -962,6 +975,12 @@ Example:
     <UniformDiscrete name="UD_list_dist">
       <values>2.0, 2.5, 7.25</values>
       <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+    <UniformDiscrete name="UD_int_dist">
+      <!-- no nPoints or step: whole-number bounds, support is {1, 2, 3, 4, 5, 6} -->
+      <lowerBound>1</lowerBound>
+      <upperBound>6</upperBound>
+      <strategy>withoutReplacement</strategy>
     </UniformDiscrete>
   ...
 </Distributions>
