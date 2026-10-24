@@ -561,7 +561,8 @@ class GeneticAlgorithm(RavenSampled):
         descr=r""" b: The weight of the constraint penalty. Give one value (applied to every objective and
         constraint), one value per objective (applied to all of that objective's constraints), or one value per
         (objective, constraint) pair listed objective-major, i.e. $b_{1,1},\ldots,b_{1,n_c},b_{2,1},\ldots$, where
-        $n_c$ counts both \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. \default{10.0}""")
+        $n_c$ counts both \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that this default
+        was 1.0 in earlier RAVEN versions, so constrained inputs that omit \xmlNode{b} give different results. \default{10.0}""")
     fitness.addSub(penaltyCoeff)
     scale = InputData.parameterInputFactory('scale', strictMode=False,
         contentType=InputTypes.FloatListType,

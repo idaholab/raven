@@ -126,6 +126,10 @@
     type = 'PyTest'
     input = 'test_real_coded_operators_math_pytest.py'
   [../]
+  [./pytestGaParentSelectionSmallPopulation]
+    type = 'PyTest'
+    input = 'test_parent_selection_small_population_pytest.py'
+  [../]
   [./pytestGaSurvivorSelectors]
     type = 'PyTest'
     input = 'test_survivor_selectors_pytest.py'

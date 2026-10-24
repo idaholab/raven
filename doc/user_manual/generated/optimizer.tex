@@ -1400,7 +1400,9 @@ Simulated Annealing Example:
               and        constraint), one value per objective (applied to all of that objective's
               constraints), or one value per        (objective, constraint) pair listed objective-
               major, i.e. $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$ counts both
-              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. \default{10.0}
+              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that this default
+              was 1.0 in earlier RAVEN versions, so constrained inputs that omit \xmlNode{b} give
+              different results. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
               scale: in case of logistic fitness, this is the multiplier of the onjective(s).
@@ -2013,7 +2015,9 @@ Genetic Algorithm Example:
               and        constraint), one value per objective (applied to all of that objective's
               constraints), or one value per        (objective, constraint) pair listed objective-
               major, i.e. $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$ counts both
-              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. \default{10.0}
+              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that this default
+              was 1.0 in earlier RAVEN versions, so constrained inputs that omit \xmlNode{b} give
+              different results. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
               scale: in case of logistic fitness, this is the multiplier of the onjective(s).
@@ -2085,7 +2089,10 @@ Genetic Algorithm Example:
           between successive generations. The hypervolume is measured in RAVEN's internal
           minimization space against a common nadir-based reference point (offset by a positive
           margin so it is valid for zero or negative objectives); convergence is declared once
-          the relative change in hypervolume falls below the provided value.
+          the relative change in hypervolume falls below the provided value. The hypervolume is
+          computed exactly, at a cost that grows exponentially with the number of objectives; it is
+          fast for up to four objectives, but with five or more each generation can take seconds,
+          so another criterion is recommended there.
 
         \item \xmlNode{persistence}: \xmlDesc{integer},
           provides the number of consecutive times convergence should be reached before a trajectory

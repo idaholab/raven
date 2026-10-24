@@ -35,7 +35,8 @@ mh = getMessageHandler()
 #               We should make this method flexible to accept different set of params
 
 _defaultObjectiveScaling = 1.0
-_defaultPenaltyScaling = 10.0
+_defaultPenaltyScaling = 10.0          # default <b> for invLinear/feasibleFirst (devel used 1.0)
+_defaultLogisticPenalty = 1.0          # default constraint penalty for logistic (unchanged from devel)
 
 
 def _scalingFactors(objVar, constraintNum, a=None, b=None):
@@ -84,7 +85,8 @@ def invLinear(rlz, **kwargs):
   @ In, kwargs, dict, dictionary of parameters:
         objVar, list of strings or single string, name(s) of the objective variable(s)
         a, list of floats, linear coefficient(s) for the objective function (default = 1.0 for each objective)
-        b, list of floats, penalty coefficient(s): one value, one per objective, or one per (objective, constraint) pair (default = 10.0)
+        b, list of floats, penalty coefficient(s): one value, one per objective, or one per (objective, constraint) pair
+           (default = 10.0; this default was 1.0 before the NSGA-II refactor, so constrained inputs without <b> change results)
         constraintFunction, xr.DataArray, measuring the severity of the constraint violation.
         type, list of strings, indicating 'min' or 'max' for each objective
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
@@ -138,8 +140,9 @@ def feasibleFirst(rlz, **kwargs):
         objVar, list of strings, the names of objective variables
         'constraintFunction', xr.DataArray, containing all constraint evaluations for the population
         'constraintNum', int, number of constraints
-        'a', list of floats, scaling factors for the objectives
+        'a', list of floats, scaling factors for the objectives (default = 1.0 for each objective)
         'b', list of floats, penalty factors: one value, one per objective, or one per (objective, constraint) pair
+             (default = 10.0; this default was 1.0 before the NSGA-II refactor)
         'type', list of strings, indicating 'min' or 'max' for each objective
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
   """
@@ -194,14 +197,17 @@ def logistic(rlz, **kwargs):
         scale, list of floats, scaling coefficient(s) for the objective function (default = 1.0 for each objective)
         shift, list of floats, coefficient(s) for shifting the objective value (default = 0.0 for each objective)
         constraintFunction, xr.DataArray, measuring the severity of the constraint violation
-        penalty, list of floats, penalties for constraint violations (default = 1.0 for each objective)
+        penalty, list of floats or None, penalties for constraint violations (default = 1.0 for each objective; None uses the default)
         type, list of strings, indicating 'min' or 'max' for each objective
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
   """
   objVar = kwargs['objVar']
   scale = kwargs.get('scale', [_defaultObjectiveScaling] * len(objVar))  # Scaling factors for objectives
   shift = kwargs.get('shift', [0.0] * len(objVar))  # Shifting value for each objective
-  penalty = kwargs.get('penalty', [_defaultPenaltyScaling] * len(objVar))  # Penalty for constraint violations
+  # the GA passes penalty=None, so fall back to the default instead of only when the key is absent
+  penalty = kwargs.get('penalty')
+  if penalty is None:
+    penalty = [_defaultLogisticPenalty] * len(objVar)  # Penalty for constraint violations
   g = kwargs.get('constraintFunction', None)  # Constraint evaluations (if any)
   fitnessSet = xr.Dataset()
   for i, obj in enumerate(objVar):

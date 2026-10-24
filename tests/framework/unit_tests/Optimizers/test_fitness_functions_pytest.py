@@ -124,6 +124,15 @@ def test_penalty_bad_length_raises(fitness_inputs):
                       constraintFunction=constraints, constraintNum=2, type=['min', 'min'])
 
 
+def test_logistic_none_penalty_uses_default(fitness_inputs):
+  """The GA passes penalty=None; logistic must fall back to its default (1.0) instead of crashing."""
+  common = dict(objVar=fitness_inputs['obj_var'], scale=[2.0], shift=[1.0],
+                constraintFunction=fitness_inputs['constraints'], type=['min'])
+  withNone = fitness.logistic(fitness_inputs['rlz'], penalty=None, **common)
+  explicitOne = fitness.logistic(fitness_inputs['rlz'], penalty=[1.0], **common)
+  np.testing.assert_allclose(withNone['obj'].values, explicitOne['obj'].values)
+
+
 if __name__ == "__main__":
   from pytest_runner import run_module
   run_module(__file__)

@@ -1,4 +1,15 @@
 [Tests]
+  [./SmallPopulationTournament]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/testGASmallPopulationTournament.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'discrete/unconstrained/SmallPopulationTournament/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./MinwReplacement]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMinwRep.xml'
