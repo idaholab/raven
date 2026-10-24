@@ -253,13 +253,13 @@ def get_testers_and_differs(directory):
     if filename.endswith(".py") and not filename.startswith("__"):
       try:
         module = __import__(filename[:-3]) #[:-3] to remove .py
-        for name, val in module.__dict__.items():
+        for mod_name, val in module.__dict__.items():
           if inspect.isclass(val) and val is not Tester\
              and issubclass(val, Tester):
-            tester_dict[name] = val
+            tester_dict[mod_name] = val
           if inspect.isclass(val) and val is not Differ\
              and issubclass(val, Differ):
-            differ_dict[name] = val
+            differ_dict[mod_name] = val
       except Exception as ex:
         print("Failed loading",filename,"with exception:",ex)
         traceback.print_exc()
@@ -276,6 +276,19 @@ def sec_format(runtime):
   if isinstance(runtime, float):
     return "{:6.2f}sec".format(runtime)
   return "  None!  "
+
+#These globals are set up in the "__main__" block below, but are declared
+# here so static analysis does not flag process_result as possibly using
+# them before assignment.
+test_name_list = []
+results = {}
+function_postreq = {}
+name_to_id = {}
+run_pool = None
+Colors = NoColors
+skipped_list = []
+failed_list = []
+function_list = []
 
 def process_result(index, _input_data, output_data):
   """

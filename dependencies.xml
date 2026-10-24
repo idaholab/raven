@@ -87,6 +87,9 @@ limit our library choices.
     <libstdcxx-ng os='linux' skip_check='True'/>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]">2023.3.2</dask>
+    <!-- Pin pyarrow (pulled in by dask[complete]) to 25: pyarrow 26 requires numpy 2 at import
+         time but does not declare it, so pip keeps it alongside numpy 1.26. Remove when numpy is updated. -->
+    <pyarrow source="pip">25</pyarrow>
     <!-- Pin typing-extensions to resolve some import issue in ray -->
     <typing-extensions source="pip">4.14</typing-extensions>
     <ray source="pip" pip_extra="[default]">2.52</ray>
@@ -106,11 +109,6 @@ limit our library choices.
          newer releases break establish_conda_env / set-python-env resolution. -->
     <statsforecast source="pip">1.7.8</statsforecast>
     <utilsforecast source="pip">0.1.4</utilsforecast>
-    <!-- pyarrow is pulled in transitively by statsforecast (via fugue/triad). pyarrow>=18 ships
-         wheels built against the NumPy 2.x ABI and raises "pyarrow requires NumPy 2.0 or newer"
-         at import against our pinned numpy 1.26, which breaks the AutoARMA test. 17.0 is the last
-         line that supports numpy 1.26 (requires numpy>=1.16.6). -->
-    <pyarrow source="pip">17.0</pyarrow>
     <pywavelets source="pip">1.4</pywavelets>
     <python-sensors source="pip"/>
     <numdifftools source="pip">0.9</numdifftools>
