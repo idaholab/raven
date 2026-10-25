@@ -42,6 +42,12 @@
   output = 'plot/contour.png plot/surface.png plot/trisurface.png plot/wireframe.png plot/pseudocolor.png'
   [../]
 
+ [./lineHistoryLabel]
+  type = 'RavenFramework'
+  input = 'line_plot_history_label.xml'
+  output = 'historyLabelPlot/labeledPlot.png'
+ [../]
+
  [./test_subPlot]
   type = 'RavenFramework'
   input = 'test_subPlot.xml'

@@ -1,0 +1,113 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/OutStreams.lineHistoryLabel</name>
+    <author>alfoa</author>
+    <created>2026-10-19</created>
+    <classesTested>OutStreams.Plot</classesTested>
+    <description>
+      Test of line plots of HistorySets in a sub-plot figure:
+      1) per-history legend labels (historyLabel, historyLabelFormat) combined with a colorMap from an input variable;
+      2) a figure mixing a colorMap sub-plot with a sub-plot without colorMap (it used to crash);
+      3) sub-plots from different DataObjects when one of them is listed twice among the step inputs
+         (the data sources used to be shifted, so the second sub-plot was linked to the wrong DataObject).
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>historyLabelPlot</WorkingDir>
+    <Sequence>readIn,plot</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="dataAFile">../historyLabelData/dataA.csv</Input>
+    <Input name="dataBFile">../historyLabelData/dataB.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="readIn">
+      <Input class="Files" type="">dataAFile</Input>
+      <Input class="Files" type="">dataBFile</Input>
+      <Output class="DataObjects" type="HistorySet">dataA</Output>
+      <Output class="DataObjects" type="HistorySet">dataB</Output>
+    </IOStep>
+    <IOStep name="plot">
+      <!-- dataA is intentionally listed twice -->
+      <Input class="DataObjects" type="HistorySet">dataA</Input>
+      <Input class="DataObjects" type="HistorySet">dataA</Input>
+      <Input class="DataObjects" type="HistorySet">dataB</Input>
+      <Output class="OutStreams" type="Print">dataA_dump</Output>
+      <Output class="OutStreams" type="Print">dataB_dump</Output>
+      <Output class="OutStreams" type="Plot">labeledPlot</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="dataA">
+      <Input>case,temperature</Input>
+      <Output>a</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="dataB">
+      <Input>case</Input>
+      <Output>b</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="dataA_dump">
+      <type>csv</type>
+      <source>dataA</source>
+    </Print>
+    <Print name="dataB_dump">
+      <type>csv</type>
+      <source>dataB</source>
+    </Print>
+    <Plot name="labeledPlot" overwrite="true">
+      <filename>labeledPlot</filename>
+      <plotSettings>
+        <gridSpace>1 2</gridSpace>
+        <legend>
+          <loc>upper center</loc>
+          <ncol>5</ncol>
+        </legend>
+        <plot>
+          <type>line</type>
+          <x>dataA|Output|time</x>
+          <y>dataA|Output|a</y>
+          <colorMap>dataA|Input|temperature</colorMap>
+          <cmap>coolwarm</cmap>
+          <historyLabel>dataA|Input|case</historyLabel>
+          <historyLabelFormat>Case{}</historyLabelFormat>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>time</xlabel>
+          <ylabel>a</ylabel>
+        </plot>
+        <plot>
+          <type>line</type>
+          <x>dataB|Output|time</x>
+          <y>dataB|Output|b</y>
+          <historyLabel>dataB|Input|case</historyLabel>
+          <historyLabelFormat>B case {}</historyLabelFormat>
+          <gridLocation>
+            <x>0</x>
+            <y>1</y>
+          </gridLocation>
+          <xlabel>time</xlabel>
+          <ylabel>b</ylabel>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+</Simulation>
