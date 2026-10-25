@@ -1259,6 +1259,48 @@ checkAnswer("UniformDiscrete2 rvs4",UniformDiscrete2.rvs(),0.25)
 checkAnswer("UniformDiscrete2 rvs5",UniformDiscrete2.rvs(),0.875)
 checkAnswer("UniformDiscrete2 rvs6",UniformDiscrete2.rvs(),0.25)
 
+# Test UniformDiscrete without-replacement conditional draw probabilities
+UniformDiscreteProbElement = ET.Element("UniformDiscrete",{"name":"test"})
+UniformDiscreteProbElement.append(createElement("lowerBound", text="1"))
+UniformDiscreteProbElement.append(createElement("upperBound", text="4"))
+UniformDiscreteProbElement.append(createElement("strategy",   text="withoutReplacement"))
+UniformDiscreteProb = getDistribution(UniformDiscreteProbElement)
+
+v1 = UniformDiscreteProb.rvs()
+checkAnswer("UniformDiscreteProb p1", UniformDiscreteProb.getSampleProbability(v1), 1.0/4.0)
+v2 = UniformDiscreteProb.rvs()
+checkAnswer("UniformDiscreteProb p2", UniformDiscreteProb.getSampleProbability(v2), 1.0/3.0)
+v3 = UniformDiscreteProb.rvs()
+checkAnswer("UniformDiscreteProb p3", UniformDiscreteProb.getSampleProbability(v3), 1.0/2.0)
+v4 = UniformDiscreteProb.rvs()
+checkAnswer("UniformDiscreteProb p4", UniformDiscreteProb.getSampleProbability(v4), 1.0)
+
+# Test UniformDiscrete with float bounds and explicit step
+UniformDiscreteStepElement = ET.Element("UniformDiscrete",{"name":"test"})
+UniformDiscreteStepElement.append(createElement("lowerBound", text="2.0"))
+UniformDiscreteStepElement.append(createElement("upperBound", text="2.5"))
+UniformDiscreteStepElement.append(createElement("step",      text="0.1"))
+UniformDiscreteStepElement.append(createElement("strategy",  text="withReplacement"))
+
+UniformDiscreteStep = getDistribution(UniformDiscreteStepElement)
+
+checkAnswer("UniformDiscreteStep pdf(2.3)", UniformDiscreteStep.pdf(2.3), 1.0/6.0)
+checkAnswer("UniformDiscreteStep cdf(2.35)", UniformDiscreteStep.cdf(2.35), 4.0/6.0)
+checkAnswer("UniformDiscreteStep ppf(0.5)", UniformDiscreteStep.ppf(0.5), 2.2)
+checkAnswer("UniformDiscreteStep selectedRvs", UniformDiscreteStep.selectedRvs(np.array([2.0, 2.1, 2.2, 2.3, 2.4])), 2.5)
+
+# Test UniformDiscrete with explicit values list
+UniformDiscreteValuesElement = ET.Element("UniformDiscrete",{"name":"test"})
+UniformDiscreteValuesElement.append(createElement("values",   text="2.0, 2.5, 7.25"))
+UniformDiscreteValuesElement.append(createElement("strategy", text="withoutReplacement"))
+
+UniformDiscreteValues = getDistribution(UniformDiscreteValuesElement)
+
+checkAnswer("UniformDiscreteValues pdf(2.5)", UniformDiscreteValues.pdf(2.5), 1.0/3.0)
+checkAnswer("UniformDiscreteValues cdf(2.6)", UniformDiscreteValues.cdf(2.6), 2.0/3.0)
+checkAnswer("UniformDiscreteValues ppf(0.7)", UniformDiscreteValues.ppf(0.7), 7.25)
+checkAnswer("UniformDiscreteValues selectedRvs", UniformDiscreteValues.selectedRvs(np.array([2.5, 7.25])), 2.0)
+
 print(results)
 
 sys.exit(results["fail"])
