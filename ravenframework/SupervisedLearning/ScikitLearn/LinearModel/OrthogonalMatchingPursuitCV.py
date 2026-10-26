@@ -75,7 +75,7 @@ class OrthogonalMatchingPursuitCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
-                                                 dividing by the l2-norm.""", default=True))
+                                                 dividing by the l2-norm.""", default=False))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""Maximum numbers of iterations to perform, therefore maximum
                                                  features to include. Ten-percent of n\_features but at least 5 if available.""", default=None))

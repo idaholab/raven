@@ -80,7 +80,7 @@ class LarsCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
-                                                 dividing by the l2-norm.""", default=True))
+                                                 dividing by the l2-norm.""", default=False))
     specs.addSub(InputData.parameterInputFactory("max_n_alphas", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of points on the path used to compute the
                                                  residuals in the cross-validation.""", default=1000))

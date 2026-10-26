@@ -116,6 +116,11 @@ class ScikitLearnBase(SupervisedLearning):
       @ Out, None
     """
     import sklearn.multioutput
+    # scikit-learn removed the "normalize" option; False was the default, so it is simply dropped
+    if 'normalize' in settings:
+      if settings.pop('normalize'):
+        self.raiseAnError(IOError, f'The <normalize> option of ROM "{self.name}" is no longer supported by scikit-learn.',
+                          'Remove it or set it to False, and scale the data beforehand if normalization is needed.')
     if self.settings is None:
       self.settings = settings
     if inspect.isclass(self.model):

@@ -44,7 +44,6 @@
       <Target>Z</Target>
       <alpha>1.0</alpha>
       <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
       <solver>auto</solver>
       <tol>0.001</tol>
     </ROM>

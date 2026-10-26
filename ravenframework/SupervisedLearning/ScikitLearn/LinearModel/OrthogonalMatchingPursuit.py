@@ -78,7 +78,7 @@ class OrthogonalMatchingPursuit(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
-                                                 dividing by the l2-norm.""", default=True))
+                                                 dividing by the l2-norm.""", default=False))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram and Xy matrix to speed up calculations.
                                                  Improves performance when n\_targets or n\_samples is very large. """, default='auto'))
