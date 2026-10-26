@@ -95,9 +95,8 @@ class ElasticNetCV(ScikitLearnBase):
                                                  rather than looping over features sequentially by default. This (setting to `random'')
                                                  often leads to significantly faster convergence especially when tol is higher than $1e-4$""", default='cyclic'))
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
-                                                 descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
-                                                 the regressors X will be normalized before regression by subtracting the mean and
-                                                 dividing by the l2-norm.""", default=False))
+                                                 descr=r"""Deprecated: scikit-learn no longer supports this option, so it must be False (the default) or omitted.
+                                                 Setting it to True raises an error; scale the data beforehand if normalization is needed.""", default=False))
     specs.addSub(InputData.parameterInputFactory("n_alphas", contentType=InputTypes.IntegerType,
                                                  descr=r"""Number of alphas along the regularization path,
                                                  used for each l1_ratio.""", default=100))
