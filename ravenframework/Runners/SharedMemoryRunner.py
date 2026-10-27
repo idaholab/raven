@@ -25,6 +25,7 @@ import time
 import ctypes
 import inspect
 import threading
+import traceback
 
 #External Modules End--------------------------------------------------------------------------------
 
@@ -82,9 +83,13 @@ class SharedMemoryRunner(InternalRunner):
     """
     if not self.hasBeenAdded:
       self._collectRunnerResponse()
-    ## Is this necessary and sufficient for all failed runs?
-    if len(self.subque) == 0 and self.runReturn is None:
-      self.runReturn = None
+    if self.runSucceeded is False:
+      self.returnCode = -1
+    elif self.runReturn is None:
+      ## Either the wrapper never recorded an outcome (e.g. the thread was
+      ## killed before completing), or the wrapped function returned None as
+      ## its own failure signal without raising (e.g. Models.Code.evaluateSample
+      ## on a non-zero process return code). Treat as failed either way.
       self.returnCode = -1
 
     return self.returnCode
@@ -111,8 +116,30 @@ class SharedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
+    def _runFunction(q, *arg):
+      """
+        Thread target: runs the function, capturing exceptions and recording
+        the outcome explicitly (so that a legitimate None return value is not
+        mistaken for a failure, and the traceback is preserved).
+        @ In, q, collections.deque, queue collecting the result
+        @ In, arg, tuple, arguments for the function
+        @ Out, None
+      """
+      try:
+        result = self.functionToRun(*arg)
+      except Exception:
+        self.exceptionTrace = sys.exc_info()
+        self.failureInfo = traceback.format_exc()
+        self.runSucceeded = False
+        self.returnCode = -1
+        self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier
+                           +" failed with error:\n"+self.failureInfo, 'ExceptedError')
+        return
+      q.append(result)
+      self.runSucceeded = True
+
     try:
-      self.thread = InterruptibleThread(target = lambda q, *arg : q.append(self.functionToRun(*arg)),
+      self.thread = InterruptibleThread(target = _runFunction,
                                      name = self.identifier,
                                      args=(self.subque,) + tuple(self.args))
 
@@ -122,6 +149,8 @@ class SharedMemoryRunner(InternalRunner):
       self.started = True
     except Exception as ae:
       self.exceptionTrace = sys.exc_info()
+      self.failureInfo = traceback.format_exc()
+      self.runSucceeded = False
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 
@@ -133,9 +162,25 @@ class SharedMemoryRunner(InternalRunner):
     """
     if self.thread is not None:
       self.raiseADebug('Terminating job thread "{}" and RAVEN identifier "{}"'.format(self.thread.ident, self.identifier))
-      while self.thread is not None and self.thread.is_alive():
-        time.sleep(0.1)
+      ## NOTE: raising an asynchronous exception in a thread is inherently
+      ## unreliable: it is silently ignored while the thread is blocked inside
+      ## C extension code or system calls (exactly where external models spend
+      ## most of their time). The previous unbounded loop could therefore spin
+      ## forever. Bound the attempts and, if the thread will not die, warn and
+      ## move on: the thread is a daemon, so it cannot keep the process alive.
+      killTimeout = 10.0  # seconds
+      waited = 0.0
+      while self.thread is not None and self.thread.is_alive() and waited < killTimeout:
         self.thread.kill()
+        time.sleep(0.1)
+        waited += 0.1
+      if self.thread is not None and self.thread.is_alive():
+        self.raiseAWarning('Job thread "{}" (RAVEN identifier "{}") did not terminate '
+                           'within {} s; it is likely blocked in native code. '
+                           'Abandoning it as a daemon thread.'.format(
+                           self.thread.ident, self.identifier, killTimeout))
+      self.runSucceeded = False
+      self.returnCode = -1
     self.trackTime('runner_killed')
 
 ## The following code is extracted from stack overflow with some minor cosmetic
