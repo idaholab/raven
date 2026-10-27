@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This script builds 3.11 and 3.10 wheels and puts them in the dist directory
-# It will create python311_pip and python310_pip conda environments
+# This script builds 3.12, 3.11 and 3.10 wheels and puts them in the dist directory
+# It will create python312_pip, python311_pip and python310_pip conda environments
 # and use them for building pip packages.
 # It requires that .ravenrc has a working CONDA_DEFS statement.
 # To run from the raven directory:
@@ -24,6 +24,9 @@ conda create -y --name python310_pip python=3.10 swig
 conda env remove -y --name python311_pip
 conda create -y --name python311_pip python=3.11 swig
 
+conda env remove -y --name python312_pip
+conda create -y --name python312_pip python=3.12 swig
+
 cd $RAVEN_DIR
 
 rm -f setup.cfg
@@ -41,3 +44,8 @@ python -m ensurepip
 python -m pip install --upgrade build
 python -m build
 
+conda activate python312_pip
+command -v python
+python -m ensurepip
+python -m pip install --upgrade build
+python -m build
