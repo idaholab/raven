@@ -347,6 +347,11 @@ jobs:
 
       - name: Test RAVEN
         # if: always()
+        # Single-threaded OpenBLAS: with scipy >= 1.13 the tests run in parallel (-j4) on Windows are several times
+        # slower (the VARMA and Bayesian optimizer tests time out) unless OpenBLAS uses one thread.
+        # Similar to https://github.com/scipy/scipy/issues/20294
+        env:
+          OPENBLAS_NUM_THREADS: 1
         run: |
           bash ./run_tests --library-report
           bash ./run_tests -j4 --raven
@@ -420,6 +425,11 @@ jobs:
 
       - name: Test RAVEN
         # if: always()
+        # Single-threaded OpenBLAS: with scipy >= 1.13 the tests run in parallel (-j4) on Windows are several times
+        # slower (the VARMA and Bayesian optimizer tests time out) unless OpenBLAS uses one thread.
+        # Similar to https://github.com/scipy/scipy/issues/20294
+        env:
+          OPENBLAS_NUM_THREADS: 1
         run: |
           bash ./run_tests --library-report
           bash ./run_tests -j4 --raven
