@@ -9,7 +9,7 @@
 #include <boost/serialization/traits.hpp>
 #include <boost/type_traits/is_base_and_derived.hpp>
 #include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/bool.hpp>
+#include <boost/mpl/bool_fwd.hpp>
 
 namespace boost { namespace serialization {
 
@@ -17,17 +17,17 @@ namespace boost { namespace serialization {
 ///
 /// wrappers need to be treated differently at various places in the serialization library,
 /// e.g. saving of non-const wrappers has to be possible. Since partial specialization
-// is not supported by all compilers, we derive all wrappers from wrapper_traits. 
+// is not supported by all compilers, we derive all wrappers from wrapper_traits.
 
 template<
-    class T, 
-    int Level = object_serializable, 
+    class T,
+    int Level = object_serializable,
     int Tracking = track_never,
     unsigned int Version = 0,
     class ETII = extended_type_info_impl< T >
 >
-struct wrapper_traits : 
-    public traits<T,Level,Tracking,Version,ETII,mpl::true_> 
+struct wrapper_traits :
+    public traits<T,Level,Tracking,Version,ETII,mpl::true_>
 {};
 
 template<class T>
@@ -41,7 +41,7 @@ struct is_wrapper_impl :
 
 template<class T>
 struct is_wrapper {
-    typedef BOOST_DEDUCED_TYPENAME is_wrapper_impl<const T>::type type;
+    typedef typename is_wrapper_impl<const T>::type type;
 };
 
 } // serialization

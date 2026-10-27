@@ -7,13 +7,13 @@
 #if !defined(FUSION_IS_SEQUENCE_05052005_1002)
 #define FUSION_IS_SEQUENCE_05052005_1002
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/support/sequence_base.hpp>
 #include <boost/fusion/support/tag_of.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/or.hpp>
+#include <boost/fusion/support/detail/is_native_fusion_sequence.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/is_sequence.hpp>
 #include <boost/type_traits/is_convertible.hpp>
-#include <boost/type_traits/is_same.hpp>
 
 namespace boost { namespace fusion
 {
@@ -31,7 +31,7 @@ namespace boost { namespace fusion
         {
             template <typename Sequence>
             struct apply
-              : is_convertible<Sequence, detail::from_sequence_convertible_type>
+              : is_convertible<Sequence, fusion::detail::from_sequence_convertible_type>
             {};
         };
 
@@ -61,15 +61,12 @@ namespace boost { namespace fusion
         struct is_sequence
           : mpl::bool_<
                 (bool)extension::is_sequence_impl<
-                typename fusion::detail::tag_of<T>::type
+                    typename fusion::detail::tag_of<T>::type
                 >::template apply<T>::type::value
             >
         {};
 
-        template <typename Sequence, typename Enable = void>
-        struct is_native_fusion_sequence
-          : is_convertible<Sequence, detail::from_sequence_convertible_type>
-        {};
+        using detail::is_native_fusion_sequence;
     }
 }}
 

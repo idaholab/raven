@@ -27,11 +27,14 @@ namespace detail {
     template<class T> 
     inline int signbit_impl(T x, native_tag const&)
     {
-        return (std::signbit)(x);
+        return (std::signbit)(x) ? 1 : 0;
     }
 #endif
 
-    template<class T> 
+    // Generic versions first, note that these do not handle
+    // signed zero or NaN.
+
+    template<class T>
     inline int signbit_impl(T x, generic_tag<true> const&)
     {
         return x < 0;
@@ -43,12 +46,30 @@ namespace detail {
         return x < 0;
     }
 
-    template<class T> 
+#if defined(__GNUC__) && (LDBL_MANT_DIG == 106)
+    //
+    // Special handling for GCC's "double double" type, 
+    // in this case the sign is the same as the sign we
+    // get by casting to double, no overflow/underflow
+    // can occur since the exponents are the same magnitude
+    // for the two types:
+    //
+    inline int signbit_impl(long double x, generic_tag<true> const&)
+    {
+       return (boost::math::signbit)(static_cast<double>(x));
+    }
+    inline int signbit_impl(long double x, generic_tag<false> const&)
+    {
+       return (boost::math::signbit)(static_cast<double>(x));
+    }
+#endif
+
+    template<class T>
     inline int signbit_impl(T x, ieee_copy_all_bits_tag const&)
     {
-        typedef BOOST_DEDUCED_TYPENAME fp_traits<T>::type traits;
+        typedef typename fp_traits<T>::type traits;
 
-        BOOST_DEDUCED_TYPENAME traits::bits a;
+        typename traits::bits a;
         traits::get_bits(x,a);
         return a & traits::sign ? 1 : 0;
     }
@@ -56,15 +77,18 @@ namespace detail {
     template<class T> 
     inline int signbit_impl(T x, ieee_copy_leading_bits_tag const&)
     {
-        typedef BOOST_DEDUCED_TYPENAME fp_traits<T>::type traits;
+        typedef typename fp_traits<T>::type traits;
 
-        BOOST_DEDUCED_TYPENAME traits::bits a;
+        typename traits::bits a;
         traits::get_bits(x,a);
 
         return a & traits::sign ? 1 : 0;
     }
 
     // Changesign
+    
+    // Generic versions first, note that these do not handle
+    // signed zero or NaN.
 
     template<class T>
     inline T (changesign_impl)(T x, generic_tag<true> const&)
@@ -77,14 +101,34 @@ namespace detail {
     {
         return -x;
     }
-
+#if defined(__GNUC__) && (LDBL_MANT_DIG == 106)
+    //
+    // Special handling for GCC's "double double" type, 
+    // in this case we need to change the sign of both
+    // components of the "double double":
+    //
+    inline long double (changesign_impl)(long double x, generic_tag<true> const&)
+    {
+       double* pd = reinterpret_cast<double*>(&x);
+       pd[0] = boost::math::changesign(pd[0]);
+       pd[1] = boost::math::changesign(pd[1]);
+       return x;
+    }
+    inline long double (changesign_impl)(long double x, generic_tag<false> const&)
+    {
+       double* pd = reinterpret_cast<double*>(&x);
+       pd[0] = boost::math::changesign(pd[0]);
+       pd[1] = boost::math::changesign(pd[1]);
+       return x;
+    }
+#endif
 
     template<class T>
     inline T changesign_impl(T x, ieee_copy_all_bits_tag const&)
     {
-        typedef BOOST_DEDUCED_TYPENAME fp_traits<T>::sign_change_type traits;
+        typedef typename fp_traits<T>::sign_change_type traits;
 
-        BOOST_DEDUCED_TYPENAME traits::bits a;
+        typename traits::bits a;
         traits::get_bits(x,a);
         a ^= traits::sign;
         traits::set_bits(x,a);
@@ -94,9 +138,9 @@ namespace detail {
     template<class T>
     inline T (changesign_impl)(T x, ieee_copy_leading_bits_tag const&)
     {
-        typedef BOOST_DEDUCED_TYPENAME fp_traits<T>::sign_change_type traits;
+        typedef typename fp_traits<T>::sign_change_type traits;
 
-        BOOST_DEDUCED_TYPENAME traits::bits a;
+        typename traits::bits a;
         traits::get_bits(x,a);
         a ^= traits::sign;
         traits::set_bits(x,a);

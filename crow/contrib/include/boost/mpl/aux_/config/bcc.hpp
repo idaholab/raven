@@ -10,7 +10,7 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Id: bcc.hpp 49272 2008-10-11 06:50:46Z agurtovoy $
+// $Id$
 // $Date: 2004-09-02 10:41:37 -0500 (Thu, 02 Sep 2004) $
 // $Revision: 24874 $
 
@@ -18,8 +18,8 @@
 
 #if    !defined(BOOST_MPL_CFG_BCC590_WORKAROUNDS) \
     && !defined(BOOST_MPL_PREPROCESSING_MODE) \
-    && BOOST_WORKAROUND(__BORLANDC__, >= 0x590) \
-    && BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x610))
+    && BOOST_WORKAROUND(BOOST_BORLANDC, >= 0x590) \
+    && BOOST_WORKAROUND(BOOST_BORLANDC, BOOST_TESTED_AT(0x610))
 
 #   define BOOST_MPL_CFG_BCC590_WORKAROUNDS
 

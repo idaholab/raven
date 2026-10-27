@@ -10,9 +10,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Id: compiler.hpp 53189 2009-05-22 20:07:55Z hkaiser $
-// $Date: 2009-05-22 13:07:55 -0700 (Fri, 22 May 2009) $
-// $Revision: 53189 $
+// $Id$
+// $Date$
+// $Revision$
 
 #if !defined(BOOST_MPL_CFG_COMPILER_DIR)
 
@@ -32,10 +32,10 @@
 #   elif BOOST_WORKAROUND(BOOST_MPL_CFG_GCC, BOOST_TESTED_AT(0x0304))
 #       define BOOST_MPL_CFG_COMPILER_DIR gcc
 
-#   elif BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x610))
+#   elif BOOST_WORKAROUND(BOOST_BORLANDC, BOOST_TESTED_AT(0x610))
 #       if !defined(BOOST_MPL_CFG_NO_DEFAULT_PARAMETERS_IN_NESTED_TEMPLATES)
 #           define BOOST_MPL_CFG_COMPILER_DIR bcc551
-#       elif BOOST_WORKAROUND(__BORLANDC__, >= 0x590)
+#       elif BOOST_WORKAROUND(BOOST_BORLANDC, >= 0x590)
 #           define BOOST_MPL_CFG_COMPILER_DIR bcc
 #       else
 #           define BOOST_MPL_CFG_COMPILER_DIR bcc_pre590

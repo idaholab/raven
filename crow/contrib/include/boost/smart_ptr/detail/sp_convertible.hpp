@@ -16,6 +16,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 
 #include <boost/config.hpp>
+#include <cstddef>
 
 #if !defined( BOOST_SP_NO_SP_CONVERTIBLE ) && defined( BOOST_NO_SFINAE )
 # define BOOST_SP_NO_SP_CONVERTIBLE
@@ -25,7 +26,7 @@
 # define BOOST_SP_NO_SP_CONVERTIBLE
 #endif
 
-#if !defined( BOOST_SP_NO_SP_CONVERTIBLE ) && defined( __BORLANDC__ ) && ( __BORLANDC__ < 0x630 )
+#if !defined( BOOST_SP_NO_SP_CONVERTIBLE ) && defined( BOOST_BORLANDC ) && ( BOOST_BORLANDC < 0x630 )
 # define BOOST_SP_NO_SP_CONVERTIBLE
 #endif
 

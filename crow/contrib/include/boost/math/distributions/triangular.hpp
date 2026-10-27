@@ -8,6 +8,12 @@
 #define BOOST_STATS_TRIANGULAR_HPP
 
 // http://mathworld.wolfram.com/TriangularDistribution.html
+// Note that the 'constructors' defined by Wolfram are difference from those here,
+// for example
+// N[variance[triangulardistribution{1, +2}, 1.5], 50] computes 
+// 0.041666666666666666666666666666666666666666666666667
+// TriangularDistribution{1, +2}, 1.5 is the analog of triangular_distribution(1, 1.5, 2)
+
 // http://en.wikipedia.org/wiki/Triangular_distribution
 
 #include <boost/math/distributions/fwd.hpp>
@@ -177,6 +183,15 @@ namespace boost{ namespace math
   }; // class triangular_distribution
 
   typedef triangular_distribution<double> triangular;
+
+  #ifdef __cpp_deduction_guides
+  template <class RealType>
+  triangular_distribution(RealType)->triangular_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+  template <class RealType>
+  triangular_distribution(RealType,RealType)->triangular_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+  template <class RealType>
+  triangular_distribution(RealType,RealType,RealType)->triangular_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+  #endif
 
   template <class RealType, class Policy>
   inline const std::pair<RealType, RealType> range(const triangular_distribution<RealType, Policy>& /* dist */)
@@ -449,7 +464,7 @@ namespace boost{ namespace math
     }
     RealType lower = dist.lower();
     RealType upper = dist.upper();
-    if (mode < (upper - lower) / 2)
+    if (mode >= (upper + lower) / 2)
     {
       return lower + sqrt((upper - lower) * (mode - lower)) / constants::root_two<RealType>();
     }
@@ -475,7 +490,9 @@ namespace boost{ namespace math
       return result;
     }
     return root_two<RealType>() * (lower + upper - 2 * mode) * (2 * lower - upper - mode) * (lower - 2 * upper + mode) /
-      (5 * pow((lower * lower + upper + upper + mode * mode - lower * upper - lower * mode - upper * mode), RealType(3)/RealType(2)));
+      (5 * pow((lower * lower + upper * upper + mode * mode 
+        - lower * upper - lower * mode - upper * mode), RealType(3)/RealType(2)));
+    // #11768: Skewness formula for triangular distribution is incorrect -  corrected 29 Oct 2015 for release 1.61.
   } // RealType skewness(const triangular_distribution<RealType, Policy>& dist)
 
   template <class RealType, class Policy>
@@ -507,6 +524,13 @@ namespace boost{ namespace math
     }
     return static_cast<RealType>(-3)/5; // - 3/5 = -0.6
     // Assuming mathworld really means kurtosis excess?  Wikipedia now corrected to match this.
+  }
+
+  template <class RealType, class Policy>
+  inline RealType entropy(const triangular_distribution<RealType, Policy>& dist)
+  {
+    using std::log;
+    return constants::half<RealType>() + log((dist.upper() - dist.lower())/2);
   }
 
 } // namespace math
