@@ -11,6 +11,7 @@ concurrency:
 
 jobs:
   Test-RAVEN-Ubuntu-Latest:
+    if: false  # EXPERIMENT (do not merge): only the Windows result is needed
     runs-on: ubuntu-latest
     # runs-on: ubuntu-22.04
     steps:
@@ -86,6 +87,7 @@ jobs:
         continue-on-error: true
 
   Test-RAVEN-Ubuntu-22:
+    if: false  # EXPERIMENT (do not merge): only the Windows result is needed
     # runs-on: ubuntu-latest
     runs-on: ubuntu-22.04
     steps:
@@ -161,6 +163,7 @@ jobs:
         continue-on-error: true
 
   Test-RAVEN-macOS-latest:
+    if: false  # EXPERIMENT (do not merge): only the Windows result is needed
     runs-on: macos-latest
     # runs-on: macos-14
     steps:
@@ -235,6 +238,7 @@ jobs:
         continue-on-error: true
 
   Test-RAVEN-macOS-14:
+    if: false  # EXPERIMENT (do not merge): only the Windows result is needed
     # runs-on: macos-latest
     runs-on: macos-14
     steps:
@@ -346,11 +350,9 @@ jobs:
           bash ./build_raven
 
       - name: Test RAVEN
-        # EXPERIMENT (do not merge): limit BLAS/OpenMP threads to test whether thread oversubscription
-        # makes the VARMA and Bayesian optimizer tests slow or hang on Windows with scipy >= 1.13.
+        # EXPERIMENT (do not merge): set only OPENBLAS_NUM_THREADS to find which thread setting
+        # fixes the slow or hanging VARMA and Bayesian optimizer tests on Windows with scipy >= 1.13.
         env:
-          OMP_NUM_THREADS: 1
-          MKL_NUM_THREADS: 1
           OPENBLAS_NUM_THREADS: 1
         # if: always()
         run: |
@@ -425,11 +427,9 @@ jobs:
           bash ./build_raven
 
       - name: Test RAVEN
-        # EXPERIMENT (do not merge): limit BLAS/OpenMP threads to test whether thread oversubscription
-        # makes the VARMA and Bayesian optimizer tests slow or hang on Windows with scipy >= 1.13.
+        # EXPERIMENT (do not merge): set only OPENBLAS_NUM_THREADS to find which thread setting
+        # fixes the slow or hanging VARMA and Bayesian optimizer tests on Windows with scipy >= 1.13.
         env:
-          OMP_NUM_THREADS: 1
-          MKL_NUM_THREADS: 1
           OPENBLAS_NUM_THREADS: 1
         # if: always()
         run: |
@@ -466,6 +466,7 @@ jobs:
         continue-on-error: true
 
   Release-Info:
+    if: false  # EXPERIMENT (do not merge): only the Windows result is needed
     # Decide whether the release test is needed and which release version to test.
     # It runs for a pushed RAVENv* tag, a PR labeled 'release-candidate', or a change to
     # the release packaging (setup.py, MANIFEST.in, dependencies.xml, this workflow).
