@@ -1914,7 +1914,8 @@ class KerasBase(SupervisedLearning):
       # Adam legacy optimizer
       # NOTE: Keras 3 (tensorflow >= 2.16) removed the legacy optimizers (the module still exists but its
       #       classes raise when created), so "adam" falls back to the new Adam
-      if int(tf.keras.__version__.split('.')[0]) < 3:
+      # (tf_keras, the legacy Keras 2 package, has no __version__ so it is treated as Keras 2)
+      if int(getattr(tf.keras, '__version__', '2').split('.')[0]) < 3:
         self.availOptimizer['adam'] = tf.keras.optimizers.legacy.Adam
       else:
         self.availOptimizer['adam'] = tf.keras.optimizers.Adam
