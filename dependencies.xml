@@ -54,6 +54,8 @@ limit our library choices.
     <scikit-learn source="pip">1.1</scikit-learn>
     <!-- Pin numba to 0.61 to avoid coverage issue: https://github.com/numba/numba/issues/10239 -->
     <numba source="pip">0.61</numba>
+    <!-- pyarrow>=21 requires NumPy 2.0+, breaking the dask/statsforecast import chain against our numpy=1.26 pin -->
+    <pyarrow source="pip">20.0</pyarrow>
     <pandas source="pip"/>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray source="pip"/>
