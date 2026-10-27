@@ -11,11 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import imp
+import importlib.util
 import os
+import sys
+
+def _loadSource(name, path):
+  """
+    Loads a module from a file path (replacement for imp.load_source, removed in python 3.12)
+    @ In, name, str, the module name
+    @ In, path, str, the path of the file
+    @ Out, module, module, the loaded module
+  """
+  spec = importlib.util.spec_from_file_location(name, path)
+  module = importlib.util.module_from_spec(spec)
+  sys.modules[name] = module
+  spec.loader.exec_module(module)
+  return module
+
 # the functions below are imported from the respective files
 # this is aimed to show how multiple functions can be coded in the same file
-d_calc = imp.load_source('d_calc', os.path.join(os.path.dirname(os.path.abspath(__file__)),'../RedundantInputs/d_calc.py'))
+d_calc = _loadSource('d_calc', os.path.join(os.path.dirname(os.path.abspath(__file__)),'../RedundantInputs/d_calc.py'))
 
 def raven_d_calc_f_a_c(ravenContainer):
   return d_calc.evaluate(ravenContainer)
