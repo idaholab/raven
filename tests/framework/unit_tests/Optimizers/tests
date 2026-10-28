@@ -78,6 +78,10 @@
     input = 'testRankSelection.py'
   [../]
   #  GA: PyTest Unit Tests (one entry per module for detailed reporting)
+  [./pytestGaToMultiObjectiveConversion]
+    type = 'PyTest'
+    input = 'test_to_multiobjective_ga_conversion_pytest.py'
+  [../]
   [./pytestGaConstraintHandling]
     type = 'PyTest'
     input = 'test_constraint_handling_pytest.py'
