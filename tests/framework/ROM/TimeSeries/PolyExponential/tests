@@ -4,7 +4,9 @@
    input = 'test_poly_exponential_nearest.xml'
    output = 'PolyExpNearest/ROMpk PolyExpNearest/outputPoly/outputPolyNearest.xml PolyExpNearest/ROMCoefficientsXML.xml'
    csv = 'PolyExpNearest/outputPoly/outputPolyNearest.csv PolyExpNearest/outputPoly/outputPolyNearest_0.csv'
-   rel_err = 0.0001
+   # rel_err is 1.0e-3 (was 1.0e-4): the ROM is fit with a seeded differential_evolution with tol=1e-3,
+   # and macOS and linux machines differ by up to about 5e-4 in the results.
+   rel_err = 0.001
   [../]
 
  [./PolyExpPoly]
@@ -12,7 +14,9 @@
    input = 'test_poly_exponential_poly.xml'
    output = 'PolyExpPoly/ROMpk PolyExpPoly/outputPoly/outputPolyPoly.xml PolyExpPoly/ROMCoefficientsXML.xml'
    csv = 'PolyExpPoly/outputPoly/outputPolyPoly.csv PolyExpPoly/outputPoly/outputPolyPoly_0.csv'
-   rel_err = 0.0001
+   # rel_err is 1.0e-3 (was 1.0e-4): the ROM is fit with a seeded differential_evolution with tol=1e-3,
+   # and macOS and linux machines differ by up to about 5e-4 in the results.
+   rel_err = 0.001
   [../]
 
  [./PolyExpSpline]

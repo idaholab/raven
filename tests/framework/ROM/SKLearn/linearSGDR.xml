@@ -42,7 +42,7 @@
     <ROM name="modelUnderTest" subType="SGDRegressor">
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <loss>squared_loss</loss>
+      <loss>squared_error</loss>
       <penalty>l2</penalty>
       <alpha>0.0001</alpha>
       <l1_ratio>0.15</l1_ratio>

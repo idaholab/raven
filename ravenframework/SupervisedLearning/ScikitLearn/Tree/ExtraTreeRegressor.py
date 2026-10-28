@@ -66,11 +66,11 @@ class ExtraTreeRegressor(ScikitLearnBase):
                          to building a totally random decision tree.
                          \zNormalizationPerformed{ExtraTreeRegressor}
                          """
-    specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['mse','friedman_mse','mae']),
-                                                 descr=r"""The function to measure the quality of a split. Supported criteria are ``mse'' for the mean squared error,
+    specs.addSub(InputData.parameterInputFactory("criterion", contentType=InputTypes.makeEnumType("criterion", "criterionType",['squared_error','friedman_mse','absolute_error','mse','mae']),
+                                                 descr=r"""The function to measure the quality of a split. Supported criteria are ``squared\_error'' for the mean squared error,
                                                  which is equal to variance reduction as feature selection criterion and minimizes the L2 loss using the mean of each
                                                  terminal node, ``friedman_mse'', which uses mean squared error with Friedman's improvement score for potential splits,
-                                                 ``mae'' for the mean absolute error, which minimizes the L1 loss using the median of each terminal node.""", default='mse'))
+                                                 ``absolute\_error'' for the mean absolute error, which minimizes the L1 loss using the median of each terminal node.""", default='squared_error'))
     specs.addSub(InputData.parameterInputFactory("splitter", contentType=InputTypes.makeEnumType("splitter", "splitterType",['best','random']),
                                                  descr=r"""The strategy used to choose the split at each node. Supported strategies are ``best''
                                                  to choose the best split and ``random'' to choose the best random split.""", default='best'))
@@ -87,12 +87,11 @@ class ExtraTreeRegressor(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("min_weight_fraction_leaf", contentType=InputTypes.FloatType,
                                                  descr=r"""The minimum weighted fraction of the sum total of weights (of all the input samples)
                                                  required to be at a leaf node. Samples have equal weight when sample_weight is not provided.""", default=0.0))
-    specs.addSub(InputData.parameterInputFactory("max_features", contentType=InputTypes.makeEnumType("maxFeatures", "maxFeaturesType",['auto','sqrt','log2']),
+    specs.addSub(InputData.parameterInputFactory("max_features", contentType=InputTypes.makeEnumType("maxFeatures", "maxFeaturesType",['sqrt','log2','auto']),
                                                  descr=r"""The strategy to compute the number of features to consider when looking for the best split:
                                                   \begin{itemize}
                                                     \item sqrt: $max\_features=sqrt(n\_features)$
                                                     \item log2: $max\_features=log2(n\_features)$
-                                                    \item auto: automatic selection
                                                   \end{itemize}
                                                   \nb the search for a split does not stop until at least one valid partition of the node
                                                   samples is found, even if it requires to effectively inspect more than max_features features.""", default=None))
