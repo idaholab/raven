@@ -1146,40 +1146,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeSpread(self, front):
-    r"""
-    Compute Deb's spread metric $\Delta$ for a Pareto front, quantifying how uniformly the
-    solutions are distributed (lower is more uniform).
-
-    The $n$ front points are sorted along the first objective, $\mathbf{f}^{(1)},\dots,\mathbf{f}^{(n)}$.
-    Let $d_i=\lVert \mathbf{f}^{(i+1)}-\mathbf{f}^{(i)}\rVert$ be the Euclidean distance between
-    consecutive points and $\bar d=\frac{1}{n-1}\sum_{i=1}^{n-1} d_i$ their mean. Let $d_f$ and
-    $d_l$ be the distances from the two extreme front points to the ideal and nadir corners
-    (the per-objective min and max over the front). Then
-    \begin{equation*}
-      \Delta = \frac{d_f + d_l + \sum_{i=1}^{n-1}\lvert d_i-\bar d\rvert}
-                    {d_f + d_l + (n-1)\,\bar d}\,.
-    \end{equation*}
-    A perfectly uniform spread drives $\Delta\to 0$. Returns 0 when $n<2$ or $\bar d=0$.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, spread, float, Deb's spread metric $\Delta$ for the front.
     """
-    n = len(front)
-    if n < 2:
-      return 0.0
-    front = sorted(front, key=lambda x: x[0])
-    distances = []
-    for i in range(n - 1):
-      dist = np.linalg.norm(np.array(front[i + 1]) - np.array(front[i]))
-      distances.append(dist)
-    ideal = np.array([min(p[i] for p in front) for i in range(len(front[0]))])
-    nadir = np.array([max(p[i] for p in front) for i in range(len(front[0]))])
-    distFirst = np.linalg.norm(np.array(front[0]) - ideal)
-    distLast = np.linalg.norm(np.array(front[-1]) - nadir)
-    meanDist = np.mean(distances)
-    if mathUtils.compareFloats(meanDist, 0.0, 1e-14):
-      return 0.0
-    spread = (distFirst + distLast + sum(abs(d - meanDist) for d in distances)) / (distFirst + distLast + (len(distances)) * meanDist)
-    return spread
+      Deb's spread metric $\Delta$ of a front; see frontUtils.computeSpread.
+      @ In, front, list(list(float)), Pareto front points in objective space.
+      @ Out, spread, float, Deb's spread metric for the front.
+    """
+    return frontUtils.computeSpread(front)
 
   def _checkConvSpacing(self, traj, **kwargs):
     r"""
@@ -1211,37 +1183,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeSpacing(self, front):
-    r"""
-    Compute the spacing metric $\mathrm{SP}$ for a Pareto front: the standard deviation of each
-    point's nearest-neighbour distance (lower means more evenly spaced).
-
-    For each of the $n$ front points, let $D_i=\min_{j\ne i}\lVert \mathbf{f}^{(i)}-\mathbf{f}^{(j)}\rVert$
-    be its nearest-neighbour Euclidean distance and $\bar D=\frac1n\sum_{i=1}^{n} D_i$ the mean. Then
-    \begin{equation*}
-      \mathrm{SP} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\left(D_i-\bar D\right)^2}\,.
-    \end{equation*}
-    $\mathrm{SP}=0$ indicates perfectly equal spacing. Returns 0 when $n<2$.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, spacing, float, the spacing metric $\mathrm{SP}$ for the front.
     """
-    n = len(front)
-    if n < 2:
-      return 0.0
-    distances = []
-    for i in range(n):
-      pointI = np.array(front[i])
-      minDist = float('inf')
-      for j in range(n):
-        if i == j:
-          continue
-        pointJ = np.array(front[j])
-        dist = np.linalg.norm(pointI - pointJ)
-        if dist < minDist:
-          minDist = dist
-      distances.append(minDist)
-    meanDist = np.mean(distances)
-    spacing = np.sqrt(np.mean([(d - meanDist) ** 2 for d in distances]))
-    return spacing
+      Spacing metric of a front; see frontUtils.computeSpacing.
+      @ In, front, list(list(float)), Pareto front points in objective space.
+      @ Out, spacing, float, the spacing metric for the front.
+    """
+    return frontUtils.computeSpacing(front)
 
   def _checkConvMaxSpread(self, traj, **kwargs):
     r"""
@@ -1301,32 +1248,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeMaxSpread(self, front):
-    r"""
-    Compute the maximum spread of a Pareto front: the Euclidean norm of the per-objective
-    ranges, i.e. how widely the non-dominated solutions extend in objective space.
-
-    For a rank-1 front $\mathcal{F}=\{\mathbf{f}^{(1)},\dots,\mathbf{f}^{(n)}\}$ of $n$ points in
-    $M$-objective (minimization) space, where $f^{(k)}_m$ is the $m$-th objective of point $k$,
-    the per-objective range $R_m$ and the max-spread $S$ are
-    \begin{equation*}
-      R_m = \max_{1\le k\le n} f^{(k)}_m \;-\; \min_{1\le k\le n} f^{(k)}_m,
-      \qquad
-      S = \sqrt{\sum_{m=1}^{M} R_m^2}\,.
-    \end{equation*}
-    Geometrically $S$ is the diagonal length of the axis-aligned bounding box enclosing the
-    front, so it grows as the front widens along any objective. By convention $S=0$ when $n<2$.
-    @ In, front, list(list(float)), Pareto front points in objective space (one inner list per point).
-    @ Out, maxSpread, float, the max-spread metric $S$ for the front.
     """
-    n = len(front)
-    if n < 2:
-      return 0.0
-    ranges = []
-    for i in range(len(front[0])):
-      objValues = [point[i] for point in front]
-      ranges.append(max(objValues) - min(objValues))
-    maxSpread = np.sqrt(sum(r ** 2 for r in ranges))
-    return maxSpread
+      Maximum spread of a front; see frontUtils.computeMaxSpread.
+      @ In, front, list(list(float)), Pareto front points in objective space.
+      @ Out, maxSpread, float, Euclidean norm of the per-objective ranges.
+    """
+    return frontUtils.computeMaxSpread(front)
 
   def _checkConvRank1Ratio(self, traj, **kwargs):
     r"""

@@ -20,6 +20,7 @@
 import numpy as np
 import xarray as xr
 # Internal Imports
+from . import mathUtils
 
 def _constraintViolation(constraintVals):
   """
@@ -470,41 +471,49 @@ def _hypervolumeHSO(points, reference):
 
 
 def computeSpread(front):
-  """
-    Compute the spread metric (Delta) from Deb et al. (2002) NSGA-II paper. This is a pure,
-    stateless front-diversity metric; it depends only on the geometry of the given front.
-    Delta = (d_f + d_l + sum|d_i - d_bar|) / (d_f + d_l + (N-1) d_bar)
+  r"""
+    Deb's spread metric $\Delta$ (Deb et al. 2002, eq. 1): how uniformly the solutions of a front are
+    distributed (lower is more uniform). The $n$ points are sorted along the first objective; $d_i$
+    ($i=1..n-1$) are the Euclidean distances between consecutive points, $\bar d$ their mean, and $d_f$,
+    $d_l$ the distances from the two extreme points to the ideal and nadir corners (per-objective min
+    and max over the front):
+    $\Delta = (d_f + d_l + \sum_i |d_i - \bar d|) / (d_f + d_l + (n-1)\bar d)$.
+    This is a pure, stateless metric; it depends only on the geometry of the given front.
     @ In, front, list of lists, Pareto-front points (each point is a list of objective values)
-    @ Out, spread, float, spread value (0 = perfect distribution)
+    @ Out, spread, float, spread value (0 = perfect distribution; 0 when n < 2 or all points coincide)
   """
   n = len(front)
   if n < 2:
     return 0.0
-  numObj = len(front[0])
-  # Euclidean distances between consecutive solutions, per objective ordering
-  distances = []
-  for obj in range(numObj):
-    sortedIndices = sorted(range(n), key=lambda i: front[i][obj])
-    sortedFront = [front[i] for i in sortedIndices]
-    for i in range(len(sortedFront) - 1):
-      dist = np.linalg.norm(np.array(sortedFront[i + 1]) - np.array(sortedFront[i]))
-      distances.append(dist)
-  if len(distances) == 0:
+  points = np.asarray(front, dtype=float)
+  ordered = points[np.argsort(points[:, 0], kind='stable')]
+  distances = np.linalg.norm(np.diff(ordered, axis=0), axis=1)
+  meanDist = distances.mean()
+  if mathUtils.compareFloats(meanDist, 0.0, 1e-14):
     return 0.0
-  # Extreme distances: first solution to the ideal point and last solution to the nadir point
-  ideal = [min(p[i] for p in front) for i in range(numObj)]
-  nadir = [max(p[i] for p in front) for i in range(numObj)]
-  sortedByFirstObj = sorted(front, key=lambda p: p[0])
-  distFirst = np.linalg.norm(np.array(sortedByFirstObj[0]) - np.array(ideal))
-  distLast = np.linalg.norm(np.array(sortedByFirstObj[-1]) - np.array(nadir))
-  meanDist = np.mean(distances)
-  if meanDist == 0:
+  distFirst = np.linalg.norm(ordered[0] - points.min(axis=0))
+  distLast = np.linalg.norm(ordered[-1] - points.max(axis=0))
+  numerator = distFirst + distLast + np.abs(distances - meanDist).sum()
+  denominator = distFirst + distLast + (n - 1) * meanDist
+  return float(numerator / denominator)
+
+
+def computeSpacing(front):
+  r"""
+    Spacing metric $\mathrm{SP}$ (Schott 1995): the standard deviation of each point's nearest-neighbour
+    Euclidean distance $D_i$ over the front (lower means more evenly spaced),
+    $\mathrm{SP} = \sqrt{\frac{1}{n}\sum_i (D_i - \bar D)^2}$.
+    @ In, front, list of lists, Pareto-front points (each point is a list of objective values)
+    @ Out, spacing, float, spacing value (0 = equal spacing; 0 when n < 2)
+  """
+  n = len(front)
+  if n < 2:
     return 0.0
-  numerator = distFirst + distLast + sum(abs(d - meanDist) for d in distances)
-  denominator = distFirst + distLast + (len(distances)) * meanDist
-  if denominator == 0:
-    return 0.0
-  return numerator / denominator
+  points = np.asarray(front, dtype=float)
+  pairwise = np.linalg.norm(points[:, None, :] - points[None, :, :], axis=2)
+  np.fill_diagonal(pairwise, np.inf)
+  nearest = pairwise.min(axis=1)
+  return float(np.sqrt(np.mean((nearest - nearest.mean()) ** 2)))
 
 
 def computeMaxSpread(front):

@@ -249,7 +249,7 @@ from copy import deepcopy
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
-from ..utils import mathUtils, frontUtils, InputData, InputTypes
+from ..utils import mathUtils, InputData, InputTypes
 from ..utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
@@ -920,7 +920,7 @@ class GeneticAlgorithm(RavenSampled):
                     |  +--------------------------------------------------------+ |
                     |  | PHASE 3: Record & Export [CHEAP - INTERNAL]            | |
                     |  |  * Extract Pareto front (rank 1) from P(t+1)           | |
-                    |  |  * Check convergence (objective, spread, etc.)         | |
+                    |  |  * Check convergence (objective, AHDp, AHD, HDSM)      | |
                     |  |  * Export P(t+1) with rank/CD to solution export       | |
                     |  +--------------------------------------------------------+ |
                     |                                                             |
@@ -1707,86 +1707,6 @@ class GeneticAlgorithm(RavenSampled):
 
     return converged
 
-
-  def _checkConvSpread(self, traj, **kwargs):
-    """
-    Checks convergence based on spread (diversity) metric from Deb et al. (2002).
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    # Need at least rank-1 front
-    if not hasattr(self, 'popRanks'):
-        return False
-
-    rank1Indices = np.where(self.popRanks.data == 1)[0]
-    if len(rank1Indices) < 3:
-        return False  # Need at least 3 points for meaningful spread
-
-    # Extract rank-1 objective values
-    front = []
-    for idx in rank1Indices:
-        point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
-        front.append(point)
-
-    spread = frontUtils.computeSpread(front)
-
-    converged = spread < self._convergenceCriteria.get('spread', 0.5)
-
-    self.raiseADebug(self.convFormat.format(
-        name='Spread',
-        conv=str(converged),
-        got=spread,
-        req=self._convergenceCriteria.get('spread', 0.5)
-    ))
-
-    return converged
-
-  def _checkConvMaxSpread(self, traj, **kwargs):
-    """
-    Checks convergence based on maximum spread stabilization.
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    if len(self._optPointHistory[traj]) < 2:
-        return False
-
-    # Current front
-    rank1Indices = np.where(self.popRanks.data == 1)[0]
-    currentFront = []
-    for idx in rank1Indices:
-        point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
-        currentFront.append(point)
-
-    # Previous front
-    prevOpt, _ = self._optPointHistory[traj][-2]
-    prevRank1 = np.where(np.array(prevOpt['rank']) == 1)[0]
-    prevFront = []
-    for idx in prevRank1:
-        point = [prevOpt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-        prevFront.append(point)
-
-    # Compute MS
-    currentMS = frontUtils.computeMaxSpread(currentFront)
-    prevMS = frontUtils.computeMaxSpread(prevFront)
-
-    # Check relative change
-    if prevMS == 0:
-        relChange = float('inf')
-    else:
-        relChange = abs(currentMS - prevMS) / prevMS
-
-    converged = relChange < self._convergenceCriteria.get('maxSpread', 0.05)
-
-    self.raiseADebug(self.convFormat.format(
-        name='MaxSpread',
-        conv=str(converged),
-        got=relChange,
-        req=self._convergenceCriteria.get('maxSpread', 0.05)
-    ))
-
-    return converged
 
   def _checkConvRank1Ratio(self, traj, **kwargs):
     """
