@@ -1912,7 +1912,13 @@ class KerasBase(SupervisedLearning):
       # Adam optimzer
       self.availOptimizer['adam_new'] = tf.keras.optimizers.Adam
       # Adam legacy optimizer
-      self.availOptimizer['adam'] = tf.keras.optimizers.legacy.Adam
+      # NOTE: Keras 3 (tensorflow >= 2.16) removed the legacy optimizers (the module still exists but its
+      #       classes raise when created), so "adam" falls back to the new Adam
+      # (tf_keras, the legacy Keras 2 package, has no __version__ so it is treated as Keras 2)
+      if int(getattr(tf.keras, '__version__', '2').split('.')[0]) < 3:
+        self.availOptimizer['adam'] = tf.keras.optimizers.legacy.Adam
+      else:
+        self.availOptimizer['adam'] = tf.keras.optimizers.Adam
       # Adamax optimizer from Adam paper's section 7
       self.availOptimizer['adamax'] = tf.keras.optimizers.Adamax
       # Nesterov Adam optimizer
@@ -1963,11 +1969,14 @@ class KerasBase(SupervisedLearning):
       # Locally-connected layer for 1D inputs.
       # The LocallyConnected1D layer works similarly to the Conv1D layer, except that weights are unshared,
       # that is, a different set of filters is applied at each different patch of the input.
-      self.availLayer['locallyconnected1d'] = tf.keras.layers.LocallyConnected1D
+      # NOTE: Keras 3 (tensorflow >= 2.16) removed the LocallyConnected layers, so they are only available with Keras 2
+      if hasattr(tf.keras.layers, 'LocallyConnected1D'):
+        self.availLayer['locallyconnected1d'] = tf.keras.layers.LocallyConnected1D
       # Locally-connected layer for 2D inputs.
       # The LocallyConnected1D layer works similarly to the Conv2D layer, except that weights are unshared,
       # that is, a different set of filters is applied at each different patch of the input.
-      self.availLayer['locallyconnected2d'] = tf.keras.layers.LocallyConnected2D
+      if hasattr(tf.keras.layers, 'LocallyConnected2D'):
+        self.availLayer['locallyconnected2d'] = tf.keras.layers.LocallyConnected2D
 
       # available pooling layers
       # Max pooling operation for temporal data.
@@ -2102,6 +2111,9 @@ class KerasBase(SupervisedLearning):
       for sub in optNode.subparts:
         optimizerSetting[sub.getName()] = sub.value
     optimizerName = optimizerSetting.pop('optimizer').lower()
+    # Keras 3 no longer accepts the deprecated "lr" argument; "learning_rate" works in all versions
+    if 'lr' in optimizerSetting:
+      optimizerSetting['learning_rate'] = optimizerSetting.pop('lr')
     # set up optimizer
     self.optimizer = self.__class__.availOptimizer[optimizerName](**optimizerSetting)
     # check layer layout, this is always required node, used to build the DNNs
@@ -2235,7 +2247,12 @@ class KerasBase(SupervisedLearning):
       layerType = layerDict.pop('type').lower()
       if layerType not in self.allowedLayers:
         self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
+      if layerType not in self.__class__.availLayer:
+        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not available in the installed version of Keras!')
       layerSize = layerDict.pop('dim_out',None)
+      # dim_out of some layers is read as a string, but Keras 3 does not convert it to an integer
+      if isinstance(layerSize, str):
+        layerSize = int(layerSize)
       layerInstant = self.__class__.availLayer[layerType]
       dropoutRate = layerDict.pop('rate',0.0)
       if layerSize is not None:
