@@ -299,7 +299,7 @@ class ParameterInput(object):
     """
     cls.subs[sub] = None
     subsSet = cls._subDict.get(sub.getName(), set())
-    if __debug__:
+    if __debug__ and not SUPPRESS_INPUT_SPEC_WARNINGS:
       if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
         (len(subsSet) > 0 and sub._checkCanRead is not None):
         print("INPUT SPEC ERROR adding checked and unchecked to", sub.getName()," in ",
@@ -596,11 +596,11 @@ class ParameterInput(object):
     simpleContent = False #If true, attributes are handled differently
     #generate complexType
     complexType = ET.SubElement(xsdNode, 'xsd:complexType')
-    complexTypeName = cls.getName()+'_type'
+    complexTypeName = _sanitize_xml_qname(cls.__name__) + '_type'
     uniqueCount = 0
     while complexTypeName in definedTypeDict:
       uniqueCount += 1
-      complexTypeName = cls.getName()+str(uniqueCount)+'_type'
+      complexTypeName = _sanitize_xml_qname(cls.__name__) + str(uniqueCount) + '_type'
     complexType.set('name', complexTypeName)
     if cls.subs:
       #generate choice node
@@ -619,7 +619,11 @@ class ParameterInput(object):
         if sub.contentType == InputTypes.LegacyAnyType:
           subNode.set('type', InputTypes.LegacyAnyType.xmlType)
         else:
-          subNode.set('type', sub.getName()+'_type')
+          if hasattr(sub, "__name__"):
+            subname = sub.__name__
+          else:
+            subname = type(sub).__name__
+          subNode.set('type', _sanitize_xml_qname(subname) + '_type')
         if cls.subOrder is not None:
           if quantity == Quantity.zero_to_one:
             occurs = ('0','1')
@@ -635,16 +639,20 @@ class ParameterInput(object):
           subNode.set('maxOccurs', occurs[1])
         else:
           subNode.set('minOccurs', '0')
-        if sub.getName() not in definedDict:
-          definedDict[sub.getName()] = sub
+        if hasattr(sub, "__name__"):
+          subKey = sub.__name__
+        else:
+          subKey = type(sub).__name__
+        if subKey not in definedDict:
+          definedDict[subKey] = sub
           sub.generateXSD(xsdNode, definedDict)
-        elif definedDict[sub.getName()] != sub:
+        elif definedDict[subKey] != sub:
           print('DEBUGG defined:')
           import pprint
           pprint.pprint(definedDict)
-          print("ERROR: multiple definitions ",sub.getName())
+          print("ERROR: multiple definitions ", subKey)
     else:
-      if cls.contentType is  None:
+      if cls.contentType is None:
         pass
       elif cls.contentType == InputTypes.LegacyAnyType:
         pass
@@ -779,6 +787,32 @@ DMDC.getInputSpecification()
 #unpickled before the class ever has getInputSpecification called.
 
 
+SUPPRESS_INPUT_SPEC_WARNINGS = False
+
+
+_XML_QNAME_SAFE_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
+
+
+def _sanitize_xml_qname(name):
+  """
+    Sanitize a string to a valid XML QName (NCName) for XSD type names.
+    @ In, name, string, raw name
+    @ Out, safe, string, sanitized name
+  """
+  if not name:
+    return "Unnamed"
+  safe = []
+  for char in name:
+    if char in _XML_QNAME_SAFE_CHARS:
+      safe.append(char)
+    else:
+      safe.append("_")
+  safe = "".join(safe)
+  if not (safe[0].isalpha() or safe[0] == "_"):
+    safe = "_" + safe
+  return safe
+
+
 def parameterInputFactory(name, *paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
@@ -847,7 +881,7 @@ def createXSD(outerElement):
   outside = ET.Element('xsd:schema')
   outside.set('xmlns:xsd', 'http://www.w3.org/2001/XMLSchema')
   ET.SubElement(outside, 'xsd:element', {'name':outerElement.getName(),
-                                         'type':outerElement.getName()+'_type'})
+                                         'type':_sanitize_xml_qname(outerElement.__name__) + '_type'})
   outerElement.generateXSD(outside, {})
   return outside
 
