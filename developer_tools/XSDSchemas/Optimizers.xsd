@@ -79,6 +79,7 @@
         <xsd:element name="gradient" type="xsd:float" minOccurs="0"/>
         <xsd:element name="objective" type="xsd:float" minOccurs="0"/>
         <xsd:element name="stepSize" type="xsd:float" minOccurs="0"/>
+        <xsd:element name="iterationLimit" type="xsd:integer" minOccurs="0"/>
         <xsd:element name="terminateFollowers" type="terminateFollowersType" minOccurs="0"/>
       </xsd:all>
     </xsd:complexType>
