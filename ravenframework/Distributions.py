@@ -399,6 +399,15 @@ class Distribution(BaseEntity, InputDataUser):
     """
     pass
 
+  def getSampleProbability(self, value):
+    """
+      Return the probability associated with a sampled value.
+      By default, this is the distribution pdf/pmf at the sampled value.
+      @ In, value, float/string, sampled value
+      @ Out, probability, float, probability associated to the sampled value
+    """
+    return self.pdf(value)
+
 class BoostDistribution(Distribution):
   """
     Base distribution class based on boost
@@ -1981,6 +1990,14 @@ class UniformDiscrete(Distribution):
     descr=r""" Number of points between lower and upper bound. """)
     specs.addSub(np)
 
+    step = InputData.parameterInputFactory('step', contentType=InputTypes.FloatType, printPriority=109,
+    descr=r""" Step size between lower and upper bound. The step must evenly divide the range. """)
+    specs.addSub(step)
+
+    values = InputData.parameterInputFactory('values', contentType=InputTypes.FloatListType, printPriority=109,
+    descr=r""" Comma-separated list of explicit discrete values to sample uniformly. """)
+    specs.addSub(values)
+
     strategy = InputData.parameterInputFactory('strategy', BaseInputType, printPriority=109,
     descr=r""" Type of sampling strategy. """)
     specs.addSub(strategy)
@@ -1999,6 +2016,10 @@ class UniformDiscrete(Distribution):
     self.distType       = distType.discrete
     self.memory         = True
     self.nPoints = None
+    self.step = None
+    self.values = None
+    self._lastRvsValue = None
+    self._lastRvsProbability = None
 
   def _handleInput(self, paramInput):
     """
@@ -2007,12 +2028,6 @@ class UniformDiscrete(Distribution):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    if self.lowerBound is None:
-      self.raiseAnError(IOError,'lowerBound value needed for UniformDiscrete distribution')
-
-    if self.upperBound is None:
-      self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
-
     strategy = paramInput.findFirst('strategy')
     if strategy is not None:
       self.strategy = strategy.value
@@ -2022,6 +2037,32 @@ class UniformDiscrete(Distribution):
     nPoints = paramInput.findFirst('nPoints')
     if nPoints is not None:
       self.nPoints = nPoints.value
+
+    step = paramInput.findFirst('step')
+    if step is not None:
+      self.step = step.value
+
+    values = paramInput.findFirst('values')
+    if values is not None:
+      self.values = values.value
+
+    if self.nPoints is not None and self.nPoints < 1:
+      self.raiseAnError(IOError, 'UniformDiscrete distribution "nPoints" needs to be at least 1')
+
+    if self.step is not None and self.step <= 0.0:
+      self.raiseAnError(IOError, 'UniformDiscrete distribution "step" needs to be strictly positive')
+
+    if self.nPoints is not None and self.step is not None:
+      self.raiseAnError(IOError, 'UniformDiscrete distribution cannot specify both "nPoints" and "step"')
+
+    if self.values is not None:
+      if self.lowerBound is not None or self.upperBound is not None or self.nPoints is not None or self.step is not None:
+        self.raiseAnError(IOError, 'UniformDiscrete distribution "values" cannot be combined with lowerBound, upperBound, nPoints, or step')
+    else:
+      if self.lowerBound is None:
+        self.raiseAnError(IOError,'lowerBound value needed for UniformDiscrete distribution')
+      if self.upperBound is None:
+        self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
 
     self.initializeDistribution()
 
@@ -2036,7 +2077,54 @@ class UniformDiscrete(Distribution):
     paramDict = Distribution.getInitParams(self)
     paramDict['strategy'] = self.strategy
     paramDict['nPoints'] = self.nPoints
+    paramDict['step'] = self.step
+    paramDict['values'] = self.values
     return paramDict
+
+  def _localSetState(self,pdict):
+    """
+      Set the pickling state (local)
+      @ In, pdict, dict, the namespace state
+      @ Out, None
+    """
+    self.strategy = pdict.pop('strategy', None)
+    self.nPoints = pdict.pop('nPoints', None)
+    self.step = pdict.pop('step', None)
+    self.values = pdict.pop('values', None)
+
+  def _constructXArray(self):
+    """
+      Build the support for this distribution.
+      @ In, None
+      @ Out, xArray, np.ndarray, available discrete outcomes
+    """
+    if self.values is not None:
+      xArray = np.asarray(self.values, dtype=float)
+      if xArray.size < 1:
+        self.raiseAnError(IOError, 'UniformDiscrete distribution "values" list cannot be empty')
+      if np.unique(xArray).size != xArray.size:
+        self.raiseAnError(IOError, 'UniformDiscrete distribution "values" list contains duplicate entries')
+      return xArray
+
+    if self.step is not None:
+      nIntervals = int(round((self.upperBound - self.lowerBound) / self.step))
+      if nIntervals < 1:
+        self.raiseAnError(IOError, 'UniformDiscrete distribution "step" is too large for the provided bounds')
+      estimatedUpper = self.lowerBound + nIntervals * self.step
+      if not mathUtils.compareFloats(estimatedUpper, self.upperBound, tol=1e-12):
+        self.raiseAnError(IOError, 'UniformDiscrete distribution "step" must evenly divide (upperBound - lowerBound)')
+      return np.linspace(self.lowerBound, self.upperBound, nIntervals + 1)
+
+    if self.nPoints is not None:
+      return np.linspace(self.lowerBound, self.upperBound, self.nPoints)
+
+    # Preserve historical integer-style behavior when bounds are integers.
+    lowerInt = int(round(self.lowerBound))
+    upperInt = int(round(self.upperBound))
+    if (not mathUtils.compareFloats(self.lowerBound, lowerInt, tol=1e-12) or
+        not mathUtils.compareFloats(self.upperBound, upperInt, tol=1e-12)):
+      self.raiseAnError(IOError, 'UniformDiscrete distribution with non-integer bounds requires "nPoints" or "step"')
+    return np.arange(lowerInt, upperInt + 1, dtype=float)
 
   def initializeDistribution(self):
     """
@@ -2044,10 +2132,7 @@ class UniformDiscrete(Distribution):
       @ In, None
       @ Out, None
     """
-    if self.nPoints is None:
-      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
-    else:
-      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+    self.xArray = self._constructXArray()
 
     # Here the actual calculation of discrete distribution parameters is performed
     self.pdfArray = 1.0/self.xArray.size * np.ones(self.xArray.size)
@@ -2059,6 +2144,8 @@ class UniformDiscrete(Distribution):
     self.categoricalDist.initializeFromDict(paramsDict)
     initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
     self.pot = np.asarray(initialPerm)
+    self._lastRvsValue = None
+    self._lastRvsProbability = None
 
   def initializeFromDict(self, inputDict):
     """
@@ -2071,6 +2158,8 @@ class UniformDiscrete(Distribution):
     self.categoricalDist.initializeFromDict(inputDict)
     initialPerm = randomUtils.randomPermutation(inputDict['outcome'].tolist(),self)
     self.pot = np.asarray(initialPerm)
+    self._lastRvsValue = None
+    self._lastRvsProbability = None
 
   def pdf(self,x):
     """
@@ -2103,13 +2192,20 @@ class UniformDiscrete(Distribution):
       @ Out, rvsValue, float, the random state
     """
     if self.strategy == 'withReplacement':
-      return self.categoricalDist.rvs()
+      rvsValue = self.categoricalDist.rvs()
+      self._lastRvsValue = rvsValue
+      # with replacement, a draw's probability is just the pmf; getSampleProbability would return this cached value
+      self._lastRvsProbability = self.pdf(rvsValue)
+      return rvsValue
     else:
       if self.pot.size == 0:
         # re-initialize the distribution
         self.reset()
         self.raiseAWarning("The Uniform Discrete distribution " + str(self.name) + " has been internally reset outside the sampler.")
+      # without-replacement draws are uniformly distributed on the current available pool
+      self._lastRvsProbability = 1.0 / self.pot.size
       rvsValue = self.pot[-1]
+      self._lastRvsValue = rvsValue
       self.pot = np.resize(self.pot, self.pot.size - 1)
     return rvsValue
 
@@ -2129,10 +2225,7 @@ class UniformDiscrete(Distribution):
       @ In, discardedElems, np array, list of discarded elements
       @ Out, rvsValue, float, the random state
     """
-    if self.nPoints is None:
-      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
-    else:
-      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+    self.xArray = self._constructXArray()
 
     self.xArray = np.setdiff1d(self.xArray,discardedElems)
     if self.xArray.size == 0:
@@ -2150,7 +2243,26 @@ class UniformDiscrete(Distribution):
     self.tempUniformDiscrete.initializeFromDict(paramsDict)
 
     rvsValue = self.tempUniformDiscrete.rvs()
+    self._lastRvsValue = rvsValue
+    self._lastRvsProbability = self.tempUniformDiscrete.getSampleProbability(rvsValue)
     return rvsValue
+
+  def getSampleProbability(self, value):
+    """
+      Return the probability associated with the most recent sample draw.
+      For without-replacement, this is the conditional probability based on the
+      available pool at draw time.
+      @ In, value, float/string, sampled value
+      @ Out, probability, float, probability associated to the sampled value
+    """
+    if self._lastRvsValue is not None and self._lastRvsProbability is not None:
+      try:
+        if utils.isClose(float(value), float(self._lastRvsValue), relTolerance=1e-12, absTolerance=1e-15):
+          return self._lastRvsProbability
+      except (ValueError, TypeError):
+        if value == self._lastRvsValue:
+          return self._lastRvsProbability
+    return self.pdf(value)
 
   def reset(self):
     """
@@ -2160,6 +2272,8 @@ class UniformDiscrete(Distribution):
     """
     newPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
     self.pot = np.asarray(newPerm)
+    self._lastRvsValue = None
+    self._lastRvsProbability = None
 
 DistributionsCollection.addSub(UniformDiscrete.getInputSpecification())
 
