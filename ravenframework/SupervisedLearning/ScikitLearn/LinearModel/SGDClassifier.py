@@ -71,9 +71,9 @@ class SGDClassifier(ScikitLearnBase):
                         achieve online feature selection.
                         \zNormalizationPerformed{SGDClassifier}
                         """
-    specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['hinge', 'log', 'modified_huber', 'squared_hinge','perceptron',
-                                                                                                                 'squared_loss', 'huber','epsilon_insensitive','squared_epsilon_insensitive']),
-                                                 descr=r"""The loss function to be used. Defaults to ``hinge'', which gives a linear SVM.The ``log'' loss gives logistic regression, a
+    specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['hinge', 'log_loss', 'log', 'modified_huber', 'squared_hinge','perceptron',
+                                                                                                                 'squared_error', 'squared_loss', 'huber','epsilon_insensitive','squared_epsilon_insensitive']),
+                                                 descr=r"""The loss function to be used. Defaults to ``hinge'', which gives a linear SVM.The ``log\_loss'' loss gives logistic regression, a
                                                  probabilistic classifier. ``modified\_huber'' is another smooth loss that brings tolerance to outliers as well as probability estimates.
                                                  ``squared_hinge'' is like hinge but is quadratically penalized. ``perceptron'' is the linear loss used by the perceptron algorithm.
                                                  The other losses are designed for regression but can be useful in classification as well; see SGDRegressor for a description.""", default='hinge'))

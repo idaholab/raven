@@ -72,9 +72,8 @@ class LassoLarsCV(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=500))
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
-                                                 descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
-                                                 the regressors X will be normalized before regression by subtracting the mean and
-                                                 dividing by the l2-norm.""", default=True))
+                                                 descr=r"""Deprecated: scikit-learn no longer supports this option, so it must be False (the default) or omitted.
+                                                 Setting it to True raises an error; scale the data beforehand if normalization is needed.""", default=False))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
                                                  For sparse input this option is always True to preserve sparsity.""", default='auto'))
