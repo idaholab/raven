@@ -333,12 +333,14 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                                             variables=list(self.toBeSampled),
                                             crossoverProb=self._crossoverProb,
                                             points=self._crossoverPoints,
-                                            distDict=self.distDict)
+                                            distDict=self.distDict,
+                                            files=self.assemblerDict['Files']) # plugin operators (e.g. PRLO) read their data files from here
 
     childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                              locs=self._mutationLocs,
                                              mutationProb=self._effectiveMutationProb(),
-                                             variables=list(self.toBeSampled))
+                                             variables=list(self.toBeSampled),
+                                             files=self.assemblerDict['Files'])
 
     needsRepair = False
     for chrom in range(min(self._nChildren, len(childrenMutated))):
