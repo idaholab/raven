@@ -41,18 +41,23 @@ mh = MessageHandler.MessageHandler()
 mh.initialize({'verbosity': 'silent'})
 
 
-def makeUniformDiscrete(lowerBound, upperBound, strategy='withoutReplacement', nPoints=None, name='woRep_dist'):
+def makeUniformDiscrete(lowerBound=None, upperBound=None, strategy='withoutReplacement', nPoints=None,
+                        name='woRep_dist', step=None, values=None):
   """
     Build a real UniformDiscrete distribution through its input specification.
-    @ In, lowerBound, int, lower bound
-    @ In, upperBound, int, upper bound
+    @ In, lowerBound, int, optional, lower bound
+    @ In, upperBound, int, optional, upper bound
     @ In, strategy, str, optional, sampling strategy
     @ In, nPoints, int, optional, number of grid points
     @ In, name, str, optional, distribution name
+    @ In, step, float, optional, grid spacing
+    @ In, values, list, optional, explicit outcomes (used without bounds)
     @ Out, dist, UniformDiscrete, the initialized distribution
   """
   node = ET.Element('UniformDiscrete', {'name': name})
-  for tag, text in (('lowerBound', lowerBound), ('upperBound', upperBound), ('strategy', strategy), ('nPoints', nPoints)):
+  valuesText = None if values is None else ' '.join(str(v) for v in values)
+  for tag, text in (('lowerBound', lowerBound), ('upperBound', upperBound), ('strategy', strategy), ('nPoints', nPoints),
+                    ('step', step), ('values', valuesText)):
     if text is not None:
       sub = ET.SubElement(node, tag)
       sub.text = str(text)
@@ -116,6 +121,43 @@ def test_number_of_outcomes():
   """numberOfOutcomes counts the integer range or the nPoints grid."""
   assert makeUniformDiscrete(1, 6).numberOfOutcomes() == 6
   assert makeUniformDiscrete(0, 10, nPoints=4).numberOfOutcomes() == 4
+
+
+def test_number_of_outcomes_explicit_values():
+  """With <values> (no bounds) the count is the number of listed outcomes, not int(None)."""
+  assert makeUniformDiscrete(values=[2, 3, 5, 7, 11]).numberOfOutcomes() == 5
+
+
+def test_number_of_outcomes_step():
+  """With <step> the count is the size of the stepped grid, not upper - lower + 1."""
+  assert makeUniformDiscrete(0, 10, step=2.5).numberOfOutcomes() == 5
+
+
+def test_number_of_outcomes_ignores_sampling_state():
+  """Sampling without replacement shrinks the working pool; the support count must not change."""
+  dist = makeUniformDiscrete(1, 6)
+  dist.initializeDistribution()
+  dist.selectedRvs([1, 2, 3])
+  assert dist.numberOfOutcomes() == 6
+
+
+def test_guard_with_explicit_values():
+  """The feasibility guard works for <values>: 3 variables on 2 listed values is rejected."""
+  stub, _ = makeStub(3, values=[4, 9])
+  with pytest.raises(IOError) as info:
+    stub._checkWithoutReplacementFeasible()
+  assert '2 distinct value' in str(info.value)
+  stub, _ = makeStub(2, values=[4, 9])
+  stub._checkWithoutReplacementFeasible()
+
+
+def test_guard_with_step():
+  """The feasibility guard counts a stepped grid: {0, 5, 10} holds 3 variables but not 4."""
+  stub, _ = makeStub(3, lowerBound=0, upperBound=10, step=5)
+  stub._checkWithoutReplacementFeasible()
+  stub, _ = makeStub(4, lowerBound=0, upperBound=10, step=5)
+  with pytest.raises(IOError):
+    stub._checkWithoutReplacementFeasible()
 
 
 def test_feasible_setup_passes():

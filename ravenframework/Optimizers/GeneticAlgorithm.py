@@ -559,7 +559,7 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.FloatListType,
         printPriority=108,
         descr=r""" b: The weight of the constraint penalty. Give one value (applied to every objective and
-        constraint), one value per objective (applied to all of that objective's constraints), or one value per
+        constraint), one value per constraint (shared by every objective), or one value per
         (objective, constraint) pair listed objective-major, i.e. $b_{1,1},\ldots,b_{1,n_c},b_{2,1},\ldots$, where
         $n_c$ counts both \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that this default
         was 1.0 in earlier RAVEN versions, so constrained inputs that omit \xmlNode{b} give different results. \default{10.0}""")
@@ -754,10 +754,11 @@ class GeneticAlgorithm(RavenSampled):
       self._numOfConst = 0
     if self._penaltyCoeff is not None:
       nObj = len(self._objectiveVar)
-      allowed = sorted({1, nObj, nObj * self._numOfConst} - {0})
+      allowed = sorted({1, self._numOfConst, nObj * self._numOfConst} - {0})
       if len(self._penaltyCoeff) not in allowed:
         self.raiseAnError(IOError, f'<b> has {len(self._penaltyCoeff)} value(s); it must have 1 (applied to every objective and '
-                          f'constraint), {nObj} (one per objective), or {nObj * self._numOfConst} (one per objective and '
+                          f'constraint), {self._numOfConst} (one per constraint, shared by every objective), or '
+                          f'{nObj * self._numOfConst} (one per objective and '
                           f'constraint, objective-major: b_(1,1),...,b_(1,{self._numOfConst}),b_(2,1),...), with '
                           f'{nObj} objective(s) and {self._numOfConst} constraint(s) (<Constraint> plus <ImplicitConstraint>).')
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)

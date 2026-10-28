@@ -43,8 +43,8 @@ def _scalingFactors(objVar, constraintNum, a=None, b=None):
   """
     Resolve the objective (a) and penalty (b) scaling factors to their full shapes.
     'a' may be a scalar or have one entry per objective. 'b' may be a scalar, have one entry per
-    objective (applied to every constraint), or have one entry per (objective, constraint) pair,
-    given objective-major, i.e. b = [b_(1,1), ..., b_(1,nConst), b_(2,1), ...].
+    constraint (shared by every objective, as in earlier RAVEN versions), or have one entry per
+    (objective, constraint) pair, given objective-major, i.e. b = [b_(1,1), ..., b_(1,nConst), b_(2,1), ...].
     @ In, objVar, list(str), objective variable names
     @ In, constraintNum, int, number of constraints
     @ In, a, float or list(float), optional, objective scaling factors
@@ -61,13 +61,13 @@ def _scalingFactors(objVar, constraintNum, a=None, b=None):
   b = np.atleast_1d(np.asarray(b if b is not None else _defaultPenaltyScaling, dtype=float)).ravel()
   if b.size == 1:
     b = np.full((nObj, constraintNum), b[0])
-  elif b.size == nObj:
-    b = np.repeat(b[:, None], constraintNum, axis=1)
+  elif b.size == constraintNum:
+    b = np.tile(b, (nObj, 1))   # one per constraint, shared by every objective
   elif b.size == nObj * constraintNum:
     b = b.reshape(nObj, constraintNum)
   else:
-    mh.error("fitness", IOError, f"Penalty scaling factors {b.tolist()} must have length 1, {nObj} (one per objective), "
-             f"or {nObj * constraintNum} (one per objective and constraint)")
+    mh.error("fitness", IOError, f"Penalty scaling factors {b.tolist()} must have length 1, {constraintNum} (one per "
+             f"constraint), or {nObj * constraintNum} (one per objective and constraint)")
   return a, b
 
 # @profile
@@ -85,7 +85,7 @@ def invLinear(rlz, **kwargs):
   @ In, kwargs, dict, dictionary of parameters:
         objVar, list of strings or single string, name(s) of the objective variable(s)
         a, list of floats, linear coefficient(s) for the objective function (default = 1.0 for each objective)
-        b, list of floats, penalty coefficient(s): one value, one per objective, or one per (objective, constraint) pair
+        b, list of floats, penalty coefficient(s): one value, one per constraint, or one per (objective, constraint) pair
            (default = 10.0; this default was 1.0 before the NSGA-II refactor, so constrained inputs without <b> change results)
         constraintFunction, xr.DataArray, measuring the severity of the constraint violation.
         type, list of strings, indicating 'min' or 'max' for each objective
@@ -141,7 +141,7 @@ def feasibleFirst(rlz, **kwargs):
         'constraintFunction', xr.DataArray, containing all constraint evaluations for the population
         'constraintNum', int, number of constraints
         'a', list of floats, scaling factors for the objectives (default = 1.0 for each objective)
-        'b', list of floats, penalty factors: one value, one per objective, or one per (objective, constraint) pair
+        'b', list of floats, penalty factors: one value, one per constraint, or one per (objective, constraint) pair
              (default = 10.0; this default was 1.0 before the NSGA-II refactor)
         'type', list of strings, indicating 'min' or 'max' for each objective
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.

@@ -2211,13 +2211,13 @@ class UniformDiscrete(Distribution):
 
   def numberOfOutcomes(self):
     """
-      Number of distinct values this distribution can take
+      Number of distinct values this distribution can take: the size of its full support, whichever
+      way it is given (<values>, <step>, <nPoints> or integer bounds). Built from _constructXArray,
+      not self.xArray, which selectedRvs shrinks while sampling.
       @ In, None
       @ Out, numberOfOutcomes, int, size of the support
     """
-    if self.nPoints is None:
-      return int(self.upperBound) - int(self.lowerBound) + 1
-    return int(self.nPoints)
+    return int(self._constructXArray().size)
 
   def selectedRvs(self,discardedElems):
     """

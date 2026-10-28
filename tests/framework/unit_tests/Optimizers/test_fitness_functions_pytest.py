@@ -77,17 +77,61 @@ def _twoObjectiveInputs(fitness_inputs):
   return rlz, fitness_inputs['constraints']
 
 
-def test_penalty_scalar_per_objective_and_per_pair_agree(fitness_inputs):
-  """b given as one value, one per objective, or one per (objective, constraint) pair: equal weights agree."""
+def test_penalty_scalar_per_constraint_and_per_pair_agree(fitness_inputs):
+  """b given as one value, one per constraint, or one per (objective, constraint) pair: equal weights agree."""
   rlz, constraints = _twoObjectiveInputs(fitness_inputs)
   common = dict(objVar=['obj', 'obj2'], a=[1.0, 1.0], constraintFunction=constraints, constraintNum=2, type=['min', 'min'])
   for func in (fitness.invLinear, fitness.feasibleFirst):
     scalar = func(rlz, b=[3.0], **common)
-    perObj = func(rlz, b=[3.0, 3.0], **common)
+    perConst = func(rlz, b=[3.0, 3.0], **common)
     perPair = func(rlz, b=[3.0, 3.0, 3.0, 3.0], **common)
     for obj in common['objVar']:
-      np.testing.assert_allclose(scalar[obj].values, perObj[obj].values)
+      np.testing.assert_allclose(scalar[obj].values, perConst[obj].values)
       np.testing.assert_allclose(scalar[obj].values, perPair[obj].values)
+
+
+def _threeObjectiveInputs(fitness_inputs):
+  """
+    Three objectives over the 2-constraint fixture, so nObj != nConst and a length-nConst b cannot
+    be mistaken for a per-objective b.
+    @ In, fitness_inputs, dict, fixture
+    @ Out, (rlz, constraints), tuple, three-objective dataset and constraint values
+  """
+  rlz = fitness_inputs['rlz'].copy()
+  rlz['obj2'] = rlz['obj'] * 2.0
+  rlz['obj3'] = rlz['obj'] * 3.0
+  return rlz, fitness_inputs['constraints']
+
+
+def test_penalty_per_constraint_is_shared_across_objectives(fitness_inputs):
+  """A length-nConst b weights constraint j by b_j for every objective (earlier RAVEN behavior)."""
+  rlz, constraints = _threeObjectiveInputs(fitness_inputs)
+  objVar = ['obj', 'obj2', 'obj3']
+  common = dict(objVar=objVar, a=[1.0, 1.0, 1.0], constraintFunction=constraints, constraintNum=2, type=['min'] * 3)
+  for func in (fitness.invLinear, fitness.feasibleFirst):
+    perConst = func(rlz, b=[1.0, 5.0], **common)
+    expanded = func(rlz, b=[1.0, 5.0] * 3, **common)   # the same weights written per (objective, constraint)
+    for obj in objVar:
+      np.testing.assert_allclose(perConst[obj].values, expanded[obj].values)
+  # violations: ind1 -> c1=0.3; ind2 -> c1=0.1, c2=0.4; penalty = 1*c1 + 5*c2 for every objective
+  result = fitness.invLinear(rlz, b=[1.0, 5.0], **common)
+  np.testing.assert_allclose(result['obj'].values, np.array([-1.0, -2.0 - 0.3, -0.5 - 0.1 - 2.0]))
+  np.testing.assert_allclose(result['obj3'].values, np.array([-3.0, -6.0 - 0.3, -1.5 - 0.1 - 2.0]))
+
+
+def test_penalty_per_objective_length_is_rejected(fitness_inputs):
+  """With nObj != nConst, a length-nObj b (neither 1, nConst nor nObj*nConst) is rejected."""
+  rlz, constraints = _threeObjectiveInputs(fitness_inputs)
+  with pytest.raises(IOError):
+    fitness.invLinear(rlz, objVar=['obj', 'obj2', 'obj3'], b=[1.0, 2.0, 3.0],
+                      constraintFunction=constraints, constraintNum=2, type=['min'] * 3)
+
+
+def test_penalty_prlo_form_two_objectives_four_constraints():
+  """The PRLO deck form (2 objectives, 4 constraints, one b per constraint) is accepted (B7 reproducer)."""
+  a, b = fitness._scalingFactors(['MaxEFPD', 'FuelCycleCost'], 4, b=[0.0025, 6.0, 8.0, 0.2])
+  np.testing.assert_allclose(b, np.array([[0.0025, 6.0, 8.0, 0.2]] * 2))
+  np.testing.assert_allclose(a, np.ones(2))
 
 
 def test_penalty_per_pair_is_objective_major(fitness_inputs):
@@ -117,7 +161,7 @@ def test_penalty_default_matches_explicit(fitness_inputs):
 
 
 def test_penalty_bad_length_raises(fitness_inputs):
-  """A b whose length is neither 1, nObj, nor nObj*nConstraint is rejected."""
+  """A b whose length is neither 1, nConstraint, nor nObj*nConstraint is rejected."""
   rlz, constraints = _twoObjectiveInputs(fitness_inputs)
   with pytest.raises(IOError):
     fitness.invLinear(rlz, objVar=['obj', 'obj2'], b=[1.0, 2.0, 3.0],
