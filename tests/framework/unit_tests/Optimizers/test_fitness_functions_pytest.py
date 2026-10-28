@@ -14,6 +14,8 @@
 """
   Unit tests for the GA fitness functions (invLinear, feasibleFirst, logistic) and the <a>/<b> scaling contract.
 """
+import math
+
 import numpy as np
 import pytest
 
@@ -64,6 +66,31 @@ def test_logistic_adjusts_for_maximization_and_penalties(fitness_inputs):
   values = result['obj'].values
   expected = np.array([0.5, 0.269203, 0.981059])
   np.testing.assert_allclose(values, expected, rtol=1e-5, atol=1e-6)
+
+
+def test_logistic_applies_penalty_and_respects_minimization(fitness_inputs):
+  """For minimization the logistic is taken on the negated scale, and each violation is subtracted."""
+  result = fitness.logistic(
+    fitness_inputs['rlz'],
+    objVar=fitness_inputs['obj_var'],
+    scale=[-1.0],
+    shift=[1.0],
+    penalty=[0.5],
+    constraintFunction=fitness_inputs['constraints'],
+    type=['min'],
+  )
+  expected = np.array([0.5,
+                       1.0 / (1.0 + math.exp(1.0)) - 0.5 * 0.3,
+                       1.0 / (1.0 + math.exp(-0.5)) - 0.5 * 0.5])
+  np.testing.assert_allclose(result['obj'].values, expected)
+
+
+def test_logistic_flips_for_maximization(fitness_inputs):
+  """Without constraints, maximization returns 1 - logistic(objective)."""
+  rlz = fitness_inputs['rlz']
+  base = np.array([1.0 / (1.0 + math.exp(-(val - 1.0))) for val in rlz['obj'].data])
+  result = fitness.logistic(rlz, objVar=fitness_inputs['obj_var'], scale=[1.0], shift=[1.0], penalty=[0.0], type=['max'])
+  np.testing.assert_allclose(result['obj'].values, 1.0 - base)
 
 
 def _twoObjectiveInputs(fitness_inputs):

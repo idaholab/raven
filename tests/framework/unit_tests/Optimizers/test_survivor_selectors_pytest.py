@@ -147,14 +147,7 @@ def test_fitness_based_carries_constraint_rows():
   np.testing.assert_allclose(new_obj, [8.0, 5.0])
   np.testing.assert_allclose(new_cons.values, [[-8.0, 0.8], [-5.0, 0.5]])
   assert list(new_cons.coords['Constraint'].values) == ['c1', 'c2']
-
-def test_rank_and_crowding_selector_respects_fronts(nsga_combined_data):
-  result = survivorSelectors.rankNcrowdingBased(**nsga_combined_data['params'])
-  selected = result[0].coords['chromosome'].values
-  assert len(selected) == nsga_combined_data['params']['popSize']
-  assert list(result[0].values[:, 0]) == [
-    nsga_combined_data['params']['combinedPop'][i][0] for i in nsga_combined_data['expected_indices']
-  ]
+# rankNcrowdingBased is covered in test_rank_crowding_selector_pytest.py
 
 
 if __name__ == "__main__":
