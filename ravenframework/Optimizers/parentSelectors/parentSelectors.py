@@ -33,6 +33,24 @@ from ... import MessageHandler # makes sure getMessageHandler is defined
 # Internal Modules End------------------------------------------------------------------------------
 mh = getMessageHandler()
 
+def _rouletteProbabilities(fitVals):
+  """
+    Selection probabilities for fitness-proportionate (roulette-wheel) selection, which needs
+    non-negative weights. If any fitness is negative, the fitness is shifted by its minimum
+    (f - min f, the shift earlier versions applied only to mixed-sign fitness), so the best
+    individual always gets the largest share and the worst gets none. If every weight is zero
+    (e.g. every fitness equal), selection is uniform.
+    @ In, fitVals, np.array, fitness of each remaining individual (larger is better)
+    @ Out, selectionProb, np.array, selection probability of each individual (sums to 1)
+  """
+  weights = np.asarray(fitVals, dtype=np.float64)
+  if weights.min() < 0:
+    weights = weights - weights.min()
+  total = weights.sum()
+  if not np.isfinite(total) or total <= 0:
+    return np.full(len(weights), 1.0 / len(weights))
+  return weights / total
+
 # @profile
 def rouletteWheel(population,**kwargs):
   """
@@ -68,23 +86,11 @@ def rouletteWheel(population,**kwargs):
   for i in range(nParents):
     # set a random pointer
     roulettePointer = randomUtils.random(dim=1, samples=1)
-    # initialize Probability
+    selectionProb = _rouletteProbabilities(fitVals)
+    # walk the wheel; the last slot absorbs any floating-point shortfall of the cumulative sum
     counter = 0
-    try:
-      if np.all(fitVals>=0) or np.all(fitVals<=0):
-        selectionProb = fitVals/np.sum(fitVals) # Share of the pie (rouletteWheel)
-      else:
-        # shift the fitness to be all positive
-        shiftedFitness = fitVals + abs(min(fitVals))
-        selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
-    except (ZeroDivisionError, RuntimeWarning):
-      #shift the fitnesses to be all positive (adds min and epsilon)
-      shiftedFitness = fitVals + abs(min(fitVals))+1e-10
-      selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
-
     sumProb = selectionProb[counter]
-
-    while sumProb <= roulettePointer :
+    while sumProb <= roulettePointer and counter < len(selectionProb) - 1:
       counter += 1
       sumProb += selectionProb[counter]
     selectedParent[i,:] = pop.values[counter,:]
@@ -174,24 +180,21 @@ def rankSelection(population,**kwargs):
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs.get('popFitVals', kwargs.get('fitness'))
-  pop = population
-
-  index = np.arange(0,pop.shape[0])
-  rank = np.arange(0,pop.shape[0])
-
-  data = np.vstack((np.array(fitness.variables['test_RankSelection'],dtype=np.float64),index))
-  dataOrderedByDecreasingFitness = data[:,(-data[0]).argsort()]
-  dataOrderedByDecreasingFitness[0,:] = rank
-  dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
-  orderedRank = dataOrderedByIncreasingPos[0,:]
-
-  rank = xr.DataArray(orderedRank,
-                      dims=['chromosome'],
-                      coords={'chromosome': np.arange(np.shape(orderedRank)[0])})
-
-  rank = rank.to_dataset(name = 'test_RankSelection')
-  selectedParent = rouletteWheel(population, fitness=rank , nParents=kwargs['nParents'],variables=kwargs['variables'])
+  fitnessInput = kwargs.get('popFitVals', kwargs.get('fitness'))
+  # the fitness of the (single) objective, whatever it is named
+  fitVals = np.array([item for sublist in datasetToDataArray(fitnessInput, list(fitnessInput.keys())).data
+                      for item in sublist], dtype=np.float64)
+  n = len(fitVals)
+  # linear ranking: the worst individual gets weight 1 and the best gets weight n, so selection depends
+  # only on the order of the fitness values, not their scale; ties share the average of their ranks
+  order = np.argsort(fitVals, kind='stable')
+  weights = np.empty(n, dtype=np.float64)
+  weights[order] = np.arange(1, n + 1, dtype=np.float64)
+  for value in np.unique(fitVals):
+    tied = fitVals == value
+    weights[tied] = weights[tied].mean()
+  rank = xr.DataArray(weights, dims=['chromosome'], coords={'chromosome': np.arange(n)}).to_dataset(name='rank')
+  selectedParent = rouletteWheel(population, fitness=rank, nParents=kwargs['nParents'], variables=kwargs['variables'])
 
   return selectedParent
 

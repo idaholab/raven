@@ -202,8 +202,13 @@ def logistic(rlz, **kwargs):
   @ Out, fitnessSet, xr.Dataset, the fitness function for the given population.
   """
   objVar = kwargs['objVar']
-  scale = kwargs.get('scale', [_defaultObjectiveScaling] * len(objVar))  # Scaling factors for objectives
-  shift = kwargs.get('shift', [0.0] * len(objVar))  # Shifting value for each objective
+  # the GA passes None for options the input omits, so fall back on None as well as on a missing key
+  scale = kwargs.get('scale')
+  if scale is None:
+    scale = [_defaultObjectiveScaling] * len(objVar)  # Scaling factors for objectives
+  shift = kwargs.get('shift')
+  if shift is None:
+    shift = [0.0] * len(objVar)  # Shifting value for each objective
   # the GA passes penalty=None, so fall back to the default instead of only when the key is absent
   penalty = kwargs.get('penalty')
   if penalty is None:

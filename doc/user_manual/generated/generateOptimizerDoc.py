@@ -334,6 +334,12 @@ the changes below. Each item states what happens to an old input that is not upd
     \xmlNode{b} therefore give different results; set \xmlNode{b}\texttt{1.0} to reproduce earlier runs.
     \xmlNode{b} accepts one value, one value per constraint (shared by every objective, as before),
     or one value per objective and constraint.
+  \item \textbf{Parent selection and logistic fitness.} \texttt{rouletteWheel} now favors the fittest
+    chromosome for any sign of the fitness (it used to invert the selection when every fitness was
+    negative, e.g. \texttt{invLinear} on a positive objective, and failed when every fitness was zero).
+    \texttt{rankSelection} now works with any objective name and gives the fittest chromosome the largest
+    probability. The \xmlNode{scale} and \xmlNode{shift} of the \texttt{logistic} fitness are now
+    applied; earlier versions ignored them. Inputs using these options give different results.
 \end{itemize}
 To convert existing inputs, run (from the RAVEN directory)
 \begin{lstlisting}[language=bash]

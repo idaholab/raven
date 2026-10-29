@@ -82,6 +82,10 @@
     type = 'PyTest'
     input = 'test_to_multiobjective_ga_conversion_pytest.py'
   [../]
+  [./pytestGaParentSelectionProbabilities]
+    type = 'PyTest'
+    input = 'test_parent_selection_probabilities_pytest.py'
+  [../]
   [./pytestGaConstraintHandling]
     type = 'PyTest'
     input = 'test_constraint_handling_pytest.py'

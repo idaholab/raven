@@ -28,6 +28,12 @@ the changes below. Each item states what happens to an old input that is not upd
     \xmlNode{b} therefore give different results; set \xmlNode{b}\texttt{1.0} to reproduce earlier runs.
     \xmlNode{b} accepts one value, one value per constraint (shared by every objective, as before),
     or one value per objective and constraint.
+  \item \textbf{Parent selection and logistic fitness.} \texttt{rouletteWheel} now favors the fittest
+    chromosome for any sign of the fitness (it used to invert the selection when every fitness was
+    negative, e.g. \texttt{invLinear} on a positive objective, and failed when every fitness was zero).
+    \texttt{rankSelection} now works with any objective name and gives the fittest chromosome the largest
+    probability. The \xmlNode{scale} and \xmlNode{shift} of the \texttt{logistic} fitness are now
+    applied; earlier versions ignored them. Inputs using these options give different results.
 \end{itemize}
 To convert existing inputs, run (from the RAVEN directory)
 \begin{lstlisting}[language=bash]
@@ -1300,13 +1306,18 @@ Simulated Annealing Example:
           will result in a popSize a little larger than the initial one, and the excessive children
           will be later thrawn away and only the first popSize child will be kept. \\\\
           You can choose three options for parentSelection:                       \begin{itemize}
-          \item \textit{rouletteWheel} - It assigns probabilities to chromosomes based on their
-          fitness,                           allowing for selection proportionate to their
-          likelihood of being chosen for reproduction.                           \item
-          \textit{tournamentSelection} - Chromosomes are randomly chosen from the population to
-          compete in a tournament,                           and the fittest individual among them
-          is selected for reproduction.                           \item \textit{rankSelection} -
-          Chromosomes with higher fitness values are selected.                       \end{itemize}
+          \item \textit{rouletteWheel} - fitness-proportionate selection: each chromosome is chosen
+          with                           probability proportional to its fitness. If any fitness is
+          negative, the fitness is first shifted                           by its minimum ($f - \min
+          f$), so the fittest chromosome always has the largest probability; if
+          every fitness is equal, all chromosomes are equally likely.
+          \item \textit{tournamentSelection} - Chromosomes are randomly chosen from the population
+          to compete in a tournament,                           and the fittest individual among
+          them is selected for reproduction.                           \item \textit{rankSelection}
+          - linear ranking: chromosomes are ranked by fitness, from 1 (worst) to
+          $popSize$ (best), and chosen with probability proportional to their rank. Only the order
+          of the                           fitness values matters, not their scale; equal fitness
+          values share their average rank.                       \end{itemize}
 
         \item \xmlNode{reproduction}:
           a node containing the reproduction methods. This accepts subnodes that specifies the types
@@ -1443,12 +1454,12 @@ Simulated Annealing Example:
               different results. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
-              scale: in case of logistic fitness, this is the multiplier of the onjective(s).
-              \default{list of ones}
+              scale: in case of logistic fitness, this is the multiplier of the objective(s).
+              Earlier RAVEN versions read but ignored it. \default{list of ones}
 
             \item \xmlNode{shift}: \xmlDesc{comma-separated floats},
               shift: in case of logistic fitness, this is the shift in the exponential function for
-              the onjective(s). \default{list of zeros}
+              the objective(s). Earlier RAVEN versions read but ignored it. \default{list of zeros}
 
             \item \xmlNode{normalize}: \xmlDesc{string},
               normalize: input and output data will be normalized prior to calculating fitness for
@@ -1915,13 +1926,18 @@ Genetic Algorithm Example:
           will result in a popSize a little larger than the initial one, and the excessive children
           will be later thrawn away and only the first popSize child will be kept. \\\\
           You can choose three options for parentSelection:                       \begin{itemize}
-          \item \textit{rouletteWheel} - It assigns probabilities to chromosomes based on their
-          fitness,                           allowing for selection proportionate to their
-          likelihood of being chosen for reproduction.                           \item
-          \textit{tournamentSelection} - Chromosomes are randomly chosen from the population to
-          compete in a tournament,                           and the fittest individual among them
-          is selected for reproduction.                           \item \textit{rankSelection} -
-          Chromosomes with higher fitness values are selected.                       \end{itemize}
+          \item \textit{rouletteWheel} - fitness-proportionate selection: each chromosome is chosen
+          with                           probability proportional to its fitness. If any fitness is
+          negative, the fitness is first shifted                           by its minimum ($f - \min
+          f$), so the fittest chromosome always has the largest probability; if
+          every fitness is equal, all chromosomes are equally likely.
+          \item \textit{tournamentSelection} - Chromosomes are randomly chosen from the population
+          to compete in a tournament,                           and the fittest individual among
+          them is selected for reproduction.                           \item \textit{rankSelection}
+          - linear ranking: chromosomes are ranked by fitness, from 1 (worst) to
+          $popSize$ (best), and chosen with probability proportional to their rank. Only the order
+          of the                           fitness values matters, not their scale; equal fitness
+          values share their average rank.                       \end{itemize}
 
         \item \xmlNode{reproduction}:
           a node containing the reproduction methods. This accepts subnodes that specifies the types
@@ -2058,12 +2074,12 @@ Genetic Algorithm Example:
               different results. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
-              scale: in case of logistic fitness, this is the multiplier of the onjective(s).
-              \default{list of ones}
+              scale: in case of logistic fitness, this is the multiplier of the objective(s).
+              Earlier RAVEN versions read but ignored it. \default{list of ones}
 
             \item \xmlNode{shift}: \xmlDesc{comma-separated floats},
               shift: in case of logistic fitness, this is the shift in the exponential function for
-              the onjective(s). \default{list of zeros}
+              the objective(s). Earlier RAVEN versions read but ignored it. \default{list of zeros}
 
             \item \xmlNode{normalize}: \xmlDesc{string},
               normalize: input and output data will be normalized prior to calculating fitness for

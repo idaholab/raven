@@ -82,8 +82,8 @@
           </mutation>
         </reproduction>
         <fitness type="logistic">
-          <shift>0.2</shift>
-          <scale>13.0</scale>
+          <scale>0.2</scale>
+          <shift>13.0</shift>
         </fitness>
         <parentSelection>rouletteWheel</parentSelection>
         <survivorSelection>fitnessBased</survivorSelection>

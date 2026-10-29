@@ -1005,6 +1005,8 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                                               a=self._objCoeff,
                                               b=self._penaltyCoeff,
                                               penalty=None,
+                                              scale=self._scale,
+                                              shift=self._shift,
                                               constraintFunction=offspringConstraintVals,
                                               constraintNum=self._numOfConst,
                                               type=self._minMax)

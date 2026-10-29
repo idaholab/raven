@@ -351,6 +351,8 @@ class GeneticAlgorithm(RavenSampled):
     self._objCoeff = None                                        # weight coefficients of objectives for fitness calculation
     self._objectiveVar = None                                    # objective variable names
     self._penaltyCoeff = None                                    # weight coefficients corresponding to constraints and objectives for fitness calculation
+    self._scale = None                                           # logistic fitness: <scale> multiplier of the objective(s)
+    self._shift = None                                           # logistic fitness: <shift> of the objective(s)
     self._fitnessInstance = None                                 # instance of fitness
     self._repairInstance = None                                  # instance of repair
     self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
@@ -434,11 +436,15 @@ class GeneticAlgorithm(RavenSampled):
                   This will result in a popSize a little larger than the initial one, and the excessive children will be later thrawn away and only the first popSize child will be kept. \\\\
                   You can choose three options for parentSelection:
                       \begin{itemize}
-                          \item \textit{rouletteWheel} - It assigns probabilities to chromosomes based on their fitness,
-                          allowing for selection proportionate to their likelihood of being chosen for reproduction.
+                          \item \textit{rouletteWheel} - fitness-proportionate selection: each chromosome is chosen with
+                          probability proportional to its fitness. If any fitness is negative, the fitness is first shifted
+                          by its minimum ($f - \min f$), so the fittest chromosome always has the largest probability; if
+                          every fitness is equal, all chromosomes are equally likely.
                           \item \textit{tournamentSelection} - Chromosomes are randomly chosen from the population to compete in a tournament,
                           and the fittest individual among them is selected for reproduction.
-                          \item \textit{rankSelection} - Chromosomes with higher fitness values are selected.
+                          \item \textit{rankSelection} - linear ranking: chromosomes are ranked by fitness, from 1 (worst) to
+                          $popSize$ (best), and chosen with probability proportional to their rank. Only the order of the
+                          fitness values matters, not their scale; equal fitness values share their average rank.
                       \end{itemize}
                   """)
     GAparams.addSub(parentSelection)
@@ -567,12 +573,12 @@ class GeneticAlgorithm(RavenSampled):
     scale = InputData.parameterInputFactory('scale', strictMode=False,
         contentType=InputTypes.FloatListType,
         printPriority=108,
-        descr=r""" scale: in case of logistic fitness, this is the multiplier of the onjective(s). \default{list of ones}""")
+        descr=r""" scale: in case of logistic fitness, this is the multiplier of the objective(s). Earlier RAVEN versions read but ignored it. \default{list of ones}""")
     fitness.addSub(scale)
     shift = InputData.parameterInputFactory('shift', strictMode=False,
         contentType=InputTypes.FloatListType,
         printPriority=108,
-        descr=r""" shift: in case of logistic fitness, this is the shift in the exponential function for the onjective(s). \default{list of zeros}""")
+        descr=r""" shift: in case of logistic fitness, this is the shift in the exponential function for the objective(s). Earlier RAVEN versions read but ignored it. \default{list of zeros}""")
     fitness.addSub(shift)
     normalizeFitness = InputData.parameterInputFactory('normalize', strictMode=False,
         contentType=InputTypes.StringType,
@@ -979,6 +985,8 @@ class GeneticAlgorithm(RavenSampled):
                                                a=self._objCoeff,
                                                b=self._penaltyCoeff,
                                                penalty=None,
+                                               scale=self._scale,
+                                               shift=self._shift,
                                                constraintFunction=offspringConstraintVals,
                                                constraintNum=self._numOfConst,
                                                type=self._minMax)
