@@ -4,6 +4,11 @@
     input = 'testARMA.py'
   [../]
 
+  [./DMDC]
+    type = 'RavenPython'
+    input = 'testDMDC.py'
+  [../]
+
   [./pickle_rom]
     type = 'RavenFramework'
     input = 'pickle_rom.xml'

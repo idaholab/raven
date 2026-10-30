@@ -1,0 +1,5 @@
+level,x1_init,x2_init,tEnd,filename
+1.0,0.0,0.0,118.0,Pooled_DMDC_0.csv
+1.2,0.5,0.0,148.0,Pooled_DMDC_1.csv
+1.4,1.0,0.2,198.0,Pooled_DMDC_2.csv
+1.6,1.5,0.4,598.0,Pooled_DMDC_3.csv

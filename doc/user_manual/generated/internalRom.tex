@@ -5202,34 +5202,54 @@ Example to export the coefficients of trained DMD ROM:
   \cite{proctor2016dynamic}).         In addition to perform a ``dimensionality reduction
   regression'' like DMD, this surrogate will         calculate the state-space representation
   matrices A, B and  C in a discrete time domain:         \begin{itemize}           \item
-  $x[k+1]=A*x[k]+B*u[k]$           \item $y[k+1]=C*x[k+1]$         \end{itemize}          In order
-  to use this Reduced Order Model, the \xmlNode{ROM} attribute         \xmlAttr{subType} needs to be
-  set equal to \xmlString{DMDC}.         \\         Once the ROM  is trained (\textbf{Step}
-  \xmlNode{RomTrainer}), its         parameters/coefficients can be exported into an XML file
-  via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be
-  exported (i.e.         \xmlNode{what} node         in \xmlNode{OutStream} of type
-  \xmlAttr{Print}):         \begin{itemize}           \item \xmlNode{rankSVD}, see XML input
-  specifications below           \item \xmlNode{actuators}, XML node containing the list of actuator
-  variables (u),                 see XML input specifications below           \item
-  \xmlNode{stateVariables}, XML node containing the list of system state variables (x),
-  see XML input specifications below           \item \xmlNode{initStateVariables}, XML node
-  containing the list of system state variables                 (x\_init) that are used for
-  initializing the model in ``evaluation'' mode,                 see XML input specifications below
-  \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
-  \item \xmlNode{dmdTimeScale}, XML node containing the the array of time scale in the DMD space,
-  which is time axis in traning data (Time)           \item \xmlNode{UNorm}, XML node containing the
-  norminal values of actuators,                 which are the initial actuator values in the
-  training data           \item \xmlNode{XNorm}, XML node containing the norminal values of state
-  variables,                 which are the initial state values in the training data           \item
-  \xmlNode{XLast}, XML node containing the last value of state variables,                 which are
-  the final state values in the training data (before nominal value subtraction)           \item
-  \xmlNode{YNorm}, XML node containing the norminal values of output variables,
-  which are the initial output values in the training data           \item \xmlNode{Atilde},  XML
-  node containing the A matrix in discrete time domain                 (imaginary part, matrix
-  shape, and real part)           \item \xmlNode{Btilde}, XML node containing the B matrix in
-  discrete time domain                 (imaginary part, matrix shape, and real part)           \item
-  \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
-  (imaginary part, matrix shape, and real part)         \end{itemize}
+  $x[k+1]=A*x[k]+B*u[k]$           \item $y[k+1]=C*x[k+1]$         \end{itemize}         By default,
+  a model (A, B and C) is constructed for each training history (realization) and, in the
+  evaluation stage, the one of the closest training history in the parameter space is used.
+  If \xmlNode{pooled} is True, a single model (A, B and C) is identified from all the training
+  histories         together (e.g. repeated experiments of the same system), with an optional
+  constant term $c\_s$ for each         history $s$ (\xmlNode{historyOffsets}):
+  \begin{itemize}           \item $x\_s[k+1]=A*x\_s[k]+B*u\_s[k]+c\_s$         \end{itemize}         The
+  pooled identification uses the transitions of all the histories (never across two histories) and
+  it         accepts histories of different lengths: since the training histories must share the
+  same time grid, the         shorter ones can be extended (e.g. with the \xmlString{HistorySetSync}
+  PostProcessor) and the end of         the valid portion of each history is provided by the scalar
+  feature indicated in \xmlNode{validUntil}         (the transitions after it, or involving NaN
+  values, are discarded).         The time constants of the system are obtained from the eigenvalues
+  $\lambda\_i$ of A as         $\tau\_i = -\Delta t / \ln|\lambda\_i|$ (see the \xmlNode{timeConstants}
+  export below).          In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+  \xmlAttr{subType} needs to be set equal to \xmlString{DMDC}.         \\         Once the ROM  is
+  trained (\textbf{Step} \xmlNode{RomTrainer}), its         parameters/coefficients can be exported
+  into an XML file         via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following
+  variable/parameters can be exported (i.e.         \xmlNode{what} node         in
+  \xmlNode{OutStream} of type \xmlAttr{Print}):         \begin{itemize}           \item
+  \xmlNode{rankSVD}, see XML input specifications below           \item \xmlNode{actuators}, XML
+  node containing the list of actuator variables (u),                 see XML input specifications
+  below           \item \xmlNode{stateVariables}, XML node containing the list of system state
+  variables (x),                 see XML input specifications below           \item
+  \xmlNode{initStateVariables}, XML node containing the list of system state variables
+  (x\_init) that are used for initializing the model in ``evaluation'' mode,                 see XML
+  input specifications below           \item \xmlNode{outputs}, XML node containing the list of
+  system output variables (y)           \item \xmlNode{dmdTimeScale}, XML node containing the the
+  array of time scale in the DMD space,                 which is time axis in traning data (Time)
+  \item \xmlNode{UNorm}, XML node containing the norminal values of actuators,                 which
+  are the initial actuator values in the training data           \item \xmlNode{XNorm}, XML node
+  containing the norminal values of state variables,                 which are the initial state
+  values in the training data           \item \xmlNode{XLast}, XML node containing the last value of
+  state variables,                 which are the final state values in the training data (before
+  nominal value subtraction)           \item \xmlNode{YNorm}, XML node containing the norminal
+  values of output variables,                 which are the initial output values in the training
+  data           \item \xmlNode{Atilde},  XML node containing the A matrix in discrete time domain
+  (imaginary part, matrix shape, and real part)           \item \xmlNode{Btilde}, XML node
+  containing the B matrix in discrete time domain                 (imaginary part, matrix shape, and
+  real part)           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time
+  domain                 (imaginary part, matrix shape, and real part)           \item
+  \xmlNode{timeConstants}, XML node containing the eigenvalues of the A matrix (real and imaginary
+  parts), the corresponding time constants $\tau\_i = -\Delta t / \ln|\lambda\_i|$ (sorted in
+  ascending order; \texttt{inf} for modes with $|\lambda\_i| \geq 1$, i.e. not decaying) and the
+  periods $2 \pi \Delta t / |\arg(\lambda\_i)|$ of the oscillatory modes (\texttt{inf} for non-
+  oscillatory                 modes)           \item \xmlNode{historyOffsets}, XML node containing
+  the constant terms $c\_s$ of each history (only if                 \xmlNode{pooled} and
+  \xmlNode{historyOffsets} are True)         \end{itemize}
 
   The \xmlNode{DMDC} node recognizes the following parameters:
     \begin{itemize}
@@ -5640,6 +5660,31 @@ Example to export the coefficients of trained DMD ROM:
     \item \xmlNode{singleValuesTruncationTol}: \xmlDesc{float},
       Truncation threshold to apply to singular values vector
   \default{1e-09}
+
+    \item \xmlNode{pooled}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      True if a single model (A, B and C matrices) needs to be identified
+      from all the training histories together (pooled identification), False if a
+      model is constructed for each history. The pooled identification accepts
+      histories of different lengths (see \xmlNode{validUntil}).
+  \default{False}
+
+    \item \xmlNode{validUntil}: \xmlDesc{string},
+      name of a scalar feature (listed in \xmlNode{Features}) containing,
+      for each training history, the last valid value of the pivot parameter (e.g.
+      the end time of an experiment whose history has been extended to the common
+      time grid). The transitions after it are not used for the identification.
+      This variable is not used as a parameter of the model.
+      Only used if \xmlNode{pooled} is True.
+  \default{None}
+
+    \item \xmlNode{historyOffsets}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      True if a constant term $c\_s$ for each history needs to be
+      identified together with the pooled model ($x\_s[k+1]=A*x\_s[k]+B*u\_s[k]+c\_s$),
+      e.g. to account for different (unmeasured) boundary conditions among the
+      histories. In the evaluation stage, the constant term of the closest
+      training history in the parameter space is used. Only used if
+      \xmlNode{pooled} is True.
+  \default{True}
   \end{itemize}
 
 \hspace{24pt}

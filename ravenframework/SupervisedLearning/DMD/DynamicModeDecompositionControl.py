@@ -65,6 +65,21 @@ class DMDC(DMD):
           \item $x[k+1]=A*x[k]+B*u[k]$
           \item $y[k+1]=C*x[k+1]$
         \end{itemize}
+        By default, a model (A, B and C) is constructed for each training history (realization) and, in the
+        evaluation stage, the one of the closest training history in the parameter space is used.
+        If \xmlNode{pooled} is True, a single model (A, B and C) is identified from all the training histories
+        together (e.g. repeated experiments of the same system), with an optional constant term $c_s$ for each
+        history $s$ (\xmlNode{historyOffsets}):
+        \begin{itemize}
+          \item $x_s[k+1]=A*x_s[k]+B*u_s[k]+c_s$
+        \end{itemize}
+        The pooled identification uses the transitions of all the histories (never across two histories) and it
+        accepts histories of different lengths: since the training histories must share the same time grid, the
+        shorter ones can be extended (e.g. with the \xmlString{HistorySetSync} PostProcessor) and the end of
+        the valid portion of each history is provided by the scalar feature indicated in \xmlNode{validUntil}
+        (the transitions after it, or involving NaN values, are discarded).
+        The time constants of the system are obtained from the eigenvalues $\lambda_i$ of A as
+        $\tau_i = -\Delta t / \ln|\lambda_i|$ (see the \xmlNode{timeConstants} export below).
 
         In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
         \xmlAttr{subType} needs to be set equal to \xmlString{DMDC}.
@@ -100,6 +115,13 @@ class DMDC(DMD):
                 (imaginary part, matrix shape, and real part)
           \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain
                 (imaginary part, matrix shape, and real part)
+          \item \xmlNode{timeConstants}, XML node containing the eigenvalues of the A matrix (real and imaginary
+                parts), the corresponding time constants $\tau_i = -\Delta t / \ln|\lambda_i|$ (sorted in
+                ascending order; \texttt{inf} for modes with $|\lambda_i| \geq 1$, i.e. not decaying) and the
+                periods $2 \pi \Delta t / |\arg(\lambda_i)|$ of the oscillatory modes (\texttt{inf} for non-oscillatory
+                modes)
+          \item \xmlNode{historyOffsets}, XML node containing the constant terms $c_s$ of each history (only if
+                \xmlNode{pooled} and \xmlNode{historyOffsets} are True)
         \end{itemize}"""
     specs.addSub(InputData.parameterInputFactory("rankSVD", contentType=InputTypes.IntegerType,
                                                  descr=r"""defines the truncation rank to be used for the SVD.
@@ -148,6 +170,25 @@ class DMDC(DMD):
                                                  is not needed.""", default=False))
     specs.addSub(InputData.parameterInputFactory("singleValuesTruncationTol", contentType=InputTypes.FloatType,
                                                  descr=r"""Truncation threshold to apply to singular values vector""", default=1e-9))
+    specs.addSub(InputData.parameterInputFactory("pooled", contentType=InputTypes.BoolType,
+                                                 descr=r"""True if a single model (A, B and C matrices) needs to be identified
+                                                 from all the training histories together (pooled identification), False if a
+                                                 model is constructed for each history. The pooled identification accepts
+                                                 histories of different lengths (see \xmlNode{validUntil}).""", default=False))
+    specs.addSub(InputData.parameterInputFactory("validUntil", contentType=InputTypes.StringType,
+                                                 descr=r"""name of a scalar feature (listed in \xmlNode{Features}) containing,
+                                                 for each training history, the last valid value of the pivot parameter (e.g.
+                                                 the end time of an experiment whose history has been extended to the common
+                                                 time grid). The transitions after it are not used for the identification.
+                                                 This variable is not used as a parameter of the model.
+                                                 Only used if \xmlNode{pooled} is True.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("historyOffsets", contentType=InputTypes.BoolType,
+                                                 descr=r"""True if a constant term $c_s$ for each history needs to be
+                                                 identified together with the pooled model ($x_s[k+1]=A*x_s[k]+B*u_s[k]+c_s$),
+                                                 e.g. to account for different (unmeasured) boundary conditions among the
+                                                 histories. In the evaluation stage, the constant term of the closest
+                                                 training history in the parameter space is used. Only used if
+                                                 \xmlNode{pooled} is True.""", default=True))
     return specs
 
   def __init__(self):
@@ -171,6 +212,9 @@ class DMDC(DMD):
     self.__Atilde = {}          # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
     self.__Btilde = {}          # B matrix
     self.__Ctilde = {}          # C matrix
+    self.__Ktilde = {}          # constant term (offset) of each history (pooled identification only)
+    self.validUntilID = None    # feature with the last valid pivot value of each history (pooled identification only)
+    self.validUntil = None      # last valid pivot value of each history
     self.actuatorVals = None    # Actuator values (e.g. U), the variable names are in self.ActuatorID
     self.stateVals = None       # state values (e.g. X)
     self.outputVals = None      # output values (e.g. Y)
@@ -186,10 +230,12 @@ class DMDC(DMD):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','rankSVD', 'energyRankSVD',
                                                                'rankTLSQ','exactModes','optimized','actuators','stateVariables', 'initStateVariables',
-                                                               'subtractNormUXY','singleValuesTruncationTol'])
+                                                               'subtractNormUXY','singleValuesTruncationTol',
+                                                               'pooled', 'historyOffsets', 'validUntil'])
     # notFound must be empty
     assert(not notFound)
-    self.dmdParams['rankSVD'       ] = settings.get('rankSVD',None)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+    # -1 no truncation, 0 optimal rank is computed, >1 truncation rank (no truncation if not provided)
+    self.dmdParams['rankSVD'       ] = settings.get('rankSVD') if settings.get('rankSVD') is not None else -1
     self.dmdParams['energyRankSVD' ] = settings.get('energyRankSVD',None)     #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
     self.dmdParams['rankTLSQ'      ] = settings.get('rankTLSQ',None)          # truncation rank for total least square
     self.dmdParams['exactModes'    ] = settings.get('exactModes',True)        # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
@@ -213,6 +259,12 @@ class DMDC(DMD):
     # END FIXME 1718
     # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     self.dmdParams['centerUXY'] = settings.get('subtractNormUXY')
+    # pooled identification (single model from all the histories) and constant term for each history
+    self.dmdParams['pooled'] = settings.get('pooled')
+    self.dmdParams['historyOffsets'] = settings.get('historyOffsets') and self.dmdParams['pooled']
+    self.validUntilID = settings.get('validUntil') if self.dmdParams['pooled'] else None
+    if self.validUntilID is not None and self.validUntilID not in self.features:
+      self.raiseAnError(IOError, f'The validUntil variable "{self.validUntilID}" must be listed among <Features>!')
     # some checks
     if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
       self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
@@ -235,6 +287,9 @@ class DMDC(DMD):
     for i in range(len(self.parametersIDs)-1,-1,-1):
       if str(self.parametersIDs[i]).endswith('_init'):
         self.parametersIDs.remove(self.parametersIDs[i])
+    # the end of the valid portion of the histories is not a parameter of the model
+    if self.validUntilID in self.parametersIDs:
+      self.parametersIDs.remove(self.validUntilID)
 
   def initializeModel(self, dmdParams):
     """
@@ -305,19 +360,116 @@ class DMDC(DMD):
     # Extract the State Values (State, X)
     # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]. Shape is [n_samples, n_timesteps, n_state_variables]
     self.stateVals =  np.asarray([targetVals[:, :, self.target.index(st)] for st in self.stateID]).T
+    if not len(self.outputID):
+      # no output variables (y): keep the (n_timesteps, n_samples, 0) shape
+      self.outputVals = np.zeros(self.stateVals.shape[:2] + (0,))
     # create matrices
-    self.__Atilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.stateID)))
-    self.__Btilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.actuatorsID)))
-    self.__Ctilde = np.zeros((featureVals.shape[0], len(self.outputID), len(self.stateID)))
-    for smp in range(featureVals.shape[0]):
-      X1 = (self.stateVals[:-1,smp,:]    - self.stateVals[0,smp,:]).T    if self.dmdParams['centerUXY'] else self.stateVals[:-1,smp,:].T
-      X2 = (self.stateVals[1:,smp,:]     - self.stateVals[0,smp,:]).T    if self.dmdParams['centerUXY'] else self.stateVals[1:,smp,:].T
-      U =  (self.actuatorVals[:-1,smp,:] - self.actuatorVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp,:].T
-      Y1 = (self.outputVals[:-1,smp,:]   - self.outputVals[0,smp,:]).T   if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp,:].T
-      # compute A,B,C matrices
-      self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
+    nSamples = featureVals.shape[0]
+    self.__Atilde = np.zeros((nSamples, len(self.stateID), len(self.stateID)))
+    self.__Btilde = np.zeros((nSamples, len(self.stateID), len(self.actuatorsID)))
+    self.__Ctilde = np.zeros((nSamples, len(self.outputID), len(self.stateID)))
+    self.__Ktilde = np.zeros((nSamples, len(self.stateID)))
+    if self.dmdParams['pooled']:
+      self.validUntil = featureVals[:, 0, self.features.index(self.validUntilID)] if self.validUntilID is not None else None
+      self._trainPooled(nSamples)
+    else:
+      for smp in range(nSamples):
+        X1, X2, U, Y1 = self._getSnapshots(smp)
+        # compute A,B,C matrices
+        self.__Atilde[smp,:,:] , self.__Btilde[smp,:,:], self.__Ctilde[smp,:,:], _ = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
+
+  def _getSnapshots(self, smp, validOnly=False):
+    """
+      Get the (centered, if requested) snapshot matrices of a training history
+      @ In, smp, int, index of the training history
+      @ In, validOnly, bool, optional, True to keep only the valid transitions (without NaN values and
+                                       within the validUntil pivot value, if any)
+      @ Out, (X1, X2, U, Y1), tuple(np.ndarray), states at k (n*L), states at k+1 (n*L), actuators at k (m*L)
+                                                 and outputs at k (y*L)
+    """
+    x, u, y = self.stateVals[:, smp, :], self.actuatorVals[:, smp, :], self.outputVals[:, smp, :]
+    if self.dmdParams['centerUXY']:
+      x, u, y = x - x[0, :], u - u[0, :], y - y[0, :]
+    X1, X2, U, Y1 = x[:-1, :], x[1:, :], u[:-1, :], y[:-1, :]
+    if validOnly:
+      valid = np.all(np.isfinite(X1), axis=1) & np.all(np.isfinite(X2), axis=1) & np.all(np.isfinite(U), axis=1)
+      if self.validUntil is not None:
+        valid &= self.pivotValues[1:] <= self.validUntil[smp]
+      X1, X2, U, Y1 = X1[valid], X2[valid], U[valid], Y1[valid]
+    return X1.T, X2.T, U.T, Y1.T
+
+  def _trainPooled(self, nSamples):
+    """
+      Identify a single model (A, B, C) from all the training histories together, with an optional
+      constant term for each history (x_s[k+1] = A x_s[k] + B u_s[k] + c_s)
+      @ In, nSamples, int, number of training histories
+      @ Out, None
+    """
+    if nSamples < 2:
+      self.raiseAnError(IOError, 'The pooled identification (<pooled>True</pooled>) requires at least 2 training histories!')
+    X1, X2, U, Y1, E = [], [], [], [], []
+    for smp in range(nSamples):
+      x1, x2, u, y1 = self._getSnapshots(smp, validOnly=True)
+      if x1.shape[1] < 2:
+        self.raiseAnError(IOError, f'The training history {smp} has less than 2 valid (not NaN) transitions!')
+      X1.append(x1)
+      X2.append(x2)
+      U.append(u)
+      Y1.append(y1)
+      # indicator of the history, used to identify its constant term
+      indicator = np.zeros((nSamples, x1.shape[1]))
+      indicator[smp, :] = 1.0
+      E.append(indicator)
+    X1, X2, U, Y1, E = (np.concatenate(mat, axis=1) for mat in (X1, X2, U, Y1, E))
+    A, B, C, K = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'],
+                                        E if self.dmdParams['historyOffsets'] else None)
+    # the pooled model is shared by all the histories (stored for each of them, so that the
+    # evaluation and the export work as for the history-wise identification)
+    self.__Atilde[:, :, :] = A
+    self.__Btilde[:, :, :] = B
+    self.__Ctilde[:, :, :] = C
+    if K is not None:
+      self.__Ktilde[:, :] = K.T
+
+  @staticmethod
+  def _timeConstants(A, dt):
+    """
+      Compute the eigenvalues of the (discrete time) A matrix and the corresponding time constants and periods
+      @ In, A, np.ndarray, the A matrix
+      @ In, dt, float, the time step
+      @ Out, (eigs, taus, periods), tuple(np.ndarray), eigenvalues (sorted by time constant), time constants
+                                                       -dt/ln|lambda| (inf if |lambda| >= 1) and periods
+                                                       2*pi*dt/|arg(lambda)| (inf if not oscillatory)
+    """
+    eigs = np.linalg.eigvals(A)
+    # numerically null eigenvalues (e.g. from rank deficient operators) are set to zero
+    eigs = np.where(np.abs(eigs) < 1e-8, 0.0, eigs)
+    modulus = np.abs(eigs)
+    zero = modulus == 0.0
+    taus = np.full(len(eigs), np.inf)
+    decaying = (~zero) & (modulus < 1.0)
+    taus[decaying] = -dt / np.log(modulus[decaying])
+    taus[zero] = 0.0
+    angles = np.abs(np.angle(eigs))
+    periods = np.full(len(eigs), np.inf)
+    oscillating = (~zero) & (angles > 1e-12)
+    periods[oscillating] = 2.0 * np.pi * dt / angles[oscillating]
+    order = np.argsort(taus, kind='stable')
+    return eigs[order], taus[order], periods[order]
+
+  def _timeConstantsDict(self, smp):
+    """
+      Time constants information of the A matrix of a training history, formatted for the export
+      @ In, smp, int, index of the training history
+      @ Out, valDict, dict, {'eigenvaluesReal', 'eigenvaluesImaginary', 'tau', 'period'} (space separated strings)
+    """
+    eigs, taus, periods = self._timeConstants(self.__Atilde[smp, :, :], self.timeScales['training']['dt'])
+    return {'eigenvaluesReal': " ".join(['%.8e' % elm for elm in eigs.real]),
+            'eigenvaluesImaginary': " ".join(['%.8e' % elm for elm in eigs.imag]),
+            'tau': " ".join(['%.8e' % elm for elm in taus]),
+            'period': " ".join(['%.8e' % elm for elm in periods])}
 
   @property
   def featureImportances_(self, group = None):
@@ -373,46 +525,46 @@ class DMDC(DMD):
     return self._importances
 
   def __evaluate(self, featureVals):
-    indices = [0]
+    """
+      Propagate the state-space model, X[k+1] = A*X[k] + B*U[k] (+ c for the pooled identification),
+      for each requested realization
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
+      @ Out, (evalX, evalY), tuple(numpy.ndarray), evaluated states and outputs, shape (n_requests, n_timeStep, n_vars)
+    """
+    nreqs = featureVals.shape[0]
+    indices = np.zeros(nreqs, dtype=int)
     if len(self.parametersIDs):
       # extract the scheduling parameters (feats)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       # using nearest neighbour method to identify the index
       indices = self.neigh.predict(feats).astype(int)
-    nreqs = len(indices)
-    # Extract the Actuator signal U #
-    uVector = []
-    for varID in self.actuatorsID:
-      varIndex = self.features.index(varID)
-      uVector.append(featureVals[:, :, varIndex]) # uVector is a list now
-    uVector = np.asarray(uVector) # the uVector is not centralized yet
+    # Extract the Actuator signal U, shape (n_actuators, n_requests, n_timeSteps) (not centralized yet)
+    uVector = np.asarray([featureVals[:, :, self.features.index(varID)] for varID in self.actuatorsID])
     # Get the time steps for evaluation
-    tsEval = uVector.shape[-1] # ts_Eval = 100
-
+    tsEval = uVector.shape[-1]
     # Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
     # Initiate the evaluation array for evalX and evalY
-    evalX = np.zeros((len(indices), tsEval, len(self.initStateID)))
-    evalY = np.zeros((len(indices), tsEval, len(self.outputID)))
-
+    evalX = np.zeros((nreqs, tsEval, len(self.initStateID)))
+    evalY = np.zeros((nreqs, tsEval, len(self.outputID)))
     for cnt, index in enumerate(indices):
-      # Centralize uVector and initState when required.
+      uReq = uVector[:, cnt, :]
+      xInit = initStates[cnt, :]
+      # Centralize the actuators and the initial state of this request when required
       if self.dmdParams['centerUXY']:
-        # use np.expand_dims to ensure this works with multiple actuators
-        uVector = uVector - np.expand_dims(self.actuatorVals[0, index, :], axis=tuple(range(1,len(uVector.shape))))
-        initStates[cnt,:] = initStates[cnt,:] - self.stateVals[0, index, :]
-      evalX[cnt, 0, :] = initStates[cnt,:]
+        uReq = uReq - self.actuatorVals[0, index, :][:, None]
+        xInit = xInit - self.stateVals[0, index, :]
+      evalX[cnt, 0, :] = xInit
       evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
-      # perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] #
+      # perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] (+ c) #
       for i in range(tsEval-1):
-        # make sure that Btilde dot uVector works correctly for multiple inputs and has the same shape as aTilde dot evalX
-        xPred = np.reshape(self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + (self.__Btilde[index,:,:].dot(uVector[:,:,i])).reshape(-1,), (-1,1)).T
-        evalX[cnt, i+1, :] = xPred
+        evalX[cnt, i+1, :] = self.__Atilde[index,:,:].dot(evalX[cnt,i,:]) + self.__Btilde[index,:,:].dot(uReq[:, i]) \
+                             + self.__Ktilde[index, :]
         evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index,:,:], evalX[cnt,i+1,:])
-      # De-Centralize evalX and evalY when required.
+      # De-Centralize the states and outputs of this request when required
       if self.dmdParams['centerUXY']:
-        evalX = evalX + self.stateVals[0, index, :]
-        evalY = evalY + self.outputVals[0, index, :]
+        evalX[cnt, :, :] += self.stateVals[0, index, :]
+        evalY[cnt, :, :] += self.outputVals[0, index, :]
     return evalX, evalY
 
   def __evaluateLocal__(self,featureVals):
@@ -424,13 +576,7 @@ class DMDC(DMD):
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     evalX, evalY = self.__evaluate(featureVals)
-    indices = [0]
-    if len(self.parametersIDs):
-      # extract the scheduling parameters (feats)
-      feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
-      # using nearest neighbour method to identify the index
-      indices = self.neigh.predict(feats).astype(int)
-    nreqs = len(indices)
+    nreqs = evalX.shape[0]
     # Initialize the final return value #
     returnEvaluation = {}
     # Extract the Actuator signal U #
@@ -480,7 +626,7 @@ class DMDC(DMD):
     what = ['rankSVD','acturators',
             'stateVariables','outputs','initStateVariables',
             'Atilde','Btilde','Ctilde','UNorm','XNorm','YNorm',
-            'XLast','dmdTimeScale']
+            'XLast','dmdTimeScale','timeConstants','historyOffsets']
 
     if targets is None: # targets = None
       readWhat = what
@@ -515,7 +661,7 @@ class DMDC(DMD):
     if "outputs" in what:
       writeTo.addScalar(target, "outputs", ' '.join(self.outputID))
     if "dmdTimeScale" in what:
-      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.3d' % elm for elm in self._getTimeScale()]))
+      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.8e' % elm for elm in self._getTimeScale()]))
 
     for smp in range(self.stateVals.shape[1]):
       attributeDict = {}
@@ -556,6 +702,13 @@ class DMDC(DMD):
                    "matrixShape":",".join(str(x) for x in np.shape(self.__Ctilde[smp, :, :]))}
         writeTo.addVector("Ctilde","realization",valDict, root=targNode, attrs=attributeDict)
 
+      if "timeConstants" in what:
+        writeTo.addVector("timeConstants","realization",self._timeConstantsDict(smp), root=targNode, attrs=attributeDict)
+
+      if "historyOffsets" in what and self.dmdParams['historyOffsets']:
+        valCont = " ".join(['%.8e' % elm for elm in self.__Ktilde[smp, :].tolist()])
+        writeTo.addVector("historyOffsets","realization",valCont, root=targNode, attrs=attributeDict)
+
   def getSolutionMetadata(self):
     """
       Method to retrive the solution metadata (model trained hyper parameters)
@@ -575,6 +728,8 @@ class DMDC(DMD):
                                                         'Atilde': A matrix in discrete time domain
                                                         'Btilde': B matrix in discrete time domain
                                                         'Ctilde': C matrix in discrete time domain
+                                                        'timeConstants': eigenvalues, time constants and periods of A
+                                                        'historyOffsets': constant term of the history (pooled only)
                                                        }
                                       }
     """
@@ -589,47 +744,29 @@ class DMDC(DMD):
 
     for smp in range(self.stateVals.shape[1]):
       solutionMetadata["dataBySamples"].append({})
+      sampleData = solutionMetadata["dataBySamples"][-1]
       attributeDict = {}
       if len(self.parametersIDs):
         attributeDict = {self.parametersIDs[index]:'%.6e' % self.parameterValues[smp,index] for index in range(len(self.parametersIDs))}
       attributeDict["sample"] = str(smp)
-      solutionMetadata["dataBySamples"][-1]['attributeDict'] = attributeDict
-
+      sampleData['attributeDict'] = attributeDict
       if self.dmdParams['centerUXY']:
-        valCont = [elm for elm in self.actuatorVals[0, smp, :].T.flatten().tolist()]
-        solutionMetadata["dataBySamples"][-1]['UNorm'] = valCont
-
-      if self.dmdParams['centerUXY']:
-        valCont = [elm for elm in self.stateVals[0, smp, :].T.flatten().tolist()]
-        solutionMetadata["dataBySamples"][-1]['XNorm'] = valCont
-
-      if "XLast" in what:
-        valCont = [elm for elm in self.stateVals[-1, smp, :].T.flatten().tolist()]
-        solutionMetadata["dataBySamples"][-1]['XLast'] = valCont
-
-      if self.dmdParams['centerUXY']:
-        valCont = [elm for elm in self.outputVals[0, smp, :].T.flatten().tolist()]
-        solutionMetadata["dataBySamples"][-1]['YNorm'] = valCont
-
-      if True:
-        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Atilde[smp, :, :].T.real.flatten().tolist()]),
-                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Atilde[smp, :, :].T.imag.flatten().tolist()]),
-                   "matrixShape":",".join(str(x) for x in np.shape(self.__Atilde[smp, :, :]))}
-        solutionMetadata["dataBySamples"][-1]['Atilde'] = valCont
-
-        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Btilde[smp, :, :].T.real.flatten().tolist()]),
-                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Btilde[smp, :, :].T.imag.flatten().tolist()]),
-                   "matrixShape":",".join(str(x) for x in np.shape(self.__Btilde[smp, :, :]))}
-        solutionMetadata["dataBySamples"][-1]['Btilde'] = valCont
-
-      if len(self.outputID) > 0:
-        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Ctilde[smp, :, :].T.real.flatten().tolist()]),
-                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Ctilde[smp, :, :].T.imag.flatten().tolist()]),
-                   "matrixShape":",".join(str(x) for x in np.shape(self.__Ctilde[smp, :, :]))}
-        solutionMetadata["dataBySamples"][-1]['Ctilde'] = valCont
+        sampleData['UNorm'] = self.actuatorVals[0, smp, :].T.flatten().tolist()
+        sampleData['XNorm'] = self.stateVals[0, smp, :].T.flatten().tolist()
+        sampleData['YNorm'] = self.outputVals[0, smp, :].T.flatten().tolist()
+      sampleData['XLast'] = self.stateVals[-1, smp, :].T.flatten().tolist()
+      for name, matrix in [('Atilde', self.__Atilde), ('Btilde', self.__Btilde), ('Ctilde', self.__Ctilde)]:
+        if name == 'Ctilde' and len(self.outputID) == 0:
+          continue
+        sampleData[name] = {'real': " ".join(['%.8e' % elm for elm in matrix[smp, :, :].T.real.flatten().tolist()]),
+                            'imaginary':" ".join(['%.8e' % elm for elm in matrix[smp, :, :].T.imag.flatten().tolist()]),
+                            "matrixShape":",".join(str(x) for x in np.shape(matrix[smp, :, :]))}
+      sampleData['timeConstants'] = self._timeConstantsDict(smp)
+      if self.dmdParams['historyOffsets']:
+        sampleData['historyOffsets'] = self.__Ktilde[smp, :].tolist()
     return solutionMetadata
 
-  def _evaluateMatrices(self, X1, X2, U, Y1, rankSVD):
+  def _evaluateMatrices(self, X1, X2, U, Y1, rankSVD, E=None):
     """
       Evaluate the the matrices (A and B tilde)
       @ In, X1, np.ndarray, n dimensional state vectors (n*L)
@@ -637,13 +774,16 @@ class DMDC(DMD):
       @ In, U, np.ndarray, m-dimension control vector by L (m*L)
       @ In, Y1, np.ndarray, m-dimension output vector by L (y*L)
       @ In, rankSVD, int, rank of the SVD
+      @ In, E, np.ndarray, optional, additional regressors (e*L, e.g. history indicators for the constant terms)
       @ Out, A, np.ndarray, the A matrix
       @ Out, B, np.ndarray, the B matrix
       @ Out, C, np.ndarray, the C matrix
+      @ Out, K, np.ndarray or None, the matrix of the coefficients of the additional regressors (n*e), if any
     """
     n = len(X2)
-    # Omega Matrix, stack X1 and U
-    omega = np.concatenate((X1, U), axis=0)
+    m = len(U)
+    # Omega Matrix, stack X1 and U (and the additional regressors, if any)
+    omega = np.concatenate((X1, U) if E is None else (X1, U, E), axis=0)
     # SVD
     uTrucSVD, sTrucSVD, vTrucSVD = mathUtils.computeTruncatedSingularValueDecomposition(omega, rankSVD, False, False)
     # Find the truncation rank triggered by "s>=SminValue"
@@ -661,9 +801,10 @@ class DMDC(DMD):
     qsTruc, rsTruc = np.linalg.qr(sTruc)
     beta = X2.dot(vTruc).dot(np.linalg.inv(rsTruc)).dot(qsTruc.T)
     A = beta.dot(uTruc[0:n, :].T)
-    B = beta.dot(uTruc[n:, :].T)
+    B = beta.dot(uTruc[n:n+m, :].T)
+    K = None if E is None else beta.dot(uTruc[n+m:, :].T)
     C = Y1.dot(scipy.linalg.pinv(X1))
-    return A, B, C
+    return A, B, C, K
 
 #magic to allow DMDC to be pickled, see utils.InputData.parameterInputFactory
 DMDC.getInputSpecification()
