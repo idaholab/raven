@@ -67,7 +67,7 @@ class ExpectedImprovement(AcquisitionFunction):
     """
     # Need to retrieve current optimum point
     best = bayesianOptimizer._optPointHistory[0][-1][0]
-    fopt = best[bayesianOptimizer._objectiveVar[0]]
+    bestMinObjVal = best[bayesianOptimizer._objectiveVar[0]]
 
     # Need to convert array input "x" into dict point
     featurePoint = bayesianOptimizer.arrayToFeaturePoint(var)
@@ -77,21 +77,21 @@ class ExpectedImprovement(AcquisitionFunction):
 
     # Is this evaluation vectorized?
     if vectorized:
-      betaVec = np.divide(np.add(-mu, fopt),s)
+      betaVec = np.divide(np.add(-mu, bestMinObjVal),s)
       pdfVec = norm.pdf(betaVec)
       cdfVec = norm.cdf(betaVec)
-      term1 = np.multiply(np.add(-mu, fopt), cdfVec)
+      term1 = np.multiply(np.add(-mu, bestMinObjVal), cdfVec)
       term2 = np.multiply(s, pdfVec)
       EI = np.add(term1, term2)
     else:
       # Breaking out components from closed-form of EI (GPR)
       # Definition of standard gaussian density function
-      beta = (fopt - mu) / s
+      beta = (bestMinObjVal - mu) / s
       pdf = norm.pdf(beta)
       # Standard normal cdf from scipy.stats
       cdf = norm.cdf(beta)
       # Definition of EI
-      EI = ((fopt - mu) * cdf) + (s * pdf)
+      EI = ((bestMinObjVal - mu) * cdf) + (s * pdf)
 
     return EI
 
@@ -112,15 +112,15 @@ class ExpectedImprovement(AcquisitionFunction):
 
     # Need to retrieve current optimum point
     best = bayesianOptimizer._optPointHistory[0][-1][0]
-    fopt = best[bayesianOptimizer._objectiveVar[0]]
+    bestMinObjVal = best[bayesianOptimizer._objectiveVar[0]]
     # Other common quantities
-    beta = (fopt - mu)/s
+    beta = (bestMinObjVal - mu)/s
     phi = norm.pdf(beta)
     Phi = norm.cdf(beta)
-    betaGrad = np.subtract(-s * np.transpose(meanGrad), (fopt - mu) * stdGrad) / (s**2)
+    betaGrad = np.subtract(-s * np.transpose(meanGrad), (bestMinObjVal - mu) * stdGrad) / (s**2)
 
     # Derivative of standard normal pdf
     phiGrad = (-beta / (np.sqrt(2 * np.pi))) * np.exp(-(beta**2) / 2)
-    EIGrad = stdGrad * phi - np.transpose(meanGrad) * Phi + betaGrad * (phi * (fopt - mu) + s * phiGrad)
+    EIGrad = stdGrad * phi - np.transpose(meanGrad) * Phi + betaGrad * (phi * (bestMinObjVal - mu) + s * phiGrad)
     return EIGrad
 

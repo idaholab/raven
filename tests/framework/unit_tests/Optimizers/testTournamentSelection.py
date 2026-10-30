@@ -115,5 +115,58 @@ checkSameDataArrays('Check survived population data array',parents,expectedParen
 #
 # end
 #
+originalRandomChoice = randomUtils.randomChoice
+try:
+  choices = iter([[1, 2], [1, 2], [0, 1]])
+  def fakeChoice(values, size=None, replace=True, engine=None):
+    values = list(values)
+    assert values == [0, 1, 2]
+    assert size == 2
+    assert replace is False
+    return np.array(next(choices), dtype=int)
+
+  randomUtils.randomChoice = fakeChoice
+  shiftedPopulation = xr.DataArray(np.array([[1, 10], [2, 20], [3, 30]], dtype=float),
+                                   dims=['chromosome', 'Gene'],
+                                   coords={'chromosome': np.array([10, 20, 30]),
+                                           'Gene': ['x1', 'x2']})
+  shiftedFitness = xr.Dataset()
+  shiftedFitness['obj1'] = xr.DataArray(np.array([1.0, 2.0, 3.0]),
+                                             dims=['chromosome'],
+                                             coords={'chromosome': shiftedPopulation.coords['chromosome']})
+  parents = tournamentSelection(shiftedPopulation, variables=['x1', 'x2'], fitness=shiftedFitness,
+                                nParents=3, objVar=objVar, kSelection=2, isMultiObjective=False)
+  expectedParents = xr.DataArray(np.array([[3, 30], [3, 30], [2, 20]], dtype=float),
+                                 dims=['chromosome', 'Gene'],
+                                 coords={'chromosome': np.arange(3),
+                                         'Gene': ['x1', 'x2']})
+  checkSameDataArrays('Check tournament uses row positions and permits reselection', parents, expectedParents)
+
+  randomUtils.randomChoice = lambda values, size=None, replace=True, engine=None: np.array([0, 1, 2], dtype=int)
+  rank = xr.DataArray(np.array([2, 1, 1]), dims=['rank'], coords={'rank': np.arange(3)})
+  crowding = xr.DataArray(np.array([0.0, 0.2, 0.9]), dims=['CrowdingDistance'],
+                          coords={'CrowdingDistance': np.arange(3)})
+  moFitness = xr.Dataset()
+  moFitness['obj1'] = xr.DataArray(np.zeros(3), dims=['chromosome'], coords={'chromosome': np.arange(3)})
+  parents = tournamentSelection(shiftedPopulation, variables=['x1', 'x2'], fitness=moFitness,
+                                nParents=1, objVar=objVar, kSelection=3, isMultiObjective=True,
+                                rank=rank, crowdDistance=crowding)
+  expectedParents = xr.DataArray(np.array([[3, 30]], dtype=float), dims=['chromosome', 'Gene'],
+                                 coords={'chromosome': np.arange(1), 'Gene': ['x1', 'x2']})
+  checkSameDataArrays('Check multi-objective tournament tie break returns selected row position', parents, expectedParents)
+
+  def fakeMutatingChoice(values, size=None, replace=True, engine=None):
+    assert values == [0, 1, 2, 3]
+    return np.asarray(originalRandomChoice(values, size=size, replace=replace, engine=engine), dtype=int)
+
+  randomUtils.randomSeed(5489)
+  randomUtils.randomChoice = fakeMutatingChoice
+  parents = tournamentSelection(population, variables=optVars, fitness=FitnessSet,
+                                nParents=3, objVar=objVar, kSelection=2, isMultiObjective=False)
+  checkSameListOfInt('Check tournament candidate pool is reset for each parent',
+                     np.asarray(parents.shape), np.asarray([3, 6]))
+finally:
+  randomUtils.randomChoice = originalRandomChoice
+
 print('Results:', results)
 sys.exit(results['fail'])

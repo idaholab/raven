@@ -336,10 +336,71 @@ the implicit constraints and False otherwise.""")
       upper = dist.upperBound if dist.upperBound is not None else np.inf
       self._variableBounds[var] = [lower, upper]
       self.raiseADebug(f'Set bounds for opt var "{var}" to {self._variableBounds[var]}')
+    # withoutReplacement: reject an impossible setup before any run is submitted (fail fast),
+    # then repair the initial points so they respect the strategy from the first evaluation
+    self._checkWithoutReplacementFeasible()
+    self._initialValues = [self._repairInitialValue(init) for init in self._initialValues]
     # trajectory initialization
     for i, init in enumerate(self._initialValues):
       self._initialValues[i] = self.normalizeData(init)
       self.initializeTrajectory()
+
+  def _withoutReplacementGroups(self):
+    """
+      Groups the optimization variables that share a 'withoutReplacement' distribution.
+      Variables sharing such a distribution must take distinct values within one point.
+      @ In, None
+      @ Out, groups, dict, {distributionName: [varName, ...]} in self.toBeSampled order
+    """
+    groups = {}
+    for var in self.toBeSampled:
+      if getattr(self.distDict[var], 'strategy', None) == 'withoutReplacement':
+        groups.setdefault(self.toBeSampled[var], []).append(var)
+    return groups
+
+  def _checkWithoutReplacementFeasible(self):
+    """
+      Fail fast on an infeasible 'withoutReplacement' setup. When more variables share a
+      withoutReplacement distribution than that distribution has distinct values, no
+      duplicate-free point exists. Without this guard the run proceeds with duplicate values
+      and later divides by zero in Distributions.selectedRvs once the value pool is exhausted.
+      @ In, None
+      @ Out, None
+    """
+    for distName, varsSharing in self._withoutReplacementGroups().items():
+      poolSize = self.distDict[varsSharing[0]].numberOfOutcomes()
+      if len(varsSharing) > poolSize:
+        self.raiseAnError(IOError,
+            f'Distribution "{distName}" uses the "withoutReplacement" strategy but offers only '
+            f'{poolSize} distinct value(s), while {len(varsSharing)} variables '
+            f'({", ".join(sorted(varsSharing))}) sample from it. A duplicate-free assignment is '
+            f'impossible: provide at least {len(varsSharing)} distinct values (widen the bounds '
+            f'or increase nPoints), or use the "withReplacement" strategy.')
+
+  def _repairInitialValue(self, init):
+    """
+      Enforce the 'withoutReplacement' strategy on a single initial point. Initial points are
+      drawn variable-by-variable (by the initialization Sampler or given by the user), so
+      variables sharing a withoutReplacement distribution can receive duplicate values.
+      Duplicates are redrawn from the values not yet used in this point. Works on denormalized
+      values, so it must run before the initial points are normalized.
+      @ In, init, dict, an initial point as {varName: value}
+      @ Out, repaired, dict, the point with duplicate withoutReplacement values resolved
+    """
+    repaired = dict(init)
+    for varsSharing in self._withoutReplacementGroups().values():
+      used = []
+      for var in varsSharing:
+        if var not in repaired:
+          continue
+        value = repaired[var]
+        if value in used:
+          # the feasibility guard ensures at least one unused value is left to draw
+          value = self.distDict[var].selectedRvs(list(used))
+          self.raiseADebug(f'Initial point: "{var}" duplicated {repaired[var]} under withoutReplacement; redrawn as {value}')
+          repaired[var] = value
+        used.append(value)
+    return repaired
 
   ###############
   # Run Methods #

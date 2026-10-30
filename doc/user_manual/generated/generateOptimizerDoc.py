@@ -211,12 +211,14 @@ Genetic Algorithm Example:
     ...
   </Optimizers>
 \end{lstlisting}
+"""
 
+minimalMultiObjectiveGeneticAlgorithm = r"""
 \hspace{24pt}
-Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
+Multiobjective Genetic Algorithm Example (NSGA-II):
 \begin{lstlisting}[style=XML]
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>15</limit>
         <initialSeed>42</initialSeed>
@@ -228,11 +230,11 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
         <populationSize>10</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
-          <crossover type="twoPointsCrossover">
-            <crossoverProb>1.0</crossoverProb>
+          <crossover type="sbxCrossover">
+            <crossoverProb>0.9</crossoverProb>
           </crossover>
-          <mutation type="randomMutator">
-            <mutationProb>1.0</mutationProb>
+          <mutation type="polynomialMutator">
+            <mutationProb>0.333</mutationProb>
           </mutation>
         </reproduction>
         <fitness type="feasibleFirst">
@@ -253,10 +255,10 @@ Multiobjective optimization: Non Dominating Sorting GA (NSGA-II) Example:
       <variable name="x3">
         <distribution>unifDist</distribution>
       </variable>
-      <objective>obj1, obj2 </objective>
+      <objective>obj1, obj2</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </GeneticAlgorithm>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 \end{lstlisting}
 """
@@ -303,7 +305,55 @@ Bayesian Optimizer Example:
 
 """
 # examples Factory
-exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm,'BayesianOptimizer':minimalBayesianOptimizer}
+# Migration notes for inputs written before the genetic-algorithm refactor. Printed once, right after
+# the Optimizers introduction, so users upgrading an existing input find it before the node reference.
+gaMigrationNotes = r"""
+\subsection{Upgrading genetic-algorithm inputs from earlier RAVEN versions}
+\label{subsec:gaMigration}
+The genetic-algorithm optimizers were reorganized. Inputs written for earlier RAVEN versions may need
+the changes below. Each item states what happens to an old input that is not updated.
+\begin{itemize}
+  \item \textbf{Multi-objective runs use their own node.} A \xmlNode{GeneticAlgorithm} whose
+    \xmlNode{objective} lists two or more variables used to run NSGA-II. It now stops at input time
+    with an error. Use \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}\texttt{="NSGA-II"},
+    and set \xmlAttr{type}\texttt{="MultiObjectiveGeneticAlgorithm"} on the \xmlNode{Optimizer} entry
+    of the \xmlNode{Steps} that use it. All other sub-nodes are unchanged. The conversion script
+    below does this automatically.
+  \item \textbf{Selection in NSGA-II.} \xmlNode{MultiObjectiveGeneticAlgorithm} ranks individuals by
+    constrained domination (Deb 2002) and crowding distance. A \xmlNode{fitness} node is still accepted
+    and its value is exported, but it no longer drives selection, and a warning says so. To rank by
+    a penalized scalar fitness instead, set \xmlNode{rankingAlgorithm} with
+    \xmlAttr{type}\texttt{="feasibleFirstPenalty"}. NSGA-II requires
+    \xmlNode{parentSelection}\texttt{tournamentSelection} and
+    \xmlNode{survivorSelection}\texttt{rankNcrowdingBased}.
+  \item \textbf{Single-objective runs need a fitness.} A single-objective
+    \xmlNode{GeneticAlgorithm} without a \xmlNode{fitness} node under \xmlNode{GAparams} now stops with
+    an error, because fitness is its selection criterion.
+  \item \textbf{Default penalty weight.} When \xmlNode{b} is omitted, the constraint-penalty weight of
+    \texttt{invLinear} and \texttt{feasibleFirst} is now 10 (it was 1). Constrained inputs that omit
+    \xmlNode{b} therefore give different results; set \xmlNode{b}\texttt{1.0} to reproduce earlier runs.
+    \xmlNode{b} accepts one value, one value per constraint (shared by every objective, as before),
+    or one value per objective and constraint.
+  \item \textbf{Parent selection and logistic fitness.} \texttt{rouletteWheel} now favors the fittest
+    chromosome for any sign of the fitness (it used to invert the selection when every fitness was
+    negative, e.g. \texttt{invLinear} on a positive objective, and failed when every fitness was zero).
+    \texttt{rankSelection} now works with any objective name and gives the fittest chromosome the largest
+    probability. The \xmlNode{scale} and \xmlNode{shift} of the \texttt{logistic} fitness are now
+    applied; earlier versions ignored them. Inputs using these options give different results.
+\end{itemize}
+To convert existing inputs, run (from the RAVEN directory)
+\begin{lstlisting}[language=bash]
+python scripts/conversionScripts/toMultiObjectiveGA.py input1.xml input2.xml ...
+\end{lstlisting}
+It converts every multi-objective \xmlNode{GeneticAlgorithm} and its \xmlNode{Steps} references,
+editing only those tags, so comments and formatting are kept. A copy of each changed file is kept as
+\texttt{input.xml.bak}. It also lists settings to review by hand: a \xmlNode{parentSelection} or
+\xmlNode{survivorSelection} that NSGA-II rejects, a \xmlNode{fitness} that no longer drives selection,
+and a single-objective \xmlNode{GeneticAlgorithm} without \xmlNode{fitness}. With \texttt{--check}
+it only reports, without writing.
+"""
+
+exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm,'MultiObjectiveGeneticAlgorithm':minimalMultiObjectiveGeneticAlgorithm,'BayesianOptimizer':minimalBayesianOptimizer}
 
 #------------#
 # OPTIMIZERS #
@@ -313,6 +363,7 @@ msg = ''
 # base classes first
 optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
 msg += optDescr
+msg += gaMigrationNotes
 # write all known types
 for name in Optimizers.factory.knownTypes():
   obj = Optimizers.factory.returnClass(name)

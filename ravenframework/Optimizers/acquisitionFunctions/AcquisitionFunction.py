@@ -326,12 +326,12 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       trainingInputs[varName] = np.delete(trainingInputs[varName], invalidIndices)
     # Retrieving best mean value within training set locations, need index for retrieving other values
     muStar = np.min(muVec)
-    minDex = np.argmin(muVec)
-    stdStar = stdVec[minDex]
+    minIdx = np.argmin(muVec)
+    stdStar = stdVec[minIdx]
     # Retrieving location of recommended solution
     xStar = {}
     for varName in list(trainingInputs):
-      xStar[varName] = trainingInputs[varName][minDex]
+      xStar[varName] = trainingInputs[varName][minIdx]
     return muStar, xStar, stdStar
 
   def _recommendSolutionForPretrainedRom(self, bayesianOptimizer):
@@ -339,7 +339,7 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
       Identify a best solution point in the existing training data from pre-trained ROM
       @ In, bayesianOptimizer, BayesianOptimizer object, instance of BayesianOptimizer class
       @ Out, xStar, dict, point associated with best solution for the current data
-      @ Out, minDex, int, the index of best solution for the current data
+      @ Out, minIdx, int, the index of best solution for the current data
     """
     # Pulling input data from BO instance
     trainingInputs = copy.copy(bayesianOptimizer._trainingInputs[0])
@@ -355,15 +355,15 @@ class AcquisitionFunction(utils.metaclass_insert(abc.ABCMeta, object)):
         invalidWhere = np.where(invalidArray[0])
         for index in invalidWhere[0]:
           invalidIndices.append(index)
-    fopt = np.asarray(bayesianOptimizer._trainingTargets[0])
+    bestMinObjVals = np.asarray(bayesianOptimizer._trainingTargets[0])
     # Removing values at locations where constraint violation has occurred
-    np.put(fopt, invalidIndices, np.inf)
-    minDex = np.argmin(fopt)
+    np.put(bestMinObjVals, invalidIndices, np.inf)
+    minIdx = np.argmin(bestMinObjVals)
     # Retrieving location of recommended solution
     xStar = {}
     for varName in list(trainingInputs):
-      xStar[varName] = trainingInputs[varName][minDex]
-    return xStar, minDex
+      xStar[varName] = trainingInputs[varName][minIdx]
+    return xStar, minIdx
 
   ###################
   # Utility Methods #

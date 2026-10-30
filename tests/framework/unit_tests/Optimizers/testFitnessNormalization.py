@@ -107,6 +107,35 @@ checkRaises("normalize option: unrecognized string is rejected",
             lambda: ga._resolveNormalizeFitnessOption('garbage'), IOError)
 
 #
+# input-spec regression: the <normalize> node must be an accepted sub-node of <fitness>, and the
+# <mutation>/<crossover> enums must be built dynamically from the operator registries (not frozen
+# literals). Both regressed once when the multi-objective refactor rewrote the fitness spec and
+# hardcoded the enum lists, silently breaking every deck that used <normalize> or a plugin-registered
+# operator. These assertions fail loudly if either is dropped again.
+#
+from ravenframework.Optimizers.mutators.mutators import __mutators as _mutatorRegistry
+from ravenframework.Optimizers.crossOverOperators.crossovers import __crossovers as _crossoverRegistry
+
+spec = GeneticAlgorithm.getInputSpecification()
+gaParams = spec.getSub('GAparams')
+fitnessSpec = gaParams.getSub('fitness')
+checkSame("input spec: <fitness> exposes a <normalize> sub-node",
+          fitnessSpec is not None and fitnessSpec.getSub('normalize') is not None, True)
+
+reproduction = gaParams.getSub('reproduction')
+mutationSpec = reproduction.getSub('mutation')
+crossoverSpec = reproduction.getSub('crossover')
+mutationEnum = mutationSpec.parameters['type']['type'].enumList
+crossoverEnum = crossoverSpec.parameters['type']['type'].enumList
+# every registered operator must be selectable through the enum (dynamic, not a frozen literal list)
+for name in _mutatorRegistry:
+  checkSame(f"input spec: mutation enum admits registered operator '{name}'",
+            name in mutationEnum, True)
+for name in _crossoverRegistry:
+  checkSame(f"input spec: crossover enum admits registered operator '{name}'",
+            name in crossoverEnum, True)
+
+#
 # zscore normalization math
 #
 values = np.array([1.0, 2.0, 3.0, 4.0, 5.0])

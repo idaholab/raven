@@ -102,34 +102,35 @@ popFitnessDS[objVar] = xr.DataArray(popFitness,
 
 popAge = [3,1,7,1]
 
-offSprings = [[2,3,4,5,6,1],
+offspring = [[2,3,4,5,6,1],
               [1,3,5,2,4,6],
               [1,2,4,3,6,5]]
 
-offSpringsFitness = [1.1,2.0,3.2]
-offSpringsFitnessDS = xr.Dataset()
-offSpringsFitnessDS[objVar] = xr.DataArray(offSpringsFitness,
+offspringFitness = [1.1,2.0,3.2]
+offspringFitnessDS = xr.Dataset()
+offspringFitnessDS[objVar] = xr.DataArray(offspringFitness,
                           dims=['chromosome'],
-                          coords={'chromosome': np.arange(np.shape(offSpringsFitness)[0])})
+                          coords={'chromosome': np.arange(np.shape(offspringFitness)[0])})
 rlz =[]
-for i in range(np.shape(offSprings)[0]):
+for i in range(np.shape(offspring)[0]):
   d = {}
-  for j in range(np.shape(offSprings)[1]):
+  for j in range(np.shape(offspring)[1]):
     var = optVars[j]
-    val = offSprings[i][j]
+    val = offspring[i][j]
     d[var] = {'dims':() ,'data': val}
+  d[objVar[0]] = {'dims':(), 'data': offspringFitness[i]}
   rlz.append(xr.Dataset.from_dict(d))
 rlz = xr.concat(rlz,dim='data')
 
-newPop2,newFit2,newAge2,popObjVal2 = ageBased(rlz,
+newPop2,newFit2,newAge2,popObjVal2,_ = ageBased(rlz,
                                               age=popAge,
                                               popSize=np.shape(population)[0],
                                               variables=optVars,
-                                              objVar=objVar,
+                                              objVar=objVar[0],
                                               population=population,
-                                              fitness=popFitnessDS,
-                                              individualsFitness=offSpringsFitnessDS,
-                                              popObjectiveVal=popFitnessDS)
+                                              popFitVals=popFitnessDS,
+                                              offspringFitVals=offspringFitnessDS,
+                                              popMinObjVals=popFitness)
 
 print('Age Based Selection')
 print('*'*19)

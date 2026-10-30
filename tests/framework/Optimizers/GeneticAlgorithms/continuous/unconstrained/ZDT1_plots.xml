@@ -27,10 +27,9 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">ZDT</Model>
-      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
@@ -86,7 +85,7 @@
   </Distributions>
 
   <Optimizers>
-    <GeneticAlgorithm name="GAopt">
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
         <limit>15</limit>
         <initialSeed>42</initialSeed>
@@ -123,7 +122,7 @@
       <objective>obj1, obj2 </objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
-    </GeneticAlgorithm>
+    </MultiObjectiveGeneticAlgorithm>
   </Optimizers>
 
   <Samplers>

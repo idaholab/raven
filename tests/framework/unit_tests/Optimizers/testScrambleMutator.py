@@ -119,9 +119,9 @@ print('*'*79)
 print('Scramble Mutator unit test')
 print('*'*79)
 print('generated children are: {}'.format(children))
-expectedChildren = xr.DataArray([[ 1,  2,  4,  5],
-                                 [ 2,  1,  3,  1],
-                                 [ 5,  3,  2,  4]],
+expectedChildren = xr.DataArray([[ 1.,  5.,  4.,  2.],
+                                 [ 2.,  1.,  1.,  3.],
+                                 [ 5.,  3.,  4.,  2.]],
                                  dims   = ['chromosome','Gene'],
                                  coords = {'chromosome': np.arange(np.shape(population)[0]),
                                            'Gene'      : optVars})
