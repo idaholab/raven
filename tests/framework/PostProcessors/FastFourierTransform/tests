@@ -5,4 +5,18 @@
     output = 'Basic/fft.xml'
     UnorderedCsv = 'Basic/fft.csv Basic/fft_0.csv Basic/fft_1.csv'
   [../]
+  [./Analytic]
+    type = 'RavenFramework'
+    input = 'analytic.xml'
+    UnorderedCsv = 'Analytic/spectra.csv Analytic/spectra_0.csv Analytic/spectra_1.csv'
+    rel_err = 1e-8
+    zero_threshold = 1e-10
+  [../]
+  [./DetrendWindow]
+    type = 'RavenFramework'
+    input = 'detrend_window.xml'
+    UnorderedCsv = 'DetrendWindow/spectra.csv DetrendWindow/spectra_0.csv DetrendWindow/spectra_1.csv'
+    rel_err = 1e-8
+    zero_threshold = 1e-10
+  [../]
 []

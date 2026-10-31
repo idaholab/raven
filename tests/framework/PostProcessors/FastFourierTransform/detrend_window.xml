@@ -1,0 +1,67 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/FastFourierTransform.detrend_window</name>
+    <author>alfoa</author>
+    <created>2026-10-30</created>
+    <classesTested>PostProcessors.FastFourierTransform</classesTested>
+    <description>
+      Tests the detrend (linear) and window (hann) options of the FastFourierTransform PostProcessor on the same
+      signals as the basic test. For the linearly drifting signal y = 0.3 t + sin(2 pi 5 t/32 + 0.7), the drift is
+      removed and the sinusoid keeps its amplitude (1 at 0.15625 Hz, corrected for the window coherent gain).
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>DetrendWindow</WorkingDir>
+    <Sequence>load,fft</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="signals">../data/signals.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="fft" subType="FastFourierTransform">
+      <target>y</target>
+      <detrend>linear</detrend>
+      <window>hann</window>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">signals</Input>
+      <Output class="DataObjects" type="HistorySet">signals</Output>
+    </IOStep>
+    <PostProcess name="fft">
+      <Input class="DataObjects" type="HistorySet">signals</Input>
+      <Model class="Models" type="PostProcessor">fft</Model>
+      <Output class="DataObjects" type="HistorySet">spectra</Output>
+      <Output class="OutStreams" type="Print">spectra</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="signals">
+      <Input>case</Input>
+      <Output>x, y</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="spectra">
+      <Output>y_fft_period, y_fft_amplitude, y_fft_phase</Output>
+      <options>
+        <pivotParameter>y_fft_frequency</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="spectra">
+      <type>csv</type>
+      <source>spectra</source>
+    </Print>
+  </OutStreams>
+</Simulation>
