@@ -57,8 +57,12 @@ class PyTest(RavenPython):
       @ In, None
       @ Out, check_runnable, boolean, If True can run this test.
     """
+    # pytest is a declared RAVEN dependency (dependencies.xml), so a missing module is a broken
+    # environment, not a reason to skip: fail, so CI cannot turn these tests into silent skips.
+    # The tests themselves run under the interpreter of get_command, which reports its own missing
+    # pytest as "No module named pytest" and a non-zero exit.
     if not pytest_found:
-      self.set_skip('skipped (required pytest module is not found)')
+      self.set_fail('failed (the pytest module is not installed; it is a RAVEN dependency, see dependencies.xml)')
       return False
 
     return RavenPython.check_runnable(self)

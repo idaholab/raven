@@ -59,6 +59,7 @@
       <samplerInit>
         <limit>5</limit>
         <initialSeed>42</initialSeed>
+        <type>max</type>
         <writeSteps>every</writeSteps>
       </samplerInit>
       <GAparams>

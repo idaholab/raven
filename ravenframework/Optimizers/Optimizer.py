@@ -192,7 +192,6 @@ the implicit constraints and False otherwise.""")
     self._requireSolnExport = True                                                       # optimizers only produce result in solution export
     self._deduplication = False                                                          # global dedup toggle; enforced by RavenSampled._queueSubmission
     self.optAssemblerList = ['DataObjects', 'Distributions', 'Functions', 'Files']       # List of assembler entities required to initialize an optmizer
-    self._canHandleMultiObjective = False                                                # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)           # Explicit (input-based) constraints
@@ -368,7 +367,12 @@ the implicit constraints and False otherwise.""")
       @ Out, None
     """
     for distName, varsSharing in self._withoutReplacementGroups().items():
-      poolSize = self.distDict[varsSharing[0]].numberOfOutcomes()
+      distribution = self.distDict[varsSharing[0]]
+      # only UniformDiscrete has a 'withoutReplacement' strategy today, and it counts its outcomes
+      if not hasattr(distribution, 'numberOfOutcomes'):
+        self.raiseAnError(IOError, f'Distribution "{distName}" uses the "withoutReplacement" strategy, which '
+                          'optimizers support only for UniformDiscrete distributions.')
+      poolSize = distribution.numberOfOutcomes()
       if len(varsSharing) > poolSize:
         self.raiseAnError(IOError,
             f'Distribution "{distName}" uses the "withoutReplacement" strategy but offers only '

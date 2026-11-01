@@ -33,18 +33,50 @@ the changes below. Each item states what happens to an old input that is not upd
     negative, e.g. \texttt{invLinear} on a positive objective, and failed when every fitness was zero).
     \texttt{rankSelection} now works with any objective name and gives the fittest chromosome the largest
     probability. The \xmlNode{scale} and \xmlNode{shift} of the \texttt{logistic} fitness are now
-    applied; earlier versions ignored them. Inputs using these options give different results.
+    applied; earlier versions ignored them. The \texttt{logistic} fitness now also rises as the objective
+    improves for \texttt{min} objectives (earlier versions favored the larger objective even for
+    \texttt{min}), and a constraint violation always lowers it. Inputs using these options give
+    different results.
+  \item \textbf{Tournament selection.} The \xmlNode{kSelection} chromosomes of one tournament are now
+    drawn without replacement, so a chromosome cannot compete against itself; \xmlNode{kSelection} larger
+    than \xmlNode{populationSize} is an error. Results of inputs using \texttt{tournamentSelection} change.
+  \item \textbf{Spread and spacing convergence.} The \xmlNode{spread} criterion is Deb's spread
+    (Deb et al. 2002) of the distinct rank-1 points, with the end-point terms taken as zero, so a uniform
+    front scores 0; it is defined for two objectives only. \xmlNode{spacing} is Schott's metric (L1
+    nearest-neighbour distances). Both values are lower than before, so thresholds tuned for earlier
+    versions stop sooner.
+  \item \textbf{Without-replacement sampling, for every optimizer.} When variables share a
+    \xmlNode{UniformDiscrete} distribution with the \texttt{withoutReplacement} strategy, RAVEN now checks
+    at initialization that the distribution has at least as many values as variables, and stops with an
+    error otherwise; duplicate values in user-provided \xmlNode{initial} points are repaired. This applies
+    to every optimizer, not only the genetic algorithms.
+  \item \textbf{Restart files.} Restart (\texttt{.ravenrst}) files written by an earlier RAVEN genetic
+    algorithm cannot be resumed; a \xmlNode{GeneticAlgorithm} stops with an error that says so. A
+    multi-objective restart file is also refused because it was written by \xmlNode{GeneticAlgorithm}.
+    Start such runs again without the restart file.
+  \item \textbf{Plugin and developer code.} Code that reads optimizer internals must use the new names:
+    the \texttt{info['optVal']} key and the \texttt{\_expectedOptVal} attribute are now
+    \texttt{info['minObjVal']} and \texttt{\_expectedMinObjVal} in \xmlNode{GradientDescent},
+    \xmlNode{SimulatedAnnealing}, \xmlNode{BayesianOptimizer}, the acquisition functions and the step
+    manipulators, and the \texttt{modifyAcceptance} keyword arguments follow the same rename. In the
+    genetic algorithms, \texttt{matingPopInputs} is now \texttt{population}, \texttt{bestFitness} is
+    \texttt{bestFitVal}, and the population containers are \texttt{popFitVals}, \texttt{popMinObjVals}
+    and \texttt{popConstraintVals}. Custom parent-selection operators receive the fitness as
+    \texttt{popFitVals} (\texttt{fitness} is still accepted).
 \end{itemize}
 To convert existing inputs, run (from the RAVEN directory)
 \begin{lstlisting}[language=bash]
 python scripts/conversionScripts/toMultiObjectiveGA.py input1.xml input2.xml ...
 \end{lstlisting}
 It converts every multi-objective \xmlNode{GeneticAlgorithm} and its \xmlNode{Steps} references,
-editing only those tags, so comments and formatting are kept. A copy of each changed file is kept as
-\texttt{input.xml.bak}. It also lists settings to review by hand: a \xmlNode{parentSelection} or
-\xmlNode{survivorSelection} that NSGA-II rejects, a \xmlNode{fitness} that no longer drives selection,
-and a single-objective \xmlNode{GeneticAlgorithm} without \xmlNode{fitness}. With \texttt{--check}
-it only reports, without writing.
+editing only those tags, so comments, formatting and line endings are kept (tags inside XML comments
+are ignored). A byte-for-byte copy of each changed file is kept as \texttt{input.xml.bak}. It also lists
+settings to review by hand: a \xmlNode{parentSelection} or \xmlNode{survivorSelection} that NSGA-II
+rejects, a \xmlNode{fitness} that no longer drives selection, a constrained \texttt{invLinear} or
+\texttt{feasibleFirst} fitness without \xmlNode{b}, and a single-objective \xmlNode{GeneticAlgorithm}
+without \xmlNode{fitness}. A file with such a note is reported as needing a manual edit, and the exit
+code is the number of files that failed or need one. With \texttt{-{}-check} it only reports, without
+writing.
 
 
 \subsection{GradientDescent}
@@ -1098,27 +1130,13 @@ Simulated Annealing Example:
   until a stopping criterion is met, typically when a satisfactory solution is found or after a
   predetermined number of generations.                             More information can be found
   in:\\\\                              Holland, John H. ``Genetic algorithms.'' Scientific American
-  267.1 (1992): 66-73.\\\\                              Non-dominated Sorting Genetic Algorithm II
-  (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
-  NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance
-  estimation to maintain a diverse set of                             non-dominated (Pareto-optimal)
-  solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
-  providing decision-makers with a comprehensive view of the problem's solution space. More
-  information about NSGA-II can be found in:\\\\                              Deb, Kalyanmoy, et al.
-  ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on
-  evolutionary computation 6.2 (2002): 182-197.\\\\                              Internally, GA and
-  NSGA-II store \texttt{minObjVals} as objective values transformed into RAVEN's minimization
-  convention.                             Objectives declared as \texttt{min} are unchanged, while
-  objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking,
-  crowding-distance calculation, convergence checks, and fitness calculations. User-facing objective
-  values should be interpreted                             through the requested minimization or
-  maximization convention when exported.\\                             The implementation keeps
-  \texttt{minObjVals}, \texttt{externalObjVals}, and \texttt{fitVals} separate: \texttt{minObjVals}
-  drives algorithmic ranking, crowding distance, convergence, and fitness calculation;
-  \texttt{externalObjVals} is used only when converting back to user-facing signs for exports or
-  implicit constraints; and \texttt{fitVals} is the scalar or per-objective fitness container used
-  by parent and survivor selection.\\                              GA in RAVEN supports for both
-  single and multi-objective optimization problem.
+  267.1 (1992): 66-73.\\\\                              Internally, the GA stores
+  \texttt{minObjVals} as objective values transformed into RAVEN's minimization convention:
+  objectives declared as \texttt{min} are unchanged, while objectives declared as \texttt{max} are
+  multiplied by -1                             before fitness calculations and convergence checks.
+  Exported objective values use the requested convention.\\
+  \xmlNode{GeneticAlgorithm} solves single-objective problems. For two or more objectives use
+  \xmlNode{MultiObjectiveGeneticAlgorithm} (NSGA-II), described below.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -1130,8 +1148,6 @@ Simulated Annealing Example:
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
-             \item \texttt{rank}: It refers to the sorting of solutions into non-dominated fronts based on their Pareto dominance relationships
-             \item \texttt{CD}: Crowding Distance measures the density of solutions within each front to guide the selection of diverse individuals for the next generation
              \item \texttt{fitness}: fitness of the current chromosome
              \item \texttt{age}: age of current chromosome
              \item \texttt{batchId}: Id of the batch to whom the chromosome belongs
@@ -1155,8 +1171,8 @@ Simulated Annealing Example:
   \begin{itemize}
     \item \xmlNode{objective}: \xmlDesc{comma-separated strings},
       Name of the objective variable(s) (or ``objective function'') that should be optimized
-      (minimized or maximized). It can be a single string or a list of strings if it is a multi-
-      objective problem.         Note that only genetic algorithm supports multi-objective.
+      (minimized or maximized). \xmlNode{GeneticAlgorithm} takes a single objective; for two or more
+      objectives use         \xmlNode{MultiObjectiveGeneticAlgorithm}.
 
     \item \xmlNode{deduplication}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
       if True, skip model evaluations for duplicate optimization points that were already
@@ -1311,13 +1327,15 @@ Simulated Annealing Example:
           negative, the fitness is first shifted                           by its minimum ($f - \min
           f$), so the fittest chromosome always has the largest probability; if
           every fitness is equal, all chromosomes are equally likely.
-          \item \textit{tournamentSelection} - Chromosomes are randomly chosen from the population
-          to compete in a tournament,                           and the fittest individual among
-          them is selected for reproduction.                           \item \textit{rankSelection}
-          - linear ranking: chromosomes are ranked by fitness, from 1 (worst) to
-          $popSize$ (best), and chosen with probability proportional to their rank. Only the order
-          of the                           fitness values matters, not their scale; equal fitness
-          values share their average rank.                       \end{itemize}
+          \item \textit{tournamentSelection} - \xmlNode{kSelection} chromosomes are drawn from the
+          population                           without replacement to compete in a tournament, and
+          the fittest of them is selected for reproduction.                           Each parent
+          slot runs its own tournament, so one chromosome can be selected for several slots.
+          \item \textit{rankSelection} - linear ranking: chromosomes are ranked by fitness, from 1
+          (worst) to                           $popSize$ (best), and chosen with probability
+          proportional to their rank. Only the order of the                           fitness values
+          matters, not their scale; equal fitness values share their average rank.
+          \end{itemize}
 
         \item \xmlNode{reproduction}:
           a node containing the reproduction methods. This accepts subnodes that specifies the types
@@ -1326,7 +1344,8 @@ Simulated Annealing Example:
           The \xmlNode{reproduction} node recognizes the following subnodes:
           \begin{itemize}
             \item \xmlNode{kSelection}: \xmlDesc{integer},
-              Number of chromosome selected for tournament selection
+              Number of chromosomes that compete in each tournament of \textit{tournamentSelection}.
+              It cannot         exceed \xmlNode{populationSize}. \default{3}
 
             \item \xmlNode{crossover}: \xmlDesc{string},
               a subnode containing the implemented crossover mechanisms. You can choose one of the
@@ -1405,14 +1424,12 @@ Simulated Annealing Example:
           a subnode containing the implemented survivor selection mechanisms. You can choose one of
           the survivor selection options listed below:                   \begin{itemize}
           \item \textit{fitnessBased} - Individuals with higher fitness scores are more likely to be
-          selected to survive and                     proceed to the next generation. It suppoort
-          only single-objective optimization problem.                     \item \textit{ageBased} -
-          Individuals are selected for survival based on their age or generation, with older
-          individuals being prioritized                     for retention. It suppoort only single-
-          objective optimization problem.                     \item \textit{rankNcrowdingBased} -
-          Individuals with low rank and crowding distance are more likely to be selected to survive
-          and                     proceed to the next generation. It suppoort only multi-objective
-          optimization problem.                   \end{itemize}
+          selected to survive and                     proceed to the next generation.
+          \item \textit{ageBased} - Individuals are selected for survival based on their age or
+          generation, with older individuals being prioritized                     for retention.
+          \item \textit{rankNcrowdingBased} - the multi-objective (NSGA-II) survivor selection, by
+          non-dominated rank and                     crowding distance. It is required by, and only
+          valid for, \xmlNode{MultiObjectiveGeneticAlgorithm}.                   \end{itemize}
 
         \item \xmlNode{fitness}: \xmlDesc{string},
           a subnode containing the implemented fitness functions.
@@ -1423,17 +1440,21 @@ Simulated Annealing Example:
                 \begin{itemize}                         \item \textit{invLinear} - It assigns
                 fitness values inversely proportional to the individual's objective function values,
                 prioritizing solutions with lower objective function values (i.e., minimization) for
-                selection and reproduction. It suppoort only single-objective optimization
-                problem.\\\\                         $fitness = -a \times obj - b \times
-                \sum_{j=1}^{nConstraint} max(0,-penalty_{j}) $\\                         where j
-                represents an index of objects                         \\
+                selection and reproduction.\\\\                         $fitness = -a \times obj - b
+                \times \sum_{j=1}^{nConstraint} max(0,-penalty_{j}) $\\
+                where j represents an index of objects                         \\
                 \item \textit{logistic} - It applies a logistic function to transform raw objective
-                function values into fitness scores.  It suppoort only single-objective optimization
-                problem.\\\\                         $fitness = \frac{1}{1+e^{a\times(obj-b)}}$\\
-                \item \textit{feasibleFirst} - It prioritizes solutions that meet constraints by
-                assigning higher fitness scores to feasible solutions,
-                encouraging the evolution of individuals that satisfy the problem's constraints.  It
-                suppoort single-and multi-objective optimization problem.\\\\
+                function values into fitness scores in $(0, 1)$,                         so the
+                fitness rises as the objective improves (decreases for \texttt{min}, increases for
+                \texttt{max}).\\\\                         $fitness = \frac{1}{1+e^{\pm
+                scale\times(obj-shift)}} - \sum_{j=1}^{nConstraint} max(0,-g_{j})$\\
+                with the plus sign for \texttt{min} and the minus sign for \texttt{max};
+                \xmlNode{scale} and \xmlNode{shift} are set                         below, and each
+                constraint violation is subtracted with a fixed weight of 1 (\xmlNode{a} and
+                \xmlNode{b} are not used).\\                         \item \textit{feasibleFirst} -
+                It prioritizes solutions that meet constraints by assigning higher fitness scores to
+                feasible solutions,                          encouraging the evolution of
+                individuals that satisfy the problem's constraints.\\\\
                 $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}-
                 \Sigma_{j=1}^{J}<g\_j(x)> & otherwise \\ \end{matrix}\right\}$\\
                 \end{itemize}
@@ -1445,21 +1466,24 @@ Simulated Annealing Example:
               a: The weight of objective function(s). \default{list of ones}
 
             \item \xmlNode{b}: \xmlDesc{comma-separated floats},
-              b: The weight of the constraint penalty. Give one value (applied to every objective
-              and        constraint), one value per constraint (shared by every objective), or one
-              value per        (objective, constraint) pair listed objective-major, i.e.
-              $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$ counts both
-              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that this default
-              was 1.0 in earlier RAVEN versions, so constrained inputs that omit \xmlNode{b} give
-              different results. \default{10.0}
+              b: The weight of the constraint penalty for \textit{invLinear} and
+              \textit{feasibleFirst} (\textit{logistic}        does not use it). Give one value
+              (applied to every objective and        constraint), one value per constraint (shared
+              by every objective), or one value per        (objective, constraint) pair listed
+              objective-major, i.e. $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$
+              counts both \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that
+              this default        was 1.0 in earlier RAVEN versions, so constrained inputs that omit
+              \xmlNode{b} give different results. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
-              scale: in case of logistic fitness, this is the multiplier of the objective(s).
+              scale: in case of logistic fitness, the steepness of the logistic function for the
+              objective(s); a larger value        separates nearby objective values more strongly.
               Earlier RAVEN versions read but ignored it. \default{list of ones}
 
             \item \xmlNode{shift}: \xmlDesc{comma-separated floats},
-              shift: in case of logistic fitness, this is the shift in the exponential function for
-              the objective(s). Earlier RAVEN versions read but ignored it. \default{list of zeros}
+              shift: in case of logistic fitness, the objective value at which the fitness is $1/2$,
+              in the units of the        objective. Earlier RAVEN versions read but ignored it.
+              \default{list of zeros}
 
             \item \xmlNode{normalize}: \xmlDesc{string},
               normalize: input and output data will be normalized prior to calculating fitness for
@@ -1736,7 +1760,20 @@ Genetic Algorithm Example:
   The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
   operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
   crowding-distance survivor selection, and multi-objective convergence metrics that are shared
-  by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II.
+  by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II.\\
+  Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for
+  multiobjective optimization problems.                             NSGA-II extends traditional GAs
+  by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse
+  set of                             non-dominated (Pareto-optimal) solutions. This enables NSGA-II
+  to efficiently explore trade-offs between conflicting objectives,
+  providing decision-makers with a comprehensive view of the problem's solution space. More
+  information about NSGA-II can be found in:\\                              Deb, Kalyanmoy, et al.
+  ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on
+  evolutionary computation 6.2 (2002): 182-197.\\                              Internally,
+  objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking, crowding-distance
+  calculation and convergence checks (\texttt{minObjVals}); exported objective values use the
+  requested convention.                             Survivor selection must be
+  \textit{rankNcrowdingBased} and parent selection \textit{tournamentSelection}.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -1748,8 +1785,6 @@ Genetic Algorithm Example:
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{modelRuns}: integer identifying the number of times the model is evaluated up to the current step
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
-             \item \texttt{rank}: Non-dominated sorting rank for each survivor in the population.
-             \item \texttt{CD}: Crowding distance used to preserve solution diversity within a front.
              \item \texttt{fitness}: fitness of the current chromosome
              \item \texttt{age}: age of current chromosome
              \item \texttt{batchId}: Id of the batch to whom the chromosome belongs
@@ -1758,6 +1793,8 @@ Genetic Algorithm Example:
              \item \texttt{HDSM}: Hausdorff Distance Similarity Measure between populations
              \item \texttt{ConstraintEvaluation\_\{CONSTRAINT\}}: Constraint function evaluation (negative if violating and positive otherwise)
              \item \texttt{FitnessEvaluation\_\{OBJ\}}: Fitness evaluation of each objective
+             \item \texttt{rank}: Non-dominated sorting rank for each survivor in the population.
+             \item \texttt{CD}: Crowding distance used to preserve solution diversity within a front.
 
          \end{itemize}
 
@@ -1931,13 +1968,15 @@ Genetic Algorithm Example:
           negative, the fitness is first shifted                           by its minimum ($f - \min
           f$), so the fittest chromosome always has the largest probability; if
           every fitness is equal, all chromosomes are equally likely.
-          \item \textit{tournamentSelection} - Chromosomes are randomly chosen from the population
-          to compete in a tournament,                           and the fittest individual among
-          them is selected for reproduction.                           \item \textit{rankSelection}
-          - linear ranking: chromosomes are ranked by fitness, from 1 (worst) to
-          $popSize$ (best), and chosen with probability proportional to their rank. Only the order
-          of the                           fitness values matters, not their scale; equal fitness
-          values share their average rank.                       \end{itemize}
+          \item \textit{tournamentSelection} - \xmlNode{kSelection} chromosomes are drawn from the
+          population                           without replacement to compete in a tournament, and
+          the fittest of them is selected for reproduction.                           Each parent
+          slot runs its own tournament, so one chromosome can be selected for several slots.
+          \item \textit{rankSelection} - linear ranking: chromosomes are ranked by fitness, from 1
+          (worst) to                           $popSize$ (best), and chosen with probability
+          proportional to their rank. Only the order of the                           fitness values
+          matters, not their scale; equal fitness values share their average rank.
+          \end{itemize}
 
         \item \xmlNode{reproduction}:
           a node containing the reproduction methods. This accepts subnodes that specifies the types
@@ -1946,7 +1985,8 @@ Genetic Algorithm Example:
           The \xmlNode{reproduction} node recognizes the following subnodes:
           \begin{itemize}
             \item \xmlNode{kSelection}: \xmlDesc{integer},
-              Number of chromosome selected for tournament selection
+              Number of chromosomes that compete in each tournament of \textit{tournamentSelection}.
+              It cannot         exceed \xmlNode{populationSize}. \default{3}
 
             \item \xmlNode{crossover}: \xmlDesc{string},
               a subnode containing the implemented crossover mechanisms. You can choose one of the
@@ -2025,14 +2065,12 @@ Genetic Algorithm Example:
           a subnode containing the implemented survivor selection mechanisms. You can choose one of
           the survivor selection options listed below:                   \begin{itemize}
           \item \textit{fitnessBased} - Individuals with higher fitness scores are more likely to be
-          selected to survive and                     proceed to the next generation. It suppoort
-          only single-objective optimization problem.                     \item \textit{ageBased} -
-          Individuals are selected for survival based on their age or generation, with older
-          individuals being prioritized                     for retention. It suppoort only single-
-          objective optimization problem.                     \item \textit{rankNcrowdingBased} -
-          Individuals with low rank and crowding distance are more likely to be selected to survive
-          and                     proceed to the next generation. It suppoort only multi-objective
-          optimization problem.                   \end{itemize}
+          selected to survive and                     proceed to the next generation.
+          \item \textit{ageBased} - Individuals are selected for survival based on their age or
+          generation, with older individuals being prioritized                     for retention.
+          \item \textit{rankNcrowdingBased} - the multi-objective (NSGA-II) survivor selection, by
+          non-dominated rank and                     crowding distance. It is required by, and only
+          valid for, \xmlNode{MultiObjectiveGeneticAlgorithm}.                   \end{itemize}
 
         \item \xmlNode{fitness}: \xmlDesc{string},
           a subnode containing the implemented fitness functions.
@@ -2043,17 +2081,21 @@ Genetic Algorithm Example:
                 \begin{itemize}                         \item \textit{invLinear} - It assigns
                 fitness values inversely proportional to the individual's objective function values,
                 prioritizing solutions with lower objective function values (i.e., minimization) for
-                selection and reproduction. It suppoort only single-objective optimization
-                problem.\\\\                         $fitness = -a \times obj - b \times
-                \sum_{j=1}^{nConstraint} max(0,-penalty_{j}) $\\                         where j
-                represents an index of objects                         \\
+                selection and reproduction.\\\\                         $fitness = -a \times obj - b
+                \times \sum_{j=1}^{nConstraint} max(0,-penalty_{j}) $\\
+                where j represents an index of objects                         \\
                 \item \textit{logistic} - It applies a logistic function to transform raw objective
-                function values into fitness scores.  It suppoort only single-objective optimization
-                problem.\\\\                         $fitness = \frac{1}{1+e^{a\times(obj-b)}}$\\
-                \item \textit{feasibleFirst} - It prioritizes solutions that meet constraints by
-                assigning higher fitness scores to feasible solutions,
-                encouraging the evolution of individuals that satisfy the problem's constraints.  It
-                suppoort single-and multi-objective optimization problem.\\\\
+                function values into fitness scores in $(0, 1)$,                         so the
+                fitness rises as the objective improves (decreases for \texttt{min}, increases for
+                \texttt{max}).\\\\                         $fitness = \frac{1}{1+e^{\pm
+                scale\times(obj-shift)}} - \sum_{j=1}^{nConstraint} max(0,-g_{j})$\\
+                with the plus sign for \texttt{min} and the minus sign for \texttt{max};
+                \xmlNode{scale} and \xmlNode{shift} are set                         below, and each
+                constraint violation is subtracted with a fixed weight of 1 (\xmlNode{a} and
+                \xmlNode{b} are not used).\\                         \item \textit{feasibleFirst} -
+                It prioritizes solutions that meet constraints by assigning higher fitness scores to
+                feasible solutions,                          encouraging the evolution of
+                individuals that satisfy the problem's constraints.\\\\
                 $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}-
                 \Sigma_{j=1}^{J}<g\_j(x)> & otherwise \\ \end{matrix}\right\}$\\
                 \end{itemize}
@@ -2065,21 +2107,24 @@ Genetic Algorithm Example:
               a: The weight of objective function(s). \default{list of ones}
 
             \item \xmlNode{b}: \xmlDesc{comma-separated floats},
-              b: The weight of the constraint penalty. Give one value (applied to every objective
-              and        constraint), one value per constraint (shared by every objective), or one
-              value per        (objective, constraint) pair listed objective-major, i.e.
-              $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$ counts both
-              \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that this default
-              was 1.0 in earlier RAVEN versions, so constrained inputs that omit \xmlNode{b} give
-              different results. \default{10.0}
+              b: The weight of the constraint penalty for \textit{invLinear} and
+              \textit{feasibleFirst} (\textit{logistic}        does not use it). Give one value
+              (applied to every objective and        constraint), one value per constraint (shared
+              by every objective), or one value per        (objective, constraint) pair listed
+              objective-major, i.e. $b_{1,1},\ldots,b_{1,n\_c},b_{2,1},\ldots$, where        $n\_c$
+              counts both \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that
+              this default        was 1.0 in earlier RAVEN versions, so constrained inputs that omit
+              \xmlNode{b} give different results. \default{10.0}
 
             \item \xmlNode{scale}: \xmlDesc{comma-separated floats},
-              scale: in case of logistic fitness, this is the multiplier of the objective(s).
+              scale: in case of logistic fitness, the steepness of the logistic function for the
+              objective(s); a larger value        separates nearby objective values more strongly.
               Earlier RAVEN versions read but ignored it. \default{list of ones}
 
             \item \xmlNode{shift}: \xmlDesc{comma-separated floats},
-              shift: in case of logistic fitness, this is the shift in the exponential function for
-              the objective(s). Earlier RAVEN versions read but ignored it. \default{list of zeros}
+              shift: in case of logistic fitness, the objective value at which the fitness is $1/2$,
+              in the units of the        objective. Earlier RAVEN versions read but ignored it.
+              \default{list of zeros}
 
             \item \xmlNode{normalize}: \xmlDesc{string},
               normalize: input and output data will be normalized prior to calculating fitness for
@@ -2118,15 +2163,19 @@ Genetic Algorithm Example:
           which implies that values closer to 1.0 represents a tighter convergence criterion.
 
         \item \xmlNode{spread}: \xmlDesc{float},
-          provides the maximum allowable value of Deb's spread metric ($\Delta$) measuring the
-          distance                        between extreme and intermediate Pareto points. Once the
-          spread drops below this value                        the algorithm is considered
-          converged.
+          provides the maximum allowable value of Deb's spread metric ($\Delta$, Deb et al. 2002) of
+          the                        rank-1 front, which measures how unevenly its points are spaced
+          along the front (0 means                        perfectly uniform). The true Pareto
+          extremes are unknown during a run, so the end-point                        terms $d\_f$ and
+          $d\_l$ are taken as zero. Defined for two objectives only. Once $\Delta$
+          drops below this value the algorithm is considered converged. \default{0.5}
 
         \item \xmlNode{spacing}: \xmlDesc{float},
-          provides the maximum allowable spacing metric that captures the variance of
-          nearest-neighbour distances among rank-1 solutions. Lower values indicate a uniform
-          distribution and trigger convergence.
+          provides the maximum allowable value of Schott's spacing metric (Schott 1995): the
+          standard                        deviation of the L1 nearest-neighbour distances among
+          rank-1 solutions. It is in the units                        of the objectives, so choose
+          the threshold for their scale. Lower values indicate a uniform
+          distribution and trigger convergence. \default{0.5}
 
         \item \xmlNode{maxSpread}: \xmlDesc{float},
           sets the relative-change tolerance for the maximum spread (Euclidean range of objectives)
@@ -2337,7 +2386,12 @@ Genetic Algorithm Example:
       multi-objective GA. This is a mix-and-match operator: new ranking policies can be
       added without changing the algorithm. The optional \xmlAttr{type} attribute chooses
       the policy; if the node is omitted the default \textit{constrainedDomination} is
-      used, which is byte-for-byte the historical NSGA-II behavior.
+      used. Leave it unset unless you want a different constraint-handling policy.
+      The node is a child of \xmlNode{MultiObjectiveGeneticAlgorithm}, next to
+      \xmlNode{GAparams}, e.g. \xmlString{<rankingAlgorithm type="feasibleFirstPenalty"/>}.
+      Note: earlier RAVEN versions ranked multi-objective runs on the per-objective
+      fitness values (penalized), not by constrained domination; \textit{feasibleFirstPenalty}
+      is the closest match to that older behavior, but results are not identical.
       The \xmlNode{rankingAlgorithm} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{type}: \xmlDesc{[constrainedDomination, feasibleFirstPenalty, epsilonConstrained, stochasticRanking], optional},

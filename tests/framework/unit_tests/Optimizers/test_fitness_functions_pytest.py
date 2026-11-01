@@ -53,44 +53,69 @@ def test_feasible_first_uses_worst_objective_for_penalty(fitness_inputs):
   np.testing.assert_allclose(values, np.array([-1.0, -4.0, -6.0]))
 
 
-def test_logistic_adjusts_for_maximization_and_penalties(fitness_inputs):
-  result = fitness.logistic(
-    fitness_inputs['rlz'],
-    objVar=fitness_inputs['obj_var'],
-    scale=[2.0],
-    shift=[1.0],
-    penalty=[0.5],
-    constraintFunction=fitness_inputs['constraints'],
-    type=['max'],
-  )
+def _logistic(x):
+  """
+    Reference logistic function.
+    @ In, x, float, argument
+    @ Out, value, float, 1 / (1 + exp(-x))
+  """
+  return 1.0 / (1.0 + math.exp(-x))
+
+
+def test_logistic_minimization_prefers_lower_objective(fitness_inputs):
+  """For 'min' (the default) a lower objective gets a higher fitness, as the docstring and manual state."""
+  result = fitness.logistic(fitness_inputs['rlz'], objVar=fitness_inputs['obj_var'], scale=[1.0], shift=[1.0],
+                            penalty=[0.0], type=['min'])
   values = result['obj'].values
-  expected = np.array([0.5, 0.269203, 0.981059])
-  np.testing.assert_allclose(values, expected, rtol=1e-5, atol=1e-6)
+  # objectives are 1.0, 2.0, 0.5: fitness must order 0.5 > 1.0 > 2.0
+  assert values[2] > values[0] > values[1]
+  expected = np.array([_logistic(-(val - 1.0)) for val in fitness_inputs['rlz']['obj'].data])
+  np.testing.assert_allclose(values, expected)
 
 
-def test_logistic_applies_penalty_and_respects_minimization(fitness_inputs):
-  """For minimization the logistic is taken on the negated scale, and each violation is subtracted."""
-  result = fitness.logistic(
-    fitness_inputs['rlz'],
-    objVar=fitness_inputs['obj_var'],
-    scale=[-1.0],
-    shift=[1.0],
-    penalty=[0.5],
-    constraintFunction=fitness_inputs['constraints'],
-    type=['min'],
-  )
-  expected = np.array([0.5,
-                       1.0 / (1.0 + math.exp(1.0)) - 0.5 * 0.3,
-                       1.0 / (1.0 + math.exp(-0.5)) - 0.5 * 0.5])
-  np.testing.assert_allclose(result['obj'].values, expected)
+def test_logistic_maximization_prefers_higher_objective(fitness_inputs):
+  """The GA passes maximized objectives negated; 'max' must rank by the original (un-negated) value."""
+  rlz = fitness_inputs['rlz'].copy()
+  original = rlz['obj'].data.copy()
+  rlz['obj'] = -rlz['obj']  # minimization space, as the GA hands it over
+  result = fitness.logistic(rlz, objVar=fitness_inputs['obj_var'], scale=[1.0], shift=[1.0], penalty=[0.0],
+                            type=['max'])
+  values = result['obj'].values
+  assert values[1] > values[0] > values[2]
+  np.testing.assert_allclose(values, [_logistic(val - 1.0) for val in original])
 
 
-def test_logistic_flips_for_maximization(fitness_inputs):
-  """Without constraints, maximization returns 1 - logistic(objective)."""
-  rlz = fitness_inputs['rlz']
-  base = np.array([1.0 / (1.0 + math.exp(-(val - 1.0))) for val in rlz['obj'].data])
-  result = fitness.logistic(rlz, objVar=fitness_inputs['obj_var'], scale=[1.0], shift=[1.0], penalty=[0.0], type=['max'])
-  np.testing.assert_allclose(result['obj'].values, 1.0 - base)
+def test_logistic_shift_is_the_half_fitness_point(fitness_inputs):
+  """At objective == shift the logistic fitness is 1/2 for both directions."""
+  for minMax, sign in (('min', 1.0), ('max', -1.0)):
+    rlz = fitness_inputs['rlz'].copy()
+    rlz['obj'] = sign * xr_full(rlz['obj'], 3.0)
+    result = fitness.logistic(rlz, objVar=fitness_inputs['obj_var'], scale=[2.0], shift=[3.0], penalty=[0.0],
+                              type=[minMax])
+    np.testing.assert_allclose(result['obj'].values, 0.5)
+
+
+def test_logistic_violation_always_lowers_fitness(fitness_inputs):
+  """A constraint violation lowers the fitness for both 'min' and 'max' (it used to raise it for 'max')."""
+  for minMax in ('min', 'max'):
+    common = dict(objVar=fitness_inputs['obj_var'], scale=[2.0], shift=[1.0], type=[minMax])
+    clean = fitness.logistic(fitness_inputs['rlz'], penalty=[0.0], **common)['obj'].values
+    penalized = fitness.logistic(fitness_inputs['rlz'], penalty=[0.5], constraintFunction=fitness_inputs['constraints'],
+                                 **common)['obj'].values
+    # individual 0 is feasible; 1 violates c1 by 0.3; 2 violates c1 by 0.1 and c2 by 0.4
+    np.testing.assert_allclose(clean - penalized, [0.0, 0.5 * 0.3, 0.5 * 0.5])
+
+
+def xr_full(array, value):
+  """
+    Copy of an xarray DataArray with every entry set to value.
+    @ In, array, xr.DataArray, template
+    @ In, value, float, fill value
+    @ Out, filled, xr.DataArray, filled copy
+  """
+  filled = array.copy()
+  filled.data[:] = value
+  return filled
 
 
 def _twoObjectiveInputs(fitness_inputs):

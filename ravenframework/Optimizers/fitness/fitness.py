@@ -183,19 +183,19 @@ def feasibleFirst(rlz, **kwargs):
 
 def logistic(rlz, **kwargs):
   r"""
-  Logistic fitness method for multi-objective optimization with constraint handling.
-  For minimization problems:
-  1. As the objective decreases, the fitness value increases.
-  2. As the objective increases, the fitness value decreases.
-  3. If the solution violates the constraints, the fitness decreases, making it less favorable.
-  For maximization problems, the objective value is negated, inverting the trends.
+  Logistic fitness method with constraint handling. The GA hands over objectives already in
+  minimization space (maximized objectives negated), so the original objective value is
+  $y = x$ for 'min' and $y = -x$ for 'max', and
   math::
-    fitness = \frac{1}{1 + e^{-scale(x - shift)}} - penalty terms for constraint violations.
+    fitness = \frac{1}{1 + e^{\pm scale(y - shift)}} - penalty \sum_k \max(0, -g_k),
+  with the plus sign for 'min' and the minus sign for 'max'. With a positive scale the fitness
+  therefore increases as the objective improves (decreases for 'min', increases for 'max'), lies
+  in (0, 1) for feasible points, and is lowered by every constraint violation in both cases.
   @ In, rlz, xr.Dataset, containing the evaluation of a set of individuals
   @ In, kwargs, dict, dictionary of parameters:
         objVar, list of strings or single string, name(s) of the objective variable(s)
         scale, list of floats, scaling coefficient(s) for the objective function (default = 1.0 for each objective)
-        shift, list of floats, coefficient(s) for shifting the objective value (default = 0.0 for each objective)
+        shift, list of floats, objective value(s) at which the fitness is 1/2, in the units of the objective (default = 0.0 for each objective)
         constraintFunction, xr.DataArray, measuring the severity of the constraint violation
         penalty, list of floats or None, penalties for constraint violations (default = 1.0 for each objective; None uses the default)
         type, list of strings, indicating 'min' or 'max' for each objective
@@ -216,20 +216,15 @@ def logistic(rlz, **kwargs):
   g = kwargs.get('constraintFunction', None)  # Constraint evaluations (if any)
   fitnessSet = xr.Dataset()
   for i, obj in enumerate(objVar):
-      data = np.atleast_1d(rlz[obj].data)  # Objective values
-      fitness = np.zeros(data.shape)
-      for ind in range(data.shape[0]):
-          # Base logistic fitness calculation
-          denom = 1.0 + np.exp(-scale[i] * (data[ind] - shift[i]))
-          fit = 1.0 / denom
-          # Apply penalties for constraint violations, if any
-          if g is not None and np.any(g.data[ind, :] < 0):  # Constraint violation
-              for constInd in range(g.data.shape[1]):
-                  fit -= penalty[i] * max(0, -g.data[ind, constInd])
-          # Adjust for maximization problems by negating the fitness value
-          if kwargs['type'][i] == 'max':
-              fit = 1.0 - fit  # Adjust the logistic fitness for maximization
-          fitness[ind] = fit
+      data = np.atleast_1d(rlz[obj].data)  # Objective values, in minimization space
+      isMax = kwargs['type'][i] == 'max'
+      original = -data if isMax else data
+      direction = -1.0 if isMax else 1.0
+      fitness = 1.0 / (1.0 + np.exp(direction * scale[i] * (original - shift[i])))
+      # Apply penalties for constraint violations, if any (after the direction is set, so a
+      # violation always lowers the fitness)
+      if g is not None:
+        fitness = fitness - penalty[i] * np.sum(np.maximum(0.0, -np.asarray(g.data, dtype=float)), axis=1)
       # Store fitness in the dataset
       fitnessSet[obj] = xr.DataArray(fitness, dims=['chromosome'], coords={'chromosome': np.arange(len(data))})
   return fitnessSet

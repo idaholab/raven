@@ -131,6 +131,12 @@
     expect_err = 'uses the "withoutReplacement" strategy but offers only 2 distinct value(s), while 3 variables'
   [../]
 
+  [./multiObjectiveGeneticAlgorithmRejected]
+    type = 'RavenErrors'
+    input = 'discrete/constrained/testGAMultiObjectiveRejected.xml'
+    expect_err = 'but <GeneticAlgorithm> is single-objective. Use <MultiObjectiveGeneticAlgorithm type="NSGA-II"> instead'
+  [../]
+
   [./MinwoReplacementConvAHDp]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/testGAMinwoRepConvAHDp.xml'
@@ -853,7 +859,6 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjective.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/Multi_MinwoReplacement/opt_export_0.csv'
@@ -873,7 +878,6 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveEps.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/Multi_MinwoReplacementEps/opt_export_0.csv'
@@ -893,7 +897,6 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveStoch.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/Multi_MinwoReplacementStoch/opt_export_0.csv'
@@ -922,11 +925,24 @@
     [../]
   [../]
 
+  [./NSGA-II_MinwoRepFeasibleFirstCustomSampler]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/MinwoRepMultiObjectiveFeasibleFirst_CustomSampler.xml'
+    image = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-opt_path.png discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/1-population.png'
+    required_libraries = 'imageio'
+    # image comparison only: plot rendering differs across platforms (CSV checks use their own rel_err)
+    rel_err = 0.25
+    [./csv]
+      type = UnorderedCSV
+      output = 'discrete/constrained/MultiwoReplacementFeasibleFirstCustomSampler/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
   [./NSGA-II_MinwoRepMultiObjectivePenalty]
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectivePenalty.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/Multi_MinwoReplacementPenalty/opt_export_0.csv'
@@ -946,7 +962,6 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/MinwoRepMultiObjectiveNoFitness.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/Multi_MinwoReplacementNoFitness/opt_export_0.csv'
@@ -1059,7 +1074,6 @@
     type = 'RavenFramework'
     input = 'continuous/unconstrained/MultiObjectiveBeale-Bealeflipped.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'continuous/unconstrained/Multi_beale_bealeFlipped/opt_export_0.csv'
@@ -1138,7 +1152,6 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvMaxSpread.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvMaxSpread/opt_export_0.csv'
@@ -1154,23 +1167,14 @@
     [../]
   [../]
 
-  [./NSGA-II_MinwoRepMultiObjectiveConvSpread]
+  [./NSGA-II_ZDT1_convSpread]
     type = 'RavenFramework'
-    input = 'discrete/constrained/testMinwoRepMultiObjectiveConvSpread.xml'
-    required_libraries = 'imageio'
-    rel_err = 0.25
+    input = 'continuous/unconstrained/ZDT1_convSpread.xml'
     [./csv]
       type = UnorderedCSV
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/opt_export_0.csv'
-      rel_err = 0.001
-    [../]
-    [./plot_opt_path]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-opt_path.png'
-    [../]
-    [./plot_population]
-      type = Exists
-      output = 'discrete/constrained/MinwoRepMultiObjectiveConvSpread/1-population.png'
+      output = 'continuous/unconstrained/ZDT1_convSpread/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
     [../]
   [../]
 
@@ -1178,7 +1182,6 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvRank1Ratio.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvRank1Ratio/opt_export_0.csv'
@@ -1198,7 +1201,6 @@
     type = 'RavenFramework'
     input = 'discrete/constrained/testMinwoRepMultiObjectiveConvHypervolume.xml'
     required_libraries = 'imageio'
-    rel_err = 0.25
     [./csv]
       type = UnorderedCSV
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/opt_export_0.csv'

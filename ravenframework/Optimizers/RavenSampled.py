@@ -47,12 +47,15 @@ _NEGINF_SENTINEL = '__checkpoint_neginf__'
 
 # Checkpoint file format version. 1.1: dedup cache is now capped (_MAX_DEDUP_CACHE_SIZE) and no
 # longer stores a separate '_evaluatedSubmissionKeys' field; 1.0 checkpoints still restore
-# correctly, that field is just ignored on read.
-_CHECKPOINT_VERSION = '1.1'
+# correctly, that field is just ignored on read. 1.2: the genetic-algorithm state was renamed
+# (matingPopInputs -> population, bestFitness -> bestFitVal, ...) and multi-objective runs moved to
+# MultiObjectiveGeneticAlgorithm; GeneticAlgorithm refuses to restore a 1.0/1.1 file (see
+# GeneticAlgorithm._validateCheckpoint), other optimizers still restore it.
+_CHECKPOINT_VERSION = '1.2'
 # Checkpoint versions this code can still restore from without a compatibility warning. Keep
 # every version whose restore path remains supported (see _restoreCheckpointState/_CHECKPOINT_VERSION
 # history above) even after _CHECKPOINT_VERSION advances past it.
-_SUPPORTED_CHECKPOINT_VERSIONS = ('1.0', '1.1')
+_SUPPORTED_CHECKPOINT_VERSIONS = ('1.0', '1.1', '1.2')
 
 # Cap on the number of evaluated-point entries kept for deduplication. Without a cap, both
 # in-memory usage and per-checkpoint JSON serialization time grow with total run length (every

@@ -1,23 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_MinwoRepMultiObjective</name>
-    <author>Junyung Kim</author>
-    <created>2022-12-21</created>
-    <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.twoPointsCrossover;Optimizers.mutators.swapMutator</classesTested>
-    <description>NSGA-II min-max-min test: This test is for a three objectives obj1, 2, and 3
-    objective1 is a weighted sum of the whole chromosome from myLocalSum_multi.py, where as objective 2 and 3
-    are partial sums (i.e., obj2 is the weighted sum of the first two genes, whereas obj3 is the weighted sume of the third and forth Genes), the goal is to minimize obj1, and 3, and maximize 2.
-    The design/serach variables are x1, through x6. Each of these variables are integers between 2, and 7.
-    The problem is subjected to constraints: expConstr1, ixpConstr2, ixpConstr3 found at myCOnstraints.py
+    <name>framework/Optimizers/GA.multiObjectiveGeneticAlgorithmRejected</name>
+    <author>MohammadAbdo</author>
+    <created>2026-10-31</created>
+    <classesTested>GeneticAlgorithm</classesTested>
+    <description>
+      Regression test for the input-time rejection of a multi-objective GeneticAlgorithm. This is
+      MinwoRepMultiObjective.xml written in the syntax of earlier RAVEN versions: a GeneticAlgorithm node
+      with three objectives. GeneticAlgorithm is single-objective now, so RAVEN must stop before running
+      any model, with an error that names MultiObjectiveGeneticAlgorithm and the conversion script.
     </description>
-    <revisions>
-      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
-    </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>MinwoRepMultiObjectiveConvSpread</WorkingDir>
+    <WorkingDir>multiObjectiveGARejected</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
     <globalSeed>5489</globalSeed>
@@ -27,7 +24,7 @@
     <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
-      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
@@ -68,9 +65,9 @@
   </Distributions>
 
   <Optimizers>
-    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
+    <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>60</limit>
+        <limit>500</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min, max, min</type>
@@ -92,7 +89,7 @@
         <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
       </GAparams>
       <convergence>
-	<spread>1.0</spread>
+	<objective>78.0,19.0,32.0</objective>
       </convergence>
       <variable name="x1">
         <distribution>woRep_dist</distribution>
@@ -118,7 +115,7 @@
       <Constraint class='Functions' type='External'>expConstr3</Constraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr2</ImplicitConstraint>
       <ImplicitConstraint class='Functions' type='External'>impConstr3</ImplicitConstraint>
-    </MultiObjectiveGeneticAlgorithm>
+    </GeneticAlgorithm>
   </Optimizers>
 
   <Samplers>
@@ -156,7 +153,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted,conv_spread</Output>
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted,conv_objective</Output>
     </PointSet>
   </DataObjects>
 

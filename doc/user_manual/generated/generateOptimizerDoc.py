@@ -339,18 +339,50 @@ the changes below. Each item states what happens to an old input that is not upd
     negative, e.g. \texttt{invLinear} on a positive objective, and failed when every fitness was zero).
     \texttt{rankSelection} now works with any objective name and gives the fittest chromosome the largest
     probability. The \xmlNode{scale} and \xmlNode{shift} of the \texttt{logistic} fitness are now
-    applied; earlier versions ignored them. Inputs using these options give different results.
+    applied; earlier versions ignored them. The \texttt{logistic} fitness now also rises as the objective
+    improves for \texttt{min} objectives (earlier versions favored the larger objective even for
+    \texttt{min}), and a constraint violation always lowers it. Inputs using these options give
+    different results.
+  \item \textbf{Tournament selection.} The \xmlNode{kSelection} chromosomes of one tournament are now
+    drawn without replacement, so a chromosome cannot compete against itself; \xmlNode{kSelection} larger
+    than \xmlNode{populationSize} is an error. Results of inputs using \texttt{tournamentSelection} change.
+  \item \textbf{Spread and spacing convergence.} The \xmlNode{spread} criterion is Deb's spread
+    (Deb et al. 2002) of the distinct rank-1 points, with the end-point terms taken as zero, so a uniform
+    front scores 0; it is defined for two objectives only. \xmlNode{spacing} is Schott's metric (L1
+    nearest-neighbour distances). Both values are lower than before, so thresholds tuned for earlier
+    versions stop sooner.
+  \item \textbf{Without-replacement sampling, for every optimizer.} When variables share a
+    \xmlNode{UniformDiscrete} distribution with the \texttt{withoutReplacement} strategy, RAVEN now checks
+    at initialization that the distribution has at least as many values as variables, and stops with an
+    error otherwise; duplicate values in user-provided \xmlNode{initial} points are repaired. This applies
+    to every optimizer, not only the genetic algorithms.
+  \item \textbf{Restart files.} Restart (\texttt{.ravenrst}) files written by an earlier RAVEN genetic
+    algorithm cannot be resumed; a \xmlNode{GeneticAlgorithm} stops with an error that says so. A
+    multi-objective restart file is also refused because it was written by \xmlNode{GeneticAlgorithm}.
+    Start such runs again without the restart file.
+  \item \textbf{Plugin and developer code.} Code that reads optimizer internals must use the new names:
+    the \texttt{info['optVal']} key and the \texttt{\_expectedOptVal} attribute are now
+    \texttt{info['minObjVal']} and \texttt{\_expectedMinObjVal} in \xmlNode{GradientDescent},
+    \xmlNode{SimulatedAnnealing}, \xmlNode{BayesianOptimizer}, the acquisition functions and the step
+    manipulators, and the \texttt{modifyAcceptance} keyword arguments follow the same rename. In the
+    genetic algorithms, \texttt{matingPopInputs} is now \texttt{population}, \texttt{bestFitness} is
+    \texttt{bestFitVal}, and the population containers are \texttt{popFitVals}, \texttt{popMinObjVals}
+    and \texttt{popConstraintVals}. Custom parent-selection operators receive the fitness as
+    \texttt{popFitVals} (\texttt{fitness} is still accepted).
 \end{itemize}
 To convert existing inputs, run (from the RAVEN directory)
 \begin{lstlisting}[language=bash]
 python scripts/conversionScripts/toMultiObjectiveGA.py input1.xml input2.xml ...
 \end{lstlisting}
 It converts every multi-objective \xmlNode{GeneticAlgorithm} and its \xmlNode{Steps} references,
-editing only those tags, so comments and formatting are kept. A copy of each changed file is kept as
-\texttt{input.xml.bak}. It also lists settings to review by hand: a \xmlNode{parentSelection} or
-\xmlNode{survivorSelection} that NSGA-II rejects, a \xmlNode{fitness} that no longer drives selection,
-and a single-objective \xmlNode{GeneticAlgorithm} without \xmlNode{fitness}. With \texttt{--check}
-it only reports, without writing.
+editing only those tags, so comments, formatting and line endings are kept (tags inside XML comments
+are ignored). A byte-for-byte copy of each changed file is kept as \texttt{input.xml.bak}. It also lists
+settings to review by hand: a \xmlNode{parentSelection} or \xmlNode{survivorSelection} that NSGA-II
+rejects, a \xmlNode{fitness} that no longer drives selection, a constrained \texttt{invLinear} or
+\texttt{feasibleFirst} fitness without \xmlNode{b}, and a single-objective \xmlNode{GeneticAlgorithm}
+without \xmlNode{fitness}. A file with such a note is reported as needing a manual edit, and the exit
+code is the number of files that failed or need one. With \texttt{-{}-check} it only reports, without
+writing.
 """
 
 exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm,'MultiObjectiveGeneticAlgorithm':minimalMultiObjectiveGeneticAlgorithm,'BayesianOptimizer':minimalBayesianOptimizer}

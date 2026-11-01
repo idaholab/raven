@@ -125,18 +125,67 @@ def testExistingTypeAttributeKept():
   assert newText.count('NSGA-II') == 1
 
 
+# OLD_MULTI with settings NSGA-II accepts, so converting it leaves nothing to edit by hand
+CLEAN_MULTI = (OLD_MULTI.replace('rouletteWheel', 'tournamentSelection')
+                        .replace('fitnessBased', 'rankNcrowdingBased')
+                        .replace('        <fitness type="feasibleFirst">\n          <b>0.0025</b>\n        </fitness>\n', ''))
+
+
 def testCommandLineWritesBackupAndCheckWritesNothing(tmp_path):
   deck = tmp_path / 'deck.xml'
-  deck.write_text(OLD_MULTI)
+  deck.write_text(CLEAN_MULTI)
   assert converter.main(['toMultiObjectiveGA.py', '--check', str(deck)]) == 0
-  assert deck.read_text() == OLD_MULTI and not (tmp_path / 'deck.xml.bak').exists()
+  assert deck.read_text() == CLEAN_MULTI and not (tmp_path / 'deck.xml.bak').exists()
   assert converter.main(['toMultiObjectiveGA.py', str(deck)]) == 0
-  assert (tmp_path / 'deck.xml.bak').read_text() == OLD_MULTI
+  assert (tmp_path / 'deck.xml.bak').read_text() == CLEAN_MULTI
   assert '<MultiObjectiveGeneticAlgorithm' in deck.read_text()
   # running again is a no-op
   converted = deck.read_text()
   assert converter.main(['toMultiObjectiveGA.py', str(deck)]) == 0
   assert deck.read_text() == converted
+
+
+def testFileNeedingReviewCountsAsFailure(tmp_path, capsys):
+  """A deck that still needs a hand edit is not reported as 'ok', and the exit code says so."""
+  deck = tmp_path / 'deck.xml'
+  deck.write_text(OLD_MULTI.replace('MaxEFPD, FuelCycleCost', 'MaxEFPD').replace('        <fitness type="invLinear"/>\n', ''))
+  assert converter.main(['toMultiObjectiveGA.py', str(deck)]) == 1
+  out = capsys.readouterr().out
+  assert 'needs manual edit' in out and 'ok     ' not in out and 'user manual' in out
+
+
+def testCommentedTagIsIgnored():
+  """A tag inside an XML comment is neither converted nor allowed to break the result."""
+  comment = "    <!-- old: <GeneticAlgorithm name='GAopt'> </GeneticAlgorithm> -->"
+  text = OLD_MULTI.replace("    <!-- a comment with <angle> & ampersand characters -->", comment)
+  newText, names, _ = converter.convertText(text)
+  assert names == ['GAopt']
+  ET.fromstring(newText)
+  assert comment in newText
+
+
+def testDefaultPenaltyChangeReported():
+  """A constrained penalty fitness without <b> is flagged, single- or multi-objective; with <b> it is not."""
+  multi = OLD_MULTI.replace('          <b>0.0025</b>\n', '')
+  _, _, notes = converter.convertText(multi)
+  assert any('GAopt' in note and '<b>1.0</b>' in note for note in notes)
+  _, _, notes = converter.convertText(OLD_MULTI)
+  assert not any('<b>1.0</b>' in note for note in notes)
+  single = OLD_MULTI.replace('MaxEFPD, FuelCycleCost', 'MaxEFPD').replace('          <b>0.0025</b>\n', '')
+  _, _, notes = converter.convertText(single)
+  assert any('GAopt' in note and '<b>1.0</b>' in note for note in notes)
+
+
+def testLineEndingsAndUtf8Kept(tmp_path):
+  """CRLF line endings and UTF-8 text survive the rewrite, and the .bak is a byte-for-byte copy."""
+  original = CLEAN_MULTI.replace('a comment with', 'a comment (été) with').replace('\n', '\r\n').encode('utf-8')
+  deck = tmp_path / 'deck.xml'
+  deck.write_bytes(original)
+  assert converter.main(['toMultiObjectiveGA.py', str(deck)]) == 0
+  assert (tmp_path / 'deck.xml.bak').read_bytes() == original
+  converted = deck.read_bytes()
+  assert b'\r\n' in converted and b'\n' not in converted.replace(b'\r\n', b'')
+  assert 'été'.encode('utf-8') in converted
 
 
 def testUnparseableFileReportedNotRaised(tmp_path):

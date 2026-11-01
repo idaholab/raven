@@ -126,24 +126,6 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     if not self._isMultiObjective:
       self.raiseAnError(IOError, 'NSGA-II requires at least two objectives. Use GeneticAlgorithm for single-objective problems.')
 
-  def _useRealization(self, info, rlz):
-    """
-    Process evaluated offspring following the NSGA-II sequence.
-
-    Flowchart::
-
-          + evaluate offspring population
-          + fast non-dominated sorting (frontUtils.rankNonDominatedFrontiers)
-          + crowding-distance assignment per front
-          + elitist survivor selection (parents U offspring -> next gen)
-          + tournament parent selection biased by (rank, distance)
-          + variation operators (crossover, mutation) to spawn next batch
-
-    This override exists to document the NSGA-II-specific flow while delegating
-    the actual mechanics to :class:`MultiObjectiveGeneticAlgorithm`.
-    """
-    super()._useRealization(info, rlz)
-
   def _effectiveMutationProb(self):
     """
       Return the mutation probability to use this generation. With adaptive mutation enabled
