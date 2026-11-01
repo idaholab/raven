@@ -27,7 +27,7 @@ from .PostProcessorInterface import PostProcessorInterface
 
 DETRENDS = ['none', 'constant', 'linear']
 WINDOWS = ['none', 'hann', 'hamming', 'blackman']
-WINDOW_FUNCTIONS = {'hann': np.hanning, 'hamming': np.hamming, 'blackman': np.blackman}
+WINDOWFUNCTIONS = {'hann': np.hanning, 'hamming': np.hamming, 'blackman': np.blackman}
 
 def computeFFT(values, pivot, detrend='none', window='none', spacingTol=1e-6):
   """
@@ -60,7 +60,7 @@ def computeFFT(values, pivot, detrend='none', window='none', spacingTol=1e-6):
     values = values - values.mean()
   elif detrend == 'linear':
     values = values - np.polyval(np.polyfit(pivot, values, 1), pivot)
-  weights = np.ones(n) if window == 'none' else WINDOW_FUNCTIONS[window](n)
+  weights = np.ones(n) if window == 'none' else WINDOWFUNCTIONS[window](n)
   transform = np.fft.rfft(values * weights)
   freq = np.fft.rfftfreq(n, d=dt)
   # single-sided amplitude, corrected for the window coherent gain: the zero frequency (and the Nyquist
