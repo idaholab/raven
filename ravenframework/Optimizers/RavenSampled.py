@@ -813,18 +813,6 @@ class RavenSampled(Optimizer):
     ## If any solution in the history has a higher objective value than what is found in ._optPointHistory, add it to opt. NOTE: this only searches the most recent iteration of the optimizer.
     opt = self._optPointHistory[traj][-1][0]
 
-    objectiveVars = []
-    optKeys = list(opt)
-    # Map objective variable names to keys in the optimization history.
-    for obj in np.atleast_1d(self._objectiveVar):
-      if obj in optKeys:
-        objectiveVars.append(obj)
-      else:
-        matches = [var for var in optKeys if obj.lower() in var.lower()]
-        objectiveVars.extend(matches)
-    # Deduplicate while preserving order
-    objectiveVars = list(dict.fromkeys(objectiveVars))
-
     self._solutionExport.asDataset() #empty _collector into _data
     ## Search the rest of the population (GA-only: _sampledPopulationInfo is set in
     ## GeneticAlgorithm.__init__ and filled by GeneticAlgorithm._recordSampledPopulation for single-objective
@@ -845,11 +833,14 @@ class RavenSampled(Optimizer):
                       bestInPopulation[soln1] = self._sampledPopulationInfo[soln1]
                   elif (self._sampledPopulationInfo[soln1] > bestInPopulation[soln2]).any():
                       bestInPopulation[soln1] = self._sampledPopulationInfo[soln1]
-      # try to add best solns to list of optimal solns
+      # try to add best solns to list of optimal solns. _sampledPopulationInfo holds FITNESS values (larger is
+      # better), so compare them with the incumbent's fitness, not with its objective: the two are on different
+      # scales, and comparing them added worse (even infeasible) points as extra "final" optima.
+      incumbentFitness = opt.get('fitness')
       for soln in bestInPopulation:
-        # opt[key] is the single best realization's objective value (a scalar), not a population;
-        # np.atleast_1d guards max() against that scalar case (max() requires an iterable).
-        if (bestInPopulation[soln] > [max(np.atleast_1d(opt[key])) for key in objectiveVars]).any(): #if any objective value in soln is greater than all corresponding objective values in opt, this is True.
+        if incumbentFitness is None:
+          break
+        if (bestInPopulation[soln] > max(np.atleast_1d(incumbentFitness))).any():
             for indx in range(len(self._solutionExport._data[list(self._solutionExport._data)[0]])): #search the population data for the inputs in soln
               if np.all(np.array(soln) == [self._solutionExport._data[key][indx].item() for key in self.toBeSampled]):
                 # add soln values from population data to opt

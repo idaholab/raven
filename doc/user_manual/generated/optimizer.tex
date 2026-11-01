@@ -37,6 +37,11 @@ the changes below. Each item states what happens to an old input that is not upd
     improves for \texttt{min} objectives (earlier versions favored the larger objective even for
     \texttt{min}), and a constraint violation always lowers it. Inputs using these options give
     different results.
+  \item \textbf{Reported optimum of single-objective runs.} The reported optimum is now the point with the
+    highest fitness found. Earlier versions also required a lower raw objective, so in a constrained run an
+    infeasible point found early, with a better objective than any feasible point, could stay the reported
+    optimum for the whole run. The exported \texttt{ConstraintEvaluation\_*} values also follow their points
+    from the first generation on (earlier versions could export another point's values).
   \item \textbf{Tournament selection.} The \xmlNode{kSelection} chromosomes of one tournament are now
     drawn without replacement, so a chromosome cannot compete against itself; \xmlNode{kSelection} larger
     than \xmlNode{populationSize} is an error. Results of inputs using \texttt{tournamentSelection} change.

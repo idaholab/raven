@@ -63,6 +63,21 @@ def test_convergence_spread():
   assert optimizer._checkConvSpread(0)
 
 
+def test_convergence_spread_ignores_duplicates():
+  """
+    spread: copies of one point have zero gaps, which reads as a perfectly uniform front (spread 0).
+    The check measures distinct points only, so a front of four copies does not converge, while four
+    evenly spaced points do, even with a tight threshold.
+  """
+  optimizer = _makeOptimizer(['obj1', 'obj2'])
+  optimizer._convergenceCriteria = {'spread': 0.01}
+  _setPopulation(optimizer, ranks=[1, 1, 1, 1], objectiveRows=[[78.0] * 4, [-20.0] * 4])
+  assert not optimizer._checkConvSpread(0)
+  _setPopulation(optimizer, ranks=[1, 1, 1, 1],
+                 objectiveRows=[[1.0, 0.8, 0.6, 0.4], [0.4, 0.6, 0.8, 1.0]])
+  assert optimizer._checkConvSpread(0)
+
+
 def test_convergence_rank1_ratio():
   """
     rank1Ratio: converges once the rank-1 fraction has been high and stable for three generations.

@@ -11,6 +11,7 @@
     </description>
     <revisions>
       <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+      <revision author="Jimmy-INL" date="2026-11-01">&lt;type&gt;max&lt;/type&gt; added: the logistic fitness now ranks the better objective higher; this deck maximizes the plan value, which it previously did only because the logistic fitness was inverted for min.</revision>
     </revisions>
   </TestInfo>
 

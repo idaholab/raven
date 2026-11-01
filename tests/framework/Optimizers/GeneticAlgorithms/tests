@@ -456,6 +456,36 @@
     [../]
   [../]
 
+  [./GA_knapsackBaseLogisticMin]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_knapsackBaseLogisticMin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/unconstrained/simpleKnapsackLogisticMin/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsackLogisticMin/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./rosenbrockDiskConstrainedLogisticMin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGARosenbrockDiskConstrainedLogisticMin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/rosenbrockDiskConstrainedLogisticMin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./rosenbrockDiskConstrainedLogisticMax]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGARosenbrockDiskConstrainedLogisticMax.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/rosenbrockDiskConstrainedLogisticMax/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
   [./GA_knapsackBaseTournament]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/GA_knapsackBaseTournament.xml'

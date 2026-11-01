@@ -114,6 +114,10 @@
     type = 'PyTest'
     input = 'test_ga_convergence_criteria_pytest.py'
   [../]
+  [./pytestGaIncumbent]
+    type = 'PyTest'
+    input = 'test_ga_incumbent_pytest.py'
+  [../]
   [./pytestGaRepair]
     type = 'PyTest'
     input = 'test_repair_operator_pytest.py'

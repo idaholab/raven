@@ -717,8 +717,9 @@ class GeneticAlgorithm(RavenSampled):
     else:
       self._fitnessType = fitnessNode.parameterValues['type']
       if self._fitnessType == 'logistic':
-        self._scale = fitnessNode.findFirst('scale').value
-        self._shift = fitnessNode.findFirst('shift').value
+        # both are optional; None makes the logistic fall back to its documented defaults (1 and 0)
+        self._scale = fitnessNode.findFirst('scale').value if fitnessNode.findFirst('scale') else None
+        self._shift = fitnessNode.findFirst('shift').value if fitnessNode.findFirst('shift') else None
       else:
         self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') else None
         self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') else None
@@ -1009,6 +1010,9 @@ class GeneticAlgorithm(RavenSampled):
         self.popFitVals = offspringFitVals
         self.popMinObjVals = rlz[self._objectiveVar[0]].data
         self.popAges = [0] * len(offspring)
+        # the survivor selectors carry each individual's constraint row from generation 2 on; start
+        # them from this population, or generation 2 pairs the parents with the offspring's rows
+        self.popConstraintVals = offspringConstraintVals
 
       # ============================================================
       # PART C: Update Ages for Display
@@ -1481,7 +1485,12 @@ class GeneticAlgorithm(RavenSampled):
       if self.popAges is not None and len(self.popAges) > bestIdx:
         snapshot['age'] = self.popAges[bestIdx]
       self._bestSnapshot = snapshot.copy()
-    elif currentObj <= self.multiBestMinObjVals[0] and currentFit >= self.bestFitVal:
+    # Fitness is the single-objective selection criterion and already carries the constraint penalty, so
+    # it alone decides the incumbent. Also requiring a lower raw objective (as earlier versions did) let an
+    # infeasible point with a very good objective stay the reported optimum forever, because no feasible
+    # point could beat its raw objective.
+    # A tie keeps the incumbent's place but refreshes its record (age, batch), as earlier versions did.
+    elif currentFit > self.bestFitVal or (currentFit == self.bestFitVal and currentObj <= self.multiBestMinObjVals[0]):
       point.update(constraintValsOfBest)
       point['fitness'] = currentFit
       self.bestPoint = point
