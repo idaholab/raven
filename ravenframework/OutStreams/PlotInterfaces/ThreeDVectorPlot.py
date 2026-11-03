@@ -170,7 +170,7 @@ class ThreeDVectorPlot(PlotInterface):
     cmap = plt.cm.plasma
     normColors = None
     if len(genMid) > 0:
-      normColors = (genMid - genMid.min()) / max(genMid.ptp(), 1e-9)
+      normColors = (genMid - genMid.min()) / max(np.ptp(genMid), 1e-9)
     else:
       normColors = np.zeros(len(origins))
     quiv = ax.quiver(origins[:, 0], origins[:, 1], origins[:, 2],
