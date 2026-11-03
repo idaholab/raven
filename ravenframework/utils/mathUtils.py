@@ -1273,6 +1273,19 @@ _numpyScalarTypes = {
   'others': [bool, object, bytes, str, np.void],
 }
 
+def numpyLegacyStr(value):
+  """
+    Converts a value to a string like numpy < 2 did in RAVEN: numpy scalars are written with the print option
+    legacy='1.13' (RAVEN set it globally; in numpy 2 print options are per thread, so it does not reach the
+    threads that write code input files)
+    @ In, value, object, the value to convert
+    @ Out, numpyLegacyStr, str, the string
+  """
+  if isinstance(value, np.generic):
+    with np.printoptions(legacy='1.13'):
+      return str(value)
+  return str(value)
+
 def getNumpyTypes(typ):
   """
     Method to get a dictionary of numpy types

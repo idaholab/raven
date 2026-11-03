@@ -22,6 +22,7 @@ import os
 import copy
 import numpy as np
 from ravenframework.utils.utils import toBytes, toStrish, compare, toString
+from ravenframework.utils import mathUtils
 from . import MooseInputParser
 
 class MOOSEparser():
@@ -143,10 +144,10 @@ class MOOSEparser():
           ## location index start from 1
           loc, modVal = mod[0], mod[1]
           val = found[-1].text.split()
-          val[loc-1] = str(modVal)
+          val[loc-1] = mathUtils.numpyLegacyStr(modVal)
           found[-1].text = ' '.join(val)
         else:
-          found[-1].text = str(mod)
+          found[-1].text = mathUtils.numpyLegacyStr(mod)
       else:
         # addition
         trees = MooseInputParser.addNewPath(trees, target, mod)

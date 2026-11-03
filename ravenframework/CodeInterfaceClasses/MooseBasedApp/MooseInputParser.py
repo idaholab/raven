@@ -18,7 +18,7 @@ Getpot/hit input parsing methods
 import os
 import sys
 
-from ravenframework.utils import utils, TreeStructure
+from ravenframework.utils import utils, TreeStructure, mathUtils
 
 multiIndicators = ('\'', '\"')
 validIndicators = ('=', '[')
@@ -236,7 +236,7 @@ def addNewPath(trees, target, value):
     new = TreeStructure.InputNode(addTarg)
     current.append(new)
     if t + a == len(target) - 1:
-      new.text = str(value)
+      new.text = mathUtils.numpyLegacyStr(value)
     current = new
   return trees
 
