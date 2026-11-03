@@ -49,6 +49,18 @@ jobs:
         run: |
           ./build_raven
 
+      - name: Check Generated Docs Are Up To Date
+        run: |
+          source ./scripts/establish_conda_env.sh --load
+          export LD_LIBRARY_PATH=/home/runner/miniconda3/envs/raven_libraries/lib
+          cd doc/user_manual
+          ./generate_docs.sh
+          cd ../..
+          if ! git diff --exit-code -- doc/user_manual/generated/; then
+            echo "::error::The generated user-manual files are out of date. An input specification changed but the generated documentation was not regenerated. Run 'doc/user_manual/generate_docs.sh' in a built RAVEN environment and commit the updated files under doc/user_manual/generated/."
+            exit 1
+          fi
+
       - name: Test RAVEN
         # if: always()
         # continue-on-error: true # numba library cause autoarma failed for latest ubuntu
