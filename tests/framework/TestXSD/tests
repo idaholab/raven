@@ -16,6 +16,14 @@
   prereq = test_xsd_input_data
  [../]
 
+ [./test_xsd_legacy_any_type]
+  type = 'RavenPython'
+  input = 'TestLegacyAnyType.py'
+ [../]
+
+ [./test_input_spec_audit]
+  type = 'RavenPython'
+  input = 'TestInputSpecAudit.py'
+ [../]
+
 []
-
-

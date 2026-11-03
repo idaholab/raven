@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2017 Battelle Energy Alliance, LLC
+# Copyright 2026 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,31 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on 2026-Feb-3
-
-@author: cogljj
-
-This generates an XSD based on InputData
+Generate a full RAVEN XSD based on InputData.
 """
-import sys
 import os
+import sys
 import builtins
 import xml.etree.ElementTree as ET
+
 try:
-    import ravenframework
+  import ravenframework
 except ModuleNotFoundError:
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-    import ravenframework
+  sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+  import ravenframework
+
+builtins.profile = lambda f: f
+from ravenframework.utils import InputData
+import ravenframework.Simulation
 
 if len(sys.argv) != 2:
-  print("Invalid parameters")
   print(sys.argv[0], "generated_filename.xsd")
   sys.exit(1)
 
-builtins.profile = lambda f: f
-import ravenframework.Simulation
+if os.environ.get("RAVEN_SUPPRESS_INPUT_SPEC_WARNINGS", "").lower() in ("1", "true", "yes"):
+  InputData.SUPPRESS_INPUT_SPEC_WARNINGS = True
 
 base = ravenframework.Simulation.Simulation.getXSDSchema()
 ET.ElementTree(base).write(sys.argv[1])
-print("Generated ",sys.argv[1])
-
+print("Generated", sys.argv[1])
