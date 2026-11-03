@@ -1263,6 +1263,15 @@ def getBuiltinTypes(typ):
     _bTypes = {k:[t] for k, t in b.__dict__.items() if isinstance(t, type)}
   return _bTypes.get(typ,[])
 
+# the scalar types that np.sctypes had in numpy 1.26 (it was removed in numpy 2.0)
+_numpyScalarTypes = {
+  'int': [np.int8, np.int16, np.int32, np.int64],
+  'uint': [np.uint8, np.uint16, np.uint32, np.uint64],
+  'float': [np.float16, np.float32, np.float64],
+  'complex': [np.complex64, np.complex128],
+  'others': [bool, object, bytes, str, np.void],
+}
+
 def getNumpyTypes(typ):
   """
     Method to get a dictionary of numpy types
@@ -1270,10 +1279,11 @@ def getNumpyTypes(typ):
     @ Out, nTypes, list, the list of type instances
   """
   nTypes = []
-  if typ in np.sctypes:
-    nTypes = np.sctypes[typ]
+  # np.sctypes was removed in numpy 2.0; this is the same dictionary, written out
+  if typ in _numpyScalarTypes:
+    nTypes = list(_numpyScalarTypes[typ])
   else:
-    for t in np.sctypes['others']:
+    for t in _numpyScalarTypes['others']:
       if typ in t.__name__:
         nTypes.append(t)
 
