@@ -24,7 +24,8 @@ import numpy as np
 from ravenframework.utils import mathUtils
 # numpy with version 1.14.0 and upper will change the floating point type and print
 # https://docs.scipy.org/doc/numpy-1.14.0/release.html
-if int(np.__version__.split('.')[1]) > 13:
+# (compare the (major, minor) tuple: numpy 2.x has a minor version below 14)
+if tuple(int(v) for v in np.__version__.split('.')[:2]) > (1, 13):
   np.set_printoptions(**{'legacy':'1.13'})
 
 def _reprIfFloat(value):
@@ -34,6 +35,10 @@ def _reprIfFloat(value):
     @ Out, _reprIfFloat, string, a string conversion of this
   """
   if mathUtils.isAFloat(value):
+    # numpy 2 prints numpy scalars as "np.float64(1.0)" and print options (such as legacy='1.13') are
+    # only set for the current thread, so convert numpy scalars to python floats first
+    if isinstance(value, np.generic):
+      value = value.item()
     return repr(value)
   else:
     return str(value)
