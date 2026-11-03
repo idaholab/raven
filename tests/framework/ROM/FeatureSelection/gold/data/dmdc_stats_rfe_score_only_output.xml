@@ -179,6 +179,56 @@
           <real>7.88896344e+06 1.19572660e+02 5.92074809e+06 3.69094757e+05 6.70632289e-04 -1.41510273e-14 -1.49806323e+06 -2.27060376e+01 -2.70317713e+04 6.77912525e+02 3.72874709e-02 2.94985251e-04</real>
         </realization>
       </Ctilde>
+      <timeConstants>
+        <realization TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" SES_Max_Power="2.600000e+01" sample="0">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>1.27727871e-01 5.61319980e-01</eigenvaluesReal>
+          <period>inf inf</period>
+          <tau>4.85943292e+00 1.73170920e+01</tau>
+        </realization>
+        <realization TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" SES_Max_Power="2.600000e+01" sample="1">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>1.28953627e-01 8.93819280e-01</eigenvaluesReal>
+          <period>inf inf</period>
+          <tau>4.88209157e+00 8.90855328e+01</tau>
+        </realization>
+        <realization TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" SES_Max_Power="2.600000e+01" sample="2">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>-3.65351536e-01 7.47075013e-01</eigenvaluesReal>
+          <period>2.00000000e+01 inf</period>
+          <tau>9.93151943e+00 3.42947665e+01</tau>
+        </realization>
+        <realization TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" SES_Max_Power="2.600000e+01" sample="3">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>7.47080348e-01 8.93818121e-01</eigenvaluesReal>
+          <period>inf inf</period>
+          <tau>3.42956064e+01 8.90845033e+01</tau>
+        </realization>
+        <realization TES_Max_Power="-4.400000e+00" BOP_Max_Power="1.700000e+01" SES_Max_Power="5.200000e+01" sample="4">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>1.28997867e-01 5.61319980e-01</eigenvaluesReal>
+          <period>inf inf</period>
+          <tau>4.88290929e+00 1.73170920e+01</tau>
+        </realization>
+        <realization TES_Max_Power="1.400000e+01" BOP_Max_Power="1.700000e+01" SES_Max_Power="5.200000e+01" sample="5">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>5.61320166e-01 9.20892258e-01</eigenvaluesReal>
+          <period>inf inf</period>
+          <tau>1.73171019e+01 1.21341208e+02</tau>
+        </realization>
+        <realization TES_Max_Power="-4.400000e+00" BOP_Max_Power="4.700000e+01" SES_Max_Power="5.200000e+01" sample="6">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>-3.61404921e-01 7.47075013e-01</eigenvaluesReal>
+          <period>2.00000000e+01 inf</period>
+          <tau>9.82553501e+00 3.42947665e+01</tau>
+        </realization>
+        <realization TES_Max_Power="1.400000e+01" BOP_Max_Power="4.700000e+01" SES_Max_Power="5.200000e+01" sample="7">
+          <eigenvaluesImaginary>0.00000000e+00 0.00000000e+00</eigenvaluesImaginary>
+          <eigenvaluesReal>7.47080348e-01 8.93819346e-01</eigenvaluesReal>
+          <period>inf inf</period>
+          <tau>3.42956064e+01 8.90855913e+01</tau>
+        </realization>
+      </timeConstants>
     </DMDcModel>
   </DMDrom>
   
