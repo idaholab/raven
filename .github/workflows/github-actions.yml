@@ -67,7 +67,6 @@ jobs:
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -142,7 +141,6 @@ jobs:
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -216,7 +214,6 @@ jobs:
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -290,7 +287,6 @@ jobs:
           pwd
           python3 ./scripts/install_plugins.py -s LOGOS
           python3 ./scripts/install_plugins.py -s HERON
-          python3 ./scripts/install_plugins.py -s DOVE
 
       - name: Reset Python Environment with Plugins Libraries
         run: |
@@ -367,7 +363,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s LOGOS
         # Failed due to pyomo = 6.4
         # python3 ./scripts/install_plugins.py -s HERON
-        # python3 ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
@@ -445,7 +440,6 @@ jobs:
           python3 ./scripts/install_plugins.py -s LOGOS
         # Failed due to pyomo = 6.4
         # python3 ./scripts/install_plugins.py -s HERON
-        # python3 ./scripts/install_plugins.py -s DOVE
         continue-on-error: true
 
       - name: Reset Python Environment with Plugins Libraries
