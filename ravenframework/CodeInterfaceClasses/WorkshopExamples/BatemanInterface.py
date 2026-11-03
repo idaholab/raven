@@ -30,7 +30,8 @@ from ravenframework.CodeInterfaceBaseClass import CodeInterfaceBase
 
 # numpy with version 1.14.0 and upper will change the floating point type and print
 # https://docs.scipy.org/doc/numpy-1.14.0/release.html
-if int(np.__version__.split('.')[1]) > 13:
+# (compare the (major, minor) tuple: numpy 2.x has a minor version below 14)
+if tuple(int(v) for v in np.__version__.split('.')[:2]) > (1, 13):
   np.set_printoptions(**{'legacy':'1.13'})
 
 class BatemanSimple(CodeInterfaceBase):
@@ -146,7 +147,9 @@ class BatemanSimple(CodeInterfaceBase):
         # if None, no variable has been found
         raise Exception('Not found variable '+var+' in input file '+ originalPath)
       # set the new variable value
-      varElement.text = repr(varDict[var])
+      # numpy 2 prints numpy scalars as "np.float64(1.0)", so use the python value
+      value = varDict[var].item() if isinstance(varDict[var], np.generic) else varDict[var]
+      varElement.text = repr(value)
 
     # now we can re-write the input file
     tree.write(currentInputFiles[index].getAbsFile())
