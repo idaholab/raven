@@ -108,4 +108,6 @@ class ARDRegression(ScikitLearnBase):
                                                                'n_iter', 'normalize', 'verbose'])
     # notFound must be empty
     assert(not notFound)
+    # scikit-learn 1.5 removed "n_iter", which was renamed "max_iter" in 1.3; the RAVEN input keeps the old name
+    settings['max_iter'] = settings.pop('n_iter')
     self.initializeModel(settings)
