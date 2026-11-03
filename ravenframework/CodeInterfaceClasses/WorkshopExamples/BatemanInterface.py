@@ -147,9 +147,12 @@ class BatemanSimple(CodeInterfaceBase):
         # if None, no variable has been found
         raise Exception('Not found variable '+var+' in input file '+ originalPath)
       # set the new variable value
-      # numpy 2 prints numpy scalars as "np.float64(1.0)", so use the python value
-      value = varDict[var].item() if isinstance(varDict[var], np.generic) else varDict[var]
-      varElement.text = repr(value)
+      if isinstance(varDict[var], np.generic):
+        # numpy 2 prints numpy scalars as "np.float64(1.0)" unless the legacy option is set (per thread)
+        with np.printoptions(legacy='1.13'):
+          varElement.text = repr(varDict[var])
+      else:
+        varElement.text = repr(varDict[var])
 
     # now we can re-write the input file
     tree.write(currentInputFiles[index].getAbsFile())

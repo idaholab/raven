@@ -35,10 +35,11 @@ def _reprIfFloat(value):
     @ Out, _reprIfFloat, string, a string conversion of this
   """
   if mathUtils.isAFloat(value):
-    # numpy 2 prints numpy scalars as "np.float64(1.0)" and print options (such as legacy='1.13') are
-    # only set for the current thread, so convert numpy scalars to python floats first
     if isinstance(value, np.generic):
-      value = value.item()
+      # numpy 2 prints numpy scalars as "np.float64(1.0)" unless the legacy option is set, and print
+      # options are per thread in numpy 2, so set the option here (it keeps the digits numpy < 2 wrote)
+      with np.printoptions(legacy='1.13'):
+        return repr(value)
     return repr(value)
   else:
     return str(value)
