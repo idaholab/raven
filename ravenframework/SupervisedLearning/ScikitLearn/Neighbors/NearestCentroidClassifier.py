@@ -77,7 +77,7 @@ class NearestCentroid(ScikitLearnBase):
                                                  the distances (according to the metric) of all samples that belong to that particular class are
                                                  minimized. If the ``manhattan'' metric is provided, this centroid is the median and for all other metrics,
                                                  the centroid is now set to be the mean.
-                                                 """, default='minkowski'))
+                                                 """, default='euclidean'))
     return specs
 
   def _handleInput(self, paramInput):
@@ -90,4 +90,8 @@ class NearestCentroid(ScikitLearnBase):
     settings, notFound = paramInput.findNodesAndExtractValues(['shrink_threshold', 'metric'])
     # notFound must be empty
     assert(not notFound)
+    # scikit-learn 1.5 only accepts "euclidean" and "manhattan"; "minkowski" (the previous default) was the
+    # euclidean distance, since its power parameter is 2
+    if settings.get('metric') == 'minkowski':
+      self._translateValue(settings, 'metric', 'euclidean')
     self.initializeModel(settings)
