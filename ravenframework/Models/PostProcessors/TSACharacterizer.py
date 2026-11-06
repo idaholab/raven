@@ -103,8 +103,11 @@ class TSACharacterizer(PostProcessorInterface, TSAUser):
       for t, target in enumerate(self.target):
         targetVals[0, :, t] = rlz[target]
       self.trainTSASequential(targetVals)
-      rlz = self.getParamsAsVars()
-      rlzs.append(rlz)
+      chz = dict(self.getParamsAsVars())
+      # carry over the input space of the history (e.g. case identifiers), if any
+      for var in inp.getVars('input'):
+        chz[var] = np.asarray(rlz[var]).item()
+      rlzs.append(chz)
     return rlzs
 
   def collectOutput(self, finishedJob, output):
