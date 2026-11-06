@@ -22,12 +22,14 @@ import os
 import math
 import string
 from ravenframework import Simulation
+from ravenframework.CustomModes import ClusterUtils
+from ravenframework.CustomModes.ClusterMode import ClusterSimulationMode
 
 #For the mode information
 modeName = ["mpi","pbs"]
 modeClassName = "PBSSimulationMode"
 
-class PBSSimulationMode(Simulation.SimulationMode):
+class PBSSimulationMode(ClusterSimulationMode):
   """
     PBSSimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol on PBS
@@ -57,72 +59,24 @@ class PBSSimulationMode(Simulation.SimulationMode):
       @ In, runInfoDict, dict, the original runInfo
       @ Out, newRunInfo, dict, of modified values
     """
-    newRunInfo = {}
-    newRunInfo['batchSize'] = runInfoDict['batchSize']
+    nodeFileName = None
     if self.__nodefile or self.__inPbs:
       if not self.__nodefile:
         #Figure out number of nodes and use for batchsize
-        nodefile = os.environ["PBS_NODEFILE"]
+        nodeFileName = os.environ["PBS_NODEFILE"]
       else:
-        nodefile = self.__nodefile
-      self.raiseADebug('Setting up remote nodes based on "{}"'.format(nodefile))
-      lines = open(nodefile,"r").readlines()
-      #XXX This is an undocumented way to pass information back
-      newRunInfo['Nodes'] = list(lines)
-      numMPI = runInfoDict['NumMPI']
-      oldBatchsize = runInfoDict['batchSize']
-      #the batchsize is just the number of nodes of which there is one
-      # per line in the nodefile divided by the numMPI (which is per run)
-      # and the floor and int and max make sure that the numbers are reasonable
-      maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
-
-      if maxBatchsize < oldBatchsize:
-        newRunInfo['batchSize'] = maxBatchsize
-        self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
-      newBatchsize = newRunInfo['batchSize']
-      self.raiseADebug('Batch size is "{}"'.format(newBatchsize))
-      if newBatchsize > 1:
-        #need to split node lines so that numMPI nodes are available per run
-        workingDir = runInfoDict['WorkingDir']
-        for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir, f"node_{i}"), "w")
-          for line in lines[i*numMPI : (i+1) * numMPI]:
-            nodeFile.write(line)
-          nodeFile.close()
-        #then give each index a separate file.
-        nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
-      else:
-        #If only one batch just use original node file
-        nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
-
-    else:
-      #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
-      newBatchsize = newRunInfo['batchSize']
-      numMPI = runInfoDict['NumMPI']
-      #TODO, we don't have a way to know which machines it can run on
-      # when not in PBS so just distribute it over the local machine:
-      nodeCommand = " "
+        nodeFileName = self.__nodefile
 
     #Disable MPI processor affinity, which causes multiple processes
     # to be forced to the same thread.
     os.environ["MV2_ENABLE_AFFINITY"] = "0"
 
-    if len(self.__mpiparams) > 0:
-      mpiParams = " ".join(self.__mpiparams)+" "
-    else:
-      mpiParams = ""
-    # Create the mpiexec pre command
-    # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
-    if self.__createPrecommand:
-      newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+mpiParams+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
-    else:
-      newRunInfo['precommand'] = runInfoDict['precommand']
-    if runInfoDict['NumThreads'] > 1:
-      newRunInfo['threadParameter'] = runInfoDict['threadParameter']
-      #add number of threads to the post command.
-      newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
-    self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
-    return newRunInfo
+    #the batch sizing, node-file splitting and precommand assembly are shared
+    # with the other cluster modes (see ClusterMode.ClusterSimulationMode)
+    return self._modifyInfoForCluster(runInfoDict, nodeFileName,
+                                      mpiParams=self.__mpiparams,
+                                      createPrecommand=self.__createPrecommand,
+                                      clusterName="this PBS allocation")
 
   def __createAndRunQSUB(self, runInfoDict):
     """
@@ -148,14 +102,14 @@ class PBSSimulationMode(Simulation.SimulationMode):
     ncpus = runInfoDict['NumThreads']
     # job title
     jobName = runInfoDict['JobName'] if 'JobName' in runInfoDict.keys() else 'raven_qsub'
-    ## fix up job title
-    validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
-    if any(char not in validChars for char in jobName):
-      raise IOError('JobName can only contain alphanumeric and "_", "-" characters! Received'+jobName)
-    #check jobName for length
-    if len(jobName) > 15:
-      jobName = jobName[:10]+'-'+jobName[-4:]
-      print('JobName is limited to 15 characters; truncating to '+jobName)
+    ## fix up job title (shared validator; PBS limits names to 15 characters)
+    try:
+      shortJobName = ClusterUtils.sanitizeJobName(jobName, maxLength=15)
+    except ValueError as err:
+      self.raiseAnError(IOError, str(err))
+    if shortJobName != jobName:
+      self.raiseAMessage('JobName is limited to 15 characters; truncating to '+shortJobName)
+    jobName = shortJobName
     # Generate the qsub command needed to run input
     ## raven_framework location
     raven = os.path.abspath(os.path.join(frameworkDir,'..','raven_framework'))
@@ -201,7 +155,11 @@ class PBSSimulationMode(Simulation.SimulationMode):
     """
     for child in xmlNode:
       if child.tag == "nodefileenv":
-        self.__nodefile = os.environ[child.text.strip()]
+        envName = child.text.strip()
+        if envName not in os.environ:
+          self.raiseAnError(IOError, f'<nodefileenv> environment variable "{envName}" '
+                            'is not defined in the current environment!')
+        self.__nodefile = os.environ[envName]
       elif child.tag == "nodefile":
         self.__nodefile = child.text.strip()
       elif child.tag == "memory":

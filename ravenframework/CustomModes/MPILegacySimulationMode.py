@@ -229,7 +229,11 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
     for child in xmlNode:
       child_tag = child.tag.lower()
       if child.tag == "nodefileenv":
-        self.__nodefile = os.environ[child.text.strip()]
+        envName = child.text.strip()
+        if envName not in os.environ:
+          self.raiseAnError(IOError, f'<nodefileenv> environment variable "{envName}" '
+                            'is not defined in the current environment!')
+        self.__nodefile = os.environ[envName]
       elif child.tag == "nodefile":
         self.__nodefile = child.text.strip()
       elif child_tag == "runqsub":
