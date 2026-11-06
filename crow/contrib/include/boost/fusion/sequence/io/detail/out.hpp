@@ -9,7 +9,7 @@
 #if !defined(FUSION_OUT_05052005_0121)
 #define FUSION_OUT_05052005_0121
 
-#include <ostream>
+#include <boost/fusion/support/config.hpp>
 #include <boost/fusion/sequence/io/detail/manip.hpp>
 
 #include <boost/mpl/bool.hpp>

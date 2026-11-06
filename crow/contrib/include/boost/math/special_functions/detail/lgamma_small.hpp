@@ -12,6 +12,16 @@
 
 #include <boost/math/tools/big_constant.hpp>
 
+#if defined(__GNUC__) && defined(BOOST_MATH_USE_FLOAT128)
+//
+// This is the only way we can avoid
+// warning: non-standard suffix on floating constant [-Wpedantic]
+// when building with -Wall -pedantic.  Neither __extension__
+// nor #pragma diagnostic ignored work :(
+//
+#pragma GCC system_header
+#endif
+
 namespace boost{ namespace math{ namespace detail{
 
 //
@@ -26,7 +36,7 @@ T gamma_imp(T z, const Policy& pol, const lanczos::undefined_lanczos& l);
 // lgamma for small arguments:
 //
 template <class T, class Policy, class Lanczos>
-T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<64>&, const Policy& /* l */, const Lanczos&)
+T lgamma_small_imp(T z, T zm1, T zm2, const std::integral_constant<int, 64>&, const Policy& /* l */, const Lanczos&)
 {
    // This version uses rational approximations for small
    // values of z accurate enough for 64-bit mantissas
@@ -108,7 +118,7 @@ T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<64>&, const Policy& /* l *
    else
    {
       //
-      // If z is less than 1 use recurrance to shift to
+      // If z is less than 1 use recurrence to shift to
       // z in the interval [1,2]:
       //
       if(z < 1)
@@ -122,7 +132,7 @@ T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<64>&, const Policy& /* l *
       // Two approximations, on for z in [1,1.5] and
       // one for z in [1.5,2]:
       //
-      if(z <= 1.5)
+      if(z <= T(1.5))
       {
          //
          // Use the following form:
@@ -215,7 +225,7 @@ T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<64>&, const Policy& /* l *
    return result;
 }
 template <class T, class Policy, class Lanczos>
-T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<113>&, const Policy& /* l */, const Lanczos&)
+T lgamma_small_imp(T z, T zm1, T zm2, const std::integral_constant<int, 113>&, const Policy& /* l */, const Lanczos&)
 {
    //
    // This version uses rational approximations for small
@@ -278,7 +288,7 @@ T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<113>&, const Policy& /* l 
          BOOST_MATH_BIG_CONSTANT(T, 113, -0.70529798686542184668416911331718963364e-8)
       };
       static const T Q[] = {
-         BOOST_MATH_BIG_CONSTANT(T, 113, 1),
+         BOOST_MATH_BIG_CONSTANT(T, 113, 1.0),
          BOOST_MATH_BIG_CONSTANT(T, 113, 2.5877485070422317542808137697939233685),
          BOOST_MATH_BIG_CONSTANT(T, 113, 2.8797959228352591788629602533153837126),
          BOOST_MATH_BIG_CONSTANT(T, 113, 1.8030885955284082026405495275461180977),
@@ -306,7 +316,7 @@ T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<113>&, const Policy& /* l 
    else
    {
       //
-      // If z is less than 1 use recurrance to shift to
+      // If z is less than 1 use recurrence to shift to
       // z in the interval [1,2]:
       //
       if(z < 1)
@@ -472,7 +482,7 @@ T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<113>&, const Policy& /* l 
    return result;
 }
 template <class T, class Policy, class Lanczos>
-T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<0>&, const Policy& pol, const Lanczos&)
+T lgamma_small_imp(T z, T zm1, T zm2, const std::integral_constant<int, 0>&, const Policy& pol, const Lanczos& l)
 {
    //
    // No rational approximations are available because either
@@ -501,16 +511,16 @@ T lgamma_small_imp(T z, T zm1, T zm2, const mpl::int_<0>&, const Policy& pol, co
    {
       // special case near 2:
       T dz = zm2;
-      result = dz * log((z + Lanczos::g() - T(0.5)) / boost::math::constants::e<T>());
-      result += boost::math::log1p(dz / (Lanczos::g() + T(1.5)), pol) * T(1.5);
+      result = dz * log((z + lanczos_g_near_1_and_2(l) - T(0.5)) / boost::math::constants::e<T>());
+      result += boost::math::log1p(dz / (lanczos_g_near_1_and_2(l) + T(1.5)), pol) * T(1.5);
       result += boost::math::log1p(Lanczos::lanczos_sum_near_2(dz), pol);
    }
    else
    {
       // special case near 1:
       T dz = zm1;
-      result = dz * log((z + Lanczos::g() - T(0.5)) / boost::math::constants::e<T>());
-      result += boost::math::log1p(dz / (Lanczos::g() + T(0.5)), pol) / 2;
+      result = dz * log((z + lanczos_g_near_1_and_2(l) - T(0.5)) / boost::math::constants::e<T>());
+      result += boost::math::log1p(dz / (lanczos_g_near_1_and_2(l) + T(0.5)), pol) / 2;
       result += boost::math::log1p(Lanczos::lanczos_sum_near_1(dz), pol);
    }
    return result;

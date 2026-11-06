@@ -7,6 +7,7 @@
 #if !defined(FUSION_ENABLE_COMPARISON_09232005_1958)
 #define FUSION_ENABLE_COMPARISON_09232005_1958
 
+#include <boost/fusion/support/config.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/not.hpp>
@@ -19,13 +20,13 @@ namespace boost { namespace fusion { namespace traits
 {
     template <typename Seq1, typename Seq2, typename Enable = void>
     struct enable_equality
-        : mpl::or_<traits::is_sequence<Seq1>, traits::is_sequence<Seq2> >
+        : mpl::and_<traits::is_sequence<Seq1>, traits::is_sequence<Seq2> >
     {};
 
     template <typename Seq1, typename Seq2, typename Enable = void>
     struct enable_comparison
         : mpl::and_<
-            mpl::or_<traits::is_sequence<Seq1>, traits::is_sequence<Seq2> >
+            traits::is_sequence<Seq1>, traits::is_sequence<Seq2>
           , mpl::equal_to<result_of::size<Seq1>, result_of::size<Seq2> >
         >
     {};

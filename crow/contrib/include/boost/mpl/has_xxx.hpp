@@ -12,9 +12,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Id: has_xxx.hpp 64146 2010-07-19 00:46:31Z djwalker $
-// $Date: 2010-07-18 17:46:31 -0700 (Sun, 18 Jul 2010) $
-// $Revision: 64146 $
+// $Id$
+// $Date$
+// $Revision$
 
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/aux_/na_spec.hpp>
@@ -33,7 +33,7 @@
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/enum_trailing_params.hpp>
 
-#if BOOST_WORKAROUND( __BORLANDC__, BOOST_TESTED_AT(0x590) )
+#if BOOST_WORKAROUND( BOOST_BORLANDC, BOOST_TESTED_AT(0x590) )
 # include <boost/type_traits/is_class.hpp>
 #endif
 
@@ -155,10 +155,11 @@ template<> struct trait<T> \
 // SFINAE-based implementations below are derived from a USENET newsgroup's 
 // posting by Rani Sharoni (comp.lang.c++.moderated, 2002-03-17 07:45:09 PST)
 
-#   elif BOOST_WORKAROUND(BOOST_MSVC, BOOST_TESTED_AT(1400)) \
+#   elif BOOST_WORKAROUND(BOOST_MSVC, <= 1400) \
+      || (BOOST_WORKAROUND(BOOST_MSVC, BOOST_TESTED_AT(1800)) && defined(__CUDACC__)) \
       || BOOST_WORKAROUND(__IBMCPP__, <= 700)
 
-// MSVC 7.1+ & VACPP
+// MSVC 7.1 & MSVC 8.0 & VACPP
 
 // agurt, 15/jun/05: replace overload-based SFINAE implementation with SFINAE
 // applied to partial specialization to fix some apparently random failures 
@@ -195,7 +196,7 @@ struct trait \
 }; \
 /**/
 
-#   elif BOOST_WORKAROUND( __BORLANDC__, BOOST_TESTED_AT(0x590) )
+#   elif BOOST_WORKAROUND( BOOST_BORLANDC, BOOST_TESTED_AT(0x590) )
 
 #   define BOOST_MPL_HAS_XXX_TRAIT_NAMED_BCB_DEF(trait, trait_tester, name, default_) \
 template< typename T, bool IS_CLASS > \
@@ -290,18 +291,24 @@ struct trait \
 #   if !defined(BOOST_MPL_HAS_XXX_NO_WRAPPED_TYPES)
 #     if BOOST_WORKAROUND(BOOST_MSVC, <= 1400)
 #       define BOOST_MPL_HAS_XXX_NO_WRAPPED_TYPES 1
+#     else
+#       define BOOST_MPL_HAS_XXX_NO_WRAPPED_TYPES 0
 #     endif
 #   endif
 
 #   if !defined(BOOST_MPL_HAS_XXX_NO_EXPLICIT_TEST_FUNCTION)
 #     if (defined(BOOST_NO_EXPLICIT_FUNCTION_TEMPLATE_ARGUMENTS))
 #       define BOOST_MPL_HAS_XXX_NO_EXPLICIT_TEST_FUNCTION 1
+#     else
+#       define BOOST_MPL_HAS_XXX_NO_EXPLICIT_TEST_FUNCTION 0
 #     endif
 #   endif
 
 #   if !defined(BOOST_MPL_HAS_XXX_NEEDS_TEMPLATE_SFINAE)
 #     if BOOST_WORKAROUND(BOOST_MSVC, <= 1400)
 #       define BOOST_MPL_HAS_XXX_NEEDS_TEMPLATE_SFINAE 1
+#     else
+#       define BOOST_MPL_HAS_XXX_NEEDS_TEMPLATE_SFINAE 0
 #     endif
 #   endif
 
@@ -327,7 +334,7 @@ struct trait \
 // correct name but different number of arguments.
 #   define BOOST_MPL_HAS_MEMBER_MULTI_SUBSTITUTE(z, n, args) \
       template< \
-          template< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename V) > class V \
+          template< BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename V) > class V \
        > \
       struct BOOST_MPL_HAS_MEMBER_INTROSPECTION_SUBSTITUTE_NAME(args, n) { \
       }; \
@@ -496,7 +503,7 @@ struct trait \
                  z, n, args \
              ) \
         template< \
-             template< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename U) > class U \
+             template< BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename U) > class U \
         > \
         struct BOOST_MPL_HAS_MEMBER_INTROSPECTION_SUBSTITUTE_NAME_WITH_TEMPLATE_SFINAE( \
                 args, n \
