@@ -306,6 +306,9 @@
     input = 'linearRidgeRCV.xml'
     UnorderedCsv = 'data/outLinearRidgeRCV.csv'
     output = 'data/outLinearRidgeRCV.xml'
+    # rel_err is 1.0e-6 (default 1.0e-10) because the cross-validated ridge fit differs in the
+    # last digits between macOS and linux machines (about 5e-10 relative).
+    rel_err = 1.0e-6
   [../]
   [./linearPAR]
     type = 'RavenFramework'

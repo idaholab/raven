@@ -490,6 +490,9 @@ class SciKitLearn(unSupervisedLearning):
         try:
           tempDict[key] = ast.literal_eval(value)
         except:
+          # ast.literal_eval only knows "True"/"False", but XML inputs commonly use lower case
+          if isinstance(value, str) and value.strip().lower() in ('true', 'false'):
+            value = value.strip().lower() == 'true'
           tempDict[key] = value
       else:
         self.raiseAWarning('Ignoring unknown parameter %s to the method of type %s' % (key, SKLsubType))

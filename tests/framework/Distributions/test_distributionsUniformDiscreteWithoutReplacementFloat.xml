@@ -7,7 +7,7 @@
     <classesTested>Distributions.UniformDiscrete</classesTested>
     <description>
        This test checks the capability of RAVEN to use UniformDiscrete distribution when the
-       support is float and not integer.
+       support is float and not integer, using both "step" and explicit "values" options.
     </description>
     <revisions>
       <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
@@ -41,10 +41,14 @@
   </Models>
 
   <Distributions>
-    <UniformDiscrete name="x_dist">
-      <lowerBound>3</lowerBound>
-      <upperBound>10</upperBound>
-      <nPoints>10</nPoints>
+    <UniformDiscrete name="x_step_dist">
+      <lowerBound>2.0</lowerBound>
+      <upperBound>2.5</upperBound>
+      <step>0.1</step>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+    <UniformDiscrete name="x_values_dist">
+      <values>10.0, 15.0, 55.0</values>
       <strategy>withoutReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
@@ -56,22 +60,22 @@
         <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="x3">
-        <distribution>x_dist</distribution>
+        <distribution>x_step_dist</distribution>
       </variable>
       <variable name="x4">
-        <distribution>x_dist</distribution>
+        <distribution>x_step_dist</distribution>
       </variable>
       <variable name="x5">
-        <distribution>x_dist</distribution>
+        <distribution>x_step_dist</distribution>
       </variable>
       <variable name="x6">
-        <distribution>x_dist</distribution>
+        <distribution>x_values_dist</distribution>
       </variable>
       <variable name="x7">
-        <distribution>x_dist</distribution>
+        <distribution>x_values_dist</distribution>
       </variable>
       <variable name="x8">
-        <distribution>x_dist</distribution>
+        <distribution>x_values_dist</distribution>
       </variable>
     </MonteCarlo>
   </Samplers>
@@ -80,7 +84,7 @@
     <Print name="MC_dumpWOreplecFloat">
       <type>csv</type>
       <source>PointSet_MC</source>
-      <what>input,output</what>
+      <what>input,input|PointProbability,output</what>
     </Print>
   </OutStreams>
 

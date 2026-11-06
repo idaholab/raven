@@ -102,7 +102,7 @@ def remove_unicode_identifiers(s_var):
   s_var = s_var.replace("u'", "'")
   return s_var
 
-def compare_strings_with_floats(a_str, b_str, num_tol=1e-10,
+def compare_strings_with_floats(a_str, b_str, num_tol=1e-10, *,
                                 zero_threshold=sys.float_info.min*4.0,
                                 remove_whitespace=False,
                                 remove_unicode_identifier=False,

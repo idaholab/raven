@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/BasicStatistics/spearmanNoWeights</name>
+    <author>alfoa</author>
+    <created>2026-10-19</created>
+    <classesTested>PostProcessors.BasicStatistics</classesTested>
+    <description>
+      This test checks the Spearman rank correlation computed by the BasicStatistics post-processor
+      when the samples do not carry probability weights (e.g. data loaded from a CSV file).
+      The expected values have been verified against scipy.stats.spearmanr; self-correlations must be exactly 1.
+      Before the fix, the coefficients were scaled by (N-1), with N the number of samples.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>basicStatsSpearmanNoWeights</WorkingDir>
+    <Sequence>readIn,basicStatPP</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="samples">../spearmanNoWeightsData/samples.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="basicStat" subType="BasicStatistics">
+      <spearman prefix="spear">
+        <targets>x1,y1,y2</targets>
+        <features>x1,x2,x3</features>
+      </spearman>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="readIn">
+      <Input class="Files" type="">samples</Input>
+      <Output class="DataObjects" type="PointSet">samplesData</Output>
+    </IOStep>
+    <PostProcess name="basicStatPP">
+      <Input class="DataObjects" type="PointSet">samplesData</Input>
+      <Model class="Models" type="PostProcessor">basicStat</Model>
+      <Output class="DataObjects" type="PointSet">basicStatPP</Output>
+      <Output class="OutStreams" type="Print">basicStatPP_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="samplesData">
+      <Input>x1,x2,x3</Input>
+      <Output>y1,y2</Output>
+    </PointSet>
+    <PointSet name="basicStatPP">
+      <Output>
+        spear_x1_x1,spear_x1_x2,spear_x1_x3,
+        spear_y1_x1,spear_y1_x2,spear_y1_x3,
+        spear_y2_x1,spear_y2_x2,spear_y2_x3
+      </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="basicStatPP_dump">
+      <type>csv</type>
+      <source>basicStatPP</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+</Simulation>

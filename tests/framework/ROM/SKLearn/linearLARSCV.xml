@@ -43,7 +43,6 @@
       <Target>Z</Target>
       <fit_intercept>True</fit_intercept>
       <verbose>False</verbose>
-      <normalize>True</normalize>
       <precompute>auto</precompute>
       <max_iter>500</max_iter>
       <max_n_alphas>1000</max_n_alphas>
