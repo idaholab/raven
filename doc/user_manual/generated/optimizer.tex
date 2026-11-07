@@ -1422,6 +1422,15 @@ Simulated Annealing Example:
                       \item \xmlAttr{type}: \xmlDesc{[static, adaptive], optional},
                         type of mutation probability operation to be used (e.g., static, adaptive)
                   \end{itemize}
+
+                \item \xmlNode{excludeVariables}: \xmlDesc{comma-separated strings},
+                  optional comma-separated list of decision variables that mutation never changes
+                  (supported by                   \textit{randomMutator} and
+                  \textit{bitFlipMutator}). Crossover still exchanges them between parents.
+                  Use it for a categorical variable that selects which other variables are active
+                  (e.g., a design                   family): redrawing it at random turns a child
+                  into another family whose other genes are unrelated to                   the
+                  parent. Default: every variable may be mutated.
               \end{itemize}
           \end{itemize}
 
@@ -2063,6 +2072,15 @@ Genetic Algorithm Example:
                       \item \xmlAttr{type}: \xmlDesc{[static, adaptive], optional},
                         type of mutation probability operation to be used (e.g., static, adaptive)
                   \end{itemize}
+
+                \item \xmlNode{excludeVariables}: \xmlDesc{comma-separated strings},
+                  optional comma-separated list of decision variables that mutation never changes
+                  (supported by                   \textit{randomMutator} and
+                  \textit{bitFlipMutator}). Crossover still exchanges them between parents.
+                  Use it for a categorical variable that selects which other variables are active
+                  (e.g., a design                   family): redrawing it at random turns a child
+                  into another family whose other genes are unrelated to                   the
+                  parent. Default: every variable may be mutated.
               \end{itemize}
           \end{itemize}
 
@@ -2345,6 +2363,47 @@ Genetic Algorithm Example:
             optional cap on the number of solutions retained in the archive. When the archive
             exceeds this size the most crowded solutions are removed first (boundary solutions are
             always kept). If omitted the archive is unbounded.
+      \end{itemize}
+
+    \item \xmlNode{duplicateElimination}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]},
+      if True, duplicate designs are removed from the combined population $R(t) = P(t) \cup Q(t)$
+      before non-dominated sorting, crowding distance and survivor selection, as in the duplicate
+      elimination of common NSGA-II implementations. Without it, copies of one design share its rank
+      and                   can fill the population; this happens readily when part of the search
+      space is small and discrete                   (e.g., a categorical variable selecting among
+      families with few designs each). The oldest copy is                   kept (individuals of
+      $P(t)$ before those of $Q(t)$). If fewer unique designs than
+      \xmlNode{populationSize} remain, removed duplicates fill the remaining places, best non-
+      dominated                   rank first, so the population size is preserved. Two individuals
+      are the same design if their                   compared decision variables agree within
+      \xmlAttr{tolerance} (relative, $|a-b| \le                   tol \cdot \max(1, |a|, |b|)$) or,
+      when \xmlNode{DuplicateKey} is given, if that function returns                   equal keys.
+      Defaults to False (no elimination, the standard behavior).
+  \default{False}
+      The \xmlNode{duplicateElimination} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{tolerance}: \xmlDesc{float, optional},
+            relative tolerance for comparing decision variables. Default 1e-8.
+          \item \xmlAttr{variables}: \xmlDesc{comma-separated strings, optional},
+            comma-separated subset of the decision variables to compare, for problems in which some
+            variables                   are inactive for a design (e.g., the shape variables of
+            another family selected by a categorical                   variable). Default: all
+            decision variables.
+      \end{itemize}
+
+    \item \xmlNode{DuplicateKey}: \xmlDesc{string},
+      optional name of a \xmlNode{Function} (see Section~\ref{sec:functions}) that defines what
+      makes two                   individuals the same design when \xmlNode{duplicateElimination} is
+      True. The External function must                   contain a method called ``duplicateKey''
+      that receives the decision variables (as \xmlNode{Constraint}                   functions do)
+      and returns a hashable key (e.g., a tuple); individuals with equal keys are duplicates.
+      When given, it replaces the comparison by \xmlAttr{variables} and \xmlAttr{tolerance}.
+      The \xmlNode{DuplicateKey} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required},
+            RAVEN class for this source. Options include \xmlString{Functions}.
+          \item \xmlAttr{type}: \xmlDesc{string, required},
+            RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
     \item \xmlNode{constraintEpsilon}: \xmlDesc{float},

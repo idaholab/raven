@@ -329,6 +329,7 @@ class GeneticAlgorithm(RavenSampled):
     self._mutationType = None                                    # type of the mutation process chosen
     self._mutationLocs = None                                    # point where mutation process will happen
     self._mutationProb = None                                    # probability of mutation process will happen
+    self._mutationExclude = None                                 # variables never mutated (None = all may be)
     self._mutationInstance = None                                # instance of the mutation process chosen
     self._survivorSelectionType = None                           # type of the survivor selection process chosen
     self._survivorSelectionInstance = None                       # instance of the survivor selection process chosen
@@ -494,6 +495,15 @@ class GeneticAlgorithm(RavenSampled):
     mutationProbability.addParam("type", InputTypes.makeEnumType('mutationProbability','mutationProbabilityType',['static','adaptive']), False,
                        descr="type of mutation probability operation to be used (e.g., static, adaptive)")
     mutation.addSub(mutationProbability)
+    mutationExclude = InputData.parameterInputFactory('excludeVariables', strictMode=True,
+        contentType=InputTypes.StringListType,
+        printPriority=108,
+        descr=r"""optional comma-separated list of decision variables that mutation never changes (supported by
+                  \textit{randomMutator} and \textit{bitFlipMutator}). Crossover still exchanges them between parents.
+                  Use it for a categorical variable that selects which other variables are active (e.g., a design
+                  family): redrawing it at random turns a child into another family whose other genes are unrelated to
+                  the parent. Default: every variable may be mutated.""")
+    mutation.addSub(mutationExclude)
     reproduction.addSub(mutation)
     GAparams.addSub(reproduction)
 
@@ -686,6 +696,11 @@ class GeneticAlgorithm(RavenSampled):
     else:
       self._mutationLocs = mutationNode.findFirst('locs').value
     self._mutationProb = mutationNode.findFirst('mutationProb').value
+    excludeNode = mutationNode.findFirst('excludeVariables')
+    self._mutationExclude = list(excludeNode.value) if excludeNode is not None else None
+    if self._mutationExclude and self._mutationType not in ('randomMutator', 'bitFlipMutator'):
+      self.raiseAnError(IOError, f'<excludeVariables> is supported by randomMutator and bitFlipMutator only, not '
+                        f'"{self._mutationType}".')
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
 
     ####################################################################################
@@ -805,6 +820,11 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    if self._mutationExclude:
+      unknown = [v for v in self._mutationExclude if v not in self.toBeSampled]
+      if unknown:
+        self.raiseAnError(IOError, f'<excludeVariables> lists {unknown}, which are not decision variables of '
+                          f'"{self.name}" ({list(self.toBeSampled)}).')
 
     meta = ['batchId']
     self.addMetaKeys(meta)
@@ -1072,6 +1092,7 @@ class GeneticAlgorithm(RavenSampled):
       # Mutation
       childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                                locs=self._mutationLocs,
+                                               excludeVariables=self._mutationExclude,
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled),
                                                files=self.assemblerDict['Files'])

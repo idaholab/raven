@@ -27,6 +27,31 @@ import numpy as np
 import xarray as xr
 from ...utils import randomUtils, gaUtils
 
+def _mutableLocations(offspring, kwargs, mutatorName):
+  """
+    Gene positions a single-gene mutator may change: all genes except those named in kwargs['excludeVariables'].
+    @ In, offspring, xr.DataArray, children resulting from the crossover process
+    @ In, kwargs, dict, mutator parameters (optional 'excludeVariables', list of variable names)
+    @ In, mutatorName, str, name of the calling mutator (for error messages)
+    @ Out, allowed, list, gene positions that may be mutated
+  """
+  genes = list(offspring.coords['Gene'].values)
+  exclude = kwargs.get('excludeVariables') or []
+  allowed = [i for i, g in enumerate(genes) if g not in exclude]
+  if not allowed:
+    raise ValueError(f'{mutatorName}: <excludeVariables> excludes every variable; nothing can be mutated.')
+  return allowed
+
+def _rejectExclusion(kwargs, mutatorName):
+  """
+    Raises if <excludeVariables> is given to a mutator that does not support it (rather than silently ignoring it).
+    @ In, kwargs, dict, mutator parameters
+    @ In, mutatorName, str, name of the calling mutator
+    @ Out, None
+  """
+  if kwargs.get('excludeVariables'):
+    raise ValueError(f'<excludeVariables> is supported by randomMutator and bitFlipMutator only, not {mutatorName}.')
+
 def swapMutator(offspring, distDict, **kwargs):
   """
     This method performs the swap mutator. For each child, two genes are sampled and switched
@@ -39,6 +64,7 @@ def swapMutator(offspring, distDict, **kwargs):
           variables, list, variables names.
     @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
+  _rejectExclusion(kwargs, 'swapMutator')
   loc1, loc2 = locationsGenerator(offspring, kwargs['locs'])
 
   # initializing children
@@ -71,6 +97,7 @@ def scrambleMutator(offspring, distDict, **kwargs):
           variables, list, variables names.
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
+  _rejectExclusion(kwargs, 'scrambleMutator')
   locs = locationsGenerator(offspring, kwargs['locs'])
 
   # initializing children
@@ -103,17 +130,18 @@ def bitFlipMutator(offspring, distDict, **kwargs):
     @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+          excludeVariables, list, optional, variables never mutated (e.g., a categorical selector)
     @ Out, offspring, xr.DataArray, children resulting from the crossover process
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by bitFlipMutator')
+  allowed = _mutableLocations(offspring, kwargs, 'bitFlipMutator')
 
   for child in offspring:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
-      chromosomeSize = child.values.shape[0]
-      loc = randomUtils.randomIntegers(0, chromosomeSize - 1, caller=None, engine=None)
+      loc = allowed[randomUtils.randomIntegers(0, len(allowed) - 1, caller=None, engine=None)]
       # gene at location loc is flipped from current value to newValue
       geneIDToBeChanged = child.coords['Gene'].values[loc]
       oldCDFvalue = distDict[geneIDToBeChanged].cdf(child.values[loc])
@@ -129,16 +157,17 @@ def randomMutator(offspring, distDict, **kwargs):
     @ In, distDict, dict, dictionary containing distribution associated with each gene
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+          excludeVariables, list, optional, variables never mutated (e.g., a categorical selector)
     @ Out, offspring, xr.DataArray, children resulting from the crossover process
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by randomMutator')
+  allowed = _mutableLocations(offspring, kwargs, 'randomMutator')
   for child in offspring:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
-      chromosomeSize = child.values.shape[0]
-      loc = randomUtils.randomIntegers(0, chromosomeSize - 1, caller=None, engine=None)
+      loc = allowed[randomUtils.randomIntegers(0, len(allowed) - 1, caller=None, engine=None)]
       # gene at location loc is flipped from current value to newValue
       geneIDToBeChanged = child.coords['Gene'].values[loc]
       newCDFValue = randomUtils.random()
@@ -158,6 +187,7 @@ def inversionMutator(offspring, distDict, **kwargs):
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, offspring, xr.DataArray, children resulting from the crossover process
   """
+  _rejectExclusion(kwargs, 'inversionMutator')
   # sample gene locations: i.e., determine locL and locU
   locL, locU = locationsGenerator(offspring, kwargs['locs'])
 
@@ -210,6 +240,7 @@ def polynomialMutator(offspring, distDict, **kwargs):
           variables, list, variable names.
     @ Out, children, xr.DataArray, the mutated children.
   """
+  _rejectExclusion(kwargs, 'polynomialMutator')
   mutationProb = kwargs['mutationProb']
   eta = float(kwargs.get('eta', 20.0))
   geneNames = offspring.coords['Gene'].values

@@ -208,6 +208,14 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
 
       combinedConstraintVals = np.vstack([self.popConstraintVals.data, offspringConstraintVals.data])
 
+      if self._duplicateElimination:
+        keep = self._uniqueIndividuals(combinedPop, combinedMinObjVals, combinedConstraintVals)
+        combinedPop = combinedPop[keep]
+        combinedMinObjVals = [[vals[i] for i in keep] for vals in combinedMinObjVals]
+        combinedAges = [combinedAges[i] for i in keep]
+        combinedFitVals = [combinedFitVals[i] for i in keep]
+        combinedConstraintVals = combinedConstraintVals[keep]
+
       combinedExternalObjValsBySolution = np.array(
           [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
            for solution in zip(*combinedMinObjVals)], dtype=float)
@@ -320,6 +328,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
 
     childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                              locs=self._mutationLocs,
+                                             excludeVariables=self._mutationExclude,
                                              mutationProb=self._effectiveMutationProb(),
                                              variables=list(self.toBeSampled),
                                              files=self.assemblerDict['Files'])

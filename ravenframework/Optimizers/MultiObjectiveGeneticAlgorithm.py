@@ -110,6 +110,11 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self.multiBestCD = None                          # rank-1 archive: crowding distances of the non-dominated set
     self.multiBestOutputs = None                     # rank-1 archive: model output values of the non-dominated set
     self._populationCache = {}                       # memo of evaluated chromosomes keyed by decision vector (avoids re-evaluation)
+    self._duplicateElimination = False               # if True, remove duplicate designs from R(t) before survivor selection
+    self._duplicateTolerance = 1e-8                  # relative tolerance for comparing decision variables
+    self._duplicateVariables = None                  # decision variables compared (None = all)
+    self._duplicateKeyFunction = None                # optional External function with method "duplicateKey"
+    self.addAssemblerObject('DuplicateKey', InputData.Quantity.zero_to_one)  # design key for <duplicateElimination>
 
   def flush(self):
     """
@@ -230,6 +235,38 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                   exceeds this size the most crowded solutions are removed first (boundary solutions are
                   always kept). If omitted the archive is unbounded.""")
     specs.addSub(paretoArchive)
+    duplicateElimination = InputData.parameterInputFactory('duplicateElimination', strictMode=True,
+        contentType=InputTypes.BoolType,
+        descr=r"""if True, duplicate designs are removed from the combined population $R(t) = P(t) \cup Q(t)$
+                  before non-dominated sorting, crowding distance and survivor selection, as in the duplicate
+                  elimination of common NSGA-II implementations. Without it, copies of one design share its rank and
+                  can fill the population; this happens readily when part of the search space is small and discrete
+                  (e.g., a categorical variable selecting among families with few designs each). The oldest copy is
+                  kept (individuals of $P(t)$ before those of $Q(t)$). If fewer unique designs than
+                  \xmlNode{populationSize} remain, removed duplicates fill the remaining places, best non-dominated
+                  rank first, so the population size is preserved. Two individuals are the same design if their
+                  compared decision variables agree within \xmlAttr{tolerance} (relative, $|a-b| \le
+                  tol \cdot \max(1, |a|, |b|)$) or, when \xmlNode{DuplicateKey} is given, if that function returns
+                  equal keys. Defaults to False (no elimination, the standard behavior).""",
+        default=False)
+    duplicateElimination.addParam('tolerance', InputTypes.FloatType, required=False,
+        descr=r"""relative tolerance for comparing decision variables. Default 1e-8.""")
+    duplicateElimination.addParam('variables', InputTypes.StringListType, required=False,
+        descr=r"""comma-separated subset of the decision variables to compare, for problems in which some variables
+                  are inactive for a design (e.g., the shape variables of another family selected by a categorical
+                  variable). Default: all decision variables.""")
+    specs.addSub(duplicateElimination)
+    duplicateKey = InputData.parameterInputFactory('DuplicateKey', contentType=InputTypes.StringType, strictMode=True,
+        descr=r"""optional name of a \xmlNode{Function} (see Section~\ref{sec:functions}) that defines what makes two
+                  individuals the same design when \xmlNode{duplicateElimination} is True. The External function must
+                  contain a method called ``duplicateKey'' that receives the decision variables (as \xmlNode{Constraint}
+                  functions do) and returns a hashable key (e.g., a tuple); individuals with equal keys are duplicates.
+                  When given, it replaces the comparison by \xmlAttr{variables} and \xmlAttr{tolerance}.""")
+    duplicateKey.addParam('class', InputTypes.StringType, True,
+        descr=r"""RAVEN class for this source. Options include \xmlString{Functions}.""")
+    duplicateKey.addParam('type', InputTypes.StringType, True,
+        descr=r"""RAVEN type for this source. Options include \xmlNode{External}.""")
+    specs.addSub(duplicateKey)
     constraintEpsilon = InputData.parameterInputFactory('constraintEpsilon', strictMode=True,
         contentType=InputTypes.FloatType,
         descr=r"""enables epsilon-constrained dominance (Takahama \& Sato) in the non-dominated sorting:
@@ -552,6 +589,98 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
         collected[var].append(value)
     return collected
 
+  def initialize(self, externalSeeding=None, solutionExport=None):
+    """
+      Resolves the duplicate-elimination settings that need the assembled objects (variables and the DuplicateKey
+      function), then initializes the genetic algorithm.
+      @ In, externalSeeding, int, optional, external seed
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ Out, None
+    """
+    keyEntries = self.assemblerDict.get('DuplicateKey', [])
+    self._duplicateKeyFunction = keyEntries[0][3] if keyEntries else None
+    if self._duplicateKeyFunction is not None and 'duplicateKey' not in self._duplicateKeyFunction.availableMethods():
+      self.raiseAnError(IOError, f'Function "{self._duplicateKeyFunction.name}" given as <DuplicateKey> does not '
+                        'contain a method named "duplicateKey".')
+    if self._duplicateVariables is not None:
+      unknown = [v for v in self._duplicateVariables if v not in self.toBeSampled]
+      if unknown:
+        self.raiseAnError(IOError, f'<duplicateElimination variables="..."> lists {unknown}, which are not decision '
+                          f'variables of "{self.name}" ({list(self.toBeSampled)}).')
+    super().initialize(externalSeeding=externalSeeding, solutionExport=solutionExport)
+
+  def _uniqueIndividuals(self, pop, minObjVals, constraintVals):
+    """
+      Duplicate elimination for the combined population R(t) = P(t) U Q(t), used before ranking when
+      <duplicateElimination> is True. Rows are compared on their design key (see _designKeys); the first occurrence of
+      each design is kept, and P(t) precedes Q(t) in R(t), so the oldest copy survives. If fewer unique designs than
+      the population size remain, removed duplicates are added back (best non-dominated rank first, then earliest) so
+      the population size is preserved.
+      @ In, pop, np.ndarray, decision variables of R(t), shape (nIndividuals, nVariables), denormalized
+      @ In, minObjVals, list, minimization-space objective values of R(t), one list per objective
+      @ In, constraintVals, np.ndarray, constraint values of R(t), shape (nIndividuals, nConstraints)
+      @ Out, keep, list, indices of R(t) that take part in survivor selection, in their original order
+    """
+    keys = self._designKeys(pop)
+    seen = set()
+    unique, duplicates = [], []
+    for i, key in enumerate(keys):
+      (duplicates if key in seen else unique).append(i)
+      seen.add(key)
+    if duplicates:
+      self.raiseADebug(f'Duplicate elimination: {len(duplicates)} of {len(keys)} individuals in R(t) are duplicates.')
+    shortfall = self._populationSize - len(unique)
+    if shortfall > 0 and duplicates:
+      objVals = np.array([[self._objMult[obj] * vals[i] for obj, vals in zip(self._objectiveVar, minObjVals)]
+                          for i in range(len(keys))], dtype=float)
+      minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
+      ranks = np.array(frontUtils.rankNonDominatedFrontiers(objVals, minMask=minMask))
+      if constraintVals is not None and np.size(constraintVals):
+        infeasible = np.any(np.asarray(constraintVals, dtype=float).reshape(len(keys), -1) < 0, axis=1)
+        ranks = ranks + infeasible * (ranks.max() + 1)        # feasible copies first, as in constrained domination
+      refill = sorted(duplicates, key=lambda i: (ranks[i], i))[:shortfall]
+      unique = sorted(unique + refill)
+    return unique
+
+  def _designKeys(self, pop):
+    """
+      Design key of each individual for duplicate elimination: the user's DuplicateKey function if given, otherwise
+      a group index from comparing the selected decision variables within the relative tolerance (tolerance 0 is an
+      exact comparison).
+      @ In, pop, np.ndarray, decision variables, shape (nIndividuals, nVariables), in the order of self.toBeSampled
+      @ Out, keys, list, one hashable key per individual
+    """
+    names = list(self.toBeSampled)
+    if self._duplicateKeyFunction is not None:
+      keys = []
+      for row in pop:
+        inputs = dict(zip(names, (np.atleast_1d(v) for v in row)))
+        inputs.update(self.constants)
+        key = self._duplicateKeyFunction.evaluate('duplicateKey', inputs)
+        keys.append(tuple(np.ravel(key).tolist()) if isinstance(key, (list, np.ndarray)) else key)
+      return keys
+    cols = [names.index(v) for v in (self._duplicateVariables or names)]
+    sub = np.asarray(pop, dtype=float)[:, cols]
+    return self._toleranceKeys(sub)
+
+  def _toleranceKeys(self, values):
+    """
+      Groups rows whose entries all agree within the relative tolerance: |a - b| <= tol * max(1, |a|, |b|).
+      Rows are compared to the representative (first member) of each group, so membership does not chain.
+      @ In, values, np.ndarray, compared decision variables, shape (nIndividuals, nCompared)
+      @ Out, keys, list, group index per row (equal index = same design)
+    """
+    reps, keys = [], []
+    for row in values:
+      for g, rep in enumerate(reps):
+        if np.all(np.abs(row - rep) <= self._duplicateTolerance * np.maximum(1.0, np.maximum(np.abs(row), np.abs(rep)))):
+          keys.append(g)
+          break
+      else:
+        reps.append(row)
+        keys.append(len(reps) - 1)
+    return keys
+
   def _canBeMultiObjective(self):
     """
       Multi-objective genetic algorithms accept more than one objective.
@@ -591,6 +720,15 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     if paretoArchiveNode is not None:
       self._paretoArchiveEnabled = paretoArchiveNode.value
       self._paretoArchiveMaxSize = paretoArchiveNode.parameterValues.get('maxSize', None)
+    duplicateNode = paramInput.findFirst('duplicateElimination')
+    if duplicateNode is not None:
+      self._duplicateElimination = duplicateNode.value
+      self._duplicateTolerance = duplicateNode.parameterValues.get('tolerance', self._duplicateTolerance)
+      if self._duplicateTolerance < 0:
+        self.raiseAnError(IOError, f'<duplicateElimination tolerance="..."> must be non-negative, got {self._duplicateTolerance}.')
+      self._duplicateVariables = duplicateNode.parameterValues.get('variables', None)
+    if paramInput.findFirst('DuplicateKey') is not None and not self._duplicateElimination:
+      self.raiseAnError(IOError, '<DuplicateKey> is only used with <duplicateElimination>True</duplicateElimination>.')
     constraintEpsilonNode = paramInput.findFirst('constraintEpsilon')
     if constraintEpsilonNode is not None:
       self._constraintEpsilon = constraintEpsilonNode.value
