@@ -111,7 +111,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self.multiBestOutputs = None                     # rank-1 archive: model output values of the non-dominated set
     self._populationCache = {}                       # memo of evaluated chromosomes keyed by decision vector (avoids re-evaluation)
     self._duplicateElimination = False               # if True, remove duplicate designs from R(t) before survivor selection
-    self._duplicateTolerance = 1e-8                  # relative tolerance for comparing decision variables
+    self._duplicateTolerance = 0.0                   # relative tolerance for comparing decision variables (0 = exact)
     self._duplicateVariables = None                  # decision variables compared (None = all)
     self._duplicateKeyFunction = None                # optional External function with method "duplicateKey"
     self.addAssemblerObject('DuplicateKey', InputData.Quantity.zero_to_one)  # design key for <duplicateElimination>
@@ -237,20 +237,24 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     specs.addSub(paretoArchive)
     duplicateElimination = InputData.parameterInputFactory('duplicateElimination', strictMode=True,
         contentType=InputTypes.BoolType,
-        descr=r"""if True, duplicate designs are removed from the combined population $R(t) = P(t) \cup Q(t)$
+        descr=r"""if True, duplicate designs (the same expressed design, reproduced exactly) are removed from the
+                  combined population $R(t) = P(t) \cup Q(t)$
                   before non-dominated sorting, crowding distance and survivor selection, as in the duplicate
                   elimination of common NSGA-II implementations. Without it, copies of one design share its rank and
                   can fill the population; this happens readily when part of the search space is small and discrete
                   (e.g., a categorical variable selecting among families with few designs each). The oldest copy is
                   kept (individuals of $P(t)$ before those of $Q(t)$). If fewer unique designs than
                   \xmlNode{populationSize} remain, removed duplicates fill the remaining places, best non-dominated
-                  rank first, so the population size is preserved. Two individuals are the same design if their
-                  compared decision variables agree within \xmlAttr{tolerance} (relative, $|a-b| \le
-                  tol \cdot \max(1, |a|, |b|)$) or, when \xmlNode{DuplicateKey} is given, if that function returns
-                  equal keys. Defaults to False (no elimination, the standard behavior).""",
+                  rank first, so the population size is preserved. By default two individuals are duplicates only if
+                  every decision variable is equal. The user defines which variables express the design: with
+                  \xmlAttr{variables} only those are compared (for variables that do not change the design, e.g. the
+                  genes of an inactive family), and with \xmlNode{DuplicateKey} a function maps each individual to
+                  its decoded design (e.g., ignoring the coordinates of a switched-off feature). \xmlAttr{tolerance}
+                  optionally relaxes the comparison ($|a-b| \le tol \cdot \max(1, |a|, |b|)$). Defaults to False
+                  (no elimination, the standard behavior).""",
         default=False)
     duplicateElimination.addParam('tolerance', InputTypes.FloatType, required=False,
-        descr=r"""relative tolerance for comparing decision variables. Default 1e-8.""")
+        descr=r"""relative tolerance for comparing decision variables. Default 0: duplicates are exact copies.""")
     duplicateElimination.addParam('variables', InputTypes.StringListType, required=False,
         descr=r"""comma-separated subset of the decision variables to compare, for problems in which some variables
                   are inactive for a design (e.g., the shape variables of another family selected by a categorical

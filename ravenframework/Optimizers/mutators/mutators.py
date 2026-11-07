@@ -29,28 +29,49 @@ from ...utils import randomUtils, gaUtils
 
 def _mutableLocations(offspring, kwargs, mutatorName):
   """
-    Gene positions a single-gene mutator may change: all genes except those named in kwargs['excludeVariables'].
+    Gene positions a single-gene mutator may change, and their relative selection weights:
+    variables named in kwargs['excludeVariables'] are never chosen; kwargs['variableProbabilities'] ({name: weight},
+    default weight 1) sets how likely each remaining variable is to be the one mutated.
     @ In, offspring, xr.DataArray, children resulting from the crossover process
-    @ In, kwargs, dict, mutator parameters (optional 'excludeVariables', list of variable names)
+    @ In, kwargs, dict, mutator parameters (optional 'excludeVariables', list, and 'variableProbabilities', dict)
     @ In, mutatorName, str, name of the calling mutator (for error messages)
     @ Out, allowed, list, gene positions that may be mutated
+    @ Out, cumWeights, np.ndarray or None, cumulative weights of allowed (None = all equal, the default)
   """
   genes = list(offspring.coords['Gene'].values)
   exclude = kwargs.get('excludeVariables') or []
-  allowed = [i for i, g in enumerate(genes) if g not in exclude]
+  weights = kwargs.get('variableProbabilities') or {}
+  allowed = [i for i, g in enumerate(genes) if g not in exclude and weights.get(g, 1.0) > 0]
   if not allowed:
-    raise ValueError(f'{mutatorName}: <excludeVariables> excludes every variable; nothing can be mutated.')
-  return allowed
+    raise ValueError(f'{mutatorName}: <excludeVariables>/<variableProbability> leave no variable that can be mutated.')
+  w = np.array([weights.get(genes[i], 1.0) for i in allowed], dtype=float)
+  cumWeights = None if np.all(w == w[0]) else np.cumsum(w)
+  return allowed, cumWeights
+
+def _pickLocation(allowed, cumWeights):
+  """
+    Chooses the gene position to mutate with one uniform draw. With equal weights this is exactly the former
+    randomIntegers(0, n - 1) choice (same draw, same index), so default runs are unchanged.
+    @ In, allowed, list, gene positions that may be mutated
+    @ In, cumWeights, np.ndarray or None, cumulative weights (None = equal)
+    @ Out, loc, int, chosen gene position
+  """
+  if cumWeights is None:
+    return allowed[randomUtils.randomIntegers(0, len(allowed) - 1, caller=None, engine=None)]
+  u = randomUtils.random() * cumWeights[-1]
+  return allowed[min(int(np.searchsorted(cumWeights, u, side='right')), len(allowed) - 1)]
 
 def _rejectExclusion(kwargs, mutatorName):
   """
-    Raises if <excludeVariables> is given to a mutator that does not support it (rather than silently ignoring it).
+    Raises if per-variable mutation controls are given to a mutator that does not support them (rather than
+    silently ignoring them).
     @ In, kwargs, dict, mutator parameters
     @ In, mutatorName, str, name of the calling mutator
     @ Out, None
   """
-  if kwargs.get('excludeVariables'):
-    raise ValueError(f'<excludeVariables> is supported by randomMutator and bitFlipMutator only, not {mutatorName}.')
+  if kwargs.get('excludeVariables') or kwargs.get('variableProbabilities'):
+    raise ValueError('<excludeVariables> and <variableProbability> are supported by randomMutator and bitFlipMutator '
+                     f'only, not {mutatorName}.')
 
 def swapMutator(offspring, distDict, **kwargs):
   """
@@ -131,17 +152,18 @@ def bitFlipMutator(offspring, distDict, **kwargs):
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
           excludeVariables, list, optional, variables never mutated (e.g., a categorical selector)
+          variableProbabilities, dict, optional, {variable: relative weight of being the mutated gene}, default 1
     @ Out, offspring, xr.DataArray, children resulting from the crossover process
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by bitFlipMutator')
-  allowed = _mutableLocations(offspring, kwargs, 'bitFlipMutator')
+  allowed, cumWeights = _mutableLocations(offspring, kwargs, 'bitFlipMutator')
 
   for child in offspring:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
-      loc = allowed[randomUtils.randomIntegers(0, len(allowed) - 1, caller=None, engine=None)]
+      loc = _pickLocation(allowed, cumWeights)
       # gene at location loc is flipped from current value to newValue
       geneIDToBeChanged = child.coords['Gene'].values[loc]
       oldCDFvalue = distDict[geneIDToBeChanged].cdf(child.values[loc])
@@ -158,16 +180,17 @@ def randomMutator(offspring, distDict, **kwargs):
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
           excludeVariables, list, optional, variables never mutated (e.g., a categorical selector)
+          variableProbabilities, dict, optional, {variable: relative weight of being the mutated gene}, default 1
     @ Out, offspring, xr.DataArray, children resulting from the crossover process
   """
   if kwargs['locs'] is not None and 'locs' in kwargs.keys():
     raise ValueError('Locs arguments are not being used by randomMutator')
-  allowed = _mutableLocations(offspring, kwargs, 'randomMutator')
+  allowed, cumWeights = _mutableLocations(offspring, kwargs, 'randomMutator')
   for child in offspring:
     # the mutation is performed for each child independently
     if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
-      loc = allowed[randomUtils.randomIntegers(0, len(allowed) - 1, caller=None, engine=None)]
+      loc = _pickLocation(allowed, cumWeights)
       # gene at location loc is flipped from current value to newValue
       geneIDToBeChanged = child.coords['Gene'].values[loc]
       newCDFValue = randomUtils.random()

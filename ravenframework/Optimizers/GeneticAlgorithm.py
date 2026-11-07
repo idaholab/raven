@@ -330,6 +330,7 @@ class GeneticAlgorithm(RavenSampled):
     self._mutationLocs = None                                    # point where mutation process will happen
     self._mutationProb = None                                    # probability of mutation process will happen
     self._mutationExclude = None                                 # variables never mutated (None = all may be)
+    self._mutationVarProbs = None                                # {variable: relative weight of being mutated} (None = equal)
     self._mutationInstance = None                                # instance of the mutation process chosen
     self._survivorSelectionType = None                           # type of the survivor selection process chosen
     self._survivorSelectionInstance = None                       # instance of the survivor selection process chosen
@@ -504,6 +505,17 @@ class GeneticAlgorithm(RavenSampled):
                   family): redrawing it at random turns a child into another family whose other genes are unrelated to
                   the parent. Default: every variable may be mutated.""")
     mutation.addSub(mutationExclude)
+    mutationVarProb = InputData.parameterInputFactory('variableProbability', strictMode=True,
+        contentType=InputTypes.FloatType,
+        printPriority=108,
+        descr=r"""optional, repeatable: relative weight with which the named variable is the gene a mutated child changes
+                  (supported by \textit{randomMutator} and \textit{bitFlipMutator}). Variables not listed have weight
+                  1, so by default every variable is equally likely, as without this node. A small weight mutates a
+                  variable rarely (e.g., a categorical variable selecting a design family); 0 never, as
+                  \xmlNode{excludeVariables}. \xmlNode{mutationProb} still sets how often a child is mutated.""")
+    mutationVarProb.addParam('variable', InputTypes.StringType, True,
+        descr=r"""name of the decision variable.""")
+    mutation.addSub(mutationVarProb)
     reproduction.addSub(mutation)
     GAparams.addSub(reproduction)
 
@@ -698,9 +710,17 @@ class GeneticAlgorithm(RavenSampled):
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     excludeNode = mutationNode.findFirst('excludeVariables')
     self._mutationExclude = list(excludeNode.value) if excludeNode is not None else None
-    if self._mutationExclude and self._mutationType not in ('randomMutator', 'bitFlipMutator'):
-      self.raiseAnError(IOError, f'<excludeVariables> is supported by randomMutator and bitFlipMutator only, not '
-                        f'"{self._mutationType}".')
+    self._mutationVarProbs = {}
+    for child in mutationNode.subparts:
+      if child.getName() == 'variableProbability':
+        if child.value < 0:
+          self.raiseAnError(IOError, f'<variableProbability variable="{child.parameterValues["variable"]}"> must be '
+                            f'non-negative, got {child.value}.')
+        self._mutationVarProbs[child.parameterValues['variable']] = child.value
+    self._mutationVarProbs = self._mutationVarProbs or None
+    if (self._mutationExclude or self._mutationVarProbs) and self._mutationType not in ('randomMutator', 'bitFlipMutator'):
+      self.raiseAnError(IOError, f'<excludeVariables> and <variableProbability> are supported by randomMutator and '
+                        f'bitFlipMutator only, not "{self._mutationType}".')
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
 
     ####################################################################################
@@ -820,11 +840,11 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    if self._mutationExclude:
-      unknown = [v for v in self._mutationExclude if v not in self.toBeSampled]
-      if unknown:
-        self.raiseAnError(IOError, f'<excludeVariables> lists {unknown}, which are not decision variables of '
-                          f'"{self.name}" ({list(self.toBeSampled)}).')
+    named = list(self._mutationExclude or []) + list(self._mutationVarProbs or {})
+    unknown = [v for v in named if v not in self.toBeSampled]
+    if unknown:
+      self.raiseAnError(IOError, f'<excludeVariables>/<variableProbability> name {unknown}, which are not decision '
+                        f'variables of "{self.name}" ({list(self.toBeSampled)}).')
 
     meta = ['batchId']
     self.addMetaKeys(meta)
@@ -1093,6 +1113,7 @@ class GeneticAlgorithm(RavenSampled):
       childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                                locs=self._mutationLocs,
                                                excludeVariables=self._mutationExclude,
+                                               variableProbabilities=self._mutationVarProbs,
                                                mutationProb=self._mutationProb,
                                                variables=list(self.toBeSampled),
                                                files=self.assemblerDict['Files'])

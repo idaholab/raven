@@ -9,10 +9,10 @@
       NSGA-II on a mixed categorical problem: a categorical "family" variable selects which variables are active
       (family 0: continuous x; family 1: one of three discrete designs n). Copies of a family-1 design differ in the
       inactive x, so they are not identical chromosomes. The three family-1 designs dominate most of the family-0
-      front, so without duplicate elimination their copies fill 7-8 of the 10 places in every generation (5-7 distinct
-      designs). With duplicate elimination on the active variables (DuplicateKey function) and the family variable
-      excluded from mutation, every generation holds 10 distinct designs: the 3 family-1 designs once each and 7 along
-      the continuous family-0 front. The export is written every generation so the gold checks every population.
+      front, so without duplicate elimination their copies fill most of the population. Duplicate elimination
+      compares the expressed design (DuplicateKey: family and its active variable, exactly), and the family variable
+      is mutated rarely (variableProbability 0.1 against 1 for the others). Every generation then holds only distinct
+      designs. The export is written every generation so the gold checks every population.
     </description>
   </TestInfo>
 
@@ -85,7 +85,7 @@
           </crossover>
           <mutation type="randomMutator">
             <mutationProb>0.6</mutationProb>
-            <excludeVariables>family</excludeVariables>
+            <variableProbability variable="family">0.1</variableProbability>
           </mutation>
         </reproduction>
         <survivorSelection>rankNcrowdingBased</survivorSelection>

@@ -335,11 +335,20 @@
     </xsd:complexType>
 
     <xsd:complexType name="mutationType">
-      <xsd:all>
-        <xsd:element name="mutationProb"   type="xsd:float" />
-        <xsd:element name="locs"           type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        <xsd:element name="excludeVariables" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-      </xsd:all>
+      <xsd:choice minOccurs="1" maxOccurs="unbounded">
+        <xsd:element name="mutationProb"   type="xsd:string" />
+        <xsd:element name="locs"           type="xsd:string" />
+        <xsd:element name="excludeVariables" type="xsd:string" />
+        <xsd:element name="variableProbability">
+          <xsd:complexType>
+            <xsd:simpleContent>
+              <xsd:extension base="xsd:float">
+                <xsd:attribute name="variable" type="xsd:string" use="required"/>
+              </xsd:extension>
+            </xsd:simpleContent>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:choice>
       <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
 

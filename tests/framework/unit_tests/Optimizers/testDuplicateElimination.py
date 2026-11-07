@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Unit tests for NSGA-II duplicate elimination in R(t) (<duplicateElimination>, <DuplicateKey>) and for
-  <excludeVariables> in randomMutator / bitFlipMutator.
+  Unit tests for NSGA-II duplicate elimination in R(t) (<duplicateElimination>, <DuplicateKey>) and for the
+  per-variable mutation controls <excludeVariables> and <variableProbability> in randomMutator / bitFlipMutator.
 """
 import os
 import sys
@@ -66,7 +66,7 @@ class KeyFunction:
     assert method == 'duplicateKey'
     return (int(round(float(inputs['family'][0]))), int(round(float(inputs['size'][0]))))
 
-def makeGA(popSize=4, tolerance=1e-8, variables=None, key=None):
+def makeGA(popSize=4, tolerance=0.0, variables=None, key=None):
   """
     Minimal MultiObjectiveGeneticAlgorithm with only the state duplicate elimination uses.
     @ In, popSize, int, population size N
@@ -101,13 +101,14 @@ obj = [[0.1, 0.2, 0.3, 0.1, 0.2, 0.3, 0.4], [0.9, 0.8, 0.7, 0.9, 0.8, 0.7, 0.6]]
 cons = np.ones((7, 1))
 
 ga = makeGA(popSize=4)
-checkSame('all variables, tol 1e-8: exact and within-tolerance copies removed, oldest kept',
-          ga._uniqueIndividuals(pop, obj, cons), [0, 1, 2, 5, 6])
-ga = makeGA(popSize=4, tolerance=0.0)
-checkSame('tolerance 0: only exact copies removed', ga._uniqueIndividuals(pop, obj, cons), [0, 1, 2, 4, 5, 6])
+checkSame('default (exact, all variables): only the exact copy is removed; the oldest is kept',
+          ga._uniqueIndividuals(pop, obj, cons), [0, 1, 2, 4, 5, 6])
+checkSame('default tolerance of the class is exact', MultiObjectiveGeneticAlgorithm()._duplicateTolerance, 0.0)
+ga = makeGA(popSize=4, tolerance=1e-8)
+checkSame('tolerance 1e-8: the within-tolerance copy is removed too', ga._uniqueIndividuals(pop, obj, cons), [0, 1, 2, 5, 6])
 ga = makeGA(popSize=4, variables=['family', 'size'])
-checkSame('variables subset: the copy differing only in an inactive variable is removed',
-          ga._uniqueIndividuals(pop, obj, cons), [0, 1, 2, 6])
+checkSame('variables subset: the copy differing only in an inactive variable is removed (size 3 vs 3+1e-10 differ)',
+          ga._uniqueIndividuals(pop, obj, cons), [0, 1, 2, 4, 6])
 ga = makeGA(popSize=4, key=KeyFunction())
 checkSame('DuplicateKey function: same result as comparing family and size',
           ga._uniqueIndividuals(pop, obj, cons), [0, 1, 2, 6])
@@ -134,21 +135,21 @@ checkSame('no duplicates: all rows kept in order', ga._uniqueIndividuals(pop[[0,
 dist = Uniform(0.0, 1.0)
 dist.initializeDistribution()
 distDict = {'family': dist, 'size': dist, 'other': dist}
-def offspring(n=200):
+def offspring(n=200, value=0.5):
   """
-    Children with every gene at 0.5, so any mutation is visible.
+    Children with every gene at the same value, so a mutation is visible.
     @ In, n, int, number of children
+    @ In, value, float, gene value (bitFlipMutator maps v to 1 - v on U(0, 1), so 0.5 is a fixed point for it)
     @ Out, children, xr.DataArray, offspring
   """
-  return xr.DataArray(np.full((n, 3), 0.5), dims=['chromosome', 'Gene'],
+  return xr.DataArray(np.full((n, 3), value), dims=['chromosome', 'Gene'],
                       coords={'chromosome': np.arange(n), 'Gene': ['family', 'size', 'other']})
 
 for name, mutator in (('randomMutator', randomMutator), ('bitFlipMutator', bitFlipMutator)):
   randomUtils.randomSeed(42)
-  out = mutator(offspring(), distDict, locs=None, mutationProb=1.0, excludeVariables=['family'])
-  checkSame(f'{name}: excluded gene never mutated', bool(np.all(out.sel(Gene='family').values == 0.5)), True)
-  if name == 'randomMutator':
-    checkSame(f'{name}: other genes still mutated', bool(np.any(out.sel(Gene='size').values != 0.5)), True)
+  out = mutator(offspring(200, 0.25), distDict, locs=None, mutationProb=1.0, excludeVariables=['family'])
+  checkSame(f'{name}: excluded gene never mutated', bool(np.all(out.sel(Gene='family').values == 0.25)), True)
+  checkSame(f'{name}: other genes still mutated', bool(np.any(out.sel(Gene='size').values != 0.25)), True)
   # default (no exclusion) draws the same random stream as before the option existed
   randomUtils.randomSeed(7)
   a = mutator(offspring(20), distDict, locs=None, mutationProb=0.5, excludeVariables=None).values.copy()
@@ -160,6 +161,28 @@ for name, mutator in (('randomMutator', randomMutator), ('bitFlipMutator', bitFl
     checkSame(f'{name}: excluding every variable raises', False, True)
   except ValueError:
     checkSame(f'{name}: excluding every variable raises', True, True)
+# per-variable probability: the selector is chosen in proportion to its weight
+for name, mutator in (('randomMutator', randomMutator), ('bitFlipMutator', bitFlipMutator)):
+  randomUtils.randomSeed(3)
+  out = mutator(offspring(4000, 0.25), distDict, locs=None, mutationProb=1.0,
+                variableProbabilities={'family': 0.1, 'size': 1.0, 'other': 1.0})
+  frac = float(np.mean(out.sel(Gene='family').values != 0.25))
+  checkSame(f'{name}: weight 0.1 vs 1, 1 gives the selector ~0.1/2.1 = 4.8 % of mutations (got {frac:.3f})',
+            0.03 < frac < 0.07, True)
+  randomUtils.randomSeed(3)
+  out = mutator(offspring(50, 0.25), distDict, locs=None, mutationProb=1.0, variableProbabilities={'family': 0.0})
+  checkSame(f'{name}: weight 0 is never mutated', bool(np.all(out.sel(Gene='family').values == 0.25)), True)
+  randomUtils.randomSeed(11)
+  a = mutator(offspring(30), distDict, locs=None, mutationProb=0.7,
+              variableProbabilities={'family': 2.0, 'size': 2.0, 'other': 2.0}).values.copy()
+  randomUtils.randomSeed(11)
+  b = mutator(offspring(30), distDict, locs=None, mutationProb=0.7).values.copy()
+  checkSame(f'{name}: equal weights reproduce the default stream exactly', bool(np.array_equal(a, b)), True)
+try:
+  swapMutator(offspring(2), distDict, locs=None, mutationProb=1.0, variableProbabilities={'family': 0.1})
+  checkSame('swapMutator rejects variableProbabilities', False, True)
+except ValueError:
+  checkSame('swapMutator rejects variableProbabilities', True, True)
 try:
   swapMutator(offspring(2), distDict, locs=None, mutationProb=1.0, excludeVariables=['family'])
   checkSame('swapMutator rejects excludeVariables', False, True)
@@ -178,9 +201,11 @@ sys.exit(results['fail'])
     <created>2026-11-07</created>
     <classesTested>Optimizers.MultiObjectiveGeneticAlgorithm, Optimizers.mutators</classesTested>
     <description>
-       Duplicate elimination in the NSGA-II combined population (tolerance, variable subset, DuplicateKey function,
-       oldest copy kept, population size preserved with feasible duplicates first) and excludeVariables in
-       randomMutator / bitFlipMutator (excluded genes never mutated, default stream unchanged, misuse rejected).
+       Duplicate elimination in the NSGA-II combined population (exact by default, optional tolerance, variable
+       subset, DuplicateKey function, oldest copy kept, population size preserved with feasible duplicates first)
+       and the per-variable mutation controls of randomMutator / bitFlipMutator: excludeVariables (never mutated)
+       and variableProbability (relative weight; 0 = never; equal weights reproduce the default stream exactly);
+       misuse with other mutators is rejected.
     </description>
   </TestInfo>
 """

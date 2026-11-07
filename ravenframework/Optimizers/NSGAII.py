@@ -329,6 +329,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                              locs=self._mutationLocs,
                                              excludeVariables=self._mutationExclude,
+                                             variableProbabilities=self._mutationVarProbs,
                                              mutationProb=self._effectiveMutationProb(),
                                              variables=list(self.toBeSampled),
                                              files=self.assemblerDict['Files'])

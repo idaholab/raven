@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  DuplicateKey function for the mixed categorical test: only the active variables define the design.
+  DuplicateKey function for the mixed categorical test: the expressed design is the family and its active
+  variable; the inactive variable does not change the design. Values are compared exactly.
 """
 import numpy as np
 
@@ -24,5 +25,5 @@ def duplicateKey(self):
   """
   family = int(round(float(np.ravel(self.family)[0])))
   if family == 0:
-    return (0, round(float(np.ravel(self.x)[0]), 8))
+    return (0, float(np.ravel(self.x)[0]))
   return (1, int(round(float(np.ravel(self.n)[0]))))
