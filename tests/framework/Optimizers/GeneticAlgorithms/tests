@@ -1245,4 +1245,15 @@
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-population.png'
     [../]
   [../]
+
+  [./GA_mixedCategoricalDuplicateElimination]
+    type = 'RavenFramework'
+    input = 'discrete/unconstrained/GA_mixedCategoricalDuplicateElimination.xml'
+    [./csv]
+      type = UnorderedCSV
+      output = 'discrete/unconstrained/mixedCategorical/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+  [../]
+
 []

@@ -1,0 +1,154 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.GA_mixedCategoricalDuplicateElimination</name>
+    <author>Jimmy-INL</author>
+    <created>2026-11-07</created>
+    <classesTested>Optimizers.NSGAII, Optimizers.MultiObjectiveGeneticAlgorithm, Optimizers.mutators.randomMutator</classesTested>
+    <description>
+      NSGA-II on a mixed categorical problem: a categorical "family" variable selects which variables are active
+      (family 0: continuous x; family 1: one of three discrete designs n). Copies of a family-1 design differ in the
+      inactive x, so they are not identical chromosomes. The three family-1 designs dominate most of the family-0
+      front, so without duplicate elimination their copies fill 7-8 of the 10 places in every generation (5-7 distinct
+      designs). With duplicate elimination on the active variables (DuplicateKey function) and the family variable
+      excluded from mutation, every generation holds 10 distinct designs: the 3 family-1 designs once each and 7 along
+      the continuous family-0 front. The export is written every generation so the gold checks every population.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>mixedCategorical</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">families</Model>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="mixedCategorical/families" name="families" subType="">
+      <variables>family, x, n, obj1, obj2</variables>
+    </ExternalModel>
+  </Models>
+
+  <Functions>
+    <External file="mixedCategorical/designKey" name="designKey">
+      <variables>family, x, n</variables>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <UniformDiscrete name="familyDist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+    <Uniform name="xDist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <UniformDiscrete name="nDist">
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
+      <samplerInit>
+        <limit>15</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min, min</type>
+      </samplerInit>
+      <GAparams>
+        <populationSize>10</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="twoPointsCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="randomMutator">
+            <mutationProb>0.6</mutationProb>
+            <excludeVariables>family</excludeVariables>
+          </mutation>
+        </reproduction>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+      <variable name="family">
+        <distribution>familyDist</distribution>
+      </variable>
+      <variable name="x">
+        <distribution>xDist</distribution>
+      </variable>
+      <variable name="n">
+        <distribution>nDist</distribution>
+      </variable>
+      <objective>obj1, obj2</objective>
+      <duplicateElimination>True</duplicateElimination>
+      <DuplicateKey class="Functions" type="External">designKey</DuplicateKey>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </MultiObjectiveGeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>120504</initialSeed>
+      </samplerInit>
+      <variable name="family">
+        <distribution>familyDist</distribution>
+      </variable>
+      <variable name="x">
+        <distribution>xDist</distribution>
+      </variable>
+      <variable name="n">
+        <distribution>nDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>family, x, n</Input>
+      <Output>obj1, obj2</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>family, x, n, obj1, obj2, rank, CD, accepted, batchId</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+</Simulation>

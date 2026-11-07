@@ -156,5 +156,9 @@
     type = 'RavenPython'
     input = 'testFitnessNormalization.py'
   [../]
+  [./testDuplicateElimination]
+    type = 'RavenPython'
+    input = 'testDuplicateElimination.py'
+  [../]
 
 []
