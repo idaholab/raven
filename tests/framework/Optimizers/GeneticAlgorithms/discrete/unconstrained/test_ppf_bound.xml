@@ -23,7 +23,7 @@
 
   <RunInfo>
     <WorkingDir>GA_PPF</WorkingDir>
-    <Sequence>optimize, print</Sequence>
+    <Sequence>optimize, print, plot_results</Sequence>
     <batchSize>1</batchSize>
     <globalSeed>5489</globalSeed>
   </RunInfo>
@@ -43,15 +43,21 @@
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
     </IOStep>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
+    </IOStep>
   </Steps>
 
   <Distributions>
-    <UniformDiscrete name="uniform_dist_Repl_1">
+    <UniformDiscrete name='uniform_dist_Repl_1'>
       <lowerBound>10</lowerBound>
       <upperBound>30</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
-    <UniformDiscrete name="uniform_dist_Repl_2">
+    <UniformDiscrete name='uniform_dist_Repl_2'>
       <lowerBound>1.0E-5</lowerBound>
       <upperBound>1.0E-2</upperBound>
       <nPoints>1000</nPoints>
@@ -67,7 +73,9 @@
         <writeSteps>every</writeSteps>
         <type>max</type>
       </samplerInit>
+
       <GAparams>
+
         <populationSize>12</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction>
@@ -84,21 +92,26 @@
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
+
       <convergence>
         <objective>-1</objective>
       </convergence>
+
       <variable name="x1">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <variable name="x2">
         <distribution>uniform_dist_Repl_2</distribution>
       </variable>
+
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -120,34 +133,49 @@
     </MonteCarlo>
   </Samplers>
 
-  <Models>
-    <ExternalModel ModuleToLoad="../../../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
-      <variables>x1,x2,x3,ans</variables>
-    </ExternalModel>
-  </Models>
+    <Models>
+      <ExternalModel ModuleToLoad="../../../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
+        <variables>x1,x2,x3,ans</variables>
+      </ExternalModel>
+    </Models>
 
-  <DataObjects>
-    <PointSet name="placeholder"/>
-    <PointSet name="optOut">
-      <Input>x1,x2,x3</Input>
-      <Output>ans</Output>
-    </PointSet>
-    <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
-    </PointSet>
-  </DataObjects>
+    <DataObjects>
+      <PointSet name="placeholder"/>
+      <PointSet name="optOut">
+        <Input>x1,x2,x3</Input>
+        <Output>ans</Output>
+      </PointSet>
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
+      </PointSet>
+    </DataObjects>
 
-  <OutStreams>
-    <Print name="optOut">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
-    <Print name="opt_export">
-      <type>csv</type>
-      <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
-    </Print>
-  </OutStreams>
-
+    <OutStreams>
+      <Print name="optOut">
+        <type>csv</type>
+        <source>optOut</source>
+      </Print>
+      <Print name="opt_export">
+        <type>csv</type>
+        <source>opt_export</source>
+        <clusterLabel>trajID</clusterLabel>
+      </Print>
+    
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>x1,x2,x3,ans</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>x1,x2,x3,ans</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <vars>x1,x2,x3</vars>
+        <index>batchId</index>
+      </Plot>
+    </OutStreams>
 </Simulation>

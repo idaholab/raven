@@ -47,12 +47,15 @@ _NEGINF_SENTINEL = '__checkpoint_neginf__'
 
 # Checkpoint file format version. 1.1: dedup cache is now capped (_MAX_DEDUP_CACHE_SIZE) and no
 # longer stores a separate '_evaluatedSubmissionKeys' field; 1.0 checkpoints still restore
-# correctly, that field is just ignored on read.
-_CHECKPOINT_VERSION = '1.1'
+# correctly, that field is just ignored on read. 1.2: the genetic-algorithm state was renamed
+# (matingPopInputs -> population, bestFitness -> bestFitVal, ...) and multi-objective runs moved to
+# MultiObjectiveGeneticAlgorithm; GeneticAlgorithm refuses to restore a 1.0/1.1 file (see
+# GeneticAlgorithm._validateCheckpoint), other optimizers still restore it.
+_CHECKPOINT_VERSION = '1.2'
 # Checkpoint versions this code can still restore from without a compatibility warning. Keep
 # every version whose restore path remains supported (see _restoreCheckpointState/_CHECKPOINT_VERSION
 # history above) even after _CHECKPOINT_VERSION advances past it.
-_SUPPORTED_CHECKPOINT_VERSIONS = ('1.0', '1.1')
+_SUPPORTED_CHECKPOINT_VERSIONS = ('1.0', '1.1', '1.2')
 
 # Cap on the number of evaluated-point entries kept for deduplication. Without a cap, both
 # in-memory usage and per-checkpoint JSON serialization time grow with total run length (every
@@ -810,21 +813,10 @@ class RavenSampled(Optimizer):
     ## If any solution in the history has a higher objective value than what is found in ._optPointHistory, add it to opt. NOTE: this only searches the most recent iteration of the optimizer.
     opt = self._optPointHistory[traj][-1][0]
 
-    objectiveVars = []
-    optKeys = list(opt)
-    # Map objective variable names to keys in the optimization history.
-    for obj in np.atleast_1d(self._objectiveVar):
-      if obj in optKeys:
-        objectiveVars.append(obj)
-      else:
-        matches = [var for var in optKeys if obj.lower() in var.lower()]
-        objectiveVars.extend(matches)
-    # Deduplicate while preserving order
-    objectiveVars = list(dict.fromkeys(objectiveVars))
-
     self._solutionExport.asDataset() #empty _collector into _data
     ## Search the rest of the population (GA-only: _sampledPopulationInfo is set in
-    ## GeneticAlgorithm.__init__ and populated by survivorSelection; other RavenSampled
+    ## GeneticAlgorithm.__init__ and filled by GeneticAlgorithm._recordSampledPopulation for single-objective
+    ## runs only (multi-objective GAs leave it empty, see MultiObjectiveGeneticAlgorithm._useRealization); other RavenSampled
     ## optimizers never define this attribute, so hasattr() correctly skips them here.
     ## NOTE: this was previously misnamed "_sampledHistoryInfo" during a 2026-09-01
     ## generalization pass, which silently disabled this block for every optimizer, GA included.
@@ -841,11 +833,14 @@ class RavenSampled(Optimizer):
                       bestInPopulation[soln1] = self._sampledPopulationInfo[soln1]
                   elif (self._sampledPopulationInfo[soln1] > bestInPopulation[soln2]).any():
                       bestInPopulation[soln1] = self._sampledPopulationInfo[soln1]
-      # try to add best solns to list of optimal solns
+      # try to add best solns to list of optimal solns. _sampledPopulationInfo holds FITNESS values (larger is
+      # better), so compare them with the incumbent's fitness, not with its objective: the two are on different
+      # scales, and comparing them added worse (even infeasible) points as extra "final" optima.
+      incumbentFitness = opt.get('fitness')
       for soln in bestInPopulation:
-        # opt[key] is the single best realization's objective value (a scalar), not a population;
-        # np.atleast_1d guards max() against that scalar case (max() requires an iterable).
-        if (bestInPopulation[soln] > [max(np.atleast_1d(opt[key])) for key in objectiveVars]).any(): #if any objective value in soln is greater than all corresponding objective values in opt, this is True.
+        if incumbentFitness is None:
+          break
+        if (bestInPopulation[soln] > max(np.atleast_1d(incumbentFitness))).any():
             for indx in range(len(self._solutionExport._data[list(self._solutionExport._data)[0]])): #search the population data for the inputs in soln
               if np.all(np.array(soln) == [self._solutionExport._data[key][indx].item() for key in self.toBeSampled]):
                 # add soln values from population data to opt
@@ -866,7 +861,7 @@ class RavenSampled(Optimizer):
       bestOpt = self.denormalizeData(optElm)
       bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
 
-      val = optElm[self._objectiveVar[0]]
+      val = np.array([optElm[obj] for obj in self._objectiveVar])
       self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=self._objMultArray * val))
       self.raiseADebug('')
       self.raiseAMessage(' - Final Optimal Point:')
@@ -878,9 +873,19 @@ class RavenSampled(Optimizer):
       self.raiseAMessage('*' * 80)
       # write final best solution to soln export
       if bestPoint not in self._finals:
+          self._validateFinalFront(optElm)
           self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
           self._finals.append(bestPoint)
 
+
+  def _validateFinalFront(self, candidate):
+    """
+      Hook to sanity-check a final optimal point before it is exported. No-op by default;
+      multi-objective optimizers override it.
+      @ In, candidate, dict, the final optimal point (minimization space)
+      @ Out, None
+    """
+    return
 
   def flush(self):
     """
@@ -1206,25 +1211,25 @@ class RavenSampled(Optimizer):
 
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
-  def _resolveNewOptPoint(self, traj, rlz, optVal, info):
+  def _resolveNewOptPoint(self, traj, rlz, minObjVal, info):
     """
       Consider and store a new optimal point
       @ In, traj, int, trajectory for this new point
       @ In, info, dict, identifying information about the realization
       @ In, rlz, xr.DataSet, batched realizations
-      @ In, optVal, list of floats, values of objective variable
+      @ In, minObjVal, list of floats, minimization-space objective values
     """
     self.raiseADebug('*' * 80)
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new opt point ...')
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, optVal, info)
+    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, minObjVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistence if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
     if acceptable in ['accepted']:
-      self._updatePersistence(traj, converged, optVal)
+      self._updatePersistence(traj, converged, minObjVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
@@ -1239,7 +1244,7 @@ class RavenSampled(Optimizer):
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
     elif acceptable == 'rerun':
-      # update the most recently obtained opt value for the rerun point
+      # update the most recently obtained minimization-space objective value for the rerun point
       # NOTE we do this because if we got "lucky" in an opt point evaluation, we can get stuck
       #      there even as we rerun and discover that original value is not reliable.
       # so use successive reruns to update the average
@@ -1247,20 +1252,20 @@ class RavenSampled(Optimizer):
       # TODO could we ever use old rerun gradients to inform the gradient direction as well?
       self._rerunsSinceAccept[traj] += 1
       N = self._rerunsSinceAccept[traj] + 1
-      oldVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
-      newAvg = ((N-1)*oldVal + optVal) / N
+      oldMinObjVal = self._optPointHistory[traj][-1][0][self._objectiveVar[0]]
+      newAvg = ((N-1)*oldMinObjVal + minObjVal) / N
       self._optPointHistory[traj][-1][0][self._objectiveVar[0]] = newAvg
     else:
       self.raiseAnError(f'Unrecognized acceptability: "{acceptable}"')
 
   # support methods for _resolveNewOptPoint
   @abc.abstractmethod
-  def _checkAcceptability(self, traj, opt, optVal):
+  def _checkAcceptability(self, traj, opt, minObjVal):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
-      @ In, optVal, float, new optimization value
+      @ In, minObjVal, float, new minimization-space objective value
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
       @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
@@ -1277,12 +1282,12 @@ class RavenSampled(Optimizer):
     """
 
   @abc.abstractmethod
-  def _updatePersistence(self, traj, converged, optVal):
+  def _updatePersistence(self, traj, converged, minObjVal):
     """
       Update persistence tracking state variables
       @ In, traj, identifier
       @ In, converged, bool, convergence check result
-      @ In, optVal, float, new optimal value
+      @ In, minObjVal, float, new minimization-space objective value
       @ Out, None
     """
 
@@ -1318,8 +1323,8 @@ class RavenSampled(Optimizer):
 
     # optimal point input and output spaces
     for objVar in self._objectiveVar:
-      objValue = rlz[objVar]*self._objMult[objVar]
-      toExport[objVar] = objValue
+      externalObjVal = rlz[objVar]*self._objMult[objVar]
+      toExport[objVar] = externalObjVal
     toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
     # constants and functions
     toExport.update(self.constants)

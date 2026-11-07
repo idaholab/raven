@@ -1,0 +1,144 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/hybridModel.logicalModelOptimizer</name>
+    <author>Jimmy-INL</author>
+    <created>2026-11-07</created>
+    <classesTested>Models.LogicalModel, Optimizers.NSGAII</classesTested>
+    <description>
+      LogicalModel as the model of an Optimizer (NSGA-II). The ControlFunction routes each candidate to one of two
+      ExternalModels (the same two-variable ZDT1 function in two modules, flagged by the output "submodel"), so the
+      run must give the optimizer its realizations under its own prefix. Before the fix, LogicalModel returned the
+      sub-model prefix ("zdtA++1") and the optimizer failed with 'Expected to find entry with prefix "1" in
+      TargetEvaluation'. The gold also checks that both sub-models were used (submodel 0 and 1 in optOut).
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>logicalOptimizer</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="LogicalModel">logical</Model>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="logicalOptimizer/zdtA" name="zdtA" subType="">
+      <variables>x1, x2, obj1, obj2, submodel</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="logicalOptimizer/zdtB" name="zdtB" subType="">
+      <variables>x1, x2, obj1, obj2, submodel</variables>
+    </ExternalModel>
+    <LogicalModel name="logical" subType="">
+      <Model class="Models" type="ExternalModel">zdtA</Model>
+      <Model class="Models" type="ExternalModel">zdtB</Model>
+      <ControlFunction class="Functions" type="External">control</ControlFunction>
+    </LogicalModel>
+  </Models>
+
+  <Functions>
+    <External file="logicalOptimizer/control" name="control">
+      <variables>x1</variables>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <Uniform name="unit">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
+        <type>min, min</type>
+      </samplerInit>
+      <GAparams>
+        <populationSize>8</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="randomMutator">
+            <mutationProb>0.5</mutationProb>
+          </mutation>
+        </reproduction>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+      <variable name="x1">
+        <distribution>unit</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>unit</distribution>
+      </variable>
+      <objective>obj1, obj2</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </MultiObjectiveGeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>8</limit>
+        <initialSeed>120504</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>unit</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>unit</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>x1, x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="optOut">
+      <Input>x1, x2</Input>
+      <Output>obj1, obj2, submodel</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x1, x2, obj1, obj2, rank, CD, accepted</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+</Simulation>

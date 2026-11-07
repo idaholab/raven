@@ -229,6 +229,9 @@ class LogicalModel(HybridModelBase):
       self.raiseAnError(RuntimeError, "The model", modelToRun, "identified by", finishedRun[0].identifier, "failed!")
     # collect output in temporary data object
     exportDict = evaluation
+    # the sub-model ran as "<subModel>++<prefix>"; restore the caller's prefix so that callers that look their
+    # realizations up by prefix (Optimizers, via TargetEvaluation) find them. Same as HybridModel._externalRun.
+    exportDict['prefix'] = identifier
     self.raiseADebug(f"{self.name}: Create exportDict")
 
     return exportDict

@@ -63,5 +63,14 @@
   remove_unicode_identifier = true
  [../]
 
+ [./logicalModelOptimizer]
+  type = 'RavenFramework'
+  input = 'test_logical_model_optimizer.xml'
+  [./csv]
+    type = UnorderedCSV
+    output = 'logicalOptimizer/opt_export_0.csv'
+    rel_err = 0.001
+  [../]
+ [../]
 
 []
