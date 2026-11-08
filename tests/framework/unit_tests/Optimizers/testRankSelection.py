@@ -102,23 +102,32 @@ popFitness = [7.2,1.3,9.5,2.0]
 popFitness = xr.DataArray(popFitness,
                           dims=['chromosome'],
                           coords={'chromosome': np.arange(np.shape(popFitness)[0])})
-nParents = 2
-popFitness = popFitness.to_dataset(name = 'test_RankSelection')
+# any objective name must work (it used to require the literal 'test_RankSelection')
+popFitness = popFitness.to_dataset(name = 'ans')
 
-parents = rankSelection(population, variables=optVars, fitness=popFitness, nParents=nParents)
 print('*'*39)
 print('Rank based Parent Selection')
 print('*'*39)
-print('selected parents are: {}'.format(parents))
-expectedParents = xr.DataArray([[3,5,6,2,1,4],
-                                [1,2,3,4,5,6]],
-                                dims=['chromosome','Gene'],
-                                coords={'chromosome':np.arange(nParents),
-                                        'Gene': optVars})
+# Linear ranking: weights 1..n from worst to best, so P(pick individual k first) = rank_k / sum(ranks).
+# Ranks for fitness [7.2, 1.3, 9.5, 2.0] are [3, 1, 4, 2]; sum = 10.
+expectedProb = np.array([0.3, 0.1, 0.4, 0.2])
+nDraws = 4000
+counts = np.zeros(4)
+randomUtils.randomSeed(2026)
+for _ in range(nDraws):
+  parents = rankSelection(population, variables=optVars, fitness=popFitness, nParents=1)
+  counts[population.values.tolist().index(parents.values[0].tolist())] += 1
+freq = counts / nDraws
+print('selection frequencies: {} (expected {})'.format(freq, expectedProb))
 
 ## TESTING
-# Test survivor population
-checkSameDataArrays('Check survived population data array',parents,expectedParents)
+# the best individual is the most likely parent, and frequencies match the linear-ranking probabilities
+checkSameListOfInt('Best individual is the most likely parent', np.array([int(np.argmax(freq))]), np.array([2]))
+if np.allclose(freq, expectedProb, atol=0.03):
+  results["pass"] += 1
+else:
+  print('frequencies', freq, 'differ from', expectedProb)
+  results["fail"] += 1
 #
 # end
 #

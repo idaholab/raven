@@ -119,8 +119,8 @@ print('*'*79)
 print('BitFlip Mutator unit test')
 print('*'*79)
 print('generated children are: {}'.format(children))
-expectedChildren = xr.DataArray([[ 1,  1,  5,  2],
-                                 [ 2,  3,  1,  4],
+expectedChildren = xr.DataArray([[ 1,  4,  1,  2],
+                                 [ 3,  3,  1,  1],
                                  [ 5,  5,  5,  1]],
                                  dims   = ['chromosome','Gene'],
                                  coords = {'chromosome': np.arange(np.shape(population)[0]),

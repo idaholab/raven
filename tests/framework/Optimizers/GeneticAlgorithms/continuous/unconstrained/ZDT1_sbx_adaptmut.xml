@@ -1,0 +1,153 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_ZDT1_sbx_adaptmut</name>
+    <author>mandd</author>
+    <created>2026-06-05</created>
+    <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.sbxCrossover;Optimizers.mutators.polynomialMutator</classesTested>
+    <description>
+      Self-contained continuous ZDT1 benchmark solved with NSGA-II using the real-coded
+      operators (Simulated Binary Crossover + polynomial mutation). Unlike NSGA-II_ZDT1
+      this deck uses only standard OutStreams (Print, OptPath, PopulationPlot) so it runs
+      on the NSGA-II algorithm branch independently of the NSGA-specific plotting plugins.
+      It is the continuous-problem regression gate for the real-coded operators and the
+      multi-objective ranking/diversity machinery.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>ZDT1_sbx_adaptmut</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">ZDT</Model>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/ZDT_model.py" name="ZDT" subType="">
+      <variables>x1,x2,x3,obj1,obj2</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name='unifDist'>
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
+      <samplerInit>
+        <limit>15</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min,min</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>10</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="sbxCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="polynomialMutator">
+            <mutationProb>0.333</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst">
+        </fitness>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+
+      <adaptiveMutation final="0.05">True</adaptiveMutation>
+
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>unifDist</distribution>
+      </variable>
+      <objective>obj1, obj2 </objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </MultiObjectiveGeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>050877</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>unifDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x1,x2,x3</Input>
+      <Output>obj1,obj2</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x1,x2,x3,obj1,obj2,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,accepted </Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name = "opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x1, x2, x3, obj1, obj2</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source> opt_export</source>
+      <vars>x1, x2, x3, obj1, obj2</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+  </OutStreams>
+</Simulation>
