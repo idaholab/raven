@@ -675,11 +675,34 @@ class RavenSampled(Optimizer):
           for var, val in row.items():
             varData.setdefault(var, []).append(val)
         for var, vals in varData.items():
-          if isinstance(vals[0], str):
-            seGrp.create_dataset(var, data=np.array(vals, dtype=object),
+          # Decide the HDF5 encoding from the array numpy actually infers, not from
+          # inspecting only vals[0]'s type: a column like 'rejectReason' is None for
+          # accepted candidates and a string for rejected ones, and other metadata
+          # fields can similarly carry None mixed with numeric values for some rows.
+          # Checking only the first entry (the original code) can misclassify such a
+          # column as purely numeric whenever row 0 happens not to reveal the mix,
+          # and np.array(vals) on a genuine None/non-None-type mix produces dtype
+          # 'O' (object), which h5py cannot store natively -- confirmed this crashed
+          # an ordinary checkpoint write (not just a restore) the moment any
+          # candidate was rejected, and again on a different column (not
+          # 'rejectReason') carrying None mixed with floats.
+          arr = np.array(vals)
+          if arr.dtype.kind in ('O', 'U'):
+            # 'O' (object): e.g. None mixed with strings or with numbers -- not
+            # natively HDF5-storable at all. 'U' (fixed-width unicode): numpy's
+            # own inferred dtype for a column of UNIFORM strings with no None
+            # mixed in (e.g. 'accepted'/'first'/'rejected') -- also not directly
+            # storable via a plain create_dataset(data=arr) call; h5py needs its
+            # own variable-length string_dtype() for any string data, object or
+            # unicode alike. Route both to the same string-safe encoding, since
+            # this data is metadata for continuous SolutionExport output on
+            # restart, not optimizer state read back into any computation
+            # downstream.
+            strVals = ['' if v is None else str(v) for v in vals]
+            seGrp.create_dataset(var, data=np.array(strVals, dtype=object),
                                  dtype=h5py.string_dtype())
           else:
-            seGrp.create_dataset(var, data=np.array(vals),
+            seGrp.create_dataset(var, data=arr,
                                  compression='gzip', compression_opts=4)
     self.raiseAMessage(f'Checkpoint written to "{self._checkpointFile}" '
                        f'(generation {generation}, {len(rows)} SolutionExport row(s) saved).')
