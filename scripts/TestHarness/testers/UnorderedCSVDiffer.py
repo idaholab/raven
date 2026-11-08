@@ -110,7 +110,8 @@ class UnorderedCSVDiffer:
       # check type consistency
       ## get a sample from the matching CSV column
       ### TODO could check indices ONCE and re-use instead of checking each time
-      matchVal = match[idx].values.item(0) if match[idx].values.shape[0] != 0 else None
+      series = match[idx]
+      matchVal = series.iloc[0] if len(series) else None
       ## find out if match[idx] and/or "val" are numbers
       matchIsNumber = mathUtils.isAFloatOrInt(matchVal)
       valIsNumber = mathUtils.isAFloatOrInt(val)
@@ -125,15 +126,17 @@ class UnorderedCSVDiffer:
       ## and as high as val(1+relErr)
       if matchIsNumber:
         pval = abs(val) if self._ignore_sign else val
-        pmatch = abs(match[idx].values) if self._ignore_sign else match[idx].values
+        seriesVals = series.to_numpy()
+        pmatch = abs(seriesVals) if self._ignore_sign else seriesVals
         # adjust for negative values
         sign = np.sign(pval)
         lowest = np.searchsorted(pmatch, pval*(1.0-sign*self._rel_err))
         highest = np.searchsorted(pmatch, pval*(1.0+sign*self._rel_err), side='right')-1
       ## if not floats, then check exact matches
       else:
-        lowest = np.searchsorted(match[idx].values, val)
-        highest = np.searchsorted(match[idx].values, val, side='right')-1
+        seriesVals = series.to_numpy()
+        lowest = np.searchsorted(seriesVals, val)
+        highest = np.searchsorted(seriesVals, val, side='right')-1
       if debug:
         print('  low/hi match index:', lowest, highest)
       ## if lowest is past end of array, no match found
@@ -268,12 +271,14 @@ class UnorderedCSVDiffer:
     csv = csv.replace(np.inf, -sys.float_info.max)
     csv = csv.replace(np.nan, sys.float_info.max)
     for col in csv.columns:
-      example = csv[col].values.item(0) if csv[col].values.shape[0] != 0 else None
+      example = csv[col].iloc[0] if len(csv[col]) else None
       # skip columns that aren't numbers TODO might skip float columns with "None" early on
       if not mathUtils.isAFloatOrInt(example):
         continue
       # flatten near-zeros
-      csv[col].values[np.isclose(csv[col].values, 0, atol=self._zero_threshold)] = 0
+      values = csv[col].to_numpy(copy=True)
+      values[np.isclose(values, 0, atol=self._zero_threshold)] = 0
+      csv[col] = values
     # TODO would like to sort here, but due to relative errors it doesn't do
     #  enough good.  Instead, sort in findRow.
     return csv

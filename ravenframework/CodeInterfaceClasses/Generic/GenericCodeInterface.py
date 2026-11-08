@@ -209,7 +209,19 @@ class GenericCode(CodeInterfaceBase):
     if self.stoppingCriteriaFunction is not None:
       outCsv = os.path.join(workDir,output+".csv")
       if os.path.exists(outCsv):
-        df = pd.read_csv(outCsv)
+        try:
+          df = pd.read_csv(outCsv)
+        except pd.errors.EmptyDataError:
+          # The output file exists but has not been populated yet (not even the header).
+          # There is nothing to evaluate, so continue the simulation (do not stop).
+          return stopSim
+        # The output file can exist with a header but no data rows yet (the driven code
+        # is still running and has not flushed any result rows). In that case the parsed
+        # arrays are empty and any user stopping function that indexes into the results
+        # (e.g. raven.var[-1]) would raise an IndexError. There is nothing to evaluate
+        # yet, so we continue the simulation (do not stop) until data becomes available.
+        if len(df.index) == 0:
+          return stopSim
         results =  dict((header, np.array(df[header])) for header in df.columns)
         stopSim = self.stoppingCriteriaFunction.evaluate(self.stoppingCriteriaFunction.name,results)
     return stopSim

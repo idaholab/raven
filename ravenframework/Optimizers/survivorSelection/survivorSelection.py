@@ -14,83 +14,47 @@
 """
   Implementation of survivorSelection step for new generation
   selection process in Genetic Algorithm.
-  NOTE: this file only exists to call methods in survivorSelectors.py, making for a confusing and
-  convoluted call stack. Candidate for a follow-up structural cleanup, not resolved here.
 
-  Created Apr,3,2024
+  Created Apr 3, 2024
   @authors: Mohammad Abdo, Junyung Kim
 """
+# External Modules----------------------------------------------------------------------------------
+import numpy as np
+# External Modules End------------------------------------------------------------------------------
 
-# Internal Modules----------------------------------------------------------------------------------
-from ...utils.gaUtils import dataArrayToDict, datasetToDataArray
-# Internal Modules End------------------------------------------------------------------------------
-
-# @profile
-
-def singleObjSurvivorSelect(self, info, rlz, traj, individuals, individualFitness, objectiveVal, g):
+def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, minObjVals, constraintVals):
   """
-    process of selecting survivors for single objective problems
-    @ In, self, Instance of GeneticAlgorithm. Also information to return is added to this
+    Process of selecting survivors for single objective problems.
+    @ In, self, Instance of GeneticAlgorithm
     @ In, info, dict, dictionary of information
-    @ In, rlz, dict, dictionary of realizations
-    @ In, traj, dict, dictionary of trajectories
-    @ In, individuals, list, list of individuals
-    @ In, individualFitness, list, list of individual fitness
-    @ In, objectiveVal, list, floats of objective values
-    @ In, g, xr.DataArray, constraint data
+    @ In, rlz, xr.Dataset, dictionary of realizations
+    @ In, traj, int, trajectory identifier
+    @ In, offspring, xr.DataArray, offspring individuals
+    @ In, offspringFitVals, xr.Dataset, fitness of offspring
+    @ In, minObjVals, list, minimization-space objective values of offspring
+    @ In, constraintVals, xr.DataArray, constraint values of the offspring
+    @ Out, None (updates self.population and self.pop* variables)
   """
-  if individualFitness is not None:
-    for i in range(individuals.shape[0]):
-      self._sampledPopulationInfo[tuple(individuals[i].data)] = individualFitness.to_dataarray()[:,i]
-
   if self.counter > 1:
-    self.matingPopInputs, self.matingPopFitness,\
-    self.matingPopAges,self.matingPopObjVals = self._survivorSelectionInstance(age=self.matingPopAges,
-                                                                    variables=list(self.toBeSampled),
-                                                                    population=self.matingPopInputs,
-                                                                    fitness=self.matingPopFitness,
-                                                                    objVar = self._objectiveVar[0],
-                                                                    newRlz=rlz,
-                                                                    individualsFitness=individualFitness,
-                                                                    popObjectiveVal=self.matingPopObjVals)
+    # constraint rows travel with their individuals, so popConstraintVals stays aligned with population
+    self.population, self.popFitVals, \
+    self.popAges, self.popMinObjVals, self.popConstraintVals = self._survivorSelectionInstance(
+        age=self.popAges,
+        variables=list(self.toBeSampled),
+        population=self.population,
+        popFitVals=self.popFitVals,
+        objVar=self._objectiveVar[0],
+        newRlz=rlz,
+        offspringFitVals=offspringFitVals,
+        popMinObjVals=self.popMinObjVals,
+        popConstraintVals=self.popConstraintVals,
+        offspringConstraintVals=constraintVals
+    )
   else:
-    self.matingPopInputs = individuals
-    self.matingPopFitness = individualFitness
-    self.matingPopObjVals = rlz[self._objectiveVar[0]].data
-
-def multiObjSurvivorSelect(self, info, rlz, traj, individuals, individualFitness, objectiveVal, g):
-  """
-    process of selecting survivors for multi-objective problems
-    @ In, self, instance of GeneticAlgorithm. Also information to return is added to this
-    @ In, info, dict, dictionary of information
-    @ In, rlz, dict, dictionary of realizations (including values of all objectives)
-    @ In, traj, dict, dictionary of trajectories
-    @ In, individuals, list, list of individual individuals
-    @ In, individualFitness, list, list of fitness values for individual individuals
-    @ In, objectiveVal, list, values of the objectives (for ranking and crowding distance calculation)
-    @ In, g, xr.DataArray, constraint data
-  """
-  if individualFitness is not None:
-    for i in range(individuals.shape[0]):
-      self._sampledPopulationInfo[tuple(individuals[i].data)] = individualFitness.to_dataarray()[:,i]
-
-  if self.counter > 1:
-    self.matingPopInputs,self.matingPopRanks, \
-    self.matingPopAges,self.matingPopCD, \
-    self.matingPopObjVals,self.matingPopFitness, \
-    self.matingPopG                  = self._survivorSelectionInstance(age=self.matingPopAges,
-                                                                         variables=list(self.toBeSampled),
-                                                                         population=self.matingPopInputs,
-                                                                         individuals=rlz,
-                                                                         popObjectiveVal=self.matingPopObjVals,
-                                                                         offObjectiveVal=objectiveVal,
-                                                                         popFit = self.matingPopFitness,
-                                                                         offFit = individualFitness,
-                                                                         popConstV = self.matingPopG,
-                                                                         direction=self._minMax,
-                                                                         offConstV = g)
-  else:
-    self.matingPopInputs = individuals
-    self.matingPopFitness = individualFitness
-    self.matingPopObjVals = objectiveVal
-    self.matingPopG = g
+    # First generation: offspring becomes the current population
+    self.population = offspring
+    self.popFitVals = offspringFitVals
+    baseObj = minObjVals[0] if isinstance(minObjVals, list) and len(minObjVals) > 0 else rlz[self._objectiveVar[0]].data
+    self.popMinObjVals = list(np.atleast_1d(baseObj))
+    self.popAges = [0] * len(offspring)
+    self.popConstraintVals = constraintVals

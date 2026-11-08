@@ -350,19 +350,18 @@ except Exception as err:
 checkTrue('older-but-supported checkpoint versions are recognized',
           '1.0' in RavenSampledModule._SUPPORTED_CHECKPOINT_VERSIONS)
 
-olderSupportedVersionCheckpoint = {
-  'version': '1.0',
-  'optimizerType': ga.__class__.__name__,
-  'optimizerName': ga.name,
-  'settings': matchingSettings,
-}
-try:
-  ga._validateCheckpoint(olderSupportedVersionCheckpoint)
-  checkTrue('validate: older-but-supported checkpoint version passes validation', True)
-except Exception as err:
-  print('checking bool', 'validate: older-but-supported checkpoint version passes validation',
-        '| unexpected exception:', err)
-  results['fail'] += 1
+# the GA state keys changed in 1.2, so a GeneticAlgorithm refuses 1.0 and 1.1 files instead of
+# silently restoring an empty population; other optimizers still accept them (see the RavenSampled note)
+for oldVersion in ('1.0', '1.1'):
+  oldGACheckpoint = {
+    'version': oldVersion,
+    'optimizerType': ga.__class__.__name__,
+    'optimizerName': ga.name,
+    'settings': matchingSettings,
+  }
+  checkRaises(f'validate: GA rejects a version {oldVersion} checkpoint',
+              lambda: ga._validateCheckpoint(oldGACheckpoint), IOError)
+checkSame('current checkpoint version is 1.2', RavenSampledModule._CHECKPOINT_VERSION, '1.2')
 
 #
 # end
