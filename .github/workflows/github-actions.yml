@@ -231,9 +231,9 @@ jobs:
           ./run_tests -j4 --plugins
         continue-on-error: true
 
-  Test-RAVEN-macOS-14:
+  Test-RAVEN-macOS-15:
     # runs-on: macos-latest
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
