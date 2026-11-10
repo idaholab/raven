@@ -173,14 +173,7 @@ class RavenSampled(Optimizer):
   # optimizer subclass). A subclass MUST bump its own override of this value whenever it renames,
   # removes, or adds fields to its _getCheckpointState/_restoreCheckpointState state dict, or to
   # the per-realization dict it feeds into _updateSolutionExport/addRealization -- unlike a file
-  # format change, a state-schema change is not something the restore path can gracefully degrade
-  # from (a renamed field reads back as a KeyError; a widened per-row schema overflows the
-  # SolutionExport DataObject's column count that got fixed when its historical rows were
-  # reconstructed from the checkpoint) -- see _validateCheckpoint, which raises a hard error on a
-  # mismatch here rather than merely warning, specifically because this exact failure mode (a
-  # checkpoint silently "passing" file-format validation at an old-but-"supported" version, then
-  # crashing deep in restore or first-new-generation bookkeeping with a confusing KeyError/array-
-  # width OSError instead of a clear top-level message) is what motivated adding this check.
+  # format change, a state-schema change is not something the restore path can gracefully degrade from.
   _checkpointStateSchemaVersion = '1.0'
 
   ##########################
@@ -622,23 +615,14 @@ class RavenSampled(Optimizer):
     # State-schema compatibility is a hard requirement, not a soft warning like the file-format
     # version above: unlike the file format (which this class's own restore path can tolerate
     # drifting, e.g. an ignored legacy field), a subclass-specific state-schema change (renamed/
-    # added/removed fields) is not something the generic restore path can degrade gracefully
-    # from. A checkpoint written under an older schema will otherwise pass this validation step
-    # silently (its file-format version is often still "supported") and only fail later, deep
-    # inside _restoreCheckpointState or the first new generation's bookkeeping, as a confusing
-    # KeyError or SolutionExport column-count mismatch -- see _checkpointStateSchemaVersion's
-    # docstring for the exact incident this was added to catch.
+    # added/removed fields) is not something the generic restore path can degrade gracefully from.
     ckptStateSchemaVersion = checkpoint.get('settings', {}).get('stateSchemaVersion', '1.0')
     if ckptStateSchemaVersion != self._checkpointStateSchemaVersion:
       self.raiseAnError(IOError,
           f'Restart file was written with {self.__class__.__name__} state-schema version '
           f'"{ckptStateSchemaVersion}" but the current code uses state-schema version '
           f'"{self._checkpointStateSchemaVersion}". The internal structure of this optimizer\'s '
-          f'saved state (and/or its SolutionExport row contents) has changed incompatibly since '
-          f'this checkpoint was written, so it cannot be safely restored -- restoring it would '
-          f'either corrupt the resumed run\'s state or crash partway through the next generation. '
-          f'Discard this checkpoint and restart the optimization from scratch, or restore it '
-          f'using a RAVEN installation matching the version that wrote it.')
+          f'saved state has changed incompatibly since this checkpoint was written, so it cannot be safely restored.')
     ckptType = checkpoint.get('optimizerType', 'unknown')
     if ckptType != self.__class__.__name__:
       self.raiseAnError(IOError,
