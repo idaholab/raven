@@ -70,7 +70,6 @@ class RunnerThread(threading.Thread):
         self.__input_queue.task_done()
     except queue.Empty:
       self.__done = True
-      return
 
   def is_done(self):
     """

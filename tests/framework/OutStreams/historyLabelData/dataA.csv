@@ -1,0 +1,4 @@
+case,temperature,filename
+1,900.0,dataA_0.csv
+2,1000.0,dataA_1.csv
+3,1100.0,dataA_2.csv

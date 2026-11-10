@@ -23,7 +23,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 # External Modules----------------------------------------------------------------------------------
 import numpy as np
-from scipy.optimize import minpack2
+# NOTE: this uses a private scipy class on purpose. scipy 1.14 removed scipy.optimize.minpack2, and scipy has
+#       had no public replacement for this step-by-step (reverse communication) More-Thuente line search since.
+#       DCSRCH._iterate is the port of the removed minpack2.dcsrch; revisit if scipy ever makes it public.
+from scipy.optimize._dcsrch import DCSRCH
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
@@ -134,7 +137,7 @@ class ConjugateGradient(StepManipulator):
     # Conjugate Gradient does line searches along consecutive gradient estimations
     # with gradient estimations updated by more than just local estimation.
     # For conjugate gradient notations, see https://en.wikipedia.org/wiki/iNonlinear_conjugate_gradient_method
-    # For line search notations, see github.com/scipy/scipy/blob/master/scipy/optimize/minpack2/dcsrch.f
+    # For line search notations, see github.com/scipy/scipy/blob/master/scipy/optimize/minpack2/dcsrch.f (the Fortran original of scipy.optimize._dcsrch)
 
     # We start from an opt point, then find the gradient direction.
     #   from there we line search for the best point along that grad direction
@@ -147,10 +150,9 @@ class ConjugateGradient(StepManipulator):
     if lastStepInfo is None:
       # this MUST MEAN that this is the very very first step in this algorithm
       # note that we use binary strings because that's what scipy gives us
+      # the phi and derphi callbacks are not used, since we call DCSRCH._iterate step by step
       lastStepInfo = {'task': b'START',
-                      'fortranParams': {'iSave': np.zeros((2,), dtype=np.intc),
-                                        'dSave': np.zeros((13,), dtype=float),
-                                       }
+                      'lineSearcher': DCSRCH(None, None, ftol=1e-4, gtol=0.4, xtol=1e-14, stpmin=1e-100, stpmax=1e100)
                      }
     lineSearchTask = lastStepInfo['task']
 
@@ -160,21 +162,21 @@ class ConjugateGradient(StepManipulator):
 
     # get an array of the current optimal point
     curPoint = np.array(list(prevOpt[v] for v in self._optVars))
-    # get the current opt point objective value
-    curObjVal = prevOpt[objVar]
+    # get the current opt point minimization-space objective value
+    currentMinObjVal = prevOpt[objVar]
 
     # if we're starting a new line search because we found a minimum along the previous line search
     # NOTE this only gets called the first time ever for each trajectory, because of how we start
     #      new line searches under the task == 'CONVERGE' switch below
     if lineSearchTask == b'START':
-      lastStepInfo = self._startLineSearch(lastStepInfo, curPoint, curObjVal, curGrad, curGradMag)
+      lastStepInfo = self._startLineSearch(lastStepInfo, curPoint, currentMinObjVal, curGrad, curGradMag)
     else: # if lineSearchTask is anything except "start"
       # store some indicative information about the gradient (scalar product of current gradient and
       # the search vector, also "derPhi" in literature)
       lastStepInfo['line']['objDerivative'] = np.dot(curGrad, lastStepInfo['searchVector']) # derPhi1
 
     # update the line search information, and get the next task (and step size if relevant)
-    stepSize, task = self._lineSearchStep(lastStepInfo, curObjVal)
+    stepSize, task = self._lineSearchStep(lastStepInfo, currentMinObjVal)
 
     # take actions depending on the task
     if task.startswith(b'FG'):
@@ -184,8 +186,8 @@ class ConjugateGradient(StepManipulator):
       # local minimum reached, so pivot into new line search
       lastStepInfo['persistence'] = 0
       lastStepInfo['prev task'] = 'CONV'
-      lastStepInfo = self._startLineSearch(lastStepInfo, curPoint, curObjVal, curGrad, curGradMag)
-      stepSize, task = self._lineSearchStep(lastStepInfo, curObjVal)
+      lastStepInfo = self._startLineSearch(lastStepInfo, curPoint, currentMinObjVal, curGrad, curGradMag)
+      stepSize, task = self._lineSearchStep(lastStepInfo, currentMinObjVal)
     elif task.startswith((b'WARN', b'ERROR')):
       if task.startswith(b'WARN'):
         lastStepInfo['prev task'] = 'WARN'
@@ -198,7 +200,7 @@ class ConjugateGradient(StepManipulator):
       if lastStepInfo['persistence'] >= self._persistence:
         raise NoMoreStepsNeeded
     else:
-      self.raiseAnError(RuntimeError, f'Unrecognized "task" return from scipy.optimize.minpack2: "{task}"')
+      self.raiseAnError(RuntimeError, f'Unrecognized "task" return from scipy.optimize._dcsrch: "{task}"')
 
     lastStepInfo['stepSize'] = stepSize
     lastStepInfo['task'] = task
@@ -355,14 +357,14 @@ class ConjugateGradient(StepManipulator):
 
     return searchVectorMag, searchVector
 
-  def modifyAcceptance(self, oldPoint, oldVal, newPoint, newVal):
+  def modifyAcceptance(self, oldPoint, oldMinObjVal, newPoint, newMinObjVal):
     """
       Allows modification of acceptance criteria.
       Note this is only called if self.needsAccessToAcceptance is True.
       @ In, oldPoint, dict, old opt point
-      @ In, oldVal, float, old objective function value
+      @ In, oldMinObjVal, float, old minimization-space objective value
       @ In, newPoint, dict, new opt point
-      @ In, newVal, float, new objective function value
+      @ In, newMinObjVal, float, new minimization-space objective value
       @ In, info, dict, identifying information about evaluation
       @ Out, accept, boolean, whether we store the point
     """
@@ -372,18 +374,18 @@ class ConjugateGradient(StepManipulator):
 
     return 'accepted'
 
-  def _startLineSearch(self, lastStepInfo, curPoint, curObjVal, curGrad, curGradMag):
+  def _startLineSearch(self, lastStepInfo, curPoint, currentMinObjVal, curGrad, curGradMag):
     """
       Begins a new line search.
       @ In, lastStepInfo, dict, information about the last step taken
       @ In, curPoint, dict, current most-recent collected potential opt point
-      @ In, curObjVal, float, objective value at curPoint
+      @ In, currentMinObjVal, float, minimization-space objective value at curPoint
       @ In, curGrad, dict, magnitude-and-vector gradient estimate
       @ In, curGradMag, float, magnitude of curGrad
       @ Out, lastStepInfo, dict, modified with new line search information
     """
     # use the previous pivots to update the conjugate gradient
-    # first the objective value
+    # first the minimization-space objective value
     # then the conjugate gradient
 
     # since we've accepted a pivot, we need to store the old pivot and set up the new one
@@ -391,8 +393,8 @@ class ConjugateGradient(StepManipulator):
     pivot = lastStepInfo.pop('pivot', None)
     if pivot is None:
       # ONLY RUN ONCE per trajectory! First time ever initialization of line step search
-      # use the current gradient to back-guess the would-be previous objective value
-      prevObjVal = curObjVal + curGradMag / 2 # oldOldFVal
+      # use the current gradient to back-guess the would-be previous minimization-space objective value
+      previousMinObjVal = currentMinObjVal + curGradMag / 2 # oldOldFVal
       # magnitude of the search vector first time is just the gradient magnitude
       searchVectorMag = curGradMag
       # search direction at the start is the opposite direction of the initial gradient
@@ -402,15 +404,15 @@ class ConjugateGradient(StepManipulator):
     else:
       # LITERALLY every time except the first for each traj
       lastStepInfo['previous pivot'] = pivot
-      prevObjVal = lastStepInfo['previous pivot']['objVal'] # oldFVal
+      previousMinObjVal = lastStepInfo['previous pivot']['minObjVal'] # oldFVal
       prevGrad = lastStepInfo['previous pivot']['gradient']
       gradDotProduct = lastStepInfo['gradDotProduct']
       searchVectorMag, searchVector = self._polakRibierePowellStep(prevGrad, curGrad, gradDotProduct, lastStepInfo['searchVector'])
     pivotObjDerivative = np.dot(searchVector, curGrad) # derPhi_0
-    stepSize = min(1.0, 1.01 * 2 * (curObjVal - prevObjVal) / pivotObjDerivative)
+    stepSize = min(1.0, 1.01 * 2 * (currentMinObjVal - previousMinObjVal) / pivotObjDerivative)
     # comments are the literature equivalents for each variable name
     lastStepInfo.update({'pivot': {'point': curPoint,                   # x_0
-                                   'objVal': curObjVal,                 # phi_0
+                                   'minObjVal': currentMinObjVal,                 # phi_0
                                    'gradient': curGrad,                 # gf_k
                                    'objDerivative': pivotObjDerivative, # derPhi_0
                                   }, # w.r.t. pivot vals
@@ -427,11 +429,11 @@ class ConjugateGradient(StepManipulator):
 
     return lastStepInfo
 
-  def _lineSearchStep(self, lastStepInfo, curObjVal):
+  def _lineSearchStep(self, lastStepInfo, currentMinObjVal):
     """
       Determine the next action to take in the line search process
       @ In, lastStepInfo, dict, dictionary of past and present relevant information
-      @ In, curObjVal, float, current objective value obtained during line search
+      @ In, currentMinObjVal, float, current minimization-space objective value obtained during line search
       @ Out, stepSize, float, new suggested step size
       @ Out, task, binary string, task of line search
     """
@@ -439,12 +441,7 @@ class ConjugateGradient(StepManipulator):
     stepSize = lastStepInfo['stepSize']
     lineObjDerivative = lastStepInfo['line']['objDerivative']
     task = lastStepInfo['task']
-    iSave = lastStepInfo['fortranParams']['iSave']
-    dSave = lastStepInfo['fortranParams']['dSave']
-    stepSize, _, _, task = minpack2.dcsrch(stepSize, curObjVal, lineObjDerivative,
-                                           ftol=1e-4, gtol=0.4, xtol=1e-14,
-                                           task=task, stpmin=1e-100, stpmax=1e100,
-                                           isave=iSave, dsave=dSave)
+    stepSize, _, _, task = lastStepInfo['lineSearcher']._iterate(stepSize, currentMinObjVal, lineObjDerivative, task)
 
     return stepSize, task
 

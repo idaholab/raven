@@ -11,12 +11,13 @@
     </description>
     <revisions>
       <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+      <revision author="Jimmy-INL" date="2026-11-01">&lt;type&gt;max&lt;/type&gt; added: the logistic fitness now ranks the better objective higher; this deck maximizes the plan value, which it previously did only because the logistic fitness was inverted for min.</revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>knapsackMultipleDist</WorkingDir>
-    <Sequence>opt, print</Sequence>
+    <Sequence>opt, print, plot_results</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
     <globalSeed>5489</globalSeed>
@@ -35,6 +36,12 @@
       <Input class="DataObjects" type="PointSet">opt_export</Input>
       <Output class="OutStreams" type="Print">PrintOptOut</Output>
       <Output class="OutStreams" type="Print">PrintOptOut_export</Output>
+    </IOStep>
+    <IOStep name="plot_results">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+      <Output class="OutStreams" type="Plot">parallel_coordinates</Output>
     </IOStep>
   </Steps>
 
@@ -61,7 +68,8 @@
       <samplerInit>
         <limit>5</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>final</writeSteps>
+        <type>max</type>
+        <writeSteps>every</writeSteps>
       </samplerInit>
       <GAparams>
         <populationSize>10</populationSize>
@@ -117,8 +125,8 @@
       <Output>planValue,validPlan</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>proj1,proj2,proj3</Output>
+      <Input>batchId</Input>
+      <Output>proj1,proj2,proj3,accepted,planValue</Output>
     </PointSet>
   </DataObjects>
 
@@ -135,6 +143,22 @@
       <type>csv</type>
       <source>opt_export</source>
     </Print>
-  </OutStreams>
+
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>proj1,proj2,proj3,planValue</vars>
+      </Plot>
+      <Plot name="population" subType="PopulationPlot">
+        <source>opt_export</source>
+        <vars>proj1,proj2,proj3,planValue</vars>
+        <index>batchId</index>
+        <how>png</how>
+      </Plot>
+      <Plot name="parallel_coordinates" subType="OptParallelCoordinatePlot">
+        <source>opt_export</source>
+        <index>batchId</index>
+        <vars>proj1,proj2,proj3</vars>
+      </Plot>
+    </OutStreams>
 
 </Simulation>
