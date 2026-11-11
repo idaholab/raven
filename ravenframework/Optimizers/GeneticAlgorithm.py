@@ -284,6 +284,10 @@ class GeneticAlgorithm(RavenSampled):
                                      similarity metric that can be summurized as the normalized Hausdorff distance
                                      (with respect the domain of to population/iterations). The metric is normalized between 0 and 1,
                                      which implies that values closer to 1.0 represents a tighter convergence criterion."""}
+
+  # Version tracking protects against formatting changes being misinterpreted in the checkpoint reload.
+  _checkpointStateSchemaVersion = '2.0'
+
   def __init__(self):
     """
       Constructor.
