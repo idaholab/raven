@@ -13,10 +13,16 @@
   type = 'RavenFramework'
   input = 'test_LimitSurface_and_integral.xml'
   output = 'limitSurface_integral/LimitSurfaceUnWeightedPb_dump.xml limitSurface_integral/LimitSurfaceWeightedPb_dump.xml'
-  csv = 'limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
   max_time = 500
   rel_err = 0.001
   #skip = 'need to be fixed'
+  # the fitted limit surface differs between macOS and linux by up to 0.05 in y0 (1.7%)
+  [./csv]
+   type = OrderedCSV
+   output = 'limitSurface_integral/LimitSurfaceWeightedPb_dump.csv limitSurface_integral/LimitSurfaceUnWeightedPb_dump.csv'
+   mac_gold = 'limitSurface_integral/MacLimitSurfaceWeightedPb_dump.csv limitSurface_integral/MacLimitSurfaceUnWeightedPb_dump.csv'
+   rel_err = 0.001
+  [../]
  [../]
 
  [./testLimitSurfacePostProcessorWithRegressor]

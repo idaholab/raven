@@ -116,6 +116,7 @@ class AdaBoostRegressor(ScikitLearnBase):
       sklEstimator = interfaceRom.model.get_params()['estimator']
     else:
       sklEstimator = interfaceRom.model
-    settings = {'base_estimator':sklEstimator}
+    # scikit-learn 1.4 removed the "base_estimator" option, which was renamed "estimator" in 1.2
+    settings = {'estimator':sklEstimator}
     self.settings.update(settings)
     self.initializeModel(self.settings)
