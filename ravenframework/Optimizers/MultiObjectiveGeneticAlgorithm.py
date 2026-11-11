@@ -148,9 +148,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       'multiBestConstraintVals': getattr(self, 'multiBestConstraintVals', None),
       'multiBestRank':           getattr(self, 'multiBestRank', None),
       'multiBestCD':             getattr(self, 'multiBestCD', None),
-      'ahdp':                    getattr(self, 'ahdp', np.NaN),
-      'ahd':                     getattr(self, 'ahd', np.NaN),
-      'hdsm':                    getattr(self, 'hdsm', np.NaN),
+      'ahdp':                    getattr(self, 'ahdp', np.nan),
+      'ahd':                     getattr(self, 'ahd', np.nan),
+      'hdsm':                    getattr(self, 'hdsm', np.nan),
     })
     return state
 
@@ -169,9 +169,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self.multiBestConstraintVals = state.get('multiBestConstraintVals')
     self.multiBestRank           = state.get('multiBestRank')
     self.multiBestCD             = state.get('multiBestCD')
-    self.ahdp                    = state.get('ahdp', np.NaN)
-    self.ahd                     = state.get('ahd', np.NaN)
-    self.hdsm                    = state.get('hdsm', np.NaN)
+    self.ahdp                    = state.get('ahdp', np.nan)
+    self.ahd                     = state.get('ahd', np.nan)
+    self.hdsm                    = state.get('hdsm', np.nan)
 
   @classmethod
   def getInputSpecification(cls):

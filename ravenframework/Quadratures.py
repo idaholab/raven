@@ -361,7 +361,7 @@ class SparseGrid(MessageUser):
     points = list(itertools.product(*pointLists))
     weights= list(itertools.product(*weightLists))
     for k,wtset in enumerate(weights):
-      weights[k]=np.product(wtset)
+      weights[k]=np.prod(wtset)
     return points,weights
 #
 #

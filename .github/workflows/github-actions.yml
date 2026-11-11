@@ -231,9 +231,9 @@ jobs:
           ./run_tests -j4 --plugins
         continue-on-error: true
 
-  Test-RAVEN-macOS-14:
+  Test-RAVEN-macOS-15:
     # runs-on: macos-latest
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
@@ -533,7 +533,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         # combinations without a built package for the release are skipped by 'Check Release Package'
-        python-version: ['3.10', '3.11']
+        python-version: ['3.11', '3.12', '3.13']
         # Linux installs are expected to build from the source tar.gz (sdist); others use wheels
         include:
           - os: ubuntu-latest
