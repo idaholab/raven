@@ -128,6 +128,15 @@
     rel_err = 0.001
    [../]
 
+  [./PooledDMDC]
+    type = 'RavenFramework'
+    input = 'test_pooled_dmdc.xml'
+    xml = 'DMDC/PooledDMDC/DMDcCoeff.xml'
+    csv = 'DMDC/PooledDMDC/outputData_0.csv'
+    rel_err = 1e-6
+    zero_threshold = 1e-9
+   [../]
+
   [./UnparameterizedDMDCMultipleInput]
     type = 'RavenFramework'
     input = 'test_unparameterized_dmdc_multiple_input.xml'
