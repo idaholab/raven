@@ -34,7 +34,7 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 
-from ..utils import frontUtils, randomUtils
+from ..utils import frontUtils
 from .MultiObjectiveGeneticAlgorithm import MultiObjectiveGeneticAlgorithm
 
 
@@ -105,10 +105,15 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     specs = super(NSGAII, cls).getInputSpecification()
     # keep the inherited spec name 'MultiObjectiveGeneticAlgorithm' so it matches the input node tag;
     # NSGA-II is selected via the <MultiObjectiveGeneticAlgorithm type="NSGA-II"> attribute.
-    specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-II} handles multi-objective problems using
-                            the Non-dominated Sorting Genetic Algorithm II (NSGA-II). It preserves all configuration options of the
-                            base genetic algorithm while enabling Pareto front ranking and crowding-distance based survivor selection
-                            to explore trade-offs between conflicting objectives."""
+    specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-II}
+                            (the default) runs the Non-dominated Sorting Genetic Algorithm II. NSGA-II
+                            ranks the population by non-dominated sorting and uses crowding-distance
+                            estimation to keep a diverse set of non-dominated (Pareto-optimal) solutions,
+                            which lets it explore the trade-offs between conflicting objectives. More
+                            information about NSGA-II can be found in:\\
+
+                            Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm:
+                            NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197."""
     objective = specs.getSub('objective')
     if objective is not None:
       objective.description = r"""Name of the objective variable(s) to optimize. Provide at least two comma-separated variables
@@ -126,38 +131,6 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     if not self._isMultiObjective:
       self.raiseAnError(IOError, 'NSGA-II requires at least two objectives. Use GeneticAlgorithm for single-objective problems.')
 
-  def _effectiveMutationProb(self):
-    """
-      Return the mutation probability to use this generation. With adaptive mutation enabled
-      it is annealed linearly from the configured mutationProb (first generation) to the
-      requested final value (last generation), defaulting the final value to 1/nVariables.
-      @ Out, prob, float, mutation probability for the current generation.
-    """
-    if not getattr(self, '_adaptiveMutation', False):
-      return self._mutationProb
-    if self.limit and self.limit > 1:
-      progress = min(1.0, max(0.0, (self.counter - 1) / (self.limit - 1)))
-    else:
-      progress = 0.0
-    nVariables = max(1, len(self.toBeSampled))
-    finalProb = self._adaptiveMutationFinal if self._adaptiveMutationFinal is not None else 1.0 / nVariables
-    return self._mutationProb + (finalProb - self._mutationProb) * progress
-
-  def _rankingConstraintVals(self, constraintData):
-    """
-      Return the constraint values to use for this generation's non-dominated sort. Normally this is
-      the supplied constraint data, but under stochastic ranking (Runarsson & Yao) the constraints are
-      ignored (None) with probability pf so the generation is ranked by objectives only, stochastically
-      balancing objective progress against feasibility. Drawing the coin here consumes one RNG sample
-      per generation; with stochastic ranking disabled the data passes through unchanged (no draw).
-      @ In, constraintData, np.array, constraint values for the population being ranked.
-      @ Out, constraintVals, np.array or None, constraint values, or None to rank by objectives only.
-    """
-    if not getattr(self, '_stochasticRanking', False):
-      return constraintData
-    if float(randomUtils.random(dim=1, samples=1)) < self._stochasticRankingPf:
-      return None
-    return constraintData
 
   def _crowdingNormalizationBounds(self, objectiveValues):
     """

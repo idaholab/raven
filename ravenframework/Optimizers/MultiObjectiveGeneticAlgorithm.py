@@ -20,7 +20,7 @@ from copy import deepcopy
 import numpy as np
 import xarray as xr
 
-from ..utils import mathUtils, frontUtils, InputData, InputTypes
+from ..utils import mathUtils, frontUtils, randomUtils, InputData, InputTypes
 from ..utils.gaUtils import datasetToDataArray
 from .GeneticAlgorithm import GeneticAlgorithm
 from .constraintHandling.constraintHandling import constraintHandling
@@ -186,22 +186,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
                             operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
                             crowding-distance survivor selection, and multi-objective convergence metrics that are shared
-                            by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II.\\
-
-                            Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
-                            NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set of
-                            non-dominated (Pareto-optimal) solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
-                            providing decision-makers with a comprehensive view of the problem's solution space. More information about NSGA-II can be found in:\\
-
-                            Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\
+                            by concrete algorithms selected through the \xmlAttr{type} attribute: \xmlString{NSGA-II}
+                            (the default) and \xmlString{NSGA-III}. The options below are common to every algorithm; the
+                            nodes that only one algorithm reads are listed in that algorithm's subsection.\\
 
                             Internally, objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking, crowding-distance
                             calculation and convergence checks (\texttt{minObjVals}); exported objective values use the requested convention.
                             Survivor selection must be \textit{rankNcrowdingBased} and parent selection \textit{tournamentSelection}."""
     specs.addParam('type', param_type=InputTypes.makeEnumType('multiObjectiveGA', 'multiObjectiveGAType',
         list(cls.knownAlgorithms.keys()) or ['NSGA-II']), required=False, default='NSGA-II',
-        descr=r"""selects the concrete multi-objective genetic algorithm to run. Currently \xmlString{NSGA-II}
-                  (Non-dominated Sorting Genetic Algorithm II) is available. Defaults to \xmlString{NSGA-II}.""")
+        descr=r"""selects the concrete multi-objective genetic algorithm to run: \xmlString{NSGA-II}
+                  (Non-dominated Sorting Genetic Algorithm II, Deb et al. 2002) or \xmlString{NSGA-III}
+                  (reference-point NSGA-III, Deb and Jain 2014). Defaults to \xmlString{NSGA-II}.""")
     objective = specs.getSub('objective')
     if objective is not None:
       objective.description = r"""List the objective variables that jointly define the Pareto front. Two or more
@@ -705,6 +701,42 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     elif self.multiBestCD is not None:
       toAdd['CD'] = np.atleast_1d(self.multiBestCD)
     return toAdd
+
+  def _effectiveMutationProb(self):
+    """
+      Return the mutation probability to use this generation. With adaptive mutation enabled it is
+      annealed linearly from the configured mutationProb (first generation) to the requested final
+      value (last generation), defaulting the final value to 1/nVariables. Shared by every concrete
+      multi-objective algorithm (NSGA-II, NSGA-III).
+      @ In, None
+      @ Out, prob, float, mutation probability for the current generation.
+    """
+    if not getattr(self, '_adaptiveMutation', False):
+      return self._mutationProb
+    if self.limit and self.limit > 1:
+      progress = min(1.0, max(0.0, (self.counter - 1) / (self.limit - 1)))
+    else:
+      progress = 0.0
+    nVariables = max(1, len(self.toBeSampled))
+    finalProb = self._adaptiveMutationFinal if self._adaptiveMutationFinal is not None else 1.0 / nVariables
+    return self._mutationProb + (finalProb - self._mutationProb) * progress
+
+  def _rankingConstraintVals(self, constraintData):
+    """
+      Return the constraint values to use for this generation's non-dominated sort. Normally this is
+      the supplied constraint data, but under stochastic ranking (Runarsson & Yao) the constraints are
+      ignored (None) with probability pf so the generation is ranked by objectives only, stochastically
+      balancing objective progress against feasibility. Drawing the coin here consumes one RNG sample
+      per generation; with stochastic ranking disabled the data passes through unchanged (no draw).
+      Shared by every concrete multi-objective algorithm (NSGA-II, NSGA-III).
+      @ In, constraintData, np.array, constraint values for the population being ranked.
+      @ Out, constraintVals, np.array or None, constraint values, or None to rank by objectives only.
+    """
+    if not getattr(self, '_stochasticRanking', False):
+      return constraintData
+    if float(randomUtils.random(dim=1, samples=1)) < self._stochasticRankingPf:
+      return None
+    return constraintData
 
   def _collectOptPointMulti(self, rlz, population, rank, CD, minObjVals, fitVals, constraintVals):
     """

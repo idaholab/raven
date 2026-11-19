@@ -29,6 +29,7 @@ except Exception as e:
 sys.path.pop()
 
 from ravenframework.utils.InputData import wrapText, removeTrailingWhitespace
+from ravenframework.utils.InputData import _escUnderscore as escapeUnderscore
 
 def insertSolnExport(tex, obj):
   """
@@ -263,6 +264,61 @@ Multiobjective Genetic Algorithm Example (NSGA-II):
 \end{lstlisting}
 """
 
+minimalNSGAIII = r"""
+\hspace{24pt}
+Multiobjective Genetic Algorithm Example (NSGA-III, with the reference-point operator families at
+their defaults):
+\begin{lstlisting}[style=XML]
+  <Optimizers>
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-III">
+      <samplerInit>
+        <limit>15</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min,min,min</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>50</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="sbxCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="polynomialMutator">
+            <mutationProb>0.15</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst"/>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+
+      <referenceDirections type="dasDennis"/>
+      <objectiveNormalization type="hyperplane"/>
+      <association type="perpendicular"/>
+      <niching type="referencePoint"/>
+
+      <convergence>
+        <AHDp>0.01</AHDp>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>unifDist</distribution>
+      </variable>
+      <objective>obj1, obj2, obj3</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </MultiObjectiveGeneticAlgorithm>
+  </Optimizers>
+\end{lstlisting}
+"""
+
 minimalBayesianOptimizer = r"""
 \hspace{24pt}
 Bayesian Optimizer Example:
@@ -392,6 +448,12 @@ writing.
 
 exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing,'GeneticAlgorithm':minimalGeneticAlgorithm,'MultiObjectiveGeneticAlgorithm':minimalMultiObjectiveGeneticAlgorithm,'BayesianOptimizer':minimalBayesianOptimizer}
 
+# Concrete multi-objective GA algorithms are registered under MultiObjectiveGeneticAlgorithm (selected
+# via <MultiObjectiveGeneticAlgorithm type="...">), not as top-level optimizer factory types, so they
+# are documented from MultiObjectiveGeneticAlgorithm.knownAlgorithms rather than factory.knownTypes().
+# Each entry maps a registered algorithm name to its minimal XML example.
+multiObjectiveExampleFactory = {'NSGA-III': minimalNSGAIII}
+
 #------------#
 # OPTIMIZERS #
 #------------#
@@ -401,14 +463,50 @@ msg = ''
 optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
 msg += optDescr
 msg += gaMigrationNotes
-# write all known types
+
+def algorithmLatex(name, algorithmClass, baseSpecs):
+  """
+    Document one concrete multi-objective GA algorithm as a subsubsection of the
+    MultiObjectiveGeneticAlgorithm entry: its description plus only the nodes and parameters it adds
+    to the shared MultiObjectiveGeneticAlgorithm spec, so the shared options are written once.
+    @ In, name, str, registered algorithm name (the value of the type attribute)
+    @ In, algorithmClass, class, MultiObjectiveGeneticAlgorithm subclass implementing the algorithm
+    @ In, baseSpecs, InputData.ParameterInput, the shared MultiObjectiveGeneticAlgorithm spec
+    @ Out, tex, str, LaTeX for the algorithm subsubsection
+  """
+  specs = algorithmClass.getInputSpecification()
+  baseNames = set(sub.getName() for sub in baseSpecs.subs)
+  extraSubs = [sub for sub in specs.subs if sub.getName() not in baseNames]
+  tex = '\n\n\\subsubsection{' + name + '}\n' + wrapText(specs.description, indent='  ') + '\n'
+  if extraSubs:
+    tex += '\n  In addition to the options above, \\xmlAttr{type}=\\xmlString{' + name + '} reads the following'
+    tex += ' subnodes of \\xmlNode{MultiObjectiveGeneticAlgorithm}:\n  \\begin{itemize}\n'
+    for sub in sorted(extraSubs, key=lambda sub: sub.printPriority):
+      tex += sub.generateLatex(recDepth=2) + '\n'
+    tex += '  \\end{itemize}\n'
+  else:
+    tex += '\n  It reads no subnodes beyond the shared options above.\n'
+  return escapeUnderscore(tex)
+
+# Document each concrete multi-objective GA algorithm (selected via <MultiObjectiveGeneticAlgorithm
+# type="...">) as a subsubsection of the MultiObjectiveGeneticAlgorithm entry written above. The factory
+# loop does not reach them because they are registered under MultiObjectiveGeneticAlgorithm rather than
+# as top-level factory types.
+multiObjectiveBase = Optimizers.factory.returnClass('MultiObjectiveGeneticAlgorithm')
+
+# write all known types; each concrete multi-objective algorithm follows its MultiObjectiveGeneticAlgorithm entry
 for name in Optimizers.factory.knownTypes():
   obj = Optimizers.factory.returnClass(name)
   specs = obj.getInputSpecification()
   tex = specs.generateLatex()
   tex = insertSolnExport(tex, obj)
-  msg +=tex
-  msg+= exampleFactory[name]
+  msg += tex
+  msg += exampleFactory[name]
+  if obj is multiObjectiveBase:
+    for algorithmName, algorithmClass in multiObjectiveBase.knownAlgorithms.items():
+      msg += algorithmLatex(algorithmName, algorithmClass, specs)
+      if algorithmName in multiObjectiveExampleFactory:
+        msg += multiObjectiveExampleFactory[algorithmName]
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w', encoding='utf-8') as f:

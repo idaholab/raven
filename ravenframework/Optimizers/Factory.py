@@ -26,6 +26,7 @@ from .SimulatedAnnealing import SimulatedAnnealing
 from .GeneticAlgorithm import GeneticAlgorithm
 from .MultiObjectiveGeneticAlgorithm import MultiObjectiveGeneticAlgorithm
 from .NSGAII import NSGAII
+from .NSGAIII import NSGAIII
 
 
 class OptimizerFactory(EntityFactory):
@@ -69,6 +70,7 @@ factory.registerType('MultiObjectiveGeneticAlgorithm', MultiObjectiveGeneticAlgo
 # base class and selected at input time via <MultiObjectiveGeneticAlgorithm type="...">.
 # Adding a new variant (e.g. NSGA-III) is a single registration line here plus its subclass.
 MultiObjectiveGeneticAlgorithm.registerAlgorithm('NSGA-II', NSGAII)
+MultiObjectiveGeneticAlgorithm.registerAlgorithm('NSGA-III', NSGAIII)
 
 try:
     from .BayesianOptimizer import BayesianOptimizer
