@@ -34,7 +34,7 @@ def onePointCrossover(parents,**kwargs):
   """
     Method designed to perform crossover by swapping chromosome portions before/after specified or sampled location
     @ In, parents, xr.DataArray, parents involved in the mating process.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this crossover method:
           crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
           points, integer, point at which the cross over happens, default is random
           variables, list, variables names.
@@ -81,7 +81,7 @@ def uniformCrossover(parents,**kwargs):
   """
     Method designed to perform crossover by swapping genes one by one
     @ In, parents, xr.DataArray, parents involved in the mating process.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this crossover method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
     @ Out, children, xr.DataArray, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
@@ -119,7 +119,7 @@ def twoPointsCrossover(parents, **kwargs):
     children1 = A1 B2 C1
     children2 = A2 B1 C2
     @ In, parents, xr.DataArray, parents involved in the mating process
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this crossover method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
           crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
@@ -253,7 +253,7 @@ def returnInstance(cls, name):
     Method designed to return class instance
     @ In, cls, class type
     @ In, name, string, name of class
-    @ Out, __crossovers[name], instance of class
+    @ Out, __crossovers[name], the registered crossover operator
   """
   if name not in __crossovers:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))

@@ -47,12 +47,15 @@ _NEGINF_SENTINEL = '__checkpoint_neginf__'
 
 # Checkpoint file format version. 1.1: dedup cache is now capped (_MAX_DEDUP_CACHE_SIZE) and no
 # longer stores a separate '_evaluatedSubmissionKeys' field; 1.0 checkpoints still restore
-# correctly, that field is just ignored on read.
-_CHECKPOINT_VERSION = '1.1'
+# correctly, that field is just ignored on read. 1.2: the genetic-algorithm state was renamed
+# (matingPopInputs -> population, bestFitness -> bestFitVal, ...) and multi-objective runs moved to
+# MultiObjectiveGeneticAlgorithm; GeneticAlgorithm refuses to restore a 1.0/1.1 file (see
+# GeneticAlgorithm._validateCheckpoint), other optimizers still restore it.
+_CHECKPOINT_VERSION = '1.2'
 # Checkpoint versions this code can still restore from without a compatibility warning. Keep
 # every version whose restore path remains supported (see _restoreCheckpointState/_CHECKPOINT_VERSION
 # history above) even after _CHECKPOINT_VERSION advances past it.
-_SUPPORTED_CHECKPOINT_VERSIONS = ('1.0', '1.1')
+_SUPPORTED_CHECKPOINT_VERSIONS = ('1.0', '1.1', '1.2')
 
 # Cap on the number of evaluated-point entries kept for deduplication. Without a cap, both
 # in-memory usage and per-checkpoint JSON serialization time grow with total run length (every
@@ -71,8 +74,10 @@ def _encodeCheckpointState(obj):
     @ Out, obj, any, JSON-serializable representation
   """
   if isinstance(obj, float):
-    if math.isnan(obj):  return _NAN_SENTINEL
-    if math.isinf(obj):  return _POSINF_SENTINEL if obj > 0 else _NEGINF_SENTINEL
+    if math.isnan(obj):
+      return _NAN_SENTINEL
+    if math.isinf(obj):
+      return _POSINF_SENTINEL if obj > 0 else _NEGINF_SENTINEL
     return obj
   if isinstance(obj, np.floating):
     return _encodeCheckpointState(float(obj))
@@ -107,9 +112,12 @@ def _decodeCheckpointState(obj):
     @ Out, obj, any, restored Python object with original types
   """
   if isinstance(obj, str):
-    if obj == _NAN_SENTINEL:    return float('nan')
-    if obj == _POSINF_SENTINEL: return float('inf')
-    if obj == _NEGINF_SENTINEL: return float('-inf')
+    if obj == _NAN_SENTINEL:
+      return float('nan')
+    if obj == _POSINF_SENTINEL:
+      return float('inf')
+    if obj == _NEGINF_SENTINEL:
+      return float('-inf')
     return obj
   if isinstance(obj, list):
     return [_decodeCheckpointState(i) for i in obj]
@@ -123,7 +131,8 @@ def _decodeCheckpointState(obj):
       return deque((_decodeCheckpointState(i) for i in obj['data']), maxlen=obj['maxlen'])
     if t == 'set':
       def _toHashable(x):
-        if isinstance(x, list): return tuple(_toHashable(i) for i in x)
+        if isinstance(x, list):
+          return tuple(_toHashable(i) for i in x)
         return _decodeCheckpointState(x)
       return set(_toHashable(i) for i in obj['data'])
     if t == 'tuple':
@@ -804,21 +813,10 @@ class RavenSampled(Optimizer):
     ## If any solution in the history has a higher objective value than what is found in ._optPointHistory, add it to opt. NOTE: this only searches the most recent iteration of the optimizer.
     opt = self._optPointHistory[traj][-1][0]
 
-    objectiveVars = []
-    optKeys = list(opt)
-    # Map objective variable names to keys in the optimization history.
-    for obj in np.atleast_1d(self._objectiveVar):
-      if obj in optKeys:
-        objectiveVars.append(obj)
-      else:
-        matches = [var for var in optKeys if obj.lower() in var.lower()]
-        objectiveVars.extend(matches)
-    # Deduplicate while preserving order
-    objectiveVars = list(dict.fromkeys(objectiveVars))
-
     self._solutionExport.asDataset() #empty _collector into _data
     ## Search the rest of the population (GA-only: _sampledPopulationInfo is set in
-    ## GeneticAlgorithm.__init__ and populated by survivorSelection; other RavenSampled
+    ## GeneticAlgorithm.__init__ and filled by GeneticAlgorithm._recordSampledPopulation for single-objective
+    ## runs only (multi-objective GAs leave it empty, see MultiObjectiveGeneticAlgorithm._useRealization); other RavenSampled
     ## optimizers never define this attribute, so hasattr() correctly skips them here.
     ## NOTE: this was previously misnamed "_sampledHistoryInfo" during a 2026-09-01
     ## generalization pass, which silently disabled this block for every optimizer, GA included.
@@ -835,11 +833,14 @@ class RavenSampled(Optimizer):
                       bestInPopulation[soln1] = self._sampledPopulationInfo[soln1]
                   elif (self._sampledPopulationInfo[soln1] > bestInPopulation[soln2]).any():
                       bestInPopulation[soln1] = self._sampledPopulationInfo[soln1]
-      # try to add best solns to list of optimal solns
+      # try to add best solns to list of optimal solns. _sampledPopulationInfo holds FITNESS values (larger is
+      # better), so compare them with the incumbent's fitness, not with its objective: the two are on different
+      # scales, and comparing them added worse (even infeasible) points as extra "final" optima.
+      incumbentFitness = opt.get('fitness')
       for soln in bestInPopulation:
-        # opt[key] is the single best realization's objective value (a scalar), not a population;
-        # np.atleast_1d guards max() against that scalar case (max() requires an iterable).
-        if (bestInPopulation[soln] > [max(np.atleast_1d(opt[key])) for key in objectiveVars]).any(): #if any objective value in soln is greater than all corresponding objective values in opt, this is True.
+        if incumbentFitness is None:
+          break
+        if (bestInPopulation[soln] > max(np.atleast_1d(incumbentFitness))).any():
             for indx in range(len(self._solutionExport._data[list(self._solutionExport._data)[0]])): #search the population data for the inputs in soln
               if np.all(np.array(soln) == [self._solutionExport._data[key][indx].item() for key in self.toBeSampled]):
                 # add soln values from population data to opt
@@ -872,14 +873,19 @@ class RavenSampled(Optimizer):
       self.raiseAMessage('*' * 80)
       # write final best solution to soln export
       if bestPoint not in self._finals:
-          if hasattr(self, '_validateFinalFront'):
-            try:
-              self._validateFinalFront(optElm)
-            except Exception as error:
-              self.raiseADebug(f'Final-front validation failed: {error}')
+          self._validateFinalFront(optElm)
           self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
           self._finals.append(bestPoint)
 
+
+  def _validateFinalFront(self, candidate):
+    """
+      Hook to sanity-check a final optimal point before it is exported. No-op by default;
+      multi-objective optimizers override it.
+      @ In, candidate, dict, the final optimal point (minimization space)
+      @ Out, None
+    """
+    return
 
   def flush(self):
     """
@@ -1175,10 +1181,10 @@ class RavenSampled(Optimizer):
       @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
-    oldMinObjVal = normed[self._objectiveVar[0]]
-    normed.pop(self._objectiveVar[0], oldMinObjVal)
+    oldVal = normed[self._objectiveVar[0]]
+    normed.pop(self._objectiveVar[0], oldVal)
     denormed = self.denormalizeData(normed)
-    denormed[self._objectiveVar[0]] = oldMinObjVal * self._objMult[self._objectiveVar[0]]
+    denormed[self._objectiveVar[0]] = oldVal
     accept = self._checkImpFunctionalConstraints(denormed)
 
     return accept

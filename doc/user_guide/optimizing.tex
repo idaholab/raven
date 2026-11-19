@@ -384,11 +384,14 @@ input file.  Incompatibilities that raise an error (and therefore prevent the re
 \begin{itemize}
   \item a different optimizer type (e.g.\ a \xmlNode{GradientDescent} checkpoint used with a
     \xmlNode{GeneticAlgorithm} input);
-  \item mismatched variable names or bounds; and
-  \item for \xmlNode{GeneticAlgorithm}, a different population size or multi-objective mode.
+  \item mismatched variable names or bounds;
+  \item for \xmlNode{GeneticAlgorithm} and \xmlNode{MultiObjectiveGeneticAlgorithm}, a different
+    population size (a multi-objective restart file written by an earlier RAVEN
+    \xmlNode{GeneticAlgorithm} is refused as a different optimizer type); and
+  \item for the genetic algorithms, a restart file written by an earlier RAVEN version (file version
+    1.0 or 1.1), whose saved state the current version cannot restore.
 \end{itemize}
-Differences in optimizer \xmlAttr{name} or file version produce warnings but do not prevent the
-restart.  Once the checkpoint is loaded, the \xmlNode{SolutionExport} DataObject is
+Differences in optimizer \xmlAttr{name} produce warnings but do not prevent the restart.  Once the checkpoint is loaded, the \xmlNode{SolutionExport} DataObject is
 pre-populated with the historical solution path so that output CSV files appear continuous
 across the interrupted and resumed runs.
 

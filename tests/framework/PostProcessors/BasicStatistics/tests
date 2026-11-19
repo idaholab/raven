@@ -189,5 +189,10 @@
     input = 'spearman.xml'
     UnorderedCsv = 'basicStatsSpearman/InputOutput_basicStatPP_dump.csv'
   [../]
+  [./spearmanNoWeights]
+    type = 'RavenFramework'
+    input = 'spearman_no_weights.xml'
+    UnorderedCsv = 'basicStatsSpearmanNoWeights/basicStatPP_dump.csv'
+  [../]
 
 []

@@ -81,12 +81,11 @@ class DecisionTreeClassifier(ScikitLearnBase):
     specs.addSub(InputData.parameterInputFactory("min_weight_fraction_leaf", contentType=InputTypes.FloatType,
                                                  descr=r"""The minimum weighted fraction of the sum total of weights (of all the input samples)
                                                  required to be at a leaf node. Samples have equal weight when sample_weight is not provided.""", default=0.0))
-    specs.addSub(InputData.parameterInputFactory("max_features", contentType=InputTypes.makeEnumType("maxFeatures", "maxFeaturesType",['auto','sqrt','log2']),
+    specs.addSub(InputData.parameterInputFactory("max_features", contentType=InputTypes.makeEnumType("maxFeatures", "maxFeaturesType",['sqrt','log2','auto']),
                                                  descr=r"""The strategy to compute the number of features to consider when looking for the best split:
                                                   \begin{itemize}
                                                     \item sqrt: $max\_features=sqrt(n\_features)$
                                                     \item log2: $max\_features=log2(n\_features)$
-                                                    \item auto: automatic selection
                                                   \end{itemize}
                                                   \nb the search for a split does not stop until at least one valid partition of the node
                                                   samples is found, even if it requires to effectively inspect more than max_features features.""", default=None))

@@ -32,12 +32,13 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, 
     @ In, offspring, xr.DataArray, offspring individuals
     @ In, offspringFitVals, xr.Dataset, fitness of offspring
     @ In, minObjVals, list, minimization-space objective values of offspring
-    @ In, constraintVals, xr.DataArray, constraint data
+    @ In, constraintVals, xr.DataArray, constraint values of the offspring
     @ Out, None (updates self.population and self.pop* variables)
   """
   if self.counter > 1:
+    # constraint rows travel with their individuals, so popConstraintVals stays aligned with population
     self.population, self.popFitVals, \
-    self.popAges, self.popMinObjVals = self._survivorSelectionInstance(
+    self.popAges, self.popMinObjVals, self.popConstraintVals = self._survivorSelectionInstance(
         age=self.popAges,
         variables=list(self.toBeSampled),
         population=self.population,
@@ -45,7 +46,9 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, 
         objVar=self._objectiveVar[0],
         newRlz=rlz,
         offspringFitVals=offspringFitVals,
-        popMinObjVals=self.popMinObjVals
+        popMinObjVals=self.popMinObjVals,
+        popConstraintVals=self.popConstraintVals,
+        offspringConstraintVals=constraintVals
     )
   else:
     # First generation: offspring becomes the current population
@@ -54,4 +57,4 @@ def singleObjSurvivorSelect(self, info, rlz, traj, offspring, offspringFitVals, 
     baseObj = minObjVals[0] if isinstance(minObjVals, list) and len(minObjVals) > 0 else rlz[self._objectiveVar[0]].data
     self.popMinObjVals = list(np.atleast_1d(baseObj))
     self.popAges = [0] * len(offspring)
-  self.popConstraintVals = constraintVals
+    self.popConstraintVals = constraintVals

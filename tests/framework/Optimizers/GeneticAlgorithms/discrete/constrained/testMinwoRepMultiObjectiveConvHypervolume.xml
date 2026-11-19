@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGAII</name>
-    <author>Mohammad Abdo @Jimmy-INL</author>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-II_MinwoRepMultiObjective</name>
+    <author>Junyung Kim</author>
     <created>2022-12-21</created>
     <classesTested>Optimizers.NSGAII;Optimizers.crossOverOperators.twoPointsCrossover;Optimizers.mutators.swapMutator</classesTested>
     <description>NSGA-II min-max-min test: This test is for a three objectives obj1, 2, and 3
@@ -11,12 +11,16 @@
     The design/serach variables are x1, through x6. Each of these variables are integers between 2, and 7.
     The problem is subjected to constraints: expConstr1, ixpConstr2, ixpConstr3 found at myCOnstraints.py
     </description>
+    <revisions>
+      <revision author="rollnk" date="2025-09-10">'globalSeed' tag added to node 'RunInfo' to enable backwards compatability following updates made to randomUtils.py.</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Multi_MinwoReplacement_convObjective</WorkingDir>
+    <WorkingDir>MinwoRepMultiObjectiveConvHypervolume</WorkingDir>
     <Sequence>optimize,print</Sequence>
     <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
   </RunInfo>
 
   <Steps>
@@ -26,7 +30,6 @@
       <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
-      <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
@@ -35,11 +38,6 @@
       <Output class="OutStreams" type="Print">optOut</Output>
       <Output class="OutStreams" type="Plot">opt_path</Output>
       <Output class="OutStreams" type="Plot">population</Output>
-      <Output class="OutStreams" type="Plot">pareto_front</Output>
-      <Output class="OutStreams" type="Plot">front_evolution</Output>
-      <Output class="OutStreams" type="Plot">rank_history</Output>
-      <Output class="OutStreams" type="Plot">crowding_distance</Output>
-      <Output class="OutStreams" type="Plot">front_rank_animation</Output>
     </IOStep>
   </Steps>
 
@@ -72,13 +70,13 @@
   <Optimizers>
     <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-II">
       <samplerInit>
-        <limit>5</limit>
+        <limit>500</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min, max, min</type>
       </samplerInit>
       <GAparams>
-        <populationSize>10</populationSize>
+        <populationSize>50</populationSize>
         <parentSelection>tournamentSelection</parentSelection>
         <reproduction>
           <crossover type="twoPointsCrossover">
@@ -94,7 +92,7 @@
         <survivorSelection>rankNcrowdingBased</survivorSelection> <!--NOTE: Number of objectives must be >= 2 if user wants to use rankNcrowdingBased.-->
       </GAparams>
       <convergence>
-        <objective>78.0,19.0,32.0</objective>
+	<hypervolume>0.01</hypervolume>
       </convergence>
       <variable name="x1">
         <distribution>woRep_dist</distribution>
@@ -126,7 +124,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>10</limit>
+        <limit>50</limit>
         <initialSeed>050877</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -158,7 +156,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted, conv_objective </Output>
+      <Output>x1,x2,x3,x4,x5,x6,obj1,obj2,obj3,age,batchId,rank,CD,FitnessEvaluation_obj1,FitnessEvaluation_obj2,FitnessEvaluation_obj3, ConstraintEvaluation_expConstr3, ConstraintEvaluation_impConstr3,accepted,conv_hypervolume</Output>
     </PointSet>
   </DataObjects>
 
@@ -181,37 +179,6 @@
       <vars>x1, x2, x3, x4, x5, x6, obj1, obj2, obj3</vars>
       <index>batchId</index>
       <how>png</how>
-    </Plot>
-    <Plot name="pareto_front" subType="NSGAParetoFrontPlot">
-      <source>opt_export</source>
-      <objectives>obj1, obj2, obj3</objectives>
-      <color>CD</color>
-      <rank>1</rank>
-    </Plot>
-    <Plot name="front_evolution" subType="NSGAFrontAnimation">
-      <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
-      <index>batchId</index>
-      <rank>1</rank>
-      <fps>2.0</fps>
-      <format>html</format>
-    </Plot>
-    <Plot name="rank_history" subType="NSGARankHistoryPlot">
-      <source>opt_export</source>
-      <index>batchId</index>
-      <normalize>true</normalize>
-    </Plot>
-    <Plot name="crowding_distance" subType="NSGACrowdingDistancePlot">
-      <source>opt_export</source>
-      <index>batchId</index>
-      <percentiles>10, 50, 90</percentiles>
-    </Plot>
-    <Plot name="front_rank_animation" subType="NSGAFrontRankAnimation">
-      <source>opt_export</source>
-      <objectives>obj1, obj2</objectives>
-      <index>batchId</index>
-      <fps>2.0</fps>
-      <format>html</format>
     </Plot>
   </OutStreams>
 </Simulation>

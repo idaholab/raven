@@ -21,6 +21,7 @@ import copy
 import numpy as np
 import xarray as xr
 import collections
+import sys
 
 def dataArrayToDict(singlePointDataArray):
   """
@@ -49,8 +50,18 @@ def datasetToDataArray(rlzDataset,vars):
                                     'Gene':vars})
   return dataset
 
-def finiteGeneBounds(dist, *observedValues):
+def _usableBound(value):
   """
+    Whether a distribution bound can be used as a real-coded operator limit. RAVEN stores the
+    bounds of unbounded distributions as +/- sys.float_info.max, which is finite but makes the
+    span (high - low) overflow to inf and the operators produce NaN, so treat it as unbounded.
+    @ In, value, float or None, a distribution bound
+    @ Out, usable, bool, True if value is a real, finite, non-sentinel bound
+  """
+  return value is not None and np.isfinite(value) and abs(value) < sys.float_info.max / 2
+
+def finiteGeneBounds(dist, *observedValues):
+  r"""
     Return finite (lower, upper) bounds for a gene/decision variable, used by the
     real-coded operators (SBX crossover, polynomial mutation). Prefers the distribution's
     explicit bounds, falls back to extreme quantiles via the ppf, and finally to a
@@ -62,12 +73,12 @@ def finiteGeneBounds(dist, *observedValues):
   """
   low = getattr(dist, 'lowerBound', None) if dist is not None else None
   high = getattr(dist, 'upperBound', None) if dist is not None else None
-  if (low is None or not np.isfinite(low)) and dist is not None and hasattr(dist, 'ppf'):
+  if not _usableBound(low) and dist is not None and hasattr(dist, 'ppf'):
     try:
       low = float(dist.ppf(1e-6))
     except Exception:
       low = None
-  if (high is None or not np.isfinite(high)) and dist is not None and hasattr(dist, 'ppf'):
+  if not _usableBound(high) and dist is not None and hasattr(dist, 'ppf'):
     try:
       high = float(dist.ppf(1.0 - 1e-6))
     except Exception:
@@ -75,9 +86,9 @@ def finiteGeneBounds(dist, *observedValues):
   vMin = min(observedValues)
   vMax = max(observedValues)
   span = abs(vMax - vMin) if vMax != vMin else 1.0
-  if low is None or not np.isfinite(low):
+  if not _usableBound(low):
     low = vMin - span
-  if high is None or not np.isfinite(high):
+  if not _usableBound(high):
     high = vMax + span
   if high <= low:
     high = low + 1.0

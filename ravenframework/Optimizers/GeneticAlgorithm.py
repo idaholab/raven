@@ -152,7 +152,6 @@
                                                                 |------------------------------------|
                                                                 | _acceptHistory                     |
                                                                 | _acceptRerun                       |
-                                                                | _canHandleMultiObjective           |
                                                                 | _convergenceCriteria               |
                                                                 | _convergenceInfo                   |
                                                                 | _crossoverInstance                 |
@@ -192,19 +191,12 @@
                                                                 | bestPoint                          |
                                                                 | constraintVals                       |
                                                                 | convergenceOptions                 |
-                                                                | crowdingDistance                   |
                                                                 | fitness                            |
                                                                 | hdsm                               |
-                                                                | multiBestCD                        |
-                                                                | multiBestConstraintVals                |
-                                                                | multiBestFitVals                   |
                                                                 | multiBestMinObjVals                 |
-                                                                | multiBestPoint                     |
-                                                                | multiBestRank                      |
                                                                 | minObjVals                       |
                                                                 | popAge                             |
                                                                 | population                         |
-                                                                | rank                               |
                                                                 |------------------------------------|
                                                                 | __init__                           |
                                                                 | _addToSolutionExport               |
@@ -218,7 +210,6 @@
                                                                 | _checkFunctionalConstraints        |
                                                                 | _checkImpFunctionalConstraints     |
                                                                 | _collectOptPoint                   |
-                                                                | _collectOptPointMulti              |
                                                                 | _formatSolutionExportVariableNames |
                                                                 | _handleExplicitConstraints         |
                                                                 | _handleImplicitConstraints         |
@@ -261,6 +252,7 @@ from .survivorSelectors.survivorSelectors import returnInstance as survivorSelec
 from .survivorSelection import survivorSelection
 from .constraintHandling.constraintHandling import constraintHandling
 from .fitness.fitness import returnInstance as fitnessReturnInstance
+from .fitness import fitness as fitnessModule
 from .repairOperators.repair import returnInstance as repairReturnInstance
 # Internal Modules End------------------------------------------------------------------------------
 
@@ -309,8 +301,6 @@ class GeneticAlgorithm(RavenSampled):
     self.batchId = 0
     self.popAges = None                                          # ages of current survivor population
     self.popFitVals = None                                       # fitness values of current survivor population
-    self.popRanks = None                                         # Pareto rank for current survivor population
-    self.popCrowdingDist = None                                  # crowding distance for current survivor population
     self.popMinObjVals = None                                    # objective values in RAVEN minimization space
     self.popConstraintVals = None                                # constraint values of current survivor population
     self.popAgesArray = None                                     # ages as an array for reporting
@@ -324,12 +314,7 @@ class GeneticAlgorithm(RavenSampled):
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
     self.bestFitVal = None                                      # fitness value of the best solution found
     self._bestSnapshot = None                                    # cached survivor snapshot for final export alignment
-    self.multiBestPoint = {}                                     # the best solutions (chromosomes) found among population in a specific batchId
-    self.multiBestFitVals = {}                                   # fitness values of the best solutions found
-    self.multiBestMinObjVals = {}                                 # objective values of the best solutions found
-    self.multiBestConstraintVals = {}                                # constraint values of the best solutions found
-    self.multiBestRank = {}                                      # rank values of the best solutions found
-    self.multiBestCD = {}                                        # crowding distance (CD) values of the best solutions found
+    self.multiBestMinObjVals = {}                                # objective value(s) of the best solution found
     self.minObjVals = None                                     # objective values of solutions
     self._populationSize = None                                  # number of population size
     self._parentSelectionType = None                             # type of the parent selection process chosen
@@ -351,9 +336,10 @@ class GeneticAlgorithm(RavenSampled):
     self._objCoeff = None                                        # weight coefficients of objectives for fitness calculation
     self._objectiveVar = None                                    # objective variable names
     self._penaltyCoeff = None                                    # weight coefficients corresponding to constraints and objectives for fitness calculation
+    self._scale = None                                           # logistic fitness: <scale> multiplier of the objective(s)
+    self._shift = None                                           # logistic fitness: <shift> of the objective(s)
     self._fitnessInstance = None                                 # instance of fitness
     self._repairInstance = None                                  # instance of repair
-    self._canHandleMultiObjective = True                         # boolean indicator whether optimization is a sinlge-objective problem or a multi-objective problem
     self._normalizeFitness = False
 
   ##########################
@@ -370,8 +356,8 @@ class GeneticAlgorithm(RavenSampled):
     specs = super(GeneticAlgorithm, cls).getInputSpecification()
     objective = specs.popSub('objective')
     objective.description = r"""Name of the objective variable(s) (or ``objective function'') that should be optimized
-        (minimized or maximized). It can be a single string or a list of strings if it is a multi-objective problem.
-        Note that only genetic algorithm supports multi-objective."""
+        (minimized or maximized). \xmlNode{GeneticAlgorithm} takes a single objective; for two or more objectives use
+        \xmlNode{MultiObjectiveGeneticAlgorithm}."""
     specs.addSub(objective)
     implicitConstraint = specs.popSub('ImplicitConstraint')
     implicitConstraint.description = r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
@@ -388,27 +374,19 @@ class GeneticAlgorithm(RavenSampled):
                             individual solutions, introducing diversity into the population and enabling exploration of new regions in the solution space.
                             Crossover, on the other hand, mimics genetic recombination by exchanging genetic material between two parent solutions to create
                             offspring with combined traits. Survivor selection determines which solutions will advance to the next generation based on
-                            their fitness—how well they perform in solving the problem at hand. Solutions with higher fitness scores are more likely to
+                            their fitness -- how well they perform in solving the problem at hand. Solutions with higher fitness scores are more likely to
                             survive and reproduce, passing their genetic material to subsequent generations. This iterative process continues
                             until a stopping criterion is met, typically when a satisfactory solution is found or after a predetermined number of generations.
                             More information can be found in:\\\\
 
                             Holland, John H. ``Genetic algorithms.'' Scientific American 267.1 (1992): 66-73.\\\\
 
-                            Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
-                            NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set of
-                            non-dominated (Pareto-optimal) solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
-                            providing decision-makers with a comprehensive view of the problem's solution space. More information about NSGA-II can be found in:\\\\
+                            Internally, the GA stores \texttt{minObjVals} as objective values transformed into RAVEN's minimization convention:
+                            objectives declared as \texttt{min} are unchanged, while objectives declared as \texttt{max} are multiplied by -1
+                            before fitness calculations and convergence checks. Exported objective values use the requested convention.\\
 
-                            Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\\\
-
-                            Internally, GA and NSGA-II store \texttt{minObjVals} as objective values transformed into RAVEN's minimization convention.
-                            Objectives declared as \texttt{min} are unchanged, while objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking,
-                            crowding-distance calculation, convergence checks, and fitness calculations. User-facing objective values should be interpreted
-                            through the requested minimization or maximization convention when exported.\\
-                            The implementation keeps \texttt{minObjVals}, \texttt{externalObjVals}, and \texttt{fitVals} separate: \texttt{minObjVals} drives algorithmic ranking, crowding distance, convergence, and fitness calculation; \texttt{externalObjVals} is used only when converting back to user-facing signs for exports or implicit constraints; and \texttt{fitVals} is the scalar or per-objective fitness container used by parent and survivor selection.\\
-
-                            GA in RAVEN supports for both single and multi-objective optimization problem."""
+                            \xmlNode{GeneticAlgorithm} solves single-objective problems. For two or more objectives use
+                            \xmlNode{MultiObjectiveGeneticAlgorithm} (NSGA-II), described below."""
 
     # GA Params
     GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
@@ -434,11 +412,16 @@ class GeneticAlgorithm(RavenSampled):
                   This will result in a popSize a little larger than the initial one, and the excessive children will be later thrawn away and only the first popSize child will be kept. \\\\
                   You can choose three options for parentSelection:
                       \begin{itemize}
-                          \item \textit{rouletteWheel} - It assigns probabilities to chromosomes based on their fitness,
-                          allowing for selection proportionate to their likelihood of being chosen for reproduction.
-                          \item \textit{tournamentSelection} - Chromosomes are randomly chosen from the population to compete in a tournament,
-                          and the fittest individual among them is selected for reproduction.
-                          \item \textit{rankSelection} - Chromosomes with higher fitness values are selected.
+                          \item \textit{rouletteWheel} - fitness-proportionate selection: each chromosome is chosen with
+                          probability proportional to its fitness. If any fitness is negative, the fitness is first shifted
+                          by its minimum ($f - \min f$), so the fittest chromosome always has the largest probability; if
+                          every fitness is equal, all chromosomes are equally likely.
+                          \item \textit{tournamentSelection} - \xmlNode{kSelection} chromosomes are drawn from the population
+                          without replacement to compete in a tournament, and the fittest of them is selected for reproduction.
+                          Each parent slot runs its own tournament, so one chromosome can be selected for several slots.
+                          \item \textit{rankSelection} - linear ranking: chromosomes are ranked by fitness, from 1 (worst) to
+                          $popSize$ (best), and chosen with probability proportional to their rank. Only the order of the
+                          fitness values matters, not their scale; equal fitness values share their average rank.
                       \end{itemize}
                   """)
     GAparams.addSub(parentSelection)
@@ -451,7 +434,8 @@ class GeneticAlgorithm(RavenSampled):
     kSelection = InputData.parameterInputFactory('kSelection', strictMode=True,
         contentType=InputTypes.IntegerType,
         printPriority=108,
-        descr=r"""Number of chromosome selected for tournament selection""")
+        descr=r"""Number of chromosomes that compete in each tournament of \textit{tournamentSelection}. It cannot
+        exceed \xmlNode{populationSize}. \default{3}""")
     reproduction.addSub(kSelection)
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
@@ -520,11 +504,11 @@ class GeneticAlgorithm(RavenSampled):
         descr=r"""a subnode containing the implemented survivor selection mechanisms. You can choose one of the survivor selection options listed below:
                   \begin{itemize}
                     \item \textit{fitnessBased} - Individuals with higher fitness scores are more likely to be selected to survive and
-                    proceed to the next generation. It suppoort only single-objective optimization problem.
+                    proceed to the next generation.
                     \item \textit{ageBased} - Individuals are selected for survival based on their age or generation, with older individuals being prioritized
-                    for retention. It suppoort only single-objective optimization problem.
-                    \item \textit{rankNcrowdingBased} - Individuals with low rank and crowding distance are more likely to be selected to survive and
-                    proceed to the next generation. It suppoort only multi-objective optimization problem.
+                    for retention.
+                    \item \textit{rankNcrowdingBased} - the multi-objective (NSGA-II) survivor selection, by non-dominated rank and
+                    crowding distance. It is required by, and only valid for, \xmlNode{MultiObjectiveGeneticAlgorithm}.
                   \end{itemize}""")
     GAparams.addSub(survivorSelection)
 
@@ -538,16 +522,19 @@ class GeneticAlgorithm(RavenSampled):
                      descr=r"""You can choose one of the fitness options listed below:
                   \begin{itemize}
                         \item \textit{invLinear} - It assigns fitness values inversely proportional to the individual's objective function values,
-                        prioritizing solutions with lower objective function values (i.e., minimization) for selection and reproduction. It suppoort only single-objective optimization problem.\\\\
+                        prioritizing solutions with lower objective function values (i.e., minimization) for selection and reproduction.\\\\
                         $fitness = -a \times obj - b \times \sum_{j=1}^{nConstraint} max(0,-penalty_{j}) $\\
                         where j represents an index of objects
                         \\
 
-                        \item \textit{logistic} - It applies a logistic function to transform raw objective function values into fitness scores.  It suppoort only single-objective optimization problem.\\\\
-                        $fitness = \frac{1}{1+e^{a\times(obj-b)}}$\\
+                        \item \textit{logistic} - It applies a logistic function to transform raw objective function values into fitness scores in $(0, 1)$,
+                        so the fitness rises as the objective improves (decreases for \texttt{min}, increases for \texttt{max}).\\\\
+                        $fitness = \frac{1}{1+e^{\pm scale\times(obj-shift)}} - \sum_{j=1}^{nConstraint} max(0,-g_{j})$\\
+                        with the plus sign for \texttt{min} and the minus sign for \texttt{max}; \xmlNode{scale} and \xmlNode{shift} are set
+                        below, and each constraint violation is subtracted with a fixed weight of 1 (\xmlNode{a} and \xmlNode{b} are not used).\\
                         \item \textit{feasibleFirst} - It prioritizes solutions that meet constraints by assigning higher fitness scores to feasible solutions,
 
-                        encouraging the evolution of individuals that satisfy the problem's constraints.  It suppoort single-and multi-objective optimization problem.\\\\
+                        encouraging the evolution of individuals that satisfy the problem's constraints.\\\\
                         $fitness = \left\{\begin{matrix} -obj & g_{j}(x)\geq 0 \; \forall j \\ -obj_{worst}- \Sigma_{j=1}^{J}<g_j(x)> & otherwise \\ \end{matrix}\right\}$\\
                   \end{itemize} """)
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
@@ -558,17 +545,24 @@ class GeneticAlgorithm(RavenSampled):
     penaltyCoeff = InputData.parameterInputFactory('b', strictMode=True,
         contentType=InputTypes.FloatListType,
         printPriority=108,
-        descr=r""" b: The weight of constraint penalty. \default{list of ones}""")
+        descr=r""" b: The weight of the constraint penalty for \textit{invLinear} and \textit{feasibleFirst} (\textit{logistic}
+        does not use it). Give one value (applied to every objective and
+        constraint), one value per constraint (shared by every objective), or one value per
+        (objective, constraint) pair listed objective-major, i.e. $b_{1,1},\ldots,b_{1,n_c},b_{2,1},\ldots$, where
+        $n_c$ counts both \xmlNode{Constraint} and \xmlNode{ImplicitConstraint} entries. Note that this default
+        was 1.0 in earlier RAVEN versions, so constrained inputs that omit \xmlNode{b} give different results. \default{10.0}""")
     fitness.addSub(penaltyCoeff)
     scale = InputData.parameterInputFactory('scale', strictMode=False,
         contentType=InputTypes.FloatListType,
         printPriority=108,
-        descr=r""" scale: in case of logistic fitness, this is the multiplier of the onjective(s). \default{list of ones}""")
+        descr=r""" scale: in case of logistic fitness, the steepness of the logistic function for the objective(s); a larger value
+        separates nearby objective values more strongly. Earlier RAVEN versions read but ignored it. \default{list of ones}""")
     fitness.addSub(scale)
     shift = InputData.parameterInputFactory('shift', strictMode=False,
         contentType=InputTypes.FloatListType,
         printPriority=108,
-        descr=r""" shift: in case of logistic fitness, this is the shift in the exponential function for the onjective(s). \default{list of zeros}""")
+        descr=r""" shift: in case of logistic fitness, the objective value at which the fitness is $1/2$, in the units of the
+        objective. Earlier RAVEN versions read but ignored it. \default{list of zeros}""")
     fitness.addSub(shift)
     normalizeFitness = InputData.parameterInputFactory('normalize', strictMode=False,
         contentType=InputTypes.StringType,
@@ -612,8 +606,6 @@ class GeneticAlgorithm(RavenSampled):
     new = {}
     # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
-    new['rank'] = 'It refers to the sorting of solutions into non-dominated fronts based on their Pareto dominance relationships'
-    new['CD'] = 'Crowding Distance measures the density of solutions within each front to guide the selection of diverse individuals for the next generation'
     new['fitness'] = 'fitness of the current chromosome'
     new['age'] = 'age of current chromosome'
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
@@ -633,6 +625,14 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
+    # Reject a multi-objective <GeneticAlgorithm> at input time, before any model is run.
+    # MultiObjectiveGeneticAlgorithm (a subclass) owns multi-objective runs.
+    if self._isMultiObjective and not self._canBeMultiObjective():
+      self.raiseAnError(IOError, f'<GeneticAlgorithm name="{self.name}"> lists {len(self._objectiveVar)} objectives '
+                        f'({", ".join(self._objectiveVar)}), but <GeneticAlgorithm> is single-objective. Use '
+                        '<MultiObjectiveGeneticAlgorithm type="NSGA-II"> instead (and type="MultiObjectiveGeneticAlgorithm" '
+                        'in the <Optimizer> node of <Steps>). To convert existing inputs run: '
+                        'python scripts/conversionScripts/toMultiObjectiveGA.py <input.xml>')
     ####################################################################################
     # GAparams                                                                         #
     ####################################################################################
@@ -650,9 +650,6 @@ class GeneticAlgorithm(RavenSampled):
     parentSelectionNode = gaParamsNode.findFirst('parentSelection')
     self._parentSelectionType = parentSelectionNode.value
     self._parentSelectionInstance = parentSelectionReturnInstance(self, name=parentSelectionNode.value)
-
-    if self._isMultiObjective and self._parentSelectionType != 'tournamentSelection':
-      self.raiseAnError(IOError, f'Currently, "tournamentSelection" in the only <parentSelection> mechanism supported by the multi-objective Genetic Algorithms.')
 
     ####################################################################################
     # reproduction node                                                                #
@@ -697,10 +694,9 @@ class GeneticAlgorithm(RavenSampled):
     survivorSelectionNode = gaParamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
-    if not self._isMultiObjective and self._survivorSelectionType == 'rankNcrowdingBased':
-      self.raiseAnError(IOError, f'(rankNcrowdingBased) in <survivorSelection> only supports Multi-objective Optimization (i.e., number of objectives in <objective> is greater than one).')
-    if self._isMultiObjective and self._survivorSelectionType != 'rankNcrowdingBased':
-      self.raiseAnError(IOError, f'The only option supported in <survivorSelection> for Multi-objective Optimization is (rankNcrowdingBased).')
+    if self._survivorSelectionType == 'rankNcrowdingBased' and not self._canBeMultiObjective():
+      self.raiseAnError(IOError, '"rankNcrowdingBased" in <survivorSelection> is the multi-objective survivor selection; '
+                        'use <MultiObjectiveGeneticAlgorithm type="NSGA-II"> for it, or "fitnessBased"/"ageBased" here.')
 
     ####################################################################################
     # fitness node                                                                     #
@@ -715,13 +711,15 @@ class GeneticAlgorithm(RavenSampled):
     if fitnessNode is None:
       if not self._isMultiObjective:
         self.raiseAnError(IOError, 'A <fitness> node under <GAparams> is required for single-objective '
-                          'genetic algorithms, where fitness is the selection criterion.')
+                          'genetic algorithms, where fitness is the selection criterion, e.g. '
+                          '<fitness type="invLinear"/> (or type="feasibleFirst" or "logistic").')
       self._fitnessType = 'feasibleFirst'
     else:
       self._fitnessType = fitnessNode.parameterValues['type']
       if self._fitnessType == 'logistic':
-        self._scale = fitnessNode.findFirst('scale').value
-        self._shift = fitnessNode.findFirst('shift').value
+        # both are optional; None makes the logistic fall back to its documented defaults (1 and 0)
+        self._scale = fitnessNode.findFirst('scale').value if fitnessNode.findFirst('scale') else None
+        self._shift = fitnessNode.findFirst('shift').value if fitnessNode.findFirst('shift') else None
       else:
         self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') else None
         self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') else None
@@ -740,9 +738,22 @@ class GeneticAlgorithm(RavenSampled):
       self._numOfConst = len([ele for ele in self._expConstr if ele != 'Functions' if ele !='External'])
     else:
       self._numOfConst = 0
-    if (self._expConstr is not None) and (self._impConstr is not None) and (self._penaltyCoeff is not None):
-      if len(self._penaltyCoeff) is not len(self._objectiveVar) * self._numOfConst:
-        self.raiseAnError(IOError, f'The number of penaltyCoeff. in <b> should be identical with the number of objective in <objective> and the number of constraints (i.e., <Constraint> and <ImplicitConstraint>)')
+    if self._penaltyCoeff is not None:
+      nObj = len(self._objectiveVar)
+      allowed = sorted({1, self._numOfConst, nObj * self._numOfConst} - {0})
+      if len(self._penaltyCoeff) not in allowed:
+        self.raiseAnError(IOError, f'<b> has {len(self._penaltyCoeff)} value(s); it must have 1 (applied to every objective and '
+                          f'constraint), {self._numOfConst} (one per constraint, shared by every objective), or '
+                          f'{nObj * self._numOfConst} (one per objective and '
+                          f'constraint, objective-major: b_(1,1),...,b_(1,{self._numOfConst}),b_(2,1),...), with '
+                          f'{nObj} objective(s) and {self._numOfConst} constraint(s) (<Constraint> plus <ImplicitConstraint>).')
+    # the default <b> changed from 1.0 to 10.0; a constrained run that relies on it gives different results
+    # than earlier RAVEN versions, so say so in the log
+    if (self._numOfConst > 0 and self._penaltyCoeff is None and fitnessNode is not None
+        and self._fitnessType in ('invLinear', 'feasibleFirst')):
+      self.raiseAWarning(f'<fitness type="{self._fitnessType}"> has constraints but no <b>, so the default penalty '
+                         f'b = {fitnessModule._defaultPenaltyScaling} is used. Earlier RAVEN versions defaulted to 1.0; '
+                         'set <b>1.0</b> to reproduce their results.')
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
 
@@ -762,6 +773,29 @@ class GeneticAlgorithm(RavenSampled):
     if self._requiredPersistence is None:
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
+
+  def _recordSampledPopulation(self, offspring, offspringFitVals):
+    """
+      Store each evaluated chromosome's fitness, keyed by its genes. RavenSampled.finalizeSampler
+      reads this to look for population members better than the tracked optimal point.
+      @ In, offspring, xr.DataArray, evaluated chromosomes (chromosome x Gene)
+      @ In, offspringFitVals, xr.Dataset, fitness of each chromosome, one variable per objective
+      @ Out, None
+    """
+    if offspringFitVals is None:
+      return
+    fitness = offspringFitVals.to_dataarray()
+    for i in range(offspring.shape[0]):
+      self._sampledPopulationInfo[tuple(offspring[i].data)] = fitness[:, i]
+
+  def _canBeMultiObjective(self):
+    """
+      Whether this optimizer class accepts more than one objective. The single-objective
+      GeneticAlgorithm does not; MultiObjectiveGeneticAlgorithm overrides this.
+      @ In, None
+      @ Out, canBeMultiObjective, bool, True if multiple objectives are allowed
+    """
+    return False
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -816,12 +850,14 @@ class GeneticAlgorithm(RavenSampled):
       flows; vectorized across realizations and constraints (no per-element Python loops).
       @ In, rlz, xr.Dataset, the evaluated batch realization
       @ In, offspringConstraintVals, xr.DataArray, (nChromosomes, nConstraints) constraint values
-      @ Out, normRlz, xr.Dataset, normalized copy of rlz (unchanged copy if normalization is off)
+      @ Out, normRlz, xr.Dataset, normalized copy of rlz (rlz itself if normalization is off; the fitness
+        functions only read it)
       @ Out, offspringConstraintVals, xr.DataArray, constraint values scaled by per-constraint std
     """
-    normRlz = deepcopy(rlz)
     if not self._normalizeFitness:
-      return normRlz, offspringConstraintVals
+      return rlz, offspringConstraintVals
+    # shallow copy: the normalized variables are assigned as new arrays below, so rlz stays unchanged
+    normRlz = rlz.copy(deep=False)
     constrVarsList = self._constraintFunctions + self._impConstraintFunctions
     varsToNormalize = set(self._objectiveVar)
     for func in constrVarsList:
@@ -853,63 +889,60 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, identifying information about the realization
       @ In, rlz, xr.Dataset, new batched realizations with EVALUATED objectives
       @ Out, None
-                    ┌─────────────────────────────────────────────────────────────┐
-                    │  Model evaluates Q(t) objectives [EXPENSIVE - EXTERNAL]     │
-                    └──────────────────────┬──────────────────────────────────────┘
-                                           │
-                                           ↓
-                    ┌─────────────────────────────────────────────────────────────┐
-                    │  _useRealization receives Q(t) with evaluated objectives    │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 1: Process Q(t) [CHEAP - INTERNAL]               │ │
-                    │  │  • Extract inputs, objectives from rlz                 │ │
-                    │  │  • Compute constraints for Q(t)                        │ │
-                    │  │  • Compute fitness for Q(t)                            │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 2: Elitist Selection [CHEAP - INTERNAL]          │ │
-                    │  │  • Combine: R(t) = P(t) ∪ Q(t)                         │ │
-                    │  │  • Rank R(t) using constraint-domination               │ │
-                    │  │  • Compute CD for each front in R(t)                   │ │
-                    │  │  • Select best N individuals → P(t+1)                  │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 3: Record & Export [CHEAP - INTERNAL]            │ │
-                    │  │  • Extract Pareto front (rank 1) from P(t+1)           │ │
-                    │  │  • Check convergence (objective, spread, etc.)         │ │
-                    │  │  • Export P(t+1) with rank/CD to solution export       │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 4: Generate Q(t+1) [CHEAP - INTERNAL]            │ │
-                    │  │  • Select parents from P(t+1) using tournament         │ │
-                    │  │  • Crossover → offspring                               │ │
-                    │  │  • Mutation → offspring                                │ │
-                    │  │  • Create Q(t+1) (decision variables only)             │ │
-                    │  │  • Submit Q(t+1) to model                              │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    │                                                             │
-                    │  ┌────────────────────────────────────────────────────────┐ │
-                    │  │ PHASE 5: Store State                                   │ │
-                    │  │  • Save P(t+1) as pop for next iteration   │ │
-                    │  │  • Save objectives, fitness, rank, CD                  │ │
-                    │  └────────────────────────────────────────────────────────┘ │
-                    └──────────────────────┬──────────────────────────────────────┘
-                                           │
-                                           ↓
-                    ┌─────────────────────────────────────────────────────────────┐
-                    │  Model evaluates Q(t+1) objectives [EXPENSIVE - EXTERNAL]   │
-                    └──────────────────────┬──────────────────────────────────────┘
-                                           │
-                                           ↓
+                    +-------------------------------------------------------------+
+                    |  Model evaluates Q(t) objectives [EXPENSIVE - EXTERNAL]     |
+                    +----------------------+--------------------------------------+
+                                           |
+                                           v
+                    +-------------------------------------------------------------+
+                    |  _useRealization receives Q(t) with evaluated objectives    |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 1: Process Q(t) [CHEAP - INTERNAL]               | |
+                    |  |  * Extract inputs, objectives from rlz                 | |
+                    |  |  * Compute constraints for Q(t)                        | |
+                    |  |  * Compute fitness for Q(t)                            | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 2: Elitist Selection [CHEAP - INTERNAL]          | |
+                    |  |  * Combine: R(t) = P(t) U Q(t)                       | |
+                    |  |  * Rank R(t) using constraint-domination               | |
+                    |  |  * Compute CD for each front in R(t)                   | |
+                    |  |  * Select best N individuals -> P(t+1)                 | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 3: Record & Export [CHEAP - INTERNAL]            | |
+                    |  |  * Extract Pareto front (rank 1) from P(t+1)           | |
+                    |  |  * Check convergence (objective, AHDp, AHD, HDSM)      | |
+                    |  |  * Export P(t+1) with rank/CD to solution export       | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 4: Generate Q(t+1) [CHEAP - INTERNAL]            | |
+                    |  |  * Select parents from P(t+1) using tournament         | |
+                    |  |  * Crossover -> offspring                              | |
+                    |  |  * Mutation -> offspring                               | |
+                    |  |  * Create Q(t+1) (decision variables only)             | |
+                    |  |  * Submit Q(t+1) to model                              | |
+                    |  +--------------------------------------------------------+ |
+                    |                                                             |
+                    |  +--------------------------------------------------------+ |
+                    |  | PHASE 5: Store State                                   | |
+                    |  |  * Save P(t+1) as pop for next iteration               | |
+                    |  |  * Save objectives, fitness, rank, CD                  | |
+                    |  +--------------------------------------------------------+ |
+                    +----------------------+--------------------------------------+
+                                           |
+                                           v
+                    +-------------------------------------------------------------+
+                    |  Model evaluates Q(t+1) objectives [EXPENSIVE - EXTERNAL]   |
+                    +----------------------+--------------------------------------+
+                                           |
+                                           v
                                      (cycle repeats)
     """
-    if self._isMultiObjective:
-      self.raiseAnError(IOError, 'GeneticAlgorithm supports only single-objective optimization. '
-                        'Use MultiObjectiveGeneticAlgorithm/NSGAII for multi-objective problems.')
     info['step'] = self.counter
     traj = info['traj']
     for t in self._activeTraj[1:]:
@@ -930,8 +963,7 @@ class GeneticAlgorithm(RavenSampled):
       offspringMinObjVals.append(list(np.atleast_1d(rlz[self._objectiveVar[i]].data)))
 
     # Step 3: Compute constraints for offspring Q(t)
-    offspringConstraintVals = constraintHandling(self, info, rlz, offspring,
-                                      offspringMinObjVals, multiObjective=False)
+    offspringConstraintVals = constraintHandling(self, rlz, offspring, offspringMinObjVals)
 
     # Step 4: Normalize if requested (shared, vectorized helper)
     normRlz, offspringConstraintVals = self._normalizeRealization(rlz, offspringConstraintVals)
@@ -942,9 +974,15 @@ class GeneticAlgorithm(RavenSampled):
                                                a=self._objCoeff,
                                                b=self._penaltyCoeff,
                                                penalty=None,
+                                               scale=self._scale,
+                                               shift=self._shift,
                                                constraintFunction=offspringConstraintVals,
                                                constraintNum=self._numOfConst,
                                                type=self._minMax)
+
+    # record every evaluated chromosome with its fitness so RavenSampled.finalizeSampler can search
+    # the whole population for points better than the tracked optimum
+    self._recordSampledPopulation(offspring, offspringFitVals)
 
     if self._activeTraj:
       # ============================================================
@@ -953,7 +991,7 @@ class GeneticAlgorithm(RavenSampled):
 
       if self.counter > 1:
         # We have parent population P(t) from previous iteration
-        # Combine P(t) ∪ Q(t) → R(t)
+        # Combine P(t) U Q(t) -> R(t)
 
         # Single-objective survivor selection (multi-objective uses MultiObjectiveGeneticAlgorithm).
         # singleObjSurvivorSelect assigns self.population, self.popFitVals, self.popAges, and
@@ -972,6 +1010,9 @@ class GeneticAlgorithm(RavenSampled):
         self.popFitVals = offspringFitVals
         self.popMinObjVals = rlz[self._objectiveVar[0]].data
         self.popAges = [0] * len(offspring)
+        # the survivor selectors carry each individual's constraint row from generation 2 on; start
+        # them from this population, or generation 2 pairs the parents with the offspring's rows
+        self.popConstraintVals = offspringConstraintVals
 
       # ============================================================
       # PART C: Update Ages for Display
@@ -1025,14 +1066,15 @@ class GeneticAlgorithm(RavenSampled):
                                               variables=list(self.toBeSampled),
                                               crossoverProb=self._crossoverProb,
                                               points=self._crossoverPoints,
-                                              distDict=self.distDict)
+                                              distDict=self.distDict,
+                                              files=self.assemblerDict['Files']) # plugin operators (e.g. PRLO) read their data files from here
 
       # Mutation
-      childrenMutated = self._mutationInstance(offspring=childrenXover,
-                                               distDict=self.distDict,
+      childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                                locs=self._mutationLocs,
                                                mutationProb=self._mutationProb,
-                                               variables=list(self.toBeSampled))
+                                               variables=list(self.toBeSampled),
+                                               files=self.assemblerDict['Files'])
 
       # ============================================================
       # PART G: Repair (if needed)
@@ -1109,8 +1151,6 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None
     self.popAges = None
     self.popFitVals = None
-    self.popRanks = None
-    self.popCrowdingDist = None
     self.popMinObjVals = None
     self.popConstraintVals = None
     self.popAgesArray = None
@@ -1122,12 +1162,7 @@ class GeneticAlgorithm(RavenSampled):
     self.hdsm = np.NaN
     self.bestPoint = None
     self.bestFitVal = None
-    self.multiBestPoint = None
-    self.multiBestFitVals = None
     self.multiBestMinObjVals = None
-    self.multiBestConstraintVals = None
-    self.multiBestRank = None
-    self.multiBestCD = None
 
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
@@ -1235,6 +1270,13 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled._validateCheckpoint(self, checkpoint)
+    # The GA state keys changed in checkpoint version 1.2; restoring an older file would silently leave
+    # the population empty, so refuse it instead.
+    ckptVersion = checkpoint.get('version', '0.0')
+    if ckptVersion in ('1.0', '1.1'):
+      self.raiseAnError(IOError,
+          f'Restart file version "{ckptVersion}" was written by an earlier RAVEN genetic algorithm, whose saved '
+          'state this version cannot restore. Start the run again without the restart file.')
     settings = checkpoint.get('settings', {})
     ckptPopSize = settings.get('populationSize')
     if ckptPopSize is not None and ckptPopSize != self._populationSize:
@@ -1259,8 +1301,8 @@ class GeneticAlgorithm(RavenSampled):
       @ In, fitVals, xr.DataArray, fitness values at each chromosome of the realization
       @ In, constraintVals, xr.DataArray, the constraint evaluation function
       @ In, info, dict, identifying information about the realization
-      @ In, ranks, xr.DataArray, optional, ranks for multi-objective
-      @ In, CD, xr.DataArray, optional, crowding distance for multi-objective
+      @ In, ranks, xr.DataArray, optional, unused here (MultiObjectiveGeneticAlgorithm passes the ranks)
+      @ In, CD, xr.DataArray, optional, unused here (MultiObjectiveGeneticAlgorithm passes the crowding distances)
     """
     self.raiseADebug(f'Trajectory {traj} iteration {info["step"]} resolving new Generation (population) ...')
     # note the collection of the opt point
@@ -1276,83 +1318,49 @@ class GeneticAlgorithm(RavenSampled):
     if self._writeSteps == 'every':
       self.raiseADebug("### rlz.sizes['RAVEN_sample_ID'] = {}".format(rlz.sizes['RAVEN_sample_ID']))
       for i in range(rlz.sizes['RAVEN_sample_ID']):
-        if self._isMultiObjective:
-          # Use pop instead of self.population
-          rlzDict = self.population.isel(chromosome=i).to_series().to_dict()
-          for j in range(len(self._objectiveVar)):
-             # Use popMinObjVals instead of self.minObjVals
-             rlzDict[self._objectiveVar[j]] = self.popMinObjVals[j][i]
-          rlzDict['batchId'] = self.batchId
-          # Use popRanks instead of self.rank
-          rlzDict['rank'] = np.atleast_1d(ranks.data)[i] if ranks is not None else np.atleast_1d(self.popRanks.data)[i]
-          # Use popCrowdingDist instead of self.crowdingDistance
-          rlzDict['CD'] = np.atleast_1d(CD.data)[i] if CD is not None else np.atleast_1d(self.popCrowdingDist.data)[i]
-          if self.popAges is not None:
-            rlzDict['age'] = self.popAges[i]
-          # Use popFitVals instead of self.fitVals
-          for ind, fitName in enumerate(list(fitVals.keys() if isinstance(fitVals, dict) else self.popFitVals.keys())):
-            rlzDict['FitnessEvaluation_'+fitName] = (fitVals if isinstance(fitVals, dict) else self.popFitVals)[fitName].data[i]
-          # Use popConstraintVals instead of self.constraintVals
-          for ind, consName in enumerate([y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]):
-            rlzDict['ConstraintEvaluation_'+consName] = constraintVals.data[i,ind]
+        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
+        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
+        # Override sampled variables with the actual survivor values
+        if hasattr(self, 'population') and self.population is not None:
+          survInputs = self.population.isel(chromosome=i)
+          for var in self.toBeSampled.keys():
+            if 'Gene' in survInputs.coords:
+              rlzDict[var] = float(survInputs.sel(Gene=var).item())
+            else:
+              rlzDict[var] = float(survInputs.loc[var].item())
+        # Override objective values with survivor objectives
+        survivorObjs = np.asarray(self.popMinObjVals)
+        if survivorObjs.ndim == 0:
+          survivorObjs = np.asarray([survivorObjs])
+        if survivorObjs.ndim == 1:
+          rlzDict[self._objectiveVar[0]] = float(survivorObjs[i]) if survivorObjs.size > i else rlzDict.get(self._objectiveVar[0])
         else:
-          varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-          rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in set(varList) if var in rlz.data_vars)
-          # Override sampled variables with the actual survivor values
-          if hasattr(self, 'population') and self.population is not None:
-            survInputs = self.population.isel(chromosome=i)
-            for var in self.toBeSampled.keys():
-              if 'Gene' in survInputs.coords:
-                rlzDict[var] = float(survInputs.sel(Gene=var).item())
-              else:
-                rlzDict[var] = float(survInputs.loc[var].item())
-          # Override objective values with survivor objectives
-          survivorObjs = np.asarray(self.popMinObjVals)
-          if survivorObjs.ndim == 0:
-            survivorObjs = np.asarray([survivorObjs])
-          if survivorObjs.ndim == 1:
-            rlzDict[self._objectiveVar[0]] = float(survivorObjs[i]) if survivorObjs.size > i else rlzDict.get(self._objectiveVar[0])
-          else:
-            for j, objName in enumerate(self._objectiveVar):
-              rlzDict[objName] = float(survivorObjs[j, i]) if survivorObjs.shape[1] > i else rlzDict.get(objName)
-          # Survivor fitness (single objective has a single fitness value)
-          fitnessNames = list(self.popFitVals.keys()) if isinstance(self.popFitVals, xr.Dataset) else []
-          if fitnessNames:
-            rlzDict['fitness'] = float(self.popFitVals[fitnessNames[0]].data[i])
-          elif isinstance(self.popFitVals, dict):
-            firstKey = next(iter(self.popFitVals))
-            rlzDict['fitness'] = float(self.popFitVals[firstKey].data[i])
-          # Track survivor age and batchId if available
-          if self.popAges is not None:
-            rlzDict['age'] = self.popAges[i]
-          rlzDict['batchId'] = self.batchId
-          # Constraints
-          if hasattr(constraintVals, 'coords') and 'Constraint' in constraintVals.coords:
-            for ind, consName in enumerate(constraintVals['Constraint'].values):
-              rlzDict['ConstraintEvaluation_'+consName] = constraintVals.data[i,ind]
+          for j, objName in enumerate(self._objectiveVar):
+            rlzDict[objName] = float(survivorObjs[j, i]) if survivorObjs.shape[1] > i else rlzDict.get(objName)
+        # Survivor fitness (single objective has a single fitness value)
+        fitnessNames = list(self.popFitVals.keys()) if isinstance(self.popFitVals, xr.Dataset) else []
+        if fitnessNames:
+          rlzDict['fitness'] = float(self.popFitVals[fitnessNames[0]].data[i])
+        elif isinstance(self.popFitVals, dict):
+          firstKey = next(iter(self.popFitVals))
+          rlzDict['fitness'] = float(self.popFitVals[firstKey].data[i])
+        # Track survivor age and batchId if available
+        if self.popAges is not None:
+          rlzDict['age'] = self.popAges[i]
+        rlzDict['batchId'] = self.batchId
+        # Constraints
+        if hasattr(constraintVals, 'coords') and 'Constraint' in constraintVals.coords:
+          for ind, consName in enumerate(constraintVals['Constraint'].values):
+            rlzDict['ConstraintEvaluation_'+consName] = constraintVals.data[i,ind]
         self._updateSolutionExport(traj, rlzDict, acceptable, None)
 
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
       bestRlz = {}
-      if self._isMultiObjective:
-        varList = self._solutionExport.getVars('input') + self._solutionExport.getVars('output') + list(self.toBeSampled.keys())
-        bestRlz = dict((var,np.atleast_1d(self.multiBestPoint[var])) for var in set(varList) if var in list(self.toBeSampled.keys()))
-        for i in range(len(self._objectiveVar)):
-          bestRlz[self._objectiveVar[i]] = [item[i] for item in self.multiBestMinObjVals]
-        bestRlz['rank'] = self.multiBestRank
-        bestRlz['CD'] = self.multiBestCD
-        if len(self.multiBestConstraintVals) != 0: # No constraints
-          for ind, consName in enumerate(self.multiBestConstraintVals.Constraint):
-              bestRlz['ConstraintEvaluation_'+consName.values.tolist()] = self.multiBestConstraintVals[ind].values
-        for ind, fitName in enumerate(list(self.multiBestFitVals.keys())):
-            bestRlz['FitnessEvaluation_'+ fitName] = self.multiBestFitVals[fitName].data
-        bestRlz.update(self.multiBestPoint)
-      else:
-        bestRlz[self._objectiveVar[0]] = self.multiBestMinObjVals[0]
-        bestRlz['fitness'] = self.bestFitVal
-        bestRlz.update(self.bestPoint)
+      bestRlz[self._objectiveVar[0]] = self.multiBestMinObjVals[0]
+      bestRlz['fitness'] = self.bestFitVal
+      bestRlz.update(self.bestPoint)
       self._optPointHistory[traj].append((bestRlz, info))
 
   def _collectOptPoint(self, rlz, fitVals, minObjVals, constraintVals, population=None):
@@ -1477,7 +1485,12 @@ class GeneticAlgorithm(RavenSampled):
       if self.popAges is not None and len(self.popAges) > bestIdx:
         snapshot['age'] = self.popAges[bestIdx]
       self._bestSnapshot = snapshot.copy()
-    elif currentObj <= self.multiBestMinObjVals[0] and currentFit >= self.bestFitVal:
+    # Fitness is the single-objective selection criterion and already carries the constraint penalty, so
+    # it alone decides the incumbent. Also requiring a lower raw objective (as earlier versions did) let an
+    # infeasible point with a very good objective stay the reported optimum forever, because no feasible
+    # point could beat its raw objective.
+    # A tie keeps the incumbent's place but refreshes its record (age, batch), as earlier versions did.
+    elif currentFit > self.bestFitVal or (currentFit == self.bestFitVal and currentObj <= self.multiBestMinObjVals[0]):
       point.update(constraintValsOfBest)
       point['fitness'] = currentFit
       self.bestPoint = point
@@ -1497,49 +1510,6 @@ class GeneticAlgorithm(RavenSampled):
       self._bestSnapshot = snapshot.copy()
 
     return point
-
-  def _collectOptPointMulti(self, rlz, population, rank, CD, minObjVals, fitVals, constraintVals):
-    """
-      Collects the point (dict) from a realization
-      @ In, rlz, xr.Dataset, realization from which the optimal points are collected
-      @ In, population, Dataset, container containing the population
-      @ In, rank, xr.DataArray, rank values at each chromosome of the realization
-      @ In, CD (crowdingDistance), xr.DataArray, crowdingDistance values at each chromosome of the realization
-      @ In, minObjVals, list, minimization-space objective values at each chromosome of the realization
-      @ In, fitVals, dict, population fitness values
-      @ In, constraintVals, xr.DataArray, calculated contraints value
-      @ Out, point, dict, point used in this realization
-    """
-    rankOneIDX = np.where(rank.data == 1)[0].tolist()
-    optPoints = population[rankOneIDX]
-    optMinObjVals = np.array(minObjVals)[:,rankOneIDX].T
-    count = 0
-    for i in list(fitVals.keys()):
-      data = fitVals[i][rankOneIDX]
-      if count == 0:
-        fitSet = data.to_dataset(name = i)
-      else:
-        fitSet[i] = data
-      count = count + 1
-    optConstraintVals = constraintVals.data[rankOneIDX]
-    optRank = rank.data[rankOneIDX]
-    optCD = CD.data[rankOneIDX]
-
-    optPointsDic = dict((var,np.array(optPoints)[:,i]) for i, var in enumerate(population.Gene.data))
-    optConstNew = [list(y) for y in zip(*optConstraintVals)]
-    if len(optConstNew) > 0:
-      optConstNew = xr.DataArray(optConstNew,
-                            dims=['Constraint','Evaluation'],
-                            coords={'Constraint': [y.name for y in (self._constraintFunctions + self._impConstraintFunctions)],
-                                    'Evaluation': np.arange(np.shape(optConstNew)[1])})
-
-    self.multiBestPoint = optPointsDic
-    self.multiBestFitVals = fitSet
-    self.multiBestMinObjVals = optMinObjVals
-    self.multiBestConstraintVals = optConstNew
-    self.multiBestRank = optRank
-    self.multiBestCD = optCD
-    return optPointsDic
 
   def _checkAcceptability(self, traj):
     """
@@ -1665,204 +1635,6 @@ class GeneticAlgorithm(RavenSampled):
 
     return converged
 
-
-  def _checkConvSpread(self, traj, **kwargs):
-    """
-    Checks convergence based on spread (diversity) metric from Deb et al. (2002).
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    # Need at least rank-1 front
-    if not hasattr(self, 'popRanks'):
-        return False
-
-    rank1Indices = np.where(self.popRanks.data == 1)[0]
-    if len(rank1Indices) < 3:
-        return False  # Need at least 3 points for meaningful spread
-
-    # Extract rank-1 objective values
-    front = []
-    for idx in rank1Indices:
-        point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
-        front.append(point)
-
-    spread = self._computeSpread(front)
-
-    converged = spread < self._convergenceCriteria.get('spread', 0.5)
-
-    self.raiseADebug(self.convFormat.format(
-        name='Spread',
-        conv=str(converged),
-        got=spread,
-        req=self._convergenceCriteria.get('spread', 0.5)
-    ))
-
-    return converged
-
-  def _computeSpread(self, front):
-    """
-    Compute spread metric (Δ) from Deb et al. (2002) NSGA-II paper.
-
-    Δ = (d_f + d_l + Σ|d_i - d̄|) / (d_f + d_l + (N-1)d̄)
-
-    @ In, front, list of lists, Pareto front points
-    @ Out, spread, float, spread value (0 = perfect distribution)
-    """
-    n = len(front)
-    if n < 2:
-        return 0.0
-
-    numObj = len(front[0])
-
-    # Calculate Euclidean distances between consecutive solutions
-    distances = []
-
-    for obj in range(numObj):
-        # Sort front by this objective
-        sortedIndices = sorted(range(n), key=lambda i: front[i][obj])
-        sortedFront = [front[i] for i in sortedIndices]
-
-        # Distance between consecutive points
-        for i in range(len(sortedFront) - 1):
-            dist = np.linalg.norm(np.array(sortedFront[i+1]) - np.array(sortedFront[i]))
-            distances.append(dist)
-
-    if len(distances) == 0:
-        return 0.0
-
-    # Extreme distances (distance to boundary solutions)
-    # For simplicity, use distance from first to ideal and last to nadir
-    ideal = [min(p[i] for p in front) for i in range(numObj)]
-    nadir = [max(p[i] for p in front) for i in range(numObj)]
-
-    sortedByFirstObj = sorted(front, key=lambda p: p[0])
-    distFirst = np.linalg.norm(np.array(sortedByFirstObj[0]) - np.array(ideal))
-    distLast = np.linalg.norm(np.array(sortedByFirstObj[-1]) - np.array(nadir))
-
-    # Mean distance
-    meanDist = np.mean(distances)
-
-    if meanDist == 0:
-        return 0.0
-
-    # Spread calculation
-    numerator = distFirst + distLast + sum(abs(d - meanDist) for d in distances)
-    denominator = distFirst + distLast + (len(distances)) * meanDist
-
-    if denominator == 0:
-        return 0.0
-
-    spread = numerator / denominator
-
-    return spread
-  def _checkConvMaxSpread(self, traj, **kwargs):
-    """
-    Checks convergence based on maximum spread stabilization.
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    if len(self._optPointHistory[traj]) < 2:
-        return False
-
-    # Current front
-    rank1Indices = np.where(self.popRanks.data == 1)[0]
-    currentFront = []
-    for idx in rank1Indices:
-        point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
-        currentFront.append(point)
-
-    # Previous front
-    prevOpt, _ = self._optPointHistory[traj][-2]
-    prevRank1 = np.where(np.array(prevOpt['rank']) == 1)[0]
-    prevFront = []
-    for idx in prevRank1:
-        point = [prevOpt[self._objectiveVar[j]][idx] for j in range(len(self._objectiveVar))]
-        prevFront.append(point)
-
-    # Compute MS
-    currentMS = self._computeMaxSpread(currentFront)
-    prevMS = self._computeMaxSpread(prevFront)
-
-    # Check relative change
-    if prevMS == 0:
-        relChange = float('inf')
-    else:
-        relChange = abs(currentMS - prevMS) / prevMS
-
-    converged = relChange < self._convergenceCriteria.get('maxSpread', 0.05)
-
-    self.raiseADebug(self.convFormat.format(
-        name='MaxSpread',
-        conv=str(converged),
-        got=relChange,
-        req=self._convergenceCriteria.get('maxSpread', 0.05)
-    ))
-
-    return converged
-
-  def _computeMaxSpread(self, front):
-    """
-    Compute maximum spread metric.
-    @ In, front, list of lists, Pareto front
-    @ Out, ms, float, maximum spread
-    """
-    if len(front) < 2:
-        return 0.0
-
-    numObj = len(front[0])
-    ranges = []
-
-    for obj in range(numObj):
-        objValues = [p[obj] for p in front]
-        ranges.append(max(objValues) - min(objValues))
-
-    ms = np.sqrt(sum(r**2 for r in ranges))
-
-    return ms
-
-  def _checkConvRank1Ratio(self, traj, **kwargs):
-    """
-    Checks convergence based on percentage of population in rank 1.
-    @ In, traj, int, trajectory identifier
-    @ In, kwargs, dict, parameters
-    @ Out, converged, bool, convergence state
-    """
-    if not hasattr(self, 'popRanks'):
-        return False
-
-    # Count rank-1 solutions
-    rank1Count = np.sum(self.popRanks.data == 1)
-    ratio = rank1Count / self._populationSize
-
-    # Track history
-    if not hasattr(self, '_rank1History'):
-        self._rank1History = {}
-    if traj not in self._rank1History:
-        self._rank1History[traj] = []
-    self._rank1History[traj].append(ratio)
-
-    # Converged if ratio high and stable
-    threshold = self._convergenceCriteria.get('rank1Ratio', 0.5)
-    stableGenerations = 3  # Require stability
-
-    if len(self._rank1History[traj]) < stableGenerations:
-        converged = False
-    else:
-        recentRatios = self._rank1History[traj][-stableGenerations:]
-        allAboveThreshold = all(r >= threshold for r in recentRatios)
-        variation = max(recentRatios) - min(recentRatios)
-        converged = allAboveThreshold and variation < 0.1
-
-    self.raiseADebug(self.convFormat.format(
-        name='Rank1Ratio',
-        conv=str(converged),
-        got=ratio,
-        req=threshold
-    ))
-
-    return converged
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -2140,10 +1912,6 @@ class GeneticAlgorithm(RavenSampled):
              'AHD': self.ahd,
              'HDSM': self.hdsm
              }
-
-    if self._isMultiObjective:
-      toAdd['rank'] = rlz['rank']
-      toAdd['CD'] = rlz['CD']
 
     for var, val in self.constants.items():
       toAdd[var] = val

@@ -1024,6 +1024,13 @@ Under the \xmlNode{plot} sub-block other optional keywords can be specified, suc
   \item \xmlNode{colorMap}, \xmlDesc{string, optional parameter}, specifies a DataObject parameter whose value will be used
 	to vary the color of plotted points.  This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables}
 	below for details.
+  \item \xmlNode{historyLabel}, \xmlDesc{string, optional parameter}, for \textbf{line} plots of a \textbf{HistorySet},
+	specifies a scalar (e.g. input) parameter whose value is used to label each history in the legend
+	(e.g. \texttt{myHistorySet|Input|caseID}). The legend is shown only if the \xmlNode{legend} node is defined in
+	\xmlNode{plotSettings}; to avoid duplicated entries in sub-plots, specify \xmlNode{historyLabel} in only one \xmlNode{plot}.
+  \item \xmlNode{historyLabelFormat}, \xmlDesc{string, optional parameter}, Python format string used to build the
+	history label from the \xmlNode{historyLabel} value (e.g. \texttt{Test\{\}} gives ``Test1'', ``Test2'', etc.).
+	\default{\{\}}
  \end{itemize}
 
 \subparagraph{Specifying What Values to Plot \label{subpara:plotVariables}}

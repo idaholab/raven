@@ -33,13 +33,34 @@ from ... import MessageHandler # makes sure getMessageHandler is defined
 # Internal Modules End------------------------------------------------------------------------------
 mh = getMessageHandler()
 
+def _rouletteProbabilities(fitVals):
+  """
+    Selection probabilities for fitness-proportionate (roulette-wheel) selection, which needs
+    non-negative weights. If any fitness is negative, the fitness is shifted by its minimum
+    (f - min f, the shift earlier versions applied only to mixed-sign fitness), so the best
+    individual always gets the largest share and the worst gets none. If every weight is zero
+    (e.g. every fitness equal), selection is uniform.
+    @ In, fitVals, np.array, fitness of each remaining individual (larger is better)
+    @ Out, selectionProb, np.array, selection probability of each individual (sums to 1)
+  """
+  weights = np.asarray(fitVals, dtype=np.float64)
+  if weights.min() < 0:
+    weights = weights - weights.min()
+  total = weights.sum()
+  if not np.isfinite(total) or total <= 0:
+    return np.full(len(weights), 1.0 / len(weights))
+  return weights / total
+
 # @profile
 def rouletteWheel(population,**kwargs):
   """
     Roulette Selection mechanism for parent selection
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this parent selection method:
           fitness, xr.DataArray, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+                    (single-objective only)
+          rank, xr.DataArray, non-dominated rank of each chromosome (multi-objective only)
+          crowdDistance, xr.DataArray, crowding distance of each chromosome (multi-objective only)
           variables, list, variable names.
           nParents, int, number of required parents.
     @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
@@ -65,23 +86,11 @@ def rouletteWheel(population,**kwargs):
   for i in range(nParents):
     # set a random pointer
     roulettePointer = randomUtils.random(dim=1, samples=1)
-    # initialize Probability
+    selectionProb = _rouletteProbabilities(fitVals)
+    # walk the wheel; the last slot absorbs any floating-point shortfall of the cumulative sum
     counter = 0
-    try:
-      if np.all(fitVals>=0) or np.all(fitVals<=0):
-        selectionProb = fitVals/np.sum(fitVals) # Share of the pie (rouletteWheel)
-      else:
-        # shift the fitness to be all positive
-        shiftedFitness = fitVals + abs(min(fitVals))
-        selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
-    except (ZeroDivisionError, RuntimeWarning):
-      #shift the fitnesses to be all positive (adds min and epsilon)
-      shiftedFitness = fitVals + abs(min(fitVals))+1e-10
-      selectionProb = shiftedFitness/np.sum(shiftedFitness) # Share of the pie (rouletteWheel)
-
     sumProb = selectionProb[counter]
-
-    while sumProb <= roulettePointer :
+    while sumProb <= roulettePointer and counter < len(selectionProb) - 1:
       counter += 1
       sumProb += selectionProb[counter]
     selectedParent[i,:] = pop.values[counter,:]
@@ -102,7 +111,7 @@ def tournamentSelection(population, **kwargs):
   """
     Tournament Selection mechanism for parent selection
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this parent selection method:
           fitness, xr.DataArray, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
           variables, list, variable names.
           nParents, int, number of required parents.
@@ -111,7 +120,6 @@ def tournamentSelection(population, **kwargs):
       with replacement across tournaments.
   """
   nParents = kwargs['nParents']
-  nObjVal = len(kwargs['objVar'])
   fitVals = kwargs.get('popFitVals', kwargs.get('fitness'))
   fitnessProvided = fitVals is not None
   selectedParent = xr.DataArray(np.zeros((nParents, np.shape(population.values)[1])),
@@ -140,50 +148,25 @@ def tournamentSelection(population, **kwargs):
 
       tournamentWinnerIndex = int(selectedChromo[np.argmax(tournamentFitness)])
       selectedParent[i, :] = population.values[tournamentWinnerIndex, :]
-  else: # Multi-objective case
-
-    rankProvided = 'rank' in kwargs
-    crowdDistanceProvided = 'crowdDistance' in kwargs
-
-    if not rankProvided or not crowdDistanceProvided or not fitnessProvided:
-      # Handle cases where neither fitness nor rank are provided
-      mh.error('parentSelectors',ValueError, 'At least one of "fitness" or "rank" must be provided for multi-objective selection')
+  else: # Multi-objective case: NSGA-II binary tournament on (rank, crowding distance)
+    rank = kwargs.get('rank')
+    crowdDistance = kwargs.get('crowdDistance')
+    if rank is None or crowdDistance is None:
+      mh.error('parentSelectors', ValueError, 'Multi-objective tournament selection requires both "rank" '
+               'and "crowdDistance" (NSGA-II crowded-comparison operator).')
+    rankValues = np.asarray(getattr(rank, 'data', rank))
+    crowdingValues = np.asarray(getattr(crowdDistance, 'data', crowdDistance))
     for i in range(nParents):
-      if rankProvided and crowdDistanceProvided:
-      # If both rank and crowd distance are provided, use them directly as per NSGA-II
-        selectedChromo = np.asarray(randomUtils.randomChoice(candidatePositions.copy(),
-                                                             size=kwargs['kSelection'],
-                                                             replace=False,
-                                                             engine=None), dtype=int)
-        # Extract relevant information
-        tournamentRank = np.asarray(kwargs['rank'].data)[selectedChromo]
-        tournamentCrowding = np.asarray(kwargs['crowdDistance'].data)[selectedChromo]
-        # Stage 1: Select based on rank and crowding distance
-        minRankIndex = np.where(tournamentRank == tournamentRank.min())[0]
-        # Stage 2: Select the individual with the highest crowding distance within their rank group
-        tournamentWinnerIndex = int(selectedChromo[minRankIndex[np.argmax(tournamentCrowding[minRankIndex])]])
-      elif rankProvided and not crowdDistanceProvided:
-        # If only rank is provided (without crowd distance), calculate a default crowding distance
-        selectedChromo = np.asarray(randomUtils.randomChoice(candidatePositions.copy(),
-                                                             size=kwargs['kSelection'],
-                                                             replace=False,
-                                                             engine=None), dtype=int)
-        # Extract relevant information
-        tournamentRank = np.asarray(kwargs['rank'].data)[selectedChromo]
-        # Stage 1: Select based on rank
-        minRankIndex = np.where(tournamentRank == tournamentRank.min())[0]
-        # Stage 2: Select the individual with the highest rank within their group
-        tournamentWinnerIndex = int(selectedChromo[minRankIndex[0]])
-      elif fitnessProvided and not rankProvided:
-        # If only fitness is provided (without rank), calculate a default rank
-        selectedChromo = np.asarray(randomUtils.randomChoice(candidatePositions.copy(),
-                                                             size=kwargs['kSelection'],
-                                                             replace=False,
-                                                             engine=None), dtype=int)
-        # Extract relevant information
-        tournamentFitness = np.asarray(fitVals)[selectedChromo]
-        # Stage 1: Select based on fitness
-        tournamentWinnerIndex = int(selectedChromo[np.argmax(tournamentFitness)])
+      selectedChromo = np.asarray(randomUtils.randomChoice(candidatePositions.copy(),
+                                                           size=kwargs['kSelection'],
+                                                           replace=False,
+                                                           engine=None), dtype=int)
+      tournamentRank = rankValues[selectedChromo]
+      tournamentCrowding = crowdingValues[selectedChromo]
+      # Stage 1: lowest (best) non-dominated rank wins
+      minRankIndex = np.where(tournamentRank == tournamentRank.min())[0]
+      # Stage 2: among equal ranks, the largest crowding distance (least crowded) wins
+      tournamentWinnerIndex = int(selectedChromo[minRankIndex[np.argmax(tournamentCrowding[minRankIndex])]])
       selectedParent[i, :] = population.values[tournamentWinnerIndex, :]
   return selectedParent
 
@@ -192,29 +175,26 @@ def rankSelection(population,**kwargs):
     Rank Selection mechanism for parent selection
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents,
                                     i.e. population.values.shape = populationSize x nGenes.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this parent selection method:
           fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs.get('popFitVals', kwargs.get('fitness'))
-  pop = population
-
-  index = np.arange(0,pop.shape[0])
-  rank = np.arange(0,pop.shape[0])
-
-  data = np.vstack((np.array(fitness.variables['test_RankSelection'],dtype=np.float64),index))
-  dataOrderedByDecreasingFitness = data[:,(-data[0]).argsort()]
-  dataOrderedByDecreasingFitness[0,:] = rank
-  dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
-  orderedRank = dataOrderedByIncreasingPos[0,:]
-
-  rank = xr.DataArray(orderedRank,
-                      dims=['chromosome'],
-                      coords={'chromosome': np.arange(np.shape(orderedRank)[0])})
-
-  rank = rank.to_dataset(name = 'test_RankSelection')
-  selectedParent = rouletteWheel(population, fitness=rank , nParents=kwargs['nParents'],variables=kwargs['variables'])
+  fitnessInput = kwargs.get('popFitVals', kwargs.get('fitness'))
+  # the fitness of the (single) objective, whatever it is named
+  fitVals = np.array([item for sublist in datasetToDataArray(fitnessInput, list(fitnessInput.keys())).data
+                      for item in sublist], dtype=np.float64)
+  n = len(fitVals)
+  # linear ranking: the worst individual gets weight 1 and the best gets weight n, so selection depends
+  # only on the order of the fitness values, not their scale; ties share the average of their ranks
+  order = np.argsort(fitVals, kind='stable')
+  weights = np.empty(n, dtype=np.float64)
+  weights[order] = np.arange(1, n + 1, dtype=np.float64)
+  for value in np.unique(fitVals):
+    tied = fitVals == value
+    weights[tied] = weights[tied].mean()
+  rank = xr.DataArray(weights, dims=['chromosome'], coords={'chromosome': np.arange(n)}).to_dataset(name='rank')
+  selectedParent = rouletteWheel(population, fitness=rank, nParents=kwargs['nParents'], variables=kwargs['variables'])
 
   return selectedParent
 
@@ -228,7 +208,7 @@ def returnInstance(cls, name):
     Method designed to return class instance
     @ In, cls, class type
     @ In, name, string, name of class
-    @ Out, __crossovers[name], instance of class
+    @ Out, __parentSelectors[name], the registered parent selection operator
   """
   if name not in __parentSelectors:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))

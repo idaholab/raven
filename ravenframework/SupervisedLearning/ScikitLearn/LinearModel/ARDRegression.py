@@ -90,9 +90,8 @@ class ARDRegression(ScikitLearnBase):
                                                  descr=r"""Whether to calculate the intercept for this model. Specifies if a constant (a.k.a. bias or intercept)
                                                   should be added to the decision function.""", default=True))
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
-                                                 descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
-                                                 the regressors X will be normalized before regression by subtracting the mean and
-                                                 dividing by the l2-norm.""", default=True))
+                                                 descr=r"""Deprecated: scikit-learn no longer supports this option, so it must be False (the default) or omitted.
+                                                 Setting it to True raises an error; scale the data beforehand if normalization is needed.""", default=False))
     specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
                                                  descr=r"""Verbose mode when fitting the model.""", default=False))
     return specs

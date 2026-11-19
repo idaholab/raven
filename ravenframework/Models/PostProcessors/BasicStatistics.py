@@ -1527,35 +1527,16 @@ class BasicStatistics(PostProcessorInterface):
     """
     spearmanMat = np.zeros((len(targVars), len(featVars)))
     wf, wt = None, None
-    # compute unbiased factor
-    if self.pbPresent:
-      fact = (self.__computeUnbiasedCorrection(2, self.realizationWeight)).to_array().values if not self.biased else 1.0
-      vp = self.__computeVp(1,self.realizationWeight)['ProbabilityWeight'].values
-      varianceFactor = fact*(1.0/vp)
-    else:
-      fact = 1.0 / (float(featSamples.shape[0]) - 1.0) if not self.biased else 1.0 / float(featSamples.shape[0])
-      varianceFactor = fact
-
     for tidx, target in enumerate(targVars):
       for fidx, feat in enumerate(featVars):
         if self.pbPresent:
           wf, wt = np.asarray(pbWeights[feat]), np.asarray(pbWeights[target])
         rankFeature, rankTarget = mathUtils.rankData(featSamples[:,fidx],wf),  mathUtils.rankData(targSamples[:,tidx],wt)
-        # compute covariance of the ranked features
-        cov  = np.cov(rankFeature, y=rankTarget, aweights=wt)
-        covF = np.cov(rankFeature,y=rankFeature, aweights=wf)
-        covT = np.cov(rankTarget,y=rankTarget, aweights=wf)
-        # apply correction factor (for biased or unbiased) (off diagonal)
-        cov[~np.eye(2,dtype=bool)] *= fact
-        covF[~np.eye(2,dtype=bool)] *= fact
-        covT[~np.eye(2,dtype=bool)] *= fact
-        # apply correction factor (for biased or unbiased) (diagonal)
-        cov[np.eye(2,dtype=bool)] *= varianceFactor
-        covF[~np.eye(2,dtype=bool)] *= varianceFactor
-        covT[~np.eye(2,dtype=bool)] *= varianceFactor
+        # covariance matrix of the ranked feature and target
+        # (the biased/unbiased normalization cancels out in the correlation coefficient)
+        cov = np.cov(rankFeature, y=rankTarget, aweights=wt)
         # now we can compute the pearson of such pairs
-        spearman = (cov / np.sqrt(covF * covT))[-1,0]
-        spearmanMat[tidx,fidx] = spearman
+        spearmanMat[tidx,fidx] = cov[0,1] / np.sqrt(cov[0,0] * cov[1,1])
 
     da = xr.DataArray(spearmanMat, dims=('targets','features'), coords={'targets':targVars,'features':featVars})
     return da

@@ -137,7 +137,7 @@ class MonteCarlo(Sampler):
           rvsnum = self.distDict[key].rvs()
         for kkey in key.split(','):
           self.values[kkey] = np.atleast_1d(rvsnum)[0]
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
+        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].getSampleProbability(rvsnum)
         self.inputInfo['ProbabilityWeight-' + key] = 1.
       elif totDim > 1:
         if reducedDim == 1:

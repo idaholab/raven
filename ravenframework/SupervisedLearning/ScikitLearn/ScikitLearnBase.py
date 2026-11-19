@@ -109,6 +109,21 @@ class ScikitLearnBase(SupervisedLearning):
       out = settings
     return out
 
+  _renamedValues = {'criterion': {'mse': 'squared_error', 'mae': 'absolute_error'},
+                    'loss': {'squared_loss': 'squared_error', 'log': 'log_loss'}}
+
+  def _translateValue(self, settings, key, newValue):
+    """
+      Replaces a deprecated option value with its current equivalent and warns about it
+      @ In, settings, dict, the settings of the model, modified in place
+      @ In, key, str, name of the option
+      @ In, newValue, object, the value that replaces the deprecated one
+      @ Out, None
+    """
+    self.raiseAWarning(f'The value "{settings[key]}" of <{key}> in ROM "{self.name}" is deprecated since it was',
+                       f'renamed or removed in scikit-learn; using "{newValue}" instead.')
+    settings[key] = newValue
+
   def initializeModel(self, settings):
     """
       Method to initialize the surrogate model with a settings dictionary
@@ -116,6 +131,18 @@ class ScikitLearnBase(SupervisedLearning):
       @ Out, None
     """
     import sklearn.multioutput
+    # scikit-learn removed the "normalize" option; False was the default, so it is simply dropped
+    if 'normalize' in settings:
+      if settings.pop('normalize'):
+        self.raiseAnError(IOError, f'The <normalize> option of ROM "{self.name}" is no longer supported by scikit-learn.',
+                          'Remove it or set it to False, and scale the data beforehand if normalization is needed.')
+    # option values renamed or removed by scikit-learn: translate the old names so existing inputs keep working
+    for key, renames in self._renamedValues.items():
+      if settings.get(key) in renames:
+        self._translateValue(settings, key, renames[settings[key]])
+    if settings.get('max_features') == 'auto':
+      # "auto" meant sqrt(n_features) for classifiers and n_features (None) for regressors
+      self._translateValue(settings, 'max_features', 'sqrt' if self.info['problemtype'] == 'classification' else None)
     if self.settings is None:
       self.settings = settings
     if inspect.isclass(self.model):

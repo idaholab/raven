@@ -83,7 +83,7 @@
         </reproduction>
         <fitness type="invLinear">
           <a>1.0</a>
-          <!-- <b>1.0</b> -->
+          <!-- <b>10.0</b> (the default; earlier RAVEN versions defaulted to 1.0) -->
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>

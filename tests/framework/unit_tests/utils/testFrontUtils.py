@@ -339,6 +339,87 @@ checkAnswer('HV negative objectives', frontUtils.hypervolume([[-2.0, -2.0]], [-1
 # A point that does not dominate the reference contributes nothing to the hypervolume.
 checkAnswer('HV dominated point ignored', frontUtils.hypervolume([[0.0, 0.0], [5.0, 5.0]], [1.0, 1.0]), 1.0)
 ###########################################
+
+###########################################
+# Pareto-front diversity metrics (pure, stateless): spread (Deb et al., 2002) and maximum spread.
+# maxSpread = L2 norm of the per-objective ranges of the front.
+# Diagonal 5-point front over [0,4] in each objective: ranges 4 and 4 -> sqrt(4**2 + 4**2).
+checkAnswer('maxSpread diagonal 5-point front',
+            frontUtils.computeMaxSpread([[0., 4.], [1., 3.], [2., 2.], [3., 1.], [4., 0.]]),
+            np.sqrt(32.0))
+# Two-point front with unit range in each objective -> sqrt(2).
+checkAnswer('maxSpread two-point front',
+            frontUtils.computeMaxSpread([[1., 2.], [2., 1.]]), np.sqrt(2.0))
+# Degenerate fronts (fewer than two points, or all points identical) have zero spread.
+checkAnswer('maxSpread single point is zero', frontUtils.computeMaxSpread([[1., 2.]]), 0.0)
+checkAnswer('maxSpread identical points is zero',
+            frontUtils.computeMaxSpread([[2., 2.], [2., 2.], [2., 2.]]), 0.0)
+
+# spread (Delta), Deb et al. 2002 eq. 1, worked by hand. For n evenly spaced points every gap equals
+# d_bar, so sum|d_i - d_bar| = 0. Without the true extremes d_f = d_l = 0, so a uniform front scores 0.
+checkAnswer('spread diagonal 5-point front',
+            frontUtils.computeSpread([[0., 4.], [1., 3.], [2., 2.], [3., 1.], [4., 0.]]), 0.0)
+checkAnswer('spread evenly spaced 3-point front',
+            frontUtils.computeSpread([[1., 2.], [1.5, 1.5], [2., 1.]]), 0.0)
+# uneven gaps raise Delta: gaps sqrt(2)*{1, 3}, d_bar = 2 sqrt(2), sum|d_i - d_bar| = 2 sqrt(2)
+#   Delta = 2 sqrt(2) / (2 * 2 sqrt(2)) = 1/2
+checkAnswer('spread uneven 3-point front',
+            frontUtils.computeSpread([[0., 4.], [1., 3.], [4., 0.]]), 0.5)
+# with the true extremes (0, 5) and (5, 0): d_f = d_l = 1, so the end gaps add to both sums
+#   Delta = (2 + 2 sqrt(2)) / (2 + 4 sqrt(2))
+checkAnswer('spread uneven 3-point front with true extremes',
+            frontUtils.computeSpread([[0., 4.], [1., 3.], [4., 0.]], extremes=[[0., 5.], [5., 0.]]),
+            (2.0 + 2.0 * np.sqrt(2.0)) / (2.0 + 4.0 * np.sqrt(2.0)))
+# Deb's spread sorts along objective 1, so it is defined for two objectives only
+try:
+  frontUtils.computeSpread([[0., 1., 2.], [1., 0., 2.]])
+  checkAnswer('spread rejects three objectives', 0, 1)
+except IOError:
+  checkAnswer('spread rejects three objectives', 1, 1)
+# spacing (Schott 1995): standard deviation (n - 1 denominator) of L1 nearest-neighbour distances
+checkAnswer('spacing even front is zero',
+            frontUtils.computeSpacing([[0., 4.], [1., 3.], [2., 2.], [3., 1.], [4., 0.]]), 0.0)
+# L1 nearest-neighbour distances {2, 2, 6}: mean 10/3, squared deviations 16/9, 16/9, 64/9 (sum 32/3)
+#   S = sqrt((32/3) / 2) = sqrt(16/3) = 4/sqrt(3)
+checkAnswer('spacing uneven 3-point front',
+            frontUtils.computeSpacing([[0., 4.], [1., 3.], [4., 0.]]), 4.0 / np.sqrt(3.0))
+checkAnswer('spacing single point is zero', frontUtils.computeSpacing([[1., 2.]]), 0.0)
+# Degenerate fronts (fewer than two points, or zero mean spacing) return zero.
+checkAnswer('spread single point is zero', frontUtils.computeSpread([[1., 2.]]), 0.0)
+checkAnswer('spread identical points is zero',
+            frontUtils.computeSpread([[2., 2.], [2., 2.]]), 0.0)
+
+# Pareto archive must not accumulate duplicates: elitism resubmits the same front every generation.
+dupFront = np.array([[1.0, 3.0], [2.0, 2.0], [3.0, 1.0]])
+dupArchive = np.empty((0, 2))
+dupSizes = []
+for _ in range(4):
+  dupComb, dupKept = frontUtils.updateParetoArchive(dupArchive, dupFront, minMask=np.array([True, True]))
+  dupArchive = dupComb[dupKept]
+  dupSizes.append(len(dupKept))
+checkArray('pareto archive dedupes resubmitted front', dupSizes, [3, 3, 3, 3])
+checkArray('pareto archive keeps one copy of each point', np.sort(dupArchive, axis=0).ravel(), np.sort(dupFront, axis=0).ravel())
+
+# The constrained ranker rejects NaN objectives, like the unconstrained one (a failed run must not
+# land on the Pareto front).
+try:
+  frontUtils.rankNonDominatedFrontiers(np.array([[np.nan, 0.0], [1.0, 1.0], [2.0, 2.0]]),
+                                       constraintVals=np.zeros((3, 1)))
+  nanRaised = False
+except ValueError:
+  nanRaised = True
+checkAnswer('constrained ranker rejects NaN objectives', nanRaised, True)
+
+# crowdingDistance edge cases: an infinite rank (outside every front) must not raise, and an infinite
+# objective value must not turn interior distances into NaN.
+infRankCD = frontUtils.crowdingDistance(np.array([1, 1, 1, np.inf]), 4,
+                                        np.array([[0.0, 3.0], [1.0, 2.0], [2.0, 1.0], [9.0, 9.0]]))
+checkAnswer('crowding distance ignores infinite rank', infRankCD[3], 0.0)
+checkAnswer('crowding distance infinite rank leaves front boundaries', infRankCD[0], np.inf)
+infObjCD = frontUtils.crowdingDistance(np.array([1, 1, 1, 1]), 4,
+                                       np.array([[0.0, np.inf], [1.0, 2.0], [2.0, 1.5], [3.0, 1.0]]))
+checkAnswer('crowding distance has no NaN with an infinite objective', int(np.isnan(infObjCD).sum()), 0)
+###########################################
 print(results)
 
 sys.exit(results["fail"])

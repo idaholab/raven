@@ -117,6 +117,7 @@ class OutStreamInterface(BaseInterface):
             if inp.name.strip() == self.sourceName[outIndex] and inp.type in DataObjects.factory.knownTypes():
               self.sourceData.append(inp)
               foundData = True
+              break
             elif type(inp) == Models.ROM:
               self.sourceData.append(inp)
               foundData = True  # good enough

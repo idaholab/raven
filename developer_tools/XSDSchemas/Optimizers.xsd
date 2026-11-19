@@ -8,6 +8,7 @@
           <xsd:element name="GradientDescent" type="GradientDescentOptimizer" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="SimulatedAnnealing" type="SimulatedAnnealingOptimizer" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="GeneticAlgorithm" type="GeneticAlgorithmOptimizer" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="MultiObjectiveGeneticAlgorithm" type="MultiObjectiveGeneticAlgorithmOptimizer" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="BayesianOptimizer" type="BayesianOptimizerOptimizer" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
@@ -94,10 +95,25 @@
     <xsd:complexType name="GAConvergenceType">
       <xsd:all>
         <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
-        <xsd:element name="objective"          type="xsd:float" minOccurs="0"/>
+        <xsd:element name="objective"          type="xsd:string" minOccurs="0"/>
         <xsd:element name="AHDp"               type="xsd:float" minOccurs="0"/>
         <xsd:element name="AHD"                type="xsd:float" minOccurs="0"/>
         <xsd:element name="HDSM"               type="xsd:float" minOccurs="0"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="MOGAConvergenceType">
+      <xsd:all>
+        <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
+        <xsd:element name="objective"          type="xsd:string" minOccurs="0"/>
+        <xsd:element name="AHDp"               type="xsd:float" minOccurs="0"/>
+        <xsd:element name="AHD"                type="xsd:float" minOccurs="0"/>
+        <xsd:element name="HDSM"               type="xsd:float" minOccurs="0"/>
+        <xsd:element name="spread"             type="xsd:float" minOccurs="0"/>
+        <xsd:element name="spacing"            type="xsd:float" minOccurs="0"/>
+        <xsd:element name="maxSpread"          type="xsd:float" minOccurs="0"/>
+        <xsd:element name="rank1Ratio"         type="xsd:float" minOccurs="0"/>
+        <xsd:element name="hypervolume"        type="xsd:float" minOccurs="0"/>
       </xsd:all>
     </xsd:complexType>
 
@@ -199,11 +215,66 @@
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
 
+    <xsd:complexType name="MultiObjectiveGeneticAlgorithmOptimizer">
+        <!-- RAVEN does not depend on the order of these nodes, so accept them in any order -->
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="samplerInit"      type="optInitType"/>
+            <xsd:element name="GAparams"         type="GAoptInitType"/>
+            <xsd:element name="convergence"      type="MOGAConvergenceType"/>
+            <xsd:element name="crowdingDistanceNormalization" type="xsd:string" />
+            <xsd:element name="paretoArchive"   >
+              <xsd:complexType>
+                <xsd:simpleContent>
+                  <xsd:extension base="xsd:string">
+                    <xsd:attribute name="maxSize" type="xsd:integer"/>
+                  </xsd:extension>
+                </xsd:simpleContent>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="constraintEpsilon" type="xsd:float"             />
+            <xsd:element name="adaptiveMutation">
+              <xsd:complexType>
+                <xsd:simpleContent>
+                  <xsd:extension base="xsd:string">
+                    <xsd:attribute name="final" type="xsd:float"/>
+                  </xsd:extension>
+                </xsd:simpleContent>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="stochasticRanking">
+              <xsd:complexType>
+                <xsd:simpleContent>
+                  <xsd:extension base="xsd:string">
+                    <xsd:attribute name="pf" type="xsd:float"/>
+                  </xsd:extension>
+                </xsd:simpleContent>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="rankingAlgorithm">
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="type" type="xsd:string"/>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:group ref="GACommonChoice"/>
+        </xsd:choice>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="type"      type="xsd:string" default="NSGA-II"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+
     <xsd:complexType name="GeneticAlgorithmOptimizer">
         <xsd:sequence>
             <xsd:element name="samplerInit"      type="optInitType"            minOccurs="0"/>
             <xsd:element name="GAparams"         type="GAoptInitType"          minOccurs="0" maxOccurs="1"/>
             <xsd:element name="convergence"      type="GAConvergenceType"      minOccurs="0" maxOccurs="1"/>
+            <xsd:group ref="GACommonElements"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+
+    <xsd:group name="GACommonElements">
+        <xsd:sequence>
             <xsd:element name="coolingSchedule"  type="OptCoolingScheduleType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variable"         type="optVarType"             minOccurs="1" maxOccurs='unbounded'/>
             <xsd:element name="objective"        type="xsd:string"             minOccurs="1" maxOccurs="1"/>
@@ -222,9 +293,29 @@
             <xsd:element name="restartTolerance" type="xsd:float"           minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variableTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
-        <xsd:attribute name="name"      type="xsd:string" use="required"/>
-        <xsd:attribute name="verbosity" type="verbosityAttr"/>
-    </xsd:complexType>
+    </xsd:group>
+
+    <xsd:group name="GACommonChoice">
+        <xsd:choice>
+            <xsd:element name="coolingSchedule"  type="OptCoolingScheduleType"/>
+            <xsd:element name="variable"         type="optVarType"/>
+            <xsd:element name="objective"        type="xsd:string"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"/>
+            <xsd:element name="constant"         type="constantVarType"/>
+            <xsd:element name="ConstantSource">
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="class" type="xsd:string" use="required"/>
+                <xsd:attribute name="type" type="xsd:string" />
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Sampler"          type="AssemblerObjectType"/>
+            <xsd:element name="Constraint"       type="AssemblerObjectType"/>
+            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType"/>
+            <xsd:element name="Restart"          type="AssemblerObjectType"/>
+            <xsd:element name="restartTolerance" type="xsd:float"/>
+            <xsd:element name="variableTransformation" type="variablesTransformationType"/>
+        </xsd:choice>
+    </xsd:group>
     <xsd:complexType name="crossoverType">
       <xsd:all>
         <xsd:element name="crossoverProb"   type="xsd:float" />
@@ -244,15 +335,17 @@
       <xsd:all>
         <xsd:element name="crossover"   type="crossoverType" />
         <xsd:element name="mutation"    type="mutationType"  />
+        <xsd:element name="kSelection"  type="xsd:integer" minOccurs="0" maxOccurs="1"/>
       </xsd:all>
     </xsd:complexType>
 
     <xsd:complexType name="fitnessType">
       <xsd:all>
-        <xsd:element name="a"     type="xsd:float" minOccurs="0" maxOccurs='1'/>
-        <xsd:element name="b"     type="xsd:float" minOccurs="0" maxOccurs='1'/>
-        <xsd:element name="scale"     type="xsd:float" minOccurs="0" maxOccurs='1'/>
-        <xsd:element name="shift"     type="xsd:float" minOccurs="0" maxOccurs='1'/>
+        <xsd:element name="a"     type="xsd:string" minOccurs="0" maxOccurs='1'/>
+        <xsd:element name="b"     type="xsd:string" minOccurs="0" maxOccurs='1'/>
+        <xsd:element name="scale"     type="xsd:string" minOccurs="0" maxOccurs='1'/>
+        <xsd:element name="shift"     type="xsd:string" minOccurs="0" maxOccurs='1'/>
+        <xsd:element name="normalize" type="xsd:string" minOccurs="0" maxOccurs='1'/>
       </xsd:all>
       <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
@@ -262,7 +355,7 @@
         <xsd:element name="populationSize"     type="xsd:integer"          />
         <xsd:element name="parentSelection"    type="xsd:string"           />
         <xsd:element name="reproduction"       type="reproductionType"     />
-        <xsd:element name="fitness"            type="fitnessType"          />
+        <xsd:element name="fitness"            type="fitnessType"          minOccurs="0"/>
         <xsd:element name="survivorSelection"  type="xsd:string"           />
       </xsd:all>
     </xsd:complexType>

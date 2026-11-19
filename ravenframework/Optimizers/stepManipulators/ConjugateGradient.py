@@ -23,7 +23,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 # External Modules----------------------------------------------------------------------------------
 import numpy as np
-from scipy.optimize import minpack2
+# NOTE: this uses a private scipy class on purpose. scipy 1.14 removed scipy.optimize.minpack2, and scipy has
+#       had no public replacement for this step-by-step (reverse communication) More-Thuente line search since.
+#       DCSRCH._iterate is the port of the removed minpack2.dcsrch; revisit if scipy ever makes it public.
+from scipy.optimize._dcsrch import DCSRCH
 # External Modules End------------------------------------------------------------------------------
 
 # Internal Modules----------------------------------------------------------------------------------
@@ -134,7 +137,7 @@ class ConjugateGradient(StepManipulator):
     # Conjugate Gradient does line searches along consecutive gradient estimations
     # with gradient estimations updated by more than just local estimation.
     # For conjugate gradient notations, see https://en.wikipedia.org/wiki/iNonlinear_conjugate_gradient_method
-    # For line search notations, see github.com/scipy/scipy/blob/master/scipy/optimize/minpack2/dcsrch.f
+    # For line search notations, see github.com/scipy/scipy/blob/master/scipy/optimize/minpack2/dcsrch.f (the Fortran original of scipy.optimize._dcsrch)
 
     # We start from an opt point, then find the gradient direction.
     #   from there we line search for the best point along that grad direction
@@ -147,10 +150,9 @@ class ConjugateGradient(StepManipulator):
     if lastStepInfo is None:
       # this MUST MEAN that this is the very very first step in this algorithm
       # note that we use binary strings because that's what scipy gives us
+      # the phi and derphi callbacks are not used, since we call DCSRCH._iterate step by step
       lastStepInfo = {'task': b'START',
-                      'fortranParams': {'iSave': np.zeros((2,), dtype=np.intc),
-                                        'dSave': np.zeros((13,), dtype=float),
-                                       }
+                      'lineSearcher': DCSRCH(None, None, ftol=1e-4, gtol=0.4, xtol=1e-14, stpmin=1e-100, stpmax=1e100)
                      }
     lineSearchTask = lastStepInfo['task']
 
@@ -198,7 +200,7 @@ class ConjugateGradient(StepManipulator):
       if lastStepInfo['persistence'] >= self._persistence:
         raise NoMoreStepsNeeded
     else:
-      self.raiseAnError(RuntimeError, f'Unrecognized "task" return from scipy.optimize.minpack2: "{task}"')
+      self.raiseAnError(RuntimeError, f'Unrecognized "task" return from scipy.optimize._dcsrch: "{task}"')
 
     lastStepInfo['stepSize'] = stepSize
     lastStepInfo['task'] = task
@@ -439,12 +441,7 @@ class ConjugateGradient(StepManipulator):
     stepSize = lastStepInfo['stepSize']
     lineObjDerivative = lastStepInfo['line']['objDerivative']
     task = lastStepInfo['task']
-    iSave = lastStepInfo['fortranParams']['iSave']
-    dSave = lastStepInfo['fortranParams']['dSave']
-    stepSize, _, _, task = minpack2.dcsrch(stepSize, currentMinObjVal, lineObjDerivative,
-                                           ftol=1e-4, gtol=0.4, xtol=1e-14,
-                                           task=task, stpmin=1e-100, stpmax=1e100,
-                                           isave=iSave, dsave=dSave)
+    stepSize, _, _, task = lastStepInfo['lineSearcher']._iterate(stepSize, currentMinObjVal, lineObjDerivative, task)
 
     return stepSize, task
 

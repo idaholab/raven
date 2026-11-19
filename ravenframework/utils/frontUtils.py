@@ -20,6 +20,7 @@
 import numpy as np
 import xarray as xr
 # Internal Imports
+from . import mathUtils
 
 def _constraintViolation(constraintVals):
   """
@@ -84,48 +85,53 @@ def _dominatesForMinimization(candidate, other, candidateViolation=0.0, otherVio
   return np.all(candidate <= other) and np.any(candidate < other)
 
 
+def _constrainedDominanceMatrix(directedData, violation, epsilon=0.0):
+  """
+    Pairwise Deb constrained-dominance matrix, vectorized: entry (p, q) is True when p dominates q
+    under the same rules as _dominatesForMinimization (feasible beats infeasible; two infeasible points
+    compare by total violation; two feasible points compare by Pareto dominance in minimization space).
+    @ In, directedData, np.array, (nPoints, nObjectives) objective values already in minimization space.
+    @ In, violation, np.array, (nPoints,) total positive constraint violation per point.
+    @ In, epsilon, float, optional, constraint-violation tolerance below which a point is treated as feasible.
+    @ Out, dominates, np.array, (nPoints, nPoints) boolean matrix, True where row dominates column.
+  """
+  feasible = violation <= epsilon
+  paretoDominates = (np.all(directedData[:, None, :] <= directedData[None, :, :], axis=2)
+                     & np.any(directedData[:, None, :] < directedData[None, :, :], axis=2))
+  bothFeasible = feasible[:, None] & feasible[None, :]
+  bothInfeasible = ~feasible[:, None] & ~feasible[None, :]
+  feasibleOverInfeasible = feasible[:, None] & ~feasible[None, :]
+  lowerViolation = violation[:, None] < violation[None, :]
+  return (bothFeasible & paretoDominates) | feasibleOverInfeasible | (bothInfeasible & lowerViolation)
+
+
 def _fastNonDominatedSortConstrained(directedData, violation, epsilon=0.0):
   """
     Fast non-dominated sort (Deb et al., 2002) with Deb constrained dominance.
 
-    Computes, for every individual p, the set of individuals it dominates and the
-    count of individuals that dominate it, in a single O(M*N^2) pairwise pass
-    (M objectives, N individuals); fronts are then peeled by decrementing the
-    domination counters. This yields ranks identical to the recursive peeling
-    ranker but avoids its O(N^3) cost on large populations.
+    Builds the N x N dominance matrix in one vectorized O(M*N^2) pass (M objectives, N individuals),
+    so each individual's domination count is a column sum; fronts are then peeled by removing the
+    current front's rows from those counts. Ranks are identical to the recursive peeling ranker.
+    Memory is O(N^2) booleans (about 4 MB at N = 2000).
 
     @ In, directedData, np.array, (nPoints, nObjectives) objective values already
                                   converted to minimization space.
     @ In, violation, np.array, (nPoints,) total positive constraint violation per point.
+    @ In, epsilon, float, optional, constraint-violation tolerance below which a point is treated as feasible.
     @ Out, ranks, list, 1-based front index for each point.
   """
   nPoints = directedData.shape[0]
-  dominated = [[] for _ in range(nPoints)]   # individuals dominated by p
-  dominationCount = np.zeros(nPoints, dtype=int)  # individuals that dominate p
+  dominates = _constrainedDominanceMatrix(directedData, np.asarray(violation, dtype=float), epsilon)
+  dominationCount = dominates.sum(axis=0)
   ranks = np.zeros(nPoints, dtype=int)
-  currentFront = []
-  for p in range(nPoints):
-    for q in range(p + 1, nPoints):
-      if _dominatesForMinimization(directedData[p], directedData[q], violation[p], violation[q], epsilon):
-        dominated[p].append(q)
-        dominationCount[q] += 1
-      elif _dominatesForMinimization(directedData[q], directedData[p], violation[q], violation[p], epsilon):
-        dominated[q].append(p)
-        dominationCount[p] += 1
-    if dominationCount[p] == 0:
-      ranks[p] = 1
-      currentFront.append(p)
-  rank = 1
-  while currentFront:
-    nextFront = []
-    for p in currentFront:
-      for q in dominated[p]:
-        dominationCount[q] -= 1
-        if dominationCount[q] == 0:
-          ranks[q] = rank + 1
-          nextFront.append(q)
+  unranked = np.ones(nPoints, dtype=bool)
+  rank = 0
+  while np.any(unranked):
     rank += 1
-    currentFront = nextFront
+    front = unranked & (dominationCount == 0)
+    ranks[front] = rank
+    unranked &= ~front
+    dominationCount = dominationCount - dominates[front].sum(axis=0)
   return ranks.tolist()
 
 
@@ -145,6 +151,9 @@ def _rankNonDominatedFrontiersConstrained(data, constraintVals, minMask=None, ep
   data = np.asarray(data, dtype=float)
   if data.ndim != 2:
     raise IOError("rankNonDominatedFrontiers method: data must be a 2-D array")
+  # same guard as the unconstrained path: a NaN objective (e.g. a failed run) must not reach a front
+  if np.any(np.isnan(data)):
+    raise ValueError("'NaN' value returned in place of an objective value. Check objective function.")
   violation = _constraintViolation(constraintVals)
   if violation is None:
     violation = np.zeros(data.shape[0], dtype=float)
@@ -226,6 +235,9 @@ def rankNonDominatedFrontiers(data, isFitness=False, constraintVals=None, minMas
     @ Out, nonDominatedRank, list, a list of length nPoints that has the ranking
                                   of the front passing through each point
   """
+  # an (nPoints, 0) array means an unconstrained problem: rank on objectives alone
+  if constraintVals is not None and np.asarray(constraintVals).size == 0:
+    constraintVals = None
   if constraintVals is not None:
     if isFitness:
       raise IOError("rankNonDominatedFrontiers method: constrained ranking expects objective values with minMask, not fitness values")
@@ -301,7 +313,9 @@ def crowdingDistance(rank, popSize, objectiveValues, normalizationBounds=None):
   # Keep track of which points are on each front
   frontIndices = {f: [] for f in fronts}
   for i, r in enumerate(rank):
-    frontIndices[r].append(i)
+    # an infinite rank marks an individual outside every front; it keeps a crowding distance of 0
+    if r in frontIndices:
+      frontIndices[r].append(i)
 
   for f in fronts:
     numObjectives = objectiveValues.shape[1]
@@ -325,6 +339,13 @@ def crowdingDistance(rank, popSize, objectiveValues, normalizationBounds=None):
       sortedIndices = np.lexsort(keys)
       sortedFront = [front[i] for i in sortedIndices]
 
+      # An objective that is constant over the front has no boundary and adds nothing to any distance;
+      # marking its first and last points (an arbitrary pair after tie-breaking) as boundaries would
+      # give them +inf for no geometric reason
+      frontRange = objectiveValues[sortedFront, obj].max() - objectiveValues[sortedFront, obj].min()
+      if frontRange == 0:
+        continue
+
       # Only the actual boundary points (first and last after sorting) get infinity
       crowdDist[sortedFront[0]] = np.inf   # Minimum boundary
       crowdDist[sortedFront[-1]] = np.inf  # Maximum boundary
@@ -336,8 +357,9 @@ def crowdingDistance(rank, popSize, objectiveValues, normalizationBounds=None):
       else:
         objMax = objectiveValues[sortedFront, obj].max()
         objMin = objectiveValues[sortedFront, obj].min()
-      # Skip normalization if the range is degenerate
-      if objMax == objMin:
+      # Skip normalization if the range is degenerate, or not finite (an infinite objective value would
+      # make every interior distance inf/inf = NaN); the boundary points above already carry inf
+      if objMax == objMin or not np.isfinite(objMax - objMin):
         continue
 
       # Calculate normalized distances for interior points
@@ -368,7 +390,7 @@ def updateParetoArchive(archiveObjectives, newObjectives, minMask=None, maxArchi
     @ In, minMask, np.array, optional, True per minimized objective and False per maximized objective
     @ In, maxArchiveSize, int, optional, maximum number of points to retain (None = unbounded)
     @ Out, combined, np.array, (nArchive+nNew, nObjectives) stacked objective vectors
-    @ Out, keptIndices, list, sorted indices into combined that form the updated archive
+    @ Out, keptIndices, list, sorted indices into combined that form the updated archive (one per distinct objective vector)
   """
   archiveObjectives = np.asarray(archiveObjectives, dtype=float)
   newObjectives = np.asarray(newObjectives, dtype=float)
@@ -377,7 +399,12 @@ def updateParetoArchive(archiveObjectives, newObjectives, minMask=None, maxArchi
     return np.empty((0, 0)), []
   combined = np.vstack(pieces)
   nonDominatedMask = nonDominatedFrontier(combined.copy(), returnMask=True, minMask=minMask)
-  keptIndices = list(np.where(nonDominatedMask)[0])
+  keptIndices = np.where(nonDominatedMask)[0]
+  # elitism resubmits the same rank-1 points every generation; keep one copy of each objective vector
+  # (the earliest, so existing archive members win over identical newcomers) so the archive cannot grow
+  # without bound and does not report duplicates
+  _, firstOccurrence = np.unique(combined[keptIndices], axis=0, return_index=True)
+  keptIndices = list(keptIndices[np.sort(firstOccurrence)])
   if maxArchiveSize is not None and len(keptIndices) > maxArchiveSize:
     keptObjectives = combined[keptIndices]
     ranks = np.ones(len(keptIndices), dtype=int)
@@ -405,6 +432,11 @@ def hypervolume(points, reference):
     not strictly dominate the reference contribute nothing). It is computed with
     the Hypervolume-by-Slicing-Objectives (HSO) recursion of While et al. (2006),
     which is exact for any number of objectives.
+
+    Cost: HSO is exponential in the number of objectives M (worst case O(n^(M-1))
+    for n points). It is fast for M <= 4; for n = 100 points and M = 5 one call
+    takes several seconds, and the convergence check calls it twice per generation,
+    so hypervolume-based convergence is not recommended for M >= 5.
 
     @ In, points, list or np.array, (nPoints, nObjectives) objective vectors in minimization space
     @ In, reference, list or np.array, (nObjectives,) reference point, no better than any point in every objective
@@ -451,3 +483,78 @@ def _hypervolumeHSO(points, reference):
     # Cross-section of the slice = hypervolume of points 0..i projected onto the remaining objectives.
     hv += width * _hypervolumeHSO(ordered[:i + 1, 1:], reference[1:])
   return hv
+
+
+def computeSpread(front, extremes=None):
+  r"""
+    Deb's spread metric $\Delta$ (Deb et al. 2002, eq. 1) for a two-objective front: how uniformly the
+    solutions are distributed (lower is more uniform). The $n$ points are sorted along the first
+    objective; $d_i$ ($i=1..n-1$) are the Euclidean distances between consecutive points and $\bar d$
+    their mean; $d_f$ and $d_l$ are the distances from the two end points of the obtained front to the
+    extreme solutions of the true Pareto front:
+    $\Delta = (d_f + d_l + \sum_i |d_i - \bar d|) / (d_f + d_l + (n-1)\bar d)$.
+    The true extremes are usually unknown during a run; without them $d_f = d_l = 0$ (the end points
+    are taken as the extremes), so $\Delta$ measures only the uniformity of the interior gaps and a
+    perfectly uniform front scores 0.
+    @ In, front, list of lists, Pareto-front points (each point is a two-element list of objective values)
+    @ In, extremes, list of lists, optional, the two extreme solutions of the true Pareto front,
+                    one per objective (the minimizer of objective 1 first); None takes d_f = d_l = 0
+    @ Out, spread, float, spread value (0 = perfect distribution; 0 when n < 2 or all points coincide)
+  """
+  n = len(front)
+  if n < 2:
+    return 0.0
+  points = np.asarray(front, dtype=float)
+  if points.shape[1] != 2:
+    raise IOError(f"computeSpread method: Deb's spread is defined for two objectives, got {points.shape[1]}")
+  ordered = points[np.argsort(points[:, 0], kind='stable')]
+  distances = np.linalg.norm(np.diff(ordered, axis=0), axis=1)
+  meanDist = distances.mean()
+  if extremes is None:
+    distFirst = distLast = 0.0
+  else:
+    extremes = np.asarray(extremes, dtype=float)
+    distFirst = np.linalg.norm(ordered[0] - extremes[0])
+    distLast = np.linalg.norm(ordered[-1] - extremes[1])
+  denominator = distFirst + distLast + (n - 1) * meanDist
+  if mathUtils.compareFloats(denominator, 0.0, 1e-14):
+    return 0.0
+  numerator = distFirst + distLast + np.abs(distances - meanDist).sum()
+  return float(numerator / denominator)
+
+
+def computeSpacing(front):
+  r"""
+    Spacing metric $S$ (Schott 1995): the standard deviation of each point's nearest-neighbour distance
+    over the front (lower means more evenly spaced). $D_i = \min_{j \ne i} \sum_m |f_m^i - f_m^j|$ is
+    the L1 (Manhattan) distance to the nearest other point and
+    $S = \sqrt{\frac{1}{n-1}\sum_i (D_i - \bar D)^2}$. $S$ is in the units of the objectives, so a
+    convergence threshold on it depends on their scale.
+    @ In, front, list of lists, Pareto-front points (each point is a list of objective values)
+    @ Out, spacing, float, spacing value (0 = equal spacing; 0 when n < 2)
+  """
+  n = len(front)
+  if n < 2:
+    return 0.0
+  points = np.asarray(front, dtype=float)
+  pairwise = np.abs(points[:, None, :] - points[None, :, :]).sum(axis=2)
+  np.fill_diagonal(pairwise, np.inf)
+  nearest = pairwise.min(axis=1)
+  return float(np.sqrt(np.sum((nearest - nearest.mean()) ** 2) / (n - 1)))
+
+
+def computeMaxSpread(front):
+  """
+    Compute the maximum-spread metric: the Euclidean norm of the per-objective ranges of the
+    front. Pure, stateless; depends only on the geometry of the given front.
+    @ In, front, list of lists, Pareto-front points (each point is a list of objective values)
+    @ Out, ms, float, maximum spread
+  """
+  if len(front) < 2:
+    return 0.0
+  numObj = len(front[0])
+  ranges = []
+  for obj in range(numObj):
+    objValues = [p[obj] for p in front]
+    ranges.append(max(objValues) - min(objValues))
+  return np.sqrt(sum(r ** 2 for r in ranges))

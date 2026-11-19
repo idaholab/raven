@@ -51,7 +51,6 @@
       <compute_score>False</compute_score>
       <threshold_lambda>1e4</threshold_lambda>
       <fit_intercept>True</fit_intercept>
-      <normalize>True</normalize>
       <verbose>False</verbose>
     </ROM>
   </Models>

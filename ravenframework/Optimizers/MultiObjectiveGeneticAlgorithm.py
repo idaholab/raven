@@ -47,12 +47,15 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     cls.knownAlgorithms[name] = algorithmClass
 
   convergenceOptions = dict(GeneticAlgorithm.convergenceOptions, **{
-      'spread': r""" provides the maximum allowable value of Deb's spread metric ($\Delta$) measuring the distance
-                        between extreme and intermediate Pareto points. Once the spread drops below this value
-                        the algorithm is considered converged.""",
-      'spacing': r""" provides the maximum allowable spacing metric that captures the variance of
-                        nearest-neighbour distances among rank-1 solutions. Lower values indicate a uniform
-                        distribution and trigger convergence.""",
+      'spread': r""" provides the maximum allowable value of Deb's spread metric ($\Delta$, Deb et al. 2002) of the
+                        rank-1 front, which measures how unevenly its points are spaced along the front (0 means
+                        perfectly uniform). The true Pareto extremes are unknown during a run, so the end-point
+                        terms $d_f$ and $d_l$ are taken as zero. Defined for two objectives only. Once $\Delta$
+                        drops below this value the algorithm is considered converged. \default{0.5}""",
+      'spacing': r""" provides the maximum allowable value of Schott's spacing metric (Schott 1995): the standard
+                        deviation of the L1 nearest-neighbour distances among rank-1 solutions. It is in the units
+                        of the objectives, so choose the threshold for their scale. Lower values indicate a uniform
+                        distribution and trigger convergence. \default{0.5}""",
       'maxSpread': r""" sets the relative-change tolerance for the maximum spread (Euclidean range of objectives)
                         observed between successive Pareto fronts. Convergence occurs once the change is below this value.""",
       'rank1Ratio': r""" specifies the minimum proportion of the population that must belong to the first
@@ -62,13 +65,15 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                         between successive generations. The hypervolume is measured in RAVEN's internal
                         minimization space against a common nadir-based reference point (offset by a positive
                         margin so it is valid for zero or negative objectives); convergence is declared once
-                        the relative change in hypervolume falls below the provided value."""})
+                        the relative change in hypervolume falls below the provided value. The hypervolume is
+                        computed exactly, at a cost that grows exponentially with the number of objectives; it is
+                        fast for up to four objectives, but with five or more each generation can take seconds,
+                        so another criterion is recommended there."""})
 
   def __init__(self):
     """
     Constructor. Initializes the multi-objective bookkeeping attributes used across
     generations:
-      self._canHandleMultiObjective, bool, flag enabling multi-objective handling.
       self.popRanks, xr.DataArray or None, non-dominated sorting rank per population member.
       self.popCrowdingDist, xr.DataArray or None, crowding distance per population member.
       self.multiBestPoint, dict or None, rank-1 optimal decision points keyed by variable.
@@ -83,7 +88,6 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     @ Out, None.
     """
     super().__init__()
-    self._canHandleMultiObjective = True
     self._multiObjectiveAlgorithm = 'NSGA-II'       # concrete algorithm variant (see <... type="...">)
     self._crowdingNormalization = 'front'           # 'front' or 'population' normalization for crowding distance
     self._paretoArchiveEnabled = False              # if True, accumulate non-dominated solutions across generations
@@ -96,16 +100,16 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     self._stochasticRankingPf = 0.45                 # probability of objective-only ranking per generation
     self._rankingAlgorithmType = 'constrainedDomination'  # ranking-handler operator (see <rankingAlgorithm>); default = Deb-2002
     self._rankingAlgorithmInstance = None            # resolved ranking-handler function (set in handleInput)
-    self.popRanks = None
-    self.popCrowdingDist = None
-    self.multiBestPoint = None
-    self.multiBestFitVals = None
-    self.multiBestMinObjVals = None
-    self.multiBestConstraintVals = None
-    self.multiBestRank = None
-    self.multiBestCD = None
-    self.multiBestOutputs = None
-    self._populationCache = {}
+    self.popRanks = None                             # non-dominated-sorting rank per individual in the current population
+    self.popCrowdingDist = None                      # crowding distance per individual in the current population
+    self.multiBestPoint = None                       # rank-1 archive: decision variables of the non-dominated set
+    self.multiBestFitVals = None                     # rank-1 archive: fitness values of the non-dominated set
+    self.multiBestMinObjVals = None                  # rank-1 archive: minimization-space objective values of the non-dominated set
+    self.multiBestConstraintVals = None              # rank-1 archive: constraint values of the non-dominated set
+    self.multiBestRank = None                        # rank-1 archive: ranks (all ones) of the non-dominated set
+    self.multiBestCD = None                          # rank-1 archive: crowding distances of the non-dominated set
+    self.multiBestOutputs = None                     # rank-1 archive: model output values of the non-dominated set
+    self._populationCache = {}                       # memo of evaluated chromosomes keyed by decision vector (avoids re-evaluation)
 
   def flush(self):
     """
@@ -182,7 +186,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
                             operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
                             crowding-distance survivor selection, and multi-objective convergence metrics that are shared
-                            by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II."""
+                            by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II.\\
+
+                            Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
+                            NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set of
+                            non-dominated (Pareto-optimal) solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
+                            providing decision-makers with a comprehensive view of the problem's solution space. More information about NSGA-II can be found in:\\
+
+                            Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\
+
+                            Internally, objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking, crowding-distance
+                            calculation and convergence checks (\texttt{minObjVals}); exported objective values use the requested convention.
+                            Survivor selection must be \textit{rankNcrowdingBased} and parent selection \textit{tournamentSelection}."""
     specs.addParam('type', param_type=InputTypes.makeEnumType('multiObjectiveGA', 'multiObjectiveGAType',
         list(cls.knownAlgorithms.keys()) or ['NSGA-II']), required=False, default='NSGA-II',
         descr=r"""selects the concrete multi-objective genetic algorithm to run. Currently \xmlString{NSGA-II}
@@ -257,7 +272,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                   multi-objective GA. This is a mix-and-match operator: new ranking policies can be
                   added without changing the algorithm. The optional \xmlAttr{type} attribute chooses
                   the policy; if the node is omitted the default \textit{constrainedDomination} is
-                  used, which is byte-for-byte the historical NSGA-II behavior.""")
+                  used. Leave it unset unless you want a different constraint-handling policy.
+                  The node is a child of \xmlNode{MultiObjectiveGeneticAlgorithm}, next to
+                  \xmlNode{GAparams}, e.g. \xmlString{<rankingAlgorithm type="feasibleFirstPenalty"/>}.
+                  Note: earlier RAVEN versions ranked multi-objective runs on the per-objective
+                  fitness values (penalized), not by constrained domination; \textit{feasibleFirstPenalty}
+                  is the closest match to that older behavior, but results are not identical.""")
     rankingAlgorithm.addParam('type',
         InputTypes.makeEnumType('rankingAlgorithm', 'rankingAlgorithmType',
                                 ['constrainedDomination', 'feasibleFirstPenalty',
@@ -411,6 +431,24 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
         continue
       self._populationCache[key] = entry
 
+  def _prunePopulationCache(self):
+    """
+      Keep only the cached outputs of the current population. Survivors are drawn from the current
+      population and the new offspring (cached right after this call), and the Pareto archive keeps its
+      own copy of its members' outputs, so every other entry is no longer needed; without pruning the
+      cache grows with every evaluated chromosome of the run.
+      @ In, None
+      @ Out, None
+    """
+    if not self._populationCache or self.population is None:
+      return
+    keep = set()
+    for index in range(self.population.sizes.get('chromosome', 0)):
+      key = self._buildChromosomeKey(self._chromosomeDictFromPopulation(self.population, index))
+      if key is not None:
+        keep.add(key)
+    self._populationCache = {key: entry for key, entry in self._populationCache.items() if key in keep}
+
   def _retrieveCachedOutputs(self, geneValues, dataset=None):
     """
       Fetch cached outputs for the given chromosome, optionally falling back to a dataset search.
@@ -514,6 +552,14 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
         collected[var].append(value)
     return collected
 
+  def _canBeMultiObjective(self):
+    """
+      Multi-objective genetic algorithms accept more than one objective.
+      @ In, None
+      @ Out, canBeMultiObjective, bool, True
+    """
+    return True
+
   def handleInput(self, paramInput):
     """
     handleInput method.
@@ -529,6 +575,15 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
       self.raiseAnError(IOError, 'Multi-objective genetic algorithms currently support only "tournamentSelection" as <parentSelection>.')
     if self._survivorSelectionType != 'rankNcrowdingBased':
       self.raiseAnError(IOError, 'Multi-objective genetic algorithms require <survivorSelection> to be "rankNcrowdingBased".')
+    if 'hypervolume' in self._convergenceCriteria and len(self._objectiveVar) >= 5:
+      # exact hypervolume (HSO) is exponential in the number of objectives: say so before the run starts
+      self.raiseAWarning(f'The hypervolume convergence check is exact but its cost grows exponentially with the '
+                         f'number of objectives ({len(self._objectiveVar)} here): each generation may take '
+                         'seconds or more (about 8 s for 100 rank-1 points with 5 objectives). Consider the '
+                         'rank1Ratio, maxSpread or AHDp criteria instead.')
+    if 'spread' in self._convergenceCriteria and len(self._objectiveVar) != 2:
+      self.raiseAnError(IOError, f'The <spread> convergence criterion (Deb\'s spread) is defined for two objectives, '
+                        f'but {len(self._objectiveVar)} are given. Use <hypervolume>, <spacing> or <AHDp> instead.')
     crowdingNormNode = paramInput.findFirst('crowdingDistanceNormalization')
     if crowdingNormNode is not None:
       self._crowdingNormalization = crowdingNormNode.value
@@ -553,6 +608,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     rankingAlgorithmNode = paramInput.findFirst('rankingAlgorithm')
     if rankingAlgorithmNode is not None:
       self._rankingAlgorithmType = rankingAlgorithmNode.parameterValues.get('type', 'constrainedDomination')
+    self._reconcileRankingVariant()
     self._rankingAlgorithmInstance = rankingHandlerReturnInstance(self, name=self._rankingAlgorithmType)
     # Did the user supply a <fitness> node? (base GeneticAlgorithm.handleInput read it already.)
     gaParamsNode = paramInput.findFirst('GAparams')
@@ -573,7 +629,9 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                            f'<rankingAlgorithm type="{self._rankingAlgorithmType}"> (Deb-2002 '
                            'constrained domination); it is computed and exported as the "fitness" '
                            'column for DIAGNOSTICS only. To rank by the penalized scalar fitness '
-                           'instead, set <rankingAlgorithm type="feasibleFirstPenalty">.',
+                           'instead, add <rankingAlgorithm type="feasibleFirstPenalty"/> as a child of '
+                           '<MultiObjectiveGeneticAlgorithm>, next to <GAparams>. If you do not need the '
+                           '"fitness" column, deleting <fitness> is safe and removes this warning.',
                            color='red')
         # <normalize> only rescales the diagnostic fitness scalar; since that scalar does not drive
         # selection under constrained domination, normalization here is a no-op for ranking too.
@@ -585,6 +643,38 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                              'result and affects the exported "fitness" column only. It is load-bearing '
                              'for single-objective GA and for <rankingAlgorithm type="feasibleFirstPenalty">.',
                              color='red')
+
+  def _reconcileRankingVariant(self):
+    """
+      Keep <rankingAlgorithm type> and its behavior nodes consistent. The epsilon-constrained and
+      stochastic-ranking variants are switched on by <constraintEpsilon> and <stochasticRanking>;
+      selecting the matching type without its node turns the behavior on with its documented default,
+      and a node that contradicts the selected type is rejected instead of silently winning.
+      @ In, None
+      @ Out, None
+    """
+    rankType = self._rankingAlgorithmType
+    if rankType == 'epsilonConstrained' and self._constraintEpsilon <= 0.0:
+      self.raiseAnError(IOError, '<rankingAlgorithm type="epsilonConstrained"> needs a positive '
+                        '<constraintEpsilon> (the constraint-violation tolerance); without it the '
+                        'ranking is plain Deb-2002 constrained domination.')
+    if rankType == 'stochasticRanking' and not self._stochasticRanking:
+      self.raiseAMessage('<rankingAlgorithm type="stochasticRanking"> selected: enabling stochastic '
+                         f'ranking with pf={self._stochasticRankingPf}.')
+      self._stochasticRanking = True
+    if rankType == 'constrainedDomination' and self._constraintEpsilon > 0.0:
+      self.raiseAMessage(f'<constraintEpsilon>{self._constraintEpsilon}</constraintEpsilon> given: using '
+                         'epsilon-constrained ranking (Takahama & Sato).')
+      self._rankingAlgorithmType = 'epsilonConstrained'
+    if rankType == 'constrainedDomination' and self._stochasticRanking:
+      self._rankingAlgorithmType = 'stochasticRanking'
+    if rankType == 'feasibleFirstPenalty' and (self._constraintEpsilon > 0.0 or self._stochasticRanking):
+      self.raiseAnError(IOError, '<rankingAlgorithm type="feasibleFirstPenalty"> ranks the penalized '
+                        'scalar fitness; <constraintEpsilon> and <stochasticRanking> apply only to '
+                        'constrained-domination ranking and cannot be combined with it.')
+    if self._constraintEpsilon > 0.0 and self._stochasticRanking:
+      self.raiseAnError(IOError, '<constraintEpsilon> and <stochasticRanking> select different ranking '
+                        'variants (epsilonConstrained and stochasticRanking); choose one.')
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
@@ -933,53 +1023,55 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     @ In, candidate, dict, realization for the candidate final-front point.
     @ Out, None.
     """
+    if getattr(self, 'popFitVals', None) is None or getattr(self, 'popMinObjVals', None) is None:
+      return
+
+    def asArray(values):
+      """
+      Cast a DataArray or list of objective values to a 1-D float numpy array.
+      @ In, values, array-like, values from a DataArray or list to cast to ndarray.
+      @ Out, array, np.ndarray, values converted to a float array.
+      """
+      return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
+
+    popMinObjVals = np.column_stack([np.atleast_1d(asArray(vals)) for vals in self.popMinObjVals])
+    # Finalization candidates are stored in minimization space; convert to original
+    # signs below only for Pareto ranking with explicit objective directions.
     try:
-      if not hasattr(self, 'popFitVals') or self.popFitVals is None:
-        return
-      if not hasattr(self, 'popMinObjVals') or self.popMinObjVals is None:
-        return
+      candidateMinObjVals = np.array([float(np.atleast_1d(candidate[obj])[0]) for obj in self._objectiveVar], dtype=float)
+    except KeyError:
+      self.raiseADebug('Final-front validation skipped: candidate lacks objective entries.')
+      return
 
-      def asArray(values):
-        """
-        Cast a DataArray or list of objective values to a 1-D float numpy array.
-        @ In, values, array-like, values from a DataArray or list to cast to ndarray.
-        @ Out, array, np.ndarray, values converted to a float array.
-        """
-        return np.asarray(values.data if hasattr(values, 'data') else values, dtype=float)
-
-      popMinObjVals = np.column_stack([np.atleast_1d(asArray(vals)) for vals in self.popMinObjVals])
-      # Finalization candidates are stored in minimization space; convert to original
-      # signs below only for Pareto ranking with explicit objective directions.
-      try:
-        candidateMinObjVals = np.array([float(np.atleast_1d(candidate[obj])[0]) for obj in self._objectiveVar], dtype=float)
-      except KeyError:
-        self.raiseADebug('Final-front validation skipped: candidate lacks objective entries.')
-        return
-
-      combined = np.vstack([popMinObjVals, candidateMinObjVals])
-      # Rank final-front candidates with user-facing objective signs and
-      # explicit objective directions, matching the NSGA-II survivor ranking.
-      combinedExternalObjVals = np.array(
-          [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
-           for solution in combined], dtype=float)
-      minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
-      ranks = np.array(frontUtils.rankNonDominatedFrontiers(combinedExternalObjVals, minMask=minMask))
-      candidateRank = ranks[-1]
-      bestRank = ranks[:-1].min() if combined.shape[0] > 1 else candidateRank
-      if candidateRank > bestRank:
-        self.raiseAWarning('Final export candidate is dominated by existing population members '
-                           f'(rank {candidateRank} vs best rank {bestRank}).')
-    except Exception as exc:
-      self.raiseADebug(f'Final-front validation encountered an exception: {exc}')
+    combined = np.vstack([popMinObjVals, candidateMinObjVals])
+    # Rank final-front candidates with user-facing objective signs and
+    # explicit objective directions, matching the NSGA-II survivor ranking.
+    combinedExternalObjVals = np.array(
+        [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
+         for solution in combined], dtype=float)
+    minMask = np.array([optType == "min" for optType in self._minMax], dtype=bool)
+    ranks = np.array(frontUtils.rankNonDominatedFrontiers(combinedExternalObjVals, minMask=minMask))
+    candidateRank = ranks[-1]
+    bestRank = ranks[:-1].min() if combined.shape[0] > 1 else candidateRank
+    if candidateRank > bestRank:
+      self.raiseAWarning('Final export candidate is dominated by existing population members '
+                         f'(rank {candidateRank} vs best rank {bestRank}).')
 
   def _useRealization(self, info, rlz):
-    """Process evaluated offspring for multi-objective optimization."""
+    """
+      Process the evaluated offspring of one multi-objective generation: compute constraints and
+      fitness, then hand the generation to the algorithm-specific _processGeneration.
+      @ In, info, dict, identifying information about the realization (step, traj, etc.)
+      @ In, rlz, xr.Dataset, evaluated offspring realizations for this generation
+      @ Out, None
+    """
     info['step'] = self.counter
     traj = info['traj']
     for t in self._activeTraj[1:]:
       self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory', 0)
     self.incrementIteration(traj)
 
+    self._prunePopulationCache()
     self._cacheEvaluations(rlz)
 
     offspring = datasetToDataArray(rlz, list(self.toBeSampled))
@@ -987,8 +1079,7 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     # have already been multiplied by -1 by RavenSampled before GA/NSGA-II ranking.
     offspringMinObjVals = [list(np.atleast_1d(rlz[obj].data)) for obj in self._objectiveVar]
 
-    offspringConstraintVals = constraintHandling(self, info, rlz, offspring,
-                                      offspringMinObjVals, multiObjective=True)
+    offspringConstraintVals = constraintHandling(self, rlz, offspring, offspringMinObjVals)
 
     normRlz, offspringConstraintVals = self._normalizeRealization(rlz, offspringConstraintVals)
 
@@ -997,9 +1088,15 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
                                               a=self._objCoeff,
                                               b=self._penaltyCoeff,
                                               penalty=None,
+                                              scale=self._scale,
+                                              shift=self._shift,
                                               constraintFunction=offspringConstraintVals,
                                               constraintNum=self._numOfConst,
                                               type=self._minMax)
+
+    # NOTE: _sampledPopulationInfo is deliberately NOT filled here. The RavenSampled population search
+    # compares fitness with an elementwise any(), which admits Pareto-dominated points into the final
+    # export; the multi-objective final front comes from the survivor population / Pareto archive.
 
     self._processGeneration(info,
                             rlz,
@@ -1101,9 +1198,10 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
 
   def _checkConvSpread(self, traj, **kwargs):
     r"""
-    Convergence check on Deb's spread metric $\Delta$ of the rank-1 front (see _computeSpread).
+    Convergence check on Deb's spread metric $\Delta$ of the rank-1 front (see _computeSpread, two
+    objectives only, with the end-point terms taken as zero).
     Convergence is declared when $\Delta < \tau_{\text{spread}}$, the user-provided
-    \xmlNode{spread} criterion (requires at least 3 rank-1 points).
+    \xmlNode{spread} criterion (requires at least 3 distinct rank-1 points).
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
     @ Out, converged, bool, True if the spread $\Delta$ is below the spread criterion.
@@ -1113,10 +1211,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     rank1Indices = np.where(self.popRanks.data == 1)[0]
     if len(rank1Indices) < 3:
       return False
-    front = []
-    for idx in rank1Indices:
-      point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
-      front.append(point)
+    # duplicates of one point make every gap zero, which reads as a perfectly uniform front; measure
+    # the distinct points only, and require at least three of them
+    front = np.unique([[self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
+                       for idx in rank1Indices], axis=0)
+    if len(front) < 3:
+      return False
     spread = self._computeSpread(front)
     threshold = self._convergenceCriteria.get('spread', 0.5)
     converged = spread < threshold
@@ -1128,60 +1228,33 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeSpread(self, front):
-    r"""
-    Compute Deb's spread metric $\Delta$ for a Pareto front, quantifying how uniformly the
-    solutions are distributed (lower is more uniform).
-
-    The $n$ front points are sorted along the first objective, $\mathbf{f}^{(1)},\dots,\mathbf{f}^{(n)}$.
-    Let $d_i=\lVert \mathbf{f}^{(i+1)}-\mathbf{f}^{(i)}\rVert$ be the Euclidean distance between
-    consecutive points and $\bar d=\frac{1}{n-1}\sum_{i=1}^{n-1} d_i$ their mean. Let $d_f$ and
-    $d_l$ be the distances from the two extreme front points to the ideal and nadir corners
-    (the per-objective min and max over the front). Then
-    \begin{equation*}
-      \Delta = \frac{d_f + d_l + \sum_{i=1}^{n-1}\lvert d_i-\bar d\rvert}
-                    {d_f + d_l + (n-1)\,\bar d}\,.
-    \end{equation*}
-    A perfectly uniform spread drives $\Delta\to 0$. Returns 0 when $n<2$ or $\bar d=0$.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, spread, float, Deb's spread metric $\Delta$ for the front.
     """
-    n = len(front)
-    if n < 2:
-      return 0.0
-    front = sorted(front, key=lambda x: x[0])
-    distances = []
-    for i in range(n - 1):
-      dist = np.linalg.norm(np.array(front[i + 1]) - np.array(front[i]))
-      distances.append(dist)
-    ideal = np.array([min(p[i] for p in front) for i in range(len(front[0]))])
-    nadir = np.array([max(p[i] for p in front) for i in range(len(front[0]))])
-    distFirst = np.linalg.norm(np.array(front[0]) - ideal)
-    distLast = np.linalg.norm(np.array(front[-1]) - nadir)
-    meanDist = np.mean(distances)
-    if mathUtils.compareFloats(meanDist, 0.0, 1e-14):
-      return 0.0
-    spread = (distFirst + distLast + sum(abs(d - meanDist) for d in distances)) / (distFirst + distLast + (len(distances)) * meanDist)
-    return spread
+      Deb's spread metric $\Delta$ of a front; see frontUtils.computeSpread.
+      @ In, front, list(list(float)), Pareto front points in objective space.
+      @ Out, spread, float, Deb's spread metric for the front.
+    """
+    return frontUtils.computeSpread(front)
 
   def _checkConvSpacing(self, traj, **kwargs):
     r"""
-    Convergence check on the spacing metric $\mathrm{SP}$ (nearest-neighbour distance deviation)
+    Convergence check on Schott's spacing metric $S$ (deviation of L1 nearest-neighbour distances)
     of the rank-1 front (see _computeSpacing). Convergence is declared when
-    $\mathrm{SP} < \tau_{\text{spacing}}$, the user-provided \xmlNode{spacing} criterion
-    (requires at least 3 rank-1 points).
+    $S < \tau_{\text{spacing}}$, the user-provided \xmlNode{spacing} criterion
+    (requires at least 3 distinct rank-1 points).
     @ In, traj, int, trajectory identifier for the current optimization run.
     @ In, **kwargs, dict, additional convergence inputs (unused).
-    @ Out, converged, bool, True if the spacing $\mathrm{SP}$ is below the spacing criterion.
+    @ Out, converged, bool, True if the spacing $S$ is below the spacing criterion.
     """
     if not hasattr(self, 'popRanks') or not hasattr(self, 'popMinObjVals'):
       return False
     rank1Indices = np.where(self.popRanks.data == 1)[0]
     if len(rank1Indices) < 3:
       return False
-    front = []
-    for idx in rank1Indices:
-      point = [self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
-      front.append(point)
+    # as for spread, duplicates would hide uneven spacing behind zero nearest-neighbour distances
+    front = np.unique([[self.popMinObjVals[j][idx] for j in range(len(self._objectiveVar))]
+                       for idx in rank1Indices], axis=0)
+    if len(front) < 3:
+      return False
     spacing = self._computeSpacing(front)
     threshold = self._convergenceCriteria.get('spacing', 0.5)
     converged = spacing < threshold
@@ -1193,37 +1266,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeSpacing(self, front):
-    r"""
-    Compute the spacing metric $\mathrm{SP}$ for a Pareto front: the standard deviation of each
-    point's nearest-neighbour distance (lower means more evenly spaced).
-
-    For each of the $n$ front points, let $D_i=\min_{j\ne i}\lVert \mathbf{f}^{(i)}-\mathbf{f}^{(j)}\rVert$
-    be its nearest-neighbour Euclidean distance and $\bar D=\frac1n\sum_{i=1}^{n} D_i$ the mean. Then
-    \begin{equation*}
-      \mathrm{SP} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}\left(D_i-\bar D\right)^2}\,.
-    \end{equation*}
-    $\mathrm{SP}=0$ indicates perfectly equal spacing. Returns 0 when $n<2$.
-    @ In, front, list(list(float)), Pareto front points in objective space.
-    @ Out, spacing, float, the spacing metric $\mathrm{SP}$ for the front.
     """
-    n = len(front)
-    if n < 2:
-      return 0.0
-    distances = []
-    for i in range(n):
-      pointI = np.array(front[i])
-      minDist = float('inf')
-      for j in range(n):
-        if i == j:
-          continue
-        pointJ = np.array(front[j])
-        dist = np.linalg.norm(pointI - pointJ)
-        if dist < minDist:
-          minDist = dist
-      distances.append(minDist)
-    meanDist = np.mean(distances)
-    spacing = np.sqrt(np.mean([(d - meanDist) ** 2 for d in distances]))
-    return spacing
+      Schott's spacing metric of a front; see frontUtils.computeSpacing.
+      @ In, front, list(list(float)), Pareto front points in objective space.
+      @ Out, spacing, float, the spacing metric for the front.
+    """
+    return frontUtils.computeSpacing(front)
 
   def _checkConvMaxSpread(self, traj, **kwargs):
     r"""
@@ -1283,32 +1331,12 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     return converged
 
   def _computeMaxSpread(self, front):
-    r"""
-    Compute the maximum spread of a Pareto front: the Euclidean norm of the per-objective
-    ranges, i.e. how widely the non-dominated solutions extend in objective space.
-
-    For a rank-1 front $\mathcal{F}=\{\mathbf{f}^{(1)},\dots,\mathbf{f}^{(n)}\}$ of $n$ points in
-    $M$-objective (minimization) space, where $f^{(k)}_m$ is the $m$-th objective of point $k$,
-    the per-objective range $R_m$ and the max-spread $S$ are
-    \begin{equation*}
-      R_m = \max_{1\le k\le n} f^{(k)}_m \;-\; \min_{1\le k\le n} f^{(k)}_m,
-      \qquad
-      S = \sqrt{\sum_{m=1}^{M} R_m^2}\,.
-    \end{equation*}
-    Geometrically $S$ is the diagonal length of the axis-aligned bounding box enclosing the
-    front, so it grows as the front widens along any objective. By convention $S=0$ when $n<2$.
-    @ In, front, list(list(float)), Pareto front points in objective space (one inner list per point).
-    @ Out, maxSpread, float, the max-spread metric $S$ for the front.
     """
-    n = len(front)
-    if n < 2:
-      return 0.0
-    ranges = []
-    for i in range(len(front[0])):
-      objValues = [point[i] for point in front]
-      ranges.append(max(objValues) - min(objValues))
-    maxSpread = np.sqrt(sum(r ** 2 for r in ranges))
-    return maxSpread
+      Maximum spread of a front; see frontUtils.computeMaxSpread.
+      @ In, front, list(list(float)), Pareto front points in objective space.
+      @ Out, maxSpread, float, Euclidean norm of the per-objective ranges.
+    """
+    return frontUtils.computeMaxSpread(front)
 
   def _checkConvRank1Ratio(self, traj, **kwargs):
     r"""

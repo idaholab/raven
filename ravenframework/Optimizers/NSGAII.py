@@ -53,7 +53,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                       v
         +---------------------------+
         | Fast non-dominated sort   |
-        | (rank fronts F0, F1, …)   |
+        | (rank fronts F0, F1, ...)   |
         +-------------+-------------+
                       |
                       v
@@ -65,7 +65,7 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                       v
         +---------------------------+
         | Elitist survivor merge    |
-        | (parents ∪ offspring)     |
+        | (parents U offspring)     |
         +-------------+-------------+
                       |
                       v
@@ -126,23 +126,6 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     if not self._isMultiObjective:
       self.raiseAnError(IOError, 'NSGA-II requires at least two objectives. Use GeneticAlgorithm for single-objective problems.')
 
-  def _useRealization(self, info, rlz):
-    """
-    Process evaluated offspring following the NSGA-II sequence.
-
-    Flowchart::
-
-          + evaluate offspring population
-          + fast non-dominated sorting (frontUtils.rankNonDominatedFrontiers)
-          + crowding-distance assignment per front
-          + elitist survivor selection (parents ∪ offspring -> next gen)
-          + tournament parent selection biased by (rank, distance)
-          + variation operators (crossover, mutation) to spawn next batch
-
-    This override exists to document the NSGA-II-specific flow while delegating
-    the actual mechanics to :class:`MultiObjectiveGeneticAlgorithm`.
-    """
-    super()._useRealization(info, rlz)
 
   def _crowdingNormalizationBounds(self, objectiveValues):
     """
@@ -228,7 +211,8 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
           combinedFitVals=combinedFitVals,
           combinedConstraintVals=combinedConstraintVals,
           popSize=self._populationSize,
-          objectiveNames=objectiveNames)
+          objectiveNames=objectiveNames,
+          constraintNames=offspringConstraintVals.coords['Constraint'].values if 'Constraint' in offspringConstraintVals.coords else None)
     else:
       currentPopExternalObjValsBySolution = np.array(
           [[self._objMult[obj] * val for obj, val in zip(self._objectiveVar, solution)]
@@ -299,13 +283,14 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
                                             variables=list(self.toBeSampled),
                                             crossoverProb=self._crossoverProb,
                                             points=self._crossoverPoints,
-                                            distDict=self.distDict)
+                                            distDict=self.distDict,
+                                            files=self.assemblerDict['Files']) # plugin operators (e.g. PRLO) read their data files from here
 
-    childrenMutated = self._mutationInstance(offspring=childrenXover,
-                                             distDict=self.distDict,
+    childrenMutated = self._mutationInstance(childrenXover, self.distDict, # positional: plugin mutators may name these offSprings/distDict
                                              locs=self._mutationLocs,
                                              mutationProb=self._effectiveMutationProb(),
-                                             variables=list(self.toBeSampled))
+                                             variables=list(self.toBeSampled),
+                                             files=self.assemblerDict['Files'])
 
     needsRepair = False
     for chrom in range(min(self._nChildren, len(childrenMutated))):

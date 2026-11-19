@@ -1,3 +1,19 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+  Unit tests for the GA constraint-handling step (explicit and implicit constraint evaluation per chromosome).
+"""
 import numpy as np
 import xarray as xr
 
@@ -50,8 +66,7 @@ def test_constraint_handling_combines_explicit_and_implicit():
   offsprings = _make_offsprings()
   rlz = _make_rlz()
   objective_values = [np.array([0.4, 0.8])]
-  info = {'traj': 0}
-  g = constraint_module.constraintHandling(ga, info, rlz, offsprings, objective_values)
+  g = constraint_module.constraintHandling(ga, rlz, offsprings, objective_values)
   assert g.shape == (2, 2)
   expected = np.array([[0.3, 0.3], [-0.1, -0.4]])
   np.testing.assert_allclose(g.values, expected)

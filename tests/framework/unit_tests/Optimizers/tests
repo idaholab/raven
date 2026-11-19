@@ -78,6 +78,14 @@
     input = 'testRankSelection.py'
   [../]
   #  GA: PyTest Unit Tests (one entry per module for detailed reporting)
+  [./pytestGaToMultiObjectiveConversion]
+    type = 'PyTest'
+    input = 'test_to_multiobjective_ga_conversion_pytest.py'
+  [../]
+  [./pytestGaParentSelectionProbabilities]
+    type = 'PyTest'
+    input = 'test_parent_selection_probabilities_pytest.py'
+  [../]
   [./pytestGaConstraintHandling]
     type = 'PyTest'
     input = 'test_constraint_handling_pytest.py'
@@ -89,10 +97,6 @@
   [./pytestGaFitnessFunctions]
     type = 'PyTest'
     input = 'test_fitness_functions_pytest.py'
-  [../]
-  [./pytestGaFitnessSurvivor]
-    type = 'PyTest'
-    input = 'test_ga_fitness_pytest.py'
   [../]
   [./pytestGaUtils]
     type = 'PyTest'
@@ -106,13 +110,33 @@
     type = 'PyTest'
     input = 'test_rank_crowding_selector_pytest.py'
   [../]
-  [./pytestNsga3Operators]
+  [./pytestGaConvergenceCriteria]
     type = 'PyTest'
-    input = 'test_nsga3_operators_pytest.py'
+    input = 'test_ga_convergence_criteria_pytest.py'
+  [../]
+  [./pytestGaIncumbent]
+    type = 'PyTest'
+    input = 'test_ga_incumbent_pytest.py'
   [../]
   [./pytestGaRepair]
     type = 'PyTest'
     input = 'test_repair_operator_pytest.py'
+  [../]
+  [./pytestGaWithoutReplacementInitial]
+    type = 'PyTest'
+    input = 'test_without_replacement_initial_pytest.py'
+  [../]
+  [./pytestGaRankingVariant]
+    type = 'PyTest'
+    input = 'test_ranking_variant_pytest.py'
+  [../]
+  [./pytestGaRealCodedOperatorsMath]
+    type = 'PyTest'
+    input = 'test_real_coded_operators_math_pytest.py'
+  [../]
+  [./pytestGaParentSelectionSmallPopulation]
+    type = 'PyTest'
+    input = 'test_parent_selection_small_population_pytest.py'
   [../]
   [./pytestGaSurvivorSelectors]
     type = 'PyTest'
@@ -133,4 +157,8 @@
     input = 'testFitnessNormalization.py'
   [../]
 
+  [./pytestNsga3Operators]
+    type = 'PyTest'
+    input = 'test_nsga3_operators_pytest.py'
+  [../]
 []
