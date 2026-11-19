@@ -533,12 +533,17 @@ def importFromPath(filename, printImporting = True):
   """
   if printImporting:
     print('(            ) '+UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('Message')+ '      -> importing module '+ filename)
-  import imp, os.path
+  import importlib.machinery, importlib.util, os.path, sys
   try:
     (path, name) = os.path.split(filename)
     (name, ext) = os.path.splitext(name)
-    (file, filename, data) = imp.find_module(name, [path])
-    importedModule = imp.load_module(name, file, filename, data)
+    # the "imp" module was removed in python 3.12; PathFinder searches only the given path, like imp.find_module
+    spec = importlib.machinery.PathFinder.find_spec(name, [path])
+    if spec is None:
+      raise ImportError(f'No module named "{name}" found in "{path}"')
+    importedModule = importlib.util.module_from_spec(spec)
+    sys.modules[name] = importedModule
+    spec.loader.exec_module(importedModule)
     pythonPath = os.environ.get("PYTHONPATH","")
     absPath = os.path.abspath(path)
     if absPath not in pythonPath:

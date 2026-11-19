@@ -65,7 +65,8 @@ class TestBoundDomain(unittest.TestCase):
       @ In, None
       @ Out, None
     """
-    self.assertDictContainsSubset({"lowerBound": self.lowerBound, "upperBound": self.upperBound}, self.settings)
+    for key, value in {"lowerBound": self.lowerBound, "upperBound": self.upperBound}.items():
+      self.assertEqual(self.settings[key], value)
 
   def testFit(self):
     """
