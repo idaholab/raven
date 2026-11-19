@@ -186,22 +186,18 @@ class MultiObjectiveGeneticAlgorithm(GeneticAlgorithm):
     specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
                             operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
                             crowding-distance survivor selection, and multi-objective convergence metrics that are shared
-                            by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II.\\
-
-                            Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for multiobjective optimization problems.
-                            NSGA-II extends traditional GAs by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse set of
-                            non-dominated (Pareto-optimal) solutions. This enables NSGA-II to efficiently explore trade-offs between conflicting objectives,
-                            providing decision-makers with a comprehensive view of the problem's solution space. More information about NSGA-II can be found in:\\
-
-                            Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197.\\
+                            by concrete algorithms selected through the \xmlAttr{type} attribute: \xmlString{NSGA-II}
+                            (the default) and \xmlString{NSGA-III}. The options below are common to every algorithm; the
+                            nodes that only one algorithm reads are listed in that algorithm's subsection.\\
 
                             Internally, objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking, crowding-distance
                             calculation and convergence checks (\texttt{minObjVals}); exported objective values use the requested convention.
                             Survivor selection must be \textit{rankNcrowdingBased} and parent selection \textit{tournamentSelection}."""
     specs.addParam('type', param_type=InputTypes.makeEnumType('multiObjectiveGA', 'multiObjectiveGAType',
         list(cls.knownAlgorithms.keys()) or ['NSGA-II']), required=False, default='NSGA-II',
-        descr=r"""selects the concrete multi-objective genetic algorithm to run. Currently \xmlString{NSGA-II}
-                  (Non-dominated Sorting Genetic Algorithm II) is available. Defaults to \xmlString{NSGA-II}.""")
+        descr=r"""selects the concrete multi-objective genetic algorithm to run: \xmlString{NSGA-II}
+                  (Non-dominated Sorting Genetic Algorithm II, Deb et al. 2002) or \xmlString{NSGA-III}
+                  (reference-point NSGA-III, Deb and Jain 2014). Defaults to \xmlString{NSGA-II}.""")
     objective = specs.getSub('objective')
     if objective is not None:
       objective.description = r"""List the objective variables that jointly define the Pareto front. Two or more

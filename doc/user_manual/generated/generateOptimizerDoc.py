@@ -29,6 +29,7 @@ except Exception as e:
 sys.path.pop()
 
 from ravenframework.utils.InputData import wrapText, removeTrailingWhitespace
+from ravenframework.utils.InputData import _escUnderscore as escapeUnderscore
 
 def insertSolnExport(tex, obj):
   """
@@ -462,26 +463,50 @@ msg = ''
 optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
 msg += optDescr
 msg += gaMigrationNotes
-# write all known types
+
+def algorithmLatex(name, algorithmClass, baseSpecs):
+  """
+    Document one concrete multi-objective GA algorithm as a subsubsection of the
+    MultiObjectiveGeneticAlgorithm entry: its description plus only the nodes and parameters it adds
+    to the shared MultiObjectiveGeneticAlgorithm spec, so the shared options are written once.
+    @ In, name, str, registered algorithm name (the value of the type attribute)
+    @ In, algorithmClass, class, MultiObjectiveGeneticAlgorithm subclass implementing the algorithm
+    @ In, baseSpecs, InputData.ParameterInput, the shared MultiObjectiveGeneticAlgorithm spec
+    @ Out, tex, str, LaTeX for the algorithm subsubsection
+  """
+  specs = algorithmClass.getInputSpecification()
+  baseNames = set(sub.getName() for sub in baseSpecs.subs)
+  extraSubs = [sub for sub in specs.subs if sub.getName() not in baseNames]
+  tex = '\n\n\\subsubsection{' + name + '}\n' + wrapText(specs.description, indent='  ') + '\n'
+  if extraSubs:
+    tex += '\n  In addition to the options above, \\xmlAttr{type}=\\xmlString{' + name + '} reads the following'
+    tex += ' subnodes of \\xmlNode{MultiObjectiveGeneticAlgorithm}:\n  \\begin{itemize}\n'
+    for sub in sorted(extraSubs, key=lambda sub: sub.printPriority):
+      tex += sub.generateLatex(recDepth=2) + '\n'
+    tex += '  \\end{itemize}\n'
+  else:
+    tex += '\n  It reads no subnodes beyond the shared options above.\n'
+  return escapeUnderscore(tex)
+
+# Document each concrete multi-objective GA algorithm (selected via <MultiObjectiveGeneticAlgorithm
+# type="...">) as a subsubsection of the MultiObjectiveGeneticAlgorithm entry written above. The factory
+# loop does not reach them because they are registered under MultiObjectiveGeneticAlgorithm rather than
+# as top-level factory types.
+multiObjectiveBase = Optimizers.factory.returnClass('MultiObjectiveGeneticAlgorithm')
+
+# write all known types; each concrete multi-objective algorithm follows its MultiObjectiveGeneticAlgorithm entry
 for name in Optimizers.factory.knownTypes():
   obj = Optimizers.factory.returnClass(name)
   specs = obj.getInputSpecification()
   tex = specs.generateLatex()
   tex = insertSolnExport(tex, obj)
-  msg +=tex
-  msg+= exampleFactory[name]
-
-# Document each concrete multi-objective GA algorithm's extended spec (e.g. NSGA-III's reference-point
-# operator-family nodes), which the factory loop above does not reach because these are registered
-# under MultiObjectiveGeneticAlgorithm rather than as factory types.
-multiObjectiveBase = Optimizers.factory.returnClass('MultiObjectiveGeneticAlgorithm')
-for name, algorithmClass in multiObjectiveBase.knownAlgorithms.items():
-  specs = algorithmClass.getInputSpecification()
-  tex = specs.generateLatex()
-  tex = insertSolnExport(tex, algorithmClass)
   msg += tex
-  if name in multiObjectiveExampleFactory:
-    msg += multiObjectiveExampleFactory[name]
+  msg += exampleFactory[name]
+  if obj is multiObjectiveBase:
+    for algorithmName, algorithmClass in multiObjectiveBase.knownAlgorithms.items():
+      msg += algorithmLatex(algorithmName, algorithmClass, specs)
+      if algorithmName in multiObjectiveExampleFactory:
+        msg += multiObjectiveExampleFactory[algorithmName]
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w', encoding='utf-8') as f:

@@ -95,13 +95,19 @@ class NSGAIII(MultiObjectiveGeneticAlgorithm):
       @ Out, specs, InputData.ParameterInput, the NSGA-III input specification
     """
     specs = super(NSGAIII, cls).getInputSpecification()
-    specs.name = 'NSGAIII'
-    specs.description = r"""The \xmlNode{NSGAIII} optimizer augments the multi-objective genetic
-                            algorithm with the reference-point niching strategy of NSGA-III (Deb and
-                            Jain, 2014), making it suitable for many-objective problems (three or
-                            more objectives). Its reference-direction, normalization, association and
-                            niching steps are each selectable operator families; the defaults
-                            reproduce the canonical NSGA-III."""
+    # keep the inherited spec name 'MultiObjectiveGeneticAlgorithm' so it matches the input node tag;
+    # NSGA-III is selected via the <MultiObjectiveGeneticAlgorithm type="NSGA-III"> attribute.
+    specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-III}
+                            replaces the crowding-distance step of NSGA-II with the reference-point niching
+                            strategy of NSGA-III, which keeps the population spread over the front when there
+                            are three or more objectives. Its reference-direction, normalization, association
+                            and niching steps are each selectable operator families; the defaults reproduce the
+                            canonical NSGA-III. More information about NSGA-III can be found in:\\
+
+                            Deb, Kalyanmoy, and Himanshu Jain. ``An evolutionary many-objective optimization
+                            algorithm using reference-point-based nondominated sorting approach, part I: solving
+                            problems with box constraints.'' IEEE transactions on evolutionary computation 18.4
+                            (2014): 577-601."""
 
     referenceDirections = InputData.parameterInputFactory('referenceDirections', strictMode=True,
         contentType=InputTypes.StringType,

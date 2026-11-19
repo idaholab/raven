@@ -105,10 +105,15 @@ class NSGAII(MultiObjectiveGeneticAlgorithm):
     specs = super(NSGAII, cls).getInputSpecification()
     # keep the inherited spec name 'MultiObjectiveGeneticAlgorithm' so it matches the input node tag;
     # NSGA-II is selected via the <MultiObjectiveGeneticAlgorithm type="NSGA-II"> attribute.
-    specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-II} handles multi-objective problems using
-                            the Non-dominated Sorting Genetic Algorithm II (NSGA-II). It preserves all configuration options of the
-                            base genetic algorithm while enabling Pareto front ranking and crowding-distance based survivor selection
-                            to explore trade-offs between conflicting objectives."""
+    specs.description = r"""The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-II}
+                            (the default) runs the Non-dominated Sorting Genetic Algorithm II. NSGA-II
+                            ranks the population by non-dominated sorting and uses crowding-distance
+                            estimation to keep a diverse set of non-dominated (Pareto-optimal) solutions,
+                            which lets it explore the trade-offs between conflicting objectives. More
+                            information about NSGA-II can be found in:\\
+
+                            Deb, Kalyanmoy, et al. ``A fast and elitist multiobjective genetic algorithm:
+                            NSGA-II.'' IEEE transactions on evolutionary computation 6.2 (2002): 182-197."""
     objective = specs.getSub('objective')
     if objective is not None:
       objective.description = r"""Name of the objective variable(s) to optimize. Provide at least two comma-separated variables
