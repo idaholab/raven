@@ -13,11 +13,12 @@
 # limitations under the License.
 """
 Created on Oct 10, 2023
-@author: j-bryan
+@author: j-bryan, wangc
 """
 import numpy as np
 import scipy
 
+from .PertDist import PertDist
 
 #**************************
 # Continuous Distributions
@@ -510,6 +511,31 @@ class BasicBetaDistribution(ContinuousDistribution):
       raise ValueError(f'The beta distribution is bimodal for a <= 1 and b <= 1. Given a = {a} and b = {b}.')
 
     return mode
+
+class BasicPertDistribution(ContinuousDistribution):
+  """ PERT distribution wrapper """
+  def __init__(self, a, b, m, lamb=4.0, xMin=None, xMax=None):
+    """
+      Class constructor
+
+      @ In, a, float, minimum value
+      @ In, b, float, maximum value
+      @ In, m, float, most likely (mode)
+      @ In, lamb, float, shape parameter (default = 4)
+      @ In, xMin, float, optional, lower bound of truncated distribution
+      @ In, xMax, float, optional, upper bound of truncated distribution
+      @ Out, None
+    """
+    super().__init__(PertDist(a, b, m, lamb), xMin, xMax)
+
+  def untrMode(self):
+    """
+      Mode of the untruncated distribution
+
+      @ In, None
+      @ Out, mode, float, mode of the distribution
+    """
+    return self.dist.mode()
 
 
 #************************
