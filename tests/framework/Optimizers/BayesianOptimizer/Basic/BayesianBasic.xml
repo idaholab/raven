@@ -36,6 +36,7 @@
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
     </MultiRun>
     <PostProcess name="collect_final">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
@@ -162,6 +163,10 @@
       <type>csv</type>
       <source>selected_index</source>
     </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>trajID,x,y,solutionValue</vars>
+    </Plot>
   </OutStreams>
 
 </Simulation>
