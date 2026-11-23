@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/FastFourierTransform.analytic</name>
+    <author>alfoa</author>
+    <created>2026-10-30</created>
+    <classesTested>PostProcessors.FastFourierTransform</classesTested>
+    <description>
+      Tests the FastFourierTransform PostProcessor with the default settings (no detrending, no window) on two
+      histories sampled every 0.5 s with 64 (even) and 63 (odd) values (see data/generateSignals.py).
+      For the 64-value history, the signal x = 2 + 1.5 sin(2 pi t/8) + 0.5 cos(2 pi 10 t/32) has its components on
+      the FFT bins: the amplitudes must be 2 at the zero frequency (the mean), 1.5 at 0.125 Hz and 0.5 at
+      0.3125 Hz, with phases -pi/2 and 0; the frequencies are in 1/s (pivot in s) and the period of the zero
+      frequency is infinite.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Analytic</WorkingDir>
+    <Sequence>load,fft</Sequence>
+  </RunInfo>
+
+  <Files>
+    <Input name="signals">../data/signals.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="fft" subType="FastFourierTransform">
+      <target>x</target>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">signals</Input>
+      <Output class="DataObjects" type="HistorySet">signals</Output>
+    </IOStep>
+    <PostProcess name="fft">
+      <Input class="DataObjects" type="HistorySet">signals</Input>
+      <Model class="Models" type="PostProcessor">fft</Model>
+      <Output class="DataObjects" type="HistorySet">spectra</Output>
+      <Output class="OutStreams" type="Print">spectra</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="signals">
+      <Input>case</Input>
+      <Output>x, y</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="spectra">
+      <Output>x_fft_period, x_fft_amplitude, x_fft_phase</Output>
+      <options>
+        <pivotParameter>x_fft_frequency</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="spectra">
+      <type>csv</type>
+      <source>spectra</source>
+    </Print>
+  </OutStreams>
+</Simulation>

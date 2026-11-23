@@ -1,24 +1,45 @@
 \subsubsection{FastFourierTransform}
 \label{FastFourierTransformPP}
-The \xmlNode{FastFourierTransform} PostProcessor provides access to the Numpy fast Fourier transform function
-\texttt{numpy.fft.fft}
-and provides the frequencies, periods, and amplitudes from performing the transform. The periods are simply
-the inverse of the frequencies, and the frequency units are the deltas between pivot values in the provided
-input. For example, if data is collected every 3600 seconds, the units of frequency are per-hour.  This
-PostProcessor expects uniformly-spaced pivot values. Note that for each realization in the input data object,
-a separate fft will be created for each target.
+The \xmlNode{FastFourierTransform} PostProcessor provides the single-sided amplitude spectrum of time-dependent
+targets, computed with the Numpy fast Fourier transform function \texttt{numpy.fft.rfft}, in terms of
+frequencies, periods, amplitudes and phases. Note that for each realization in the input data object, a separate
+spectrum is computed for each target.
+\begin{itemize}
+  \item The frequencies are in units of the inverse of the pivot parameter (e.g. Hz if the pivot parameter is a time
+    in seconds), from zero to the Nyquist frequency $1/(2 \Delta t)$, with a resolution $1/(N \Delta t)$, where
+    $\Delta t$ is the pivot step and $N$ the number of values.
+  \item The periods are the inverse of the frequencies (in units of the pivot parameter); the period of the zero
+    frequency is infinite.
+  \item The amplitudes are scaled so that a sinusoid of amplitude $A$ gives a peak of amplitude $A$ (if its
+    frequency is on a frequency of the spectrum); the amplitude at the zero frequency is the mean of the signal.
+    If a window is applied, the amplitudes are corrected for the window coherent gain.
+  \item The phases are in radians (a cosine has a phase 0, a sine a phase $-\pi/2$).
+\end{itemize}
+This PostProcessor requires uniformly-spaced pivot values (an error is raised otherwise); histories with
+non-uniform pivot values can be resampled first, e.g. with the \xmlString{HistorySetSync} PostProcessor.
+NaN values (e.g. in a \xmlNode{DataSet} containing histories of different lengths) are removed before the transform.
 
 The \xmlNode{FastFourierTransform} PostProcessor can act on any target in a DataObject that depends on a
-single index, and generates three histories per sample per target: an independent variable
-\xmlString{target\_fft\_frequency}, and two dependent values \xmlString{target\_fft\_period} and
-\xmlString{target\_fft\_amplitude}, which both depend on the frequency by default. In all three outputs,
-\emph{target} is replaced by the name of the target for which the fft was requested.
+single index, and generates four histories per sample per target: an independent variable
+\xmlString{target\_fft\_frequency}, and three dependent values \xmlString{target\_fft\_period},
+\xmlString{target\_fft\_amplitude} and \xmlString{target\_fft\_phase}, which depend on the frequency. In all the
+outputs, \emph{target} is replaced by the name of the target for which the fft was requested.
 
 \ppType{FastFourierTransform}{FastFourierTransform}
 %
 \begin{itemize}
   \item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, specifies the names of the
     target(s) for which the fast Fourier transform should be calculated.
+  \item \xmlNode{detrend}, \xmlDesc{string, optional field}, removes a trend from each signal before the transform:
+    \xmlString{none} (no detrending), \xmlString{constant} (the mean is removed) or \xmlString{linear} (a linear fit
+    over the pivot is removed). Detrending is recommended for drifting or transient signals, whose trend otherwise
+    dominates the spectrum.
+    \default{none}
+  \item \xmlNode{window}, \xmlDesc{string, optional field}, window applied to each (detrended) signal before the
+    transform to reduce the spectral leakage: \xmlString{none}, \xmlString{hann}, \xmlString{hamming} or
+    \xmlString{blackman}. The amplitudes are corrected for the window coherent gain, so that a sinusoid keeps its
+    amplitude.
+    \default{none}
  \end{itemize}
 \textbf{Example:}
 
@@ -29,6 +50,8 @@ single index, and generates three histories per sample per target: an independen
     ...
     <PostProcessor name="pp" subType="FastFourierTransform">
       <target>x, y</target>
+      <detrend>linear</detrend>
+      <window>hann</window>
     </PostProcessor>
     ...
   </Models>
