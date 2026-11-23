@@ -92,7 +92,7 @@ do
   case "$1" in
     --help)
       display_usage
-      return
+      exit 0
       ;;
     --remote-node-address)
       shift
@@ -134,25 +134,25 @@ echo $REMOTE_ADDRESS
 if [[ "$REMOTE_ADDRESS" == "" ]];
 then
   echo ... ERROR: --remote-node-address argument must be inputted !
-  exit
+  exit 1
 fi
 
 if [[ "$HEAD_ADDRESS" == "" ]];
 then
   echo ... ERROR: --address argument must be inputted !
-  exit
+  exit 1
 fi
 
 if [[ "$PYTHONPATH" == "" ]];
 then
   echo ... ERROR: --python-path argument must be inputted !
-  exit
+  exit 1
 fi
 
 if [[ "$WORKINGDIR" == "" ]];
 then
   echo ... ERROR: --working-dir argument must be inputted !
-  exit
+  exit 1
 fi
 
 echo RAVEN_FRAMEWORK_DIR $RAVEN_FRAMEWORK_DIR
@@ -160,10 +160,13 @@ echo RAVEN_FRAMEWORK_DIR $RAVEN_FRAMEWORK_DIR
 # ssh in the remote node and run the ray servers
 CWD=`pwd`
 OUTPUT=$CWD/server_debug_$REMOTE_ADDRESS
+START_OUTPUT=${OUTPUT}_start.log
 
+# NUM_GPUS is forwarded to start_ray.sh (it is ignored there when negative);
+# REMOTE_BASH is passed as an optional trailing argument
 if [[ "$REMOTE_BASH" == "" ]];
 then
-  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $NUM_CPUS $RAVEN_FRAMEWORK_DIR" 2>&1 | tee $START_OUTPUT
+  ssh "$REMOTE_ADDRESS" "$ECE_SCRIPT_DIR/server_start.py" "${WORKINGDIR}" "${OUTPUT}" "${PYTHONPATH}" "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $NUM_CPUS $NUM_GPUS $RAVEN_FRAMEWORK_DIR" 2>&1 | tee "$START_OUTPUT"
 else
-  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $NUM_CPUS $RAVEN_FRAMEWORK_DIR $REMOTE_BASH" 2>&1 | tee $START_OUTPUT
+  ssh "$REMOTE_ADDRESS" "$ECE_SCRIPT_DIR/server_start.py" "${WORKINGDIR}" "${OUTPUT}" "${PYTHONPATH}" "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $NUM_CPUS $NUM_GPUS $RAVEN_FRAMEWORK_DIR $REMOTE_BASH" 2>&1 | tee "$START_OUTPUT"
 fi

@@ -201,6 +201,8 @@ class JobHandler(BaseType):
     self.remoteServers = None
     self.daskSchedulerFile = None
     self._daskScheduler = None
+    self._daskJobqueueCluster = None  # dask_jobqueue cluster object (if <daskJobqueue> is used)
+    self._headDaskWorker = None  # Popen of the dask worker started on the head node (if any)
 
   def __getstate__(self):
     """
@@ -216,6 +218,8 @@ class JobHandler(BaseType):
     #This will be reinitialized from a schedulerFile.
     if self._parallelLib == ParallelLibEnum.dask and '_server' in state:
       state.pop('_server')
+    # the dask_jobqueue cluster object is not picklable
+    state.pop('_daskJobqueueCluster', None)
     return state
 
   def __setstate__(self, d):
@@ -225,6 +229,7 @@ class JobHandler(BaseType):
       @ Out, None
     """
     self.__dict__.update(d)
+    self.__dict__.setdefault('_daskJobqueueCluster', None)
     self.__queueLock = threading.RLock()
     # Reinitialize the per-job event registry (lost during pickling).
     # New events will be created when jobs are submitted via reAddJob().
@@ -318,6 +323,16 @@ class JobHandler(BaseType):
         # FIXME: The running.command was always internal now, so I removed it.
         # We should probably find a way to give more pertinent information.
         self.raiseAMessage(f" Process Failed {running.identifier}:{running} internal returnCode {returnCode}")
+        # surface the failure details (e.g. the remote/threaded traceback), if
+        # the runner recorded any, both in the log and in the failed-job metadata
+        failureInfo = getattr(running, 'getFailureInfo', lambda: None)()
+        if failureInfo:
+          self.raiseAMessage(f' Failure details for job "{running.identifier}":\n{failureInfo}')
+          if isinstance(metadataToKeep, dict):
+            metadataToKeep = dict(metadataToKeep)
+            metadataToKeep['failureInfo'] = failureInfo
+          elif metadataToKeep is None:
+            metadataToKeep = {'failureInfo': failureInfo}
         self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
   def __initializeDistributed(self):
@@ -347,6 +362,11 @@ class JobHandler(BaseType):
       # is ray instanciated outside?
       self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
       self.daskInstanciatedOutside = 'schedulerFile' in self.runInfoDict
+      # dask-jobqueue managed cluster (workers submitted as scheduler jobs)?
+      if self._parallelLib == ParallelLibEnum.dask and self.runInfoDict.get('daskJobqueue'):
+        self.__initializeDaskJobqueue(self.runInfoDict['daskJobqueue'])
+        self.__isDistributedInitialized = True
+        return
       if len(self.runInfoDict['Nodes']) > 0 or self.rayInstanciatedOutside or self.daskInstanciatedOutside:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         uniqueN = list(set(availableNodes))
@@ -424,12 +444,14 @@ class JobHandler(BaseType):
         else:
           self.raiseAWarning("parallellib creation not handled")
       if self._parallelLib == ParallelLibEnum.ray:
-        self.raiseADebug("Head node IP address: ", self._server.address_info['node_ip_address'])
-        self.raiseADebug("Redis address       : ", self._server.address_info['redis_address'])
-        self.raiseADebug("Object store address: ", self._server.address_info['object_store_address'])
-        self.raiseADebug("Raylet socket name  : ", self._server.address_info['raylet_socket_name'])
-        self.raiseADebug("Session directory   : ", self._server.address_info['session_dir'])
-        self.raiseADebug("GCS Address         : ", self._server.address_info['gcs_address'])
+        # use .get: some keys (e.g. redis_address) were removed in Ray 2.x
+        addressInfo = getattr(self._server, 'address_info', {}) or {}
+        self.raiseADebug("Head node IP address: ", addressInfo.get('node_ip_address', 'N/A'))
+        self.raiseADebug("Redis address       : ", addressInfo.get('redis_address', 'N/A'))
+        self.raiseADebug("Object store address: ", addressInfo.get('object_store_address', 'N/A'))
+        self.raiseADebug("Raylet socket name  : ", addressInfo.get('raylet_socket_name', 'N/A'))
+        self.raiseADebug("Session directory   : ", addressInfo.get('session_dir', 'N/A'))
+        self.raiseADebug("GCS Address         : ", addressInfo.get('gcs_address', 'N/A'))
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
@@ -441,6 +463,38 @@ class JobHandler(BaseType):
       self.raiseADebug("JobHandler initialized with threading")
     # ray or dask is initialized
     self.__isDistributedInitialized = True
+
+  def __initializeDaskJobqueue(self, config):
+    """
+      Initializes a dask-jobqueue managed cluster: the Dask scheduler runs
+      locally and the workers are submitted AS scheduler jobs (sbatch/qsub) by
+      dask_jobqueue, so no inter-node ssh and no hand-rolled bring-up scripts
+      are needed. Configured via the <daskJobqueue> RunInfo element.
+      @ In, config, dict, with 'scheduler' ("slurm"/"pbs") and 'options'
+        (dask_jobqueue constructor options; see ClusterUtils.assembleDaskJobqueueKwargs)
+      @ Out, None
+    """
+    from ravenframework.CustomModes import ClusterUtils
+    try:
+      import dask_jobqueue
+    except ImportError:
+      self.raiseAnError(RuntimeError, 'The <daskJobqueue> option requires the '
+                        '"dask_jobqueue" package (e.g. pip install dask-jobqueue), '
+                        'which could not be imported!')
+    try:
+      clusterClassName, kwargs, jobs = ClusterUtils.assembleDaskJobqueueKwargs(config, self.runInfoDict)
+    except ValueError as err:
+      self.raiseAnError(IOError, str(err))
+    clusterClass = getattr(dask_jobqueue, clusterClassName)
+    self.raiseAMessage(f'Starting dask_jobqueue.{clusterClassName} with options {kwargs}, '
+                       f'scaling to {jobs} scheduler job(s)')
+    self._daskJobqueueCluster = clusterClass(**kwargs)
+    self._daskJobqueueCluster.scale(jobs=jobs)
+    self._server = dask.distributed.Client(self._daskJobqueueCluster)
+    # RAVEN owns this cluster (teardown happens in __shutdownParallel)
+    self.daskInstanciatedOutside = False
+    self.raiseADebug('dask-jobqueue dashboard: '
+                     +str(getattr(self._daskJobqueueCluster, 'dashboard_link', 'N/A')))
 
   def __getLocalAndRemoteMachineNames(self):
     """
@@ -492,10 +546,39 @@ class JobHandler(BaseType):
         rayTerminate.wait()
         if rayTerminate.returncode != 0:
           self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
-    elif self._parallelLib == ParallelLibEnum.dask and self._server is not None and not self.rayInstanciatedOutside:
-      self._server.close()
-      if self._daskScheduler is not None:
-        self._daskScheduler.terminate()
+    elif self._parallelLib == ParallelLibEnum.dask and self._server is not None:
+      if self._daskJobqueueCluster is not None:
+        # dask-jobqueue managed cluster: closing the cluster cancels the
+        # worker scheduler jobs (sbatch/qsub) and stops the scheduler
+        try:
+          self._server.close()
+        finally:
+          try:
+            self._daskJobqueueCluster.close()
+          except Exception as exc:
+            self.raiseAWarning("dask-jobqueue cluster close raised: "+repr(exc))
+          self._daskJobqueueCluster = None
+      elif not self.daskInstanciatedOutside:
+        # We own this cluster: shut down the scheduler and ALL (local and
+        # remote) workers, not just the client connection. Client.shutdown()
+        # asks the scheduler to retire every worker before closing, which
+        # prevents zombie "dask worker" processes on remote nodes.
+        try:
+          self._server.shutdown()
+        except Exception as exc:
+          self.raiseAWarning("Dask cluster shutdown raised: "+repr(exc))
+          try:
+            self._server.close()
+          except Exception:
+            pass
+        if self._headDaskWorker is not None and self._headDaskWorker.poll() is None:
+          self._headDaskWorker.terminate()
+        if self._daskScheduler is not None and self._daskScheduler.poll() is None:
+          self._daskScheduler.terminate()
+      else:
+        # Externally managed cluster: only disconnect our client; leave the
+        # scheduler and workers to their owner.
+        self._server.close()
 
   def __runHeadNode(self, nProcs, port=None):
     """
@@ -514,10 +597,9 @@ class JobHandler(BaseType):
         command.append("--num-cpus="+str(nProcs))
       if port is not None:
         command.append("--port="+str(port))
-      outFile = open("ray_head.ip", 'w')
-      rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localEnv)
-      rayStart.wait()
-      outFile.close()
+      with open("ray_head.ip", 'w') as outFile:
+        rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localEnv)
+        rayStart.wait()
       if rayStart.returncode != 0:
         self.raiseAnError(RuntimeError, f"RAY failed to start on the --head node! Return code is {rayStart.returncode}")
       else:
@@ -559,13 +641,15 @@ class JobHandler(BaseType):
       if succeeded:
         #do equivelent of dask worker start in start_dask.sh:
         # dask worker --nworkers $NUM_CPUS --scheduler-file $SCHEDULER_FILE  >> $OUTFILE
-        outFile = open(os.path.join(self.runInfoDict['WorkingDir'],
-                                    "server_debug_"+self.__getLocalHost()),'w')
         command = ["dask","worker","--scheduler-file",self.daskSchedulerFile]
         if nProcs is not None:
           command.extend(("--nworkers",str(nProcs)))
-        headDaskWorker = utils.pickleSafeSubprocessPopen(command,shell=False,
-                                stdout=outFile, stderr=outFile, env=localEnv)
+        # the subprocess duplicates the file descriptor, so the Python-side
+        # handle can (and should) be closed right after spawning
+        with open(os.path.join(self.runInfoDict['WorkingDir'],
+                               "server_debug_"+self.__getLocalHost()),'w') as outFile:
+          self._headDaskWorker = utils.pickleSafeSubprocessPopen(command,shell=False,
+                                  stdout=outFile, stderr=outFile, env=localEnv)
     return address
 
   def __getRayInfoFromStart(self, rayLog):
@@ -1213,7 +1297,7 @@ class JobHandler(BaseType):
                   if infoKey in self.runInfoDict:
                     kwargs[infoKey] = self.runInfoDict[infoKey]
               kwargs['INDEX'] = str(i)
-              kwargs['INDEX1'] = str(i+i)
+              kwargs['INDEX1'] = str(i+1)
               kwargs['CURRENT_ID'] = str(self.__nextId)
               kwargs['CURRENT_ID1'] = str(self.__nextId+1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
