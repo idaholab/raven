@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/TSACharacterizer.ExponentialResponse</name>
+    <author>alfoa</author>
+    <created>2026-10-20</created>
+    <classesTested>PostProcessors.TSACharacterizer, TSA.ExponentialResponse</classesTested>
+    <description>
+      Test the characterization of step responses with the ExponentialResponse TSA algorithm.
+      Each history contains two signals made of two exponential modes (fast and slow) relaxing towards a
+      steady value, plus noise (see TrainingData/generateExpResponse.py). The response starts at t=0;
+      the samples before are not used for the fit. The characterized time constants, amplitudes and steady
+      values must be close to the ones used to generate the signals.
+      The input variables of the HistorySet (case) must be carried over to the characterized PointSet.
+      The third signal is the S-shaped response of two first-order lags in series, characterized with the
+      "lagged" model.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ExponentialResponse</WorkingDir>
+    <Sequence>Load,Process</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="Load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <PostProcess name="Process">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Model class="Models" type="PostProcessor">tsa_exp</Model>
+      <Output class="DataObjects" type="PointSet">chz</Output>
+      <Output class="OutStreams" type="Print">chz</Output>
+    </PostProcess>
+  </Steps>
+
+  <Files>
+    <Input name="input">../TrainingData/expResponse.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="tsa_exp" subType="TSACharacterizer">
+      <pivotParameter>pivot</pivotParameter>
+      <ExponentialResponse target="temperature, power">
+        <nTerms>2</nTerms>
+        <startTime>0</startTime>
+      </ExponentialResponse>
+      <ExponentialResponse target="lagged">
+        <model>lagged</model>
+        <nTerms>2</nTerms>
+        <startTime>0</startTime>
+      </ExponentialResponse>
+    </PostProcessor>
+  </Models>
+
+  <OutStreams>
+    <Print name="chz">
+      <type>csv</type>
+      <source>chz</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="chz">
+      <Input>case</Input>
+    </PointSet>
+    <HistorySet name="input">
+      <Input>case</Input>
+      <Output>temperature, power, lagged</Output>
+      <options>
+        <pivotParameter>pivot</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

@@ -7,6 +7,10 @@
     type = 'RavenPython'
     input = 'testPolynomialRegression.py'
   [../]
+  [./ExponentialResponse]
+    type = 'RavenPython'
+    input = 'testExponentialResponse.py'
+  [../]
   [./Wavelet]
     type = 'RavenPython'
     input = 'testWavelet.py'

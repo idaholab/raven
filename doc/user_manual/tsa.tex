@@ -60,6 +60,75 @@ In addition, any number of the following TSA algorithms may be included as subno
     degree of polynomial to fit to the presented data.
   \end{itemize}
 
+  %%%%% ExponentialResponse %%%%%
+\item \xmlNode{ExponentialResponse} fits the response of a system to a step-like excitation as a sum of
+  exponential modes relaxing towards a steady value:
+  \begin{equation*}
+    y(t) = y_{\infty} + \sum_{i=1}^{N} b_i \exp\left(-\frac{t-t_0}{\tau_i}\right), \quad t \geq t_0
+  \end{equation*}
+  with $y(t) = y(t_0) = y_{\infty} + \sum_i b_i$ for $t < t_0$. The time constants $\tau_i$ characterize the
+  inertia of the system (e.g. thermal inertia), $y_{\infty}$ is the extrapolated steady value and $b_i$ are the
+  amplitudes of the modes. For given time constants the model is linear in $y_{\infty}$ and $b_i$, which are
+  computed by least squares; the time constants are found by a deterministic search (log-spaced grid followed
+  by a bounded optimization). The time constants are sorted in ascending order (fastest mode first) and two
+  consecutive time constants must differ at least by the factor \xmlNode{minTauRatio}, which prevents degenerate
+  solutions (nearly equal time constants with large amplitudes of opposite sign).
+
+  With \xmlNode{model} equal to \xmlString{lagged}, the response is the one of $N$ first-order lags in series
+  (e.g. thermal masses heated one through the other), whose step response has a zero initial slope (S-shaped
+  for $N>1$):
+  \begin{equation*}
+    y(t) = y_{\infty} + (y_0 - y_{\infty}) \sum_{i=1}^{N} c_i \exp\left(-\frac{t-t_0}{\tau_i}\right), \quad
+    c_i = \prod_{j \neq i} \frac{\tau_i}{\tau_i - \tau_j}
+  \end{equation*}
+  so that only $y_{\infty}$ and the initial value $y_0$ are fitted by least squares (the amplitudes
+  $b_i = (y_0 - y_{\infty}) c_i$ are reported).
+
+  When used in the \xmlNode{TSACharacterizer} PostProcessor, the following variables are produced for each
+  target: \texttt{ExponentialResponse\_\_<target>\_\_steady}, \texttt{\_\_initial}, \texttt{\_\_tau<i>},
+  \texttt{\_\_amplitude<i>}, \texttt{\_\_tau<i>\_atBound} and \texttt{\_\_rmse}.
+  \texttt{\_\_tau<i>\_atBound} is 1 if the time constant is at (within 1\%) \xmlNode{tauMin} or
+  \xmlNode{tauMax}, 0 otherwise.
+  \nb A time constant at the bounds indicates that the corresponding mode cannot be identified from the
+  provided signal (e.g. the signal is too short with respect to it).
+
+  \xmlNode{ExponentialResponse} has the following attributes:
+  \begin{itemize}
+    \item \xmlAttr{target}, \xmlDesc{comma separated string, required field}, indicates which
+        target signals should be trained as part of this entity using this TSA algorithm.
+  \end{itemize}
+
+  \xmlNode{ExponentialResponse} has the following subnodes:
+  \begin{itemize}
+  \item \xmlNode{model}, \xmlDesc{string, optional field}, type of response: \xmlString{exponential}
+    (independent modes with free amplitudes) or \xmlString{lagged} (first-order lags in series, zero initial
+    slope).
+    \default{exponential}
+  \item \xmlNode{nTerms}, \xmlDesc{integer, optional field}, number of exponential modes (time constants) to fit.
+    \default{1}
+  \item \xmlNode{startTime}, \xmlDesc{float, optional field}, value of the pivot parameter at which the response
+    starts ($t_0$). Signal values before it are not used for the fit.
+    \default{the first pivot value}
+  \item \xmlNode{tauMin}, \xmlDesc{float, optional field}, lower bound for the time constants.
+    \default{one tenth of the smallest pivot step}
+  \item \xmlNode{tauMax}, \xmlDesc{float, optional field}, upper bound for the time constants.
+    \default{100 times the duration of the fitted signal}
+  \item \xmlNode{minTauRatio}, \xmlDesc{float, optional field}, minimum ratio between two consecutive time
+    constants (only used if \xmlNode{nTerms} $>$ 1).
+    \default{2.0}
+  \end{itemize}
+
+  Example:
+  \begin{lstlisting}[style=XML]
+<PostProcessor name="tsa_exp" subType="TSACharacterizer">
+  <pivotParameter>time</pivotParameter>
+  <ExponentialResponse target="temperature, power">
+    <nTerms>2</nTerms>
+    <startTime>0</startTime>
+  </ExponentialResponse>
+</PostProcessor>
+  \end{lstlisting}
+
   %%%%% FOURIER %%%%%
   \item \xmlNode{Fourier} uses regression to fit requested Fourier bases by their amplitudes to
     deterministically match the training signal. Fourier signals are defined with the following form:

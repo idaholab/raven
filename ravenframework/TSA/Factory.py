@@ -26,6 +26,7 @@ from .AutoARMA import AutoARMA
 from .MarkovAR import MarkovAR
 from .Wavelet import Wavelet
 from .PolynomialRegression import PolynomialRegression
+from .ExponentialResponse import ExponentialResponse
 from .RWD import RWD
 from .STL import STL
 from .Transformers import ZeroFilter, LogTransformer, ArcsinhTransformer, TanhTransformer, SigmoidTransformer, \

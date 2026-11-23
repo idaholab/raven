@@ -4,6 +4,9 @@ The \xmlNode{TSACharacterizer} PostProcessor is a tool to characterize sets of h
 the Time Series Analysis (TSA) module. It takes each history realization from the input data object
 and returns characterizations. Note the characterizations are entirely stored in the \texttt{metadata}
 portion of the output data object; no data is store in the input or output.
+The input variables of the input \xmlNode{HistorySet} (if any, e.g. case identifiers) are carried over to
+each characterized realization, so that the characterizations can be associated with them
+(they can be listed in the \xmlNode{Input} node of the output \xmlNode{PointSet}).
 
 The \xmlNode{SampleSelector} PostProcessor can only act on \xmlNode{HistorySet} \xmlNode{DataObjects},
 and generates a \xmlNode{PointSet} \xmlNode{DataObject} in return with as many realizations as the input
