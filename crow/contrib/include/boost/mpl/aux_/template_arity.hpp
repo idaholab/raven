@@ -14,9 +14,9 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Id: template_arity.hpp 61584 2010-04-26 18:48:26Z agurtovoy $
-// $Date: 2010-04-26 11:48:26 -0700 (Mon, 26 Apr 2010) $
-// $Revision: 61584 $
+// $Id$
+// $Date$
+// $Revision$
 
 #include <boost/mpl/aux_/config/ttp.hpp>
 #include <boost/mpl/aux_/config/lambda.hpp>
@@ -65,7 +65,7 @@ namespace boost { namespace mpl { namespace aux {
 
 template< BOOST_MPL_AUX_NTTP_DECL(int, N) > struct arity_tag
 {
-    typedef char (&type)[N + 1];
+    typedef char (&type)[(unsigned)N + 1];
 };
 
 #   define AUX778076_MAX_ARITY_OP(unused, state, i_) \

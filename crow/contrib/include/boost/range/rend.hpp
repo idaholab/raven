@@ -11,7 +11,7 @@
 #ifndef BOOST_RANGE_REND_HPP
 #define BOOST_RANGE_REND_HPP
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -20,17 +20,6 @@
 
 namespace boost
 {
-
-#ifdef BOOST_NO_FUNCTION_TEMPLATE_ORDERING
-
-template< class C >
-inline BOOST_DEDUCED_TYPENAME range_reverse_iterator<C>::type
-rend( C& c )
-{
-    return BOOST_DEDUCED_TYPENAME range_reverse_iterator<C>::type( boost::begin( c ) );
-}
-
-#else
 
 template< class C >
 inline BOOST_DEDUCED_TYPENAME range_reverse_iterator<C>::type
@@ -49,8 +38,6 @@ rend( const C& c )
         iter_type;
     return iter_type( boost::begin( c ) );
 }
-
-#endif
 
 template< class T >
 inline BOOST_DEDUCED_TYPENAME range_reverse_iterator<const T>::type

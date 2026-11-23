@@ -1,5 +1,6 @@
 //  Copyright John Maddock 2007.
 //  Copyright Paul A. Bristow 2007, 2009
+//  Copyright Matt Borland 2023.
 //  Use, modification and distribution are subject to the
 //  Boost Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -20,8 +21,11 @@
 #include <boost/math/distributions/complement.hpp>
 #include <boost/math/distributions/detail/common_error_handling.hpp>
 #include <boost/math/special_functions/powm1.hpp>
+#include <boost/math/special_functions/log1p.hpp>
 
 #include <utility> // for BOOST_CURRENT_VALUE?
+#include <limits>
+#include <cmath>
 
 namespace boost
 {
@@ -160,6 +164,14 @@ namespace boost
 
     typedef pareto_distribution<double> pareto; // Convenience to allow pareto(2., 3.);
 
+    #ifdef __cpp_deduction_guides
+    template <class RealType>
+    pareto_distribution(RealType)->pareto_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+    template <class RealType>
+    pareto_distribution(RealType,RealType)->pareto_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+    #endif
+
+
     template <class RealType, class Policy>
     inline const std::pair<RealType, RealType> range(const pareto_distribution<RealType, Policy>& /*dist*/)
     { // Range of permissible values for random variable x.
@@ -218,6 +230,28 @@ namespace boost
     } // cdf
 
     template <class RealType, class Policy>
+    inline RealType logcdf(const pareto_distribution<RealType, Policy>& dist, const RealType& x)
+    {
+      BOOST_MATH_STD_USING  // for ADL of std function pow.
+      static const char* function = "boost::math::logcdf(const pareto_distribution<%1%>&, %1%)";
+      RealType scale = dist.scale();
+      RealType shape = dist.shape();
+      RealType result = 0;
+
+      if(false == (detail::check_pareto_x(function, x, &result, Policy())
+         && detail::check_pareto(function, scale, shape, &result, Policy())))
+         return result;
+
+      if (x <= scale)
+      { // regardless of shape, cdf is zero.
+        return -std::numeric_limits<RealType>::infinity();
+      }
+
+      result = log1p(-pow(scale/x, shape), Policy());
+      return result;
+    } // logcdf
+
+    template <class RealType, class Policy>
     inline RealType quantile(const pareto_distribution<RealType, Policy>& dist, const RealType& p)
     {
       BOOST_MATH_STD_USING  // for ADL of std function pow.
@@ -236,7 +270,7 @@ namespace boost
       }
       if (p == 1)
       {
-        return tools::max_value<RealType>(); // x = + infinity.
+        return policies::raise_overflow_error<RealType>(function, 0, Policy()); // x = + infinity.
       }
       result = scale /
         (pow((1 - p), 1 / shape));
@@ -267,6 +301,28 @@ namespace boost
     } // cdf complement
 
     template <class RealType, class Policy>
+    inline RealType logcdf(const complemented2_type<pareto_distribution<RealType, Policy>, RealType>& c)
+    {
+       BOOST_MATH_STD_USING  // for ADL of std function pow.
+       static const char* function = "boost::math::logcdf(const pareto_distribution<%1%>&, %1%)";
+       RealType result = 0;
+       RealType x = c.param;
+       RealType scale = c.dist.scale();
+       RealType shape = c.dist.shape();
+       if(false == (detail::check_pareto_x(function, x, &result, Policy())
+           && detail::check_pareto(function, scale, shape, &result, Policy())))
+         return result;
+
+       if (x <= scale)
+       { // regardless of shape, cdf is zero, and complement is unity.
+         return 0;
+       }
+       result = log(pow((scale/x), shape));
+
+       return result;
+    } // logcdf complement
+
+    template <class RealType, class Policy>
     inline RealType quantile(const complemented2_type<pareto_distribution<RealType, Policy>, RealType>& c)
     {
       BOOST_MATH_STD_USING  // for ADL of std function pow.
@@ -286,7 +342,7 @@ namespace boost
       }
       if (q == 0)
       {
-        return tools::max_value<RealType>(); // x = + infinity.
+         return policies::raise_overflow_error<RealType>(function, 0, Policy()); // x = + infinity.
       }
       result = scale / (pow(q, 1 / shape));
       // K. Krishnamoorthy,  ISBN 1-58488-635-8 eq 23.1.3
@@ -430,6 +486,15 @@ namespace boost
       }
       return result;
     } // kurtosis_excess
+
+    template <class RealType, class Policy>
+    inline RealType entropy(const pareto_distribution<RealType, Policy>& dist)
+    {
+      using std::log;
+      RealType xm = dist.scale();
+      RealType alpha = dist.shape();
+      return log(xm/alpha) + 1 + 1/alpha;
+    }
 
     } // namespace math
   } // namespace boost

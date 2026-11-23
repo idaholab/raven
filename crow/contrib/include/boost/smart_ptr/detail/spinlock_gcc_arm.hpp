@@ -11,6 +11,13 @@
 
 #include <boost/smart_ptr/detail/yield_k.hpp>
 
+#if defined(BOOST_SP_REPORT_IMPLEMENTATION)
+
+#include <boost/config/pragma_message.hpp>
+BOOST_PRAGMA_MESSAGE("Using g++/ARM spinlock")
+
+#endif
+
 #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_7S__)
 
 # define BOOST_SP_ARM_BARRIER "dmb"
@@ -82,6 +89,7 @@ public:
     {
         __asm__ __volatile__( BOOST_SP_ARM_BARRIER ::: "memory" );
         *const_cast< int volatile* >( &v_ ) = 0;
+        __asm__ __volatile__( BOOST_SP_ARM_BARRIER ::: "memory" );
     }
 
 public:

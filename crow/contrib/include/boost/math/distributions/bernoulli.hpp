@@ -19,7 +19,7 @@
 // (like others including the poisson, binomial & negative binomial)
 // is strictly defined as a discrete function: only integral values of k are envisaged.
 // However because of the method of calculation using a continuous gamma function,
-// it is convenient to treat it as if a continous function,
+// it is convenient to treat it as if a continuous function,
 // and permit non-integral values of k.
 // To enforce the strict mathematical model, users should use floor or ceil functions
 // on k outside this function to ensure that k is integral.
@@ -55,12 +55,12 @@ namespace boost
         return true;
       }
       template <class RealType, class Policy>
-      inline bool check_dist(const char* function, const RealType& p, RealType* result, const Policy& /* pol */, const mpl::true_&)
+      inline bool check_dist(const char* function, const RealType& p, RealType* result, const Policy& /* pol */, const std::true_type&)
       {
         return check_success_fraction(function, p, result, Policy());
       }
       template <class RealType, class Policy>
-      inline bool check_dist(const char* , const RealType& , RealType* , const Policy& /* pol */, const mpl::false_&)
+      inline bool check_dist(const char* , const RealType& , RealType* , const Policy& /* pol */, const std::false_type&)
       {
          return true;
       }
@@ -89,7 +89,7 @@ namespace boost
       template <class RealType, class Policy>
       inline bool check_dist_and_prob(const char* function, RealType p, RealType prob, RealType* result, const Policy& /* pol */)
       {
-        if(check_dist(function, p, result, Policy(), typename policies::method_error_check<Policy>::type()) && detail::check_probability(function, prob, result, Policy()) == false)
+        if((check_dist(function, p, result, Policy(), typename policies::method_error_check<Policy>::type()) && detail::check_probability(function, prob, result, Policy())) == false)
         {
           return false;
         }
@@ -126,6 +126,11 @@ namespace boost
 
     typedef bernoulli_distribution<double> bernoulli;
 
+    #ifdef __cpp_deduction_guides
+    template <class RealType>
+    bernoulli_distribution(RealType)->bernoulli_distribution<typename boost::math::tools::promote_args<RealType>::type>;
+    #endif
+
     template <class RealType, class Policy>
     inline const std::pair<RealType, RealType> range(const bernoulli_distribution<RealType, Policy>& /* dist */)
     { // Range of permissible values for random variable k = {0, 1}.
@@ -146,7 +151,7 @@ namespace boost
       return dist.success_fraction();
     } // mean
 
-    // Rely on dereived_accessors quantile(half)
+    // Rely on derived_accessors quantile(half)
     //template <class RealType>
     //inline RealType median(const bernoulli_distribution<RealType, Policy>& dist)
     //{ // Median of bernoulli distribution is not defined.
