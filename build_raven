@@ -109,7 +109,7 @@ fi
 
 (cd $PYTHON_FMU_DIR && ./build_pythonfmu || echo PythonFMU not built)
 
-PIP_COMMAND=pip3
+PIP_COMMAND="$PYTHON_COMMAND -m pip"
 if [[ $EDITABLE == 0 ]]
 then # Don't install editable
     (cd $RAVEN_BUILD_DIR && ${PIP_COMMAND} --verbose install . --upgrade --target ./install)
