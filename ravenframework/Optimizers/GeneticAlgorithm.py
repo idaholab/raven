@@ -312,9 +312,9 @@ class GeneticAlgorithm(RavenSampled):
     self._sampledPopulationInfo = {}                             # maps evaluated genotypes to their fitness, for checkpoint/restart and survivor bookkeeping
     self.population = None                                       # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None                                           # population age
-    self.ahdp = np.NaN                                           # p-Average Hausdorff Distance between populations
-    self.ahd  = np.NaN                                           # Hausdorff Distance between populations
-    self.hdsm = np.NaN                                           # Hausdorff Distance Similarity metric between populations
+    self.ahdp = np.nan                                           # p-Average Hausdorff Distance between populations
+    self.ahd  = np.nan                                           # Hausdorff Distance between populations
+    self.hdsm = np.nan                                           # Hausdorff Distance Similarity metric between populations
     self.bestPoint = None                                        # the best solution (chromosome) found among population in a specific batchId
     self.bestFitVal = None                                      # fitness value of the best solution found
     self._bestSnapshot = None                                    # cached survivor snapshot for final export alignment
@@ -1161,9 +1161,9 @@ class GeneticAlgorithm(RavenSampled):
     self.popAge = None
     self._bestSnapshot = None
 
-    self.ahdp = np.NaN
-    self.ahd = np.NaN
-    self.hdsm = np.NaN
+    self.ahdp = np.nan
+    self.ahd = np.nan
+    self.hdsm = np.nan
     self.bestPoint = None
     self.bestFitVal = None
     self.multiBestMinObjVals = None

@@ -9,7 +9,12 @@
  [./adaptive_sampler_ext_model]
   type = 'RavenFramework'
   input = 'test_adaptive_sampler.xml'
-  csv = 'Adapt/limitSurfaceDump.csv'
+  # grid points that are 0 come out as rounding noise (3e-16 to 4e-16) that depends on the numpy version
+  [./data]
+   type = OrderedCSV
+   output = 'Adapt/limitSurfaceDump.csv'
+   zero_threshold = 1e-12
+  [../]
  [../]
  [./adaptive_sampler_no_crossing]
   type = 'RavenFramework'

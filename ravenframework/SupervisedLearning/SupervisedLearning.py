@@ -598,7 +598,7 @@ class SupervisedLearning(BaseInterface):
 
     if self.doneSelectionFeatures and self.removed:
       dummy = np.empty(list(evaluation.values())[0].shape)
-      dummy[:] = np.NaN
+      dummy[:] = np.nan
       for rem in self.removed:
         evaluation[rem] = dummy
     return evaluation

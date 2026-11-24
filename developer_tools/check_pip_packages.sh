@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# This script tests that the 3.10, 3.11 and 3.12 wheels built in directory dist
+# This script tests that the 3.11, 3.12 and 3.13 wheels built in directory dist
 # are installable. It will not work if there is more than one
 # version of the wheel for a python version (including for other os's)
 # It is designed to be run after (or similar):
 # rm -Rf dist; ./developer_tools/make_pip_packages.sh
-# It will install raven_framework in the python310_pip, python311_pip and python312_pip
+# It will install raven_framework in the python311_pip, python312_pip and python313_pip
 # conda environments
 # It requires that .ravenrc has a working CONDA_DEFS statement.
 # To run from the raven directory:
@@ -28,23 +28,14 @@ ls -l dist
 #python -m pip install -f file://${RAVEN_DIR}/dist raven_framework || exit -1
 
 echo
-echo Checking Python 3.10
-
-conda activate python310_pip
-python -m pip uninstall -y raven_framework || echo not installed
-python -m pip install dist/raven_framework*cp310*.whl || exit -1
-
-# Run some tests to check that the installed package is working. The user_guide
-# tests are all pretty simple, and there are only a few of them, so we'll use those.
-$RAVEN_DIR/run_tests --re="user_guide" --tester-command RavenFramework raven_framework --skip-load-env --raven || exit -1
-
-echo
 echo Checking Python 3.11
 
 conda activate python311_pip
 python -m pip uninstall -y raven_framework || echo not installed
 python -m pip install dist/raven_framework*cp311*.whl || exit -1
 
+# Run some tests to check that the installed package is working. The user_guide
+# tests are all pretty simple, and there are only a few of them, so we'll use those.
 $RAVEN_DIR/run_tests --re="user_guide" --tester-command RavenFramework raven_framework --skip-load-env --raven || exit -1
 
 echo
@@ -53,5 +44,14 @@ echo Checking Python 3.12
 conda activate python312_pip
 python -m pip uninstall -y raven_framework || echo not installed
 python -m pip install dist/raven_framework*cp312*.whl || exit -1
+
+$RAVEN_DIR/run_tests --re="user_guide" --tester-command RavenFramework raven_framework --skip-load-env --raven || exit -1
+
+echo
+echo Checking Python 3.13
+
+conda activate python313_pip
+python -m pip uninstall -y raven_framework || echo not installed
+python -m pip install dist/raven_framework*cp313*.whl || exit -1
 
 $RAVEN_DIR/run_tests --re="user_guide" --tester-command RavenFramework raven_framework --skip-load-env --raven || exit -1
