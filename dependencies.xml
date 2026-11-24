@@ -54,6 +54,7 @@ limit our library choices.
     <scikit-learn source="pip">1.5</scikit-learn>
     <!-- Pin numba to 0.61 to avoid coverage issue: https://github.com/numba/numba/issues/10239 -->
     <numba source="pip">0.61</numba>
+    <!-- Pin pandas to 2.3 because statsmodels doesn't work with newer versions -->
     <pandas source="pip">2.3</pandas>
     <!-- Note most versions of xarray work, but some (such as 0.20) don't -->
     <xarray source="pip"/>
@@ -85,6 +86,12 @@ limit our library choices.
          activation puts the env libstdc++ ahead of /lib64 in the loader path, so this pin
          alone is sufficient (no LD_LIBRARY_PATH workaround required). -->
     <libstdcxx-ng os='linux' skip_check='True'/>
+    <!-- libcxx: on macOS the pip wheels (llvmlite, used by numba and statsforecast) are built against the
+         old libc++ ABI. conda-forge libcxx 23.1.5 (build 2) and 23.1.6 no longer export symbols such as
+         std::__vector_base_common<true>::__throw_length_error, so "import llvmlite" fails with
+         "Symbol not found" (seen in the AutoARMA test). 23.1.4 still exports them.
+         Remove when llvmlite wheels are built against the newer libc++. -->
+    <libcxx os='mac' skip_check='True'>23.1.4</libcxx>
     <cmake skip_check='True' optional='True'/>
     <dask source="pip" pip_extra="[complete]"/>
     <!-- Pin pyarrow (pulled in by dask[complete]) to 25: pyarrow 26 requires numpy 2 at import

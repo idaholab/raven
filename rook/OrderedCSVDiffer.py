@@ -39,7 +39,7 @@ class OrderedCSVDiffer:
     Used for comparing two CSV files without regard for column, row orders
   """
   def __init__(self, out_files, gold_files, *, relative_error=1e-10,
-               absolute_check=False, zero_threshold=None, ignore_sign=False):
+               absolute_check=False, zero_threshold=None, ignore_sign=False, ignored_columns=None):
     """
       Create an UnorderedCSVDiffer class
       Note naming conventions are out of our control due to MOOSE test harness standards.
@@ -49,6 +49,8 @@ class OrderedCSVDiffer:
       @ In, absolute_check, bool, optional, if True then check absolute
          differences in the values instead of relative differences
       @ In, ignore_sign, bool, optional, if True then the sign will be ignored during the comparison
+      @ In, ignored_columns, list(str), optional, names of columns that are not compared (and may be missing in
+         either file), for results that are not unique (for example one of several equally good optima)
       @ Out, None.
     """
     assert len(out_files) == len(gold_files)
@@ -60,6 +62,7 @@ class OrderedCSVDiffer:
     self.__rel_err = relative_error
     self.__zero_threshold = float(zero_threshold) if zero_threshold is not None else 0.0
     self.__ignore_sign = ignore_sign
+    self.__ignored_columns = set(ignored_columns) if ignored_columns is not None else set()
     if debug or whoAmI:
       print('gold files:', self.__gold_files)
       print('out files:', self.__out_files)
@@ -158,7 +161,7 @@ class OrderedCSVDiffer:
       ## check columns using symmetric difference
       gold_headers = gold_rows[0]
       test_headers = test_rows[0]
-      diff_columns = set(gold_headers)^set(test_headers)
+      diff_columns = (set(gold_headers)^set(test_headers)) - self.__ignored_columns
       if len(diff_columns) > 0:
         same = False
         msg.append('Columns are not the same! Different: {}'.format(', '.join(diff_columns)))
@@ -176,7 +179,7 @@ class OrderedCSVDiffer:
       if gold_headers == test_headers:
         test_indexes = range(len(gold_headers))
       else:
-        test_indexes = [test_headers.index(s) for s in gold_headers]
+        test_indexes = [test_headers.index(s) if s in test_headers else None for s in gold_headers]
       # So now for a test row:
       #  gold_row[x][y] should match test_row[x][test_indexes[y]]
       ## check for matching rows
@@ -191,6 +194,8 @@ class OrderedCSVDiffer:
                      f" in {gold_row} and {test_row}")
           continue
         for column in range(len(gold_row)):
+          if gold_headers[column] in self.__ignored_columns:
+            continue
           gold_value = to_float(gold_row[column])
           test_value = to_float(test_row[test_indexes[column]])
           match_is_number = isinstance(gold_value, float)
@@ -233,6 +238,8 @@ class OrderedCSV(Differ):
     params.add_param('zero_threshold', sys.float_info.min*4.0, 'it represents '+
                      'the value below which a float is considered zero (XML comparison only)')
     params.add_param('ignore_sign', False, 'if true, then only compare the absolute values')
+    params.add_param('ignored_columns', '', 'space separated names of columns that are not compared '+
+                     '(for results that are not unique, such as one of several equally good optima)')
     params.add_param('check_absolute_value', False, 'if true the values are '+
                      'compared to the tolerance directectly, instead of relatively.')
     return params
@@ -253,6 +260,7 @@ class OrderedCSV(Differ):
     else:
       self.__rel_err = 1e-10
     self.__check_absolute_value = self.specs["check_absolute_value"]
+    self.__ignored_columns = self.specs['ignored_columns'].split()
 
   def check_output(self):
     """
@@ -270,5 +278,6 @@ class OrderedCSV(Differ):
                                 relative_error=self.__rel_err,
                                 zero_threshold=self.__zero_threshold,
                                 ignore_sign=self.__ignore_sign,
+                                ignored_columns=self.__ignored_columns,
                                 absolute_check=self.__check_absolute_value)
     return csv_diff.diff()

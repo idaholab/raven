@@ -167,6 +167,15 @@ class RavenSampled(Optimizer):
   # Note these names need to be formatted according to checkConvergence check!
   convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
 
+  # Version of THIS CLASS's own optimizer-state schema (the field names/meaning of the dict
+  # returned by _getCheckpointState/_resolveNewGeneration-style SolutionExport rows), as opposed
+  # to _CHECKPOINT_VERSION above (the shared HDF5 checkpoint FILE FORMAT, same for every
+  # optimizer subclass). A subclass MUST bump its own override of this value whenever it renames,
+  # removes, or adds fields to its _getCheckpointState/_restoreCheckpointState state dict, or to
+  # the per-realization dict it feeds into _updateSolutionExport/addRealization -- unlike a file
+  # format change, a state-schema change is not something the restore path can gracefully degrade from.
+  _checkpointStateSchemaVersion = '1.0'
+
   ##########################
   # Initialization Methods #
   ##########################
@@ -531,9 +540,13 @@ class RavenSampled(Optimizer):
       @ Out, settings, dict, configuration settings required for restart compatibility checks
     """
     return {
-      'variables':     sorted(self.toBeSampled.keys()),
-      'objectiveVars': self._objectiveVar,
-      'minMax':        self._minMax,
+      'variables':         sorted(self.toBeSampled.keys()),
+      'objectiveVars':     self._objectiveVar,
+      'minMax':            self._minMax,
+      # See the class-level docstring on _checkpointStateSchemaVersion: this is the ACTUAL
+      # optimizer class's own state-dict/SolutionExport-row schema version (e.g. GeneticAlgorithm
+      # overrides the class attribute), not the shared file-format _CHECKPOINT_VERSION above.
+      'stateSchemaVersion': self._checkpointStateSchemaVersion,
     }
 
   def _getCheckpointState(self):
@@ -599,6 +612,17 @@ class RavenSampled(Optimizer):
       self.raiseAWarning(f'Restart file version "{ckptVersion}" is not among the supported '
                         f'checkpoint versions {_SUPPORTED_CHECKPOINT_VERSIONS}; compatibility '
                         f'is not guaranteed.')
+    # State-schema compatibility is a hard requirement, not a soft warning like the file-format
+    # version above: unlike the file format (which this class's own restore path can tolerate
+    # drifting, e.g. an ignored legacy field), a subclass-specific state-schema change (renamed/
+    # added/removed fields) is not something the generic restore path can degrade gracefully from.
+    ckptStateSchemaVersion = checkpoint.get('settings', {}).get('stateSchemaVersion', '1.0')
+    if ckptStateSchemaVersion != self._checkpointStateSchemaVersion:
+      self.raiseAnError(IOError,
+          f'Restart file was written with {self.__class__.__name__} state-schema version '
+          f'"{ckptStateSchemaVersion}" but the current code uses state-schema version '
+          f'"{self._checkpointStateSchemaVersion}". The internal structure of this optimizer\'s '
+          f'saved state has changed incompatibly since this checkpoint was written, so it cannot be safely restored.')
     ckptType = checkpoint.get('optimizerType', 'unknown')
     if ckptType != self.__class__.__name__:
       self.raiseAnError(IOError,
