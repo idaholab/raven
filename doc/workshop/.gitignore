@@ -66,3 +66,10 @@ stochasticCollocation/inputs/run/training_data.xml
 timeDepDataMining/inputs/basicStatisticsTimeDependent/
 timeDepDataMining/inputs/resultsHierarchicalDTW/
 timeDepDataMining/inputs/timeSliceKMeans/
+SparseSensing/inputs/reconstructionOptiTwist/
+stochasticCollocation/inputs/run/plot_model_scatter.png
+stochasticCollocation/inputs/run/plot_rom_scatter.png
+stochasticCollocation/inputs/run/print_model.xml
+stochasticCollocation/inputs/run/print_rom.xml
+stochasticCollocation/inputs/run/rom_stats_adapt.xml
+stochasticCollocation/inputs/run/scgpc_adapt.pk

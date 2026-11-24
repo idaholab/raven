@@ -23,6 +23,9 @@ from datetime import datetime
 
 import h5py  as h5
 import numpy as np
+
+# np.sctypes was removed in numpy 2.0; these are the float and int types it listed in numpy 1.26
+_FLOAT_INT_TYPES = [np.float16, np.float32, np.float64, np.int8, np.int16, np.int32, np.int64]
 import os
 import copy
 import pickle as pk
@@ -319,9 +322,9 @@ class AfterFeb2018ToOct2021HDF5Database(InputDataUser, MessageUser):
       @ Out, check, bool, the check
     """
     if neg:
-      check = type(value) == np.ndarray and value.dtype not in np.sctypes['float']+np.sctypes['int'] and type(value) not in [float,int]
+      check = type(value) == np.ndarray and value.dtype not in _FLOAT_INT_TYPES and type(value) not in [float,int]
     else:
-      check = type(value) == np.ndarray and value.dtype in np.sctypes['float']+np.sctypes['int'] or type(value) in [float,int]
+      check = type(value) == np.ndarray and value.dtype in _FLOAT_INT_TYPES or type(value) in [float,int]
     return check
 
   def __populateGroup(self, group, name,  rlz):

@@ -169,7 +169,7 @@ class ThreeDTubePlot(PlotInterface):
       points = points[idx]
       generations = generations[idx]
 
-    colors = (generations - generations.min()) / max(generations.ptp(), 1e-9)
+    colors = (generations - generations.min()) / max(np.ptp(generations), 1e-9)
     cmap = plt.cm.viridis
 
     fig = plt.figure(figsize=(6.6, 5.6))

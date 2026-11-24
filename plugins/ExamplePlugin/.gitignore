@@ -5,3 +5,5 @@ tests/interfacedPostProcessorParallel/PrintHistorySet_dump.xml
 tests/interfacedPostProcessorParallel/PrintPPHistorySet_dump.xml
 tests/interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml
 tests/interfacedPostProcessor_PointSet/PrintPointSet_dump.xml
+tests/ProjectileCodePlugin/runGrid/
+tests/ProjectileCodePlugin/to_file.xml

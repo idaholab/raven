@@ -26,7 +26,8 @@ import numpy as np
 
 # numpy with version 1.14.0 and upper will change the floating point type and print
 # https://docs.scipy.org/doc/numpy-1.14.0/release.html
-if int(np.__version__.split('.')[1]) > 13:
+# (compare the (major, minor) tuple: numpy 2.x has a minor version below 14)
+if tuple(int(v) for v in np.__version__.split('.')[:2]) > (1, 13):
   np.set_printoptions(**{'legacy':'1.13'})
 
 ravenDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir))
