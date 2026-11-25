@@ -1,0 +1,8 @@
+[Tests]
+  [./test_sparse_sensing_helpers]
+    type = 'RavenPython'
+    input = 'test_sparse_sensing_helpers.py'
+    python_command = 'python -m pytest -v'
+    required_libraries = 'pysensors'
+  [../]
+[]
