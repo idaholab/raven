@@ -1765,20 +1765,14 @@ Genetic Algorithm Example:
   The \xmlNode{MultiObjectiveGeneticAlgorithm} augments \xmlNode{GeneticAlgorithm} with the
   operators required to evolve Pareto-optimal populations. It enables non-dominated sorting,
   crowding-distance survivor selection, and multi-objective convergence metrics that are shared
-  by concrete algorithms selected through the \xmlAttr{type} attribute, such as NSGA-II.\\
-  Non-dominated Sorting Genetic Algorithm II (NSGA-II) is a variant of GAs designed for
-  multiobjective optimization problems.                             NSGA-II extends traditional GAs
-  by incorporating a ranking-based approach and crowding distance estimation to maintain a diverse
-  set of                             non-dominated (Pareto-optimal) solutions. This enables NSGA-II
-  to efficiently explore trade-offs between conflicting objectives,
-  providing decision-makers with a comprehensive view of the problem's solution space. More
-  information about NSGA-II can be found in:\\                              Deb, Kalyanmoy, et al.
-  ``A fast and elitist multiobjective genetic algorithm: NSGA-II.'' IEEE transactions on
-  evolutionary computation 6.2 (2002): 182-197.\\                              Internally,
-  objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking, crowding-distance
-  calculation and convergence checks (\texttt{minObjVals}); exported objective values use the
-  requested convention.                             Survivor selection must be
-  \textit{rankNcrowdingBased} and parent selection \textit{tournamentSelection}.
+  by concrete algorithms selected through the \xmlAttr{type} attribute: \xmlString{NSGA-II}
+  (the default) and \xmlString{NSGA-III}. The options below are common to every algorithm; the
+  nodes that only one algorithm reads are listed in that algorithm's subsection.\\
+  Internally, objectives declared as \texttt{max} are multiplied by -1 before Pareto ranking,
+  crowding-distance                             calculation and convergence checks
+  (\texttt{minObjVals}); exported objective values use the requested convention.
+  Survivor selection must be \textit{rankNcrowdingBased} and parent selection
+  \textit{tournamentSelection}.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -1809,9 +1803,10 @@ Genetic Algorithm Example:
         User-defined name to designate this entity in the RAVEN input file.
       \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional},
         Desired verbosity of messages coming from this entity
-      \item \xmlAttr{type}: \xmlDesc{[NSGA-II], optional},
-        selects the concrete multi-objective genetic algorithm to run. Currently \xmlString{NSGA-II}
-        (Non-dominated Sorting Genetic Algorithm II) is available. Defaults to \xmlString{NSGA-II}. \default{NSGA-II}
+      \item \xmlAttr{type}: \xmlDesc{[NSGA-II, NSGA-III], optional},
+        selects the concrete multi-objective genetic algorithm to run: \xmlString{NSGA-II}
+        (Non-dominated Sorting Genetic Algorithm II, Deb et al. 2002) or \xmlString{NSGA-III}
+        (reference-point NSGA-III, Deb and Jain 2014). Defaults to \xmlString{NSGA-II}. \default{NSGA-II}
   \end{itemize}
 
   The \xmlNode{MultiObjectiveGeneticAlgorithm} node recognizes the following subnodes:
@@ -2498,6 +2493,132 @@ Multiobjective Genetic Algorithm Example (NSGA-II):
         <distribution>unifDist</distribution>
       </variable>
       <objective>obj1, obj2</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </MultiObjectiveGeneticAlgorithm>
+  </Optimizers>
+\end{lstlisting}
+
+
+\subsubsection{NSGA-II}
+  The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-II}
+  (the default) runs the Non-dominated Sorting Genetic Algorithm II. NSGA-II
+  ranks the population by non-dominated sorting and uses crowding-distance
+  estimation to keep a diverse set of non-dominated (Pareto-optimal) solutions,
+  which lets it explore the trade-offs between conflicting objectives. More
+  information about NSGA-II can be found in:\\                              Deb, Kalyanmoy, et al.
+  ``A fast and elitist multiobjective genetic algorithm:                             NSGA-II.'' IEEE
+  transactions on evolutionary computation 6.2 (2002): 182-197.
+
+  It reads no subnodes beyond the shared options above.
+
+
+\subsubsection{NSGA-III}
+  The \xmlNode{MultiObjectiveGeneticAlgorithm} with \xmlAttr{type}=\xmlString{NSGA-III}
+  replaces the crowding-distance step of NSGA-II with the reference-point niching
+  strategy of NSGA-III, which keeps the population spread over the front when there
+  are three or more objectives. Its reference-direction, normalization, association
+  and niching steps are each selectable operator families; the defaults reproduce the
+  canonical NSGA-III. More information about NSGA-III can be found in:\\
+  Deb, Kalyanmoy, and Himanshu Jain. ``An evolutionary many-objective optimization
+  algorithm using reference-point-based nondominated sorting approach, part I: solving
+  problems with box constraints.'' IEEE transactions on evolutionary computation 18.4
+  (2014): 577-601.
+
+  In addition to the options above, \xmlAttr{type}=\xmlString{NSGA-III} reads the following subnodes of \xmlNode{MultiObjectiveGeneticAlgorithm}:
+  \begin{itemize}
+    \item \xmlNode{referenceDirections}: \xmlDesc{string},
+      the structured reference directions on the unit simplex that NSGA-III uses to
+      preserve diversity.
+      The \xmlNode{referenceDirections} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{type}: \xmlDesc{[dasDennis], optional},
+            the reference-direction design. \xmlString{dasDennis} (default) is the Das and Dennis
+            (1998) simplex-lattice with the two-layer construction of Deb and Jain (2014).
+      \end{itemize}
+
+    \item \xmlNode{objectiveNormalization}: \xmlDesc{string},
+      how combined-population objectives are normalized before association.
+      The \xmlNode{objectiveNormalization} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{type}: \xmlDesc{[hyperplane, simplexSum, none], optional},
+            the normalization scheme. \xmlString{hyperplane} (default) is the Deb and Jain
+            (2014) adaptive ideal-point/extreme-point/intercept normalization;
+            \xmlString{simplexSum} projects onto the unit simplex; \xmlString{none} translates
+            by the ideal point only.
+      \end{itemize}
+
+    \item \xmlNode{association}: \xmlDesc{string},
+      how each solution is associated with a reference direction.
+      The \xmlNode{association} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{type}: \xmlDesc{[perpendicular], optional},
+            the association rule. \xmlString{perpendicular} (default) associates with the
+            reference line of minimum perpendicular distance (Deb and Jain, 2014).
+      \end{itemize}
+
+    \item \xmlNode{niching}: \xmlDesc{string},
+      how the final (splitting) front's survivor slots are filled across reference
+      directions.
+      The \xmlNode{niching} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{type}: \xmlDesc{[referencePoint, referencePointDeterministic], optional},
+            the niche-preservation rule. \xmlString{referencePoint} (default) is Deb and Jain
+            (2014) Algorithm 4 (minimum perpendicular distance for an empty niche, a random
+            associated member for an occupied one); \xmlString{referencePointDeterministic}
+            always takes the minimum-distance member for a reproducible, randomness-free
+            survivor set.
+      \end{itemize}
+
+  \end{itemize}
+
+\hspace{24pt}
+Multiobjective Genetic Algorithm Example (NSGA-III, with the reference-point operator families at
+their defaults):
+\begin{lstlisting}[style=XML]
+  <Optimizers>
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-III">
+      <samplerInit>
+        <limit>15</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min,min,min</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>50</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="sbxCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="polynomialMutator">
+            <mutationProb>0.15</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst"/>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+
+      <referenceDirections type="dasDennis"/>
+      <objectiveNormalization type="hyperplane"/>
+      <association type="perpendicular"/>
+      <niching type="referencePoint"/>
+
+      <convergence>
+        <AHDp>0.01</AHDp>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>unifDist</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>unifDist</distribution>
+      </variable>
+      <objective>obj1, obj2, obj3</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </MultiObjectiveGeneticAlgorithm>

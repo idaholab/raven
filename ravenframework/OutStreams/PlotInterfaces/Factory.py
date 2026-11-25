@@ -62,6 +62,8 @@ from .ParetoSurfacePlot import ParetoSurfacePlot
 from .FeasibilityRadarPlot import FeasibilityRadarPlot
 from .ParetoChartPlot import ParetoChartPlot
 from .AdjustedEpsilonOptimalPlot import AdjustedEpsilonOptimalPlot
+from .NSGAIIINichingHeatmapPlot import NSGAIIINichingHeatmapPlot
+from .NSGAIIIReferenceDirectionPlot import NSGAIIIReferenceDirectionPlot
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
@@ -105,3 +107,5 @@ factory.registerType('ParetoSurfacePlot', ParetoSurfacePlot)
 factory.registerType('FeasibilityRadarPlot', FeasibilityRadarPlot)
 factory.registerType('ParetoChartPlot', ParetoChartPlot)
 factory.registerType('AdjustedEpsilonOptimalPlot', AdjustedEpsilonOptimalPlot)
+factory.registerType('NSGAIIINichingHeatmapPlot', NSGAIIINichingHeatmapPlot)
+factory.registerType('NSGAIIIReferenceDirectionPlot', NSGAIIIReferenceDirectionPlot)

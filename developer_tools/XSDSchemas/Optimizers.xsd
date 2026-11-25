@@ -255,6 +255,27 @@
                 <xsd:attribute name="type" type="xsd:string"/>
               </xsd:complexType>
             </xsd:element>
+            <!-- NSGA-III (type="NSGA-III") reference-point operator families -->
+            <xsd:element name="referenceDirections">
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="type" type="xsd:string"/>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="objectiveNormalization">
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="type" type="xsd:string"/>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="association">
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="type" type="xsd:string"/>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="niching">
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="type" type="xsd:string"/>
+              </xsd:complexType>
+            </xsd:element>
             <xsd:group ref="GACommonChoice"/>
         </xsd:choice>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>

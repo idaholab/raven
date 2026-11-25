@@ -1245,4 +1245,52 @@
       output = 'discrete/constrained/MinwoRepMultiObjectiveConvHypervolume/1-population.png'
     [../]
   [../]
+
+  [./NSGA-III_DTLZ2]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/NSGA3_DTLZ2.xml'
+    required_libraries = 'imageio'
+    rel_err = 0.5
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/NSGA3_DTLZ2/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/NSGA3_DTLZ2/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/NSGA3_DTLZ2/1-population.png'
+    [../]
+    [./plot_niching_heatmap]
+      type = Exists
+      output = 'continuous/unconstrained/NSGA3_DTLZ2/1-niching_heatmap.png'
+    [../]
+    [./plot_reference_directions]
+      type = Exists
+      output = 'continuous/unconstrained/NSGA3_DTLZ2/1-reference_directions.png'
+    [../]
+  [../]
+
+  [./NSGA-III_DTLZ2_variants]
+    type = 'RavenFramework'
+    input = 'continuous/unconstrained/NSGA3_DTLZ2_variants.xml'
+    required_libraries = 'imageio'
+    rel_err = 0.5
+    [./csv]
+      type = UnorderedCSV
+      output = 'continuous/unconstrained/NSGA3_DTLZ2_variants/opt_export_0.csv'
+      rel_err = 0.001
+    [../]
+    [./plot_opt_path]
+      type = Exists
+      output = 'continuous/unconstrained/NSGA3_DTLZ2_variants/1-opt_path.png'
+    [../]
+    [./plot_population]
+      type = Exists
+      output = 'continuous/unconstrained/NSGA3_DTLZ2_variants/1-population.png'
+    [../]
+  [../]
 []

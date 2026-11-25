@@ -1,0 +1,149 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>raven/tests/framework/Optimizers/GeneticAlgorithms.NSGA-III_DTLZ2_variants</name>
+    <author>Mohammad Abdo (@Jimmy-INL)</author>
+    <created>2026-10-03</created>
+    <classesTested>Optimizers.MultiObjectiveGeneticAlgorithm;Optimizers.NSGAIII;Optimizers.referenceDirectionHandlers.dasDennis;Optimizers.normalizationHandlers.simplexSum;Optimizers.associationHandlers.perpendicular;Optimizers.nichingHandlers.referencePointDeterministic</classesTested>
+    <description>NSGA-III on the DTLZ2 three-objective benchmark (Deb and Jain, 2014), selected via
+    &lt;MultiObjectiveGeneticAlgorithm type="NSGA-III"&gt;. This deck exercises the non-default operator families: simplexSum normalization and the
+    deterministic referencePointDeterministic niching (reproducible, no niche-tie randomness),
+    keeping dasDennis reference directions and perpendicular association. DTLZ2 has a
+    known Pareto front on the unit sphere (f1^2 + f2^2 + f3^2 = 1), so the converged front should lie
+    on that surface. All three objectives are minimized.</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>NSGA3_DTLZ2_variants</WorkingDir>
+    <Sequence>optimize,print</Sequence>
+    <batchSize>1</batchSize>
+    <globalSeed>5489</globalSeed>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">dtlz2</Model>
+      <Optimizer class="Optimizers" type="MultiObjectiveGeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
+      <Output class="OutStreams" type="Plot">population</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/DTLZ2_model.py" name="dtlz2" subType="">
+      <variables>x1,x2,x3,x4,x5,x6,x7,f1,f2,f3</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="unit">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <MultiObjectiveGeneticAlgorithm name="GAopt" type="NSGA-III">
+      <samplerInit>
+        <limit>15</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min, min, min</type>
+      </samplerInit>
+      <GAparams>
+        <populationSize>50</populationSize>
+        <parentSelection>tournamentSelection</parentSelection>
+        <reproduction>
+          <crossover type="sbxCrossover">
+            <crossoverProb>0.9</crossoverProb>
+          </crossover>
+          <mutation type="polynomialMutator">
+            <mutationProb>0.15</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="feasibleFirst"/>
+        <survivorSelection>rankNcrowdingBased</survivorSelection>
+      </GAparams>
+      <referenceDirections type="dasDennis"/>
+      <objectiveNormalization type="simplexSum"/>
+      <association type="perpendicular"/>
+      <niching type="referencePointDeterministic"/>
+      <convergence>
+        <!-- DTLZ2's Pareto front is a continuous surface (the unit sphere), not a single target
+             point, so the goal-seeking <objective> criterion does not apply. Use the Average
+             Hausdorff Distance between successive fronts (AHDp), a front-convergence metric valid
+             for any number of objectives; the run otherwise stops at the generation <limit>. -->
+        <AHDp>0.01</AHDp>
+      </convergence>
+      <variable name="x1"><distribution>unit</distribution></variable>
+      <variable name="x2"><distribution>unit</distribution></variable>
+      <variable name="x3"><distribution>unit</distribution></variable>
+      <variable name="x4"><distribution>unit</distribution></variable>
+      <variable name="x5"><distribution>unit</distribution></variable>
+      <variable name="x6"><distribution>unit</distribution></variable>
+      <variable name="x7"><distribution>unit</distribution></variable>
+      <objective>f1, f2, f3</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </MultiObjectiveGeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>50</limit>
+        <initialSeed>050877</initialSeed>
+      </samplerInit>
+      <variable name="x1"><distribution>unit</distribution></variable>
+      <variable name="x2"><distribution>unit</distribution></variable>
+      <variable name="x3"><distribution>unit</distribution></variable>
+      <variable name="x4"><distribution>unit</distribution></variable>
+      <variable name="x5"><distribution>unit</distribution></variable>
+      <variable name="x6"><distribution>unit</distribution></variable>
+      <variable name="x7"><distribution>unit</distribution></variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x1,x2,x3,x4,x5,x6,x7</Input>
+      <Output>f1, f2, f3</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x1,x2,x3,x4,x5,x6,x7,f1,f2,f3,age,batchId,rank,CD,FitnessEvaluation_f1,FitnessEvaluation_f2,FitnessEvaluation_f3,accepted,conv_AHDp</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Plot name="opt_path" subType="OptPath">
+      <source>opt_export</source>
+      <vars>x1, x2, x3, x4, x5, x6, x7, f1, f2, f3</vars>
+    </Plot>
+    <Plot name="population" subType="PopulationPlot">
+      <source>opt_export</source>
+      <vars>x1, x2, x3, x4, x5, x6, x7, f1, f2, f3</vars>
+      <index>batchId</index>
+      <how>png</how>
+    </Plot>
+  </OutStreams>
+</Simulation>
