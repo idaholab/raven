@@ -703,7 +703,7 @@ def convertSinCosToSinPhase(A, B):
     @ Out, p, float, phase shift of sine-only waveform
   """
   p = np.arctan2(B, A)
-  C = A / np.cos(p)
+  C = np.hypot(A, B)
 
   return C, p
 

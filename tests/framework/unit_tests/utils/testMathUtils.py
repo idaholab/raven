@@ -500,6 +500,21 @@ testVarGroup(groups,'intersect','a1')           # intersect is AND for a, d
 testVarGroup(groups,'symmdiff','a2,a3,b1')      # symdiff is XOR for a, d
 testVarGroup(groups,'symmrev','b1,a2,a3')       # symmrev shows order depends on how variables are put in
 
+### check "convertSinCosToSinPhase"
+sinCosCases = [
+  (3.0, 4.0, 5.0, np.arctan2(4.0, 3.0)),
+  (-3.0, 4.0, 5.0, np.arctan2(4.0, -3.0)),
+  (0.0, 5.0, 5.0, 0.5 * np.pi),
+  (0.0, -5.0, 5.0, -0.5 * np.pi),
+  (-1e-17, 1.0, 1.0, 0.5 * np.pi),
+  (1e-16, 5.0, 5.0, 0.5 * np.pi),
+  (0.0, 0.0, 0.0, 0.0),
+]
+for A, B, expC, expP in sinCosCases:
+  gotC, gotP = mathUtils.convertSinCosToSinPhase(A, B)
+  checkAnswer(f'convertSinCosToSinPhase C ({A}, {B})', gotC, expC, 1e-12)
+  checkAnswer(f'convertSinCosToSinPhase p ({A}, {B})', gotP, expP, 1e-12)
+
 
 print(results)
 
